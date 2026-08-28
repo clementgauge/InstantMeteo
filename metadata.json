@@ -1,0 +1,6 @@
+{
+  "name": "Instant Météo",
+  "description": "Application météorologique de précision pour les 35 000 communes de France : prévisions directes et temps réel (0-24h / 7j), observatoire néphologique et atlas nuages OMM, archives journalières et bilan du mois en cours, matrice de vigilances Météo-France multi-jours, modèles court terme (AROME, IFS, GFS, ICON), tendances et scénarios à 14 jours, bulletins météo J+1 à J+7, prévisions sub-saisonnières à 30 jours, tendances saisonnières à 8 mois par département, région et France entière, et radar précipitations HD.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,85 @@
+{
+  "name": "Instant Météo - Prévisions & Radar HD",
+  "short_name": "Instant Météo",
+  "description": "Application météorologique de précision pour les 35 000 communes de France : temps réel, vigilances Météo-France, radar HD, prévisions 30 jours et tendances 8 mois.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "any",
+  "categories": ["weather", "utilities", "news"],
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-64.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Temps Réel & Direct",
+      "short_name": "Direct",
+      "description": "Consulter les prévisions en temps réel",
+      "url": "/?tab=realtime",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Vigilances & Alertes",
+      "short_name": "Vigilance",
+      "description": "Carte de vigilance Météo-France",
+      "url": "/?tab=vigilance",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Radar Pluie HD",
+      "short_name": "Radar",
+      "description": "Radar des précipitations en direct",
+      "url": "/?tab=radar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Prévisions 30 Jours",
+      "short_name": "30 Jours",
+      "description": "Tendances sub-saisonnières",
+      "url": "/?tab=thirtyDays",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
