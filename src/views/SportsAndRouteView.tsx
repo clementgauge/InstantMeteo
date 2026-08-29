@@ -41,15 +41,62 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
 }) => {
   const activeStation = station || currentStation;
 
-  // Compute outdoor activity score (0-10) "Ça vaut le coup de sortir ?"
+  // Compute outdoor activity score (0-10) "Ça vaut le coup de sortir ?" with comprehensive biometeorology conditions
   const calculateOutdoorsScore = () => {
     let score = 10;
-    if (weather.precipitation > 0) score -= Math.min(5, weather.precipitation * 2);
-    if (weather.windSpeed > 35) score -= 2;
-    if (weather.windSpeed > 60) score -= 4;
-    if (weather.temperature < 3 || weather.temperature > 34) score -= 2.5;
-    if (weather.uvIndex && weather.uvIndex >= 8) score -= 1;
-    return Math.max(1, Math.min(10, Number(score.toFixed(1))));
+    const temp = weather.temperature;
+    const feelsLike = weather.feelsLike;
+    const precip = weather.precipitation;
+    const wind = weather.windSpeed;
+    const gusts = weather.windGust || wind * 1.3;
+    const humidity = weather.humidity ?? 60;
+    const uv = weather.uvIndex ?? 4;
+    const wCode = weather.weatherCode ?? 0;
+
+    // 1. Thermal Comfort Curve (Optimum around 19°C - 23°C)
+    if (temp < -5) score -= 5.5;
+    else if (temp < 2) score -= 4.0;
+    else if (temp < 8) score -= 2.6;
+    else if (temp < 14) score -= 1.4;
+    else if (temp < 18) score -= 0.6;
+    else if (temp <= 24) score -= 0; // Ideal comfort
+    else if (temp <= 28) score -= 0.8;
+    else if (temp <= 32) score -= 2.2;
+    else if (temp <= 36) score -= 3.8;
+    else score -= 5.5; // Canicule extrême
+
+    // Wind chill penalty or high heat index penalty
+    if (feelsLike < temp - 3) score -= 0.8;
+    if (feelsLike > temp + 3 && temp > 26) score -= 1.2;
+
+    // 2. Precipitation & Road/Trail Wetness
+    if (precip > 5.0) score -= 6.5;
+    else if (precip > 2.0) score -= 4.8;
+    else if (precip > 0.5) score -= 3.2;
+    else if (precip > 0) score -= 1.8;
+
+    // 3. Wind & Gusts
+    if (gusts > 80) score -= 4.5;
+    else if (gusts > 55 || wind > 40) score -= 2.8;
+    else if (gusts > 35 || wind > 25) score -= 1.4;
+    else if (wind > 18) score -= 0.5;
+
+    // 4. Relative Humidity & Muggy / Clammy sensation
+    if (humidity > 88 && temp > 20) score -= 1.4;
+    else if (humidity > 85 && temp < 10) score -= 1.0; // Froid humide pénétrant
+    else if (humidity < 20) score -= 0.8; // Air très sec
+
+    // 5. Severe Weather Code Penalties (Fog, Snow, Thunderstorm)
+    if (wCode >= 95) score -= 5.0; // Orages
+    else if (wCode >= 71 && wCode <= 86) score -= 3.5; // Neige
+    else if (wCode >= 45 && wCode <= 48) score -= 2.5; // Brouillard dense
+    else if (wCode === 3) score -= 0.5; // Ciel très couvert
+
+    // 6. UV Index Penalty
+    if (uv >= 10) score -= 2.0;
+    else if (uv >= 8) score -= 1.0;
+
+    return Math.max(1.0, Math.min(10.0, Number(score.toFixed(1))));
   };
 
   const outdoorScore = calculateOutdoorsScore();

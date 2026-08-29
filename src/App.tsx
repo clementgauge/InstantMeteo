@@ -51,10 +51,11 @@ import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Ra
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
-import { IdealLocationView } from './views/IdealLocationView';
 import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
 import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
+import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
+import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -94,6 +95,7 @@ function WeatherApp() {
   const [isAtmosphereModalOpen, setIsAtmosphereModalOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState<boolean>(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
   const [activeRecalibration, setActiveRecalibration] = useState<RecalibrationState | null>(() => getActiveRecalibration());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -414,19 +416,17 @@ function WeatherApp() {
                 ? genericPageSection('Radar Précipitations, Feux NASA & Vents', CloudRain)
                 : activeTab === 'historicalTrends'
                   ? genericPageSection('Évolution 2000 & Temps Réel 1min', History)
-                  : activeTab === 'idealLocation'
-                    ? genericPageSection('Lieu Idéal & Vacances', Compass)
-                    : activeTab === 'sportsActivities'
-                      ? [
-                          { id: 'sports-score-section', label: 'Index de Sortie & Tenue', icon: ShieldAlert },
-                          { id: 'sports-disciplines-section', label: 'Disciplines & Créneaux', icon: TrendingUp },
-                          { id: 'route-weather-calculator-section', label: "Météo d'Itinéraire & Trajets", icon: Compass },
-                        ]
-                      : activeTab === 'worldDisasters'
-                        ? genericPageSection('Monde & Catastrophes 24h', Radio)
-                        : activeTab === 'weatherArchive'
-                          ? genericPageSection('Archives Journalières Météo', Calendar)
-                          : genericPageSection('Stations & Sommets de France', Map);
+                  : activeTab === 'sportsActivities'
+                    ? [
+                        { id: 'sports-score-section', label: 'Index de Sortie & Tenue', icon: ShieldAlert },
+                        { id: 'sports-disciplines-section', label: 'Disciplines & Créneaux', icon: TrendingUp },
+                        { id: 'route-weather-calculator-section', label: "Météo d'Itinéraire & Trajets", icon: Compass },
+                      ]
+                    : activeTab === 'worldDisasters'
+                      ? genericPageSection('Monde & Catastrophes 24h', Radio)
+                      : activeTab === 'weatherArchive'
+                        ? genericPageSection('Archives Journalières Météo', Calendar)
+                        : genericPageSection('Stations & Sommets de France', Map);
 
   // Quick navigation helper
   const currentNavIndex = navItems.findIndex(item => item.id === activeTab);
@@ -568,6 +568,7 @@ function WeatherApp() {
           onToggleFullscreen={handleToggleFullscreen}
           onOpenVigilanceTab={() => setActiveTab('vigilance')}
           onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
+          onOpenTutorial={() => setIsTutorialOpen(true)}
           activeAlertCount={activeAlertCount}
         />
       </div>
@@ -765,15 +766,6 @@ function WeatherApp() {
               />
             )}
 
-            {activeTab === 'idealLocation' && (
-              <IdealLocationView
-                currentStation={currentStation}
-                onSelectStation={(st) => setCurrentStation(st)}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-              />
-            )}
-
             {activeTab === 'sportsActivities' && (
               <SportsAndRouteView
                 station={currentStation}
@@ -798,6 +790,7 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 tempUnit={tempUnit}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                onBackToMain={() => setActiveTab('realtime')}
               />
             )}
           </div>
@@ -953,6 +946,19 @@ function WeatherApp() {
           seniorMode={seniorMode}
         />
       )}
+
+      {/* Interactive Step-by-Step Tutorial Modal */}
+      <InteractiveTutorialModal
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        onNavigateTab={(tab) => setActiveTab(tab as NavTabId)}
+      />
+
+      {/* Direct Page Push Notification Permission Prompt */}
+      <UpdateNotificationPrompt
+        isDirectPage={activeTab === 'realtime'}
+        onEnableNotifications={() => setIsNotificationModalOpen(true)}
+      />
     </div>
   );
 }

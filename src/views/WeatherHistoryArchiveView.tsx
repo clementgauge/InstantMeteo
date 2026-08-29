@@ -46,6 +46,7 @@ interface WeatherHistoryArchiveViewProps {
   seniorMode?: boolean;
   tempUnit?: 'C' | 'F';
   onOpenSearchModal?: () => void;
+  onBackToMain?: () => void;
 }
 
 export type WeatherMainCondition = 
@@ -111,7 +112,8 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
   weather,
   seniorMode = false,
   tempUnit = 'C',
-  onOpenSearchModal
+  onOpenSearchModal,
+  onBackToMain
 }) => {
   // Date Picker state (defaults to yesterday)
   const defaultYesterday = useMemo(() => {
@@ -319,6 +321,16 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
           </div>
 
           <div className="flex items-center gap-3">
+            {onBackToMain && (
+              <button
+                onClick={onBackToMain}
+                className="flex items-center gap-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 text-xs shadow-md border border-slate-700 transition active:scale-95 cursor-pointer"
+                title="Retourner à la page principale (Météo en direct)"
+              >
+                <span>⬅️ Retour au direct</span>
+              </button>
+            )}
+
             {onOpenSearchModal && (
               <button
                 onClick={onOpenSearchModal}
@@ -332,7 +344,7 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
         </div>
 
         {/* Date Selector Form */}
-        <div className="mt-6 pt-5 border-t border-slate-800 flex flex-wrap items-center gap-4">
+        <div className="mt-6 pt-5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <label htmlFor="history-date-input" className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <Calendar className="h-4 w-4 text-amber-400" />
@@ -349,34 +361,14 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
             />
           </div>
 
-          {/* Quick preset buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-400 font-bold">Repères rapides :</span>
+          {onBackToMain && (
             <button
-              onClick={() => setSelectedDate('2023-08-23')}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
+              onClick={onBackToMain}
+              className="text-xs text-amber-400 hover:text-amber-300 font-bold underline transition cursor-pointer"
             >
-              Canicule 2023
+              ← Retourner à la météo en direct
             </button>
-            <button
-              onClick={() => setSelectedDate('2019-06-28')}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
-            >
-              Record Absolu +46°C (2019)
-            </button>
-            <button
-              onClick={() => setSelectedDate('2010-12-08')}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
-            >
-              Neige &amp; Grand Froid (2010)
-            </button>
-            <button
-              onClick={() => setSelectedDate('2003-08-11')}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
-            >
-              Pic Canicule 2003
-            </button>
-          </div>
+          )}
         </div>
       </div>
 

@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="shortcut icon" href="/Instant-Meteo.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <title>Instant Météo - Prévisions & Radar HD Haute Précision</title>
     
     <!-- PWA & Mobile Web App settings -->
@@ -24,11 +26,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Custom Style for embedded widgets -->
+    <!-- Custom Style for embedded widgets & Google Translate banner suppression -->
     <style>
-      /* Hide standard Google Translate banner artifact while preserving function */
-      .goog-te-banner-frame.skiptranslate { display: none !important; }
-      body { top: 0px !important; }
+      /* Hide all Google Translate banner artifacts while preserving function */
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      iframe.goog-te-banner-frame,
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      .VIpgJd-ZVi9od-ORHb-OEVmcd,
+      .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+      .VIpgJd-ZVi9od-vH1Gmf-ibnC6b {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+        width: 0px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      body {
+        top: 0px !important;
+        position: static !important;
+        margin-top: 0px !important;
+      }
+      html {
+        margin-top: 0px !important;
+        top: 0px !important;
+      }
       #google_translate_element select {
         background-color: #0f172a;
         color: #f8fafc;
@@ -42,6 +66,7 @@
       }
       .goog-logo-link, .goog-te-gadget span { display: none !important; }
       .goog-te-gadget { color: transparent !important; font-size: 0px !important; }
+      .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">

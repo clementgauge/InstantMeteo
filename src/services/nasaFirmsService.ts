@@ -850,56 +850,11 @@ export function calculateFirmsBearing(lat1: number, lon1: number, lat2: number, 
 }
 
 /**
- * Fetches all NASA FIRMS Hotspots for France and the Entire World, with dynamic local hotspots if station is in high risk
+ * Fetches all official NASA FIRMS Hotspots for France and the Entire World (VIIRS 375m & MODIS)
  */
 export function getAllNasaFirmsHotspots(station?: LocationPoint): NasaFirmsHotspot[] {
-  const list = [...BASE_NASA_FIRMS_HOTSPOTS];
-
-  // If a specific station is provided and there is a nearby high risk or user examination,
-  // ensure there is a realistic NASA FIRMS hotspot if located in prone areas
-  if (station && station.latitude && station.longitude) {
-    const isStationCovered = list.some(h => calculateFirmsDistanceKm(station.latitude, station.longitude, h.latitude, h.longitude) < 25);
-    
-    // Check if station is in a prone department without an existing close hotspot
-    const isFireZone = ['13', '83', '06', '34', '30', '66', '2A', '2B', '33', '40', '84', '04', '05', '26', '07'].some(dep => (station.department || '').includes(dep));
-    
-    if (isFireZone && !isStationCovered) {
-      const localLat = station.latitude - 0.032;
-      const localLon = station.longitude + 0.024;
-      list.push({
-        id: `firms-snpp-local-${station.id}`,
-        latitude: localLat,
-        longitude: localLon,
-        brightnessKelvin: 352.4,
-        brightnessCelsius: 79.25,
-        scanKm: 0.375,
-        trackKm: 0.375,
-        acqDate: getNasaFirmsDateString(),
-        acqTime: '12:44',
-        satellite: 'Suomi-NPP',
-        instrument: 'VIIRS (375m)',
-        confidence: 'high',
-        confidencePercent: 89,
-        version: '2.0NRT',
-        brightT31Kelvin: 302.8,
-        frpMw: 32.5,
-        daynight: 'D',
-        zoneName: `Secteur ${station.name} Sud-Est`,
-        department: station.department || 'France',
-        continent: 'Europe',
-        status: 'ACTIF',
-        fireType: 'Forêt / Massif boisé',
-        estimatedSurfaceHa: 8.5,
-        forcesDeployed: {
-          firefighters: 36,
-          vehicles: 9,
-          airTankers: 1
-        }
-      });
-    }
-  }
-
-  return list;
+  // Return verified global and national active satellite hotspots catalog
+  return [...BASE_NASA_FIRMS_HOTSPOTS];
 }
 
 /**

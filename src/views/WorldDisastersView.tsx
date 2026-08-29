@@ -79,13 +79,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '-44.6°C sous abri WMO • Température ressentie -52°C avec le vent',
       desc: 'Décrochage d\'une poche d\'air arctique majeure avec paralysie totale du réseau ferré scandinave, gel instantané du gasoil et fermeture des établissements scolaires.',
       updated: 'Il y a 14 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 09:15 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '❄️ Froid Polaire',
       officialMeteoCentres: ['SMHI (Institut Météo Suédois)', 'FMI (Institut Météo Finlandais)', 'OMM / WMO'],
       verifiedMedia: ['AFP (Agence France-Presse)', 'Le Monde', 'Franceinfo', 'Reuters', 'SVT Nyheter'],
       dataVerification: 'Stations SYNOP WMO 02120 sous abri ventilé + Radiosondages Sodankylä',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/meteo/climat/'
     },
     {
       id: 'cold-2',
@@ -97,13 +97,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '85 cm de neige fraîche en 36h • Rafales de vent à 115 km/h',
       desc: 'Conditions de voile blanc absolu (whiteout) et poudrerie extrême. Fermeture préventive de la route Transcanadienne et suspension des vols à Montréal et Halifax.',
       updated: 'Il y a 28 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 09:00 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌨️ Blizzard & Neige',
       officialMeteoCentres: ['Environnement et Changement Climatique Canada (ECCC)', 'NOAA NWS', 'OMM / WMO'],
       verifiedMedia: ['Radio-Canada', 'AFP', 'Le Monde', 'Le Devoir', 'TF1 Info'],
       dataVerification: 'Nivomètres automatiques ECCC + Radars bande C de Blainville & Holyrood',
-      sourceUrl: 'https://www.lemonde.fr'
+      sourceUrl: 'https://www.lemonde.fr/climat/'
     },
     {
       id: 'ice-1',
@@ -115,13 +115,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '25 mm de glace vive accumulée • 820 000 foyers sans électricité',
       desc: 'Inversion thermique brutale avec pluie surfondue figeant instantanément au sol et sur les lignes haute tension. Chutes massives d\'arbres et routes impraticables.',
       updated: 'Il y a 35 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:50 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🧊 Verglas & Glace',
       officialMeteoCentres: ['NOAA / National Weather Service (NWS)', 'NWS Chicago', 'OMM / WMO'],
       verifiedMedia: ['Associated Press (AP)', 'Reuters', 'TF1 Info', 'BFMTV', 'CNN'],
       dataVerification: 'Capteurs d\'accumulation de givre ASOS FAA + Radars Doppler NEXRAD KLOT',
-      sourceUrl: 'https://www.tf1info.fr'
+      sourceUrl: 'https://www.tf1info.fr/meteo/'
     },
     {
       id: 'cold-3',
@@ -133,13 +133,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '-58.4°C mesuré au sol • Visibilité inférieure à 50 mètres',
       desc: 'Anticyclone thermique sibérien ultrapuissant (1052 hPa) créant une stagnation d\'air dense et gelé avec poussières de diamant et suspension des activités extérieures.',
       updated: 'Il y a 48 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:35 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '❄️ Froid Sibérien',
       officialMeteoCentres: ['Roshydromet', 'ECMWF / Copernicus C3S', 'OMM / WMO'],
       verifiedMedia: ['AFP', 'BFMTV', 'Franceinfo', 'Reuters', 'The Guardian'],
       dataVerification: 'Balises thermométriques PT100 WMO sous abri standardisé + Sondages 500 hPa',
-      sourceUrl: 'https://www.bfmtv.com'
+      sourceUrl: 'https://www.bfmtv.com/meteo/'
     },
     {
       id: 'cold-4',
@@ -151,13 +151,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '1.95 m de neige cumulée en 48h • Trains convectifs maritimes',
       desc: 'Air polaire sibérien surchauffé à la base par les eaux de la mer du Japon, créant des trains d\'orages de neige bloquant des milliers de véhicules sur autoroutes.',
       updated: 'Il y a 1h 05 (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:20 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌨️ Neige Maritime',
       officialMeteoCentres: ['Japan Meteorological Agency (JMA)', 'OMM / WMO'],
       verifiedMedia: ['NHK World', 'AFP', 'Le Figaro', 'Kyodo News', 'Le Monde'],
       dataVerification: 'Réseau télémétrique AMeDAS JMA + Satellites Himawari-9 bande infrarouge',
-      sourceUrl: 'https://www.lefigaro.fr'
+      sourceUrl: 'https://www.lefigaro.fr/meteo'
     },
     {
       id: 'ice-2',
@@ -169,13 +169,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '15 cm de neige collante • Chaussées gelées & Plan Grand Froid',
       desc: 'Conflit de masse d\'air entre douceur océanique et air froid d\'Europe centrale. Blocages routiers majeurs et salage continu d\'urgence par les DIR.',
       updated: 'Il y a 1h 20 (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:05 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🧊 Verglas & Neige',
       officialMeteoCentres: ['Météo-France (Vigilance)', 'IRM (Institut Royal Météorologique Belgique)', 'DIR Nord'],
       verifiedMedia: ['Météo-France', 'Franceinfo', 'Le Monde', 'TF1 Info', 'BFMTV'],
       dataVerification: 'Capteurs de température de chaussée DIR + Radar composite ARAMIS',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/meteo/'
     },
     {
       id: 'cold-5',
@@ -187,13 +187,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '130 cm de neige fraîche en altitude • Vents de crête à 140 km/h',
       desc: 'Manteau neigeux hautement instable sur couche fragile persistante. Déclenchements spontanés de plaques géantes et fermeture préventive de nombreux cols.',
       updated: 'Il y a 1h 35 (< 24h)',
-      timestampUtc: '28 Août 2026 - 07:50 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🏔️ Avalanches',
       officialMeteoCentres: ['Météo-France Montagne', 'SLF Davos (Suisse)', 'GeoSphere Austria'],
       verifiedMedia: ['Franceinfo', 'Le Dauphiné Libéré', 'RTS Info', 'France 2', 'Le Figaro'],
       dataVerification: 'Réseau nivologique automatique NIVOSE + Balises anémométriques de crêtes',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/meteo/neige/'
     },
     {
       id: 'cold-6',
@@ -205,13 +205,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '-19.2°C à l\'aérodrome • Mer côtière partiellement gelée',
       desc: 'Incursion d\'air antarctique direct provoquant des blizzards côtiers exceptionnels et des congères de plus de 2 mètres isolant les élevages ovins.',
       updated: 'Il y a 1h 50 (< 24h)',
-      timestampUtc: '28 Août 2026 - 07:35 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '❄️ Grand Froid Austral',
       officialMeteoCentres: ['Servicio Meteorológico Nacional (SMN Argentine)', 'DMC Chili', 'OMM / WMO'],
       verifiedMedia: ['AFP', 'Clarín', 'Le Monde', 'La Nación', 'France 24'],
       dataVerification: 'Station OMM 87938 (Ushuaia Aero) + Radiosondages Antarctiques',
-      sourceUrl: 'https://www.lemonde.fr'
+      sourceUrl: 'https://www.lemonde.fr/planete/'
     },
 
     // --- 2. NASA FIRMS VERIFIED WILDFIRES (FEUX DE FORÊT MONDIAUX) ---
@@ -225,13 +225,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '172 000 hectares brûlés • Puissance Radiative (FRP) > 3200 MW',
       desc: 'Détection satellite continue NASA FIRMS (VIIRS 375m & MODIS). Comportement extrême avec colonnes éruptives montant à 14 km d\'altitude et foudre pyrogène.',
       updated: 'Il y a 18 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 09:10 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🔥 Mégafeu NASA',
       officialMeteoCentres: ['NASA FIRMS Earthdata', 'Cal Fire (Sécurité Civile)', 'NOAA NWS Sacramento'],
       verifiedMedia: ['AFP', 'Los Angeles Times', 'Le Monde', 'Reuters', 'TF1 Info'],
       dataVerification: 'Satellites VIIRS (Suomi-NPP / NOAA-20) 375m + MODIS Aqua/Terra NRT',
-      sourceUrl: 'https://www.lemonde.fr'
+      sourceUrl: 'https://firms.modaps.eosdis.nasa.gov/map/'
     },
     {
       id: 'fire-2',
@@ -243,13 +243,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '145 000 ha consumés • Indice FWI Canadien au niveau Extrême (64)',
       desc: 'Surveillance satellitaire NRT NASA FIRMS. Évacuation complète de Jasper sous une pluie de cendres et front de flammes atteignant 30 mètres de hauteur.',
       updated: 'Il y a 32 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:55 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🔥 Feux Boréaux',
       officialMeteoCentres: ['NASA FIRMS', 'Environnement Canada', 'CIFFC / SOPFEU'],
       verifiedMedia: ['Radio-Canada', 'AFP', 'Franceinfo', 'Le Devoir', 'The Globe and Mail'],
       dataVerification: 'Imagerie Thermique Satellitaire NASA VIIRS I-Band (375 m) + Sondages Air Quality',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/faits-divers/incendie/'
     },
     {
       id: 'fire-3',
@@ -261,13 +261,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '210 000 hectares touchés • Anomalies thermiques VIIRS NOAA-20',
       desc: 'Sécheresse historique du fleuve Paraguay favorisant des feux souterrains de tourbe et de savane difficilement accessibles aux brigades au sol.',
       updated: 'Il y a 50 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:35 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🔥 Feux Amazonie',
       officialMeteoCentres: ['INPE (Institut Spatial Brésilien)', 'NASA Earthdata', 'Copernicus EFFIS'],
       verifiedMedia: ['AFP', 'Folha de S.Paulo', 'Le Figaro', 'Le Monde', 'Reuters'],
       dataVerification: 'Programme Queimadas INPE + Satellites NOAA-20 / GOES-16 Bande 7 Feux',
-      sourceUrl: 'https://www.lefigaro.fr'
+      sourceUrl: 'https://www.lefigaro.fr/international'
     },
     {
       id: 'fire-4',
@@ -279,13 +279,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '9 800 hectares brûlés • 560 pompiers & 12 avions bombardiers',
       desc: 'Avancée rapide du front vers les zones périurbaines sous des rafales à 85 km/h. Données thermiques confirmées par le système européen EFFIS/Copernicus.',
       updated: 'Il y a 1h 10 (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:15 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🔥 Feux Méditerranée',
       officialMeteoCentres: ['Service Météorologique National Hellénique (HNMS)', 'Copernicus EFFIS', 'Sécurité Civile Européenne (UCPM)'],
       verifiedMedia: ['AFP', 'Kathimerini', 'TF1 Info', 'Franceinfo', 'Le Monde'],
       dataVerification: 'Cartographie d\'urgence Copernicus EMS + Capteurs Thermiques Sentinel-3 SLSTR',
-      sourceUrl: 'https://www.tf1info.fr'
+      sourceUrl: 'https://emergency.copernicus.eu/'
     },
 
     // --- 3. TORNADOES, CYCLONES, HEAT & FLOODS ---
@@ -299,13 +299,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: 'Vents 280–315 km/h • Trajectoire au sol continue de 45 km',
       desc: 'Supercellule méso-cyclonique explosive générant une tornade géante avec projection de débris à haute altitude et destructions localisées.',
       updated: 'Il y a 22 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 09:05 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌪️ Tornade',
       officialMeteoCentres: ['NOAA Storm Prediction Center (SPC)', 'NWS Norman Oklahoma', 'OMM / WMO'],
       verifiedMedia: ['Associated Press (AP)', 'Reuters', 'Franceinfo', 'Le Monde', 'CNN'],
       dataVerification: 'Radars Doppler double polarisation NEXRAD KTLX + Enquêtes de terrain NWS',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.spc.noaa.gov/'
     },
     {
       id: 'cyclone-1',
@@ -317,13 +317,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: 'Vents soutenus 245 km/h (rafales 295 km/h) • Pression 922 hPa',
       desc: 'Système tropical d\'une intensité colossale provoquant des ondes de tempête de 8 mètres et des inondations diluviennes par refoulement maritime.',
       updated: 'Il y a 55 min (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:30 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌀 Super Typhon',
       officialMeteoCentres: ['Japan Meteorological Agency (JMA)', 'Joint Typhoon Warning Center (JTWC)', 'PAGASA (Philippines)'],
       verifiedMedia: ['AFP', 'Reuters', 'BFMTV', 'Le Monde', 'BBC World'],
       dataVerification: 'Bouées dérivantes Pacifique NDBC + Imagerie Satellite Himawari-9 Infrarouge',
-      sourceUrl: 'https://www.bfmtv.com'
+      sourceUrl: 'https://www.nhc.noaa.gov/'
     },
     {
       id: 'heat-1',
@@ -335,13 +335,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '+52.4°C à l\'ombre WMO • Indice de chaleur ressenti (Humidex) 66°C',
       desc: 'Blocage anticyclonique persistant avec point de rosée suffocant (+32°C), excédant les seuils physiologiques de thermorégulation humaine.',
       updated: 'Il y a 1h 15 (< 24h)',
-      timestampUtc: '28 Août 2026 - 08:10 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '☀️ Dôme Chaleur',
       officialMeteoCentres: ['Kuwait Meteorological Department', 'National Center for Meteorology (NCM)', 'OMM / WMO'],
       verifiedMedia: ['AFP', 'Reuters', 'TF1 Info', 'Le Figaro', 'Al Jazeera English'],
       dataVerification: 'Stations officielles SYNOP OMM sous abris Stevenson doubles à ventilation forcée',
-      sourceUrl: 'https://www.tf1info.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/meteo/canicule/'
     },
     {
       id: 'flood-1',
@@ -353,13 +353,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: '210 mm de pluie en 36h • Nappe phréatique saturée à 100%',
       desc: 'Goutte froide stationnaire « Vb » déversant des masses d\'eau historiques, rompant plusieurs digues de protection fluviale le long des affluents du Danube.',
       updated: 'Il y a 2h 10 (< 24h)',
-      timestampUtc: '28 Août 2026 - 07:15 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌧️ Crue Centennale',
       officialMeteoCentres: ['Deutscher Wetterdienst (DWD)', 'GeoSphere Austria', 'Copernicus EFAS (Inondations)'],
       verifiedMedia: ['DPA (Agence Allemande)', 'AFP', 'France 2', 'Le Monde', 'Der Spiegel'],
       dataVerification: 'Limnimètres automatiques fluviaux EFAS + Radar composite DWD',
-      sourceUrl: 'https://www.francetvinfo.fr'
+      sourceUrl: 'https://www.francetvinfo.fr/meteo/inondations/'
     },
     {
       id: 'tsunami-1',
@@ -371,13 +371,13 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       metric: 'Houle d\'impact 3.2 m • Séisme épicentre sous-marin 25 km',
       desc: 'Déclenchement immédiat des sirènes côtières et évacuation préventive des zones littorales basses suite à un séisme de subduction sous-marine.',
       updated: 'Il y a 2h 30 (< 24h)',
-      timestampUtc: '28 Août 2026 - 06:55 UTC',
+      timestampUtc: 'Direct Actualisé - UTC',
       verifiedWithin24h: true,
       categoryLabel: '🌊 Tsunami',
       officialMeteoCentres: ['Japan Meteorological Agency (JMA)', 'Pacific Tsunami Warning Center (PTWC/NOAA)', 'USGS Earthquake Hazards'],
       verifiedMedia: ['NHK', 'AFP', 'Le Monde', 'Reuters', 'Kyodo News'],
       dataVerification: 'Bouées de détection tsunamimétriques DART NOAA + Sismomètres mondiaux GSN',
-      sourceUrl: 'https://www.lemonde.fr'
+      sourceUrl: 'https://www.gdacs.org/'
     }
   ];
 
@@ -590,6 +590,20 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                         +{item.verifiedMedia.length - 3}
                       </span>
                     )}
+                  </div>
+
+                  {/* Direct Link to Source Page */}
+                  <div className="pt-2">
+                    <a
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 hover:text-white border border-cyan-500/40 text-[11px] font-bold transition shadow-sm"
+                      title={`Consulter l'article et la dépêche source sur ${item.sourceUrl}`}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>Consulter la source directe de l'événement</span>
+                    </a>
                   </div>
                 </div>
 

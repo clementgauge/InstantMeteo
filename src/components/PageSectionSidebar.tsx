@@ -78,11 +78,10 @@ const APP_PAGES = [
   { id: 'radar', label: '5. Radar Précipitations, Feux NASA & Vents', icon: CloudRain },
   { id: 'eightMonths', label: '6. Tendances 8 Mois (Dép/Région/Pays)', icon: Globe },
   { id: 'historicalTrends', label: '7. Évolution (depuis 2000 & 1min)', icon: History },
-  { id: 'idealLocation', label: '8. Lieu Idéal & Analyses Villes', icon: Compass },
-  { id: 'sportsActivities', label: '9. Météo Sport & Trajet Itinéraire', icon: TrendingUp },
-  { id: 'worldDisasters', label: '10. Monde & Catastrophes Naturelles', icon: Radio },
-  { id: 'weatherArchive', label: '11. Archives & Historique Journalier', icon: Calendar },
-  { id: 'bulletin', label: '12. Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText },
+  { id: 'sportsActivities', label: '8. Météo Sport & Trajet Itinéraire', icon: TrendingUp },
+  { id: 'worldDisasters', label: '9. Monde & Catastrophes Naturelles', icon: Radio },
+  { id: 'weatherArchive', label: '10. Archives & Historique Journalier', icon: Calendar },
+  { id: 'bulletin', label: '11. Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText },
 ];
 
 export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({

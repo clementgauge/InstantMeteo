@@ -137,7 +137,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full">
           {/* Main Temperature & Location Info */}
-          <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-4">
+          <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-wider">
                 <span>Station Météo de Référence</span>
@@ -171,69 +171,85 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 )}
               </div>
               
-              <p className="mt-0.5 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-400">
                 {station.department} — Altitude : <strong className="text-slate-200">{station.altitude} m</strong> — Climat : {station.climateZone}
               </p>
             </div>
 
             {/* Temperature & Thermal Metrics Display */}
-            <div className="flex flex-wrap items-stretch gap-3.5 sm:gap-4.5">
+            <div className="space-y-3 w-full">
               {/* Massive Current Temperature Display */}
-              <div className="flex items-center gap-4 rounded-3xl border border-slate-700/90 bg-slate-950/95 px-5 py-4 sm:px-7 sm:py-5 shadow-2xl ring-1 ring-white/10 flex-1 min-w-[200px] sm:min-w-[240px]">
-                <span className={`font-black tracking-tight text-white tabular-nums leading-none ${seniorMode ? 'text-7xl sm:text-8xl' : 'text-6xl sm:text-7xl'}`}>
-                  {formatTemp(weather.temperature)}
-                </span>
-                <div className="flex flex-col text-left justify-center pl-1 border-l border-slate-800/90">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Actuelle</span>
-                  <span className="text-sm font-black text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <div className="relative overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950/95 p-5 sm:p-6 shadow-2xl ring-1 ring-white/10">
+                <div className="flex items-center justify-between gap-2 mb-2 border-b border-slate-800/80 pb-2">
+                  <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/40">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
                     En direct
                   </span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Température Actuelle
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <span className={`font-black tracking-tight text-white tabular-nums leading-none ${seniorMode ? 'text-6xl sm:text-7xl md:text-8xl' : 'text-5xl sm:text-6xl md:text-7xl'}`}>
+                    {formatTemp(weather.temperature)}
+                  </span>
+                  <div className="text-right">
+                    <span className={`inline-block rounded-xl bg-blue-600/20 border border-blue-500/30 px-3 py-1.5 font-bold text-blue-200 ${
+                      seniorMode ? 'text-sm' : 'text-xs'
+                    }`}>
+                      {weather.weatherDescription}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Feels Like Card */}
-              <div className="flex flex-col justify-center rounded-2xl border border-cyan-500/40 bg-cyan-950/40 px-4 py-3 sm:px-5 shadow-md min-w-[125px]">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400/90">
-                  Ressenti
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-cyan-300 tabular-nums leading-tight mt-0.5">
-                  {formatTemp(weather.feelsLike)}
-                </span>
-                <span className="text-[11px] text-slate-300 font-medium mt-0.5">
-                  {weather.windSpeed > 20 ? 'Ventilée' : weather.humidity > 70 ? 'Humidex' : 'Confort'}
-                </span>
-              </div>
-
-              {/* Tmin & Tmax Highlights */}
-              <div className="flex flex-col justify-center gap-2 rounded-2xl border border-slate-700/90 bg-slate-950/80 px-3.5 py-3 sm:px-4.5 min-w-[135px] shadow-sm">
-                <div className="flex items-center justify-between gap-2.5 border-b border-slate-800/90 pb-1.5">
-                  <span className="text-xs font-bold text-blue-300 flex items-center gap-1">
-                    ❄️ Tmin :
-                  </span>
-                  <strong className="text-sm sm:text-base font-black text-blue-200 tabular-nums">
-                    {formatTemp(weather.tempMin)}
-                  </strong>
+              {/* Secondary Thermal Metrics: Feels Like & Tmin/Tmax in a 2-column balanced grid */}
+              <div className="grid grid-cols-2 gap-3 w-full">
+                {/* Feels Like Card */}
+                <div className="flex flex-col justify-between rounded-2xl border border-cyan-500/40 bg-cyan-950/40 p-3.5 sm:p-4 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400/90">
+                      Ressenti
+                    </span>
+                    <span className="text-[10px] text-cyan-300/90 font-bold px-1.5 py-0.5 rounded bg-cyan-900/60">
+                      {weather.windSpeed > 20 ? 'Ventilée' : weather.humidity > 70 ? 'Humidex' : 'Confort'}
+                    </span>
+                  </div>
+                  <div className="mt-1">
+                    <span className="text-2xl sm:text-3xl font-black text-cyan-300 tabular-nums leading-tight">
+                      {formatTemp(weather.feelsLike)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between gap-2.5">
-                  <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
-                    🔥 Tmax :
-                  </span>
-                  <strong className="text-sm sm:text-base font-black text-amber-200 tabular-nums">
-                    {formatTemp(weather.tempMax)}
-                  </strong>
+
+                {/* Tmin & Tmax Highlights */}
+                <div className="flex flex-col justify-center gap-1.5 rounded-2xl border border-slate-700/80 bg-slate-950/80 p-3 sm:p-3.5 shadow-sm">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-800/90 pb-1">
+                    <span className="text-xs font-bold text-blue-300 flex items-center gap-1">
+                      ❄️ Tmin :
+                    </span>
+                    <strong className="text-sm sm:text-base font-black text-blue-200 tabular-nums">
+                      {formatTemp(weather.tempMin)}
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
+                      🔥 Tmax :
+                    </span>
+                    <strong className="text-sm sm:text-base font-black text-amber-200 tabular-nums">
+                      {formatTemp(weather.tempMax)}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Condition badge & Live Physical Tags */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-xl bg-blue-600/20 border border-blue-500/30 px-3.5 py-1.5 font-bold text-blue-200 ${
-                seniorMode ? 'text-base' : 'text-xs'
-              }`}>
-                {weather.weatherDescription}
-              </span>
-              
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               {weather.dewPoint !== undefined && (
                 <span className="text-xs px-2.5 py-1 rounded-lg bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 font-medium whitespace-nowrap">
                   Point de rosée : <strong className="tabular-nums">{formatTemp(weather.dewPoint)}</strong>
@@ -244,11 +260,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   QNH : <strong className="tabular-nums">{weather.pressureMsl} hPa</strong>
                 </span>
               )}
+              {weather.windSpeed !== undefined && (
+                <span className="text-xs px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-300 font-medium whitespace-nowrap">
+                  Vent : <strong className="tabular-nums">{Math.round(weather.windSpeed)} km/h</strong>
+                </span>
+              )}
             </div>
           </div>
 
           {/* Representative Day Weather & Key Slots Overview */}
-          <div className="lg:col-span-6 xl:col-span-7 flex flex-col w-full h-full">
+          <div className="lg:col-span-7 xl:col-span-7 flex flex-col w-full h-full">
             <DayWeatherOverviewCard
               weather={weather}
               daily={daily}

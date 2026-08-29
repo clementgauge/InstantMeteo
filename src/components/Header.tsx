@@ -7,15 +7,17 @@ import {
   FileText, 
   Glasses, 
   ChevronDown, 
-  Check,
-  Search,
-  Navigation,
-  Maximize2,
-  Minimize2,
-  Sparkles,
-  BellRing,
-  Settings,
-  X
+  Check, 
+  Search, 
+  Navigation, 
+  Maximize2, 
+  Minimize2, 
+  Sparkles, 
+  BellRing, 
+  Settings, 
+  X,
+  Instagram,
+  HelpCircle
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -34,6 +36,7 @@ interface HeaderProps {
   onOpenComparatorModal: () => void;
   onOpenAtmosphereModal?: () => void;
   onOpenReportModal?: () => void;
+  onOpenTutorial?: () => void;
   activeRecalibration?: { isActive: boolean; stationName: string; tempOffset: number } | null;
   currentTheme?: AtmosphereThemeConfig;
   onRefresh: () => void;
@@ -68,6 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenComparatorModal,
   onOpenAtmosphereModal,
   onOpenReportModal,
+  onOpenTutorial,
   activeRecalibration,
   currentTheme,
   onRefresh,
@@ -251,6 +255,32 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Instagram Official Page Link */}
+          <a
+            id="header-instagram-link"
+            href="https://www.instagram.com/instantmeteo_fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 px-3 py-2 text-xs font-bold text-pink-300 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer"
+            title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
+          >
+            <Instagram className="h-4 w-4 text-pink-400" />
+            <span className="hidden md:inline">Instagram</span>
+          </a>
+
+          {/* Interactive Tutorial Button */}
+          {onOpenTutorial && (
+            <button
+              id="header-tuto-btn"
+              onClick={onOpenTutorial}
+              className="flex items-center gap-1.5 rounded-2xl border border-amber-500/40 bg-amber-950/40 px-3 py-2 text-xs font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
+              title="Lancer le tutoriel interactif du site"
+            >
+              <HelpCircle className="h-4 w-4 text-amber-400" />
+              <span>Tuto</span>
+            </button>
+          )}
 
           {/* Language Selector (FR default, EN, DE, IT, ZH, RU, JA) */}
           <div className="flex items-center">

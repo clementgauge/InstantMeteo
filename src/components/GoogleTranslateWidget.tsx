@@ -28,13 +28,22 @@ export const GoogleTranslateWidget: React.FC<{ compact?: boolean }> = ({ compact
   const [currentLang, setCurrentLang] = useState('fr');
 
   useEffect(() => {
-    // Clear any previous auto-translate cookies so the original French text is preserved by default
+    // Body Mutation Observer to ensure no Google top-banner displaces the UI
+    const observer = new MutationObserver(() => {
+      if (document.body.style.top && document.body.style.top !== '0px') {
+        document.body.style.top = '0px';
+      }
+      if (document.body.style.position && document.body.style.position !== 'static') {
+        document.body.style.position = 'static';
+      }
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+
     try {
       const savedLang = localStorage.getItem('app_user_lang');
       if (!savedLang || savedLang === 'fr') {
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+        clearTranslateCookies();
         setCurrentLang('fr');
       } else {
         setCurrentLang(savedLang);
@@ -43,7 +52,18 @@ export const GoogleTranslateWidget: React.FC<{ compact?: boolean }> = ({ compact
     } catch {
       // ignore
     }
+
+    return () => observer.disconnect();
   }, []);
+
+  const clearTranslateCookies = () => {
+    const domains = ['', `domain=${window.location.hostname};`, `domain=.${window.location.hostname};`];
+    domains.forEach(d => {
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${d}`;
+      document.cookie = `googtrans=/fr/fr; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${d}`;
+      document.cookie = `googtrans=/auto/fr; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${d}`;
+    });
+  };
 
   const initGoogleTranslate = (targetLang?: string) => {
     try {
@@ -64,12 +84,8 @@ export const GoogleTranslateWidget: React.FC<{ compact?: boolean }> = ({ compact
 
               if (targetLang && targetLang !== 'fr') {
                 setTimeout(() => {
-                  const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-                  if (select) {
-                    select.value = targetLang;
-                    select.dispatchEvent(new Event('change'));
-                  }
-                }, 400);
+                  applyComboLanguage(targetLang);
+                }, 300);
               }
             }
           } catch (err) {
@@ -87,14 +103,19 @@ export const GoogleTranslateWidget: React.FC<{ compact?: boolean }> = ({ compact
         };
         document.body.appendChild(script);
       } else if (targetLang && targetLang !== 'fr') {
-        const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-        if (select) {
-          select.value = targetLang;
-          select.dispatchEvent(new Event('change'));
-        }
+        applyComboLanguage(targetLang);
       }
     } catch (e) {
       console.warn('Error setting up translation widget:', e);
+    }
+  };
+
+  const applyComboLanguage = (langCode: string) => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+    if (select) {
+      select.value = langCode;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      select.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
 
@@ -108,41 +129,34 @@ export const GoogleTranslateWidget: React.FC<{ compact?: boolean }> = ({ compact
         // ignore
       }
 
+      // Clear previous translation cookies first to allow direct switching between ANY languages
+      clearTranslateCookies();
+
       if (langCode === 'fr') {
-        // Reset to original French and wipe cookies
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
-        
-        const frame = document.querySelector('.goog-te-banner-frame') as HTMLIFrameElement;
-        if (frame) {
-          try {
-            const doc = frame.contentDocument || frame.contentWindow?.document;
-            const restoreBtn = doc?.querySelector('.goog-te-button button') as HTMLButtonElement;
-            if (restoreBtn) restoreBtn.click();
-          } catch {
-            // ignore
-          }
-        }
+        // Reset to original French
         const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
         if (select) {
           select.value = '';
-          select.dispatchEvent(new Event('change'));
+          select.dispatchEvent(new Event('change', { bubbles: true }));
         } else {
           window.location.reload();
         }
         return;
       }
 
-      // If user selected a foreign language, initialize or trigger
+      // Set cookie for Google translate format /auto/{langCode} and /fr/{langCode}
+      const domains = ['', `domain=${window.location.hostname};`, `domain=.${window.location.hostname};`];
+      domains.forEach(d => {
+        document.cookie = `googtrans=/fr/${langCode}; path=/; ${d}`;
+        document.cookie = `googtrans=/auto/${langCode}; path=/; ${d}`;
+      });
+
       initGoogleTranslate(langCode);
-      const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-      if (select) {
-        select.value = langCode;
-        select.dispatchEvent(new Event('change'));
-      } else {
-        document.cookie = `googtrans=/fr/${langCode}; path=/;`;
-      }
+
+      // Trigger selection change on the Google combo immediately and with a short timeout
+      applyComboLanguage(langCode);
+      setTimeout(() => applyComboLanguage(langCode), 200);
+      setTimeout(() => applyComboLanguage(langCode), 600);
     } catch (err) {
       console.warn('Language switch caught:', err);
     }

@@ -38,7 +38,6 @@ export type NavTabId =
   | 'radar' 
   | 'eightMonths' 
   | 'historicalTrends'
-  | 'idealLocation'
   | 'sportsActivities'
   | 'worldDisasters'
   | 'weatherArchive'
@@ -125,7 +124,6 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'radar', label: 'Radar', shortLabel: 'Radar', icon: CloudRain },
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
     { id: 'historicalTrends', label: 'Évolution', shortLabel: 'Évolution', icon: History, badge: '2000' },
-    { id: 'idealLocation', label: 'Lieu Idéal', shortLabel: 'Où Partir', icon: Compass },
     { id: 'sportsActivities', label: 'Sport & Trajet', shortLabel: 'Trajet', icon: TrendingUp },
     { id: 'worldDisasters', label: 'Monde & Catastrophes', shortLabel: 'Monde', icon: Radio },
     { id: 'weatherArchive', label: 'Archives Journalières', shortLabel: 'Archives', icon: Calendar, badge: 'Nouveau' },
@@ -154,11 +152,10 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     {
       categoryName: '🗺️ Analyses Territoriales, Trajets & Histoire',
       items: [
-        { id: 'idealLocation', label: '8. Lieu Idéal & Analyses Villes de France', icon: Compass, desc: 'Assistant météo d\'évasion et classement bioclimatique complet de toutes les communes' },
-        { id: 'sportsActivities', label: '9. Activités Sportives & Calculateur de Trajet', icon: TrendingUp, desc: 'Index 0-10, météo d\'itinéraire pas à pas selon moyen de transport (voiture, train, vélo, à pied)' },
-        { id: 'worldDisasters', label: '10. Météo Monde, Tornades & Tsunamis (24h)', icon: Radio, desc: 'Suivi mondial vérifié (Franceinfo, Le Monde, TF1, France 2, BFMTV, Le Figaro)' },
-        { id: 'weatherArchive', label: '11. Archives Journalières & Historique Météo', icon: Calendar, desc: 'Recherche de date passée, météo quotidienne (pluie, soleil, vent, T°C) et journal local' },
-        { id: 'bulletin', label: '12. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
+        { id: 'sportsActivities', label: '8. Activités Sportives & Calculateur de Trajet', icon: TrendingUp, desc: 'Index 0-10, météo d\'itinéraire pas à pas selon moyen de transport (voiture, train, vélo, à pied)' },
+        { id: 'worldDisasters', label: '9. Météo Monde, Tornades & Tsunamis (24h)', icon: Radio, desc: 'Suivi mondial vérifié (Franceinfo, Le Monde, TF1, France 2, BFMTV, Le Figaro)' },
+        { id: 'weatherArchive', label: '10. Archives Journalières & Historique Météo', icon: Calendar, desc: 'Recherche de date passée, météo quotidienne (pluie, soleil, vent, T°C) et journal local' },
+        { id: 'bulletin', label: '11. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
       ]
     }
   ];

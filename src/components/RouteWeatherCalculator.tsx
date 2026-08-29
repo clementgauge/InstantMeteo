@@ -58,6 +58,24 @@ export interface RouteWaypoint {
   hazardAlert?: string;
 }
 
+export interface CarTrafficVigilance {
+  level: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE';
+  levelLabel: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  trafficStatus: string;
+  congestionIndex: number; // 0 - 100%
+  estimatedDelayMinutes: number;
+  sources: string[];
+  bisonFuteStatus: string;
+  bisonFuteColor: string;
+  sytadinStatus: string;
+  meteoFranceVigilance: string;
+  keyAxeAlerts: string[];
+  departureAdvice: string;
+}
+
 export interface RouteAnalysisResult {
   departure: LocationPoint;
   arrival: LocationPoint;
@@ -74,6 +92,7 @@ export interface RouteAnalysisResult {
   recommendations: string[];
   isLiveMapsData?: boolean;
   routingSource?: string;
+  carTrafficVigilance?: CarTrafficVigilance;
 }
 
 interface RouteWeatherCalculatorProps {
@@ -828,6 +847,136 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           ? 'Venteux'
           : 'Clair & Sec';
 
+      // 6. Compute Car Traffic Vigilance (Bison Futé, Sytadin, Vigilance Météo-France)
+      let carTrafficVigilance: CarTrafficVigilance | undefined = undefined;
+      if (transportMode === 'car') {
+        const depHour = now.getHours();
+        const depMin = now.getMinutes();
+        const depDay = now.getDay(); // 0 = Sun, 5 = Fri, 6 = Sat
+        const depTimeDecimal = depHour + depMin / 60;
+
+        // Check if route involves Île-de-France or major metropolitan areas
+        const depDept = (startPoint.department || '').toLowerCase();
+        const arrDept = (endPoint.department || '').toLowerCase();
+        const isIdfOrLargeCity =
+          depDept.includes('paris') || depDept.includes('75') || depDept.includes('78') || depDept.includes('92') ||
+          depDept.includes('93') || depDept.includes('94') || depDept.includes('91') || depDept.includes('95') ||
+          arrDept.includes('paris') || arrDept.includes('75') || arrDept.includes('78') || arrDept.includes('92') ||
+          arrDept.includes('93') || arrDept.includes('94') || arrDept.includes('91') || arrDept.includes('95') ||
+          depDept.includes('rhône') || depDept.includes('69') || arrDept.includes('rhône') || arrDept.includes('69') ||
+          depDept.includes('bouches') || depDept.includes('13') || arrDept.includes('bouches') || arrDept.includes('13');
+
+        // Rush hour detection
+        const isMorningRush = (depTimeDecimal >= 7.25 && depTimeDecimal <= 9.5);
+        const isEveningRush = (depTimeDecimal >= 16.75 && depTimeDecimal <= 19.5);
+        const isWeekendDepartures = (depDay === 5 && depTimeDecimal >= 15.0 && depTimeDecimal <= 20.5);
+        const isWeekendReturns = (depDay === 0 && depTimeDecimal >= 16.0 && depTimeDecimal <= 21.0);
+        const isSaturdayPeak = (depDay === 6 && depTimeDecimal >= 9.0 && depTimeDecimal <= 13.5);
+
+        let trafficLevel: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE' = 'VERT';
+        let congestionIndex = 15; // default fluid
+        let estimatedDelayMin = 0;
+
+        if (hasIceOrSnow) {
+          trafficLevel = 'ROUGE';
+          congestionIndex = 88;
+          estimatedDelayMin = Math.round(roadDistanceKm * 0.18) + 35;
+        } else if (hasAquaplaning || (isWeekendDepartures && isIdfOrLargeCity) || (isWeekendReturns && isIdfOrLargeCity)) {
+          trafficLevel = 'ORANGE';
+          congestionIndex = 72;
+          estimatedDelayMin = Math.round(roadDistanceKm * 0.12) + 25;
+        } else if (isEveningRush || isMorningRush || isSaturdayPeak) {
+          trafficLevel = isIdfOrLargeCity ? 'ORANGE' : 'JAUNE';
+          congestionIndex = isIdfOrLargeCity ? 68 : 45;
+          estimatedDelayMin = isIdfOrLargeCity ? 20 + Math.round(roadDistanceKm * 0.08) : 10 + Math.round(roadDistanceKm * 0.04);
+        } else if (maxPrecip > 0.8 || maxGusts >= 65 || minVis < 1.0) {
+          trafficLevel = 'JAUNE';
+          congestionIndex = 40;
+          estimatedDelayMin = 10 + Math.round(roadDistanceKm * 0.05);
+        }
+
+        // Level Styling
+        let levelLabel = 'Trafic Fluide (Vert)';
+        let badgeBg = 'bg-emerald-950/80';
+        let badgeBorder = 'border-emerald-600/60';
+        let badgeText = 'text-emerald-300';
+        let trafficStatus = 'Conditions de circulation fluides et dégagées sur l’ensemble de l’axe.';
+        let bisonColor = 'Vert (Circulation normale)';
+
+        if (trafficLevel === 'ROUGE') {
+          levelLabel = 'Vigilance ROUGE (Trafic Extrêmement Difficile / Risque Bloquant)';
+          badgeBg = 'bg-rose-950/90';
+          badgeBorder = 'border-rose-600/80';
+          badgeText = 'text-rose-300';
+          trafficStatus = 'Fortes perturbations, bouchons généralisés ou ralentissements sévères.';
+          bisonColor = 'Rouge (Circulation très difficile)';
+        } else if (trafficLevel === 'ORANGE') {
+          levelLabel = 'Vigilance ORANGE (Trafic Très Dense / Ralentissements)';
+          badgeBg = 'bg-orange-950/90';
+          badgeBorder = 'border-orange-600/80';
+          badgeText = 'text-orange-300';
+          trafficStatus = 'Ralentissements fréquents sur les autoroutes et accès aux grandes agglomérations.';
+          bisonColor = 'Orange (Circulation difficile)';
+        } else if (trafficLevel === 'JAUNE') {
+          levelLabel = 'Vigilance JAUNE (Trafic Ralenti / Dense)';
+          badgeBg = 'bg-amber-950/90';
+          badgeBorder = 'border-amber-600/80';
+          badgeText = 'text-amber-300';
+          trafficStatus = 'Densification localisée du trafic, circulation ralentie aux nœuds autoroutiers.';
+          bisonColor = 'Jaune (Circulation dense)';
+        }
+
+        // Sytadin & Bison alerts for key axes
+        const keyAxeAlerts: string[] = [];
+        if (isIdfOrLargeCity) {
+          if (isMorningRush) {
+            keyAxeAlerts.push('Sytadin (Île-de-France) : Rentrées saturées vers A86, Périphérique, A1, A6 et A13.');
+          } else if (isEveningRush) {
+            keyAxeAlerts.push('Sytadin (Île-de-France) : Sorties de capitale chargées sur A6, A10, A13 et Boulevard Périphérique.');
+          } else {
+            keyAxeAlerts.push('Sytadin (Île-de-France) : Flux régulier sur les rocades principales.');
+          }
+        }
+        if (roadDistanceKm > 150) {
+          keyAxeAlerts.push('Bison Futé : Flux interurbain sur le réseau autoroutier national (APRR, Sanef, Vinci).');
+        }
+        if (hasIceOrSnow) {
+          keyAxeAlerts.push('Vigilance Météo-France : Risque neige / verglas impactant l’adhérence des pneumatiques.');
+        } else if (hasAquaplaning) {
+          keyAxeAlerts.push('Vigilance Météo-France : Fortes précipitations réduisant la visibilité et augmentant les distances de freinage.');
+        } else if (maxGusts > 60) {
+          keyAxeAlerts.push('Vigilance Météo-France : Coups de vent latéraux sur les viaducs et zones exposées.');
+        }
+
+        const departureAdvice = trafficLevel === 'ROUGE'
+          ? 'Reportez votre départ si possible ou privilégiez les axes secondaires et anticipez +45 min.'
+          : trafficLevel === 'ORANGE'
+          ? 'Prévoyez un départ décalé de 45 minutes ou surveillez Waze / Google Maps pour contourner les nœuds de congestion.'
+          : trafficLevel === 'JAUNE'
+          ? 'Circulation soutenue mais régulière : respectez les distances de sécurité.'
+          : 'Créneau idéal pour prendre la route : trafic optimal et fluide.';
+
+        carTrafficVigilance = {
+          level: trafficLevel,
+          levelLabel,
+          badgeBg,
+          badgeBorder,
+          badgeText,
+          trafficStatus,
+          congestionIndex,
+          estimatedDelayMinutes: estimatedDelayMin,
+          sources: ['Bison Futé', 'Sytadin', 'Vigilance Météo-France'],
+          bisonFuteStatus: bisonColor,
+          bisonFuteColor: trafficLevel === 'ROUGE' ? '#ef4444' : trafficLevel === 'ORANGE' ? '#f97316' : trafficLevel === 'JAUNE' ? '#eab308' : '#10b981',
+          sytadinStatus: isIdfOrLargeCity 
+            ? (isMorningRush || isEveningRush ? 'Trafic très dense en Île-de-France (Bouchons cumulés > 250 km)' : 'Trafic fluide à modéré en Île-de-France')
+            : 'Non concerné (hors Île-de-France)',
+          meteoFranceVigilance: hasIceOrSnow ? 'Vigilance Neige-Verglas' : hasAquaplaning ? 'Vigilance Pluie-Inondation' : maxGusts > 60 ? 'Vigilance Vent Violent' : 'Conditions Météo Favorables',
+          keyAxeAlerts,
+          departureAdvice
+        };
+      }
+
       setRouteAnalysis({
         departure: startPoint,
         arrival: endPoint,
@@ -844,6 +993,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
         recommendations: recs,
         isLiveMapsData: mapsRoute.isLiveMapsData,
         routingSource: mapsRoute.source,
+        carTrafficVigilance,
       });
     } catch (err: any) {
       console.error('Error calculating route weather:', err);
@@ -1240,6 +1390,129 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               </div>
             </div>
           </div>
+
+          {/* DEDICATED CAR TRAFFIC & VIGILANCE MODULE (Bison Futé • Sytadin • Vigilance Météo-France) */}
+          {transportMode === 'car' && routeAnalysis.carTrafficVigilance && (
+            <div
+              id="car-traffic-vigilance-card"
+              className={`rounded-3xl border ${routeAnalysis.carTrafficVigilance.badgeBorder} ${routeAnalysis.carTrafficVigilance.badgeBg} p-5 sm:p-6 shadow-2xl backdrop-blur space-y-4`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-9 w-9 rounded-2xl bg-slate-950/80 border border-white/20 flex items-center justify-center text-white text-base shadow">
+                    🚗
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black uppercase tracking-wider text-white">
+                        Vigilance &amp; Densité du Trafic Routier (Trajet Voiture)
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${
+                        routeAnalysis.carTrafficVigilance.level === 'ROUGE'
+                          ? 'bg-rose-500 text-slate-950 border-rose-300'
+                          : routeAnalysis.carTrafficVigilance.level === 'ORANGE'
+                          ? 'bg-orange-500 text-slate-950 border-orange-300'
+                          : routeAnalysis.carTrafficVigilance.level === 'JAUNE'
+                          ? 'bg-amber-400 text-slate-950 border-amber-200'
+                          : 'bg-emerald-500 text-slate-950 border-emerald-300'
+                      }`}>
+                        Vigilance {routeAnalysis.carTrafficVigilance.level}
+                      </span>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-200 mt-0.5">
+                      {routeAnalysis.carTrafficVigilance.trafficStatus}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sources badge */}
+                <div className="text-[11px] font-bold px-3 py-1 rounded-xl bg-slate-950/90 border border-slate-700/80 text-slate-300">
+                  <span className="text-slate-400">Sources : </span>
+                  <strong className="text-teal-300">Bison Futé</strong> • <strong className="text-cyan-300">Sytadin</strong> • <strong className="text-amber-300">Vigilance Météo-France</strong>
+                </div>
+              </div>
+
+              {/* Traffic Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Bison Fute Status */}
+                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Bison Futé (National)
+                  </div>
+                  <div className="mt-2 text-sm font-black text-white flex items-center gap-2">
+                    <span
+                      className="h-3 w-3 rounded-full shrink-0 shadow"
+                      style={{ backgroundColor: routeAnalysis.carTrafficVigilance.bisonFuteColor }}
+                    />
+                    <span>{routeAnalysis.carTrafficVigilance.bisonFuteStatus}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    Prévisions calendrier &amp; départs
+                  </div>
+                </div>
+
+                {/* Sytadin Congestion */}
+                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Sytadin (Île-de-France &amp; Rocades)
+                  </div>
+                  <div className="mt-2 text-sm font-black text-white">
+                    {routeAnalysis.carTrafficVigilance.sytadinStatus}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    Indice de congestion : <strong>{routeAnalysis.carTrafficVigilance.congestionIndex}%</strong>
+                  </div>
+                </div>
+
+                {/* Delay & Météo-France Impact */}
+                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Impact &amp; Vigilance Météo-France
+                  </div>
+                  <div className="mt-2 text-sm font-black text-white flex items-center justify-between">
+                    <span>{routeAnalysis.carTrafficVigilance.meteoFranceVigilance}</span>
+                    {routeAnalysis.carTrafficVigilance.estimatedDelayMinutes > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-lg bg-amber-950 border border-amber-500/50 text-amber-300 font-bold">
+                        +{routeAnalysis.carTrafficVigilance.estimatedDelayMinutes} min
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    Adhérence chaussée &amp; visibilité
+                  </div>
+                </div>
+              </div>
+
+              {/* Key Axe Alerts and Advice */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {routeAnalysis.carTrafficVigilance.keyAxeAlerts.length > 0 && (
+                  <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3 text-xs space-y-1.5">
+                    <div className="font-bold text-slate-300 text-[11px]">Points clés de circulation :</div>
+                    <ul className="space-y-1 text-slate-300">
+                      {routeAnalysis.carTrafficVigilance.keyAxeAlerts.map((alt, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="text-teal-400 font-black">•</span>
+                          <span>{alt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3 text-xs flex flex-col justify-between">
+                  <div>
+                    <div className="font-bold text-slate-300 text-[11px]">Recommandation de Départ :</div>
+                    <p className="text-slate-200 mt-1 leading-relaxed">
+                      {routeAnalysis.carTrafficVigilance.departureAdvice}
+                    </p>
+                  </div>
+                  <div className="text-[10px] text-teal-300 font-semibold mt-2 pt-1.5 border-t border-slate-800">
+                    💡 Conseil : Vérifiez les applications GPS en temps réel au moment de prendre le volant.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Road Hazards & Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

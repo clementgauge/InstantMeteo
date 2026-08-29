@@ -71,16 +71,43 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
   const [discrepancyType, setDiscrepancyType] = useState<string>(DISCREPANCY_TYPES[0].label);
   const [userComments, setUserComments] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
+  const [responseChannel, setResponseChannel] = useState<'ai' | 'human'>('ai');
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [lastSubmittedReport, setLastSubmittedReport] = useState<UserObservationReport | null>(null);
   const [pastReports, setPastReports] = useState<UserObservationReport[]>([]);
+  const [remainingCooldownSeconds, setRemainingCooldownSeconds] = useState<number>(0);
+
+  // Check 15-min rate limit cooldown
+  const checkRateLimit = () => {
+    try {
+      const lastTimeStr = localStorage.getItem('instant_meteo_last_report_timestamp');
+      if (lastTimeStr) {
+        const lastTime = parseInt(lastTimeStr, 10);
+        const elapsed = (Date.now() - lastTime) / 1000;
+        const cooldown = 15 * 60; // 15 minutes
+        if (elapsed < cooldown) {
+          setRemainingCooldownSeconds(Math.ceil(cooldown - elapsed));
+          return Math.ceil(cooldown - elapsed);
+        }
+      }
+    } catch (e) {}
+    setRemainingCooldownSeconds(0);
+    return 0;
+  };
 
   useEffect(() => {
     if (currentWeather) {
       setObservedTemp(currentWeather.temperature);
     }
     setPastReports(getSavedUserReports());
+    checkRateLimit();
+
+    const interval = setInterval(() => {
+      checkRateLimit();
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [currentWeather, isOpen]);
 
   if (!isOpen) return null;
@@ -88,6 +115,12 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentWeather) return;
+
+    const cooldownRemaining = checkRateLimit();
+    if (cooldownRemaining > 0) {
+      alert(`Veuillez patienter encore ${Math.floor(cooldownRemaining / 60)} min ${cooldownRemaining % 60} s avant d'envoyer un nouveau signalement (limite de sécurité de 15 minutes).`);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -97,11 +130,16 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
         {
           observedTemperature: Number(observedTemp),
           observedWeatherCondition: observedCondition,
-          discrepancyType: discrepancyType,
+          discrepancyType: `${discrepancyType} [Canal: ${responseChannel === 'human' ? 'Humain instantmeteofr@gmail.com' : 'IA Instant Météo'}]`,
           userComments: userComments.trim(),
           userEmail: userEmail.trim() || undefined
         }
       );
+
+      // Record rate limit timestamp
+      try {
+        localStorage.setItem('instant_meteo_last_report_timestamp', Date.now().toString());
+      } catch (e) {}
 
       setLastSubmittedReport(report);
       onRecalibrationUpdated(recalibration);
@@ -269,6 +307,49 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
               </select>
             </div>
 
+            {/* Choice: AI response vs Human response */}
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-300 flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-cyan-400" />
+                <span>Mode de réponse souhaité *</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setResponseChannel('ai')}
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer ${
+                    responseChannel === 'ai'
+                      ? 'border-cyan-400 bg-cyan-950/50 text-white ring-1 ring-cyan-400/50'
+                      : 'border-slate-800 bg-slate-950/70 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-black text-xs text-cyan-300">
+                    <span>🤖 Réponse Instantanée par IA</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                    Diagnostic météorologique immédiat, calibration synoptique en direct et explication physique.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setResponseChannel('human')}
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer ${
+                    responseChannel === 'human'
+                      ? 'border-amber-400 bg-amber-950/50 text-white ring-1 ring-amber-400/50'
+                      : 'border-slate-800 bg-slate-950/70 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-black text-xs text-amber-300">
+                    <span>👨‍💻 Réponse par un Humain (Expert)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                    Étude par notre équipe météo à l'adresse : <strong className="text-amber-200 underline">instantmeteofr@gmail.com</strong>
+                  </p>
+                </button>
+              </div>
+            </div>
+
             {/* User Comments / Explanation */}
             <div className="space-y-1.5">
               <label className="text-xs font-black text-slate-300 flex items-center gap-1.5">
@@ -288,7 +369,7 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
             <div className="space-y-1.5">
               <label className="text-xs font-black text-slate-300 flex items-center gap-1.5">
                 <Mail className="h-4 w-4 text-indigo-400" />
-                <span>Votre adresse e-mail (Optionnel — pour recevoir la réponse de l'IA)</span>
+                <span>Votre adresse e-mail ({responseChannel === 'human' ? 'Recommandé pour recevoir la réponse de l\'équipe' : 'Optionnel'})</span>
               </label>
               <input
                 type="email"
@@ -299,29 +380,45 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
               />
             </div>
 
+            {/* Rate limit cooldown notice if active */}
+            {remainingCooldownSeconds > 0 && (
+              <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-xs text-amber-200 flex items-center gap-2.5">
+                <Clock className="h-4 w-4 text-amber-400 shrink-0 animate-pulse" />
+                <span>
+                  <strong>Délai de sécurité anti-spam actif :</strong> Veuillez patienter encore{' '}
+                  <strong className="text-amber-300">{Math.floor(remainingCooldownSeconds / 60)} min {remainingCooldownSeconds % 60} s</strong> avant de transmettre un nouveau signalement (limite de 15 minutes).
+                </span>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="pt-2 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-3 rounded-2xl border border-slate-800 bg-slate-950 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                className="px-5 py-3 rounded-2xl border border-slate-800 bg-slate-950 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+                disabled={isSubmitting || remainingCooldownSeconds > 0}
+                className="px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Lancement de l'Analyse IA & Recalibrage...</span>
+                    <span>Traitement du signalement...</span>
+                  </>
+                ) : remainingCooldownSeconds > 0 ? (
+                  <>
+                    <Clock className="h-4 w-4 text-slate-950" />
+                    <span>Patienter {Math.floor(remainingCooldownSeconds / 60)}m {remainingCooldownSeconds % 60}s</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 text-slate-950" />
-                    <span>Envoyer mon observation & Activer le Recalibrage</span>
+                    <span>Envoyer mon observation ({responseChannel === 'human' ? 'Support Humain' : 'IA Instant Météo'})</span>
                   </>
                 )}
               </button>

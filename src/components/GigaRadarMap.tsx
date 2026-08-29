@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { WORLD_STATIONS } from '../data/worldStations';
 import { getLocalityFromCoordinates, searchLocalities } from '../services/openMeteoService';
 import { 
   Play, 
@@ -71,7 +72,7 @@ interface StormCell {
   name: string;
   lat: number;
   lon: number;
-  intensity: 'Faible' | 'Modéré' | 'Fort' | 'Sévère' | 'Violent / Grêligène';
+  intensity: 'Faible' | 'Modéré' | 'Fort' | 'Sévère' | 'Violent / Grêligène' | string;
   dbz: number;
   movementSpeedKmH: number;
   movementBearingDeg: number;
@@ -225,12 +226,13 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     return () => clearInterval(interval);
   }, [fetchRainViewer]);
 
-  // 2. Generate Convective Storm Cells across France
+  // 2. Generate Convective Storm Cells across all countries of the World
   useEffect(() => {
     const storms: StormCell[] = [
+      // France & Europe
       {
         id: 'cell-alps',
-        name: 'Cellule Convective Vercors - Belledonne',
+        name: 'Cellule Convective Vercors - Belledonne (France)',
         lat: 45.18,
         lon: 5.85,
         intensity: 'Sévère',
@@ -244,7 +246,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       },
       {
         id: 'cell-massif-central',
-        name: 'Ligne d\'Orages Cévennes / Mont Lozère',
+        name: 'Ligne d\'Orages Cévennes / Mont Lozère (France)',
         lat: 44.35,
         lon: 3.75,
         intensity: 'Violent / Grêligène',
@@ -258,7 +260,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       },
       {
         id: 'cell-pyrenees',
-        name: 'Front Orageux Hautes-Pyrénées (Pic du Midi)',
+        name: 'Front Orageux Hautes-Pyrénées (Pic du Midi, France)',
         lat: 42.94,
         lon: 0.14,
         intensity: 'Fort',
@@ -271,32 +273,135 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         hailRiskPercent: 40
       },
       {
-        id: 'cell-jura',
-        name: 'Averse Orageuse Haut-Doubs (Mouthe)',
-        lat: 46.71,
-        lon: 6.22,
-        intensity: 'Modéré',
-        dbz: 42,
-        movementSpeedKmH: 40,
-        movementBearingDeg: 60,
-        movementCompass: 'Nord-Est',
-        topAltitudeM: 9200,
-        lightningRatePerMin: 5,
-        hailRiskPercent: 20
+        id: 'cell-italy-po',
+        name: 'Supercellule de Plaine du Pô (Milan / Lombardie, Italie)',
+        lat: 45.46,
+        lon: 9.19,
+        intensity: 'Violent / Supercellulaire',
+        dbz: 62,
+        movementSpeedKmH: 55,
+        movementBearingDeg: 85,
+        movementCompass: 'Est',
+        topAltitudeM: 13200,
+        lightningRatePerMin: 42,
+        hailRiskPercent: 90
       },
       {
-        id: 'cell-normandie',
-        name: 'Ligne de Grains Manche / Bassin Parisien',
-        lat: 49.35,
-        lon: 0.85,
-        intensity: 'Modéré',
-        dbz: 38,
-        movementSpeedKmH: 60,
+        id: 'cell-spain-aragon',
+        name: 'Système Convectif de Méso-échelle Aragon (Espagne)',
+        lat: 41.65,
+        lon: -0.89,
+        intensity: 'Sévère',
+        dbz: 56,
+        movementSpeedKmH: 48,
+        movementBearingDeg: 45,
+        movementCompass: 'Nord-Est',
+        topAltitudeM: 11900,
+        lightningRatePerMin: 26,
+        hailRiskPercent: 75
+      },
+      {
+        id: 'cell-germany-bavaria',
+        name: 'Ligne Orageuse Frontale Bavière (Munich, Allemagne)',
+        lat: 48.14,
+        lon: 11.58,
+        intensity: 'Fort',
+        dbz: 50,
+        movementSpeedKmH: 52,
         movementBearingDeg: 90,
         movementCompass: 'Est',
-        topAltitudeM: 7800,
-        lightningRatePerMin: 3,
-        hailRiskPercent: 10
+        topAltitudeM: 11200,
+        lightningRatePerMin: 18,
+        hailRiskPercent: 60
+      },
+      // North America
+      {
+        id: 'cell-usa-oklahoma',
+        name: 'Supercellule Tornadique HP Tornado Alley (Oklahoma, USA)',
+        lat: 35.47,
+        lon: -97.52,
+        intensity: 'Tornadique Extrême',
+        dbz: 66,
+        movementSpeedKmH: 65,
+        movementBearingDeg: 40,
+        movementCompass: 'Nord-Est',
+        topAltitudeM: 15500,
+        lightningRatePerMin: 65,
+        hailRiskPercent: 95
+      },
+      {
+        id: 'cell-usa-florida',
+        name: 'Orage Tropical Convectif Golfe & Everglades (Miami, USA)',
+        lat: 25.76,
+        lon: -80.19,
+        intensity: 'Fort Tropical',
+        dbz: 52,
+        movementSpeedKmH: 30,
+        movementBearingDeg: 310,
+        movementCompass: 'Nord-Ouest',
+        topAltitudeM: 14000,
+        lightningRatePerMin: 50,
+        hailRiskPercent: 25
+      },
+      // South America
+      {
+        id: 'cell-brazil-amazon',
+        name: 'Complexe Convectif Tropical Amazonien (Brésil)',
+        lat: -3.12,
+        lon: -60.02,
+        intensity: 'Violent Tropical',
+        dbz: 59,
+        movementSpeedKmH: 38,
+        movementBearingDeg: 270,
+        movementCompass: 'Ouest',
+        topAltitudeM: 16000,
+        lightningRatePerMin: 58,
+        hailRiskPercent: 20
+      },
+      // Africa
+      {
+        id: 'cell-africa-congo',
+        name: 'Grappe Orageuse Hyper-Électrique Bassin du Congo',
+        lat: -0.22,
+        lon: 15.82,
+        intensity: 'Extrême Électrique',
+        dbz: 60,
+        movementSpeedKmH: 40,
+        movementBearingDeg: 250,
+        movementCompass: 'Ouest-Sud-Ouest',
+        topAltitudeM: 16500,
+        lightningRatePerMin: 78,
+        hailRiskPercent: 15
+      },
+      // Asia
+      {
+        id: 'cell-japan-tokyo',
+        name: 'Grain Convectif Maritime Pacifique (Tokyo / Kanto, Japon)',
+        lat: 35.68,
+        lon: 139.65,
+        intensity: 'Fort',
+        dbz: 49,
+        movementSpeedKmH: 50,
+        movementBearingDeg: 70,
+        movementCompass: 'Est-Nord-Est',
+        topAltitudeM: 12000,
+        lightningRatePerMin: 22,
+        hailRiskPercent: 35
+      },
+      // Australia
+      {
+        id: 'cell-australia-brisbane',
+        name: 'Supercellule Grêligène Australe (Brisbane / Queensland, Australie)',
+        lat: -27.47,
+        lon: 153.03,
+        intensity: 'Sévère Grêle',
+        dbz: 57,
+        movementSpeedKmH: 46,
+        movementBearingDeg: 135,
+        movementCompass: 'Sud-Est',
+        topAltitudeM: 13800,
+        lightningRatePerMin: 36,
+        hailRiskPercent: 80
       }
     ];
 
@@ -314,8 +419,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     const map = L.map(mapContainerRef.current, {
       center: [initialLat, initialLon],
       zoom: 7,
-      minZoom: 4,
+      minZoom: 2,
       maxZoom: 19,
+      worldCopyJump: true,
       zoomControl: false,
       attributionControl: false,
       zoomSnap: 0.5,
@@ -631,22 +737,42 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     measurementLineGroupRef.current.addLayer(infoMarker);
   }, [measuredTarget, currentStation]);
 
-  // 9. Update Weather Station Pins
+  // 9. Update Weather Station Pins & Temperatures across all countries
   useEffect(() => {
     if (!markerGroupRef.current) return;
     markerGroupRef.current.clearLayers();
 
     if (!showStations) return;
 
-    FRENCH_STATIONS.forEach((st) => {
+    // Helper to calculate realistic temperature for any world station
+    const getStationTemp = (st: LocationPoint) => {
+      const absLat = Math.abs(st.latitude || 0);
+      const alt = st.altitude ?? 150;
+      let base = 30.5 - Math.pow(absLat / 90, 1.42) * 44;
+      const lapse = (alt / 1000) * 6.5;
+      let temp = base - lapse;
+      const month = new Date().getMonth();
+      const isNorthernSummer = month >= 4 && month <= 9;
+      if ((st.latitude || 0) >= 0) {
+        temp += isNorthernSummer ? 4.5 * Math.sin((absLat / 90) * Math.PI) : -4.5 * Math.sin((absLat / 90) * Math.PI);
+      } else {
+        temp += isNorthernSummer ? -4.5 * Math.sin((absLat / 90) * Math.PI) : 4.5 * Math.sin((absLat / 90) * Math.PI);
+      }
+      return Number(temp.toFixed(1));
+    };
+
+    [...FRENCH_STATIONS, ...WORLD_STATIONS].forEach((st) => {
       const isSelected = st.id === currentStation.id;
       const isMountain = (st.altitude ?? 0) >= 800;
+      const stTemp = getStationTemp(st);
+
+      const badgeTempColor = stTemp >= 28 ? 'text-amber-300' : stTemp >= 16 ? 'text-emerald-300' : 'text-cyan-300';
 
       const markerHtml = `
         <div class="cursor-pointer transition-all duration-300 transform hover:scale-125 ${isSelected ? 'scale-110 z-30' : 'z-10'}">
           <div class="relative flex items-center justify-center">
             ${isSelected ? '<span class="absolute -inset-2 rounded-full bg-blue-500/50 animate-ping"></span>' : ''}
-            <div class="flex items-center gap-1 rounded-full px-2.5 py-0.5 shadow-xl border text-[11px] font-black backdrop-blur ${
+            <div class="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 shadow-xl border text-[11px] font-black backdrop-blur ${
               isSelected
                 ? 'bg-blue-600 border-white text-white shadow-blue-500/60 ring-2 ring-blue-400'
                 : isMountain
@@ -654,7 +780,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   : 'bg-slate-900/95 border-slate-700 text-slate-200'
             }">
               <span>${st.name.split(' ')[0]}</span>
-              <span class="opacity-80 text-[10px]">${st.altitude}m</span>
+              <span class="${badgeTempColor} font-black">${stTemp}°C</span>
             </div>
           </div>
         </div>
@@ -663,8 +789,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       const icon = L.divIcon({
         html: markerHtml,
         className: 'custom-station-pin',
-        iconSize: [70, 26],
-        iconAnchor: [35, 13]
+        iconSize: [85, 26],
+        iconAnchor: [42, 13]
       });
 
       const marker = L.marker([st.latitude, st.longitude], { icon });
@@ -675,8 +801,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       marker.bindTooltip(`
         <div class="p-2 font-sans text-xs">
           <div class="font-black text-white text-sm">${st.name}</div>
-          <div class="text-slate-300 mt-0.5">${st.department} • Altitude: <strong>${st.altitude} m</strong></div>
-          <div class="text-blue-300 mt-0.5">${st.climateZone}</div>
+          <div class="text-slate-300 mt-0.5">${st.department || st.country || 'International'} • Alt: <strong>${st.altitude} m</strong></div>
+          <div class="text-amber-400 font-bold mt-0.5">🌡️ Température estimée : <strong>${stTemp}°C</strong></div>
+          <div class="text-blue-300 mt-0.5">${st.climateZone || 'Zone Tempérée'}</div>
         </div>
       `, { direction: 'top', offset: [0, -12] });
 
@@ -684,7 +811,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     });
   }, [currentStation, showStations]);
 
-  // 10. Update Lightning Strikes and Convective Storm Cells
+  // 10. Update Lightning Strikes and Convective Storm Cells across all countries
   useEffect(() => {
     if (!lightningGroupRef.current || !stormCellsGroupRef.current) return;
     lightningGroupRef.current.clearLayers();
@@ -695,6 +822,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
     if (isLightActive) {
       const strikePoints = [
+        // France
         { lat: 45.18, lon: 5.72, amp: -45, timeAgo: '2 min' },
         { lat: 45.22, lon: 5.92, amp: 62, timeAgo: '4 min' },
         { lat: 44.38, lon: 3.82, amp: -95, timeAgo: '1 min' },
@@ -703,12 +831,27 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         { lat: 43.60, lon: 1.44, amp: -80, timeAgo: '7 min' },
         { lat: 46.75, lon: 6.25, amp: 35, timeAgo: '6 min' },
         { lat: 49.38, lon: 0.92, amp: 40, timeAgo: '8 min' },
+        // Europe
+        { lat: 45.46, lon: 9.20, amp: -125, timeAgo: '1 min' }, // Milan, Italy
+        { lat: 41.65, lon: -0.89, amp: 90, timeAgo: '3 min' }, // Spain
+        { lat: 48.14, lon: 11.58, amp: 70, timeAgo: '4 min' }, // Germany
+        // North America
+        { lat: 35.47, lon: -97.52, amp: -160, timeAgo: '1 min' }, // Oklahoma
+        { lat: 25.76, lon: -80.19, amp: 85, timeAgo: '2 min' }, // Miami
+        // South America
+        { lat: -3.12, lon: -60.02, amp: -140, timeAgo: '1 min' }, // Amazon
+        // Africa
+        { lat: -0.22, lon: 15.82, amp: -180, timeAgo: '1 min' }, // Congo
+        // Asia
+        { lat: 35.68, lon: 139.65, amp: 65, timeAgo: '5 min' }, // Tokyo
+        // Australia
+        { lat: -27.47, lon: 153.03, amp: -115, timeAgo: '2 min' } // Brisbane
       ];
 
       setLightningCount(strikePoints.length * 4);
 
       strikePoints.forEach((loc, i) => {
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < 3; k++) {
           const dLat = (Math.random() - 0.5) * 0.4;
           const dLon = (Math.random() - 0.5) * 0.4;
           const lat = loc.lat + dLat;
@@ -802,10 +945,13 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     }
   }, [activeLayerMode, showLightning, showStormCells, activeStormsList]);
 
-  // Pan to current station smoothly when changed
+  // Pan and zoom to current station smoothly when changed (e.g. Versailles)
   useEffect(() => {
     if (mapInstanceRef.current && currentStation) {
-      mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], Math.max(8, mapInstanceRef.current.getZoom()), {
+      const targetZoom = currentStation.isRegion 
+        ? 7 
+        : (currentStation.countryCode && currentStation.countryCode !== 'FR' ? 6.5 : 12.5);
+      mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], targetZoom, {
         duration: 1.2
       });
     }

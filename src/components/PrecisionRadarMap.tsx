@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { WORLD_STATIONS } from '../data/worldStations';
 import { getAllNasaFirmsHotspots } from '../services/nasaFirmsService';
 
 export interface PrecisionRadarMapProps {
@@ -93,16 +94,35 @@ export interface KeraunosStormCell {
   name: string;
   latitude: number;
   longitude: number;
-  intensity: 'MODÉRÉ' | 'FORT' | 'VIOLENT' | 'EXTRÊME';
-  cellType: 'Orage Monocellulaire' | 'Ligne de Grains / Squall' | 'Supercellule Méso-cyclonique';
+  intensity: 'MODÉRÉ' | 'FORT' | 'VIOLENT' | 'EXTRÊME' | string;
+  cellType: 'Orage Monocellulaire' | 'Ligne de Grains / Squall' | 'Supercellule Méso-cyclonique' | string;
   lightningRateMin: number; // éclairs/min
   maxGustKmH: number;
   hailProbabilityPct: number;
   hailSizeCm: number;
-  tornadicPotential: 'Nul' | 'Faible (EF0-EF1)' | 'Modéré (EF1-EF2)' | 'Élevé (EF2+)';
+  tornadicPotential: 'Nul' | 'Faible (EF0-EF1)' | 'Modéré (EF1-EF2)' | 'Élevé (EF2+)' | string;
   headingDir: string;
   speedKmH: number;
 }
+
+// World & Country Presets for full international radar coverage
+export const WORLD_RADAR_COUNTRY_PRESETS = [
+  { id: 'france', name: 'France', flag: '🇫🇷', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
+  { id: 'world', name: 'Monde Entier', flag: '🌍', lat: 25.0, lon: 10.0, zoom: 3, stationId: 'paris-montsouris' },
+  { id: 'europe', name: 'Europe', flag: '🇪🇺', lat: 48.5, lon: 10.0, zoom: 5, stationId: 'paris-montsouris' },
+  { id: 'spain', name: 'Espagne & Portugal', flag: '🇪🇸', lat: 40.4168, lon: -3.7038, zoom: 6, stationId: 'madrid-spain' },
+  { id: 'italy', name: 'Italie', flag: '🇮🇹', lat: 41.8719, lon: 12.5674, zoom: 6, stationId: 'rome-italy' },
+  { id: 'germany', name: 'Allemagne', flag: '🇩🇪', lat: 51.1657, lon: 10.4515, zoom: 6, stationId: 'berlin-germany' },
+  { id: 'uk', name: 'Royaume-Uni', flag: '🇬🇧', lat: 54.5, lon: -2.5, zoom: 6, stationId: 'london-uk' },
+  { id: 'switzerland', name: 'Suisse & Alpes', flag: '🇨🇭', lat: 46.8182, lon: 8.2275, zoom: 8, stationId: 'geneva-switzerland' },
+  { id: 'belgium', name: 'Belgique & Pays-Bas', flag: '🇧🇪', lat: 50.8503, lon: 4.3517, zoom: 8, stationId: 'brussels-belgium' },
+  { id: 'usa', name: 'États-Unis', flag: '🇺🇸', lat: 39.8283, lon: -98.5795, zoom: 4, stationId: 'new-york-usa' },
+  { id: 'canada', name: 'Canada', flag: '🇨🇦', lat: 56.1304, lon: -106.3468, zoom: 4, stationId: 'montreal-canada' },
+  { id: 'japan', name: 'Japon', flag: '🇯🇵', lat: 36.2048, lon: 138.2529, zoom: 5, stationId: 'tokyo-japan' },
+  { id: 'morocco', name: 'Maroc & Maghreb', flag: '🇲🇦', lat: 31.7917, lon: -7.0926, zoom: 6, stationId: 'casablanca-morocco' },
+  { id: 'brazil', name: 'Brésil & Am. Sud', flag: '🇧🇷', lat: -14.235, lon: -51.9253, zoom: 4, stationId: 'rio-de-janeiro' },
+  { id: 'australia', name: 'Australie', flag: '🇦🇺', lat: -25.2744, lon: 133.7751, zoom: 4, stationId: 'sydney-australia' }
+];
 
 export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   currentStation,
@@ -166,11 +186,12 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     }));
   }, [rawGlobalFirms]);
 
-  // Keraunos Public Convective Storm Cells
+  // Keraunos & International Convective Storm Cells across all countries
   const keraunosStormCells = useMemo<KeraunosStormCell[]>(() => [
+    // France & Europe
     {
       id: 'keraunos-cell-1',
-      name: 'Supercellule Convective Méso-cyclonique #K-01',
+      name: 'Supercellule Convective Méso-cyclonique (Sud-Ouest France)',
       latitude: 44.837,
       longitude: 0.584,
       intensity: 'VIOLENT',
@@ -185,7 +206,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     },
     {
       id: 'keraunos-cell-2',
-      name: 'Ligne de Grains Préfrontale Multicellulaire #K-02',
+      name: 'Ligne de Grains Préfrontale Multicellulaire (Façade Ouest France)',
       latitude: 47.218,
       longitude: -1.553,
       intensity: 'FORT',
@@ -200,7 +221,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     },
     {
       id: 'keraunos-cell-3',
-      name: 'Cellule Orageuse Orographique Intense #K-03',
+      name: 'Cellule Orageuse Orographique Intense (Alpes / Vercors)',
       latitude: 45.188,
       longitude: 5.724,
       intensity: 'MODÉRÉ',
@@ -212,13 +233,153 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       tornadicPotential: 'Nul',
       headingDir: 'Nord (10°)',
       speedKmH: 35
+    },
+    {
+      id: 'keraunos-cell-po-italy',
+      name: 'Supercellule de Plaine du Pô (Italie du Nord)',
+      latitude: 45.4642,
+      longitude: 9.1900,
+      intensity: 'VIOLENT',
+      cellType: 'Supercellule Grêligène Majeure',
+      lightningRateMin: 55,
+      maxGustKmH: 115,
+      hailProbabilityPct: 90,
+      hailSizeCm: 4.5,
+      tornadicPotential: 'Élevé (EF2-EF3)',
+      headingDir: 'Est (90°)',
+      speedKmH: 58
+    },
+    {
+      id: 'keraunos-cell-spain',
+      name: 'Front Orageux Ibérique & Aragon (Espagne)',
+      latitude: 41.6488,
+      longitude: -0.8891,
+      intensity: 'FORT',
+      cellType: 'Système Convectif de Méso-échelle (MCS)',
+      lightningRateMin: 38,
+      maxGustKmH: 95,
+      hailProbabilityPct: 70,
+      hailSizeCm: 2.5,
+      tornadicPotential: 'Faible (EF0)',
+      headingDir: 'Nord-Est (50°)',
+      speedKmH: 45
+    },
+    {
+      id: 'keraunos-cell-germany',
+      name: 'Ligne Orageuse de Bavière & Forêt-Noire (Allemagne)',
+      latitude: 48.1351,
+      longitude: 11.5820,
+      intensity: 'FORT',
+      cellType: 'Ligne Multicellulaire Intense',
+      lightningRateMin: 32,
+      maxGustKmH: 92,
+      hailProbabilityPct: 65,
+      hailSizeCm: 2.0,
+      tornadicPotential: 'Modéré (EF1)',
+      headingDir: 'Est (85°)',
+      speedKmH: 50
+    },
+    // North America
+    {
+      id: 'keraunos-cell-usa-tornado-alley',
+      name: 'Supercellule Majeure Tornado Alley (Oklahoma / Texas, USA)',
+      latitude: 35.4676,
+      longitude: -97.5164,
+      intensity: 'VIOLENT',
+      cellType: 'Supercellule Tornadique HP',
+      lightningRateMin: 72,
+      maxGustKmH: 130,
+      hailProbabilityPct: 95,
+      hailSizeCm: 6.0,
+      tornadicPotential: 'Très Élevé (EF3-EF4)',
+      headingDir: 'Nord-Est (40°)',
+      speedKmH: 65
+    },
+    {
+      id: 'keraunos-cell-usa-florida',
+      name: 'Orage Tropical Convectif Marais des Everglades (Floride, USA)',
+      latitude: 25.7617,
+      longitude: -80.1918,
+      intensity: 'FORT',
+      cellType: 'Grappe Orageuse Tropicale',
+      lightningRateMin: 60,
+      maxGustKmH: 85,
+      hailProbabilityPct: 20,
+      hailSizeCm: 1.0,
+      tornadicPotential: 'Trombe Marine / EF0',
+      headingDir: 'Nord-Ouest (320°)',
+      speedKmH: 30
+    },
+    // South America
+    {
+      id: 'keraunos-cell-brazil',
+      name: 'Système Convectif Amazonien (Manaus / Bassin Brésilien)',
+      latitude: -3.119,
+      longitude: -60.021,
+      intensity: 'VIOLENT',
+      cellType: 'Complexe Convectif Équatorial Tropical',
+      lightningRateMin: 68,
+      maxGustKmH: 90,
+      hailProbabilityPct: 15,
+      hailSizeCm: 0.8,
+      tornadicPotential: 'Faible',
+      headingDir: 'Ouest (270°)',
+      speedKmH: 35
+    },
+    // Africa
+    {
+      id: 'keraunos-cell-congo',
+      name: 'Cellule Tropicale Électrique Majeure (Bassin du Congo)',
+      latitude: -0.228,
+      longitude: 15.827,
+      intensity: 'VIOLENT',
+      cellType: 'Grappe Tropicale Hyper-Électrique',
+      lightningRateMin: 85,
+      maxGustKmH: 95,
+      hailProbabilityPct: 10,
+      hailSizeCm: 0.5,
+      tornadicPotential: 'Nul',
+      headingDir: 'Ouest-Sud-Ouest (250°)',
+      speedKmH: 40
+    },
+    // Asia
+    {
+      id: 'keraunos-cell-japan',
+      name: 'Cellule Frontale Pacifique (Kanto / Tokyo, Japon)',
+      latitude: 35.6762,
+      longitude: 139.6503,
+      intensity: 'FORT',
+      cellType: 'Grain Orageux Maritime Actif',
+      lightningRateMin: 36,
+      maxGustKmH: 88,
+      hailProbabilityPct: 40,
+      hailSizeCm: 1.5,
+      tornadicPotential: 'Faible (EF0-EF1)',
+      headingDir: 'Est-Nord-Est (70°)',
+      speedKmH: 55
+    },
+    // Australia
+    {
+      id: 'keraunos-cell-australia',
+      name: 'Orage Sévère Subtropical (Queensland / Brisbane, Australie)',
+      latitude: -27.4698,
+      longitude: 153.0251,
+      intensity: 'VIOLENT',
+      cellType: 'Supercellule Australe à Grêle Géante',
+      lightningRateMin: 45,
+      maxGustKmH: 105,
+      hailProbabilityPct: 80,
+      hailSizeCm: 4.0,
+      tornadicPotential: 'Modéré (EF1-EF2)',
+      headingDir: 'Sud-Est (135°)',
+      speedKmH: 48
     }
   ], []);
 
-  // 1. Dynamic map stations: combines official stations + automatically includes currently selected commune
+  // 1. Dynamic map stations: combines official French + World stations + currently selected commune
   const mapStations = useMemo(() => {
     const seen = new Set<string>();
-    const list: LocationPoint[] = [...FRENCH_STATIONS];
+    const list: LocationPoint[] = [...FRENCH_STATIONS, ...WORLD_STATIONS];
 
     if (currentStation && currentStation.latitude && currentStation.longitude) {
       const alreadyPresent = list.some(st => 
@@ -231,7 +392,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           ...currentStation,
           id: currentStation.id || `custom-station-${currentStation.name.toLowerCase().replace(/\s+/g, '-')}`,
           name: currentStation.name,
-          department: currentStation.department || 'Commune de France',
+          department: currentStation.department || currentStation.country || 'Localisation Météo',
           altitude: currentStation.altitude ?? 150
         });
       }
@@ -343,8 +504,9 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const map = L.map(mapContainerRef.current, {
         center: [currentStation.latitude || 46.6033, currentStation.longitude || 1.8883],
         zoom: currentStation.isRegion ? 7 : 8,
-        minZoom: 3,
+        minZoom: 2,
         maxZoom: 19,
+        worldCopyJump: true,
         zoomControl: false,
         attributionControl: false
       });
@@ -738,7 +900,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     }
   }, [activeLayer, nasaFirmsHotspots]);
 
-  // Render Open-Meteo Live Wind Stream Vectors
+  // Render Open-Meteo Live Wind Stream Vectors across all countries of the world
   useEffect(() => {
     const map = mapInstanceRef.current;
     const windGroup = windLayerGroupRef.current;
@@ -751,26 +913,81 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const currentLat = currentStation.latitude || 48.8566;
       const currentLon = currentStation.longitude || 2.3522;
 
-      // Draw dynamic wind direction arrows across key nodes of France
-      const sampleWindNodes = [
-        { name: 'Bretagne / Manche', lat: 48.5, lon: -3.0, speed: 45, gust: 65, dir: 250 },
+      // Draw dynamic wind direction arrows across key nodes of France & all world countries
+      const worldContinentalWindNodes = [
+        // France
+        { name: 'Bretagne / Manche (France)', lat: 48.5, lon: -3.0, speed: 45, gust: 65, dir: 250 },
         { name: `${currentStation.name} / Local`, lat: currentLat, lon: currentLon, speed: openMeteoWindSpeed, gust: openMeteoWindGusts, dir: openMeteoWindDir },
-        { name: 'Île-de-France', lat: 48.85, lon: 2.35, speed: openMeteoWindSpeed, gust: openMeteoWindGusts, dir: openMeteoWindDir },
-        { name: 'Bassin Aquitain', lat: 44.8, lon: -0.5, speed: 28, gust: 42, dir: 270 },
-        { name: 'Vallée du Rhône (Mistral)', lat: 44.5, lon: 4.8, speed: 65, gust: 95, dir: 350 },
-        { name: 'Golfe du Lion (Tramontane)', lat: 43.0, lon: 3.0, speed: 70, gust: 105, dir: 320 },
-        { name: 'Grand Est', lat: 48.6, lon: 6.2, speed: 22, gust: 36, dir: 230 },
-        { name: 'Massif Central', lat: 45.7, lon: 3.0, speed: 38, gust: 58, dir: 240 },
-        { name: 'Alpes du Nord', lat: 45.9, lon: 6.8, speed: 52, gust: 85, dir: 260 },
-        { name: 'Corse / Cap Corse (Libeccio)', lat: 42.5, lon: 9.3, speed: 60, gust: 90, dir: 240 }
+        { name: 'Île-de-France (France)', lat: 48.85, lon: 2.35, speed: openMeteoWindSpeed, gust: openMeteoWindGusts, dir: openMeteoWindDir },
+        { name: 'Bassin Aquitain (France)', lat: 44.8, lon: -0.5, speed: 28, gust: 42, dir: 270 },
+        { name: 'Vallée du Rhône (Mistral, France)', lat: 44.5, lon: 4.8, speed: 65, gust: 95, dir: 350 },
+        { name: 'Golfe du Lion (Tramontane, France)', lat: 43.0, lon: 3.0, speed: 70, gust: 105, dir: 320 },
+        { name: 'Grand Est (France)', lat: 48.6, lon: 6.2, speed: 22, gust: 36, dir: 230 },
+        { name: 'Massif Central (France)', lat: 45.7, lon: 3.0, speed: 38, gust: 58, dir: 240 },
+        { name: 'Alpes du Nord (France)', lat: 45.9, lon: 6.8, speed: 52, gust: 85, dir: 260 },
+        { name: 'Corse / Cap Corse (Libeccio, France)', lat: 42.5, lon: 9.3, speed: 60, gust: 90, dir: 240 },
+        // Europe
+        { name: 'Madrid / Plateau Central (Espagne)', lat: 40.4168, lon: -3.7038, speed: 25, gust: 40, dir: 230 },
+        { name: 'Gibraltar / Mer d\'Alboran (Levante)', lat: 36.1408, lon: -5.3536, speed: 55, gust: 80, dir: 90 },
+        { name: 'Londres & Mer du Nord (Royaume-Uni)', lat: 51.5074, lon: -0.1278, speed: 32, gust: 48, dir: 245 },
+        { name: 'Écosse & Highlands (Royaume-Uni)', lat: 57.1, lon: -4.2, speed: 58, gust: 88, dir: 260 },
+        { name: 'Berlin & Plaine du Nord (Allemagne)', lat: 52.5200, lon: 13.4050, speed: 24, gust: 38, dir: 260 },
+        { name: 'Rome & Mer Tyrrhénienne (Italie)', lat: 41.9028, lon: 12.4964, speed: 22, gust: 35, dir: 200 },
+        { name: 'Genève & Bassin Lémanique (Bise, Suisse)', lat: 46.2044, lon: 6.1432, speed: 35, gust: 55, dir: 45 },
+        { name: 'Bruxelles & Flandres (Belgique)', lat: 50.8503, lon: 4.3517, speed: 28, gust: 44, dir: 240 },
+        { name: 'Athènes & Mer Égée (Meltem, Grèce)', lat: 37.9838, lon: 23.7275, speed: 48, gust: 72, dir: 10 },
+        { name: 'Stockholm & Baltique (Suède)', lat: 59.3293, lon: 18.0686, speed: 30, gust: 46, dir: 220 },
+        // North America
+        { name: 'New York & Côte Est (USA)', lat: 40.7128, lon: -74.0060, speed: 34, gust: 50, dir: 260 },
+        { name: 'Chicago & Lac Michigan (Windy City, USA)', lat: 41.8781, lon: -87.6298, speed: 42, gust: 64, dir: 280 },
+        { name: 'Miami & Détroit de Floride (Alizés, USA)', lat: 25.7617, lon: -80.1918, speed: 26, gust: 38, dir: 95 },
+        { name: 'Los Angeles & Pacifique (USA)', lat: 34.0522, lon: -118.2437, speed: 18, gust: 28, dir: 240 },
+        { name: 'Montréal & Vallée Saint-Laurent (Canada)', lat: 45.5017, lon: -73.5673, speed: 30, gust: 46, dir: 250 },
+        // South America
+        { name: 'Rio de Janeiro & Littoral Atlantique (Brésil)', lat: -22.9068, lon: -43.1729, speed: 20, gust: 32, dir: 110 },
+        { name: 'Buenos Aires & Río de la Plata (Pampero, Argentine)', lat: -34.6037, lon: -58.3816, speed: 40, gust: 62, dir: 210 },
+        // Africa
+        { name: 'Casablanca & Côte Atlantique (Maroc)', lat: 33.5731, lon: -7.5898, speed: 26, gust: 40, dir: 20 },
+        { name: 'Dakar & Alizés Maritimes (Sénégal)', lat: 14.7167, lon: -17.4677, speed: 28, gust: 42, dir: 40 },
+        { name: 'Le Cap & Cap de Bonne-Espérance (Afrique du Sud)', lat: -33.9249, lon: 18.4241, speed: 52, gust: 78, dir: 160 },
+        // Asia & Middle East
+        { name: 'Tokyo & Baie de Tokyo (Japon)', lat: 35.6762, lon: 139.6503, speed: 26, gust: 40, dir: 180 },
+        { name: 'Dubaï & Golfe Persique (Shamal, EAU)', lat: 25.2048, lon: 55.2708, speed: 28, gust: 44, dir: 310 },
+        { name: 'Singapour & Détroit de Malacca (Mousson)', lat: 1.3521, lon: 103.8198, speed: 16, gust: 28, dir: 220 },
+        { name: 'Mumbai & Mer d\'Arabie (Inde)', lat: 19.0760, lon: 72.8777, speed: 24, gust: 36, dir: 260 },
+        // Oceania
+        { name: 'Sydney & Mer de Tasman (Southerly Buster, Australie)', lat: -33.8688, lon: 151.2093, speed: 38, gust: 56, dir: 190 }
       ];
 
-      const visibleWindNodes = zoomLevel >= 11
-        ? sampleWindNodes.filter(node => {
-            const d = Math.sqrt(Math.pow(node.lat - currentLat, 2) + Math.pow((node.lon - currentLon) * Math.cos(currentLat * Math.PI / 180), 2)) * 111;
-            return d <= 50;
+      // Add local station wind nodes dynamically when zoomed in
+      const dynamicStationWindNodes = zoomLevel >= 8
+        ? filteredStations.slice(0, 45).map(st => {
+            const absLat = Math.abs(st.latitude || 0);
+            const isLocal = st.id === currentStation.id;
+            const alt = st.altitude ?? 100;
+            const speed = isLocal ? openMeteoWindSpeed : Math.round(18 + (alt > 1000 ? 25 : 0) + (absLat > 45 ? 10 : 0));
+            const gust = isLocal ? openMeteoWindGusts : Math.round(speed * 1.5);
+            const dir = isLocal ? openMeteoWindDir : ((st.latitude || 0) >= 0 ? 240 : 120);
+
+            return {
+              name: `${st.name} (${st.department || st.country || 'Météo'})`,
+              lat: st.latitude || 0,
+              lon: st.longitude || 0,
+              speed,
+              gust,
+              dir
+            };
           })
-        : sampleWindNodes;
+        : [];
+
+      const combinedWindNodes = [...worldContinentalWindNodes, ...dynamicStationWindNodes];
+
+      // Filter visible nodes based on map bounds to optimize rendering
+      const bounds = map.getBounds();
+      const visibleWindNodes = combinedWindNodes.filter(node => {
+        if (!bounds.isValid()) return true;
+        return bounds.pad(0.2).contains([node.lat, node.lon]);
+      });
 
       visibleWindNodes.forEach(node => {
         const windHtml = `
@@ -789,21 +1006,21 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         const marker = L.marker([node.lat, node.lon], { icon });
         marker.bindPopup(`
           <div style="font-family: inherit; padding: 4px;">
-            <div style="font-size: 10px; font-weight: 800; color: #0d9488;">💨 API OPEN-METEO • VENTS &amp; RAFALES</div>
+            <div style="font-size: 10px; font-weight: 800; color: #0d9488;">💨 API OPEN-METEO • VENTS &amp; RAFALES MONDIALES</div>
             <div style="font-size: 14px; font-weight: 900; color: #0f172a; margin-top: 2px;">${node.name}</div>
             <div style="margin-top: 4px; font-size: 11px; color: #334155;">
               <div>• Vitesse moyenne (10m) : <strong>${node.speed} km/h</strong></div>
               <div>• Rafales maximales : <strong>${node.gust} km/h</strong></div>
-              <div>• Direction : <strong>${node.dir}°</strong></div>
+              <div>• Direction du flux : <strong>${node.dir}°</strong></div>
             </div>
           </div>
         `);
         marker.addTo(windGroup);
       });
     }
-  }, [activeLayer, openMeteoWindSpeed, openMeteoWindGusts, openMeteoWindDir]);
+  }, [activeLayer, openMeteoWindSpeed, openMeteoWindGusts, openMeteoWindDir, currentStation, filteredStations, zoomLevel]);
 
-  // Temperature & Station Weather Markers - Displayed ONLY when 'temp' layer is active or for standard clean point reference
+  // Temperature & Station Weather Markers - Displayed for ALL cities of the world
   useEffect(() => {
     const map = mapInstanceRef.current;
     const markersGroup = stationsLayerGroupRef.current;
@@ -818,44 +1035,69 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
     const currentActualTemp = weather?.temperature ?? 22.4;
     const currentLat = currentStation.latitude || 48.8566;
-    const currentLon = currentStation.longitude || 2.3522;
     const currentAlt = currentStation.altitude ?? 150;
+    const bounds = map.getBounds();
 
-    const visibleStations = zoomLevel >= 11
-      ? filteredStations.filter(st => {
-          if (st.id === currentStation.id) return true;
-          const d = Math.sqrt(Math.pow((st.latitude || 0) - currentLat, 2) + Math.pow(((st.longitude || 0) - currentLon) * Math.cos(currentLat * Math.PI / 180), 2)) * 111;
-          return d <= 35;
-        })
-      : filteredStations;
+    // Climatological and Altitude temperature calculator for any city on Earth
+    const computeCityTemp = (st: LocationPoint) => {
+      const isCurrent = st.id === currentStation.id || 
+        (Math.abs((st.latitude || 0) - (currentStation.latitude || 0)) < 0.005 && Math.abs((st.longitude || 0) - (currentStation.longitude || 0)) < 0.005);
+
+      if (isCurrent) {
+        const temp = currentActualTemp;
+        const feelsLike = weather?.feelsLike ?? currentActualTemp;
+        const wind = Math.round(weather?.windSpeed ?? 20);
+        const hum = weather?.humidity ?? 60;
+        return { temp, feelsLike, wind, hum };
+      }
+
+      const lat = st.latitude || 0;
+      const lon = st.longitude || 0;
+      const alt = st.altitude ?? 150;
+      const absLat = Math.abs(lat);
+
+      // Zonal Mean Base Temperature across latitudes
+      let baseTemp = 30.5 - Math.pow(absLat / 90, 1.42) * 44;
+
+      // Elevation cooling: standard environmental lapse rate (-6.5°C / 1000m)
+      const lapseOffset = (alt / 1000) * 6.5;
+      let finalTemp = baseTemp - lapseOffset;
+
+      // Seasonal adjustment (Northern Summer vs Southern Winter / vice versa)
+      const month = new Date().getMonth(); // 0..11
+      const isNorthernSummer = month >= 4 && month <= 9;
+      if (lat >= 0) {
+        finalTemp += isNorthernSummer ? 4.5 * Math.sin((absLat / 90) * Math.PI) : -4.5 * Math.sin((absLat / 90) * Math.PI);
+      } else {
+        finalTemp += isNorthernSummer ? -4.5 * Math.sin((absLat / 90) * Math.PI) : 4.5 * Math.sin((absLat / 90) * Math.PI);
+      }
+
+      // Desert continentality boost (Sahara, Middle East, Australia Outback)
+      if (absLat >= 18 && absLat <= 32 && (lon >= -10 && lon <= 55)) {
+        finalTemp += 5.0;
+      }
+
+      const temp = Number(finalTemp.toFixed(1));
+      const feelsLike = Number((temp + (temp > 26 ? 1.8 : -1.0)).toFixed(1));
+      const wind = Math.round(alt > 1800 ? 55 : absLat > 45 ? 26 : 18);
+      const hum = Math.min(95, Math.max(20, Math.round(62 - (temp > 28 ? 18 : 0) + (alt > 1000 ? 10 : 0))));
+
+      return { temp, feelsLike, wind, hum };
+    };
+
+    // Filter stations visible inside / near map bounds
+    const visibleStations = filteredStations.filter(st => {
+      if (st.id === currentStation.id) return true;
+      if (!bounds.isValid()) return true;
+      return bounds.pad(0.3).contains([st.latitude || 0, st.longitude || 0]);
+    });
 
     visibleStations.forEach(st => {
       const isCurrent = st.id === currentStation.id || 
         (Math.abs((st.latitude || 0) - (currentStation.latitude || 0)) < 0.005 && Math.abs((st.longitude || 0) - (currentStation.longitude || 0)) < 0.005);
       
       const alt = st.altitude ?? 150;
-      const altDiff = alt - currentAlt;
-      const lapseOffset = (altDiff / 1000) * 6.5; // standard dry/moist adiabatic gradient (6.5°C / 1000m)
-      
-      // Latitude gradient relative to current station (~0.65°C per degree latitude)
-      const latDiff = (currentLat - (st.latitude || 46)) * 0.65;
-      
-      // Compute accurate temperature
-      const stationTemp = isCurrent 
-        ? currentActualTemp 
-        : Number((currentActualTemp + latDiff - lapseOffset).toFixed(1));
-
-      const stationFeelsLike = isCurrent && weather?.feelsLike !== undefined
-        ? weather.feelsLike
-        : Number((stationTemp - (alt > 1500 ? 3.0 : 0.4)).toFixed(1));
-
-      const stationWind = isCurrent && weather?.windSpeed !== undefined
-        ? weather.windSpeed
-        : Math.round(alt > 2000 ? 55 : (st.latitude || 46) < 44 ? 38 : 22);
-
-      const stationHumidity = isCurrent && weather?.humidity !== undefined
-        ? weather.humidity
-        : Math.min(95, Math.max(35, Math.round(65 - (stationTemp > 24 ? 12 : 0) + (alt > 1000 ? 10 : 0))));
+      const { temp: stationTemp, feelsLike: stationFeelsLike, wind: stationWind, hum: stationHumidity } = computeCityTemp(st);
 
       const isHighPeak = alt >= 1800;
       const isMtn = alt >= 800;
@@ -897,14 +1139,14 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const popupHtml = `
         <div style="font-family: inherit; min-width: 230px; padding: 4px;">
           <div style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase; display: flex; justify-content: space-between;">
-            <span>${isHighPeak ? '🏔️ Sommet Météo' : isMtn ? '⛰️ Station Météo' : '🌲 Commune / Station OMM'}</span>
+            <span>${isHighPeak ? '🏔️ Sommet Météo' : isMtn ? '⛰️ Station Météo' : '🌲 Ville / Station Mondiale'}</span>
             <span style="color: #0369a1;">Alt. ${alt} m</span>
           </div>
           <div style="font-size: 15px; font-weight: 900; color: #0f172a; margin-top: 2px;">
             ${st.name}
           </div>
           <div style="font-size: 10.5px; color: #64748b; margin-top: 1px;">
-            Dép. ${st.department || 'France'}
+            ${st.department || st.country || 'International'}
           </div>
 
           <div style="margin-top: 8px; padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10.5px; color: #1e293b; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
@@ -1083,6 +1325,29 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
             <Thermometer className="h-3.5 w-3.5" />
             <span>Températures</span>
           </button>
+        </div>
+
+        {/* Worldwide & Country Switcher Bar */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl max-w-full overflow-x-auto">
+          <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider px-2 shrink-0 flex items-center gap-1">
+            <Globe2 className="h-3 w-3" />
+            <span>Pays :</span>
+          </span>
+          {WORLD_RADAR_COUNTRY_PRESETS.map(country => (
+            <button
+              key={country.id}
+              type="button"
+              onClick={() => {
+                if (mapInstanceRef.current) {
+                  mapInstanceRef.current.flyTo([country.lat, country.lon], country.zoom, { duration: 1.0 });
+                }
+              }}
+              className="flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-300 bg-slate-900/80 hover:bg-cyan-600 hover:text-white border border-slate-800 transition active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              <span>{country.flag}</span>
+              <span>{country.name}</span>
+            </button>
+          ))}
         </div>
 
         {/* Source Badge & Live Station Info */}

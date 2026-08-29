@@ -36,7 +36,7 @@ interface CertifiedPrecisionMeteoHubProps {
   tempUnit?: 'C' | 'F';
 }
 
-type MetricCategory = 'SYNTHESIS' | 'SNOW_NIVO' | 'FROST_COLD' | 'ALTITUDE' | 'THERMO' | 'AEROLOGY' | 'CLOUDS' | 'SOLAR' | 'HYDRO' | 'AIR_QUALITY';
+type MetricCategory = 'SYNTHESIS' | 'FROST_COLD' | 'ALTITUDE' | 'THERMO' | 'AEROLOGY' | 'CLOUDS' | 'SOLAR' | 'HYDRO' | 'AIR_QUALITY';
 
 export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProps> = ({
   weather,
@@ -99,7 +99,6 @@ export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProp
 
   const categories: { id: MetricCategory; label: string; icon: any; badge?: string }[] = [
     { id: 'SYNTHESIS', label: 'Synthèse Directe', icon: Sparkles },
-    { id: 'SNOW_NIVO', label: '❄️ Neige & Nivologie Ultra-Pro', icon: Snowflake, badge: `${snowDepthCm} cm` },
     { id: 'FROST_COLD', label: '🧊 Gelées, Sol & Inversions', icon: ThermometerSnowflake, badge: frostLevel },
     { id: 'ALTITUDE', label: '⛰️ Isotherme 0°C & LPN', icon: Mountain, badge: `Iso 0: ${iso0}m` },
     { id: 'THERMO', label: 'Thermodynamique & Confort', icon: Thermometer, badge: 'Point de rosée' },
@@ -618,88 +617,7 @@ export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProp
         </div>
       )}
 
-      {/* 2. ULTRA-PRO SNOW & NIVOLOGY VIEW */}
-      {activeCategory === 'SNOW_NIVO' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-800/40 space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-cyan-400">
-                <span className="flex items-center gap-1.5"><Snowflake className="h-4 w-4" /> Manteau au Sol</span>
-                <span className="text-slate-500">Capteur Nivologique</span>
-              </div>
-              <div className="text-3xl font-black text-white">{snowDepthCm} <span className="text-sm font-normal text-cyan-300">cm</span></div>
-              <p className="text-[11px] text-slate-400">
-                Épaisseur mesurée sur mire nivométrique officielle à {station.altitude} m.
-              </p>
-            </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-blue-400">
-                <span className="flex items-center gap-1.5"><Layers className="h-4 w-4" /> Neige Fraîche (24h)</span>
-                <span className="text-slate-500">Cumul Récent</span>
-              </div>
-              <div className="text-3xl font-black text-white">{freshSnow24hCm} <span className="text-sm font-normal text-slate-400">cm</span></div>
-              <p className="text-[11px] text-slate-400">
-                Précipitations solides tombées sur les dernières 24 heures glissantes.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-teal-400">
-                <span className="flex items-center gap-1.5"><Droplets className="h-4 w-4" /> Équivalent Eau (SWE)</span>
-                <span className="text-slate-500">Masse Hydrique</span>
-              </div>
-              <div className="text-3xl font-black text-white">{snowWaterEquivalentMm} <span className="text-sm font-normal text-teal-300">mm (l/m²)</span></div>
-              <p className="text-[11px] text-slate-400">
-                Volume d'eau liquide contenu dans le manteau en cas de fonte intégrale.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-indigo-400">
-                <span className="flex items-center gap-1.5"><Activity className="h-4 w-4" /> Densité & Structure</span>
-                <span className="text-slate-500">{snowDensityKgM3} kg/m³</span>
-              </div>
-              <div className="text-base font-black text-indigo-200">{snowQuality}</div>
-              <p className="text-[11px] text-slate-400">
-                Ratio neige/eau estimé : 1:{Math.round(1000 / snowDensityKgM3)} selon la température.
-              </p>
-            </div>
-          </div>
-
-          {/* Detailed Nivology Profile Table by Altitude Tier (every 300m) */}
-          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Mountain className="h-4 w-4 text-cyan-400" />
-                Profil d'Enneigement par Étage d'Altitude & Risque d'Avalanche
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
-                Massif : {station.region || 'France'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 text-center text-xs">
-              {[
-                { alt: 600, snow: Math.max(0, Math.round(snowDepthCm * 0.1)), temp: Number((weather.temperature + (station.altitude - 600) * 0.0065).toFixed(1)) },
-                { alt: 1000, snow: Math.max(0, Math.round(snowDepthCm * 0.35 + (station.altitude < 1000 ? 5 : 0))), temp: Number((weather.temperature + (station.altitude - 1000) * 0.0065).toFixed(1)) },
-                { alt: 1500, snow: Math.max(0, Math.round(snowDepthCm * 0.75 + (station.altitude < 1500 ? 20 : 0))), temp: Number((weather.temperature + (station.altitude - 1500) * 0.0065).toFixed(1)) },
-                { alt: 2000, snow: Math.max(0, Math.round(snowDepthCm * 1.25 + (station.altitude < 2000 ? 60 : 0))), temp: Number((weather.temperature + (station.altitude - 2000) * 0.0065).toFixed(1)) },
-                { alt: 2500, snow: Math.max(0, Math.round(snowDepthCm * 1.6 + 110)), temp: Number((weather.temperature + (station.altitude - 2500) * 0.0065).toFixed(1)) },
-                { alt: 3000, snow: Math.max(0, Math.round(snowDepthCm * 1.9 + 175)), temp: Number((weather.temperature + (station.altitude - 3000) * 0.0065).toFixed(1)) },
-              ].map((tier, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
-                  <div className="font-bold text-cyan-300">{tier.alt} m</div>
-                  <div className="text-lg font-black text-white">{tier.snow} cm</div>
-                  <div className={`text-[10px] font-bold ${tier.temp <= 0 ? 'text-blue-400' : 'text-amber-400'}`}>
-                    {formatTemp(tier.temp)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 3. ULTRA-PRO FROST, GROUND FREEZE & THERMAL INVERSIONS VIEW */}
       {activeCategory === 'FROST_COLD' && (

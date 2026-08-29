@@ -3,6 +3,7 @@ import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '..
 import { PrecisionRadarMap } from '../components/PrecisionRadarMap';
 import { FireProximityRadarCard } from '../components/FireProximityRadarCard';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { WORLD_STATIONS } from '../data/worldStations';
 import { 
   CloudRain, 
   Globe2, 
@@ -50,14 +51,28 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 }) => {
   const [selectedPresetMode, setSelectedPresetMode] = useState<string>('france-national');
 
-  const frenchRegionalPresets = [
-    { id: 'france-national', label: '🇫🇷 France Entière (Réseau Radar)', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
-    { id: 'nord-idf', label: '🗼 Bassin Parisien & Hauts-de-France', lat: 49.2, lon: 2.5, zoom: 8, stationId: 'paris-montsouris' },
-    { id: 'ouest-atlantique', label: '🌊 Façade Atlantique & Bretagne', lat: 47.8, lon: -2.5, zoom: 8, stationId: 'brest-guipavas' },
-    { id: 'sud-est-med', label: '☀️ Arc Méditerranéen & PACA / Corse', lat: 43.5, lon: 5.5, zoom: 8, stationId: 'marseille-marignane' },
-    { id: 'sud-ouest', label: '🍷 Sud-Ouest & Bassin Aquitain', lat: 44.5, lon: 0.2, zoom: 8, stationId: 'bordeaux-merignac' },
-    { id: 'rhone-alpes', label: '🏔️ Auvergne-Rhône-Alpes & Alpes', lat: 45.5, lon: 5.8, zoom: 8, stationId: 'lyon-bron' },
-    { id: 'grand-est', label: '🏰 Grand Est & Massif Vosgien', lat: 48.6, lon: 6.8, zoom: 8, stationId: 'strasbourg-entzheim' },
+  const radarTerritoryPresets = [
+    { id: 'france-national', label: '🇫🇷 France Entière', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
+    { id: 'world-global', label: '🌍 Monde Entier (Global)', lat: 25.0, lon: 10.0, zoom: 3, stationId: 'paris-montsouris' },
+    { id: 'europe-cont', label: '🇪🇺 Europe Continentale', lat: 48.5, lon: 10.0, zoom: 5, stationId: 'paris-montsouris' },
+    { id: 'spain-pt', label: '🇪🇸 Espagne & Portugal', lat: 40.4168, lon: -3.7038, zoom: 6, stationId: 'madrid-spain' },
+    { id: 'italy-med', label: '🇮🇹 Italie & Méditerranée', lat: 41.8719, lon: 12.5674, zoom: 6, stationId: 'rome-italy' },
+    { id: 'germany-cent', label: '🇩🇪 Allemagne & Europe Centrale', lat: 51.1657, lon: 10.4515, zoom: 6, stationId: 'berlin-germany' },
+    { id: 'uk-irl', label: '🇬🇧 Royaume-Uni & Irlande', lat: 54.5, lon: -2.5, zoom: 6, stationId: 'london-uk' },
+    { id: 'swiss-alps', label: '🇨🇭 Suisse & Alpes', lat: 46.8182, lon: 8.2275, zoom: 8, stationId: 'geneva-switzerland' },
+    { id: 'benelux', label: '🇧🇪 Belgique & Pays-Bas', lat: 50.8503, lon: 4.3517, zoom: 8, stationId: 'brussels-belgium' },
+    { id: 'usa-north', label: '🇺🇸 États-Unis', lat: 39.8283, lon: -98.5795, zoom: 4, stationId: 'new-york-usa' },
+    { id: 'canada-zone', label: '🇨🇦 Canada', lat: 56.1304, lon: -106.3468, zoom: 4, stationId: 'montreal-canada' },
+    { id: 'japan-asia', label: '🇯🇵 Japon & Asie', lat: 36.2048, lon: 138.2529, zoom: 5, stationId: 'tokyo-japan' },
+    { id: 'morocco-mag', label: '🇲🇦 Maroc & Maghreb', lat: 31.7917, lon: -7.0926, zoom: 6, stationId: 'casablanca-morocco' },
+    { id: 'brazil-sa', label: '🇧🇷 Brésil & Am. Sud', lat: -14.235, lon: -51.9253, zoom: 4, stationId: 'rio-de-janeiro' },
+    { id: 'australia-oc', label: '🇦🇺 Australie', lat: -25.2744, lon: 133.7751, zoom: 4, stationId: 'sydney-australia' },
+    { id: 'nord-idf', label: '🗼 Bassin Parisien', lat: 49.2, lon: 2.5, zoom: 8, stationId: 'paris-montsouris' },
+    { id: 'ouest-atlantique', label: '🌊 Façade Atlantique', lat: 47.8, lon: -2.5, zoom: 8, stationId: 'brest-guipavas' },
+    { id: 'sud-est-med', label: '☀️ Arc Méditerranéen & PACA', lat: 43.5, lon: 5.5, zoom: 8, stationId: 'marseille-marignane' },
+    { id: 'sud-ouest', label: '🍷 Sud-Ouest & Aquitaine', lat: 44.5, lon: 0.2, zoom: 8, stationId: 'bordeaux-merignac' },
+    { id: 'rhone-alpes', label: '🏔️ Rhône-Alpes & Alpes', lat: 45.5, lon: 5.8, zoom: 8, stationId: 'lyon-bron' },
+    { id: 'grand-est', label: '🏰 Grand Est & Vosges', lat: 48.6, lon: 6.8, zoom: 8, stationId: 'strasbourg-entzheim' },
     { id: 'outre-mer', label: '🌴 Outre-Mer (La Réunion / Antilles)', lat: -21.1, lon: 55.5, zoom: 9, stationId: 'reunion-saint-denis' }
   ];
 
@@ -67,23 +82,38 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
     FRENCH_STATIONS[2], // Lyon
     FRENCH_STATIONS[3], // Nice
     FRENCH_STATIONS[4], // Chamonix Aiguille du Midi (3842m)
-    FRENCH_STATIONS[7], // Pic du Midi (2877m)
     FRENCH_STATIONS[9], // Brest
     FRENCH_STATIONS[12], // Strasbourg
     FRENCH_STATIONS[14], // Biarritz
-    FRENCH_STATIONS[16]  // Ajaccio
+    ...WORLD_STATIONS.slice(0, 14) // London, Madrid, Rome, Berlin, Geneva, Brussels, New York, Tokyo, Montreal, Sydney, Casablanca, etc.
   ];
 
   const handleSelectPreset = (presetId: string) => {
     setSelectedPresetMode(presetId);
-    const preset = frenchRegionalPresets.find(p => p.id === presetId);
+    const preset = radarTerritoryPresets.find(p => p.id === presetId);
     if (preset) {
-      const matchSt = FRENCH_STATIONS.find(s => s.id === preset.stationId);
+      const matchSt = [...FRENCH_STATIONS, ...WORLD_STATIONS].find(s => s.id === preset.stationId);
       if (matchSt) {
         onSelectStation({
           ...matchSt,
-          isRegion: presetId !== 'france-national',
+          isRegion: presetId !== 'france-national' && presetId !== 'world-global',
           region: preset.label
+        });
+      } else {
+        onSelectStation({
+          id: `preset-${preset.id}`,
+          name: preset.label,
+          department: preset.label,
+          region: preset.label,
+          latitude: preset.lat,
+          longitude: preset.lon,
+          altitude: 100,
+          climateZone: 'Climat Tempéré / Océanique / Continental',
+          allTimeRecordMax: 42.0,
+          allTimeRecordMin: -20.0,
+          allTimeRecordRain24h: 150.0,
+          isRegion: true,
+          isWorldLocation: true
         });
       }
     }
@@ -115,15 +145,15 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
               className="flex items-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-5 py-3 text-xs shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
             >
               <MapPin className="h-4 w-4" />
-              <span>Centrer sur une Commune de France...</span>
+              <span>Centrer sur une Ville ou un Pays...</span>
             </button>
           </div>
         </div>
 
-        {/* Regional Quick Presets for France */}
+        {/* Territory & Country Quick Presets */}
         <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-bold text-slate-400 shrink-0">Cadrages Régionaux :</span>
-          {frenchRegionalPresets.map((preset) => {
+          <span className="text-xs font-bold text-slate-400 shrink-0">Pays &amp; Territoires :</span>
+          {radarTerritoryPresets.map((preset) => {
             const isSelected = selectedPresetMode === preset.id;
             return (
               <button
@@ -143,7 +173,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
         {/* Quick Stations Bar */}
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-[11px] font-bold text-slate-400 shrink-0">Villes phares :</span>
+          <span className="text-[11px] font-bold text-slate-400 shrink-0">Villes &amp; Capitales :</span>
           {quickStations.map((st) => {
             const isSelected = st.id === currentStation.id;
             const isMtn = (st.altitude ?? 0) >= 800;
