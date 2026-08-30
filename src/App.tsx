@@ -255,27 +255,14 @@ function WeatherApp() {
     try {
       const data = await fetchWeatherData(station);
 
-      let currentWeather = data.current;
-      const recal = getActiveRecalibration();
-      setActiveRecalibration(recal);
-
-      if (recal && recal.isActive && recal.stationId === station.id) {
-        currentWeather = {
-          ...currentWeather,
-          temperature: Number((currentWeather.temperature + recal.tempOffset).toFixed(1)),
-          feelsLike: Number((currentWeather.feelsLike + recal.tempOffset).toFixed(1)),
-          weatherDescription: recal.weatherOverride || currentWeather.weatherDescription
-        };
-      }
-
-      setWeather(currentWeather);
+      setWeather(data.current);
       setHourly(data.hourly);
       setDaily(data.daily);
       setAnomaly(data.anomaly);
 
       const now = new Date();
       setLastUpdatedTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setNextRefreshSeconds(recal && recal.isActive ? 15 : autoRefreshInterval);
+      setNextRefreshSeconds(autoRefreshInterval);
     } catch (err) {
       console.error("Failed to load weather:", err);
     } finally {
@@ -966,13 +953,13 @@ function WeatherApp() {
 
 export function App() {
   const [showWeatherApp, setShowWeatherApp] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.location.hash === '#meteo';
+    if (typeof window === 'undefined') return true;
+    return window.location.hash !== '#presentation' && window.location.hash !== '#accueil';
   });
 
   useEffect(() => {
     const syncRoute = () => {
-      setShowWeatherApp(window.location.hash === '#meteo');
+      setShowWeatherApp(window.location.hash !== '#presentation' && window.location.hash !== '#accueil');
       window.scrollTo({ top: 0, behavior: 'auto' });
     };
 
@@ -984,7 +971,8 @@ export function App() {
     return (
       <HomePage
         onEnterApp={() => {
-          window.location.hash = 'meteo';
+          window.location.hash = '';
+          setShowWeatherApp(true);
         }}
       />
     );

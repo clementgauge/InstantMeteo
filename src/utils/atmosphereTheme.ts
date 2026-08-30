@@ -119,19 +119,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Brume matinale douce, reflets rosés et éveil de la végétation',
     skyToneLabel: 'Aube Boréale Pastel',
     iconName: 'Sunrise',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #172554 0%, #0f172a 40%, #030712 100%)',
-    meshGlowPrimary: 'rgba(244, 114, 182, 0.18)', // Rose poudré
-    meshGlowSecondary: 'rgba(56, 189, 248, 0.16)', // Cyan aurore
-    accentBorder: 'border-pink-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #fdf2f8 0%, #f0fdf4 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(244, 114, 182, 0.28)', // Rose poudré
+    meshGlowSecondary: 'rgba(56, 189, 248, 0.22)', // Cyan aurore
+    accentBorder: 'border-pink-300',
     glowAccentColor: '#f472b6',
     particleType: 'petals',
     badgeStyle: {
-      bg: 'bg-pink-500/20',
-      text: 'text-pink-300',
-      border: 'border-pink-500/40'
+      bg: 'bg-pink-100',
+      text: 'text-pink-800',
+      border: 'border-pink-300'
     },
-    cardHighlightBorder: 'hover:border-pink-500/40',
-    lightingIntensity: 0.45
+    cardHighlightBorder: 'hover:border-pink-400',
+    lightingIntensity: 0.75
   },
   'DAWN_SUMMER': {
     id: 'DAWN_SUMMER',
@@ -141,19 +141,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Horizon abricot et or, fraîcheur matinale avant la chaleur',
     skyToneLabel: 'Aube Ambrée & Azur',
     iconName: 'Sunrise',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e1b4b 0%, #0f172a 45%, #020617 100%)',
-    meshGlowPrimary: 'rgba(251, 146, 60, 0.22)', // Orange abricot
-    meshGlowSecondary: 'rgba(250, 204, 21, 0.18)', // Or chaud
-    accentBorder: 'border-amber-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #fffbeb 0%, #ffedd5 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(251, 146, 60, 0.30)', // Orange abricot
+    meshGlowSecondary: 'rgba(250, 204, 21, 0.26)', // Or chaud
+    accentBorder: 'border-amber-300',
     glowAccentColor: '#f59e0b',
     particleType: 'sunflare',
     badgeStyle: {
-      bg: 'bg-amber-500/20',
-      text: 'text-amber-300',
-      border: 'border-amber-500/40'
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+      border: 'border-amber-300'
     },
-    cardHighlightBorder: 'hover:border-amber-500/40',
-    lightingIntensity: 0.55
+    cardHighlightBorder: 'hover:border-amber-400',
+    lightingIntensity: 0.85
   },
   'DAWN_AUTUMN': {
     id: 'DAWN_AUTUMN',
@@ -163,19 +163,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Nappes de brouillard en vallée, lueurs de bronze et d\'ambre',
     skyToneLabel: 'Aube Cuivrée Ocrée',
     iconName: 'Sunrise',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #2e1065 0%, #1e1b4b 35%, #09090b 100%)',
-    meshGlowPrimary: 'rgba(217, 119, 6, 0.20)', // Cuivre
-    meshGlowSecondary: 'rgba(180, 83, 9, 0.18)', // Ocre terreux
-    accentBorder: 'border-orange-600/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #fff7ed 0%, #fef3c7 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(217, 119, 6, 0.26)', // Cuivre
+    meshGlowSecondary: 'rgba(180, 83, 9, 0.22)', // Ocre terreux
+    accentBorder: 'border-orange-300',
     glowAccentColor: '#ea580c',
     particleType: 'mist',
     badgeStyle: {
-      bg: 'bg-orange-500/20',
-      text: 'text-orange-300',
-      border: 'border-orange-500/40'
+      bg: 'bg-orange-100',
+      text: 'text-orange-800',
+      border: 'border-orange-300'
     },
-    cardHighlightBorder: 'hover:border-orange-500/40',
-    lightingIntensity: 0.40
+    cardHighlightBorder: 'hover:border-orange-400',
+    lightingIntensity: 0.70
   },
   'DAWN_WINTER': {
     id: 'DAWN_WINTER',
@@ -185,19 +185,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Cristaux givrés scintillant sous un ciel rose opalin et lilas',
     skyToneLabel: 'Aube Polaire Opaline',
     iconName: 'Sunrise',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e1b4b 0%, #0f172a 40%, #030712 100%)',
-    meshGlowPrimary: 'rgba(224, 231, 255, 0.18)', // Lilas glacé
-    meshGlowSecondary: 'rgba(56, 189, 248, 0.20)', // Cyan givre
-    accentBorder: 'border-cyan-400/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #f0f9ff 0%, #e0f2fe 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(224, 231, 255, 0.35)', // Lilas glacé
+    meshGlowSecondary: 'rgba(56, 189, 248, 0.28)', // Cyan givre
+    accentBorder: 'border-cyan-300',
     glowAccentColor: '#38bdf8',
     particleType: 'frost',
     badgeStyle: {
-      bg: 'bg-cyan-500/20',
-      text: 'text-cyan-200',
-      border: 'border-cyan-400/40'
+      bg: 'bg-cyan-100',
+      text: 'text-cyan-800',
+      border: 'border-cyan-300'
     },
-    cardHighlightBorder: 'hover:border-cyan-400/40',
-    lightingIntensity: 0.42
+    cardHighlightBorder: 'hover:border-cyan-400',
+    lightingIntensity: 0.75
   },
 
   // ===================== DAY (JOURNÉE) =====================
@@ -209,41 +209,41 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Ciel azuré limpide, brise douce et éclat printanier vivifiant',
     skyToneLabel: 'Zénith Émeraude & Azur',
     iconName: 'CloudSun',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #0c4a6e 0%, #0f172a 50%, #020617 100%)',
-    meshGlowPrimary: 'rgba(14, 165, 233, 0.22)', // Ciel azur
-    meshGlowSecondary: 'rgba(52, 211, 153, 0.16)', // Émeraude douce
-    accentBorder: 'border-sky-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e0f2fe 0%, #f0fdf4 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(14, 165, 233, 0.26)', // Ciel azur
+    meshGlowSecondary: 'rgba(52, 211, 153, 0.22)', // Émeraude douce
+    accentBorder: 'border-sky-300',
     glowAccentColor: '#0ea5e9',
     particleType: 'petals',
     badgeStyle: {
-      bg: 'bg-sky-500/20',
-      text: 'text-sky-300',
-      border: 'border-sky-500/40'
+      bg: 'bg-sky-100',
+      text: 'text-sky-800',
+      border: 'border-sky-300'
     },
-    cardHighlightBorder: 'hover:border-sky-400/40',
-    lightingIntensity: 0.85
+    cardHighlightBorder: 'hover:border-sky-400',
+    lightingIntensity: 0.95
   },
   'DAY_SUMMER': {
     id: 'DAY_SUMMER',
     timeOfDay: 'DAY',
     season: 'SUMMER',
     name: 'Plein Jour & Zénith Estival',
-    subtitle: 'Intensité solaire maximale, ciel bleu profond et rayonnement généreux',
-    skyToneLabel: 'Zénith Doré & Azur Profond',
+    subtitle: 'Intensité solaire maximale, ciel bleu limpide et rayonnement généreux',
+    skyToneLabel: 'Zénith Doré & Azur Lumineux',
     iconName: 'Sun',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #075985 0%, #0f172a 55%, #020617 100%)',
-    meshGlowPrimary: 'rgba(245, 158, 11, 0.22)', // Or solaire
-    meshGlowSecondary: 'rgba(2, 132, 199, 0.24)', // Bleu ciel intense
-    accentBorder: 'border-blue-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #bae6fd 0%, #fef3c7 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(245, 158, 11, 0.30)', // Or solaire
+    meshGlowSecondary: 'rgba(2, 132, 199, 0.26)', // Bleu ciel
+    accentBorder: 'border-blue-300',
     glowAccentColor: '#3b82f6',
     particleType: 'sunflare',
     badgeStyle: {
-      bg: 'bg-blue-500/20',
-      text: 'text-blue-300',
-      border: 'border-blue-500/40'
+      bg: 'bg-blue-100',
+      text: 'text-blue-800',
+      border: 'border-blue-300'
     },
-    cardHighlightBorder: 'hover:border-blue-400/40',
-    lightingIntensity: 0.95
+    cardHighlightBorder: 'hover:border-blue-400',
+    lightingIntensity: 1.0
   },
   'DAY_AUTUMN': {
     id: 'DAY_AUTUMN',
@@ -253,19 +253,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Lumière rasante dorée, teintes d\'ambre chaud et ciel modérément voilé',
     skyToneLabel: 'Lumière Ambrée & Cèdre',
     iconName: 'Leaf',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 45%, #020617 100%)',
-    meshGlowPrimary: 'rgba(234, 88, 12, 0.20)', // Ambre
-    meshGlowSecondary: 'rgba(202, 138, 4, 0.18)', // Or automnal
-    accentBorder: 'border-amber-600/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #ffedd5 0%, #fef3c7 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(234, 88, 12, 0.25)', // Ambre
+    meshGlowSecondary: 'rgba(202, 138, 4, 0.22)', // Or automnal
+    accentBorder: 'border-amber-300',
     glowAccentColor: '#d97706',
     particleType: 'mist',
     badgeStyle: {
-      bg: 'bg-amber-600/20',
-      text: 'text-amber-200',
-      border: 'border-amber-500/40'
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+      border: 'border-amber-300'
     },
-    cardHighlightBorder: 'hover:border-amber-500/40',
-    lightingIntensity: 0.70
+    cardHighlightBorder: 'hover:border-amber-400',
+    lightingIntensity: 0.85
   },
   'DAY_WINTER': {
     id: 'DAY_WINTER',
@@ -275,19 +275,19 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Ciel cristallin froid, réverbération immaculée et air sec',
     skyToneLabel: 'Bleu Acier & Éclat Froid',
     iconName: 'Snowflake',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #0f2c59 0%, #0f172a 45%, #020617 100%)',
-    meshGlowPrimary: 'rgba(56, 189, 248, 0.20)', // Bleu glacier
-    meshGlowSecondary: 'rgba(147, 197, 253, 0.16)', // Acier clair
-    accentBorder: 'border-cyan-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e0f2fe 0%, #f1f5f9 45%, #ffffff 100%)',
+    meshGlowPrimary: 'rgba(56, 189, 248, 0.28)', // Bleu glacier
+    meshGlowSecondary: 'rgba(147, 197, 253, 0.24)', // Acier clair
+    accentBorder: 'border-cyan-300',
     glowAccentColor: '#06b6d4',
     particleType: 'frost',
     badgeStyle: {
-      bg: 'bg-cyan-500/20',
-      text: 'text-cyan-300',
-      border: 'border-cyan-500/40'
+      bg: 'bg-cyan-100',
+      text: 'text-cyan-800',
+      border: 'border-cyan-300'
     },
-    cardHighlightBorder: 'hover:border-cyan-400/40',
-    lightingIntensity: 0.65
+    cardHighlightBorder: 'hover:border-cyan-400',
+    lightingIntensity: 0.80
   },
 
   // ===================== DUSK (CRÉPUSCULE) =====================
@@ -296,178 +296,178 @@ export const ATMOSPHERE_THEMES: Record<string, AtmosphereThemeConfig> = {
     timeOfDay: 'DUSK',
     season: 'SPRING',
     name: 'Crépuscule Violet & Douceur Printanière',
-    subtitle: 'Dégradé velouté lilas, indigo et premières lueurs des étoiles',
+    subtitle: 'Dégradé velouté lilas, indigo doux et premières lueurs des étoiles',
     skyToneLabel: 'Lilas & Indigo Crépusculaire',
     iconName: 'Sunset',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #4c1d95 0%, #1e1b4b 40%, #020617 100%)',
-    meshGlowPrimary: 'rgba(192, 132, 252, 0.22)', // Violet lilas
-    meshGlowSecondary: 'rgba(244, 114, 182, 0.18)', // Rose fuchsia
-    accentBorder: 'border-purple-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #ede9fe 0%, #fce7f3 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(192, 132, 252, 0.28)', // Violet lilas
+    meshGlowSecondary: 'rgba(244, 114, 182, 0.24)', // Rose fuchsia
+    accentBorder: 'border-purple-300',
     glowAccentColor: '#a855f7',
     particleType: 'stars',
     badgeStyle: {
-      bg: 'bg-purple-500/20',
-      text: 'text-purple-300',
-      border: 'border-purple-500/40'
+      bg: 'bg-purple-100',
+      text: 'text-purple-800',
+      border: 'border-purple-300'
     },
-    cardHighlightBorder: 'hover:border-purple-400/40',
-    lightingIntensity: 0.38
+    cardHighlightBorder: 'hover:border-purple-400',
+    lightingIntensity: 0.65
   },
   'DUSK_SUMMER': {
     id: 'DUSK_SUMMER',
     timeOfDay: 'DUSK',
     season: 'SUMMER',
     name: 'Coucher de Soleil Flamboyant',
-    subtitle: 'Crépuscule carmin, horizon pourpre incandescent et ciel d\'été infini',
+    subtitle: 'Crépuscule carmin doux, horizon pourpre et ciel d\'été doré',
     skyToneLabel: 'Feu Pourpre & Magie Solaire',
     iconName: 'Sunset',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #831843 0%, #3b0764 40%, #030712 100%)',
-    meshGlowPrimary: 'rgba(239, 68, 68, 0.24)', // Carmin
-    meshGlowSecondary: 'rgba(245, 158, 11, 0.22)', // Or ardent
-    accentBorder: 'border-rose-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #fed7aa 0%, #fee2e2 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(239, 68, 68, 0.28)', // Carmin
+    meshGlowSecondary: 'rgba(245, 158, 11, 0.26)', // Or ardent
+    accentBorder: 'border-rose-300',
     glowAccentColor: '#f43f5e',
     particleType: 'embers',
     badgeStyle: {
-      bg: 'bg-rose-500/20',
-      text: 'text-rose-300',
-      border: 'border-rose-500/40'
+      bg: 'bg-rose-100',
+      text: 'text-rose-800',
+      border: 'border-rose-300'
     },
-    cardHighlightBorder: 'hover:border-rose-400/40',
-    lightingIntensity: 0.48
+    cardHighlightBorder: 'hover:border-rose-400',
+    lightingIntensity: 0.70
   },
   'DUSK_AUTUMN': {
     id: 'DUSK_AUTUMN',
     timeOfDay: 'DUSK',
     season: 'AUTUMN',
     name: 'Crépuscule Érable & Braises Automnales',
-    subtitle: 'Dégradé cuivre, rouge brique et obscurité enveloppante',
+    subtitle: 'Dégradé cuivre doux, orange chaud et teintes siennes',
     skyToneLabel: 'Braises de Cuivre & Sienne',
     iconName: 'Sunset',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #7c2d12 0%, #2e1065 45%, #09090b 100%)',
-    meshGlowPrimary: 'rgba(249, 115, 22, 0.22)', // Orange brûlé
-    meshGlowSecondary: 'rgba(185, 28, 28, 0.20)', // Rouge brique
-    accentBorder: 'border-amber-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #ffedd5 0%, #fed7aa 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(249, 115, 22, 0.28)', // Orange brûlé
+    meshGlowSecondary: 'rgba(185, 28, 28, 0.22)', // Rouge brique
+    accentBorder: 'border-amber-300',
     glowAccentColor: '#ea580c',
     particleType: 'embers',
     badgeStyle: {
-      bg: 'bg-orange-600/20',
-      text: 'text-orange-300',
-      border: 'border-orange-500/40'
+      bg: 'bg-orange-100',
+      text: 'text-orange-800',
+      border: 'border-orange-300'
     },
-    cardHighlightBorder: 'hover:border-orange-500/40',
-    lightingIntensity: 0.35
+    cardHighlightBorder: 'hover:border-orange-400',
+    lightingIntensity: 0.65
   },
   'DUSK_WINTER': {
     id: 'DUSK_WINTER',
     timeOfDay: 'DUSK',
     season: 'WINTER',
     name: 'Crépuscule Polaire Améthyste',
-    subtitle: 'Teintes froides bleu nuit et améthyste sur le manteau neigeux',
-    skyToneLabel: 'Améthyste & Nuit Givrée',
+    subtitle: 'Teintes douces bleu azur et améthyste sur le manteau neigeux',
+    skyToneLabel: 'Améthyste & Soirée Givrée',
     iconName: 'Sunset',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #312e81 0%, #1e1b4b 40%, #030712 100%)',
-    meshGlowPrimary: 'rgba(129, 140, 248, 0.20)', // Indigo givré
-    meshGlowSecondary: 'rgba(192, 132, 252, 0.16)', // Améthyste
-    accentBorder: 'border-indigo-500/30',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e0e7ff 0%, #ede9fe 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(129, 140, 248, 0.26)', // Indigo givré
+    meshGlowSecondary: 'rgba(192, 132, 252, 0.22)', // Améthyste
+    accentBorder: 'border-indigo-300',
     glowAccentColor: '#6366f1',
     particleType: 'frost',
     badgeStyle: {
-      bg: 'bg-indigo-500/20',
-      text: 'text-indigo-200',
-      border: 'border-indigo-500/40'
+      bg: 'bg-indigo-100',
+      text: 'text-indigo-800',
+      border: 'border-indigo-300'
     },
-    cardHighlightBorder: 'hover:border-indigo-400/40',
-    lightingIntensity: 0.30
+    cardHighlightBorder: 'hover:border-indigo-400',
+    lightingIntensity: 0.60
   },
 
-  // ===================== NIGHT (NUIT ÉTOILÉE) =====================
+  // ===================== NIGHT (NUIT DOUCE) =====================
   'NIGHT_SPRING': {
     id: 'NIGHT_SPRING',
     timeOfDay: 'NIGHT',
     season: 'SPRING',
-    name: 'Nuit Étoilée & Ciel Profond',
-    subtitle: 'Voûte céleste sereine, constellations claires et brise nocturne',
-    skyToneLabel: 'Constellations & Bleu Marine',
+    name: 'Nuit Paisible & Ciel Étoilé',
+    subtitle: 'Atmosphère nocturne feutrée, constellations claires et calme',
+    skyToneLabel: 'Constellations & Bleu Nuit Doux',
     iconName: 'Moon',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #0f172a 0%, #020617 60%, #000000 100%)',
-    meshGlowPrimary: 'rgba(99, 102, 241, 0.16)', // Bleu nuit
-    meshGlowSecondary: 'rgba(14, 165, 233, 0.14)', // Cyan lointain
-    accentBorder: 'border-indigo-600/30',
-    glowAccentColor: '#818cf8',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #dbeafe 0%, #e2e8f0 50%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(99, 102, 241, 0.22)', // Bleu nuit
+    meshGlowSecondary: 'rgba(14, 165, 233, 0.20)', // Cyan lointain
+    accentBorder: 'border-indigo-300',
+    glowAccentColor: '#6366f1',
     particleType: 'stars',
     badgeStyle: {
-      bg: 'bg-indigo-950/40',
-      text: 'text-indigo-300',
-      border: 'border-indigo-500/40'
+      bg: 'bg-indigo-100',
+      text: 'text-indigo-800',
+      border: 'border-indigo-300'
     },
-    cardHighlightBorder: 'hover:border-indigo-400/40',
-    lightingIntensity: 0.12
+    cardHighlightBorder: 'hover:border-indigo-400',
+    lightingIntensity: 0.45
   },
   'NIGHT_SUMMER': {
     id: 'NIGHT_SUMMER',
     timeOfDay: 'NIGHT',
     season: 'SUMMER',
     name: 'Nuit d\'Été & Voie Lactée',
-    subtitle: 'Chaleur nocturne douce, nébuleuses cosmiques et étoiles filantes',
+    subtitle: 'Douceur nocturne estivale, nébuleuses cosmiques et étoiles filantes',
     skyToneLabel: 'Cosmos Estival & Voie Lactée',
     iconName: 'Moon',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e1b4b 0%, #090d16 55%, #000000 100%)',
-    meshGlowPrimary: 'rgba(168, 85, 247, 0.18)', // Mauve cosmique
-    meshGlowSecondary: 'rgba(59, 130, 246, 0.16)', // Bleu nuit
-    accentBorder: 'border-blue-500/30',
-    glowAccentColor: '#60a5fa',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e0e7ff 0%, #e2e8f0 50%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(168, 85, 247, 0.24)', // Mauve cosmique
+    meshGlowSecondary: 'rgba(59, 130, 246, 0.22)', // Bleu nuit
+    accentBorder: 'border-blue-300',
+    glowAccentColor: '#3b82f6',
     particleType: 'stars',
     badgeStyle: {
-      bg: 'bg-blue-950/40',
-      text: 'text-blue-300',
-      border: 'border-blue-500/40'
+      bg: 'bg-blue-100',
+      text: 'text-blue-800',
+      border: 'border-blue-300'
     },
-    cardHighlightBorder: 'hover:border-blue-400/40',
-    lightingIntensity: 0.15
+    cardHighlightBorder: 'hover:border-blue-400',
+    lightingIntensity: 0.50
   },
   'NIGHT_AUTUMN': {
     id: 'NIGHT_AUTUMN',
     timeOfDay: 'NIGHT',
     season: 'AUTUMN',
-    name: 'Nuit Brumeuse & Clair de Lune',
-    subtitle: 'Halo lunaire argenté, brumes nocturnes et calme d\'arrière-saison',
-    skyToneLabel: 'Clair de Lune & Brume Noire',
+    name: 'Nuit Calme & Clair de Lune',
+    subtitle: 'Halo lunaire argenté, brumes légères et sérénité nocturne',
+    skyToneLabel: 'Clair de Lune & Brume Douce',
     iconName: 'Moon',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #111827 0%, #030712 60%, #000000 100%)',
-    meshGlowPrimary: 'rgba(148, 163, 184, 0.14)', // Argent lunaire
-    meshGlowSecondary: 'rgba(180, 83, 9, 0.12)', // Ambre lointain
-    accentBorder: 'border-slate-700/40',
-    glowAccentColor: '#94a3b8',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #f1f5f9 0%, #e2e8f0 50%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(148, 163, 184, 0.22)', // Argent lunaire
+    meshGlowSecondary: 'rgba(180, 83, 9, 0.18)', // Ambre lointain
+    accentBorder: 'border-slate-300',
+    glowAccentColor: '#64748b',
     particleType: 'stars',
     badgeStyle: {
-      bg: 'bg-slate-900/60',
-      text: 'text-slate-300',
-      border: 'border-slate-600/40'
+      bg: 'bg-slate-100',
+      text: 'text-slate-800',
+      border: 'border-slate-300'
     },
-    cardHighlightBorder: 'hover:border-slate-500/40',
-    lightingIntensity: 0.10
+    cardHighlightBorder: 'hover:border-slate-400',
+    lightingIntensity: 0.40
   },
   'NIGHT_WINTER': {
     id: 'NIGHT_WINTER',
     timeOfDay: 'NIGHT',
     season: 'WINTER',
-    name: 'Nuit Polaire & Aurore Boréale',
-    subtitle: 'Froid nocturne intense, nébuleuse d\'émeraude et cristaux célestes',
-    skyToneLabel: 'Nuit Boréale & Glace',
+    name: 'Nuit Polaire & Lueur Boréale',
+    subtitle: 'Ambiance hivernale pure, reflets d\'émeraude et cristaux célestes',
+    skyToneLabel: 'Lueur Boréale & Glace',
     iconName: 'Moon',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #022c22 0%, #051923 40%, #000000 100%)',
-    meshGlowPrimary: 'rgba(16, 185, 129, 0.20)', // Aurore émeraude
-    meshGlowSecondary: 'rgba(6, 182, 212, 0.18)', // Cyan boréal
-    accentBorder: 'border-emerald-500/30',
-    glowAccentColor: '#34d399',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #ecfdf5 0%, #e0f2fe 50%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(16, 185, 129, 0.26)', // Aurore émeraude
+    meshGlowSecondary: 'rgba(6, 182, 212, 0.22)', // Cyan boréal
+    accentBorder: 'border-emerald-300',
+    glowAccentColor: '#10b981',
     particleType: 'frost',
     badgeStyle: {
-      bg: 'bg-emerald-950/40',
-      text: 'text-emerald-300',
-      border: 'border-emerald-500/40'
+      bg: 'bg-emerald-100',
+      text: 'text-emerald-800',
+      border: 'border-emerald-300'
     },
-    cardHighlightBorder: 'hover:border-emerald-400/40',
-    lightingIntensity: 0.14
+    cardHighlightBorder: 'hover:border-emerald-400',
+    lightingIntensity: 0.45
   }
 };
 
@@ -476,22 +476,22 @@ export const NOEL_THEME: AtmosphereThemeConfig = {
   timeOfDay: 'NIGHT',
   season: 'WINTER',
   name: '🎄 Événement Féerie de Noël (24 & 25 Décembre)',
-  subtitle: 'Ambiance festive rouge carmin & noir nocturne, flocons de neige et éclats dorés',
+  subtitle: 'Ambiance festive rouge carmin & or blanc, flocons de neige scintillants',
   skyToneLabel: 'Noël Rouge Carmin & Flocons',
   iconName: 'Snowflake',
-  bgGradient: 'radial-gradient(ellipse at 50% 0%, #3f0713 0%, #150206 45%, #050102 100%)',
-  meshGlowPrimary: 'rgba(239, 68, 68, 0.28)', // Rouge carmin festif
-  meshGlowSecondary: 'rgba(245, 158, 11, 0.22)', // Or scintillant
-  accentBorder: 'border-rose-500/50',
-  glowAccentColor: '#f43f5e',
+  bgGradient: 'radial-gradient(ellipse at 50% 0%, #ffe4e6 0%, #fef3c7 45%, #ffffff 100%)',
+  meshGlowPrimary: 'rgba(239, 68, 68, 0.32)', // Rouge carmin festif
+  meshGlowSecondary: 'rgba(245, 158, 11, 0.28)', // Or scintillant
+  accentBorder: 'border-rose-300',
+  glowAccentColor: '#e11d48',
   particleType: 'snowflakes',
   badgeStyle: {
-    bg: 'bg-rose-950/60',
-    text: 'text-rose-200',
-    border: 'border-rose-500/50'
+    bg: 'bg-rose-100',
+    text: 'text-rose-800',
+    border: 'border-rose-300'
   },
-  cardHighlightBorder: 'hover:border-rose-400/60',
-  lightingIntensity: 0.20
+  cardHighlightBorder: 'hover:border-rose-400',
+  lightingIntensity: 0.60
 };
 
 // ===================== DYNAMIC WEATHER THEMES =====================
@@ -505,41 +505,41 @@ export const WEATHER_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Ambiance pluvieuse rafraîchissante, gouttes rythmées et ciel bleu ardoise',
     skyToneLabel: 'Ardoise Pluvieuse & Reflets Bleutés',
     iconName: 'CloudRain',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #0c2136 0%, #071524 45%, #02070e 100%)',
-    meshGlowPrimary: 'rgba(56, 189, 248, 0.24)', // Cyan pluie
-    meshGlowSecondary: 'rgba(14, 116, 144, 0.20)', // Bleu pétrole
-    accentBorder: 'border-sky-500/40',
-    glowAccentColor: '#38bdf8',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #dbeafe 0%, #cbd5e1 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(56, 189, 248, 0.32)', // Cyan pluie
+    meshGlowSecondary: 'rgba(14, 116, 144, 0.25)', // Bleu pétrole
+    accentBorder: 'border-sky-300',
+    glowAccentColor: '#0284c7',
     particleType: 'rain',
     badgeStyle: {
-      bg: 'bg-sky-950/50',
-      text: 'text-sky-300',
-      border: 'border-sky-500/40'
+      bg: 'bg-sky-100',
+      text: 'text-sky-800',
+      border: 'border-sky-300'
     },
-    cardHighlightBorder: 'hover:border-sky-400/50',
-    lightingIntensity: 0.35
+    cardHighlightBorder: 'hover:border-sky-400',
+    lightingIntensity: 0.65
   },
   'WEATHER_THUNDER': {
     id: 'WEATHER_THUNDER',
     timeOfDay: 'DAY',
     season: 'SUMMER',
-    name: 'Orage Électrique & Ciel Sombre',
+    name: 'Orage Électrique & Nuages Convectifs',
     subtitle: 'Activité convective puissante, reflets violets et éclairs lointains',
     skyToneLabel: 'Indigo Électrique & Foudre',
     iconName: 'CloudLightning',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e1035 0%, #0d0618 45%, #020006 100%)',
-    meshGlowPrimary: 'rgba(168, 85, 247, 0.28)', // Violet orage
-    meshGlowSecondary: 'rgba(96, 165, 250, 0.22)', // Flash électrique
-    accentBorder: 'border-purple-500/40',
-    glowAccentColor: '#c084fc',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #ede9fe 0%, #e2e8f0 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(168, 85, 247, 0.32)', // Violet orage
+    meshGlowSecondary: 'rgba(96, 165, 250, 0.28)', // Flash électrique
+    accentBorder: 'border-purple-300',
+    glowAccentColor: '#9333ea',
     particleType: 'thunder',
     badgeStyle: {
-      bg: 'bg-purple-950/50',
-      text: 'text-purple-300',
-      border: 'border-purple-500/40'
+      bg: 'bg-purple-100',
+      text: 'text-purple-800',
+      border: 'border-purple-300'
     },
-    cardHighlightBorder: 'hover:border-purple-400/50',
-    lightingIntensity: 0.28
+    cardHighlightBorder: 'hover:border-purple-400',
+    lightingIntensity: 0.60
   },
   'WEATHER_SNOW': {
     id: 'WEATHER_SNOW',
@@ -549,19 +549,19 @@ export const WEATHER_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Flocons cotonneux délicats, fraîcheur hivernale et reflets azur givrés',
     skyToneLabel: 'Blanc Hivernal & Azur Givré',
     iconName: 'Snowflake',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #0b2938 0%, #04141e 45%, #01060a 100%)',
-    meshGlowPrimary: 'rgba(186, 230, 253, 0.28)', // Glace claire
-    meshGlowSecondary: 'rgba(56, 189, 248, 0.22)', // Cyan boréal
-    accentBorder: 'border-cyan-400/40',
-    glowAccentColor: '#7dd3fc',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e0f2fe 0%, #f1f5f9 45%, #ffffff 100%)',
+    meshGlowPrimary: 'rgba(186, 230, 253, 0.35)', // Glace claire
+    meshGlowSecondary: 'rgba(56, 189, 248, 0.28)', // Cyan boréal
+    accentBorder: 'border-cyan-300',
+    glowAccentColor: '#0284c7',
     particleType: 'snowflakes',
     badgeStyle: {
-      bg: 'bg-cyan-950/50',
-      text: 'text-cyan-200',
-      border: 'border-cyan-400/40'
+      bg: 'bg-cyan-100',
+      text: 'text-cyan-800',
+      border: 'border-cyan-300'
     },
-    cardHighlightBorder: 'hover:border-cyan-300/50',
-    lightingIntensity: 0.40
+    cardHighlightBorder: 'hover:border-cyan-300',
+    lightingIntensity: 0.75
   },
   'WEATHER_OVERCAST': {
     id: 'WEATHER_OVERCAST',
@@ -569,43 +569,43 @@ export const WEATHER_THEMES: Record<string, AtmosphereThemeConfig> = {
     season: 'AUTUMN',
     name: 'Ciel Couvert & Nuances Perle',
     subtitle: 'Couverture nuageuse dense et feutrée, lumière diffuse et brise calme',
-    skyToneLabel: 'Gris Perle & Bleu Acier',
+    skyToneLabel: 'Gris Perle & Bleu Doux',
     iconName: 'Cloud',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1a2332 0%, #0f1724 45%, #05080f 100%)',
-    meshGlowPrimary: 'rgba(148, 163, 184, 0.20)', // Gris perle
-    meshGlowSecondary: 'rgba(100, 116, 139, 0.16)', // Bleu acier
-    accentBorder: 'border-slate-500/40',
-    glowAccentColor: '#94a3b8',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #e2e8f0 0%, #cbd5e1 45%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(148, 163, 184, 0.28)', // Gris perle
+    meshGlowSecondary: 'rgba(100, 116, 139, 0.22)', // Bleu acier
+    accentBorder: 'border-slate-300',
+    glowAccentColor: '#64748b',
     particleType: 'mist',
     badgeStyle: {
-      bg: 'bg-slate-900/60',
-      text: 'text-slate-200',
-      border: 'border-slate-500/40'
+      bg: 'bg-slate-100',
+      text: 'text-slate-800',
+      border: 'border-slate-300'
     },
-    cardHighlightBorder: 'hover:border-slate-400/50',
-    lightingIntensity: 0.38
+    cardHighlightBorder: 'hover:border-slate-400',
+    lightingIntensity: 0.70
   },
   'WEATHER_FOG': {
     id: 'WEATHER_FOG',
     timeOfDay: 'DAY',
     season: 'AUTUMN',
-    name: 'Brume & Brouillard Épais',
+    name: 'Brume & Brouillard Doux',
     subtitle: 'Atmosphère feutrée et mystérieuse, visibilité réduite et air humide',
     skyToneLabel: 'Brouillard Coton & Gris Doux',
     iconName: 'CloudFog',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 50%, #020617 100%)',
-    meshGlowPrimary: 'rgba(203, 213, 225, 0.22)',
-    meshGlowSecondary: 'rgba(148, 163, 184, 0.18)',
-    accentBorder: 'border-slate-400/40',
-    glowAccentColor: '#cbd5e1',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #f1f5f9 0%, #e2e8f0 50%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(203, 213, 225, 0.30)',
+    meshGlowSecondary: 'rgba(148, 163, 184, 0.25)',
+    accentBorder: 'border-slate-300',
+    glowAccentColor: '#64748b',
     particleType: 'mist',
     badgeStyle: {
-      bg: 'bg-slate-900/70',
-      text: 'text-slate-200',
-      border: 'border-slate-400/40'
+      bg: 'bg-slate-100',
+      text: 'text-slate-800',
+      border: 'border-slate-300'
     },
-    cardHighlightBorder: 'hover:border-slate-300/50',
-    lightingIntensity: 0.32
+    cardHighlightBorder: 'hover:border-slate-300',
+    lightingIntensity: 0.65
   },
   'WEATHER_SUNNY_WARM': {
     id: 'WEATHER_SUNNY_WARM',
@@ -615,19 +615,19 @@ export const WEATHER_THEMES: Record<string, AtmosphereThemeConfig> = {
     subtitle: 'Ensoleillement généreux, chaleur éclatante et ciel parfaitement dégagé',
     skyToneLabel: 'Or Solaire & Bleu Azur',
     iconName: 'Sun',
-    bgGradient: 'radial-gradient(ellipse at 50% 0%, #1e3a5f 0%, #0f1f38 40%, #030814 100%)',
-    meshGlowPrimary: 'rgba(251, 191, 36, 0.26)', // Or radieux
-    meshGlowSecondary: 'rgba(56, 189, 248, 0.24)', // Azur
-    accentBorder: 'border-amber-500/40',
-    glowAccentColor: '#fbbf24',
+    bgGradient: 'radial-gradient(ellipse at 50% 0%, #bae6fd 0%, #fef3c7 40%, #f8fafc 100%)',
+    meshGlowPrimary: 'rgba(251, 191, 36, 0.35)', // Or radieux
+    meshGlowSecondary: 'rgba(56, 189, 248, 0.30)', // Azur
+    accentBorder: 'border-amber-300',
+    glowAccentColor: '#d97706',
     particleType: 'sunflare',
     badgeStyle: {
-      bg: 'bg-amber-950/50',
-      text: 'text-amber-200',
-      border: 'border-amber-500/40'
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+      border: 'border-amber-300'
     },
-    cardHighlightBorder: 'hover:border-amber-400/50',
-    lightingIntensity: 0.65
+    cardHighlightBorder: 'hover:border-amber-400',
+    lightingIntensity: 1.0
   }
 };
 

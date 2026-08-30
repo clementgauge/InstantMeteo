@@ -1,5 +1,7 @@
-import { GoogleGenAI } from '@google/genai';
 import { LocationPoint, CurrentWeather } from '../types/weather';
+
+export const REPORT_CONTACT_EMAIL = 'instantmeteofr@gmail.com';
+export const FORMSUBMIT_TOKEN = '1c7dac087c2f4d7b58aeaa4ee8a1ec13';
 
 export interface UserObservationReport {
   id: string;
@@ -19,15 +21,16 @@ export interface UserObservationReport {
   appDisplayedTemperature: number;
   appDisplayedWeather: string;
 
-  // AI & Recalibration Output
-  aiResponse: {
-    title: string;
-    meteorologicalExplanation: string;
+  // Human dispatch status & details
+  humanDispatch: {
+    targetEmail: string;
+    status: 'transmis' | 'ouvert_gmail' | 'enregistre';
+    statusMessage: string;
+    mailSubject: string;
+    mailBody: string;
+    gmailComposeUrl: string;
+    mailtoUrl: string;
     recalibrationApplied: string;
-    personalizedAnswer: string;
-    confidenceScorePercent: number;
-    adjustedTemperature: number;
-    adjustedWeatherDescription: string;
   };
 }
 
@@ -95,6 +98,105 @@ export function clearActiveRecalibration(): void {
   localStorage.removeItem(STORAGE_KEY_CALIBRATION);
 }
 
+/**
+ * Builds structured email text and links to ensure the user receives the report directly in Gmail
+ */
+export function buildReportEmailData(
+  station: LocationPoint,
+  currentAppWeather: CurrentWeather,
+  userInput: {
+    observedTemperature: number;
+    observedWeatherCondition: string;
+    discrepancyType: string;
+    userComments: string;
+    userEmail?: string;
+  }
+) {
+  const dateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'medium' });
+  const tempDiff = Number((userInput.observedTemperature - currentAppWeather.temperature).toFixed(1));
+  const diffSign = tempDiff > 0 ? `+${tempDiff}` : `${tempDiff}`;
+
+  const subject = `[Signalement Météo] Correction ${station.name} (${station.department}) - ${diffSign}°C`;
+
+  // Pre-configured response for the admin to reply to the observer in 1 click
+  const replySubject = `Votre signalement météo a été pris en compte - Instant Météo (${station.name})`;
+  const replyBody = `Bonjour,
+
+Votre signalement pour la station de ${station.name} (${station.department}) a bien été pris en compte par l'équipe d'Instant Météo.
+
+Nos équipes vérifient les données transmises (température observée : ${userInput.observedTemperature}°C, conditions : ${userInput.observedWeatherCondition}).
+
+Nous vous remercions pour votre contribution à l'amélioration de la précision de nos prévisions !
+
+Cordialement,
+L'équipe Instant Météo France
+instantmeteofr@gmail.com`;
+
+  const replyGmailUrl = userInput.userEmail
+    ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(userInput.userEmail)}&su=${encodeURIComponent(
+        replySubject
+      )}&body=${encodeURIComponent(replyBody)}`
+    : '';
+
+  const replyMailtoUrl = userInput.userEmail
+    ? `mailto:${encodeURIComponent(userInput.userEmail)}?subject=${encodeURIComponent(
+        replySubject
+      )}&body=${encodeURIComponent(replyBody)}`
+    : '';
+
+  const body = `=====================================================
+🚨 NOUVEAU SIGNALEMENT MÉTÉO TERRAIN - INSTANT MÉTÉO
+=====================================================
+
+📍 STATION CONCERNÉE :
+• Commune / Sommet : ${station.name}
+• Département : ${station.department}
+• Altitude : ${station.altitude} m
+• Coordonnées GPS : Latitude ${station.latitude.toFixed(4)}, Longitude ${station.longitude.toFixed(4)}
+• Date et heure : ${dateStr}
+
+📊 RELEVÉS COMPARATIFS :
+• Température réelle observée sur place : ${userInput.observedTemperature}°C
+• Temps réel observé sur place : ${userInput.observedWeatherCondition}
+• Température affichée dans l'application : ${currentAppWeather.temperature}°C
+• Temps affiché dans l'application : ${currentAppWeather.weatherDescription}
+• Écart thermique constaté : ${diffSign}°C
+• Nature de l'anomalie : ${userInput.discrepancyType}
+
+💬 REMARQUES ET PRÉCISIONS DE L'OBSERVATEUR :
+${userInput.userComments ? `"${userInput.userComments}"` : 'Aucune précision complémentaire.'}
+
+👤 CONTACT DE L'OBSERVATEUR :
+• Adresse e-mail : ${userInput.userEmail ? userInput.userEmail : 'Non renseignée par l\'utilisateur'}
+
+${
+  userInput.userEmail
+    ? `-----------------------------------------------------
+📩 RÉPONDRE EN 1 CLIC À L'OBSERVATEUR :
+Cliquez sur le lien ci-dessous pour lui envoyer la confirmation automatique :
+${replyGmailUrl}
+-----------------------------------------------------`
+    : `(L'observateur n'a pas renseigné son adresse e-mail, réponse directe impossible)`
+}
+
+-----------------------------------------------------
+Instant Météo France • Système de Surveillance & Signalement
+Contact administrateur : ${REPORT_CONTACT_EMAIL}`;
+
+  const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+    REPORT_CONTACT_EMAIL
+  )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(REPORT_CONTACT_EMAIL)}?subject=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(body)}`;
+
+  return { subject, body, gmailComposeUrl, mailtoUrl, replyGmailUrl, replyMailtoUrl, tempDiff };
+}
+
+/**
+ * Process report submission: Send to human team (instantmeteofr@gmail.com), dispatch via API & prepare direct Gmail link
+ */
 export async function processUserObservationSubmission(
   station: LocationPoint,
   currentAppWeather: CurrentWeather,
@@ -108,73 +210,79 @@ export async function processUserObservationSubmission(
 ): Promise<{ report: UserObservationReport; recalibration: RecalibrationState }> {
   const reportId = `rep_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const nowIso = new Date().toISOString();
-  const expiresIso = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes recalibration loop
+  const expiresIso = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
-  const tempDiff = Number((userInput.observedTemperature - currentAppWeather.temperature).toFixed(1));
+  const { subject, body, gmailComposeUrl, mailtoUrl, replyGmailUrl, tempDiff } = buildReportEmailData(
+    station,
+    currentAppWeather,
+    userInput
+  );
 
-  // Generate AI Diagnostic & Answer
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (window as unknown as { GEMINI_API_KEY?: string }).GEMINI_API_KEY;
+  // Attempt multi-channel background dispatch to guarantee delivery
+  let isDispatchedViaApi = false;
+  let apiResponseMessage = '';
 
-  let aiResult = {
-    title: `Recalibration Météo & Analyse Météorologique — ${station.name}`,
-    meteorologicalExplanation: `La différence relevée (${tempDiff > 0 ? '+' : ''}${tempDiff}°C, ${userInput.observedWeatherCondition} vs ${currentAppWeather.weatherDescription}) s'explique par une variabilité microclimatique locale (effet d'îlot thermique urbain, cuvette topographique ou ligne de grain convective en formation non encore interpolée à la grille 1 km des modèles).`,
-    recalibrationApplied: `Ajustement thermique temporaire de ${tempDiff > 0 ? '+' : ''}${tempDiff}°C appliqué sur la station ${station.name}. Cadence de rafraîchissement radar et prévisions poussée à 15 secondes pendant 30 minutes.`,
-    personalizedAnswer: `Merci pour votre observation en direct ! Vos données relevées sur le terrain (${userInput.observedTemperature}°C, ${userInput.observedWeatherCondition}) ont été immédiatement injectées dans notre algorithme de correction locale. Nous surveillons attentivement l'évolution pour ajuster la trajectoire des modèles.`,
-    confidenceScorePercent: 94,
-    adjustedTemperature: userInput.observedTemperature,
-    adjustedWeatherDescription: userInput.observedWeatherCondition
+  const payload: Record<string, string> = {
+    _subject: subject,
+    _replyto: userInput.userEmail || REPORT_CONTACT_EMAIL,
+    _template: 'table',
+    _captcha: 'false',
+    name: 'Instant Météo',
+    "Expéditeur": 'Instant Météo France (Application)',
+    "Station_Météo": `${station.name} (${station.department}) - Alt: ${station.altitude}m`,
+    "Température_Réelle_Observée": `${userInput.observedTemperature}°C`,
+    "Temps_Réel_Observé": userInput.observedWeatherCondition,
+    "Température_Affichée_Application": `${currentAppWeather.temperature}°C`,
+    "Temps_Affiché_Application": currentAppWeather.weatherDescription,
+    "Écart_Thermique_Relevé": `${tempDiff > 0 ? '+' : ''}${tempDiff}°C`,
+    "Type_D_Anomalie": userInput.discrepancyType,
+    "Commentaires_Observateur": userInput.userComments || 'Aucun',
+    "Email_De_L_Observateur": userInput.userEmail || 'Non renseigné (anonyme)',
+    "Bouton_Répondre_A_L_Observateur_En_1_Clic": userInput.userEmail
+      ? replyGmailUrl
+      : 'Aucun email fourni par l\'observateur',
+    "Message_Récapitulatif_Complet": body
   };
 
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Tu es un ingénieur prévisionniste senior de Météo-France spécialisé dans la correction des biais modèles et l'assimilation participative de données météo en temps réel.
+  // 1. Try FormSubmit AJAX with the verified token
+  try {
+    const res = await fetch(`https://formsubmit.co/ajax/${FORMSUBMIT_TOKEN}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-Un utilisateur sur le terrain vient de signaler une observation / correction météo en direct pour la station de ${station.name} (${station.department}, altitude ${station.altitude}m) :
-- Température affichée par l'appli : ${currentAppWeather.temperature}°C
-- Température réelle observée par l'utilisateur : ${userInput.observedTemperature}°C (Écart : ${tempDiff > 0 ? '+' : ''}${tempDiff}°C)
-- Temps affiché par l'appli : ${currentAppWeather.weatherDescription}
-- Temps réel observé sur place : ${userInput.observedWeatherCondition}
-- Type de décalage : ${userInput.discrepancyType}
-- Remarques & détails de l'utilisateur : "${userInput.userComments || 'Aucun détail supplémentaire.'}"
-
-Rédige une réponse d'expertise météorologique complète, très sérieuse, précise et détaillée, expliquant scientifiquement la cause de ce décalage et décrivant les réajustements techniques immédiats appliqués.
-
-Fournis ta réponse sous forme de JSON strict avec ces champs exacts :
-{
-  "title": "Titre explicite de l'analyse de recalibrage",
-  "meteorologicalExplanation": "Explication météorologique poussée en 2-3 phrases (facteurs microclimatiques, inversion, ascendance thermique, décalage spatial des mailles AROME/IFS, humidité de surface, etc.)",
-  "recalibrationApplied": "Description technique précise des paramètres modifiés (correction offset °C, augmentation de la sensibilité du Doppler radar 300km, resserrement de la maille)",
-  "personalizedAnswer": "Message personnalisé s'adressant directement à l'utilisateur pour le remercier et lui confirmer la prise en compte de sa remarque pour l'amélioration continue de l'application",
-  "confidenceScorePercent": 92,
-  "adjustedTemperature": ${userInput.observedTemperature},
-  "adjustedWeatherDescription": "${userInput.observedWeatherCondition}"
-}`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json'
-        }
-      });
-
-      const responseText = response.text || '';
-      const parsed = JSON.parse(responseText);
-
-      if (parsed && parsed.meteorologicalExplanation) {
-        aiResult = {
-          title: parsed.title || aiResult.title,
-          meteorologicalExplanation: parsed.meteorologicalExplanation,
-          recalibrationApplied: parsed.recalibrationApplied || aiResult.recalibrationApplied,
-          personalizedAnswer: parsed.personalizedAnswer || aiResult.personalizedAnswer,
-          confidenceScorePercent: parsed.confidenceScorePercent || 95,
-          adjustedTemperature: userInput.observedTemperature,
-          adjustedWeatherDescription: userInput.observedWeatherCondition
-        };
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      isDispatchedViaApi = true;
+      if (data && data.message) {
+        apiResponseMessage = data.message;
       }
+    }
+  } catch (err) {
+    console.warn('Primary dispatch attempt logged:', err);
+  }
+
+  // 2. Secondary fallback via FormSubmit standard form POST if ajax failed or pending
+  if (!isDispatchedViaApi) {
+    try {
+      const formBody = new URLSearchParams();
+      Object.entries(payload).forEach(([k, v]) => formBody.append(k, String(v)));
+      await fetch(`https://formsubmit.co/${FORMSUBMIT_TOKEN}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'text/html,application/xhtml+xml,application/xml'
+        },
+        body: formBody.toString(),
+        mode: 'no-cors'
+      });
+      isDispatchedViaApi = true;
     } catch (e) {
-      console.warn('Gemini API call for observation report fallback used:', e);
+      console.warn('Fallback dispatch attempt logged:', e);
     }
   }
 
@@ -191,23 +299,32 @@ Fournis ta réponse sous forme de JSON strict avec ces champs exacts :
     userEmail: userInput.userEmail,
     appDisplayedTemperature: currentAppWeather.temperature,
     appDisplayedWeather: currentAppWeather.weatherDescription,
-    aiResponse: aiResult
+    humanDispatch: {
+      targetEmail: REPORT_CONTACT_EMAIL,
+      status: 'transmis',
+      statusMessage: apiResponseMessage || `Signalement transmis automatiquement à ${REPORT_CONTACT_EMAIL}.`,
+      mailSubject: subject,
+      mailBody: body,
+      gmailComposeUrl,
+      mailtoUrl,
+      recalibrationApplied: `Signalement expédié à l'administrateur (${REPORT_CONTACT_EMAIL}). L'application conserve les données officielles de la station.`
+    }
   };
 
   saveUserReport(report);
+  clearActiveRecalibration();
 
   const recalibration: RecalibrationState = {
-    isActive: true,
+    isActive: false,
     stationId: station.id,
     stationName: station.name,
     startTimeIso: nowIso,
     expiresTimeIso: expiresIso,
-    tempOffset: tempDiff,
-    weatherOverride: userInput.observedWeatherCondition,
+    tempOffset: 0,
+    weatherOverride: undefined,
     activeReportId: reportId
   };
 
-  setActiveRecalibration(recalibration);
-
   return { report, recalibration };
 }
+

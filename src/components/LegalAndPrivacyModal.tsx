@@ -207,7 +207,7 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
                 </p>
                 <div className="flex items-center gap-2 text-xs text-cyan-300 font-bold bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                   <Mail className="h-4 w-4" />
-                  <span>augustinpeytavin@gmail.com</span>
+                  <span>instantmeteofr@gmail.com</span>
                 </div>
               </div>
             </div>
@@ -431,7 +431,7 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
                   </div>
                   <div className="text-sm font-bold text-white">Instant Météo France</div>
                   <div className="text-xs text-slate-300">
-                    Contact et développement : <strong>augustinpeytavin@gmail.com</strong>
+                    Contact et développement : <strong>instantmeteofr@gmail.com</strong>
                   </div>
                   <div className="text-xs text-slate-400">
                     Publication &amp; Conception technique : Augustin Peytavin
