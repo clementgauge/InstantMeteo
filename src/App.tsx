@@ -56,6 +56,8 @@ import { WorldDisastersView } from './views/WorldDisastersView';
 import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
 import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
+import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
+import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -558,6 +560,13 @@ function WeatherApp() {
           onOpenTutorial={() => setIsTutorialOpen(true)}
           activeAlertCount={activeAlertCount}
         />
+        {/* Dynamic Weather Affiliate Banner (Rain, Heat/Sun, Strong Wind) */}
+        <DynamicWeatherAffiliateBanner
+          weather={weather}
+          daily={daily}
+          hourly={hourly}
+          seniorMode={seniorMode}
+        />
       </div>
 
       {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
@@ -786,60 +795,65 @@ function WeatherApp() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/60 py-6 px-4 text-center text-xs text-slate-500">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
-          <p>
-            © 2026 <strong>Instant Météo</strong> — Prévisions directes, 30 jours, 8 mois par département & Vigilances Météo-France.
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={() => setActiveTab('vigilance')}
-              className="text-rose-400 hover:underline font-semibold"
-            >
-              ⚠️ Vigilances Multi-Jours
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setActiveTab('scenarios14d')}
-              className="text-blue-400 hover:underline font-semibold"
-            >
-              📊 Scénarios 14 Jours
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setActiveTab('eightMonths')}
-              className="text-indigo-400 hover:underline font-semibold"
-            >
-              📈 Tendances 8 Mois (Département / Région / Pays)
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setActiveTab('radar')}
-              className="text-cyan-400 hover:underline font-semibold"
-            >
-              📡 Radar Pluie HD
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsComparatorModalOpen(true)}
-              className="text-amber-400 hover:underline font-semibold"
-            >
-              ⚖️ Comparateur Multi-Villes
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="text-slate-300 hover:underline font-semibold"
-            >
-              🔍 Recherche 35 000 communes
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsInstallModalOpen(true)}
-              className="text-cyan-300 hover:underline font-bold"
-            >
-              📱 Installer l'App
-            </button>
+      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-6 px-4 text-center text-xs text-slate-500">
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* Fixed Affiliate Store Section (2 Columns: Weather Equipment & Daily Comfort) & Mandatory Amazon Disclosure */}
+          <AffiliateStoreFooter seniorMode={seniorMode} />
+
+          <div className="pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-4">
+            <p>
+              © 2026 <strong>Instant Météo</strong> — Prévisions directes, 30 jours, 8 mois par département &amp; Vigilances Météo-France.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                onClick={() => setActiveTab('vigilance')}
+                className="text-rose-400 hover:underline font-semibold"
+              >
+                ⚠️ Vigilances Multi-Jours
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setActiveTab('scenarios14d')}
+                className="text-blue-400 hover:underline font-semibold"
+              >
+                📊 Scénarios 14 Jours
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setActiveTab('eightMonths')}
+                className="text-indigo-400 hover:underline font-semibold"
+              >
+                📈 Tendances 8 Mois (Département / Région / Pays)
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setActiveTab('radar')}
+                className="text-cyan-400 hover:underline font-semibold"
+              >
+                📡 Radar Pluie HD
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setIsComparatorModalOpen(true)}
+                className="text-amber-400 hover:underline font-semibold"
+              >
+                ⚖️ Comparateur Multi-Villes
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setIsSearchModalOpen(true)}
+                className="text-slate-300 hover:underline font-semibold"
+              >
+                🔍 Recherche 35 000 communes
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setIsInstallModalOpen(true)}
+                className="text-cyan-300 hover:underline font-bold"
+              >
+                📱 Installer l'App
+              </button>
+            </div>
           </div>
         </div>
       </footer>

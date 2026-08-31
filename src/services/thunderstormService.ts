@@ -33,32 +33,32 @@ export function calculateThunderstormAnalysis(
   const alpha = ((a * currentTemp) / (b + currentTemp)) + Math.log(currentHumidity / 100);
   const dewPoint = (b * alpha) / (a - alpha);
 
-  // Surface parcel equivalent potential temperature Theta-E
-  const tempK = currentTemp + 273.15;
-  const dewPointK = dewPoint + 273.15;
-  const vaporPressureHpa = 6.112 * Math.exp((17.67 * dewPoint) / (dewPoint + 243.5));
-  const mixingRatioGKg = (622 * vaporPressureHpa) / (currentPressure - vaporPressureHpa);
-
   // Instability calculation:
-  // Base CAPE from surface buoyancy, moisture, diurnal heating and topography trigger
+  // Check if currentWeather or first hourly forecast already has convective indices from Open-Meteo
+  const firstHourly = hourlyForecasts && hourlyForecasts.length > 0 ? hourlyForecasts[0] : null;
+  const apiProvidedCape = (currentWeather as any)?.capeJkg ?? (firstHourly as any)?.cape;
+  const apiProvidedLI = (currentWeather as any)?.liftedIndex ?? (firstHourly as any)?.liftedIndex;
+
   const thermalSurplus = Math.max(0, currentTemp - 18);
   const moistureSurplus = Math.max(0, dewPoint - 12);
   const mountainTriggerFactor = station.isMountain ? 1.25 : 1.0;
 
   // Base raw CAPE estimate if not already provided by API
-  let baseCape = Math.round(
-    (thermalSurplus * 85 + Math.pow(moistureSurplus, 1.6) * 65 + (currentWeatherCode >= 95 ? 1200 : 0)) * mountainTriggerFactor
-  );
-  if (currentWeatherCode >= 95) {
-    baseCape = Math.max(1350, baseCape);
-  } else if (currentWeatherCode >= 80 && currentWeatherCode <= 82) {
-    baseCape = Math.max(650, baseCape);
+  let baseCape = typeof apiProvidedCape === 'number' && apiProvidedCape >= 0
+    ? Math.round(apiProvidedCape)
+    : Math.round(
+        (thermalSurplus * 85 + Math.pow(moistureSurplus, 1.6) * 65 + (currentWeatherCode >= 95 ? 1200 : 0)) * mountainTriggerFactor
+      );
+  if (currentWeatherCode >= 95 && baseCape < 1000) {
+    baseCape = 1350;
   }
 
   // Lifted Index (LI in °C) = T500 - Tparcel500 (negative means unstable)
-  let liftedIndex = Number((3.5 - (baseCape / 350) - (currentHumidity > 75 ? 1.2 : 0)).toFixed(1));
-  if (baseCape > 2000) liftedIndex = Math.min(-6.5, liftedIndex);
-  else if (baseCape > 1200) liftedIndex = Math.min(-3.5, liftedIndex);
+  let liftedIndex = typeof apiProvidedLI === 'number'
+    ? Number(apiProvidedLI.toFixed(1))
+    : Number((3.5 - (baseCape / 350) - (currentHumidity > 75 ? 1.2 : 0)).toFixed(1));
+  if (baseCape > 2000 && liftedIndex > -4) liftedIndex = -6.5;
+  else if (baseCape > 1200 && liftedIndex > -2) liftedIndex = -3.5;
 
   // CIN (Convective Inhibition in J/kg)
   let cin = Math.round(Math.max(10, 180 - (currentTemp * 4 + currentHumidity * 0.8) + (currentWeatherCode >= 95 ? -120 : 0)));
@@ -204,13 +204,23 @@ export function calculateThunderstormAnalysis(
     const precipProb = hf.precipitationProbability || 0;
     const rainAmount = hf.rainMm || 0;
 
-    // Compute hourly CAPE
-    let hCape = Math.round(baseCape * diurnalInstabilityFactor * (1 + (precipProb / 150)));
-    if (hasThunderCode) hCape = Math.max(1200, hCape);
+    // Compute hourly CAPE using API model data if provided or diurnal physics
+    const hourlyApiCape = (hf as any).cape;
+    let hCape = typeof hourlyApiCape === 'number' && hourlyApiCape >= 0
+      ? Math.round(hourlyApiCape)
+      : Math.round(baseCape * diurnalInstabilityFactor * (1 + (precipProb / 150)));
+    if (hasThunderCode && hCape < 1000) hCape = Math.max(1200, hCape);
 
     // Compute hourly Lifted Index
-    const hLI = Number((3.0 - (hCape / 400)).toFixed(1));
-    const hCin = Math.round(Math.max(5, 140 - (hCape / 15)));
+    const hourlyApiLI = (hf as any).liftedIndex;
+    const hLI = typeof hourlyApiLI === 'number'
+      ? Number(hourlyApiLI.toFixed(1))
+      : Number((3.0 - (hCape / 400)).toFixed(1));
+
+    const hourlyApiCin = (hf as any).cin;
+    const hCin = typeof hourlyApiCin === 'number'
+      ? Math.round(hourlyApiCin)
+      : Math.round(Math.max(5, 140 - (hCape / 15)));
 
     // Compute hourly Storm Risk % (0 to 100%)
     let riskPct = 0;

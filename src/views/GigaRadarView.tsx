@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { PrecisionRadarMap } from '../components/PrecisionRadarMap';
 import { FireProximityRadarCard } from '../components/FireProximityRadarCard';
+import { ThunderstormConvectiveDetailsCard } from '../components/ThunderstormConvectiveDetailsCard';
+import { calculateThunderstormAnalysis } from '../services/thunderstormService';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
 import { 
@@ -119,6 +121,10 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
     }
   };
 
+  const thunderstormAnalysis = React.useMemo(() => {
+    return calculateThunderstormAnalysis(currentStation, weather, hourly);
+  }, [currentStation, weather, hourly]);
+
   return (
     <div id="giga-radar-view" className="space-y-6">
       {/* Top Banner */}
@@ -205,7 +211,14 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         onOpenSearchModal={onOpenSearchModal}
       />
 
-      {/* 2. Feux de Forêt & Départs d'Incendies dans un rayon de 10 km */}
+      {/* 2. Analyse Convective & Modélisation des Orages Haute Définition */}
+      <ThunderstormConvectiveDetailsCard
+        thunderstormAnalysis={thunderstormAnalysis}
+        station={currentStation}
+        seniorMode={seniorMode}
+      />
+
+      {/* 3. Feux de Forêt & Départs d'Incendies dans un rayon de 10 km */}
       <FireProximityRadarCard
         station={currentStation}
         weather={weather}
@@ -214,7 +227,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         seniorMode={seniorMode}
       />
 
-      {/* 3. Meteorological & Radar Guide */}
+      {/* 4. Meteorological & Radar Guide */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         {/* Card 1: Windy Radar Precision */}
         <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">

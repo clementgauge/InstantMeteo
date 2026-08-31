@@ -19,6 +19,7 @@ import {
   Wind
 } from 'lucide-react';
 import { AppLogo } from '../components/AppLogo';
+import { AffiliateStoreFooter } from '../components/AffiliateStoreFooter';
 
 interface HomePageProps {
   onEnterApp: () => void;
@@ -334,12 +335,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-white/10 bg-slate-950/70">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs font-medium text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <div>Instant Météo — Radar, observations et prévisions météorologiques.</div>
-          <button onClick={onEnterApp} className="text-left font-black text-blue-300 transition hover:text-blue-200">
-            Accéder à l’application →
-          </button>
+      <footer className="relative z-10 border-t border-white/10 bg-slate-950/70 py-6">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-6">
+          <AffiliateStoreFooter />
+          <div className="pt-4 border-t border-white/10 flex flex-col gap-4 text-xs font-medium text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <div>Instant Météo — Radar, observations et prévisions météorologiques.</div>
+            <button onClick={onEnterApp} className="text-left font-black text-blue-300 transition hover:text-blue-200">
+              Accéder à l’application →
+            </button>
+          </div>
         </div>
       </footer>
     </div>
