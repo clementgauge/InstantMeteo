@@ -16,6 +16,7 @@ import {
   Globe,
   History,
   Home,
+  KeyRound,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -232,14 +233,14 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       const success = onTriggerSecretCode(cleanCode);
       if (success) {
         if (cleanCode === 'noel' || cleanCode === 'christmas') {
-          setSecretCodeFeedback('🎄 Événement Noël Rouge & Flocons activé !');
+          setSecretCodeFeedback('✨ Code accepté avec succès !');
         } else {
-          setSecretCodeFeedback('✅ Événement désactivé (« clear »).');
+          setSecretCodeFeedback('✅ Réinitialisation effectuée.');
         }
-        setTimeout(() => setSecretCodeFeedback(null), 3500);
-      } else {
-        setSecretCodeFeedback(`❌ Code inconnu : ${cleanCode}`);
         setTimeout(() => setSecretCodeFeedback(null), 3000);
+      } else {
+        setSecretCodeFeedback(`❌ Code incorrect.`);
+        setTimeout(() => setSecretCodeFeedback(null), 2500);
       }
     }
     setSecretCodeInput('');
@@ -506,17 +507,17 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
             )}
           </div>
 
-          {/* Féerie de Noël Event Box in Mobile Drawer */}
+          {/* Secret Code Box in Mobile Drawer */}
           <div className="pt-2">
             <div className="p-2.5 rounded-2xl bg-blue-950/60 border border-blue-400/30 space-y-1.5">
               <div className="flex items-center justify-between text-[10px] font-bold text-white">
                 <span className="flex items-center gap-1 text-amber-300">
-                  <Sparkles className="h-3 w-3 text-amber-400" />
-                  Féerie Noël
+                  <KeyRound className="h-3 w-3 text-amber-400" />
+                  Code secret
                 </span>
                 {isChristmasActive && (
-                  <span className="text-[9px] bg-rose-600 text-white px-1.5 py-0.5 rounded-md font-black">
-                    Actif ❄️
+                  <span className="text-[9px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded-md font-black border border-amber-400/40">
+                    Actif ✨
                   </span>
                 )}
               </div>
@@ -526,8 +527,8 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                   type="text"
                   value={secretCodeInput}
                   onChange={(e) => setSecretCodeInput(e.target.value)}
-                  placeholder="« noel » ou « clear »"
-                  className="flex-1 min-w-0 px-2 py-1 text-[10px] rounded-lg bg-blue-900/60 border border-blue-400/40 text-white placeholder-blue-300 focus:outline-none focus:border-amber-400"
+                  placeholder="Entrez un code..."
+                  className="flex-1 min-w-0 px-2 py-1 text-[10px] rounded-lg bg-blue-900/60 border border-blue-400/40 text-white placeholder-blue-300/60 focus:outline-none focus:border-amber-400"
                 />
                 <button
                   type="submit"
@@ -541,10 +542,10 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSecretCodeSubmit(undefined, 'clear')}
-                  className="w-full flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-[10px] font-bold transition cursor-pointer"
                 >
                   <X className="h-3 w-3" />
-                  <span>Désactiver (« clear »)</span>
+                  <span>Réinitialiser</span>
                 </button>
               )}
 
@@ -826,16 +827,16 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* Christmas Event Box */}
+                  {/* Secret Code Box */}
                   <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
                     <div className="flex items-center justify-between text-[10px] font-bold text-slate-200">
                       <span className="flex items-center gap-1 text-amber-300">
-                        <Sparkles className="h-3 w-3 text-amber-400" />
-                        Féerie Noël
+                        <KeyRound className="h-3 w-3 text-amber-400" />
+                        Code secret
                       </span>
                       {isChristmasActive && (
-                        <span className="text-[9px] bg-rose-900/60 text-rose-300 px-1 py-0.2 rounded font-bold">
-                          Actif ❄️
+                        <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">
+                          Actif ✨
                         </span>
                       )}
                     </div>
@@ -845,7 +846,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                         type="text"
                         value={secretCodeInput}
                         onChange={(e) => setSecretCodeInput(e.target.value)}
-                        placeholder="« noel » ou « clear »"
+                        placeholder="Entrez un code..."
                         className="flex-1 min-w-0 px-2 py-0.5 text-[10px] rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
                       />
                       <button
@@ -860,10 +861,10 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                       <button
                         type="button"
                         onClick={() => handleSecretCodeSubmit(undefined, 'clear')}
-                        className="w-full flex items-center justify-center gap-1 py-0.5 px-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-600/50 text-rose-200 text-[9px] font-bold transition cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1 py-0.5 px-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-[9px] font-bold transition cursor-pointer"
                       >
                         <X className="h-2.5 w-2.5" />
-                        <span>Désactiver (« clear »)</span>
+                        <span>Réinitialiser</span>
                       </button>
                     )}
 

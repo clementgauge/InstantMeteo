@@ -293,56 +293,6 @@ export const AtmosphereSelectorModal: React.FC<AtmosphereSelectorModalProps> = (
           </div>
         </div>
 
-        {/* Special Holiday / Event Section */}
-        <div className="mb-6 p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
-                Événement Spécial : Féerie de Noël
-              </span>
-            </div>
-            {isChristmasActive ? (
-              <span className="text-[10px] bg-rose-900/60 text-rose-300 px-2 py-0.5 rounded-full border border-rose-700/60 font-bold">
-                Actif ❄️
-              </span>
-            ) : (
-              <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700 font-bold">
-                24 &amp; 25 Décembre (Automatique)
-              </span>
-            )}
-          </div>
-          
-          <p className="text-xs text-slate-300 leading-relaxed">
-            L'événement féerique de Noël s'active <strong>automatiquement les 24 et 25 décembre de chaque année</strong> avec un ciel nocturne rouge carmin, des lueurs dorées et une chute de flocons de neige.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            {!isChristmasActive ? (
-              <button
-                type="button"
-                onClick={() => onTriggerCode?.('noel')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Tester le thème Noël (« noel »)</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onTriggerCode?.('clear')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950 hover:bg-rose-900 border border-rose-600/60 text-rose-200 font-black text-xs transition cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span>Désactiver l'événement (« clear »)</span>
-              </button>
-            )}
-            <span className="text-[11px] text-slate-400 italic">
-              Vous pouvez aussi taper « clear » dans la barre latérale gauche.
-            </span>
-          </div>
-        </div>
-
         {/* Footer Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-800">
           <button

@@ -290,9 +290,9 @@ export function calculateRadarProximity(
   let strikes15min = 0;
   let stormSeverity: 'Faible' | 'Modéré' | 'Fort' | 'Violent / Supercellulaire' = 'Faible';
   let stormArrivalMin: number | null = null;
-  let thunderAudibility = "Aucun grondement perceptible (atmosphère calme)";
+  let thunderAudibility = "Aucun coup de foudre détecté - Atmosphère calme";
   let alertLevel: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE' = 'VERT';
-  let threatIndex = 5;
+  let threatIndex = 0;
 
   if (isStormy) {
     stormDistance = 2.5;
@@ -302,22 +302,23 @@ export function calculateRadarProximity(
     thunderAudibility = "Coups de foudre immédiats (< 3 km) - Danger foudre imminent";
     alertLevel = capeJkg > 1200 ? 'ROUGE' : 'ORANGE';
     threatIndex = 92;
-  } else if (capeJkg > 800 && nextRainSlotIndex >= 0) {
+  } else if (capeJkg > 1000 && nextRainSlotIndex >= 0 && (weatherCode >= 80 || currentRain > 1.0)) {
     stormDistance = Number(((nextRainSlotIndex + 1) * cellSpeed * 0.8).toFixed(1));
-    strikes15min = Math.round(capeJkg / 80);
-    stormSeverity = capeJkg > 1200 ? 'Fort' : 'Modéré';
+    strikes15min = Math.round(capeJkg / 120);
+    stormSeverity = capeJkg > 1400 ? 'Fort' : 'Modéré';
     stormArrivalMin = Math.round((stormDistance / cellSpeed) * 60);
     thunderAudibility = "Grondements sourds à l'horizon";
     alertLevel = 'JAUNE';
-    threatIndex = 60;
-  } else if (capeJkg > 400) {
-    stormDistance = 45;
-    strikes15min = 2;
+    threatIndex = 45;
+  } else {
+    // Completely calm / stable atmosphere
+    stormDistance = 999;
+    strikes15min = 0;
     stormSeverity = 'Faible';
     stormArrivalMin = null;
-    thunderAudibility = "Tonnerre inaudible - Activité convective isolée";
+    thunderAudibility = "Aucun impact de foudre (activité orageuse nulle)";
     alertLevel = 'VERT';
-    threatIndex = 25;
+    threatIndex = 0;
   }
 
   const recommendations = alertLevel === 'ROUGE'
@@ -488,83 +489,87 @@ export function calculateRadarProximity(
   // 8 TOP THUNDERSTORM / CONVECTIVE CELLS UP TO 300 KM
   // ---------------------------------------------------------
   const topThunderstormCells300km: ThunderstormEchoCell[] = [];
-  const stormDistances = [
-    isStormy ? 2.5 : Math.max(5, Math.round(stormDistance)),
-    Math.round(Math.max(22, stormDistance + 24)),
-    Math.round(Math.max(48, stormDistance + 52)),
-    Math.round(Math.max(82, stormDistance + 88)),
-    Math.round(Math.max(125, stormDistance + 135)),
-    Math.round(Math.max(175, stormDistance + 185)),
-    Math.round(Math.max(235, stormDistance + 245)),
-    Math.round(Math.max(280, stormDistance + 292))
-  ];
-  const stormCompassOffsets = [0, 3, -3, 5, -2, 4, -5, 2];
+  const hasRealThunderstorms = isStormy || (capeJkg > 900 && (nextRainSlotIndex >= 0 || currentRain > 0.5));
 
-  for (let i = 0; i < 8; i++) {
-    const sDist = stormDistances[i];
-    const sIdx = (Math.floor(((upwindBearingDeg + 11.25) % 360) / 22.5) + stormCompassOffsets[i] + 16) % 16;
-    const sCompass = compassPoints[sIdx];
-    const sBearingDeg = Math.round((upwindBearingDeg + stormCompassOffsets[i] * 22.5 + 360) % 360);
-    const sBand: '0-25km' | '25-75km' | '75-150km' | '150-300km' =
-      sDist <= 25 ? '0-25km' : sDist <= 75 ? '25-75km' : sDist <= 150 ? '75-150km' : '150-300km';
+  if (hasRealThunderstorms) {
+    const stormDistances = [
+      isStormy ? 2.5 : Math.max(5, Math.round(stormDistance)),
+      Math.round(Math.max(22, stormDistance + 24)),
+      Math.round(Math.max(48, stormDistance + 52)),
+      Math.round(Math.max(82, stormDistance + 88)),
+      Math.round(Math.max(125, stormDistance + 135)),
+      Math.round(Math.max(175, stormDistance + 185)),
+      Math.round(Math.max(235, stormDistance + 245)),
+      Math.round(Math.max(280, stormDistance + 292))
+    ];
+    const stormCompassOffsets = [0, 3, -3, 5, -2, 4, -5, 2];
 
-    const localCape = Math.round(Math.max(100, capeJkg * Math.pow(0.85, i)));
-    const strikes15 = Math.max(i === 0 ? strikes15min : 0, Math.round((localCape / 60) * (1 / (1 + i * 0.4))));
-    const sDbz = Math.min(68, Math.round(32 + (localCape / 45) + (strikes15 > 10 ? 10 : 0)));
-    const sFl = Math.round(260 + (localCape / 8));
-    const sAltKm = Number((sFl * 0.03048).toFixed(1));
+    for (let i = 0; i < 8; i++) {
+      const sDist = stormDistances[i];
+      const sIdx = (Math.floor(((upwindBearingDeg + 11.25) % 360) / 22.5) + stormCompassOffsets[i] + 16) % 16;
+      const sCompass = compassPoints[sIdx];
+      const sBearingDeg = Math.round((upwindBearingDeg + stormCompassOffsets[i] * 22.5 + 360) % 360);
+      const sBand: '0-25km' | '25-75km' | '75-150km' | '150-300km' =
+        sDist <= 25 ? '0-25km' : sDist <= 75 ? '25-75km' : sDist <= 150 ? '75-150km' : '150-300km';
 
-    const sEtaMin = sDist === 0 ? 0 : Math.round((sDist / cellSpeed) * 60);
+      const localCape = Math.round(Math.max(100, capeJkg * Math.pow(0.85, i)));
+      const strikes15 = Math.max(i === 0 ? strikes15min : 0, Math.round((localCape / 60) * (1 / (1 + i * 0.4))));
+      const sDbz = Math.min(68, Math.round(32 + (localCape / 45) + (strikes15 > 10 ? 10 : 0)));
+      const sFl = Math.round(260 + (localCape / 8));
+      const sAltKm = Number((sFl * 0.03048).toFixed(1));
 
-    const sThreatLvl: '🔴 EXTRÊMEMENT MENAÇANT' | '🟠 MENAÇANT' | '🟡 SOUS SURVEILLANCE' | '🟢 S\'ÉLOIGNE' | '⚪ NON ACTIF' =
-      isStormy && i === 0
-        ? '🔴 EXTRÊMEMENT MENAÇANT'
-        : sDist <= 35 && localCape > 600
-        ? '🟠 MENAÇANT'
-        : sDist <= 100 && localCape > 300
-        ? '🟡 SOUS SURVEILLANCE'
-        : '🟢 S\'ÉLOIGNE';
+      const sEtaMin = sDist === 0 ? 0 : Math.round((sDist / cellSpeed) * 60);
 
-    const sevLabel: 'Faible' | 'Modéré' | 'Fort' | 'Violent / Supercellulaire' =
-      localCape > 1400 ? 'Violent / Supercellulaire' : localCape > 800 ? 'Fort' : localCape > 400 ? 'Modéré' : 'Faible';
+      const sThreatLvl: '🔴 EXTRÊMEMENT MENAÇANT' | '🟠 MENAÇANT' | '🟡 SOUS SURVEILLANCE' | '🟢 S\'ÉLOIGNE' | '⚪ NON ACTIF' =
+        isStormy && i === 0
+          ? '🔴 EXTRÊMEMENT MENAÇANT'
+          : sDist <= 35 && localCape > 600
+          ? '🟠 MENAÇANT'
+          : sDist <= 100 && localCape > 300
+          ? '🟡 SOUS SURVEILLANCE'
+          : '🟢 S\'ÉLOIGNE';
 
-    let stormNarrative = "";
-    if (sDist <= 25) {
-      stormNarrative = `La cellule convective N°${i + 1} (${sevLabel}) est positionnée dans le rayon immédiat (${sDist < 3 ? "sur la commune" : `${sDist} km au ${sCompass}`}). Alimentée par une énergie convective CAPE mesurée à ${localCape} J/kg, sa réflectivité radar culmine à ${sDbz} dBZ avec de violents sommets nuageux atteignant le niveau de vol FL${sFl} (${sAltKm} km d'altitude). Le réseau Météorage a détecté ${strikes15} impacts de foudre sur les 15 dernières minutes. Un risque élevé de rafales descendantes (${Math.round(windSpeed + 35)} km/h) et de grêle (${localCape > 1000 ? "1.5 à 3.0 cm" : "0.5 cm"}) exige une mise à l'abri immédiate.`;
-    } else if (sDist <= 75) {
-      stormNarrative = `Identifiée dans la couronne de 25 à 75 km (${sDist} km au ${sCompass}), cette cellule orageuse N°${i + 1} manifeste une forte activité électrique avec ${strikes15} éclairs enregistrés en 15 minutes. L'indice d'instabilité thermique CAPE atteint ${localCape} J/kg pour un écho Doppler de ${sDbz} dBZ. Le système se déplace à ${cellSpeed} km/h vers la zone. L'impact potentiel sur la station est anticipé dans environ ${sEtaMin} minutes avec un risque accru d'averses intenses et de fortes bourrasques.`;
-    } else if (sDist <= 150) {
-      stormNarrative = `Amas convectif orageux N°${i + 1} situé à moyenne portée à ${sDist} km au secteur ${sCompass}. La signature radar Doppler présente une réflectivité de ${sDbz} dBZ sur des têtes de cumulonimbus grimpant à FL${sFl} (${sAltKm} km). L'activité foudre reste modérée avec ${strikes15} impacts/15min. Ce foyer convectif demeure en surveillance renforcée par nos algorithmes de guidage Doppler.`;
-    } else {
-      stormNarrative = `Supercellule ou foyer orageux lointain N°${i + 1} détecté à ${sDist} km au ${sCompass} par le réseau ARAMIS (rayon 300 km). Avec une énergie disponible de ${localCape} J/kg et un écho de ${sDbz} dBZ, cette structure s'intègre dans le flux synoptique général. Elle est actuellement éloignée de la commune mais permet de cartographier la réserve d'instabilité sur toute la France.`;
+      const sevLabel: 'Faible' | 'Modéré' | 'Fort' | 'Violent / Supercellulaire' =
+        localCape > 1400 ? 'Violent / Supercellulaire' : localCape > 800 ? 'Fort' : localCape > 400 ? 'Modéré' : 'Faible';
+
+      let stormNarrative = "";
+      if (sDist <= 25) {
+        stormNarrative = `La cellule convective N°${i + 1} (${sevLabel}) est positionnée dans le rayon immédiat (${sDist < 3 ? "sur la commune" : `${sDist} km au ${sCompass}`}). Alimentée par une énergie convective CAPE mesurée à ${localCape} J/kg, sa réflectivité radar culmine à ${sDbz} dBZ avec de violents sommets nuageux atteignant le niveau de vol FL${sFl} (${sAltKm} km d'altitude). Le réseau Météorage a détecté ${strikes15} impacts de foudre sur les 15 dernières minutes. Un risque élevé de rafales descendantes (${Math.round(windSpeed + 35)} km/h) et de grêle (${localCape > 1000 ? "1.5 à 3.0 cm" : "0.5 cm"}) exige une mise à l'abri immédiate.`;
+      } else if (sDist <= 75) {
+        stormNarrative = `Identifiée dans la couronne de 25 à 75 km (${sDist} km au ${sCompass}), cette cellule orageuse N°${i + 1} manifeste une forte activité électrique avec ${strikes15} éclairs enregistrés en 15 minutes. L'indice d'instabilité thermique CAPE atteint ${localCape} J/kg pour un écho Doppler de ${sDbz} dBZ. Le système se déplace à ${cellSpeed} km/h vers la zone. L'impact potentiel sur la station est anticipé dans environ ${sEtaMin} minutes avec un risque accru d'averses intenses et de fortes bourrasques.`;
+      } else if (sDist <= 150) {
+        stormNarrative = `Amas convectif orageux N°${i + 1} situé à moyenne portée à ${sDist} km au secteur ${sCompass}. La signature radar Doppler présente une réflectivité de ${sDbz} dBZ sur des têtes de cumulonimbus grimpant à FL${sFl} (${sAltKm} km). L'activité foudre reste modérée avec ${strikes15} impacts/15min. Ce foyer convectif demeure en surveillance renforcée par nos algorithmes de guidage Doppler.`;
+      } else {
+        stormNarrative = `Supercellule ou foyer orageux lointain N°${i + 1} détecté à ${sDist} km au ${sCompass} par le réseau ARAMIS (rayon 300 km). Avec une énergie disponible de ${localCape} J/kg et un écho de ${sDbz} dBZ, cette structure s'intègre dans le flux synoptique général. Elle est actuellement éloignée de la commune mais permet de cartographier la réserve d'instabilité sur toute la France.`;
+      }
+
+      topThunderstormCells300km.push({
+        id: `storm-cell-300-${i + 1}`,
+        rank: i + 1,
+        cellName: `Cellule Orageuse N°${i + 1} — Couronne ${sBand} (${sCompass})`,
+        locationSector: sDist < 3 ? `Sur la station (${station.name})` : `${sDist} km au ${sCompass}`,
+        distanceKm: sDist,
+        distanceBand: sBand,
+        bearingDeg: sBearingDeg,
+        bearingCompass: sCompass,
+        lightningStrikesCount15min: strikes15,
+        stormSeverity: sevLabel,
+        capeJkg: localCape,
+        hailRiskCm: localCape > 1200 ? 2.5 : localCape > 800 ? 1.0 : 0,
+        downburstGustKmh: Math.round(windSpeed + (localCape > 800 ? 35 : 18)),
+        reflectivityDbz: sDbz,
+        cloudTopAltitudeKm: sAltKm,
+        cloudTopFlightLevel: `FL${sFl}`,
+        synopticOrigin: "Ligne de grain / Ligne convective Météorage",
+        speedKmh: cellSpeed,
+        movementHeadingCompass: compassPoints[Math.floor(((windDirection + 11.25) % 360) / 22.5)],
+        estimatedArrivalMinutes: sEtaMin,
+        isThreatening: sDist <= 35 || isStormy,
+        threatLevel: sThreatLvl,
+        threatDescription: `Orage ${sevLabel} (${strikes15} éclairs/15min) à ${sDist} km au ${sCompass}.`,
+        detailedParagraph: stormNarrative
+      });
     }
-
-    topThunderstormCells300km.push({
-      id: `storm-cell-300-${i + 1}`,
-      rank: i + 1,
-      cellName: `Cellule Orageuse N°${i + 1} — Couronne ${sBand} (${sCompass})`,
-      locationSector: sDist < 3 ? `Sur la station (${station.name})` : `${sDist} km au ${sCompass}`,
-      distanceKm: sDist,
-      distanceBand: sBand,
-      bearingDeg: sBearingDeg,
-      bearingCompass: sCompass,
-      lightningStrikesCount15min: strikes15,
-      stormSeverity: sevLabel,
-      capeJkg: localCape,
-      hailRiskCm: localCape > 1200 ? 2.5 : localCape > 800 ? 1.0 : 0,
-      downburstGustKmh: Math.round(windSpeed + (localCape > 800 ? 35 : 18)),
-      reflectivityDbz: sDbz,
-      cloudTopAltitudeKm: sAltKm,
-      cloudTopFlightLevel: `FL${sFl}`,
-      synopticOrigin: "Ligne de grain / Ligne convective Météorage",
-      speedKmh: cellSpeed,
-      movementHeadingCompass: compassPoints[Math.floor(((windDirection + 11.25) % 360) / 22.5)],
-      estimatedArrivalMinutes: sEtaMin,
-      isThreatening: sDist <= 35 || isStormy,
-      threatLevel: sThreatLvl,
-      threatDescription: `Orage ${sevLabel} (${strikes15} éclairs/15min) à ${sDist} km au ${sCompass}.`,
-      detailedParagraph: stormNarrative
-    });
   }
 
   const topThunderstormCells100km = topThunderstormCells300km.slice(0, 3);

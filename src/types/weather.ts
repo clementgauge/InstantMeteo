@@ -22,6 +22,9 @@ export interface LocationPoint {
   isWorldLocation?: boolean;
   isRegion?: boolean;
   postalCode?: string;
+  officialAgency?: string;
+  wmoIcaoCode?: string;
+  modelSource?: string;
 }
 
 export interface DetailedAirQuality {

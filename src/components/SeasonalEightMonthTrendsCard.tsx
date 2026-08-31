@@ -452,7 +452,7 @@ export const SeasonalEightMonthTrendsCard: React.FC<SeasonalEightMonthTrendsCard
               const isExpanded = expandedMonthIndex === idx;
               return (
                 <div
-                  key={m.monthLabel}
+                  key={`month-${idx}-${m.year}-${m.monthIndex}`}
                   className={`rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden ${
                     isExpanded 
                       ? 'border-indigo-400 bg-slate-900/95 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40' 

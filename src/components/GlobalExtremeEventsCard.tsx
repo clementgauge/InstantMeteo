@@ -31,7 +31,10 @@ import {
   GlobalCityWeather, 
   ExtremeEventType 
 } from '../types/weather';
-import { generateGlobalExtremeEventsObservatory } from '../services/globalExtremeEventsService';
+import { 
+  generateGlobalExtremeEventsObservatory,
+  fetchLiveGlobalCitiesWeather
+} from '../services/globalExtremeEventsService';
 
 interface GlobalExtremeEventsCardProps {
   seniorMode?: boolean;
@@ -48,13 +51,25 @@ export const GlobalExtremeEventsCard: React.FC<GlobalExtremeEventsCardProps> = (
   const [selectedContinentFilter, setSelectedContinentFilter] = useState<string>('ALL');
   const [selectedSeverityFilter, setSelectedSeverityFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedEventId, setSelectedEventId] = useState<string>('cyclone-pac-1');
+  const [selectedEventId, setSelectedEventId] = useState<string>('polar-vostok-monitoring');
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
+  const [isLoadingCities, setIsLoadingCities] = useState<boolean>(false);
 
-  const refreshData = () => {
+  const refreshData = async () => {
     const res = generateGlobalExtremeEventsObservatory();
     setData(res);
     setLastRefreshed(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+
+    // Fetch live real-time cities weather from Open-Meteo
+    setIsLoadingCities(true);
+    try {
+      const liveCities = await fetchLiveGlobalCitiesWeather();
+      setData(prev => prev ? { ...prev, globalCities: liveCities } : null);
+    } catch (e) {
+      console.warn('Error loading live global cities:', e);
+    } finally {
+      setIsLoadingCities(false);
+    }
   };
 
   useEffect(() => {

@@ -610,19 +610,6 @@ function WeatherApp() {
             </button>
 
             <button
-              onClick={() => setIsAtmosphereModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-black transition active:scale-95 shrink-0"
-              style={{
-                borderColor: `${currentTheme.glowAccentColor}50`,
-                backgroundColor: `${currentTheme.glowAccentColor}18`,
-                color: '#ffffff'
-              }}
-            >
-              <Sparkles className="h-3.5 w-3.5 animate-pulse" style={{ color: currentTheme.glowAccentColor }} />
-              <span className="text-[11px] font-black">{currentTheme.name}</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab('vigilance')}
               className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                 activeTab === 'vigilance'
