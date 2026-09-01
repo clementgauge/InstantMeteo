@@ -1,4 +1,6 @@
 import { LocationPoint } from '../types/weather';
+import { EXTENDED_WORLD_STATIONS } from './extendedWorldStations';
+import { AMERICAN_STATIONS } from './americanStations';
 
 export interface WorldCityPoint extends LocationPoint {
   continent: 'Europe' | 'Amérique du Nord' | 'Amérique du Sud' | 'Asie' | 'Afrique' | 'Océanie' | 'Pôles & Cryosphère';
@@ -12,6 +14,8 @@ export interface WorldCityPoint extends LocationPoint {
 }
 
 export const WORLD_STATIONS: WorldCityPoint[] = [
+  ...AMERICAN_STATIONS,
+  ...EXTENDED_WORLD_STATIONS,
   // ==========================================
   // PÔLES & SITES CLIMATIQUES EXTRÊMES
   // ==========================================

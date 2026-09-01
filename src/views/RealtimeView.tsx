@@ -15,6 +15,8 @@ import {
   Mountain, 
   Search, 
   ChevronRight, 
+  ChevronDown,
+  ChevronUp,
   Sparkles, 
   Radar, 
   TrendingUp, 
@@ -54,6 +56,7 @@ import { CertifiedPrecisionMeteoHub } from '../components/CertifiedPrecisionMete
 import { FrostAndColdObservatoryCard } from '../components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from '../components/CloudNephologyObservatoryCard';
 import { DayWeatherOverviewCard } from '../components/DayWeatherOverviewCard';
+import { ImouWeatherSecurityBanner } from '../components/ImouWeatherSecurityBanner';
 
 interface RealtimeViewProps {
   station: LocationPoint;
@@ -62,6 +65,7 @@ interface RealtimeViewProps {
   daily: DailyForecast[];
   anomaly: ClimateAnomaly;
   seniorMode: boolean;
+  simplifiedMode?: boolean;
   tempUnit: 'C' | 'F';
   onOpenSearchModal?: () => void;
   onOpenGigaRadar?: () => void;
@@ -79,6 +83,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   daily,
   anomaly,
   seniorMode,
+  simplifiedMode = false,
   tempUnit,
   onOpenSearchModal,
   onOpenGigaRadar,
@@ -90,7 +95,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 }) => {
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
-  const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('NONE');
+  const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
+  const [showMoreObservatories, setShowMoreObservatories] = useState<boolean>(false);
 
   const formatTemp = (celsius: number) => {
     if (tempUnit === 'F') {
@@ -282,90 +288,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. OBSERVATOIRE DE PRÉCISION CERTIFIÉ (NOUVEAU COMPOSANT DE DONNÉES FIABLES) */}
-      {/* ========================================================================= */}
-      <div id="realtime-certified-precision" className="scroll-mt-28">
-        <CertifiedPrecisionMeteoHub
-          weather={weather}
-          station={station}
-          seniorMode={seniorMode}
-          tempUnit={tempUnit}
-        />
-      </div>
-
-      {/* Quick Toggle for Deep Winter & Altitude Observatories */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Observatoires Spécialisés :</span>
-          <button
-            onClick={() => setActiveWinterModule(activeWinterModule === 'CLOUD' ? 'NONE' : 'CLOUD')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-              activeWinterModule === 'CLOUD'
-                ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
-                : 'bg-slate-900/80 text-sky-300 border-sky-800/40 hover:bg-slate-800'
-            }`}
-          >
-            ☁️ Observatoire Néphologique & Nuages 48h
-          </button>
-
-          <button
-            onClick={() => setActiveWinterModule(activeWinterModule === 'FROST' ? 'NONE' : 'FROST')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-              activeWinterModule === 'FROST'
-                ? 'bg-indigo-500 text-slate-950 border-indigo-400 shadow-md shadow-indigo-500/20'
-                : 'bg-slate-900/80 text-indigo-300 border-indigo-800/40 hover:bg-slate-800'
-            }`}
-          >
-            🧊 Gelées & Grands Froids (5 Paliers)
-          </button>
-
-          <button
-            onClick={() => setActiveWinterModule(activeWinterModule === 'ALTITUDE' ? 'NONE' : 'ALTITUDE')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-              activeWinterModule === 'ALTITUDE'
-                ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md shadow-blue-500/20'
-                : 'bg-slate-900/80 text-blue-300 border-blue-800/40 hover:bg-slate-800'
-            }`}
-          >
-            ⛰️ Isotherme 0°C & Gradient Vertical
-          </button>
-        </div>
-
-        {activeWinterModule === 'CLOUD' && (
-          <div className="animate-in fade-in duration-200">
-            <CloudNephologyObservatoryCard
-              station={station}
-              weather={weather}
-              hourlyForecasts={hourly}
-              seniorMode={seniorMode}
-              tempUnit={tempUnit}
-            />
-          </div>
-        )}
-
-        {activeWinterModule === 'FROST' && (
-          <div className="animate-in fade-in duration-200">
-            <FrostAndColdObservatoryCard
-              station={station}
-              seniorMode={seniorMode}
-              tempUnit={tempUnit}
-            />
-          </div>
-        )}
-
-        {activeWinterModule === 'ALTITUDE' && (
-          <div className="animate-in fade-in duration-200">
-            <AltitudeMeteorologyCard
-              station={station}
-              weather={weather}
-              seniorMode={seniorMode}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. GRAND DÉTAIL DES PRÉVISIONS DU JOUR ET À UNE SEMAINE                   */}
+      {/* 2. GRAND DÉTAIL DES PRÉVISIONS DU JOUR ET À UNE SEMAINE (24H + 7 JOURS)    */}
       {/* ========================================================================= */}
       <div id="realtime-forecast-week" className="scroll-mt-28">
         <GrandDayAndWeekDetailedForecastCard
@@ -374,13 +297,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           hourly={hourly}
           daily={daily}
           seniorMode={seniorMode}
+          simplifiedMode={simplifiedMode}
           tempUnit={tempUnit}
           onOpenDayAnalyzer={handleOpenDayAnalyzer}
         />
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. LES 6 JAUGES & INDICATEURS SYNOPTIQUES DIRECTS                          */}
+      {/* 3. LES JAUGES & INDICATEURS SYNOPTIQUES (HUMIDITÉ, VENT, UV, AQI, PRESSION)*/}
       {/* ========================================================================= */}
       <div id="realtime-indicators" className="scroll-mt-28">
         <div className="mb-4 flex items-center justify-between">
@@ -390,7 +314,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           <span className="text-xs text-slate-400">Relevé mis à jour en direct</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${simplifiedMode ? 'lg:grid-cols-5' : 'lg:grid-cols-3'} gap-4`}>
           <WeatherGauge
             title="Humidité Relative"
             value={weather.humidity}
@@ -451,170 +375,291 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             seniorMode={seniorMode}
           />
 
-          <WeatherGauge
-            title="Précipitations Actuelles"
-            value={weather.precipitation}
-            unit="mm"
-            subValue={weather.precipitation === 0 ? "Temps Sec" : `${weather.precipitation} mm/h`}
-            icon={CloudRain}
-            colorClass="text-cyan-400"
-            bgGradient="bg-cyan-600/20"
-            description="Quantité de pluie mesurée sur la dernière heure. Détection radar en temps réel."
-            seniorMode={seniorMode}
-          />
+          {!simplifiedMode && (
+            <WeatherGauge
+              title="Précipitations Actuelles"
+              value={weather.precipitation}
+              unit="mm"
+              subValue={weather.precipitation === 0 ? "Temps Sec" : `${weather.precipitation} mm/h`}
+              icon={CloudRain}
+              colorClass="text-cyan-400"
+              bgGradient="bg-cyan-600/20"
+              description="Quantité de pluie mesurée sur la dernière heure. Détection radar en temps réel."
+              seniorMode={seniorMode}
+            />
+          )}
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 4. CONDITIONS SYNOPTIQUES APPROFONDIES                                    */}
-      {/* ========================================================================= */}
-      <div id="realtime-deep-conditions" className="scroll-mt-28">
-        <DeepWeatherConditionsCard
+      {/* Partenaire Météo & Sécurité Extérieure IMOU AOV PT (Masqué en mode simplifié) */}
+      {!simplifiedMode && (
+        <ImouWeatherSecurityBanner
           weather={weather}
           station={station}
           seniorMode={seniorMode}
-          tempUnit={tempUnit}
         />
-      </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 5. GIGA MOTEUR PRÉCIPITATIONS CHIRURGICALES (< 3H & < 24H AVEC DURÉES)     */}
+      {/* 4. BLOCS EXPERTS AVANCÉS (COLLAPSIBLES VIA "VOIR PLUS" EN MODE STANDARD,   */}
+      {/*    OU ENTIÈREMENT MASQUÉS EN MODE SIMPLIFIÉ)                               */}
       {/* ========================================================================= */}
-      <div id="realtime-precipitation" className="scroll-mt-28">
-        <GigaPrecipitationNowcastingCard
-          weather={weather}
-          station={station}
-          hourly={hourly}
-          daily={daily}
-          seniorMode={seniorMode}
-        />
-      </div>
-
-      {/* Quick Navigation Hub to Other Forecast Views */}
-      <div id="realtime-more-forecast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 scroll-mt-28">
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('vigilance')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/40 to-slate-900/80 hover:border-rose-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-rose-600/20 p-2.5 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition">
-            <ShieldAlert className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Météo-France (5 min)</span>
-            <h4 className="text-sm font-black text-white group-hover:text-rose-300">Vigilances & Alertes</h4>
-            <p className="text-[11px] text-slate-400">Matrice des 12 risques</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-900/80 hover:border-blue-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-blue-600/20 p-2.5 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Sub-saisonnier</span>
-            <h4 className="text-sm font-black text-white group-hover:text-blue-300">Prévisions 30 Jours</h4>
-            <p className="text-[11px] text-slate-400">Calendrier jour par jour</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-slate-900/80 hover:border-indigo-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-indigo-600/20 p-2.5 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition">
-            <Globe className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">24 Décades • 240 Jours</span>
-            <h4 className="text-sm font-black text-white group-hover:text-indigo-300">Tendances 8 Mois</h4>
-            <p className="text-[11px] text-slate-400">Département / Région / Pays</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('radar')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 to-slate-900/80 hover:border-cyan-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-cyan-600/20 p-2.5 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition">
-            <Radar className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">ARAMIS &amp; Satellite HD</span>
-            <h4 className="text-sm font-black text-white group-hover:text-cyan-300">Giga Radar de Pluie</h4>
-            <p className="text-[11px] text-slate-400">Échos précipitations direct</p>
-          </div>
-        </button>
-      </div>
-
-      {/* Quick Action & Windows/Mobile Install / Fullscreen Banner - Positioned at bottom */}
-      <div id="realtime-download" className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:px-5 flex flex-wrap items-center justify-between gap-4 shadow-md scroll-mt-28">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-            <Monitor className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white">Application Instant Météo</span>
-              <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
-                Windows, Android &amp; iOS
+      {!simplifiedMode && (
+        <div className="space-y-6 pt-2">
+          {/* Bouton "Voir plus" avec flèche vers le bas */}
+          <div className="flex justify-center">
+            <button
+              id="realtime-see-more-toggle-btn"
+              onClick={() => setShowMoreObservatories(!showMoreObservatories)}
+              className="flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-900/60 via-slate-900 to-indigo-900/60 border border-blue-500/40 text-blue-200 hover:text-white hover:border-blue-400 hover:scale-[1.02] shadow-xl transition active:scale-95 cursor-pointer font-bold text-sm"
+            >
+              <span>
+                {showMoreObservatories
+                  ? "Masquer les données & observatoires détaillés"
+                  : "Voir plus (Radiographie certifiée, Nuages 48h, Gelées, Gradient vertical, Nowcasting)"}
               </span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              Installation sur PC Windows, package APK Android ou application mobile progressive.
-            </p>
+              <ChevronDown 
+                className={`h-5 w-5 transition-transform duration-300 ${
+                  showMoreObservatories ? 'rotate-180 text-cyan-300' : 'text-blue-400 animate-bounce'
+                }`} 
+              />
+            </button>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href="/Instant-Meteo-Windows.cmd"
-            download="Instant-Meteo-Windows.cmd"
-            title="Télécharger le lanceur autonome pour Windows"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Windows (.cmd)</span>
-          </a>
+          {/* Section détaillée révélée sur clic "Voir plus" */}
+          {showMoreObservatories && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 border-t border-slate-800/80 pt-6">
+              {/* Radiographie complète des données météorologiques certifiées */}
+              <div id="realtime-certified-precision" className="scroll-mt-28">
+                <CertifiedPrecisionMeteoHub
+                  weather={weather}
+                  station={station}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
+              </div>
 
-          <a
-            href="/Instant-Meteo.apk"
-            download="Instant-Meteo.apk"
-            title="Télécharger le package APK direct pour smartphone Android"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Android APK</span>
-          </a>
+              {/* Observation néphologique nuages 48h, gelées grands froids, isotherme gradient vertical */}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Observatoires Spécialisés :</span>
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'CLOUD' ? 'NONE' : 'CLOUD')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'CLOUD'
+                        ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                        : 'bg-slate-900/80 text-sky-300 border-sky-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    ☁️ Observatoire Néphologique & Nuages 48h
+                  </button>
 
-          {onOpenInstallModal && (
-            <button
-              onClick={onOpenInstallModal}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-medium text-xs border border-slate-700/60 transition cursor-pointer"
-            >
-              <QrCode className="h-3.5 w-3.5 text-blue-400" />
-              <span>Guide &amp; Options</span>
-            </button>
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'FROST' ? 'NONE' : 'FROST')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'FROST'
+                        ? 'bg-indigo-500 text-slate-950 border-indigo-400 shadow-md shadow-indigo-500/20'
+                        : 'bg-slate-900/80 text-indigo-300 border-indigo-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    🧊 Gelées & Grands Froids (5 Paliers)
+                  </button>
+
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'ALTITUDE' ? 'NONE' : 'ALTITUDE')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'ALTITUDE'
+                        ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md shadow-blue-500/20'
+                        : 'bg-slate-900/80 text-blue-300 border-blue-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    ⛰️ Isotherme 0°C & Gradient Vertical
+                  </button>
+                </div>
+
+                {activeWinterModule === 'CLOUD' && (
+                  <div className="animate-in fade-in duration-200">
+                    <CloudNephologyObservatoryCard
+                      station={station}
+                      weather={weather}
+                      hourlyForecasts={hourly}
+                      seniorMode={seniorMode}
+                      tempUnit={tempUnit}
+                    />
+                  </div>
+                )}
+
+                {activeWinterModule === 'FROST' && (
+                  <div className="animate-in fade-in duration-200">
+                    <FrostAndColdObservatoryCard
+                      station={station}
+                      seniorMode={seniorMode}
+                      tempUnit={tempUnit}
+                    />
+                  </div>
+                )}
+
+                {activeWinterModule === 'ALTITUDE' && (
+                  <div className="animate-in fade-in duration-200">
+                    <AltitudeMeteorologyCard
+                      station={station}
+                      weather={weather}
+                      seniorMode={seniorMode}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Radiographie complète des conditions atmosphériques */}
+              <div id="realtime-deep-conditions" className="scroll-mt-28">
+                <DeepWeatherConditionsCard
+                  weather={weather}
+                  station={station}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
+              </div>
+
+              {/* Prévisions précipitations nowcasting chirurgical */}
+              <div id="realtime-precipitation" className="scroll-mt-28">
+                <GigaPrecipitationNowcastingCard
+                  weather={weather}
+                  station={station}
+                  hourly={hourly}
+                  daily={daily}
+                  seniorMode={seniorMode}
+                />
+              </div>
+
+              {/* Quick Navigation Hub to Other Forecast Views */}
+              <div id="realtime-more-forecast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 scroll-mt-28 pt-2">
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('vigilance')}
+                  className="flex items-center gap-3 p-4 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/40 to-slate-900/80 hover:border-rose-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+                >
+                  <div className="rounded-xl bg-rose-600/20 p-2.5 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition">
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Météo-France (5 min)</span>
+                    <h4 className="text-sm font-black text-white group-hover:text-rose-300">Vigilances & Alertes</h4>
+                    <p className="text-[11px] text-slate-400">Matrice des 12 risques</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
+                  className="flex items-center gap-3 p-4 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-900/80 hover:border-blue-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+                >
+                  <div className="rounded-xl bg-blue-600/20 p-2.5 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Sub-saisonnier</span>
+                    <h4 className="text-sm font-black text-white group-hover:text-blue-300">Prévisions 30 Jours</h4>
+                    <p className="text-[11px] text-slate-400">Calendrier jour par jour</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
+                  className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-slate-900/80 hover:border-indigo-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+                >
+                  <div className="rounded-xl bg-indigo-600/20 p-2.5 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">24 Décades • 240 Jours</span>
+                    <h4 className="text-sm font-black text-white group-hover:text-indigo-300">Tendances 8 Mois</h4>
+                    <p className="text-[11px] text-slate-400">Département / Région / Pays</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('radar')}
+                  className="flex items-center gap-3 p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 to-slate-900/80 hover:border-cyan-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+                >
+                  <div className="rounded-xl bg-cyan-600/20 p-2.5 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition">
+                    <Radar className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">ARAMIS &amp; Satellite HD</span>
+                    <h4 className="text-sm font-black text-white group-hover:text-cyan-300">Giga Radar de Pluie</h4>
+                    <p className="text-[11px] text-slate-400">Échos précipitations direct</p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Quick Action & Windows/Mobile Install / Fullscreen Banner */}
+              <div id="realtime-download" className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:px-5 flex flex-wrap items-center justify-between gap-4 shadow-md scroll-mt-28">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                    <Monitor className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white">Application Instant Météo</span>
+                      <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                        Windows, Android &amp; iOS
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Installation sur PC Windows, package APK Android ou application mobile progressive.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href="/Instant-Meteo-Windows.cmd"
+                    download="Instant-Meteo-Windows.cmd"
+                    title="Télécharger le lanceur autonome pour Windows"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Windows (.cmd)</span>
+                  </a>
+
+                  <a
+                    href="/Instant-Meteo.apk"
+                    download="Instant-Meteo.apk"
+                    title="Télécharger le package APK direct pour smartphone Android"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Android APK</span>
+                  </a>
+
+                  {onOpenInstallModal && (
+                    <button
+                      onClick={onOpenInstallModal}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-medium text-xs border border-slate-700/60 transition cursor-pointer"
+                    >
+                      <QrCode className="h-3.5 w-3.5 text-blue-400" />
+                      <span>Guide &amp; Options</span>
+                    </button>
+                  )}
+
+                  {onToggleFullscreen && (
+                    <button
+                      onClick={onToggleFullscreen}
+                      title="Activer ou quitter le mode grand écran (F11)"
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs border transition cursor-pointer ${
+                        isFullscreen
+                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                          : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                      <span className="hidden md:inline">{isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
-
-          {onToggleFullscreen && (
-            <button
-              onClick={onToggleFullscreen}
-              title="Activer ou quitter le mode grand écran (F11)"
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs border transition cursor-pointer ${
-                isFullscreen
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                  : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:text-white'
-              }`}
-            >
-              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-              <span className="hidden md:inline">{isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}</span>
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
       {/* 7-Day Day-by-Day Analyzer Modal */}
       <DailyDetailedAnalyzerModal

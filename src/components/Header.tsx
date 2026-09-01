@@ -17,6 +17,8 @@ import {
   Settings, 
   X,
   Instagram,
+  Youtube,
+  SlidersHorizontal,
   HelpCircle
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
@@ -30,6 +32,8 @@ interface HeaderProps {
   onSelectStation: (station: LocationPoint) => void;
   seniorMode: boolean;
   onToggleSeniorMode: () => void;
+  simplifiedMode?: boolean;
+  onToggleSimplifiedMode?: () => void;
   onOpenAndroidModal: () => void;
   onOpenDossierModal: () => void;
   onOpenSearchModal: () => void;
@@ -65,6 +69,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectStation,
   seniorMode,
   onToggleSeniorMode,
+  simplifiedMode = false,
+  onToggleSimplifiedMode,
   onOpenAndroidModal,
   onOpenDossierModal,
   onOpenSearchModal,
@@ -143,20 +149,20 @@ export const Header: React.FC<HeaderProps> = ({
   const isMountain = (currentStation.altitude ?? 0) >= 800;
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-4 py-3 sm:px-6">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+    <header ref={headerRef} className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-2.5 py-2.5 sm:px-6 sm:py-3">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 sm:gap-3">
         {/* Brand & Logo */}
         <AppLogo size="md" />
 
-        {/* Center: Search & Station Picker */}
-        <div className="flex items-center gap-2">
+        {/* Center/Right: Actions, Search, Social Links & Settings */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Direct GPS Geolocation Button */}
           {onLocateGps && (
             <button
               id="header-gps-locate-btn"
               onClick={onLocateGps}
               title="Localiser automatiquement ma position GPS"
-              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2.5 font-bold shadow transition active:scale-95 ${
+              className={`flex items-center gap-1.5 rounded-2xl border px-2.5 py-2 sm:px-3 sm:py-2.5 font-bold shadow transition active:scale-95 ${
                 isGpsActive || currentStation.id.startsWith('gps')
                   ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300 ring-1 ring-emerald-500/30'
                   : 'border-blue-500/40 bg-blue-950/40 text-blue-200 hover:border-emerald-400 hover:bg-blue-900/50'
@@ -171,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="open-locality-search-btn"
             onClick={onOpenSearchModal}
-            className={`flex items-center gap-2 rounded-2xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-200 shadow transition hover:border-blue-400 hover:bg-blue-900/50 active:scale-95 ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-blue-500/40 bg-blue-950/40 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-blue-200 shadow transition hover:border-blue-400 hover:bg-blue-900/50 active:scale-95 ${
               seniorMode ? 'text-base py-3 px-5' : 'text-xs sm:text-sm'
             }`}
           >
@@ -185,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="station-selector-button"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className={`flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 ${
+              className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-700 bg-slate-900/90 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 ${
                 seniorMode ? 'text-base py-3 px-5' : 'text-xs sm:text-sm'
               }`}
             >
@@ -197,14 +203,14 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                   <MapPin className="h-4 w-4 text-blue-400 shrink-0" />
                 )}
-                <div className="text-left">
-                  <div className="text-white leading-tight font-bold">{currentStation.name}</div>
-                  <div className="text-[10px] font-normal text-slate-400">
+                <div className="text-left max-w-[110px] sm:max-w-[160px] truncate">
+                  <div className="text-white leading-tight font-bold truncate">{currentStation.name}</div>
+                  <div className="text-[10px] font-normal text-slate-400 truncate">
                     {currentStation.department} • <strong className="text-slate-300">{currentStation.altitude}m</strong>
                   </div>
                 </div>
               </div>
-              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${stationDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform shrink-0 ${stationDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Station List Dropdown */}
@@ -256,51 +262,82 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Instagram Official Page Link */}
+          {/* Instagram Official Page Link - Visible on all formats including phones */}
           <a
             id="header-instagram-link"
             href="https://www.instagram.com/instantmeteo_fr/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 px-3 py-2 text-xs font-bold text-pink-300 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 px-2.5 sm:px-3 py-2 text-xs font-bold text-pink-300 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
           >
-            <Instagram className="h-4 w-4 text-pink-400" />
-            <span className="hidden md:inline">Instagram</span>
+            <Instagram className="h-4 w-4 text-pink-400 shrink-0" />
+            <span className="inline">Instagram</span>
           </a>
+
+          {/* YouTube Official Channel Link - Visible on all formats including phones */}
+          <a
+            id="header-youtube-link"
+            href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-2xl border border-red-500/40 bg-gradient-to-r from-red-950/50 via-red-900/40 to-slate-900 px-2.5 sm:px-3 py-2 text-xs font-bold text-red-300 hover:text-white hover:border-red-400 hover:bg-red-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
+          >
+            <Youtube className="h-4 w-4 text-red-500 shrink-0" />
+            <span className="inline">YouTube</span>
+          </a>
+
+          {/* Mode Simplifié Toggle (Between YouTube & Settings) */}
+          {onToggleSimplifiedMode && (
+            <button
+              id="header-simplified-mode-btn"
+              onClick={onToggleSimplifiedMode}
+              title={simplifiedMode ? "Désactiver le Mode Simplifié (afficher tous les blocs experts)" : "Activer le Mode Simplifié (vue épurée essentielle)"}
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+                simplifiedMode
+                  ? 'border-emerald-400 bg-emerald-600 text-white shadow-emerald-900/50 shadow-md'
+                  : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <SlidersHorizontal className={`h-4 w-4 shrink-0 ${simplifiedMode ? 'text-white' : 'text-emerald-400'}`} />
+              <span className="hidden sm:inline">{simplifiedMode ? 'Mode Simplifié Activé' : 'Mode Simplifié'}</span>
+              <span className="sm:hidden">{simplifiedMode ? 'Épuré' : 'Normal'}</span>
+            </button>
+          )}
 
           {/* Interactive Tutorial Button */}
           {onOpenTutorial && (
             <button
               id="header-tuto-btn"
               onClick={onOpenTutorial}
-              className="flex items-center gap-1.5 rounded-2xl border border-amber-500/40 bg-amber-950/40 px-3 py-2 text-xs font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-2xl border border-amber-500/40 bg-amber-950/40 px-2.5 sm:px-3 py-2 text-xs font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0"
               title="Lancer le tutoriel interactif du site"
             >
-              <HelpCircle className="h-4 w-4 text-amber-400" />
-              <span>Tuto</span>
+              <HelpCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              <span className="hidden sm:inline">Tuto</span>
             </button>
           )}
 
           {/* Language Selector (FR default, EN, DE, IT, ZH, RU, JA) */}
-          <div className="flex items-center">
+          <div className="flex items-center shrink-0">
             <GoogleTranslateWidget compact={false} />
           </div>
 
-          {/* Settings launcher - top right, next to station selector */}
+          {/* Settings launcher - top right, always visible on mobile & pc */}
           <button
             id="open-settings-sidebar-button"
             onClick={() => setSettingsSidebarOpen(true)}
             title="Ouvrir le panneau des paramètres"
             aria-label="Ouvrir les paramètres"
             aria-expanded={settingsSidebarOpen}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm active:scale-95 ${
+            className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm active:scale-95 ${
               settingsSidebarOpen
                 ? 'border-white bg-white text-slate-950'
                 : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-blue-400 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Settings className="h-4.5 w-4.5" />
+            <Settings className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
           </button>
         </div>
 

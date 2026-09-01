@@ -89,6 +89,7 @@ function WeatherApp() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<NavTabId>('realtime');
   const [seniorMode, setSeniorMode] = useState<boolean>(false);
+  const [simplifiedMode, setSimplifiedMode] = useState<boolean>(false);
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
@@ -528,6 +529,8 @@ function WeatherApp() {
           onSelectStation={(st) => setCurrentStation(st)}
           seniorMode={seniorMode}
           onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
+          simplifiedMode={simplifiedMode}
+          onToggleSimplifiedMode={() => setSimplifiedMode(prev => !prev)}
           onOpenAndroidModal={() => setIsInstallModalOpen(true)}
           onOpenDossierModal={() => setIsDossierModalOpen(true)}
           onOpenSearchModal={() => setIsSearchModalOpen(true)}
@@ -559,13 +562,6 @@ function WeatherApp() {
           onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
           onOpenTutorial={() => setIsTutorialOpen(true)}
           activeAlertCount={activeAlertCount}
-        />
-        {/* Dynamic Weather Affiliate Banner (Rain, Heat/Sun, Strong Wind) */}
-        <DynamicWeatherAffiliateBanner
-          weather={weather}
-          daily={daily}
-          hourly={hourly}
-          seniorMode={seniorMode}
         />
       </div>
 
@@ -662,6 +658,7 @@ function WeatherApp() {
                 daily={daily}
                 anomaly={anomaly}
                 seniorMode={seniorMode}
+                simplifiedMode={simplifiedMode}
                 tempUnit={tempUnit}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onOpenGigaRadar={() => setActiveTab('radar')}
@@ -693,6 +690,7 @@ function WeatherApp() {
                   hourlyForecasts={hourly}
                   dailyForecasts={daily}
                   seniorMode={seniorMode}
+                  simplifiedMode={simplifiedMode}
                 />
               </div>
             )}
@@ -736,6 +734,7 @@ function WeatherApp() {
                 hourly={hourly}
                 daily={daily}
                 seniorMode={seniorMode}
+                simplifiedMode={simplifiedMode}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
               />
             )}
@@ -756,6 +755,7 @@ function WeatherApp() {
                 hourly={hourly}
                 daily={daily}
                 seniorMode={seniorMode}
+                simplifiedMode={simplifiedMode}
                 tempUnit={tempUnit}
               />
             )}
@@ -763,6 +763,7 @@ function WeatherApp() {
             {activeTab === 'worldDisasters' && (
               <WorldDisastersView
                 seniorMode={seniorMode}
+                simplifiedMode={simplifiedMode}
               />
             )}
 
@@ -783,11 +784,8 @@ function WeatherApp() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950/70 py-6 px-4 text-center text-xs text-slate-500">
-        <div className="mx-auto max-w-7xl space-y-6">
-          {/* Fixed Affiliate Store Section (2 Columns: Weather Equipment & Daily Comfort) & Mandatory Amazon Disclosure */}
-          <AffiliateStoreFooter seniorMode={seniorMode} />
-
-          <div className="pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl space-y-4">
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
             <p>
               © 2026 <strong>Instant Météo</strong> — Prévisions directes, 30 jours, 8 mois par département &amp; Vigilances Météo-France.
             </p>

@@ -46,6 +46,7 @@ import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
 import { getAllNasaFirmsHotspots } from '../services/nasaFirmsService';
 import { getOfficialAgencyForLocation } from '../utils/internationalAgencies';
+import { fetchLiveWeatherForStations, StationLiveWeather } from '../services/multiStationLiveWeatherService';
 
 export interface PrecisionRadarMapProps {
   currentStation: LocationPoint;
@@ -126,6 +127,15 @@ export interface BlitzortungStrike {
 export const WORLD_RADAR_COUNTRY_PRESETS = [
   { id: 'france', name: 'France', flag: '🇫🇷', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
   { id: 'world', name: 'Monde Entier', flag: '🌍', lat: 25.0, lon: 10.0, zoom: 3, stationId: 'paris-montsouris' },
+  { id: 'usa', name: 'USA & Amérique du Nord', flag: '🇺🇸', lat: 39.8283, lon: -98.5795, zoom: 4, stationId: 'new-york-us' },
+  { id: 'usa-east', name: 'USA Est & Floride', flag: '🗽', lat: 35.5, lon: -80.0, zoom: 5, stationId: 'new-york-us' },
+  { id: 'usa-west', name: 'USA Ouest & Californie', flag: '🌉', lat: 37.0, lon: -119.0, zoom: 5, stationId: 'los-angeles-us' },
+  { id: 'canada', name: 'Canada', flag: '🇨🇦', lat: 53.0, lon: -95.0, zoom: 4, stationId: 'montreal-ca' },
+  { id: 'mexico', name: 'Mexique & Caraïbes', flag: '🇲🇽', lat: 21.0, lon: -95.0, zoom: 5, stationId: 'mexico-city-mx' },
+  { id: 'south-america', name: 'Amérique du Sud', flag: '🌎', lat: -15.0, lon: -60.0, zoom: 4, stationId: 'sao-paulo-br' },
+  { id: 'brazil', name: 'Brésil & Amazonie', flag: '🇧🇷', lat: -14.235, lon: -51.9253, zoom: 4, stationId: 'sao-paulo-br' },
+  { id: 'argentina', name: 'Argentine & Chili', flag: '🇦🇷', lat: -36.0, lon: -65.0, zoom: 4, stationId: 'buenos-aires-ar' },
+  { id: 'andes', name: 'Colombie & Andes', flag: '🇨🇴', lat: 4.5, lon: -74.0, zoom: 5, stationId: 'bogota-co' },
   { id: 'europe', name: 'Europe', flag: '🇪🇺', lat: 48.5, lon: 10.0, zoom: 5, stationId: 'paris-montsouris' },
   { id: 'spain', name: 'Espagne & Portugal', flag: '🇪🇸', lat: 40.4168, lon: -3.7038, zoom: 6, stationId: 'madrid-spain' },
   { id: 'italy', name: 'Italie', flag: '🇮🇹', lat: 41.8719, lon: 12.5674, zoom: 6, stationId: 'rome-italy' },
@@ -133,11 +143,8 @@ export const WORLD_RADAR_COUNTRY_PRESETS = [
   { id: 'uk', name: 'Royaume-Uni', flag: '🇬🇧', lat: 54.5, lon: -2.5, zoom: 6, stationId: 'london-uk' },
   { id: 'switzerland', name: 'Suisse & Alpes', flag: '🇨🇭', lat: 46.8182, lon: 8.2275, zoom: 8, stationId: 'geneva-switzerland' },
   { id: 'belgium', name: 'Belgique & Pays-Bas', flag: '🇧🇪', lat: 50.8503, lon: 4.3517, zoom: 8, stationId: 'brussels-belgium' },
-  { id: 'usa', name: 'États-Unis', flag: '🇺🇸', lat: 39.8283, lon: -98.5795, zoom: 4, stationId: 'new-york-usa' },
-  { id: 'canada', name: 'Canada', flag: '🇨🇦', lat: 56.1304, lon: -106.3468, zoom: 4, stationId: 'montreal-canada' },
   { id: 'japan', name: 'Japon', flag: '🇯🇵', lat: 36.2048, lon: 138.2529, zoom: 5, stationId: 'tokyo-japan' },
   { id: 'morocco', name: 'Maroc & Maghreb', flag: '🇲🇦', lat: 31.7917, lon: -7.0926, zoom: 6, stationId: 'casablanca-morocco' },
-  { id: 'brazil', name: 'Brésil & Am. Sud', flag: '🇧🇷', lat: -14.235, lon: -51.9253, zoom: 4, stationId: 'rio-de-janeiro' },
   { id: 'australia', name: 'Australie', flag: '🇦🇺', lat: -25.2744, lon: 133.7751, zoom: 4, stationId: 'sydney-australia' }
 ];
 
@@ -173,6 +180,9 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   const [selectedFirmsHotspot, setSelectedFirmsHotspot] = useState<NasaFirmsHotspot | null>(null);
   const [selectedLightningStrike, setSelectedLightningStrike] = useState<BlitzortungStrike | null>(null);
   const [showConcentricRings, setShowConcentricRings] = useState<boolean>(true);
+
+  // Live real-time observations cache for stations across the world
+  const [liveStationWeatherMap, setLiveStationWeatherMap] = useState<Record<string, StationLiveWeather>>({});
 
   // RainViewer Radar Animation States & Precipitation Intensity Thresholds
   const [radarFrames, setRadarFrames] = useState<RainViewerFrame[]>([]);
@@ -1122,6 +1132,53 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     }
   }, [activeLayer, openMeteoWindSpeed, openMeteoWindGusts, openMeteoWindDir, currentStation, filteredStations, zoomLevel]);
 
+  // Fetch real live weather from Open-Meteo for all visible stations on the map
+  useEffect(() => {
+    if (activeLayer !== 'temp' && activeLayer !== 'openmeteo_wind') return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    let isMounted = true;
+
+    const updateLiveWeatherForVisibleStations = async () => {
+      const bounds = map.getBounds();
+      const visible = filteredStations.filter(st => {
+        if (st.id === currentStation.id) return true;
+        if (!bounds.isValid()) return true;
+        return bounds.pad(0.4).contains([st.latitude || 0, st.longitude || 0]);
+      });
+
+      if (visible.length === 0) return;
+
+      try {
+        const freshData = await fetchLiveWeatherForStations(visible);
+        if (isMounted && Object.keys(freshData).length > 0) {
+          setLiveStationWeatherMap(prev => ({ ...prev, ...freshData }));
+        }
+      } catch (err) {
+        console.warn('Live weather batch update notice:', err);
+      }
+    };
+
+    updateLiveWeatherForVisibleStations();
+
+    const onMapChange = () => {
+      updateLiveWeatherForVisibleStations();
+    };
+
+    map.on('moveend', onMapChange);
+    map.on('zoomend', onMapChange);
+
+    const refreshInterval = setInterval(updateLiveWeatherForVisibleStations, 120000);
+
+    return () => {
+      isMounted = false;
+      map.off('moveend', onMapChange);
+      map.off('zoomend', onMapChange);
+      clearInterval(refreshInterval);
+    };
+  }, [activeLayer, filteredStations, currentStation.id]);
+
   // Temperature & Station Weather Markers - Displayed for ALL cities of the world with Official Agency Certification
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -1135,19 +1192,18 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       return;
     }
 
-    const currentActualTemp = weather?.temperature ?? 22.4;
     const bounds = map.getBounds();
 
-    // Climatological and Altitude temperature calculator for any city on Earth
+    // High-accuracy fallback calculator when live API is connecting
     const computeCityTemp = (st: LocationPoint) => {
       const isCurrent = st.id === currentStation.id || 
         (Math.abs((st.latitude || 0) - (currentStation.latitude || 0)) < 0.005 && Math.abs((st.longitude || 0) - (currentStation.longitude || 0)) < 0.005);
 
-      if (isCurrent) {
-        const temp = currentActualTemp;
-        const feelsLike = weather?.feelsLike ?? currentActualTemp;
-        const wind = Math.round(weather?.windSpeed ?? 20);
-        const hum = weather?.humidity ?? 60;
+      if (isCurrent && weather) {
+        const temp = Number((weather.temperature ?? 20).toFixed(1));
+        const feelsLike = Number((weather.feelsLike ?? temp).toFixed(1));
+        const wind = Math.round(weather.windSpeed ?? 20);
+        const hum = weather.humidity ?? 60;
         return { temp, feelsLike, wind, hum };
       }
 
@@ -1157,30 +1213,30 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const absLat = Math.abs(lat);
 
       // Zonal Mean Base Temperature across latitudes
-      let baseTemp = 30.5 - Math.pow(absLat / 90, 1.42) * 44;
+      let baseTemp = 28.5 - Math.pow(absLat / 90, 1.45) * 46;
 
       // Elevation cooling: standard environmental lapse rate (-6.5°C / 1000m)
       const lapseOffset = (alt / 1000) * 6.5;
       let finalTemp = baseTemp - lapseOffset;
 
-      // Seasonal adjustment (Northern Summer vs Southern Winter / vice versa)
+      // Seasonal adjustment (current month)
       const month = new Date().getMonth(); // 0..11
       const isNorthernSummer = month >= 4 && month <= 9;
       if (lat >= 0) {
-        finalTemp += isNorthernSummer ? 4.5 * Math.sin((absLat / 90) * Math.PI) : -4.5 * Math.sin((absLat / 90) * Math.PI);
+        finalTemp += isNorthernSummer ? 6.0 * Math.sin((absLat / 90) * Math.PI) : -7.0 * Math.sin((absLat / 90) * Math.PI);
       } else {
-        finalTemp += isNorthernSummer ? -4.5 * Math.sin((absLat / 90) * Math.PI) : 4.5 * Math.sin((absLat / 90) * Math.PI);
+        finalTemp += isNorthernSummer ? -7.0 * Math.sin((absLat / 90) * Math.PI) : 6.0 * Math.sin((absLat / 90) * Math.PI);
       }
 
-      // Desert continentality boost (Sahara, Middle East, Australia Outback)
-      if (absLat >= 18 && absLat <= 32 && (lon >= -10 && lon <= 55)) {
-        finalTemp += 5.0;
+      // Desert continentality
+      if (absLat >= 18 && absLat <= 36 && ((lon >= -115 && lon <= -100) || (lon >= -10 && lon <= 60))) {
+        finalTemp += 6.0;
       }
 
       const temp = Number(finalTemp.toFixed(1));
-      const feelsLike = Number((temp + (temp > 26 ? 1.8 : -1.0)).toFixed(1));
+      const feelsLike = Number((temp + (temp > 26 ? 2.0 : -1.0)).toFixed(1));
       const wind = Math.round(alt > 1800 ? 55 : absLat > 45 ? 26 : 18);
-      const hum = Math.min(95, Math.max(20, Math.round(62 - (temp > 28 ? 18 : 0) + (alt > 1000 ? 10 : 0))));
+      const hum = Math.min(95, Math.max(20, Math.round(60 - (temp > 28 ? 20 : 0) + (alt > 1000 ? 10 : 0))));
 
       return { temp, feelsLike, wind, hum };
     };
@@ -1197,22 +1253,50 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         (Math.abs((st.latitude || 0) - (currentStation.latitude || 0)) < 0.005 && Math.abs((st.longitude || 0) - (currentStation.longitude || 0)) < 0.005);
       
       const alt = st.altitude ?? 150;
-      const { temp: stationTemp, feelsLike: stationFeelsLike, wind: stationWind, hum: stationHumidity } = computeCityTemp(st);
+      const liveData = liveStationWeatherMap[st.id];
+
+      let stationTemp: number;
+      let stationFeelsLike: number;
+      let stationWind: number;
+      let stationHumidity: number;
+      let isLiveObservation = false;
+
+      if (isCurrent && weather) {
+        stationTemp = Number((weather.temperature ?? 20).toFixed(1));
+        stationFeelsLike = Number((weather.feelsLike ?? weather.temperature ?? 20).toFixed(1));
+        stationWind = Math.round(weather.windSpeed ?? 20);
+        stationHumidity = weather.humidity ?? 60;
+        isLiveObservation = true;
+      } else if (liveData) {
+        stationTemp = liveData.temp;
+        stationFeelsLike = liveData.feelsLike;
+        stationWind = liveData.windSpeed;
+        stationHumidity = liveData.humidity;
+        isLiveObservation = true;
+      } else {
+        const fallback = computeCityTemp(st);
+        stationTemp = fallback.temp;
+        stationFeelsLike = fallback.feelsLike;
+        stationWind = fallback.wind;
+        stationHumidity = fallback.hum;
+      }
+
       const agency = getOfficialAgencyForLocation(st.countryCode, st.country);
 
-      const isHighPeak = alt >= 1800;
-      const isMtn = alt >= 800;
-
-      const badgeContent = `${stationTemp}°C`;
-      const badgeStyle = stationTemp >= 30 
-        ? 'bg-rose-600 text-white font-black' 
-        : stationTemp >= 22 
-          ? 'bg-amber-500 text-slate-950 font-black' 
-          : stationTemp >= 14 
-            ? 'bg-emerald-600 text-white font-bold' 
-            : stationTemp >= 5 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-indigo-600 text-white font-black';
+      const badgeContent = `${stationTemp.toFixed(1)}°C`;
+      const badgeStyle = stationTemp >= 35
+        ? 'bg-purple-600 text-white font-black'
+        : stationTemp >= 30 
+          ? 'bg-rose-600 text-white font-black' 
+          : stationTemp >= 22 
+            ? 'bg-amber-500 text-slate-950 font-black' 
+            : stationTemp >= 14 
+              ? 'bg-emerald-600 text-white font-bold' 
+              : stationTemp >= 5 
+                ? 'bg-blue-600 text-white' 
+                : stationTemp >= 0
+                  ? 'bg-cyan-600 text-white font-bold'
+                  : 'bg-indigo-700 text-white font-black';
 
       // Marker element
       const markerHtml = `
@@ -1221,6 +1305,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           <div class="flex items-center gap-0.5 px-2 py-0.5 rounded-full ${badgeStyle} text-[10px] sm:text-[11px] shadow-xl border ${isCurrent ? 'border-white ring-2 ring-blue-600 font-black' : 'border-slate-800'}">
             <span>${agency.flag}</span>
             <span>${badgeContent}</span>
+            ${isLiveObservation ? '<span class="w-1.5 h-1.5 rounded-full bg-green-300 ml-0.5 animate-pulse" title="Observation Live"></span>' : ''}
           </div>
           <span class="mt-0.5 px-1 py-0.2 rounded bg-white/95 text-[9px] font-bold text-slate-900 border border-slate-300 shadow whitespace-nowrap hidden xs:inline">
             ${st.name.split(' ')[0]}
@@ -1231,17 +1316,19 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const customIcon = L.divIcon({
         className: 'custom-station-marker',
         html: markerHtml,
-        iconSize: [65, 32],
-        iconAnchor: [32, 16]
+        iconSize: [70, 32],
+        iconAnchor: [35, 16]
       });
 
       const marker = L.marker([st.latitude, st.longitude], { icon: customIcon });
 
       const popupHtml = `
-        <div style="font-family: inherit; min-width: 245px; padding: 4px;">
-          <div style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase; display: flex; justify-content: space-between;">
+        <div style="font-family: inherit; min-width: 250px; padding: 4px;">
+          <div style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;">
             <span>${agency.flag} ${agency.agencyShort}</span>
-            <span style="color: #0369a1;">Alt. ${alt} m</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px; background: ${isLiveObservation ? '#dcfce7' : '#f1f5f9'}; color: ${isLiveObservation ? '#166534' : '#475569'}; padding: 2px 6px; border-radius: 9999px; font-size: 9.5px; font-weight: 800;">
+              ${isLiveObservation ? '🟢 OBS. LIVE' : 'Alt. ' + alt + ' m'}
+            </span>
           </div>
           <div style="font-size: 15px; font-weight: 900; color: #0f172a; margin-top: 2px;">
             ${st.name}
@@ -1250,9 +1337,9 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
             ${st.department || st.country || 'Station Internationale'} • Réseau Officiel ${agency.countryName}
           </div>
 
-          <div style="margin-top: 8px; padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10.5px; color: #1e293b; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-            <div>🌡️ Temp : <strong>${stationTemp}°C</strong></div>
-            <div>🤔 Ressenti : <strong>${stationFeelsLike}°C</strong></div>
+          <div style="margin-top: 8px; padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 11px; color: #1e293b; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+            <div>🌡️ Temp : <strong>${stationTemp.toFixed(1)}°C</strong></div>
+            <div>🤔 Ressenti : <strong>${stationFeelsLike.toFixed(1)}°C</strong></div>
             <div>💨 Vent : <strong>${stationWind} km/h</strong></div>
             <div>💧 Humidité : <strong>${stationHumidity}%</strong></div>
           </div>
@@ -1290,7 +1377,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
       marker.addTo(markersGroup);
     });
-  }, [filteredStations, currentStation.id, currentStation.latitude, currentStation.longitude, currentStation.altitude, weather?.temperature, weather?.feelsLike, weather?.windSpeed, weather?.humidity, activeLayer]);
+  }, [filteredStations, currentStation.id, currentStation.latitude, currentStation.longitude, currentStation.altitude, weather?.temperature, weather?.feelsLike, weather?.windSpeed, weather?.humidity, activeLayer, liveStationWeatherMap]);
 
   // Fullscreen container handler (Native Browser HTML5 Fullscreen API matching Settings)
   const handleToggleFullscreen = async () => {
@@ -1363,8 +1450,113 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       {/* 2. PERSISTENT FLOATING CONTROLS & HEADER (ALWAYS VISIBLE, EVEN IN FULLSCREEN) */}
       {/* ========================================================================= */}
       
-      {/* Top Left: Layer Selector & Source Indicators */}
-      <div className="absolute top-3 left-3 z-[1000] pointer-events-auto flex flex-col gap-2 max-w-[calc(100vw-6rem)] sm:max-w-xl">
+      {/* MOBILE-ONLY TOP BAR (< sm): Only logos for radar, fire, storm, wind, temp from left to right + fullscreen, NO country block */}
+      <div className="sm:hidden absolute top-2 left-2 right-2 z-[1000] pointer-events-auto flex items-center justify-between gap-1">
+        {/* Logos container: Radar, Feu, Orage, Vent, Températures */}
+        <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl ring-1 ring-white/5">
+          <button
+            type="button"
+            onClick={() => setActiveLayer('radar')}
+            title="Radar Précipitations"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
+              activeLayer === 'radar'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40 ring-1 ring-white/30'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <CloudRain className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveLayer('firms_fire')}
+            title="NASA FIRMS Feux de Forêt"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
+              activeLayer === 'firms_fire'
+                ? 'bg-orange-600 text-white shadow-md shadow-orange-600/40 ring-1 ring-white/30'
+                : 'text-orange-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Flame className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveLayer('keraunos_storms')}
+            title="⚡ Impacts Foudre & Orages"
+            className={`relative flex h-8 w-8 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
+              activeLayer === 'keraunos_storms'
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 ring-1 ring-white/30'
+                : 'text-rose-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Zap className="h-4 w-4 text-amber-300 animate-pulse" />
+            {localStrikesIn50Km.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center px-1 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black">
+                {localStrikesIn50Km.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveLayer('openmeteo_wind')}
+            title="Open-Meteo Vents & Rafales"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
+              activeLayer === 'openmeteo_wind'
+                ? 'bg-teal-600 text-white shadow-md shadow-teal-600/40 ring-1 ring-white/30'
+                : 'text-teal-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Wind className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveLayer('temp')}
+            title="Températures Mondiales"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
+              activeLayer === 'temp'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/40 ring-1 ring-white/30'
+                : 'text-amber-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Thermometer className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Right side icons: Base layer cycle + Fullscreen */}
+        <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl">
+          <button
+            type="button"
+            onClick={() => {
+              const modes: MapTileEngine[] = ['topo', 'satellite', 'osm'];
+              const nextIdx = (modes.indexOf(baseEngine) + 1) % modes.length;
+              setBaseEngine(modes[nextIdx]);
+            }}
+            title={`Fond de carte : ${baseEngine.toUpperCase()}`}
+            className="flex h-8 px-2 items-center justify-center rounded-xl text-[10px] font-bold text-slate-300 hover:bg-slate-800 transition active:scale-95 cursor-pointer"
+          >
+            {baseEngine === 'topo' ? 'Relief' : baseEngine === 'satellite' ? 'Sat' : 'Plan'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleFullscreen}
+            title={isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}
+            className={`flex h-8 w-8 items-center justify-center rounded-xl font-black text-xs shadow-lg transition active:scale-95 cursor-pointer border ${
+              isFullscreen 
+                ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-400/50' 
+                : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400/40'
+            }`}
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* DESKTOP / PC TOP CONTROLS (>= sm): Full text buttons, Country selector bar, source indicators */}
+      <div className="hidden sm:flex absolute top-3 left-3 z-[1000] pointer-events-auto flex-col gap-2 max-w-xl">
         <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl ring-1 ring-white/5">
           <button
             type="button"
@@ -1437,7 +1629,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           </button>
         </div>
 
-        {/* Worldwide & Country Switcher Bar */}
+        {/* Worldwide & Country Switcher Bar (PC / Desktop only) */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl max-w-full overflow-x-auto">
           <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider px-2 shrink-0 flex items-center gap-1">
             <Globe2 className="h-3 w-3" />
@@ -1480,10 +1672,10 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         </div>
       </div>
 
-      {/* Top Right: Fullscreen & Base Layer Chooser */}
-      <div className="absolute top-3 right-3 z-[1000] pointer-events-auto flex items-center gap-2">
+      {/* DESKTOP / PC TOP RIGHT: Fullscreen & Base Layer Chooser */}
+      <div className="hidden sm:flex absolute top-3 right-3 z-[1000] pointer-events-auto items-center gap-2">
         {/* Map style selector */}
-        <div className="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-xl backdrop-blur-md text-xs font-bold">
+        <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-xl backdrop-blur-md text-xs font-bold">
           <button
             type="button"
             onClick={() => setBaseEngine('topo')}
@@ -1745,61 +1937,61 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         </div>
       )}
 
-      {/* Convective & Lightning Impact Zone Sounding HUD */}
+      {/* Convective & Lightning Impact Zone Sounding HUD (Compact on Mobile phones, Full on Desktop) */}
       {(activeLayer === 'keraunos_storms' || activeLayer === 'radar') && (
-        <div className="absolute bottom-16 sm:bottom-4 left-3 z-[1000] pointer-events-auto max-w-[290px] sm:max-w-xs p-3 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-2">
+        <div className="absolute bottom-14 sm:bottom-4 left-2 sm:left-3 z-[1000] pointer-events-auto max-w-[215px] sm:max-w-xs p-1.5 sm:p-3 rounded-xl sm:rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-1 sm:space-y-2">
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-800/80">
-            <div className="flex items-center gap-1.5 text-[11px] font-black text-amber-400">
-              <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-              <span>Zone d'Impacts &amp; Orages</span>
+          <div className="flex items-center justify-between gap-1.5 pb-1 sm:pb-1.5 border-b border-slate-800/80">
+            <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] font-black text-amber-400">
+              <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 animate-pulse" />
+              <span className="truncate">Zone d'Impacts &amp; Orages</span>
             </div>
-            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+            <span className={`text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap ${
               nearestStrike && nearestStrike.distanceKm < 5 ? 'bg-rose-500/30 text-rose-300 border border-rose-500/60 animate-pulse' :
               nearestStrike && nearestStrike.distanceKm < 15 ? 'bg-orange-500/30 text-orange-300 border border-orange-500/60' :
               localStrikesIn50Km.length > 0 ? 'bg-amber-500/30 text-amber-300 border border-amber-500/50' :
               'bg-emerald-500/30 text-emerald-300 border border-emerald-500/50'
             }`}>
-              {nearestStrike && nearestStrike.distanceKm < 5 ? '🔴 Danger Foudre' :
-               nearestStrike && nearestStrike.distanceKm < 15 ? '🟠 Orage en approche' :
-               localStrikesIn50Km.length > 0 ? '🟡 Veille foudre' :
-               '🟢 Zone calme'}
+              {nearestStrike && nearestStrike.distanceKm < 5 ? '🔴 Danger' :
+               nearestStrike && nearestStrike.distanceKm < 15 ? '🟠 Approche' :
+               localStrikesIn50Km.length > 0 ? '🟡 Veille' :
+               '🟢 Calme'}
             </span>
           </div>
 
           {/* Local 50 km impact metrics */}
-          <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-[11px]">
+          <div className="p-1 sm:p-2 rounded-lg sm:rounded-xl bg-slate-900/90 border border-slate-800 space-y-0.5 sm:space-y-1 text-[9px] sm:text-[11px]">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Impacts foudre (rayon 50 km) :</span>
+              <span className="text-slate-400">Impacts (50 km) :</span>
               <span className="font-black text-amber-300">
-                {localStrikesIn50Km.length} impact{localStrikesIn50Km.length > 1 ? 's' : ''}
+                {localStrikesIn50Km.length}
               </span>
             </div>
 
             {nearestStrike ? (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Plus proche foudroiement :</span>
+                  <span className="text-slate-400">Plus proche :</span>
                   <span className="font-black text-rose-400">
-                    {nearestStrike.distanceKm} km ({nearestStrike.bearingCompass})
+                    {nearestStrike.distanceKm} km
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="hidden sm:flex items-center justify-between text-[10px]">
                   <span className="text-slate-400">Temps avant grondement :</span>
                   <span className="font-mono font-bold text-cyan-300">
-                    ~{nearestStrike.acousticDelaySec} secondes ({nearestStrike.intensityKa > 0 ? `+${nearestStrike.intensityKa}` : nearestStrike.intensityKa} kA)
+                    ~{nearestStrike.acousticDelaySec}s ({nearestStrike.intensityKa > 0 ? `+${nearestStrike.intensityKa}` : nearestStrike.intensityKa} kA)
                   </span>
                 </div>
               </>
             ) : (
-              <div className="text-[10px] text-emerald-400 font-semibold pt-0.5">
-                Aucun éclair détecté dans le périmètre local
+              <div className="text-[8.5px] sm:text-[10px] text-emerald-400 font-semibold pt-0.5">
+                Aucun éclair local
               </div>
             )}
           </div>
 
-          {/* Atmospheric Convective Indices */}
-          <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+          {/* Atmospheric Convective Indices (Hidden on ultra-small screens to save map area, shown on desktop) */}
+          <div className="hidden sm:grid grid-cols-2 gap-1.5 text-[11px]">
             <div className="bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
               <div className="text-[9px] text-slate-400 uppercase font-bold">Énergie CAPE</div>
               <div className="font-black text-amber-300 text-xs">
@@ -1817,13 +2009,13 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
           {/* Toggle concentric danger rings */}
           {activeLayer === 'keraunos_storms' && (
-            <div className="pt-1 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+            <div className="pt-1 border-t border-slate-800/80 flex items-center justify-between text-[8.5px] sm:text-[10px]">
               <button
                 type="button"
                 onClick={() => setShowConcentricRings(!showConcentricRings)}
                 className="text-cyan-400 hover:text-cyan-300 font-bold transition flex items-center gap-1 cursor-pointer"
               >
-                <span>{showConcentricRings ? 'Masquer' : 'Afficher'} cercles de danger (5-50 km)</span>
+                <span>{showConcentricRings ? 'Masquer' : 'Afficher'} cercles danger</span>
               </button>
             </div>
           )}

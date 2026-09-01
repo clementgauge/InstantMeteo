@@ -43,6 +43,7 @@ import { searchLocalities } from '../services/openMeteoService';
 
 interface WorldDisastersViewProps {
   seniorMode?: boolean;
+  simplifiedMode?: boolean;
   tempUnit?: 'C' | 'F';
 }
 
@@ -78,6 +79,7 @@ export interface VerifiedDisasterEvent {
 
 export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
   seniorMode = false,
+  simplifiedMode = false,
   tempUnit = 'C'
 }) => {
   const [activeMode, setActiveMode] = useState<'live_disasters' | 'global_cities' | 'world_search' | 'historical_records'>('live_disasters');
@@ -219,152 +221,167 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
   return (
     <div id="world-disasters-page" className="space-y-6">
-      {/* Header Banner with Multi-Source Certification Guarantee */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <div className="flex flex-wrap items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider">
-              <Globe2 className="h-4 w-4 text-cyan-400 animate-spin" style={{ animationDuration: '16s' }} />
-              <span>Observatoire Mondial Certifié &amp; Télédétection Directe</span>
-              <span>•</span>
-              <span className="text-emerald-400 flex items-center gap-1 font-black">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                Données 100% Authentiques (NASA • USGS • Open-Meteo • OMM)
-              </span>
-            </div>
-
-            {/* Live Refresh Button */}
-            <button
-              onClick={() => {
-                loadLiveEvents();
-                loadCitiesWeather();
-              }}
-              disabled={isLoadingLive || isLoadingCities}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow cursor-pointer disabled:opacity-50"
-              title="Actualiser les données satellites NASA, sismomètres USGS et stations météo mondiales"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${(isLoadingLive || isLoadingCities) ? 'animate-spin text-cyan-400' : ''}`} />
-              <span>{(isLoadingLive || isLoadingCities) ? 'Synchronisation...' : 'Actualiser les flux directs'}</span>
-            </button>
+      {/* Header Banner - In Simplified Mode: ONLY the search input/button. In Normal Mode: full rich banner with tabs and descriptions */}
+      {simplifiedMode ? (
+        <div className="flex items-center gap-2 max-w-2xl p-1">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher une information, pays, séisme, feu..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xl"
+            />
           </div>
-
-          <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-            Météo du Monde, Phénomènes en Temps Réel &amp; Catastrophes Naturelles
-          </h2>
-          
-          <p className="text-sm text-slate-300 mt-2 max-w-4xl leading-relaxed">
-            Chaque événement répertorié provient directement des <strong>flux de télédétection et réseaux de capteurs certifiés</strong> :
-            <br />
-            1. <strong>Télédétection satellitaire en direct</strong> : NASA EONET (feux VIIRS 375 m / MODIS, tempêtes, éruptions volcaniques).
-            <br />
-            2. <strong>Réseau sismologique &amp; tsunami mondial</strong> : USGS Earthquake Hazards Program &amp; Centre d'alerte tsunami NOAA.
-            <br />
-            3. <strong>Observations synoptiques des métropoles</strong> : Relevés en temps réel Open-Meteo pour plus de 40 villes mondiales.
-            <br />
-            4. <strong>Archives historiques homologuées</strong> : Records absolus certifiés par l'Organisation Météorologique Mondiale (OMM / WMO).
-          </p>
-
-          {/* Primary View Switcher (4 Navigation Tabs) */}
-          <div className="mt-6 flex flex-wrap items-center gap-2.5 p-1.5 rounded-2xl bg-slate-950/90 border border-slate-800 w-full sm:w-fit">
-            <button
-              onClick={() => setActiveMode('live_disasters')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                activeMode === 'live_disasters'
-                  ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <Radio className="h-4 w-4 text-cyan-300 animate-pulse" />
-              <span>🛰️ Direct Satellites &amp; Séismes</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-300 text-xs font-bold border border-cyan-500/30">
-                {realLiveTotal}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveMode('global_cities')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                activeMode === 'global_cities'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 ring-1 ring-white/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <Building2 className="h-4 w-4 text-indigo-300" />
-              <span>🌍 40+ Métropoles en Direct</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-indigo-300 text-xs font-bold border border-indigo-500/30">
-                {globalCities.length || 40}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveMode('world_search')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                activeMode === 'world_search'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 ring-1 ring-white/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <Search className="h-4 w-4 text-emerald-300" />
-              <span>🔍 Recherche Ville Mondiale</span>
-            </button>
-
-            <button
-              onClick={() => setActiveMode('historical_records')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                activeMode === 'historical_records'
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/40 ring-1 ring-white/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <BookOpen className="h-4 w-4 text-amber-300" />
-              <span>🏛️ Records Homologués OMM</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-amber-300 text-xs font-bold border border-amber-500/30">
-                {CERTIFIED_HISTORICAL_DISASTERS.length}
-              </span>
-            </button>
-          </div>
-
-          {/* Sub-Filters for Tab 1 (Live Disasters) */}
-          {activeMode === 'live_disasters' && (
-            <div className="mt-5 space-y-4">
-              <div className="max-w-md relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filtrer par mot-clé (Feu, Séisme, NASA, Japon, Océan...)"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  { id: 'all', label: `Tous les événements (${disasters.length})` },
-                  { id: 'recent_24h', label: `⚡ Direct & < 24h (${realLiveTotal})` },
-                  { id: 'fire', label: `🔥 Feux NASA VIIRS (${fireEventsCount})` },
-                  { id: 'tsunami', label: `🌊 Séismes & Tsunamis USGS (${quakeEventsCount})` },
-                  { id: 'cyclone', label: `🌀 Cyclones & Tempêtes (${stormEventsCount})` },
-                  { id: 'cold_snow', label: `❄️ Froid & Banquise` },
-                  { id: 'flood', label: `🌧️ Inondations & Crues` }
-                ].map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => setFilterType(f.id as any)}
-                    className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                      filterType === f.id
-                        ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/50'
-                        : 'bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
-                    }`}
-                  >
-                    <span>{f.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div className="flex flex-wrap items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider">
+                <Globe2 className="h-4 w-4 text-cyan-400 animate-spin" style={{ animationDuration: '16s' }} />
+                <span>Observatoire Mondial Certifié &amp; Télédétection Directe</span>
+                <span>•</span>
+                <span className="text-emerald-400 flex items-center gap-1 font-black">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  Données 100% Authentiques (NASA • USGS • Open-Meteo • OMM)
+                </span>
+              </div>
+
+              {/* Live Refresh Button */}
+              <button
+                onClick={() => {
+                  loadLiveEvents();
+                  loadCitiesWeather();
+                }}
+                disabled={isLoadingLive || isLoadingCities}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow cursor-pointer disabled:opacity-50"
+                title="Actualiser les données satellites NASA, sismomètres USGS et stations météo mondiales"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${(isLoadingLive || isLoadingCities) ? 'animate-spin text-cyan-400' : ''}`} />
+                <span>{(isLoadingLive || isLoadingCities) ? 'Synchronisation...' : 'Actualiser les flux directs'}</span>
+              </button>
+            </div>
+
+            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+              Météo du Monde, Phénomènes en Temps Réel &amp; Catastrophes Naturelles
+            </h2>
+            
+            <p className="text-sm text-slate-300 mt-2 max-w-4xl leading-relaxed">
+              Chaque événement répertorié provient directement des <strong>flux de télédétection et réseaux de capteurs certifiés</strong> :
+              <br />
+              1. <strong>Télédétection satellitaire en direct</strong> : NASA EONET (feux VIIRS 375 m / MODIS, tempêtes, éruptions volcaniques).
+              <br />
+              2. <strong>Réseau sismologique &amp; tsunami mondial</strong> : USGS Earthquake Hazards Program &amp; Centre d'alerte tsunami NOAA.
+              <br />
+              3. <strong>Observations synoptiques des métropoles</strong> : Relevés en temps réel Open-Meteo pour plus de 40 villes mondiales.
+              <br />
+              4. <strong>Archives historiques homologuées</strong> : Records absolus certifiés par l'Organisation Météorologique Mondiale (OMM / WMO).
+            </p>
+
+            {/* Primary View Switcher (4 Navigation Tabs) */}
+            <div className="mt-6 flex flex-wrap items-center gap-2.5 p-1.5 rounded-2xl bg-slate-950/90 border border-slate-800 w-full sm:w-fit">
+              <button
+                onClick={() => setActiveMode('live_disasters')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                  activeMode === 'live_disasters'
+                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <Radio className="h-4 w-4 text-cyan-300 animate-pulse" />
+                <span>🛰️ Direct Satellites &amp; Séismes</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-300 text-xs font-bold border border-cyan-500/30">
+                  {realLiveTotal}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveMode('global_cities')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                  activeMode === 'global_cities'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 ring-1 ring-white/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <Building2 className="h-4 w-4 text-indigo-300" />
+                <span>🌍 40+ Métropoles en Direct</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-indigo-300 text-xs font-bold border border-indigo-500/30">
+                  {globalCities.length || 40}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveMode('world_search')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                  activeMode === 'world_search'
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 ring-1 ring-white/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <Search className="h-4 w-4 text-emerald-300" />
+                <span>🔍 Recherche Ville Mondiale</span>
+              </button>
+
+              <button
+                onClick={() => setActiveMode('historical_records')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                  activeMode === 'historical_records'
+                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/40 ring-1 ring-white/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <BookOpen className="h-4 w-4 text-amber-300" />
+                <span>🏛️ Records Homologués OMM</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-amber-300 text-xs font-bold border border-amber-500/30">
+                  {CERTIFIED_HISTORICAL_DISASTERS.length}
+                </span>
+              </button>
+            </div>
+
+            {/* Sub-Filters for Tab 1 (Live Disasters) */}
+            {activeMode === 'live_disasters' && (
+              <div className="mt-5 space-y-4">
+                <div className="max-w-md relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filtrer par mot-clé (Feu, Séisme, NASA, Japon, Océan...)"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: 'all', label: `Tous les événements (${disasters.length})` },
+                    { id: 'recent_24h', label: `⚡ Direct & < 24h (${realLiveTotal})` },
+                    { id: 'fire', label: `🔥 Feux NASA VIIRS (${fireEventsCount})` },
+                    { id: 'tsunami', label: `🌊 Séismes & Tsunamis USGS (${quakeEventsCount})` },
+                    { id: 'cyclone', label: `🌀 Cyclones & Tempêtes (${stormEventsCount})` },
+                    { id: 'cold_snow', label: `❄️ Froid & Banquise` },
+                    { id: 'flood', label: `🌧️ Inondations & Crues` }
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setFilterType(f.id as any)}
+                      className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        filterType === f.id
+                          ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/50'
+                          : 'bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
+                      }`}
+                    >
+                      <span>{f.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* MODE 1 : DIRECT SATELLITAIRE & SÉISMES EN TEMPS RÉEL (NASA / USGS) */}
@@ -372,43 +389,45 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       {activeMode === 'live_disasters' && (
         <div className="space-y-6">
           {/* Summary Stat Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl border border-orange-500/30 bg-slate-900/80 p-4 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-orange-400 font-bold uppercase">
-                <Flame className="h-4 w-4" />
-                <span>Feux Satellites NASA</span>
+          {!simplifiedMode && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-2xl border border-orange-500/30 bg-slate-900/80 p-4 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-orange-400 font-bold uppercase">
+                  <Flame className="h-4 w-4" />
+                  <span>Feux Satellites NASA</span>
+                </div>
+                <div className="text-xl font-black text-white">{fireEventsCount} Détections NRT</div>
+                <p className="text-[11px] text-slate-400">Satellites VIIRS 375 m / MODIS</p>
               </div>
-              <div className="text-xl font-black text-white">{fireEventsCount} Détections NRT</div>
-              <p className="text-[11px] text-slate-400">Satellites VIIRS 375 m / MODIS</p>
-            </div>
 
-            <div className="rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-4 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold uppercase">
-                <Activity className="h-4 w-4" />
-                <span>Séismes &amp; Tsunamis USGS</span>
+              <div className="rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-4 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold uppercase">
+                  <Activity className="h-4 w-4" />
+                  <span>Séismes &amp; Tsunamis USGS</span>
+                </div>
+                <div className="text-xl font-black text-white">{quakeEventsCount} Secousses &gt; M4.5</div>
+                <p className="text-[11px] text-slate-400">Réseau sismologique mondial GSN</p>
               </div>
-              <div className="text-xl font-black text-white">{quakeEventsCount} Secousses &gt; M4.5</div>
-              <p className="text-[11px] text-slate-400">Réseau sismologique mondial GSN</p>
-            </div>
 
-            <div className="rounded-2xl border border-rose-500/30 bg-slate-900/80 p-4 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-rose-400 font-bold uppercase">
-                <Wind className="h-4 w-4" />
-                <span>Tempêtes &amp; Cyclones</span>
+              <div className="rounded-2xl border border-rose-500/30 bg-slate-900/80 p-4 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-rose-400 font-bold uppercase">
+                  <Wind className="h-4 w-4" />
+                  <span>Tempêtes &amp; Cyclones</span>
+                </div>
+                <div className="text-xl font-black text-white">{stormEventsCount} Phénomènes</div>
+                <p className="text-[11px] text-slate-400">Suivi RSMC Tokyo / NHC Miami</p>
               </div>
-              <div className="text-xl font-black text-white">{stormEventsCount} Phénomènes</div>
-              <p className="text-[11px] text-slate-400">Suivi RSMC Tokyo / NHC Miami</p>
-            </div>
 
-            <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold uppercase">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                <span>Statut Flux Direct</span>
+              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold uppercase">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  <span>Statut Flux Direct</span>
+                </div>
+                <div className="text-xl font-black text-emerald-400">{isLiveConnected ? 'Connecté Direct' : 'Mode Fiabilisé'}</div>
+                <p className="text-[11px] text-emerald-300/80">Synchronisé à {lastSyncTime}</p>
               </div>
-              <div className="text-xl font-black text-emerald-400">{isLiveConnected ? 'Connecté Direct' : 'Mode Fiabilisé'}</div>
-              <p className="text-[11px] text-emerald-300/80">Synchronisé à {lastSyncTime}</p>
             </div>
-          </div>
+          )}
 
           {/* Event Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -417,6 +436,45 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
               const isQuake = item.type === 'tsunami';
               const isCold = item.type === 'cold_snow';
               const isCertExpanded = expandedCertId === item.id;
+
+              if (simplifiedMode) {
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-lg backdrop-blur flex flex-col justify-between gap-3 hover:border-cyan-500/40 transition"
+                  >
+                    <div>
+                      <h3 className="text-base font-black text-white leading-snug">
+                        {item.title}
+                      </h3>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Clock className="h-3.5 w-3.5 text-cyan-400" />
+                        <span className="font-semibold text-slate-300">{item.updated}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">Source:</span>
+                        {item.sourceUrl ? (
+                          <a
+                            href={item.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1"
+                          >
+                            <span>{item.officialMeteoCentres[0] || 'Officielle'}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-cyan-300 font-bold">{item.officialMeteoCentres[0] || 'Officielle'}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -919,54 +977,79 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {CERTIFIED_HISTORICAL_DISASTERS.map((rec) => (
-              <div
-                key={rec.id}
-                className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-amber-500/40 transition"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
-                      {rec.categoryLabel}
-                    </span>
-                    <h4 className="text-base font-black text-white mt-0.5">
+            {CERTIFIED_HISTORICAL_DISASTERS.map((rec) => {
+              if (simplifiedMode) {
+                return (
+                  <div
+                    key={rec.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-lg space-y-3 hover:border-amber-500/40 transition"
+                  >
+                    <h4 className="text-base font-black text-white leading-snug">
                       {rec.title}
                     </h4>
-                    <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3 text-slate-500" />
-                      <span>{rec.region}</span>
-                    </p>
+                    <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs text-slate-300">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Clock className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="font-semibold text-slate-300">{rec.updated}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">Source:</span>
+                        <span className="text-cyan-300 font-bold">{rec.officialMeteoCentres[0] || 'OMM'}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={rec.id}
+                  className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-amber-500/40 transition"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                        {rec.categoryLabel}
+                      </span>
+                      <h4 className="text-base font-black text-white mt-0.5">
+                        {rec.title}
+                      </h4>
+                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3 text-slate-500" />
+                        <span>{rec.region}</span>
+                      </p>
+                    </div>
+
+                    <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 shrink-0">
+                      Homologué OMM
+                    </span>
                   </div>
 
-                  <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 shrink-0">
-                    Homologué OMM
-                  </span>
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-amber-200 font-mono font-black text-xs">
+                    {rec.metric}
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {rec.desc}
+                  </p>
+
+                  <div className="pt-3 border-t border-slate-800 space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>Organisme de certification :</span>
+                      <span className="font-bold text-cyan-300">{rec.officialMeteoCentres[0]}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>Télémétrie :</span>
+                      <span className="font-mono text-slate-300">{rec.dataVerification}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>Date certifiée :</span>
+                      <span className="font-bold text-emerald-400">{rec.updated}</span>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-amber-200 font-mono font-black text-xs">
-                  {rec.metric}
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {rec.desc}
-                </p>
-
-                <div className="pt-3 border-t border-slate-800 space-y-1.5 text-[11px]">
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span>Organisme de certification :</span>
-                    <span className="font-bold text-cyan-300">{rec.officialMeteoCentres[0]}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span>Télémétrie :</span>
-                    <span className="font-mono text-slate-300">{rec.dataVerification}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span>Date certifiée :</span>
-                    <span className="font-bold text-emerald-400">{rec.updated}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

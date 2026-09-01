@@ -99,6 +99,7 @@ interface RouteWeatherCalculatorProps {
   currentStation?: LocationPoint;
   tempUnit?: 'C' | 'F';
   seniorMode?: boolean;
+  simplifiedMode?: boolean;
 }
 
 // Popular route presets
@@ -335,6 +336,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
   currentStation,
   tempUnit = 'C',
   seniorMode = false,
+  simplifiedMode = false,
 }) => {
   // Default stations
   const defaultDep =
@@ -1308,7 +1310,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                 <span className="px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-400">
                   Départ {routeAnalysis.departureTime} ➔ Arrivée ~{routeAnalysis.arrivalTime}
                 </span>
-                {routeAnalysis.isLiveMapsData && (
+                {!simplifiedMode && routeAnalysis.isLiveMapsData && (
                   <span className="px-2 py-0.5 rounded-lg bg-teal-950/80 border border-teal-500/30 text-[10px] font-bold text-teal-300">
                     ✓ Calcul routier précis ({routeAnalysis.routingSource})
                   </span>
@@ -1316,31 +1318,33 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               </div>
 
               {/* Navigation external links (Google Maps & Waze) */}
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <a
-                  href={getGoogleMapsUrl(routeAnalysis.departure, routeAnalysis.arrival)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
-                  title="Ouvrir le trajet dans Google Maps"
-                >
-                  <MapIcon className="h-3.5 w-3.5" />
-                  <span>Ouvrir l'itinéraire Google Maps</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+              {!simplifiedMode && (
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <a
+                    href={getGoogleMapsUrl(routeAnalysis.departure, routeAnalysis.arrival)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                    title="Ouvrir le trajet dans Google Maps"
+                  >
+                    <MapIcon className="h-3.5 w-3.5" />
+                    <span>Ouvrir l'itinéraire Google Maps</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
 
-                <a
-                  href={getWazeUrl(routeAnalysis.arrival)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
-                  title="Naviguer vers l'arrivée avec Waze"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  <span>Naviguer avec Waze</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
+                  <a
+                    href={getWazeUrl(routeAnalysis.arrival)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                    title="Naviguer vers l'arrivée avec Waze"
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    <span>Naviguer avec Waze</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Road Safety Score */}
@@ -1392,7 +1396,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           </div>
 
           {/* DEDICATED CAR TRAFFIC & VIGILANCE MODULE (Bison Futé • Sytadin • Vigilance Météo-France) */}
-          {transportMode === 'car' && routeAnalysis.carTrafficVigilance && (
+          {!simplifiedMode && transportMode === 'car' && routeAnalysis.carTrafficVigilance && (
             <div
               id="car-traffic-vigilance-card"
               className={`rounded-3xl border ${routeAnalysis.carTrafficVigilance.badgeBorder} ${routeAnalysis.carTrafficVigilance.badgeBg} p-5 sm:p-6 shadow-2xl backdrop-blur space-y-4`}
@@ -1515,45 +1519,47 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           )}
 
           {/* Road Hazards & Recommendations */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Hazards / Vigilances */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
-                <AlertTriangle className="h-4 w-4" />
-                <span>Points de Vigilance Météo sur le Parcours</span>
+          {!simplifiedMode && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Hazards / Vigilances */}
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Points de Vigilance Météo sur le Parcours</span>
+                </div>
+                <ul className="space-y-2 text-xs">
+                  {routeAnalysis.majorHazards.map((h, i) => (
+                    <li
+                      key={i}
+                      className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
+                    >
+                      <span className="text-amber-400 font-bold">•</span>
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2 text-xs">
-                {routeAnalysis.majorHazards.map((h, i) => (
-                  <li
-                    key={i}
-                    className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
-                  >
-                    <span className="text-amber-400 font-bold">•</span>
-                    <span>{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Recommendations */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Conseils de Conduite &amp; Sécurité</span>
+              {/* Recommendations */}
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Conseils de Conduite &amp; Sécurité</span>
+                </div>
+                <ul className="space-y-2 text-xs">
+                  {routeAnalysis.recommendations.map((r, i) => (
+                    <li
+                      key={i}
+                      className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2 text-xs">
-                {routeAnalysis.recommendations.map((r, i) => (
-                  <li
-                    key={i}
-                    className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
-          </div>
+          )}
 
           {/* Chronological Step-by-Step Waypoints Cards */}
           <div className="space-y-3">

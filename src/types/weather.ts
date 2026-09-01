@@ -1622,7 +1622,7 @@ export interface SeasonalEightMonthTrends {
   baselineNormalsPeriod: string;
   eightMonthSynthesis: string;
   biDailyRun: {
-    runSlot: '06h00 UTC' | '18h00 UTC';
+    runSlot: '06h00 UTC' | '18h00 UTC' | string;
     runDateFormatted: string;
     runTimestamp: string;
     nextRunTimestamp: string;
@@ -1630,6 +1630,7 @@ export interface SeasonalEightMonthTrends {
     officialSupercomputer: string;
     cycleType: string;
     isLockedForCycle: boolean;
+    seedKey?: string;
   };
   months: MonthlySeasonalProjection[]; // Synthèse des 8 mois complets
   decades: DecadeProjection[]; // 24 décades complètes

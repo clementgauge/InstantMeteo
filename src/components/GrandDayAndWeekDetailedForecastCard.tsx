@@ -49,6 +49,7 @@ interface GrandDayAndWeekDetailedForecastCardProps {
   hourly: HourlyForecast[];
   daily: DailyForecast[];
   seniorMode: boolean;
+  simplifiedMode?: boolean;
   tempUnit: 'C' | 'F';
   onOpenDayAnalyzer?: (dayIndex: number) => void;
 }
@@ -59,6 +60,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   hourly,
   daily,
   seniorMode,
+  simplifiedMode = false,
   tempUnit,
   onOpenDayAnalyzer
 }) => {
@@ -113,6 +115,74 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
 
   const selectedDayAnomalyTMin = Math.round((selectedDay.tempMin - currentMonthNormal.tMin) * 10) / 10;
   const selectedDayAnomalyTMax = Math.round((selectedDay.tempMax - currentMonthNormal.tMax) * 10) / 10;
+
+  // Streamlined view for Simplified Mode
+  if (simplifiedMode) {
+    return (
+      <div id="grand-day-week-detailed-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-6 shadow-xl backdrop-blur-xl space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+            <Clock className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+              <span>Déroulé 24h Heure par Heure</span>
+              <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300 border border-blue-500/30">
+                Mode Simplifié
+              </span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Glissez horizontalement pour consulter la météo des 24 prochaines heures
+            </p>
+          </div>
+        </div>
+
+        {/* 24-Hour Scrollable Slider */}
+        <div className="flex gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-700">
+          {next24Hours.map((h, i) => {
+            const tier = getThermalTierForTemp(h.temperature);
+            const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
+            return (
+              <div
+                key={i}
+                className="min-w-[140px] rounded-2xl border border-slate-800 bg-slate-950/80 p-3 flex flex-col justify-between space-y-2 flex-shrink-0 transition hover:border-blue-500/50 hover:bg-slate-900 shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white">{h.hourLabel}</span>
+                  <span className="text-xl" title={richWeather.detailedLabel}>{richWeather.emoji}</span>
+                </div>
+
+                <div>
+                  <div className="text-lg font-black text-white">{formatTemp(h.temperature)}</div>
+                  <span className="text-[10px] text-slate-400 block truncate" title={richWeather.detailedLabel}>
+                    {richWeather.shortLabel}
+                  </span>
+                </div>
+
+                <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
+                  {tier.iconEmoji} {tier.name.split('/')[0]}
+                </div>
+
+                <div className="space-y-1 pt-1 border-t border-slate-800 text-[10px]">
+                  {/* Rain Risk & Volume */}
+                  <div className="flex justify-between text-cyan-300">
+                    <span>Pluie</span>
+                    <span className="font-bold">{h.rainMm} mm ({h.precipitationProbability}%)</span>
+                  </div>
+
+                  {/* Wind */}
+                  <div className="flex justify-between text-slate-400">
+                    <span>Vent</span>
+                    <span>{h.windSpeed} km/h</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="grand-day-week-detailed-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur-xl space-y-6">

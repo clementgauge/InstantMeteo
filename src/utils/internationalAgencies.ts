@@ -235,6 +235,146 @@ export const OFFICIAL_METEOROLOGICAL_AGENCIES: Record<string, MeteorologicalAgen
     radarNetworkName: 'SINARAME Sistema Nacional de Radares Meteorológicos',
     sourceType: 'NATIONAL_WEATHER_SERVICE'
   },
+  MX: {
+    countryCode: 'MX',
+    countryName: 'Mexique',
+    agencyName: 'Servicio Meteorológico Nacional (CONAGUA / SMN)',
+    agencyShort: 'SMN Mexique',
+    flag: '🇲🇽',
+    officialModels: ['WRF-SMN 3km', 'GFS 13km', 'ECMWF IFS'],
+    radarNetworkName: 'Red Nacional de Radares Meteorológicos SMN',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  CL: {
+    countryCode: 'CL',
+    countryName: 'Chili',
+    agencyName: 'Dirección Meteorológica de Chile (DMC)',
+    agencyShort: 'DMC Chili',
+    flag: '🇨🇱',
+    officialModels: ['WRF-DMC 3km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red de Radares Meteorológicos DMC',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  CO: {
+    countryCode: 'CO',
+    countryName: 'Colombie',
+    agencyName: 'Instituto de Hidrología, Meteorología y Estudios Ambientales (IDEAM)',
+    agencyShort: 'IDEAM Colombie',
+    flag: '🇨🇴',
+    officialModels: ['WRF-IDEAM 4km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red Nacional de Radares Meteorológicos IDEAM (Carimagua, Guaviare)',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  PE: {
+    countryCode: 'PE',
+    countryName: 'Pérou',
+    agencyName: 'Servicio Nacional de Meteorología e Hidrología del Perú (SENAMHI)',
+    agencyShort: 'SENAMHI Pérou',
+    flag: '🇵🇪',
+    officialModels: ['WRF-SENAMHI 3km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red Radar Meteorológica SENAMHI',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  EC: {
+    countryCode: 'EC',
+    countryName: 'Équateur',
+    agencyName: 'Instituto Nacional de Meteorología e Hidrología (INAMHI)',
+    agencyShort: 'INAMHI Équateur',
+    flag: '🇪🇨',
+    officialModels: ['WRF-INAMHI 4km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red Radar Meteorológica INAMHI',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  BO: {
+    countryCode: 'BO',
+    countryName: 'Bolivie',
+    agencyName: 'Servicio Nacional de Meteorología e Hidrología (SENAMHI Bolivia)',
+    agencyShort: 'SENAMHI Bolivie',
+    flag: '🇧🇴',
+    officialModels: ['WRF-SENAMHI', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red Meteorológica Altiplano & Valles',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  UY: {
+    countryCode: 'UY',
+    countryName: 'Uruguay',
+    agencyName: 'Instituto Uruguayo de Meteorología (INUMET)',
+    agencyShort: 'INUMET Uruguay',
+    flag: '🇺🇾',
+    officialModels: ['WRF-INUMET', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Radares Meteorológicos INUMET',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  PY: {
+    countryCode: 'PY',
+    countryName: 'Paraguay',
+    agencyName: 'Dirección de Meteorología e Hidrología (DMH Paraguay)',
+    agencyShort: 'DMH Paraguay',
+    flag: '🇵🇾',
+    officialModels: ['WRF-DMH', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Radares DINAC / DMH',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  VE: {
+    countryCode: 'VE',
+    countryName: 'Venezuela',
+    agencyName: 'Instituto Nacional de Meteorología e Hidrología (INAMEH)',
+    agencyShort: 'INAMEH Venezuela',
+    flag: '🇻🇪',
+    officialModels: ['WRF-INAMEH', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red de Radares Meteorológicos INAMEH',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  CR: {
+    countryCode: 'CR',
+    countryName: 'Costa Rica',
+    agencyName: 'Instituto Meteorológico Nacional (IMN Costa Rica)',
+    agencyShort: 'IMN Costa Rica',
+    flag: '🇨🇷',
+    officialModels: ['WRF-IMN 2.5km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Radar Doppler Cerro San Jerónimo IMN',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  PA: {
+    countryCode: 'PA',
+    countryName: 'Panama',
+    agencyName: 'Instituto de Meteorología e Hidrología de Panamá (IMHPA)',
+    agencyShort: 'IMHPA Panama',
+    flag: '🇵🇦',
+    officialModels: ['WRF-IMHPA', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Radar Doppler de Taboga / IMHPA',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  CU: {
+    countryCode: 'CU',
+    countryName: 'Cuba',
+    agencyName: 'Instituto de Meteorología de Cuba (INSMET)',
+    agencyShort: 'INSMET Cuba',
+    flag: '🇨🇺',
+    officialModels: ['WRF-INSMET', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Red Nacional de Radares Meteorológicos INSMET (8 radares)',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  DO: {
+    countryCode: 'DO',
+    countryName: 'République Dominicaine',
+    agencyName: 'Instituto Dominicano de Meteorología (INDOMET / ONAMET)',
+    agencyShort: 'INDOMET Rép. Dom.',
+    flag: '🇩🇴',
+    officialModels: ['WRF-ONAMET', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'Radar Doppler Punta Cana & Santo Domingo',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
+  PR: {
+    countryCode: 'PR',
+    countryName: 'Porto Rico',
+    agencyName: 'National Weather Service San Juan (NOAA / NWS)',
+    agencyShort: 'NWS San Juan (NOAA)',
+    flag: '🇵🇷',
+    officialModels: ['HRRR 3km', 'GFS', 'ECMWF IFS'],
+    radarNetworkName: 'NEXRAD TJUA Doppler Dual-Pol Cayey',
+    sourceType: 'NATIONAL_WEATHER_SERVICE'
+  },
   AQ: {
     countryCode: 'AQ',
     countryName: 'Antarctique',

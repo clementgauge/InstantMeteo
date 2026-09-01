@@ -39,6 +39,7 @@ interface GigaRadarViewProps {
   hourly?: HourlyForecast[];
   daily?: DailyForecast[];
   seniorMode: boolean;
+  simplifiedMode?: boolean;
   onOpenSearchModal: () => void;
 }
 
@@ -49,9 +50,11 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   hourly = [],
   daily = [],
   seniorMode,
+  simplifiedMode = false,
   onOpenSearchModal
 }) => {
   const [selectedPresetMode, setSelectedPresetMode] = useState<string>('france-national');
+  const [activeSubBlock, setActiveSubBlock] = useState<'storm' | 'fire' | null>(null);
 
   const radarTerritoryPresets = [
     { id: 'france-national', label: '🇫🇷 France Entière', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
@@ -87,7 +90,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
     FRENCH_STATIONS[9], // Brest
     FRENCH_STATIONS[12], // Strasbourg
     FRENCH_STATIONS[14], // Biarritz
-    ...WORLD_STATIONS.slice(0, 14) // London, Madrid, Rome, Berlin, Geneva, Brussels, New York, Tokyo, Montreal, Sydney, Casablanca, etc.
+    ...WORLD_STATIONS.slice(0, 14)
   ];
 
   const handleSelectPreset = (presetId: string) => {
@@ -127,80 +130,106 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
   return (
     <div id="giga-radar-view" className="space-y-6">
-      {/* Top Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-cyan-600/10 blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
-              <Radio className="h-4 w-4 text-cyan-400 animate-pulse" />
-              <span>Cartographie OpenStreetMap &amp; Données Météo Publiques Réseau ARAMIS</span>
-            </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-              Radar Météorologique &amp; Surveillance Feux de Forêt
-            </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Précipitations, orages, vent et détection satellitaire des départs de feux en temps réel avec analyse approfondie dans un rayon de 10 km autour de votre localisation.
-            </p>
-          </div>
-
-          {/* Quick jump to station */}
-          <div className="flex items-center gap-3">
+      {/* Top Banner - In Simplified Mode: ONLY the search button. In Normal Mode: full banner (without mobile logos next to search) */}
+      {simplifiedMode ? (
+        <div className="flex items-center justify-between gap-3 p-1">
+          <button
+            onClick={onOpenSearchModal}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-6 py-3.5 text-sm shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+          >
+            <MapPin className="h-4 w-4" />
+            <span>Recherche commune, ville ou pays...</span>
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-4 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-cyan-600/10 blur-3xl pointer-events-none"></div>
+          
+          {/* Mobile-Only Header Bar: logos removed next to search */}
+          <div className="sm:hidden flex items-center justify-end">
             <button
               onClick={onOpenSearchModal}
-              className="flex items-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-5 py-3 text-xs shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-4 py-2.5 text-xs shadow-md shadow-cyan-600/20 active:scale-95 transition cursor-pointer"
             >
-              <MapPin className="h-4 w-4" />
-              <span>Centrer sur une Ville ou un Pays...</span>
+              <MapPin className="h-3.5 w-3.5" />
+              <span>Recherche commune</span>
             </button>
           </div>
-        </div>
 
-        {/* Territory & Country Quick Presets */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-bold text-slate-400 shrink-0">Pays &amp; Territoires :</span>
-          {radarTerritoryPresets.map((preset) => {
-            const isSelected = selectedPresetMode === preset.id;
-            return (
-              <button
-                key={preset.id}
-                onClick={() => handleSelectPreset(preset.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
-                  isSelected
-                    ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/30 ring-2 ring-white/60'
-                    : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>{preset.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          {/* Desktop / Tablet Header */}
+          <div className="hidden sm:block relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
+                  <Radio className="h-4 w-4 text-cyan-400 animate-pulse" />
+                  <span>Cartographie OpenStreetMap &amp; Données Météo Publiques Réseau ARAMIS</span>
+                </div>
+                <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+                  Radar Météorologique &amp; Surveillance Feux de Forêt
+                </h2>
+                <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                  Précipitations, orages, vent et détection satellitaire des départs de feux en temps réel avec analyse approfondie dans un rayon de 10 km autour de votre localisation.
+                </p>
+              </div>
 
-        {/* Quick Stations Bar */}
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-[11px] font-bold text-slate-400 shrink-0">Villes &amp; Capitales :</span>
-          {quickStations.map((st) => {
-            const isSelected = st.id === currentStation.id;
-            const isMtn = (st.altitude ?? 0) >= 800;
-            return (
-              <button
-                key={st.id}
-                onClick={() => onSelectStation(st)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition cursor-pointer ${
-                  isSelected
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-white/50'
-                    : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                {isMtn && <Mountain className="h-3 w-3 text-amber-400" />}
-                <span>{st.name.split(' ')[0]}</span>
-                <span className="text-[10px] opacity-70">({st.altitude}m)</span>
-              </button>
-            );
-          })}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onOpenSearchModal}
+                  className="flex items-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-5 py-3 text-xs shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span>Centrer sur une Ville ou un Pays...</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Territory & Country Quick Presets (Desktop) */}
+            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-xs font-bold text-slate-400 shrink-0">Pays &amp; Territoires :</span>
+              {radarTerritoryPresets.map((preset) => {
+                const isSelected = selectedPresetMode === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => handleSelectPreset(preset.id)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/30 ring-2 ring-white/60'
+                        : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>{preset.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Stations Bar (Desktop) */}
+            <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-[11px] font-bold text-slate-400 shrink-0">Villes &amp; Capitales :</span>
+              {quickStations.map((st) => {
+                const isSelected = st.id === currentStation.id;
+                const isMtn = (st.altitude ?? 0) >= 800;
+                return (
+                  <button
+                    key={st.id}
+                    onClick={() => onSelectStation(st)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-white/50'
+                        : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {isMtn && <Mountain className="h-3 w-3 text-amber-400" />}
+                    <span>{st.name.split(' ')[0]}</span>
+                    <span className="text-[10px] opacity-70">({st.altitude}m)</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 1. Main Interactive Precision Radar Map Component */}
       <PrecisionRadarMap
@@ -211,96 +240,137 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         onOpenSearchModal={onOpenSearchModal}
       />
 
-      {/* 2. Analyse Convective & Modélisation des Orages Haute Définition */}
-      <ThunderstormConvectiveDetailsCard
-        thunderstormAnalysis={thunderstormAnalysis}
-        station={currentStation}
-        seniorMode={seniorMode}
-      />
+      {/* Interactive Toggle Buttons for Storm and Fire Blocks */}
+      {!simplifiedMode && (
+        <div className="flex flex-wrap items-center justify-center gap-4 py-2">
+          <button
+            id="radar-toggle-storm-btn"
+            onClick={() => setActiveSubBlock(activeSubBlock === 'storm' ? null : 'storm')}
+            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition active:scale-95 shadow-xl border cursor-pointer ${
+              activeSubBlock === 'storm'
+                ? 'bg-amber-500 text-slate-950 border-amber-300 ring-4 ring-amber-500/30 shadow-amber-500/20'
+                : 'bg-slate-900/90 text-amber-300 border-amber-500/40 hover:bg-slate-800 hover:border-amber-400'
+            }`}
+          >
+            <Zap className="h-5 w-5 fill-amber-400" />
+            <span>⚡ Estimation du Risque d'Orage &amp; Évolution Horaire</span>
+          </button>
 
-      {/* 3. Feux de Forêt & Départs d'Incendies dans un rayon de 10 km */}
-      <FireProximityRadarCard
-        station={currentStation}
-        weather={weather}
-        hourly={hourly}
-        daily={daily}
-        seniorMode={seniorMode}
-      />
+          <button
+            id="radar-toggle-fire-btn"
+            onClick={() => setActiveSubBlock(activeSubBlock === 'fire' ? null : 'fire')}
+            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition active:scale-95 shadow-xl border cursor-pointer ${
+              activeSubBlock === 'fire'
+                ? 'bg-orange-600 text-white border-orange-400 ring-4 ring-orange-500/30 shadow-orange-600/20'
+                : 'bg-slate-900/90 text-orange-400 border-orange-500/40 hover:bg-slate-800 hover:border-orange-400'
+            }`}
+          >
+            <Flame className="h-5 w-5 fill-orange-400" />
+            <span>🔥 Radar Feux de Forêt &amp; Risque Végétation (10 km)</span>
+          </button>
+        </div>
+      )}
+
+      {/* 2. Analyse Convective & Modélisation des Orages Haute Définition (Appears on click Orage) */}
+      {!simplifiedMode && activeSubBlock === 'storm' && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+          <ThunderstormConvectiveDetailsCard
+            thunderstormAnalysis={thunderstormAnalysis}
+            station={currentStation}
+            seniorMode={seniorMode}
+          />
+        </div>
+      )}
+
+      {/* 3. Feux de Forêt & Départs d'Incendies dans un rayon de 10 km (Appears on click Feu) */}
+      {!simplifiedMode && activeSubBlock === 'fire' && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+          <FireProximityRadarCard
+            station={currentStation}
+            weather={weather}
+            hourly={hourly}
+            daily={daily}
+            seniorMode={seniorMode}
+          />
+        </div>
+      )}
 
       {/* 4. Meteorological & Radar Guide */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        {/* Card 1: Windy Radar Precision */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <CloudRain className="h-4 w-4" />
-              <span>Réseau Radar Doppler ARAMIS</span>
+      {!simplifiedMode && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          {/* Card 1: Windy Radar Precision */}
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <CloudRain className="h-4 w-4" />
+                <span>Réseau Radar Doppler ARAMIS</span>
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Précipitations Réelles</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Données radar temps réel croisées avec les mailles AROME 1.3 km et ECMWF pour éliminer les faux échos et garantir une concordance physique absolue avec le terrain.
+              </p>
             </div>
-            <h3 className="font-bold text-white text-base mb-2">Précipitations Réelles</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Données radar temps réel croisées avec les mailles AROME 1.3 km et ECMWF pour éliminer les faux échos et garantir une concordance physique absolue avec le terrain.
-            </p>
+            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-cyan-300 font-semibold flex items-center gap-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Mise à jour en continu 24h/24</span>
+            </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-cyan-300 font-semibold flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Mise à jour en continu 24h/24</span>
-          </div>
-        </div>
 
-        {/* Card 2: 10 KM Fire Radar */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Flame className="h-4 w-4" />
-              <span>Surveillance 10 km</span>
+          {/* Card 2: 10 KM Fire Radar */}
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <Flame className="h-4 w-4" />
+                <span>Surveillance 10 km</span>
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Détection Incendies</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Surveillance satellitaire infrarouge thermique (MODIS / VIIRS) et calcul de l'Indice Météo Forêt (FWI) pour alerter immédiatement sur les départs de feux rapprochés.
+              </p>
             </div>
-            <h3 className="font-bold text-white text-base mb-2">Détection Incendies</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Surveillance satellitaire infrarouge thermique (MODIS / VIIRS) et calcul de l'Indice Météo Forêt (FWI) pour alerter immédiatement sur les départs de feux rapprochés.
-            </p>
+            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-orange-300 font-semibold flex items-center gap-1">
+              <ShieldAlert className="h-3.5 w-3.5" />
+              <span>Consignes de sécurité SDIS intégrées</span>
+            </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-orange-300 font-semibold flex items-center gap-1">
-            <ShieldAlert className="h-3.5 w-3.5" />
-            <span>Consignes de sécurité SDIS intégrées</span>
-          </div>
-        </div>
 
-        {/* Card 3: Wind Particle Streams */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Wind className="h-4 w-4" />
-              <span>Champs de Vent</span>
+          {/* Card 3: Wind Particle Streams */}
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <Wind className="h-4 w-4" />
+                <span>Champs de Vent</span>
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Flux &amp; Propagation</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Animation particulaire des courants de vent pour anticiper la trajectoire des panaches de fumée et la progression des lignes d'averses ou de grains orageux.
+              </p>
             </div>
-            <h3 className="font-bold text-white text-base mb-2">Flux &amp; Propagation</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Animation particulaire des courants de vent pour anticiper la trajectoire des panaches de fumée et la progression des lignes d'averses ou de grains orageux.
-            </p>
+            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-teal-300 font-semibold flex items-center gap-1">
+              <Compass className="h-3.5 w-3.5" />
+              <span>Vitesse, rafales et direction</span>
+            </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-teal-300 font-semibold flex items-center gap-1">
-            <Compass className="h-3.5 w-3.5" />
-            <span>Vitesse, rafales et direction</span>
-          </div>
-        </div>
 
-        {/* Card 4: Convective Storm Cells */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Zap className="h-4 w-4" />
-              <span>Orages &amp; Foudre</span>
+          {/* Card 4: Convective Storm Cells */}
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <Zap className="h-4 w-4" />
+                <span>Orages &amp; Foudre</span>
+              </div>
+              <h3 className="font-bold text-white text-base mb-2">Activité Électrique</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Détection des impacts d'éclairs et modélisation de l'instabilité (CAPE) pour repérer les cellules orageuses virulentes et les risques de grêle associés.
+              </p>
             </div>
-            <h3 className="font-bold text-white text-base mb-2">Activité Électrique</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Détection des impacts d'éclairs et modélisation de l'instabilité (CAPE) pour repérer les cellules orageuses virulentes et les risques de grêle associés.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-amber-300 font-semibold flex items-center gap-1">
-            <Radio className="h-3.5 w-3.5" />
-            <span>Traçage en temps réel des impacts</span>
+            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-amber-300 font-semibold flex items-center gap-1">
+              <Radio className="h-3.5 w-3.5" />
+              <span>Traçage en temps réel des impacts</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

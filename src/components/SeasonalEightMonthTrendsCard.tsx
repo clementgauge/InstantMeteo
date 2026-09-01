@@ -166,7 +166,7 @@ export const SeasonalEightMonthTrendsCard: React.FC<SeasonalEightMonthTrendsCard
   return (
     <div id="seasonal-eight-month-card" className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-7 shadow-2xl backdrop-blur space-y-6">
       
-      {/* 1. BI-DAILY OPERATIONAL RUN STATUS BAR (STRICTEMENT 2 FOIS PAR JOUR) */}
+      {/* 1. 3-DAY OPERATIONAL RUN STATUS BAR (RÉACTUALISÉ TOUS LES 3 JOURS) */}
       <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-slate-950 via-indigo-950/40 to-slate-950 p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-black shrink-0">
@@ -176,7 +176,7 @@ export const SeasonalEightMonthTrendsCard: React.FC<SeasonalEightMonthTrendsCard
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-300">
               <span className="flex items-center gap-1">
                 <Lock className="h-3.5 w-3.5 text-emerald-400" />
-                Cycle Bi-Quotidien Officiel (Actualisé 2 fois / jour)
+                Cycle Tri-Journalier Officiel (Réactualisé tous les 3 jours)
               </span>
               <span className="text-slate-500">•</span>
               <span className="text-emerald-400 font-black bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/40">

@@ -47,6 +47,7 @@ interface MultiDayVigilanceMatrixCardProps {
   hourlyForecasts?: HourlyForecast[];
   currentWeather?: any;
   seniorMode?: boolean;
+  simplifiedMode?: boolean;
   tempUnit?: 'C' | 'F';
   onForceRefresh?: () => void;
   nextVigilanceRefreshSeconds?: number;
@@ -137,6 +138,7 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
   hourly,
   hourlyForecasts,
   seniorMode = false,
+  simplifiedMode = false,
   tempUnit = 'C',
   onForceRefresh,
   lastUpdatedTime
@@ -273,44 +275,46 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
             </h3>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-            <button
-              onClick={() => setViewMode('bilan_phenomenes')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'bilan_phenomenes' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Bilan par Risque (Par Jour)</span>
-            </button>
-            <button
-              onClick={() => setViewMode('matrix_overview')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'matrix_overview' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Layers className="h-3.5 w-3.5" />
-              <span>Matrice Globale 15 Jours</span>
-            </button>
-            <button
-              onClick={() => setViewMode('day_chronogram')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'day_chronogram' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Footprints className="h-3.5 w-3.5" />
-              <span>Chronogramme 24h &amp; Outdoor</span>
-            </button>
-            <button
-              onClick={() => setViewMode('criteria_guide')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'criteria_guide' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <HelpCircle className="h-3.5 w-3.5" />
-              <span>Guide des Seuils &amp; Consignes</span>
-            </button>
-          </div>
+          {!simplifiedMode && (
+            <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+              <button
+                onClick={() => setViewMode('bilan_phenomenes')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === 'bilan_phenomenes' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <ShieldAlert className="h-3.5 w-3.5" />
+                <span>Bilan par Risque (Par Jour)</span>
+              </button>
+              <button
+                onClick={() => setViewMode('matrix_overview')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === 'matrix_overview' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span>Matrice Globale 15 Jours</span>
+              </button>
+              <button
+                onClick={() => setViewMode('day_chronogram')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === 'day_chronogram' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Footprints className="h-3.5 w-3.5" />
+                <span>Chronogramme 24h &amp; Outdoor</span>
+              </button>
+              <button
+                onClick={() => setViewMode('criteria_guide')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === 'criteria_guide' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                <span>Guide des Seuils &amp; Consignes</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Horizontal scrollable Day Tiles */}

@@ -76,37 +76,22 @@ function createDeterministicPRNG(seedStr: string) {
 }
 
 /**
- * Computes official Bi-Daily Run schedule (Runs at 06h00 UTC and 18h00 UTC)
+ * Computes official 3-Day Seasonal Run schedule (Re-computed every 3 days at 06h00 UTC)
  */
 export function getBiDailyRunInfo(now: Date = new Date()) {
-  const utcHours = now.getUTCHours();
-  const utcMinutes = now.getUTCMinutes();
-  const isMorningSlot = utcHours >= 6 && utcHours < 18;
+  const epochDay = Math.floor(now.getTime() / (86400000));
+  // 3-day cycle period
+  const cycleIndex = Math.floor(epochDay / 3);
+  const cycleStartDay = cycleIndex * 3;
+  const nextCycleStartDay = (cycleIndex + 1) * 3;
 
-  const currentSlot: '06h00 UTC' | '18h00 UTC' = isMorningSlot ? '06h00 UTC' : '18h00 UTC';
+  const runDate = new Date(cycleStartDay * 86400000);
+  runDate.setUTCHours(6, 0, 0, 0);
 
-  // Run start time
-  const runDate = new Date(now);
-  if (utcHours < 6) {
-    // Before 6h UTC today: active run is yesterday 18h00 UTC
-    runDate.setUTCDate(runDate.getUTCDate() - 1);
-    runDate.setUTCHours(18, 0, 0, 0);
-  } else if (isMorningSlot) {
-    runDate.setUTCHours(6, 0, 0, 0);
-  } else {
-    runDate.setUTCHours(18, 0, 0, 0);
-  }
+  const nextRunDate = new Date(nextCycleStartDay * 86400000);
+  nextRunDate.setUTCHours(6, 0, 0, 0);
 
-  // Next run start time
-  const nextRunDate = new Date(runDate);
-  if (isMorningSlot) {
-    nextRunDate.setUTCHours(18, 0, 0, 0);
-  } else {
-    nextRunDate.setUTCDate(nextRunDate.getUTCDate() + 1);
-    nextRunDate.setUTCHours(6, 0, 0, 0);
-  }
-
-  const msToNextRun = nextRunDate.getTime() - now.getTime();
+  const msToNextRun = Math.max(0, nextRunDate.getTime() - now.getTime());
   const hoursToNextRun = Math.max(0, Math.round((msToNextRun / (1000 * 60 * 60)) * 10) / 10);
 
   const runDateFormatted = runDate.toLocaleDateString('fr-FR', {
@@ -115,19 +100,19 @@ export function getBiDailyRunInfo(now: Date = new Date()) {
     year: 'numeric'
   });
 
-  const runTimestamp = `${runDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} à ${runDate.getUTCHours().toString().padStart(2, '0')}h00 UTC`;
-  const nextRunTimestamp = `${nextRunDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} à ${nextRunDate.getUTCHours().toString().padStart(2, '0')}h00 UTC`;
+  const runTimestamp = `${runDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} à 06h00 UTC`;
+  const nextRunTimestamp = `${nextRunDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} à 06h00 UTC`;
 
-  const seedKey = `${runDate.getUTCFullYear()}-${runDate.getUTCMonth() + 1}-${runDate.getUTCDate()}-${currentSlot}`;
+  const seedKey = `cycle3d-${cycleIndex}`;
 
   return {
-    runSlot: currentSlot,
+    runSlot: `Run Tri-Journalier (Cycle 3 Jours)`,
     runDateFormatted,
     runTimestamp,
     nextRunTimestamp,
     nextRunCountdownHours: hoursToNextRun,
-    officialSupercomputer: "Copernicus C3S / ECMWF SEAS5 Multi-Centre HPC",
-    cycleType: "Cycle Bi-Quotidien (06h00 & 18h00 UTC)",
+    officialSupercomputer: "Copernicus C3S / ECMWF SEAS5 & NCEP CFSv2 Multi-Centre",
+    cycleType: "Cycle 3 Jours (Réactualisé 1 fois tous les 3 jours)",
     isLockedForCycle: true,
     seedKey
   };

@@ -27,6 +27,7 @@ interface SportsAndRouteViewProps {
   hourly: HourlyForecast[];
   daily?: any[];
   seniorMode?: boolean;
+  simplifiedMode?: boolean;
   tempUnit?: 'C' | 'F';
 }
 
@@ -37,6 +38,7 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
   hourly,
   daily,
   seniorMode = false,
+  simplifiedMode = false,
   tempUnit = 'C'
 }) => {
   const activeStation = station || currentStation;
@@ -139,20 +141,22 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
   return (
     <div id="page-sportsActivities" className="space-y-8">
       {/* Header Banner */}
-      <div className="rounded-3xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 text-teal-400 text-xs font-black uppercase tracking-wider mb-2">
-            <Activity className="h-4 w-4 text-teal-400" />
-            <span>Page 15 • Observatoire Activités, Sports &amp; Trajets</span>
+      {!simplifiedMode && (
+        <div className="rounded-3xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-teal-400 text-xs font-black uppercase tracking-wider mb-2">
+              <Activity className="h-4 w-4 text-teal-400" />
+              <span>Page 15 • Observatoire Activités, Sports &amp; Trajets</span>
+            </div>
+            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+              Météo Sportive &amp; Calculateur d'Itinéraire Routier
+            </h2>
+            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Index biométéorologique « Ça vaut le coup de sortir ? », analyse des créneaux horaires favorables pour le sport et calcul météo étape par étape sur vos trajets routiers.
+            </p>
           </div>
-          <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-            Météo Sportive &amp; Calculateur d'Itinéraire Routier
-          </h2>
-          <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-            Index biométéorologique « Ça vaut le coup de sortir ? », analyse des créneaux horaires favorables pour le sport et calcul météo étape par étape sur vos trajets routiers.
-          </p>
         </div>
-      </div>
+      )}
 
       {/* Main Outdoor Score Card */}
       <div id="sports-score-section" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -232,6 +236,7 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
         currentStation={activeStation}
         tempUnit={tempUnit}
         seniorMode={seniorMode}
+        simplifiedMode={simplifiedMode}
       />
     </div>
   );
