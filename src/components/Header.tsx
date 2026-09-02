@@ -262,30 +262,30 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Instagram Official Page Link - Visible on all formats including phones */}
+          {/* Instagram Official Page Link - Just logo on all formats */}
           <a
             id="header-instagram-link"
             href="https://www.instagram.com/instantmeteo_fr/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 px-2.5 sm:px-3 py-2 text-xs font-bold text-pink-300 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center justify-center rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 p-2 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
+            aria-label="Page Instagram officielle Instant Météo"
           >
-            <Instagram className="h-4 w-4 text-pink-400 shrink-0" />
-            <span className="inline">Instagram</span>
+            <Instagram className="h-4 w-4 shrink-0" />
           </a>
 
-          {/* YouTube Official Channel Link - Visible on all formats including phones */}
+          {/* YouTube Official Channel Link - Just logo on all formats */}
           <a
             id="header-youtube-link"
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-2xl border border-red-500/40 bg-gradient-to-r from-red-950/50 via-red-900/40 to-slate-900 px-2.5 sm:px-3 py-2 text-xs font-bold text-red-300 hover:text-white hover:border-red-400 hover:bg-red-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center justify-center rounded-2xl border border-red-500/40 bg-gradient-to-r from-red-950/50 via-red-900/40 to-slate-900 p-2 text-red-500 hover:text-white hover:border-red-400 hover:bg-red-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
+            aria-label="Chaîne YouTube officielle Instant Météo"
           >
-            <Youtube className="h-4 w-4 text-red-500 shrink-0" />
-            <span className="inline">YouTube</span>
+            <Youtube className="h-4 w-4 shrink-0" />
           </a>
 
           {/* Mode Simplifié Toggle (Between YouTube & Settings) */}

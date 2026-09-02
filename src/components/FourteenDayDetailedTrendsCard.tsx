@@ -44,6 +44,7 @@ interface FourteenDayDetailedTrendsCardProps {
   currentWeather?: CurrentWeather;
   seniorMode?: boolean;
   tempUnit?: 'C' | 'F';
+  simplifiedMode?: boolean;
 }
 
 export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCardProps> = ({
@@ -53,12 +54,19 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   dailyForecasts,
   currentWeather,
   seniorMode = false,
-  tempUnit = 'C'
+  tempUnit = 'C',
+  simplifiedMode = false
 }) => {
   const [data, setData] = useState<FourteenDayScenariosCollection | null>(null);
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(1);
   const [selectedMilestoneIdx, setSelectedMilestoneIdx] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'dayDetail' | 'milestones' | 'n1Compare' | 'divergenceSynthesis'>('dayDetail');
+
+  useEffect(() => {
+    if (simplifiedMode && activeTab !== 'dayDetail') {
+      setActiveTab('dayDetail');
+    }
+  }, [simplifiedMode, activeTab]);
   const [horizonFilter, setHorizonFilter] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
   const [activeScenarioType, setActiveScenarioType] = useState<'dominant' | 'alt1' | 'alt2'>('dominant');
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
@@ -167,56 +175,58 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
           <p>{data.overallSummary}</p>
         </div>
 
-        {/* Sub-Navigation Tabs */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveTab('dayDetail')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
-              activeTab === 'dayDetail'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Calendar className="h-3.5 w-3.5" />
-            <span>1. Tendances Jour par Jour & Scénarios (J+0 à J+14)</span>
-          </button>
+        {/* Sub-Navigation Tabs - Hidden in Simplified Mode */}
+        {!simplifiedMode && (
+          <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+            <button
+              onClick={() => setActiveTab('dayDetail')}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                activeTab === 'dayDetail'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span>1. Tendances Jour par Jour & Scénarios (J+0 à J+14)</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('milestones')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
-              activeTab === 'milestones'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span>2. Synthèse par Grandes Phases (4 Horizons)</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('milestones')}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                activeTab === 'milestones'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                  : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>2. Synthèse par Grandes Phases (4 Horizons)</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('n1Compare')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
-              activeTab === 'n1Compare'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <History className="h-3.5 w-3.5" />
-            <span>3. Comparatif Thermique avec l'Année Dernière (N-1)</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('n1Compare')}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                activeTab === 'n1Compare'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                  : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <History className="h-3.5 w-3.5" />
+              <span>3. Comparatif Thermique avec l'Année Dernière (N-1)</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('divergenceSynthesis')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
-              activeTab === 'divergenceSynthesis'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Activity className="h-3.5 w-3.5" />
-            <span>4. Matrice de Vote des Modèles (ECMWF, GFS, ICON...)</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setActiveTab('divergenceSynthesis')}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                activeTab === 'divergenceSynthesis'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                  : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5" />
+              <span>4. Matrice de Vote des Modèles (ECMWF, GFS, ICON...)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* TAB 1: DAY BY DAY EXPLORER */}

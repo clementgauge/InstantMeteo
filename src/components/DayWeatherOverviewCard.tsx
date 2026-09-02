@@ -368,82 +368,133 @@ export const DayWeatherOverviewCard: React.FC<DayWeatherOverviewCardProps> = ({
         </div>
 
         {/* 4 Periods Cards Grid with all Synthetic Data */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 w-full">
-          {syntheticPeriods.map((p) => (
-            <div 
-              key={p.id}
-              className="flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-950/85 p-3 transition hover:border-slate-600 hover:bg-slate-900 shadow-md space-y-2.5"
-            >
-              {/* Period Header & Tier Badge */}
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg">{p.icon}</span>
-                  <div>
-                    <span className="text-xs font-black text-white block leading-tight">
-                      {p.label}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 w-full">
+          {syntheticPeriods.map((p) => {
+            // Theme accents tailored to each time of day
+            const periodTheme = 
+              p.id === 'night' ? {
+                cardBg: 'bg-gradient-to-b from-indigo-950/50 via-slate-950/90 to-slate-950',
+                border: 'border-indigo-800/40 hover:border-indigo-600/70',
+                iconBox: 'bg-indigo-950/80 text-indigo-300 border-indigo-700/50 shadow-indigo-950/40',
+                headerText: 'text-indigo-200',
+                timeText: 'text-indigo-400/80'
+              } : p.id === 'morning' ? {
+                cardBg: 'bg-gradient-to-b from-amber-950/40 via-slate-950/90 to-slate-950',
+                border: 'border-amber-800/40 hover:border-amber-600/70',
+                iconBox: 'bg-amber-950/80 text-amber-300 border-amber-700/50 shadow-amber-950/40',
+                headerText: 'text-amber-200',
+                timeText: 'text-amber-400/80'
+              } : p.id === 'afternoon' ? {
+                cardBg: 'bg-gradient-to-b from-sky-950/40 via-slate-950/90 to-slate-950',
+                border: 'border-sky-800/40 hover:border-sky-600/70',
+                iconBox: 'bg-sky-950/80 text-sky-300 border-sky-700/50 shadow-sky-950/40',
+                headerText: 'text-sky-200',
+                timeText: 'text-sky-400/80'
+              } : {
+                cardBg: 'bg-gradient-to-b from-purple-950/40 via-slate-950/90 to-slate-950',
+                border: 'border-purple-800/40 hover:border-purple-600/70',
+                iconBox: 'bg-purple-950/80 text-purple-300 border-purple-700/50 shadow-purple-950/40',
+                headerText: 'text-purple-200',
+                timeText: 'text-purple-400/80'
+              };
+
+            return (
+              <div 
+                key={p.id}
+                className={`flex flex-col justify-between rounded-2xl border ${periodTheme.border} ${periodTheme.cardBg} p-3.5 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 shadow-lg space-y-3 relative overflow-hidden backdrop-blur-md`}
+              >
+                {/* Period Header & Tier Badge */}
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xl shadow-md ${periodTheme.iconBox}`}>
+                      {p.icon}
+                    </div>
+                    <div>
+                      <span className={`text-xs font-black block leading-tight ${periodTheme.headerText}`}>
+                        {p.label}
+                      </span>
+                      <span className={`text-[10px] block font-semibold ${periodTheme.timeText}`}>
+                        {p.hoursLabel}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border shadow-sm ${p.tierMax.tailwindBg} ${p.tierMax.tailwindBorder} ${p.tierMax.tailwindText}`}>
+                    {p.tierMax.name.split('/')[0]}
+                  </span>
+                </div>
+
+                {/* Temperature Min -> Max & Feels-like with Visual Gauge */}
+                <div className="rounded-xl bg-slate-900/90 border border-slate-800/80 p-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                      Thermique
                     </span>
-                    <span className="text-[10px] text-slate-400 block font-medium">
-                      {p.hoursLabel}
+                    <div className="text-base font-black text-white tabular-nums flex items-center gap-1.5">
+                      <span className="text-blue-300 bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-900/50">
+                        {formatTemp(p.tMin)}
+                      </span>
+                      <span className="text-slate-500 font-normal">→</span>
+                      <span className="text-amber-300 bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-900/50">
+                        {formatTemp(p.tMax)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5 border-t border-slate-800/60">
+                    <span className="font-medium">Ressenti :</span>
+                    <span className="font-bold text-slate-200">
+                      {formatTemp(p.feelsMin)} à {formatTemp(p.feelsMax)}
                     </span>
                   </div>
                 </div>
-                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.tierMax.tailwindBg} ${p.tierMax.tailwindBorder} ${p.tierMax.tailwindText}`}>
-                  {p.tierMax.name.split('/')[0]}
-                </span>
-              </div>
 
-              {/* Temperature Min -> Max & Feels-like */}
-              <div className="space-y-0.5">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[10px] text-slate-400 font-medium">Min → Max :</span>
-                  <div className="text-sm font-black text-white tabular-nums">
-                    <span className="text-blue-300">{formatTemp(p.tMin)}</span>
-                    <span className="text-slate-500 mx-1">→</span>
-                    <span className="text-amber-300">{formatTemp(p.tMax)}</span>
+                {/* Rain & Wind indicators */}
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition ${
+                    p.rainSum > 0 || p.maxProb >= 40
+                      ? 'bg-sky-950/70 border-sky-600/50 text-sky-200 shadow-sm shadow-sky-950/40'
+                      : 'bg-slate-900/90 border-slate-800/80 text-slate-300'
+                  }`}>
+                    <Droplets className={`h-3.5 w-3.5 shrink-0 ${p.maxProb >= 40 ? 'text-sky-400 animate-pulse' : 'text-sky-400/80'}`} />
+                    <div className="min-w-0 flex-1 truncate">
+                      <div className="text-[9px] uppercase font-bold text-slate-400 leading-none mb-0.5">Précip.</div>
+                      <span className="font-black tabular-nums text-xs">
+                        {p.rainSum > 0 ? `${p.rainSum} mm` : `${p.maxProb}%`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-xl border border-slate-800/80 text-slate-300">
+                    <Wind className="h-3.5 w-3.5 text-teal-400 shrink-0" />
+                    <div className="min-w-0 flex-1 truncate">
+                      <div className="text-[9px] uppercase font-bold text-slate-400 leading-none mb-0.5">Vent</div>
+                      <span className="font-black text-slate-200 tabular-nums text-xs">
+                        {p.meanWind} <span className="text-[9px] font-bold text-slate-400">({p.maxGust})</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Ressenti :</span>
-                  <span className="font-semibold text-slate-300">
-                    {formatTemp(p.feelsMin)} à {formatTemp(p.feelsMax)}
-                  </span>
-                </div>
-              </div>
 
-              {/* Rain & Wind indicators */}
-              <div className="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-slate-800/60 text-[11px]">
-                <div className="flex items-center gap-1 bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-800/80">
-                  <Droplets className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                  <span className={`font-bold tabular-nums truncate ${p.maxProb > 30 ? 'text-sky-300' : 'text-slate-300'}`}>
-                    {p.rainSum > 0 ? `${p.rainSum} mm (${p.maxProb}%)` : `${p.maxProb}%`}
+                {/* Sky condition & Octas Indicator */}
+                <div className="flex items-center justify-between text-[11px] bg-slate-900/90 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
+                  <span className="text-slate-200 flex items-center gap-1.5 truncate">
+                    <span className="text-sm">{p.cloudDetail.emoji}</span>
+                    <span className="font-bold text-xs truncate">{p.cloudDetail.shortLabel}</span>
                   </span>
+                  <div className="flex items-center gap-1 shrink-0 ml-1.5">
+                    <span className="font-mono font-black text-cyan-300 text-xs">
+                      {p.octas}/8
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-semibold">oct.</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-800/80">
-                  <Wind className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span className="font-bold text-slate-300 tabular-nums truncate">
-                    {p.meanWind} <span className="text-[9px] text-slate-400 font-normal">({p.maxGust})</span>
-                  </span>
+                {/* Dynamic synopsis text */}
+                <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800/60 text-[10px] text-slate-300 line-clamp-2 leading-relaxed italic">
+                  "{p.desc}"
                 </div>
               </div>
-
-              {/* Sky condition & Octas */}
-              <div className="flex items-center justify-between text-[10px] bg-slate-900/90 px-2 py-1 rounded-lg border border-slate-800/80">
-                <span className="text-slate-300 flex items-center gap-1 truncate">
-                  <span>{p.cloudDetail.emoji}</span>
-                  <span className="font-medium text-slate-200 truncate">{p.cloudDetail.shortLabel}</span>
-                </span>
-                <span className="font-bold text-cyan-300 shrink-0 ml-1">
-                  {p.octas}/8 oct.
-                </span>
-              </div>
-
-              {/* Dynamic synopsis text */}
-              <p className="text-[10px] text-slate-400 line-clamp-2 leading-tight italic pt-0.5">
-                {p.desc}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

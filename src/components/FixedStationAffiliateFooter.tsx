@@ -1,6 +1,7 @@
 import React from 'react';
-import { Gauge, ExternalLink, Sparkles } from 'lucide-react';
+import { Gauge, ExternalLink, Sparkles, Trophy } from 'lucide-react';
 import { AMAZON_AFFILIATE_LINKS } from '../config/affiliateLinks';
+import { loadPlayerProfile, claimAmazonBonus } from '../services/competitiveGameService';
 
 interface FixedStationAffiliateFooterProps {
   affiliateUrl?: string;
@@ -11,6 +12,13 @@ export const FixedStationAffiliateFooter: React.FC<FixedStationAffiliateFooterPr
   affiliateUrl = AMAZON_AFFILIATE_LINKS.QXMCOV_WEATHER_STATION,
   seniorMode = false
 }) => {
+  const handleClickAmazon = () => {
+    const profile = loadPlayerProfile();
+    if (profile) {
+      claimAmazonBonus(profile);
+    }
+  };
+
   return (
     <div id="amazon-affiliate-footer-section" className="w-full space-y-4 pt-4 pb-2">
       {/* Visual affiliate card */}
@@ -19,8 +27,9 @@ export const FixedStationAffiliateFooter: React.FC<FixedStationAffiliateFooterPr
           href={affiliateUrl}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={handleClickAmazon}
           className="group block relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-r from-slate-900/90 via-blue-950/70 to-slate-900/90 p-4 sm:p-5 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-blue-400/60 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-0.5"
-          title="Découvrir la Station Météo Sans Fil sur Amazon"
+          title="Découvrir la Station Météo Sans Fil sur Amazon (+50 pts Chasse Météo)"
         >
           <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-blue-500/10 blur-2xl group-hover:bg-blue-500/20 transition-all pointer-events-none" />
 
@@ -34,6 +43,9 @@ export const FixedStationAffiliateFooter: React.FC<FixedStationAffiliateFooterPr
                 <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-blue-400">
                   <Sparkles className="h-3 w-3" />
                   <span>Recommandation Équipement Météo</span>
+                  <span className="ml-1 px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] border border-amber-500/30 flex items-center gap-0.5">
+                    <Trophy className="h-2.5 w-2.5" /> +50 pts
+                  </span>
                 </div>
                 <p className={`mt-0.5 font-bold text-slate-100 group-hover:text-white leading-relaxed ${seniorMode ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'}`}>
                   📊 Suivez le temps directement chez vous avec cette Station Météo Intérieur/Extérieur Sans Fil à écran couleur sur Amazon.

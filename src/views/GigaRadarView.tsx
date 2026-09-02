@@ -29,8 +29,12 @@ import {
   Wind,
   Maximize2,
   Flame,
-  CheckCircle2
+  CheckCircle2,
+  Thermometer,
+  Users
 } from 'lucide-react';
+import { WorldAverageTemperatureMap } from '../components/WorldAverageTemperatureMap';
+import { CommunityWeatherMap } from '../components/CommunityWeatherMap';
 
 interface GigaRadarViewProps {
   currentStation: LocationPoint;
@@ -41,6 +45,8 @@ interface GigaRadarViewProps {
   seniorMode: boolean;
   simplifiedMode?: boolean;
   onOpenSearchModal: () => void;
+  onNavigateTab?: (tabId: string) => void;
+  initialMapMode?: 'radar' | 'worldTemperature' | 'communityReports';
 }
 
 export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
@@ -51,78 +57,13 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   daily = [],
   seniorMode,
   simplifiedMode = false,
-  onOpenSearchModal
+  onOpenSearchModal,
+  onNavigateTab,
+  initialMapMode = 'radar'
 }) => {
-  const [selectedPresetMode, setSelectedPresetMode] = useState<string>('france-national');
+  const [activeMapMode, setActiveMapMode] = useState<'radar' | 'worldTemperature' | 'communityReports'>(initialMapMode);
   const [activeSubBlock, setActiveSubBlock] = useState<'storm' | 'fire' | null>(null);
-
-  const radarTerritoryPresets = [
-    { id: 'france-national', label: '🇫🇷 France Entière', lat: 46.6033, lon: 1.8883, zoom: 6, stationId: 'paris-montsouris' },
-    { id: 'world-global', label: '🌍 Monde Entier (Global)', lat: 25.0, lon: 10.0, zoom: 3, stationId: 'paris-montsouris' },
-    { id: 'europe-cont', label: '🇪🇺 Europe Continentale', lat: 48.5, lon: 10.0, zoom: 5, stationId: 'paris-montsouris' },
-    { id: 'spain-pt', label: '🇪🇸 Espagne & Portugal', lat: 40.4168, lon: -3.7038, zoom: 6, stationId: 'madrid-spain' },
-    { id: 'italy-med', label: '🇮🇹 Italie & Méditerranée', lat: 41.8719, lon: 12.5674, zoom: 6, stationId: 'rome-italy' },
-    { id: 'germany-cent', label: '🇩🇪 Allemagne & Europe Centrale', lat: 51.1657, lon: 10.4515, zoom: 6, stationId: 'berlin-germany' },
-    { id: 'uk-irl', label: '🇬🇧 Royaume-Uni & Irlande', lat: 54.5, lon: -2.5, zoom: 6, stationId: 'london-uk' },
-    { id: 'swiss-alps', label: '🇨🇭 Suisse & Alpes', lat: 46.8182, lon: 8.2275, zoom: 8, stationId: 'geneva-switzerland' },
-    { id: 'benelux', label: '🇧🇪 Belgique & Pays-Bas', lat: 50.8503, lon: 4.3517, zoom: 8, stationId: 'brussels-belgium' },
-    { id: 'usa-north', label: '🇺🇸 États-Unis', lat: 39.8283, lon: -98.5795, zoom: 4, stationId: 'new-york-usa' },
-    { id: 'canada-zone', label: '🇨🇦 Canada', lat: 56.1304, lon: -106.3468, zoom: 4, stationId: 'montreal-canada' },
-    { id: 'japan-asia', label: '🇯🇵 Japon & Asie', lat: 36.2048, lon: 138.2529, zoom: 5, stationId: 'tokyo-japan' },
-    { id: 'morocco-mag', label: '🇲🇦 Maroc & Maghreb', lat: 31.7917, lon: -7.0926, zoom: 6, stationId: 'casablanca-morocco' },
-    { id: 'brazil-sa', label: '🇧🇷 Brésil & Am. Sud', lat: -14.235, lon: -51.9253, zoom: 4, stationId: 'rio-de-janeiro' },
-    { id: 'australia-oc', label: '🇦🇺 Australie', lat: -25.2744, lon: 133.7751, zoom: 4, stationId: 'sydney-australia' },
-    { id: 'nord-idf', label: '🗼 Bassin Parisien', lat: 49.2, lon: 2.5, zoom: 8, stationId: 'paris-montsouris' },
-    { id: 'ouest-atlantique', label: '🌊 Façade Atlantique', lat: 47.8, lon: -2.5, zoom: 8, stationId: 'brest-guipavas' },
-    { id: 'sud-est-med', label: '☀️ Arc Méditerranéen & PACA', lat: 43.5, lon: 5.5, zoom: 8, stationId: 'marseille-marignane' },
-    { id: 'sud-ouest', label: '🍷 Sud-Ouest & Aquitaine', lat: 44.5, lon: 0.2, zoom: 8, stationId: 'bordeaux-merignac' },
-    { id: 'rhone-alpes', label: '🏔️ Rhône-Alpes & Alpes', lat: 45.5, lon: 5.8, zoom: 8, stationId: 'lyon-bron' },
-    { id: 'grand-est', label: '🏰 Grand Est & Vosges', lat: 48.6, lon: 6.8, zoom: 8, stationId: 'strasbourg-entzheim' },
-    { id: 'outre-mer', label: '🌴 Outre-Mer (La Réunion / Antilles)', lat: -21.1, lon: 55.5, zoom: 9, stationId: 'reunion-saint-denis' }
-  ];
-
-  const quickStations = [
-    FRENCH_STATIONS[0], // Paris
-    FRENCH_STATIONS[1], // Marseille
-    FRENCH_STATIONS[2], // Lyon
-    FRENCH_STATIONS[3], // Nice
-    FRENCH_STATIONS[4], // Chamonix Aiguille du Midi (3842m)
-    FRENCH_STATIONS[9], // Brest
-    FRENCH_STATIONS[12], // Strasbourg
-    FRENCH_STATIONS[14], // Biarritz
-    ...WORLD_STATIONS.slice(0, 14)
-  ];
-
-  const handleSelectPreset = (presetId: string) => {
-    setSelectedPresetMode(presetId);
-    const preset = radarTerritoryPresets.find(p => p.id === presetId);
-    if (preset) {
-      const matchSt = [...FRENCH_STATIONS, ...WORLD_STATIONS].find(s => s.id === preset.stationId);
-      if (matchSt) {
-        onSelectStation({
-          ...matchSt,
-          isRegion: presetId !== 'france-national' && presetId !== 'world-global',
-          region: preset.label
-        });
-      } else {
-        onSelectStation({
-          id: `preset-${preset.id}`,
-          name: preset.label,
-          department: preset.label,
-          region: preset.label,
-          latitude: preset.lat,
-          longitude: preset.lon,
-          altitude: 100,
-          climateZone: 'Climat Tempéré / Océanique / Continental',
-          allTimeRecordMax: 42.0,
-          allTimeRecordMin: -20.0,
-          allTimeRecordRain24h: 150.0,
-          isRegion: true,
-          isWorldLocation: true
-        });
-      }
-    }
-  };
+  const [showOtherMapsModal, setShowOtherMapsModal] = useState<boolean>(false);
 
   const thunderstormAnalysis = React.useMemo(() => {
     return calculateThunderstormAnalysis(currentStation, weather, hourly);
@@ -130,6 +71,59 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
   return (
     <div id="giga-radar-view" className="space-y-6">
+      {/* Top Map Mode Switcher */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-x-auto">
+        <button
+          onClick={() => setActiveMapMode('radar')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+            activeMapMode === 'radar'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <CloudRain className="h-4 w-4" />
+          <span>🌧️ Radar Précipitations &amp; Vents HD</span>
+        </button>
+
+        <button
+          id="radar-tab-world-temperatures"
+          onClick={() => setActiveMapMode('worldTemperature')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+            activeMapMode === 'worldTemperature'
+              ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Thermometer className="h-4 w-4 text-amber-300" />
+          <span>🌡️ Températures Moyennes Mondiales (OSM)</span>
+        </button>
+
+        <button
+          id="radar-tab-community-reports"
+          onClick={() => setActiveMapMode('communityReports')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+            activeMapMode === 'communityReports'
+              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Users className="h-4 w-4 text-emerald-300" />
+          <span>👥 Carte Collaborative Utilisateurs</span>
+        </button>
+      </div>
+
+      {activeMapMode === 'worldTemperature' ? (
+        <WorldAverageTemperatureMap
+          onBackToRadar={() => setActiveMapMode('radar')}
+          seniorMode={seniorMode}
+        />
+      ) : activeMapMode === 'communityReports' ? (
+        <CommunityWeatherMap
+          currentStation={currentStation}
+          seniorMode={seniorMode}
+        />
+      ) : (
+        <>
       {/* Top Banner - In Simplified Mode: ONLY the search button. In Normal Mode: full banner (without mobile logos next to search) */}
       {simplifiedMode ? (
         <div className="flex items-center justify-between gap-3 p-1">
@@ -182,51 +176,6 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                 </button>
               </div>
             </div>
-
-            {/* Territory & Country Quick Presets (Desktop) */}
-            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-1">
-              <span className="text-xs font-bold text-slate-400 shrink-0">Pays &amp; Territoires :</span>
-              {radarTerritoryPresets.map((preset) => {
-                const isSelected = selectedPresetMode === preset.id;
-                return (
-                  <button
-                    key={preset.id}
-                    onClick={() => handleSelectPreset(preset.id)}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
-                      isSelected
-                        ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/30 ring-2 ring-white/60'
-                        : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
-                    }`}
-                  >
-                    <span>{preset.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Quick Stations Bar (Desktop) */}
-            <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-              <span className="text-[11px] font-bold text-slate-400 shrink-0">Villes &amp; Capitales :</span>
-              {quickStations.map((st) => {
-                const isSelected = st.id === currentStation.id;
-                const isMtn = (st.altitude ?? 0) >= 800;
-                return (
-                  <button
-                    key={st.id}
-                    onClick={() => onSelectStation(st)}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-white/50'
-                        : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {isMtn && <Mountain className="h-3 w-3 text-amber-400" />}
-                    <span>{st.name.split(' ')[0]}</span>
-                    <span className="text-[10px] opacity-70">({st.altitude}m)</span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
         </div>
       )}
@@ -237,6 +186,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         weather={weather}
         onSelectStation={onSelectStation}
         seniorMode={seniorMode}
+        simplifiedMode={simplifiedMode}
         onOpenSearchModal={onOpenSearchModal}
       />
 
@@ -371,6 +321,135 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
           </div>
         </div>
       )}
+      </>
+      )}
+
+      {/* 4. Bottom Section: See other map button */}
+      <div className="rounded-3xl border border-slate-800/90 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/30">
+              <Globe2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-black text-white">Cartes Thématiques Complémentaires</h4>
+              <p className="text-xs text-slate-400">
+                Explorez les cartes synoptiques mondiales, régionales, d'altitude ou les vigilances routières.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <button
+              id="radar-bottom-see-other-map-btn"
+              onClick={() => setShowOtherMapsModal(!showOtherMapsModal)}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-slate-950 font-black px-6 py-3.5 text-sm shadow-xl shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+            >
+              <Layers className="h-4 w-4" />
+              <span>{showOtherMapsModal ? 'Masquer les cartes' : '🗺️ Voir autre carte'}</span>
+            </button>
+
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center justify-center gap-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white px-4 py-3.5 text-xs font-bold transition active:scale-95 cursor-pointer"
+              title="Remonter en haut de la page radar"
+            >
+              <span>🔝 Haut de page</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible / Expandable Grid of Available Other Maps */}
+        {showOtherMapsModal && (
+          <div className="mt-6 pt-5 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in duration-200">
+            <button
+              id="btn-show-world-temp-map"
+              onClick={() => {
+                setActiveMapMode('worldTemperature');
+                setShowOtherMapsModal(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">🌡️</span>
+                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60">
+                  OpenStreetMap
+                </span>
+              </div>
+              <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
+                Températures Moyennes Mondiales
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                Normales climatiques annuelles par pays &amp; records absolus.
+              </div>
+            </button>
+
+            <button
+              id="btn-show-community-map"
+              onClick={() => {
+                setActiveMapMode('communityReports');
+                setShowOtherMapsModal(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">👥</span>
+                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60">
+                  Direct Citoyen
+                </span>
+              </div>
+              <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
+                Carte Collaborative Utilisateurs
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                Observations constatées par les utilisateurs (+150 pts par signalement).
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveMapMode('radar');
+                setShowOtherMapsModal(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-blue-500/50 transition group cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">🌧️</span>
+                <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-800/60">
+                  Radar HD
+                </span>
+              </div>
+              <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
+                Radar Précipitations ARAMIS
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                Pluie, neige, grêle et suivi des foyers orageux en temps réel.
+              </div>
+            </button>
+
+            <button
+              onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition group cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">🚗</span>
+                <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/60">
+                  Itinéraire
+                </span>
+              </div>
+              <div className="font-black text-sm text-white group-hover:text-indigo-300 transition">
+                Carte Routes &amp; Déplacements
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                Calculateur météo routier d'autoroutes, vent traversier et intempéries.
+              </div>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

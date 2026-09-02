@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LocationPoint, CurrentWeather, HourlyForecast } from '../types/weather';
 import { 
   generate48hCloudNephologySounding, 
@@ -60,6 +60,7 @@ interface CloudNephologyObservatoryCardProps {
   hourlyForecasts?: HourlyForecast[];
   seniorMode: boolean;
   tempUnit?: 'C' | 'F';
+  simplifiedMode?: boolean;
 }
 
 export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCardProps> = ({
@@ -67,10 +68,17 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
   weather,
   hourlyForecasts = [],
   seniorMode,
-  tempUnit = 'C'
+  tempUnit = 'C',
+  simplifiedMode = false
 }) => {
   // Navigation & Filter states
   const [activeTab, setActiveTab] = useState<'SOUNDING_48H' | 'VERTICAL_CROSS_SECTION' | 'TABLE_METAR' | 'ATLAS_GENERA' | 'OPTICAL_LUMINANCE'>('SOUNDING_48H');
+
+  useEffect(() => {
+    if (simplifiedMode && activeTab !== 'SOUNDING_48H') {
+      setActiveTab('SOUNDING_48H');
+    }
+  }, [simplifiedMode, activeTab]);
   const [timeFilter, setTimeFilter] = useState<'48H' | 'DAY_1' | 'DAY_2'>('48H');
   const [selectedHourIndex, setSelectedHourIndex] = useState<number>(0);
   const [selectedGenus, setSelectedGenus] = useState<CloudGenusAtlasItem>(CLOUD_GENERA_ATLAS[0]);
@@ -218,70 +226,72 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
         </div>
       )}
 
-      {/* Main Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900/90 rounded-2xl border border-slate-800">
-          <button
-            onClick={() => setActiveTab('SOUNDING_48H')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-              activeTab === 'SOUNDING_48H'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Timeline 48h Heure par Heure</span>
-          </button>
+      {/* Main Navigation Tabs - Hidden in Simplified Mode */}
+      {!simplifiedMode && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <button
+              onClick={() => setActiveTab('SOUNDING_48H')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'SOUNDING_48H'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              <span>Timeline 48h Heure par Heure</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('VERTICAL_CROSS_SECTION')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-              activeTab === 'VERTICAL_CROSS_SECTION'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span>Coupe Verticale 0-12 000m</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('VERTICAL_CROSS_SECTION')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'VERTICAL_CROSS_SECTION'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              <span>Coupe Verticale 0-12 000m</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('TABLE_METAR')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-              activeTab === 'TABLE_METAR'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Plane className="h-3.5 w-3.5" />
-            <span>Tableau METAR &amp; Aérologie</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('TABLE_METAR')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'TABLE_METAR'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Plane className="h-3.5 w-3.5" />
+              <span>Tableau METAR &amp; Aérologie</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('ATLAS_GENERA')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-              activeTab === 'ATLAS_GENERA'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span>Atlas des 10 Genres OMM</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('ATLAS_GENERA')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'ATLAS_GENERA'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>Atlas des 10 Genres OMM</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('OPTICAL_LUMINANCE')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-              activeTab === 'OPTICAL_LUMINANCE'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Optique, Halo &amp; Luminance</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('OPTICAL_LUMINANCE')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                activeTab === 'OPTICAL_LUMINANCE'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Optique, Halo &amp; Luminance</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: 48H HOURLY TIMELINE SOUNDING CARDS & DRILL-DOWN                    */}

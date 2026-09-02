@@ -47,13 +47,14 @@ import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration } 
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio } from 'lucide-react';
+import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio, Trophy } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
 import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
 import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
+import { CompetitiveGamingView } from './views/CompetitiveGamingView';
 import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
@@ -373,6 +374,7 @@ function WeatherApp() {
     { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
     { id: 'weatherArchive', category: 'LONG', label: '11. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
     { id: 'bulletin', category: 'MEDIUM', label: '12. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
+    { id: 'competitive', category: 'DIRECT', label: '13. 🏆 Défis Compétitifs & Classement', icon: Trophy, highlight: true },
   ];
 
   const genericPageSection = (label: string, icon: any): SidebarSectionItem[] => [
@@ -416,7 +418,9 @@ function WeatherApp() {
                       ? genericPageSection('Monde & Catastrophes 24h', Radio)
                       : activeTab === 'weatherArchive'
                         ? genericPageSection('Archives Journalières Météo', Calendar)
-                        : genericPageSection('Stations & Sommets de France', Map);
+                        : activeTab === 'competitive'
+                          ? genericPageSection('Mode Compétitif & Classement', Trophy)
+                          : genericPageSection('Stations & Sommets de France', Map);
 
   // Quick navigation helper
   const currentNavIndex = navItems.findIndex(item => item.id === activeTab);
@@ -678,6 +682,7 @@ function WeatherApp() {
                   hourlyForecasts={hourly}
                   seniorMode={seniorMode}
                   tempUnit={tempUnit}
+                  simplifiedMode={simplifiedMode}
                 />
               </div>
             )}
@@ -704,6 +709,7 @@ function WeatherApp() {
                 currentWeather={weather}
                 seniorMode={seniorMode}
                 tempUnit={tempUnit}
+                simplifiedMode={simplifiedMode}
               />
             )}
 
@@ -736,6 +742,7 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 simplifiedMode={simplifiedMode}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                onNavigateTab={(tab) => setActiveTab(tab as any)}
               />
             )}
 
@@ -775,6 +782,16 @@ function WeatherApp() {
                 tempUnit={tempUnit}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onBackToMain={() => setActiveTab('realtime')}
+              />
+            )}
+
+            {activeTab === 'competitive' && (
+              <CompetitiveGamingView
+                currentStation={currentStation}
+                weather={weather}
+                seniorMode={seniorMode}
+                onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                onNavigateToTab={(tab) => setActiveTab(tab as any)}
               />
             )}
           </div>

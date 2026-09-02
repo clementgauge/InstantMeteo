@@ -26,7 +26,9 @@ import {
   X,
   Radio,
   BellRing,
-  Cloud
+  Cloud,
+  Trophy,
+  Users
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 
@@ -41,7 +43,8 @@ export type NavTabId =
   | 'sportsActivities'
   | 'worldDisasters'
   | 'weatherArchive'
-  | 'bulletin';
+  | 'bulletin'
+  | 'competitive';
 
 interface BottomNavigationDockProps {
   activeTab: NavTabId;
@@ -128,6 +131,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'worldDisasters', label: 'Monde & Catastrophes', shortLabel: 'Monde', icon: Radio },
     { id: 'weatherArchive', label: 'Archives Journalières', shortLabel: 'Archives', icon: Calendar, badge: 'Nouveau' },
     { id: 'bulletin', label: 'Bulletins', shortLabel: 'Bulletins', icon: FileText },
+    { id: 'competitive', label: 'Compétitif & Classement', shortLabel: 'Défis 🏆', icon: Trophy, badge: '🔥 +Pts' },
   ];
 
   // Thematic Groups for Full Drawer Hub
@@ -156,6 +160,12 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
         { id: 'worldDisasters', label: '9. Météo Monde, Tornades & Tsunamis (24h)', icon: Radio, desc: 'Suivi mondial vérifié (Franceinfo, Le Monde, TF1, France 2, BFMTV, Le Figaro)' },
         { id: 'weatherArchive', label: '10. Archives Journalières & Historique Météo', icon: Calendar, desc: 'Recherche de date passée, météo quotidienne (pluie, soleil, vent, T°C) et journal local' },
         { id: 'bulletin', label: '11. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
+      ]
+    },
+    {
+      categoryName: '🏆 Communauté & Mode Compétitif',
+      items: [
+        { id: 'competitive', label: '12. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
       ]
     }
   ];

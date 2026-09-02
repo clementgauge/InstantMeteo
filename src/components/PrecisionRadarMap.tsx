@@ -53,6 +53,7 @@ export interface PrecisionRadarMapProps {
   weather?: CurrentWeather | null;
   onSelectStation?: (station: LocationPoint) => void;
   seniorMode?: boolean;
+  simplifiedMode?: boolean;
   onOpenSearchModal?: () => void;
 }
 
@@ -153,6 +154,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   weather,
   onSelectStation,
   seniorMode = false,
+  simplifiedMode = false,
   onOpenSearchModal
 }) => {
   const radarContainerRef = useRef<HTMLDivElement>(null);
@@ -194,7 +196,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   const [radarColorScheme, setRadarColorScheme] = useState<number>(2); // 2: Universal WMO, 4: NOAA NEXRAD, 1: TITAN, 6: SELEX/ARAMIS
   const [radarSmooth, setRadarSmooth] = useState<boolean>(true);
   const [radarSnow, setRadarSnow] = useState<boolean>(true);
-  const [showIntensityControls, setShowIntensityControls] = useState<boolean>(true);
+  const [showIntensityControls, setShowIntensityControls] = useState<boolean>(false);
 
   // Live Open-Meteo Wind Data Cache for visible region
   const [openMeteoWindSpeed, setOpenMeteoWindSpeed] = useState<number>(weather?.windSpeed ?? 18);
@@ -1937,16 +1939,16 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         </div>
       )}
 
-      {/* Convective & Lightning Impact Zone Sounding HUD (Compact on Mobile phones, Full on Desktop) */}
-      {(activeLayer === 'keraunos_storms' || activeLayer === 'radar') && (
-        <div className="absolute bottom-14 sm:bottom-4 left-2 sm:left-3 z-[1000] pointer-events-auto max-w-[215px] sm:max-w-xs p-1.5 sm:p-3 rounded-xl sm:rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-1 sm:space-y-2">
+      {/* Convective & Lightning Impact Zone Sounding HUD (Compact on Mobile phones, Full on Desktop, Hidden in Simplified Mode) */}
+      {!simplifiedMode && (activeLayer === 'keraunos_storms' || activeLayer === 'radar') && (
+        <div className="absolute bottom-14 sm:bottom-4 left-2 sm:left-3 z-[1000] pointer-events-auto max-w-[125px] sm:max-w-xs p-1 sm:p-3 rounded-lg sm:rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-0.5 sm:space-y-2">
           {/* Header */}
-          <div className="flex items-center justify-between gap-1.5 pb-1 sm:pb-1.5 border-b border-slate-800/80">
-            <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] font-black text-amber-400">
-              <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 animate-pulse" />
-              <span className="truncate">Zone d'Impacts &amp; Orages</span>
+          <div className="flex items-center justify-between gap-1 pb-0.5 sm:pb-1.5 border-b border-slate-800/80">
+            <div className="flex items-center gap-1 text-[8px] sm:text-[11px] font-black text-amber-400">
+              <Zap className="h-2 w-2 sm:h-3.5 sm:w-3.5 text-amber-400 animate-pulse" />
+              <span className="truncate">Impacts &amp; Orages</span>
             </div>
-            <span className={`text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap ${
+            <span className={`text-[6.5px] sm:text-[9px] font-black px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full whitespace-nowrap ${
               nearestStrike && nearestStrike.distanceKm < 5 ? 'bg-rose-500/30 text-rose-300 border border-rose-500/60 animate-pulse' :
               nearestStrike && nearestStrike.distanceKm < 15 ? 'bg-orange-500/30 text-orange-300 border border-orange-500/60' :
               localStrikesIn50Km.length > 0 ? 'bg-amber-500/30 text-amber-300 border border-amber-500/50' :
@@ -1960,7 +1962,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           </div>
 
           {/* Local 50 km impact metrics */}
-          <div className="p-1 sm:p-2 rounded-lg sm:rounded-xl bg-slate-900/90 border border-slate-800 space-y-0.5 sm:space-y-1 text-[9px] sm:text-[11px]">
+          <div className="p-0.5 sm:p-2 rounded sm:rounded-xl bg-slate-900/90 border border-slate-800 space-y-0.5 sm:space-y-1 text-[7.5px] sm:text-[11px]">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Impacts (50 km) :</span>
               <span className="font-black text-amber-300">
@@ -1984,7 +1986,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
                 </div>
               </>
             ) : (
-              <div className="text-[8.5px] sm:text-[10px] text-emerald-400 font-semibold pt-0.5">
+              <div className="text-[7.5px] sm:text-[10px] text-emerald-400 font-semibold pt-0.5">
                 Aucun éclair local
               </div>
             )}
