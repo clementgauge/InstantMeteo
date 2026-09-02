@@ -656,6 +656,9 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-base text-white">Classement National des Chasseurs Météo</h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] font-black">
+                  100% Joueurs Réels (Sans Bots)
+                </span>
                 {isD1Active ? (
                   <span className="px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
@@ -669,8 +672,8 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               </div>
               <p className="text-xs text-slate-400">
                 {isD1Active 
-                  ? 'Synchronisé en continu sur la base SQL Cloudflare D1 mondiale.' 
-                  : 'Scores sauvegardés localement. Connectez Cloudflare D1 pour affronter les joueurs en ligne.'}
+                  ? 'Synchronisé en continu sur la base SQL Cloudflare D1 mondiale. Seuls les vrais joueurs inscrits apparaissent.' 
+                  : 'Scores des utilisateurs réels sauvegardés. Connectez Cloudflare D1 pour affronter les joueurs en ligne.'}
               </p>
             </div>
           </div>
@@ -707,48 +710,57 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {leaderboard.map(entry => (
-                <tr
-                  key={entry.pseudo}
-                  className={`transition ${
-                    entry.isCurrentUser
-                      ? 'bg-blue-600/20 border-l-4 border-l-blue-500 font-bold'
-                      : 'hover:bg-slate-850'
-                  }`}
-                >
-                  <td className="py-3 px-3">
-                    <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full font-black text-xs ${
-                      entry.rank === 1 ? 'bg-amber-500 text-slate-950 shadow-md' :
-                      entry.rank === 2 ? 'bg-slate-300 text-slate-950' :
-                      entry.rank === 3 ? 'bg-amber-700 text-white' : 'text-slate-400'
-                    }`}>
-                      {entry.rank}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white">
-                        {entry.pseudo} {entry.isCurrentUser && '⭐ (Vous)'}
-                      </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-slate-400 hidden sm:inline">
-                        {entry.badgeTitle}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-3 font-bold text-amber-400">
-                    🔥 {entry.streakDays} j
-                  </td>
-                  <td className="py-3 px-3 text-slate-300">
-                    📍 {entry.locationsCount}
-                  </td>
-                  <td className="py-3 px-3 text-slate-300">
-                    🎖️ {entry.badgesCount}
-                  </td>
-                  <td className="py-3 px-3 text-right font-black text-amber-300 text-sm tabular-nums">
-                    {entry.points.toLocaleString()} pts
+              {leaderboard.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400">
+                    <p className="text-sm font-bold text-slate-300">Aucun joueur enregistré pour le moment.</p>
+                    <p className="text-xs text-slate-500 mt-1">Créez votre pseudo ci-dessus pour figurer en 1ère place du classement 100% réel !</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                leaderboard.map(entry => (
+                  <tr
+                    key={entry.pseudo}
+                    className={`transition ${
+                      entry.isCurrentUser
+                        ? 'bg-blue-600/20 border-l-4 border-l-blue-500 font-bold'
+                        : 'hover:bg-slate-850'
+                    }`}
+                  >
+                    <td className="py-3 px-3">
+                      <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full font-black text-xs ${
+                        entry.rank === 1 ? 'bg-amber-500 text-slate-950 shadow-md' :
+                        entry.rank === 2 ? 'bg-slate-300 text-slate-950' :
+                        entry.rank === 3 ? 'bg-amber-700 text-white' : 'text-slate-400'
+                      }`}>
+                        {entry.rank}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white">
+                          {entry.pseudo} {entry.isCurrentUser && '⭐ (Vous)'}
+                        </span>
+                        <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-slate-400 hidden sm:inline">
+                          {entry.badgeTitle}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 font-bold text-amber-400">
+                      🔥 {entry.streakDays} j
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">
+                      📍 {entry.locationsCount}
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">
+                      🎖️ {entry.badgesCount}
+                    </td>
+                    <td className="py-3 px-3 text-right font-black text-amber-300 text-sm tabular-nums">
+                      {entry.points.toLocaleString()} pts
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

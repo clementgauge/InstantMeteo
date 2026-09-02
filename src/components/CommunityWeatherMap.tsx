@@ -69,7 +69,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
   useEffect(() => {
     if (isD1Configured()) {
       fetchCommunityReportsFromD1().then(remoteReports => {
-        if (remoteReports && remoteReports.length > 0) {
+        if (remoteReports) {
           setReports(remoteReports);
         }
       });
@@ -290,12 +290,15 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-lg sm:text-xl font-black text-white">
                   Carte Collaborative des Utilisateurs
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold animate-pulse">
                   Direct Citoyen
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
+                  🔄 Réinitialisation Quotidienne (00h)
                 </span>
                 {isD1Configured() ? (
                   <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1.5">
@@ -309,7 +312,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
                 )}
               </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
-                Chaque utilisateur signale la météo observée en direct dans sa commune. Affichage instantané sur fond de carte OpenStreetMap.
+                Chaque utilisateur signale la météo observée en direct dans sa commune. Affichage instantané sur fond de carte OpenStreetMap. Réinitialisé chaque jour.
               </p>
             </div>
           </div>
@@ -390,6 +393,25 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
             Cliquez sur un marqueur pour consulter l'intensité, le commentaire local et confirmer le signalement.
           </p>
         </div>
+
+        {/* Empty state notice if no reports today yet */}
+        {reports.length === 0 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[400] bg-slate-950/95 border border-slate-700/80 rounded-2xl p-4 shadow-2xl backdrop-blur-md text-xs text-center max-w-md w-[92%] animate-in fade-in">
+            <p className="font-black text-slate-100 text-sm">
+              📍 Aucun signalement pour aujourd'hui
+            </p>
+            <p className="text-[11px] text-slate-300 mt-1">
+              La carte est 100% participative (sans bots) et se réinitialise chaque jour à 00h. Soyez le premier à signaler le temps observé chez vous !
+            </p>
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="mt-2.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow-lg shadow-blue-600/30 cursor-pointer"
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span>Signaler la météo dans ma commune (+150 pts)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal / Slide-over Form to Submit a Report */}

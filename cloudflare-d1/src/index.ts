@@ -142,7 +142,7 @@ export default {
         });
       }
 
-      // 4. Liste des Signalements Météo Citoyens Récents (< 48h)
+      // 4. Liste des Signalements Météo Citoyens du Jour (Réinitialisation quotidienne automatique)
       if (path === '/api/reports' && request.method === 'GET') {
         const { results } = await env.DB.prepare(
           `SELECT 
@@ -161,8 +161,9 @@ export default {
             confirmations,
             created_at as timestamp
           FROM community_reports 
+          WHERE date(created_at) = date('now')
           ORDER BY created_at DESC 
-          LIMIT 120`
+          LIMIT 150`
         ).all();
 
         return jsonResponse({

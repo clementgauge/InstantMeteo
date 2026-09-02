@@ -263,26 +263,11 @@ export function rewardCommunityReport(profile: PlayerProfile): { profile: Player
   return { profile: updated, points: earned };
 }
 
-// Génération du classement compétitif incluant le joueur actuel
+// Génération du classement compétitif (uniquement les vrais utilisateurs inscrits)
 export function getLeaderboard(currentProfile: PlayerProfile | null): LeaderboardEntry[] {
-  const mockCompetitors: Omit<LeaderboardEntry, 'rank' | 'isCurrentUser'>[] = [
-    { pseudo: 'ChasseurDOrages_31', points: 3450, streakDays: 42, locationsCount: 18, badgesCount: 9, badgeTitle: 'Grand Maître Cumulonimbus' },
-    { pseudo: 'AltiMétéo_Chamonix', points: 2980, streakDays: 35, locationsCount: 14, badgesCount: 8, badgeTitle: 'Sentinelle des Sommets' },
-    { pseudo: 'MistralGagnant_13', points: 2650, streakDays: 28, locationsCount: 12, badgesCount: 7, badgeTitle: 'Chasseur de Rafales' },
-    { pseudo: 'VigilanceBreizh_29', points: 2310, streakDays: 24, locationsCount: 11, badgesCount: 7, badgeTitle: 'Sentinelle Océanique' },
-    { pseudo: 'GivreEtNeige_Vosges', points: 1980, streakDays: 19, locationsCount: 9, badgesCount: 6, badgeTitle: 'Pisteur de Blizzard' },
-    { pseudo: 'PluvioPassion_64', points: 1740, streakDays: 16, locationsCount: 8, badgesCount: 5, badgeTitle: 'Observateur Hydrologique' },
-    { pseudo: 'CaniculeSurfer_84', points: 1420, streakDays: 12, locationsCount: 7, badgesCount: 5, badgeTitle: 'Guetteur d\'Isobar' },
-    { pseudo: 'Nephologue_Paris', points: 1150, streakDays: 9, locationsCount: 6, badgesCount: 4, badgeTitle: 'Cartographe des Nuages' },
-    { pseudo: 'Anémomètre_Nord', points: 920, streakDays: 7, locationsCount: 4, badgesCount: 3, badgeTitle: 'Éclaireur Météorologique' },
-    { pseudo: 'Baromètre_Normand', points: 680, streakDays: 5, locationsCount: 3, badgesCount: 2, badgeTitle: 'Apprenti Météo' }
-  ];
+  const allEntries: (Omit<LeaderboardEntry, 'rank'> & { isCurrentUser: boolean })[] = [];
 
-  let allEntries: (Omit<LeaderboardEntry, 'rank'> & { isCurrentUser: boolean })[] = [
-    ...mockCompetitors.map(c => ({ ...c, isCurrentUser: false }))
-  ];
-
-  if (currentProfile) {
+  if (currentProfile && currentProfile.pseudo) {
     const userBadgeCount = currentProfile.unlockedWeatherIds.length;
     let badgeTitle = 'Apprenti Météo';
     if (currentProfile.totalPoints >= 3000) badgeTitle = 'Grand Maître Cumulonimbus';
