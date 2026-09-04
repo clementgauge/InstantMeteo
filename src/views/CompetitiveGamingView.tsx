@@ -197,6 +197,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   const [d1TestFeedback, setD1TestFeedback] = useState<{ ok: boolean; message: string } | null>(null);
   const [isSyncingD1, setIsSyncingD1] = useState<boolean>(false);
   const [remoteLeaderboard, setRemoteLeaderboard] = useState<LeaderboardEntry[] | null>(null);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   const [d1RankBadge, setD1RankBadge] = useState<{ rank: number; total: number } | null>(null);
   const [copiedCommands, setCopiedCommands] = useState<boolean>(false);
 
@@ -210,13 +211,14 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
         setD1RankBadge({ rank: syncRes.rank, total: syncRes.totalPlayers || 1 });
       }
       const remote = await fetchLeaderboardFromD1(prof);
-      if (remote && remote.length > 0) {
+      if (remote !== null) {
         setRemoteLeaderboard(remote);
       }
     } catch (e) {
       console.warn('Erreur synchro D1:', e);
     } finally {
       setIsSyncingD1(false);
+      setIsLoadingLeaderboard(false);
     }
   };
 
@@ -227,11 +229,12 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
     const fetchLatest = async () => {
       try {
         const remote = await fetchLeaderboardFromD1(profile);
-        if (isMounted && remote && remote.length > 0) {
+        if (isMounted && remote !== null) {
           setRemoteLeaderboard(remote);
+          setIsLoadingLeaderboard(false);
         }
       } catch (err) {
-        // Silencieux
+        if (isMounted) setIsLoadingLeaderboard(false);
       }
     };
 
@@ -398,7 +401,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
 
   // Leaderboard data (Cloudflare D1 priority if connected, local fallback otherwise)
   const localLeaderboard = getLeaderboard(profile);
-  const leaderboard = (remoteLeaderboard && remoteLeaderboard.length > 0) ? remoteLeaderboard : localLeaderboard;
+  const leaderboard = remoteLeaderboard !== null ? remoteLeaderboard : localLeaderboard;
   const currentRank = d1RankBadge?.rank || leaderboard.find(l => l.isCurrentUser)?.rank || 1;
   const totalPlayersCount = d1RankBadge?.total || leaderboard.length;
   const multiplierInfo = profile ? getMultiplier(profile.streakDays) : { multiplier: 1, label: 'x1', nextTier: '' };
@@ -521,8 +524,18 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               <tbody className="divide-y divide-slate-800/60">
                 {leaderboard.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400">
-                      Chargement des joueurs depuis la base de données...
+                    <td colSpan={6} className="py-8 text-center text-slate-400">
+                      {isLoadingLeaderboard ? (
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                          <span className="text-xs text-slate-400">Synchronisation du classement mondial...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-slate-200">Aucun joueur enregistré pour le moment</p>
+                          <p className="text-xs text-slate-400">Entrez votre pseudo ci-dessus pour devenir le 1er joueur du classement mondial !</p>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -1016,8 +1029,17 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               {leaderboard.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400">
-                    <p className="text-sm font-bold text-slate-300">Aucun joueur enregistré pour le moment.</p>
-                    <p className="text-xs text-slate-500 mt-1">Créez votre pseudo ci-dessus pour figurer en 1ère place du classement 100% réel !</p>
+                    {isLoadingLeaderboard ? (
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                        <span className="text-xs text-slate-400">Synchronisation du classement mondial...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-slate-200">Aucun joueur enregistré pour le moment</p>
+                        <p className="text-xs text-slate-400">Effectuez une action (lieu visité, météo) ou mettez à jour votre pseudo pour apparaître !</p>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
