@@ -123,34 +123,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
     return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
   }, []);
 
-  // Swipe gesture support on mobile for profile tabs
-  const profileTabs: Array<'classic' | 'agriculture' | 'aviation' | 'pro'> = ['classic', 'agriculture', 'aviation', 'pro'];
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX);
-    setTouchStartY(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null || touchStartY === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX;
-    const deltaY = e.changedTouches[0].clientY - touchStartY;
-    setTouchStartX(null);
-    setTouchStartY(null);
-
-    // Only consider intentional horizontal swipes (> 65px and mostly horizontal)
-    if (Math.abs(deltaX) > 65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const currentIndex = profileTabs.indexOf(activeProfileTab);
-      if (deltaX < 0 && currentIndex < profileTabs.length - 1) {
-        setActiveProfileTab(profileTabs[currentIndex + 1]);
-      } else if (deltaX > 0 && currentIndex > 0) {
-        setActiveProfileTab(profileTabs[currentIndex - 1]);
-      }
-    }
-  };
-
   const formatTemp = (celsius: number) => {
     if (tempUnit === 'F') {
       return `${Math.round((celsius * 9/5 + 32) * 10) / 10}°F`;
@@ -166,11 +138,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const isGpsPosition = station.id.startsWith('gps');
 
   return (
-    <div 
-      className="space-y-6"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="space-y-6">
       {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
       {!simplifiedMode && (
         <div className="sticky top-0 z-20 py-2 -my-2 bg-slate-950/85 backdrop-blur-md">

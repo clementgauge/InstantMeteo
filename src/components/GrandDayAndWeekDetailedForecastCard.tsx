@@ -292,7 +292,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
               <span className="text-xs text-slate-400">Glissez horizontalement pour tout explorer</span>
             </div>
 
-            <div className="flex gap-2.5 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-slate-700">
+            <div className="flex gap-2.5 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain">
               {next24Hours.map((h, i) => {
                 const tier = getThermalTierForTemp(h.temperature);
                 const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);

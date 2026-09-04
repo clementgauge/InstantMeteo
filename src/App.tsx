@@ -537,44 +537,9 @@ function WeatherApp() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentNavIndex]);
 
-  // Touch Swipe Gesture Listener for Mobile Devices (Smooth Tab Switching Without Page Shifting)
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    setTouchStartX(touch.clientX);
-    setTouchStartY(touch.clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null || touchStartY === null) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = touch.clientY - touchStartY;
-
-    if (Math.abs(deltaX) > 65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const target = e.target as HTMLElement;
-      const isInteractive = target.closest(
-        '.leaflet-container, input, select, textarea, button, .overflow-x-auto, .no-scrollbar, [role="slider"]'
-      );
-      if (!isInteractive) {
-        if (deltaX < 0) {
-          handleNextTab();
-        } else {
-          handlePrevTab();
-        }
-      }
-    }
-    setTouchStartX(null);
-    setTouchStartY(null);
-  };
-
   return (
     <div 
       className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''}`}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
       <AtmosphereBackground 
