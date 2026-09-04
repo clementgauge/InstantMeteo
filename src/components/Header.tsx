@@ -19,7 +19,9 @@ import {
   Instagram,
   Youtube,
   SlidersHorizontal,
-  HelpCircle
+  HelpCircle,
+  LayoutGrid,
+  Crown
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -62,6 +64,9 @@ interface HeaderProps {
   onOpenVigilanceTab?: () => void;
   onOpenNotificationsModal?: () => void;
   activeAlertCount?: number;
+  onOpenPageBlockCustomizer?: () => void;
+  onOpenAdminPanel?: () => void;
+  isAdmin?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -96,7 +101,10 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleFullscreen,
   onOpenVigilanceTab,
   onOpenNotificationsModal,
-  activeAlertCount = 0
+  activeAlertCount = 0,
+  onOpenPageBlockCustomizer,
+  onOpenAdminPanel,
+  isAdmin = false
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -319,6 +327,24 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
+          {/* Admin / Code Secret Quick Access Button */}
+          {onOpenAdminPanel && (
+            <button
+              id="header-admin-quick-btn"
+              onClick={onOpenAdminPanel}
+              className={`flex items-center gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+                isAdmin
+                  ? 'border-red-500/60 bg-red-950/70 text-red-200 hover:bg-red-900/80 hover:text-white shadow-red-950/40'
+                  : 'border-amber-500/40 bg-slate-900/90 text-amber-300 hover:border-amber-400 hover:bg-amber-950/50 hover:text-white'
+              }`}
+              title={isAdmin ? "Panneau d'Administration (Actif)" : "Accès Administrateur (Entrer le Code Secret)"}
+              aria-label="Accès Administrateur / Code Secret"
+            >
+              <Crown className={`h-4 w-4 shrink-0 ${isAdmin ? 'text-amber-400 animate-pulse' : 'text-amber-400'}`} />
+              <span className="hidden sm:inline">{isAdmin ? 'Admin' : 'Code Secret'}</span>
+            </button>
+          )}
+
           {/* Language Selector (FR default, EN, DE, IT, ZH, RU, JA) */}
           <div className="flex items-center shrink-0">
             <GoogleTranslateWidget compact={false} />
@@ -489,6 +515,69 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">Améliorer la lisibilité de l'interface</div>
                   </div>
                 </button>
+
+                {onOpenPageBlockCustomizer && (
+                  <button
+                    id="sidebar-open-page-block-customizer"
+                    type="button"
+                    onClick={() => {
+                      setSettingsSidebarOpen(false);
+                      onOpenPageBlockCustomizer();
+                    }}
+                    className="group flex w-full items-center gap-3 rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-950/40 to-indigo-950/30 p-4 text-left text-blue-200 transition hover:bg-white hover:text-slate-950 shadow-md cursor-pointer"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/20 group-hover:bg-blue-100">
+                      <LayoutGrid className="h-5 w-5 text-blue-400 group-hover:text-slate-950" />
+                    </div>
+                    <div>
+                      <div className="font-black flex items-center gap-1.5">
+                        <span>Choix des pages &amp; blocs</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] bg-blue-500 text-slate-950 font-black uppercase">
+                          Personnaliser
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
+                        Choisir les pages et les blocs à afficher
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {onOpenAdminPanel && (
+                  <button
+                    id="sidebar-open-admin-panel"
+                    type="button"
+                    onClick={() => {
+                      setSettingsSidebarOpen(false);
+                      onOpenAdminPanel();
+                    }}
+                    className={`group flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition shadow-lg cursor-pointer ${
+                      isAdmin
+                        ? 'border-red-500/50 bg-gradient-to-r from-red-950/60 to-amber-950/40 text-red-200 hover:bg-red-600 hover:text-white shadow-red-950/40'
+                        : 'border-amber-500/40 bg-gradient-to-r from-amber-950/50 via-slate-900 to-slate-950 text-amber-200 hover:border-amber-400 hover:bg-amber-900/40 hover:text-white shadow-amber-950/30'
+                    }`}
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/20 group-hover:bg-red-700">
+                      <Crown className="h-5 w-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <div className="font-black flex items-center gap-1.5">
+                        <span>{isAdmin ? "Panneau d'Administration" : "Accès Administrateur"}</span>
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
+                          isAdmin ? 'bg-red-600 text-white' : 'bg-amber-600 text-slate-950'
+                        }`}>
+                          {isAdmin ? 'Admin' : 'Code Secret'}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-white/90">
+                        {isAdmin 
+                          ? "Gestion points, bannissements concours & super-pouvoirs" 
+                          : "Entrer le code secret pour activer les super-pouvoirs"
+                        }
+                      </div>
+                    </div>
+                  </button>
+                )}
 
                 {onToggleFullscreen && (
                   <button

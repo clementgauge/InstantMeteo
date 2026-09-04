@@ -28,9 +28,11 @@ import {
   BellRing,
   Cloud,
   Trophy,
-  Users
+  Users,
+  MessageSquare
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
+import { isPageVisible } from '../services/displayPreferencesService';
 
 export type NavTabId = 
   | 'realtime' 
@@ -44,7 +46,9 @@ export type NavTabId =
   | 'worldDisasters'
   | 'weatherArchive'
   | 'bulletin'
-  | 'competitive';
+  | 'competitive'
+  | 'discussionGroup'
+  | 'communityReports';
 
 interface BottomNavigationDockProps {
   activeTab: NavTabId;
@@ -118,8 +122,17 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
 
   useEffect(() => () => stopDockAutoScroll(), []);
 
-  // Quick primary actions on the dock
-  const primaryDockItems: { id: NavTabId; label: string; icon: any; shortLabel: string; badge?: string }[] = [
+  const [, setDisplayTick] = useState(0);
+  useEffect(() => {
+    const handlePreferencesUpdate = () => {
+      setDisplayTick((t) => t + 1);
+    };
+    window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+    return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+  }, []);
+
+  // Quick primary actions on the dock (filtrés dynamiquement par préférences de l'utilisateur)
+  const allDockItems: { id: NavTabId; label: string; icon: any; shortLabel: string; badge?: string }[] = [
     { id: 'realtime', label: 'Temps Réel', shortLabel: 'Direct', icon: Sun },
     { id: 'cloudNephology', label: 'Nuages & Néphologie', shortLabel: 'Nuages', icon: Cloud, badge: '48h' },
     { id: 'vigilance', label: 'Vigilances', shortLabel: 'Alertes', icon: ShieldAlert, badge: '5m' },
@@ -132,10 +145,13 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'weatherArchive', label: 'Archives Journalières', shortLabel: 'Archives', icon: Calendar, badge: 'Nouveau' },
     { id: 'bulletin', label: 'Bulletins', shortLabel: 'Bulletins', icon: FileText },
     { id: 'competitive', label: 'Compétitif & Classement', shortLabel: 'Défis 🏆', icon: Trophy, badge: '🔥 +Pts' },
+    { id: 'discussionGroup', label: 'Groupe de Discussion', shortLabel: 'Salon 💬', icon: MessageSquare, badge: 'Direct' },
   ];
 
-  // Thematic Groups for Full Drawer Hub
-  const hubCategories = [
+  const primaryDockItems = allDockItems.filter(item => isPageVisible(item.id));
+
+  // Thematic Groups for Full Drawer Hub (filtrés dynamiquement)
+  const rawHubCategories = [
     {
       categoryName: '⚡ Direct, Alertes & Précipitations',
       items: [
@@ -163,12 +179,20 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       ]
     },
     {
-      categoryName: '🏆 Communauté & Mode Compétitif',
+      categoryName: '🏆 Communauté, Compétition & Discussion',
       items: [
         { id: 'competitive', label: '12. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
+        { id: 'discussionGroup', label: '13. Groupe de Discussion & Salon Météo', icon: MessageSquare, desc: 'Échangez en direct avec la communauté météo, partagez vos relevés et discutez des alertes' },
       ]
     }
   ];
+
+  const hubCategories = rawHubCategories
+    .map(cat => ({
+      ...cat,
+      items: cat.items.filter(it => isPageVisible(it.id))
+    }))
+    .filter(cat => cat.items.length > 0);
 
   return (
     <>

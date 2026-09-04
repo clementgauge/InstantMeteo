@@ -34,9 +34,12 @@ import {
   Sun,
   ThermometerSnowflake,
   TrendingUp,
+  Trophy,
+  MessageSquare,
   X,
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
+import { isPageVisible } from '../services/displayPreferencesService';
 
 export interface SidebarSectionItem {
   id: string;
@@ -70,19 +73,21 @@ const fallbackIcons: LucideIcon[] = [
   Download,
 ];
 
-// Main app pages for switcher
-const APP_PAGES = [
-  { id: 'realtime', label: '1. Temps Réel & Direct', icon: Sun },
+// Main app pages for switcher (titres exacts et synchronisés)
+const ALL_PAGES = [
+  { id: 'realtime', label: '1. Temps Réel & Observatoire Direct', icon: Sun },
   { id: 'cloudNephology', label: '2. Nuages 48h & Néphologie', icon: Cloud },
   { id: 'vigilance', label: '3. Vigilances & Alertes Multi-Jours', icon: ShieldAlert },
   { id: 'scenarios14d', label: '4. Tendances & Scénarios 14 Jours', icon: Split },
   { id: 'radar', label: '5. Radar Précipitations, Feux NASA & Vents', icon: CloudRain },
   { id: 'eightMonths', label: '6. Tendances 8 Mois (Dép/Région/Pays)', icon: Globe },
-  { id: 'historicalTrends', label: '7. Évolution (depuis 2000 & 1min)', icon: History },
+  { id: 'historicalTrends', label: '7. Évolution depuis 2000 & 1min', icon: History },
   { id: 'sportsActivities', label: '8. Météo Sport & Trajet Itinéraire', icon: TrendingUp },
   { id: 'worldDisasters', label: '9. Monde & Catastrophes Naturelles', icon: Radio },
   { id: 'weatherArchive', label: '10. Archives & Historique Journalier', icon: Calendar },
   { id: 'bulletin', label: '11. Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText },
+  { id: 'competitive', label: '12. Mode Compétitif & Classement', icon: Trophy },
+  { id: 'discussionGroup', label: '13. Groupe de Discussion & Salon Météo', icon: MessageSquare },
 ];
 
 export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
@@ -99,6 +104,17 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
   onOpenAtmosphere,
   activeAlertCount = 0,
 }) => {
+  const [, setDisplayTick] = useState(0);
+  useEffect(() => {
+    const handlePreferencesUpdate = () => {
+      setDisplayTick((t) => t + 1);
+    };
+    window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+    return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+  }, []);
+
+  const visiblePages = ALL_PAGES.filter(p => isPageVisible(p.id));
+
   // Desktop state: 3 distinct levels
   // Level 1: 'full' (on voit tout : titres, rubriques détaillées, noël, météo)
   // Level 2: 'icons' (les logos/icônes sont affichés en colonne rail avec infobulles)
@@ -362,7 +378,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                   : 'text-blue-200 hover:text-white'
               }`}
             >
-              16 Pages
+              {visiblePages.length} Pages
             </button>
           </div>
         </div>
@@ -409,12 +425,12 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
               })}
             </div>
           ) : (
-            /* LISTE COMPLÈTE DES 16 PAGES & MODULES */
+            /* LISTE COMPLÈTE DES PAGES & MODULES VISIBLES */
             <div className="space-y-1">
               <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-200">
                 Changer de page météo
               </div>
-              {APP_PAGES.map((page) => {
+              {visiblePages.map((page) => {
                 const Icon = page.icon;
                 const active = activeTab === page.id;
 

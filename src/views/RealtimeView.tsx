@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Droplets, 
   Wind, 
@@ -63,6 +63,7 @@ import { ImouWeatherSecurityBanner } from '../components/ImouWeatherSecurityBann
 import { AgricultureWeatherCard } from '../components/AgricultureWeatherCard';
 import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
+import { isBlockVisible } from '../services/displayPreferencesService';
 
 interface RealtimeViewProps {
   station: LocationPoint;
@@ -104,6 +105,23 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
   const [showMoreObservatories, setShowMoreObservatories] = useState<boolean>(false);
+
+  // Reinitialise sur profil classique dès que le mode simple est activé
+  useEffect(() => {
+    if (simplifiedMode && activeProfileTab !== 'classic') {
+      setActiveProfileTab('classic');
+    }
+  }, [simplifiedMode, activeProfileTab]);
+
+  // Actualisation réactive des blocs masqués / affichés selon les préférences
+  const [, setDisplayTick] = useState(0);
+  useEffect(() => {
+    const handlePreferencesUpdate = () => {
+      setDisplayTick((t) => t + 1);
+    };
+    window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+    return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+  }, []);
 
   // Swipe gesture support on mobile for profile tabs
   const profileTabs: Array<'classic' | 'agriculture' | 'aviation' | 'pro'> = ['classic', 'agriculture', 'aviation', 'pro'];
@@ -153,68 +171,70 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro */}
-      <div className="sticky top-0 z-20 py-2 -my-2 bg-slate-950/85 backdrop-blur-md">
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-x-auto scrollbar-none overscroll-x-contain touch-pan-x scroll-smooth">
-          <button
-            id="realtime-tab-classic"
-            onClick={() => setActiveProfileTab('classic')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-              activeProfileTab === 'classic'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
-            }`}
-          >
-            <Tv className="h-4 w-4 text-blue-300" />
-            <span>📺 Chaîne Météo (Classique)</span>
-          </button>
+      {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
+      {!simplifiedMode && (
+        <div className="sticky top-0 z-20 py-2 -my-2 bg-slate-950/85 backdrop-blur-md">
+          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-x-auto scrollbar-none overscroll-x-contain touch-pan-x scroll-smooth">
+            <button
+              id="realtime-tab-classic"
+              onClick={() => setActiveProfileTab('classic')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+                activeProfileTab === 'classic'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+              }`}
+            >
+              <Tv className="h-4 w-4 text-blue-300" />
+              <span>📺 Chaîne Météo (Classique)</span>
+            </button>
 
-          <button
-            id="realtime-tab-agriculture"
-            onClick={() => setActiveProfileTab('agriculture')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-              activeProfileTab === 'agriculture'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-white/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
-            }`}
-          >
-            <Sprout className="h-4 w-4 text-emerald-300" />
-            <span>🌾 Agro-Météo</span>
-          </button>
+            <button
+              id="realtime-tab-agriculture"
+              onClick={() => setActiveProfileTab('agriculture')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+                activeProfileTab === 'agriculture'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-white/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+              }`}
+            >
+              <Sprout className="h-4 w-4 text-emerald-300" />
+              <span>🌾 Agro-Météo</span>
+            </button>
 
-          <button
-            id="realtime-tab-aviation"
-            onClick={() => setActiveProfileTab('aviation')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-              activeProfileTab === 'aviation'
-                ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 ring-1 ring-white/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
-            }`}
-          >
-            <Plane className="h-4 w-4 text-sky-300" />
-            <span>✈️ Météo Aviation</span>
-          </button>
+            <button
+              id="realtime-tab-aviation"
+              onClick={() => setActiveProfileTab('aviation')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+                activeProfileTab === 'aviation'
+                  ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 ring-1 ring-white/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+              }`}
+            >
+              <Plane className="h-4 w-4 text-sky-300" />
+              <span>✈️ Météo Aviation</span>
+            </button>
 
-          <button
-            id="realtime-tab-pro"
-            onClick={() => setActiveProfileTab('pro')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-              activeProfileTab === 'pro'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
-            }`}
-          >
-            <Activity className="h-4 w-4 text-indigo-300" />
-            <span>🔬 Météo Pro &amp; Modèles</span>
-          </button>
+            <button
+              id="realtime-tab-pro"
+              onClick={() => setActiveProfileTab('pro')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+                activeProfileTab === 'pro'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+              }`}
+            >
+              <Activity className="h-4 w-4 text-indigo-300" />
+              <span>🔬 Météo Pro &amp; Modèles</span>
+            </button>
+          </div>
+          {/* Mobile Swipe Navigation Hint */}
+          <div className="flex sm:hidden items-center justify-between px-2 pt-1 text-[10px] text-slate-400 font-medium">
+            <span>👈 Glissez pour défiler</span>
+            <span className="text-blue-400 font-bold">4 modes météo</span>
+            <span>Glissez l'écran pour changer 👉</span>
+          </div>
         </div>
-        {/* Mobile Swipe Navigation Hint */}
-        <div className="flex sm:hidden items-center justify-between px-2 pt-1 text-[10px] text-slate-400 font-medium">
-          <span>👈 Glissez pour défiler</span>
-          <span className="text-blue-400 font-bold">4 modes météo</span>
-          <span>Glissez l'écran pour changer 👉</span>
-        </div>
-      </div>
+      )}
 
       {/* 1. Hero Current Weather & Active GPS Localization Banner */}
       <div

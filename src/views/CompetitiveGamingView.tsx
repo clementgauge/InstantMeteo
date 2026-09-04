@@ -17,7 +17,10 @@ import {
   Edit2,
   Check,
   TrendingUp,
-  Radio
+  Radio,
+  RotateCcw,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   PlayerProfile, 
@@ -30,6 +33,8 @@ import {
   claimAmazonBonus, 
   getLeaderboard, 
   getMultiplier, 
+  resetPlayerPoints,
+  deletePlayerProfile,
   LeaderboardEntry,
   WEATHER_BADGES_CATALOG 
 } from '../services/competitiveGameService';
@@ -39,8 +44,11 @@ import {
   isD1Configured,
   testD1Connection,
   fetchLeaderboardFromD1,
-  syncPlayerProfileToD1
+  syncPlayerProfileToD1,
+  resetPlayerPointsInD1,
+  deletePlayerFromD1
 } from '../services/cloudflareD1Service';
+import { FRENCH_STATIONS } from '../data/frenchStations';
 import { 
   Database, 
   Server, 
@@ -52,7 +60,8 @@ import {
   Copy, 
   Terminal, 
   X,
-  Code
+  Code,
+  Crown
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { AMAZON_AFFILIATE_LINKS } from '../config/affiliateLinks';
@@ -63,6 +72,7 @@ interface CompetitiveGamingViewProps {
   onNavigateToTab?: (tab: string) => void;
   seniorMode?: boolean;
   onOpenSearchModal?: () => void;
+  onOpenAdminPanel?: () => void;
 }
 
 export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
@@ -70,13 +80,114 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   weather = null,
   onNavigateToTab,
   seniorMode = false,
-  onOpenSearchModal
+  onOpenSearchModal,
+  onOpenAdminPanel
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(() => loadPlayerProfile());
   const [pseudoInput, setPseudoInput] = useState<string>('');
   const [isEditingPseudo, setIsEditingPseudo] = useState<boolean>(false);
   const [newPseudo, setNewPseudo] = useState<string>('');
   const [notificationToast, setNotificationToast] = useState<{ message: string; points: number } | null>(null);
+
+  // Account Management Dialog States
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
+
+  // Vraie géolocalisation GPS physique de l'appareil (fixée et indépendante des recherches de station)
+  const [deviceGpsLocation, setDeviceGpsLocation] = useState<{
+    name: string;
+    department?: string;
+    region?: string;
+    latitude: number;
+    longitude: number;
+    altitude?: number;
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('instant_meteo_device_real_gps');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
+  const [isLocatingDevice, setIsLocatingDevice] = useState<boolean>(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+
+  const acquireDeviceGps = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setGpsError('La géolocalisation n\'est pas supportée par votre navigateur.');
+      return;
+    }
+    setIsLocatingDevice(true);
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const uLat = pos.coords.latitude;
+        const uLon = pos.coords.longitude;
+        const uAlt = pos.coords.altitude ? Math.round(pos.coords.altitude) : 150;
+
+        let detectedName = '';
+        let detectedDept = '';
+        let detectedReg = '';
+
+        // Tentative de géocodage inverse précis
+        try {
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${uLat}&longitude=${uLon}&localityLanguage=fr`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.locality || data.city) {
+              detectedName = data.locality || data.city;
+              detectedDept = data.principalSubdivision || '';
+              detectedReg = data.countryName || 'France';
+            }
+          }
+        } catch (e) {
+          console.warn('Geocoding notice:', e);
+        }
+
+        if (!detectedName) {
+          let closest = FRENCH_STATIONS[0];
+          let minDist = Number.MAX_VALUE;
+          for (const st of FRENCH_STATIONS) {
+            const dLat = st.latitude - uLat;
+            const dLon = st.longitude - uLon;
+            const d = Math.sqrt(dLat * dLat + dLon * dLon);
+            if (d < minDist) {
+              minDist = d;
+              closest = st;
+            }
+          }
+          detectedName = closest.name;
+          detectedDept = closest.department || '';
+          detectedReg = closest.region || '';
+        }
+
+        const realLoc = {
+          name: detectedName,
+          department: detectedDept,
+          region: detectedReg,
+          latitude: Number(uLat.toFixed(4)),
+          longitude: Number(uLon.toFixed(4)),
+          altitude: uAlt
+        };
+
+        try {
+          localStorage.setItem('instant_meteo_device_real_gps', JSON.stringify(realLoc));
+        } catch (e) {}
+
+        setDeviceGpsLocation(realLoc);
+        setIsLocatingDevice(false);
+      },
+      (err) => {
+        console.warn('Erreur GPS appareil:', err);
+        setGpsError('Autorisation GPS nécessaire pour détecter votre commune physique.');
+        setIsLocatingDevice(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
+  };
+
+  useEffect(() => {
+    acquireDeviceGps();
+  }, []);
 
   // Cloudflare D1 State
   const [isD1ConfigOpen, setIsD1ConfigOpen] = useState<boolean>(false);
@@ -89,7 +200,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   const [d1RankBadge, setD1RankBadge] = useState<{ rank: number; total: number } | null>(null);
   const [copiedCommands, setCopiedCommands] = useState<boolean>(false);
 
-  // Synchronisation avec Cloudflare D1
+  // Synchronisation avec Cloudflare D1 & Base de Données Centralisée
   const syncWithD1 = async (prof: PlayerProfile) => {
     if (!isD1Configured()) return;
     setIsSyncingD1(true);
@@ -108,6 +219,30 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
       setIsSyncingD1(false);
     }
   };
+
+  // Chargement initial et synchronisation en direct toutes les 3.5 secondes
+  // Permet de voir instantanément les joueurs créés sur d'autres appareils (PC <-> Téléphone)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLatest = async () => {
+      try {
+        const remote = await fetchLeaderboardFromD1(profile);
+        if (isMounted && remote && remote.length > 0) {
+          setRemoteLeaderboard(remote);
+        }
+      } catch (err) {
+        // Silencieux
+      }
+    };
+
+    fetchLatest();
+    const interval = setInterval(fetchLatest, 3500);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [profile?.pseudo]);
 
   useEffect(() => {
     if (profile && isD1Configured()) {
@@ -186,42 +321,79 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   };
 
   // Initial username setup
-  const handleStartAdventure = (e: React.FormEvent) => {
+  const handleStartAdventure = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pseudoInput.trim()) return;
     const newProf = initPlayerProfile(pseudoInput.trim());
     setProfile(newProf);
     showToast('Bienvenue dans la Chasse Météo ! +100 points de bienvenue offerts', 100);
+    await syncWithD1(newProf);
   };
 
   // Rename pseudo
-  const handleUpdatePseudo = () => {
+  const handleUpdatePseudo = async () => {
     if (!profile || !newPseudo.trim()) return;
     const updated = { ...profile, pseudo: newPseudo.trim() };
     savePlayerProfile(updated);
     setProfile(updated);
     setIsEditingPseudo(false);
     showToast('Pseudo mis à jour avec succès !', 0);
+    await syncWithD1(updated);
   };
 
-  // Register current GPS location for points
-  const handleRegisterLocation = () => {
+  // Réinitialiser les points du joueur
+  const handleResetPoints = async () => {
     if (!profile) return;
-    const result = registerVisitedLocation(profile, currentStation);
+    const updated = resetPlayerPoints(profile);
+    setProfile(updated);
+    if (isD1Configured()) {
+      await resetPlayerPointsInD1(profile.pseudo);
+      await syncWithD1(updated);
+    }
+    setIsResetConfirmOpen(false);
+    showToast('Vos points et votre progression ont été réinitialisés à 0.', 0);
+  };
+
+  // Supprimer le compte joueur
+  const handleDeleteAccount = async () => {
+    if (!profile) return;
+    const oldPseudo = profile.pseudo;
+    deletePlayerProfile();
+    if (isD1Configured()) {
+      await deletePlayerFromD1(oldPseudo);
+      const remote = await fetchLeaderboardFromD1(null);
+      if (remote) setRemoteLeaderboard(remote);
+    }
+    setProfile(null);
+    setIsDeleteConfirmOpen(false);
+    showToast('Compte supprimé avec succès. Vous pouvez créer un nouveau profil !', 0);
+  };
+
+  // Register current real GPS location for points (indépendant des recherches d'autres communes)
+  const handleRegisterLocation = async () => {
+    if (!profile) return;
+    if (!deviceGpsLocation) {
+      acquireDeviceGps();
+      showToast('Veuillez activer votre géolocalisation pour valider votre commune réelle.', 0);
+      return;
+    }
+    const result = registerVisitedLocation(profile, deviceGpsLocation as any);
     if (result.added) {
       setProfile(result.profile);
-      showToast(`Nouveau lieu découvert : ${currentStation.name} !`, result.points);
+      showToast(`Nouveau lieu physique découvert : ${deviceGpsLocation.name} !`, result.points);
+      await syncWithD1(result.profile);
     } else {
-      showToast(`Vous avez déjà enregistré ${currentStation.name} dans votre carnet d'explorateur !`, 0);
+      showToast(`Vous avez déjà enregistré votre position réelle (${deviceGpsLocation.name}) !`, 0);
     }
   };
 
   // Claim Amazon partner bonus
-  const handleClaimAmazonBonus = () => {
+  const handleClaimAmazonBonus = async () => {
     if (!profile) return;
     const res = claimAmazonBonus(profile);
     setProfile(res.profile);
     showToast('Bonus Découverte Équipement Amazon validé !', res.points);
+    await syncWithD1(res.profile);
   };
 
   // Leaderboard data (Cloudflare D1 priority if connected, local fallback otherwise)
@@ -231,11 +403,11 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   const totalPlayersCount = d1RankBadge?.total || leaderboard.length;
   const multiplierInfo = profile ? getMultiplier(profile.streakDays) : { multiplier: 1, label: 'x1', nextTier: '' };
 
-  // If user has no pseudo yet, force onboarding modal
+  // If user has no pseudo yet, show onboarding card + live leaderboard below
   if (!profile) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="relative w-full max-w-md rounded-3xl border border-blue-500/40 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 p-7 sm:p-8 shadow-2xl backdrop-blur-xl text-center">
+      <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+        <div className="relative w-full rounded-3xl border border-blue-500/40 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 p-7 sm:p-8 shadow-2xl backdrop-blur-xl text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 shadow-xl shadow-amber-500/30 mb-5">
             <Trophy className="h-8 w-8" />
           </div>
@@ -243,11 +415,11 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
           <h2 className="text-2xl font-black text-white mb-2">
             Arène Compétitive Chasse Météo
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed max-w-lg mx-auto">
             Rejoignez le classement national ! Remportez des points grâce à la géolocalisation des lieux visités, aux types de météos rencontrés, à vos flammes quotidiennes et aux signalements.
           </p>
 
-          <form onSubmit={handleStartAdventure} className="space-y-4">
+          <form onSubmit={handleStartAdventure} className="space-y-4 max-w-md mx-auto">
             <div className="text-left">
               <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
                 Choisissez votre Pseudo Chasseur :
@@ -261,7 +433,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                   maxLength={24}
                   value={pseudoInput}
                   onChange={(e) => setPseudoInput(e.target.value)}
-                  placeholder="Ex: AltiMétéo_64, StormChaser75..."
+                  placeholder="Ex: teste1, teste2, AltiMétéo_64..."
                   className="w-full rounded-2xl border border-slate-700 bg-slate-900/90 pl-10 pr-4 py-3 text-sm font-bold text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none"
                 />
               </div>
@@ -275,6 +447,116 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               <ChevronRight className="h-4 w-4" />
             </button>
           </form>
+
+          {/* Live Network connection indicator */}
+          <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                Réseau National Connecté
+              </span>
+              <span>Tous les utilisateurs sont synchronisés en direct</span>
+            </div>
+
+            {onOpenAdminPanel && (
+              <button
+                type="button"
+                onClick={onOpenAdminPanel}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 hover:text-white transition font-bold text-xs cursor-pointer shadow-sm"
+                title="Accès Administrateur / Code Secret"
+              >
+                <Crown className="h-3.5 w-3.5 text-amber-400" />
+                <span>Code Secret Admin</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Live National Leaderboard Preview */}
+        <div className="rounded-3xl border border-blue-500/30 bg-slate-900/90 p-6 shadow-2xl space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-base text-white">Classement National des Chasseurs Météo</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+                    En Direct
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  {leaderboard.length} observateur(s) actuellement en compétition sur la base commune.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                fetchLeaderboardFromD1(null).then(res => {
+                  if (res) setRemoteLeaderboard(res);
+                });
+              }}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-300 bg-slate-950 hover:bg-slate-850 px-3 py-1.5 rounded-xl border border-slate-800 transition cursor-pointer"
+            >
+              <RefreshCw className="h-3 w-3 text-cyan-400" />
+              <span>Actualiser</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-[11px] font-black uppercase text-slate-400">
+                  <th className="py-3 px-3">Rang</th>
+                  <th className="py-3 px-3">Chasseur</th>
+                  <th className="py-3 px-3">Flammes</th>
+                  <th className="py-3 px-3">Lieux</th>
+                  <th className="py-3 px-3">Trophées</th>
+                  <th className="py-3 px-3 text-right">Points</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {leaderboard.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-6 text-center text-slate-400">
+                      Chargement des joueurs depuis la base de données...
+                    </td>
+                  </tr>
+                ) : (
+                  leaderboard.map(entry => (
+                    <tr key={entry.pseudo} className="hover:bg-slate-850 transition">
+                      <td className="py-3 px-3">
+                        <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full font-black text-xs ${
+                          entry.rank === 1 ? 'bg-amber-500 text-slate-950 shadow-md' :
+                          entry.rank === 2 ? 'bg-slate-300 text-slate-950' :
+                          entry.rank === 3 ? 'bg-amber-700 text-white' : 'text-slate-400'
+                        }`}>
+                          {entry.rank}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white">{entry.pseudo}</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-slate-400 hidden sm:inline">
+                            {entry.badgeTitle}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 font-bold text-amber-400">🔥 {entry.streakDays} j</td>
+                      <td className="py-3 px-3 text-slate-300">📍 {entry.locationsCount}</td>
+                      <td className="py-3 px-3 text-slate-300">🎖️ {entry.badgesCount}</td>
+                      <td className="py-3 px-3 text-right font-black text-amber-300 text-sm tabular-nums">
+                        {entry.points.toLocaleString()} pts
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
@@ -345,6 +627,18 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-bold">
                   {leaderboard.find(l => l.isCurrentUser)?.badgeTitle || 'Chasseur Météo'}
                 </span>
+
+                {onOpenAdminPanel && (
+                  <button
+                    type="button"
+                    onClick={onOpenAdminPanel}
+                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 hover:text-white transition font-bold text-[10px] cursor-pointer"
+                    title="Accès Administrateur / Code Secret"
+                  >
+                    <Crown className="h-3 w-3 text-amber-400" />
+                    <span>{profile.isAdmin ? 'Panneau Admin' : 'Code Secret Admin'}</span>
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-300">
@@ -415,48 +709,29 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
           </div>
         </div>
 
-        {/* Cloudflare D1 Live Sync Bar */}
+        {/* Account Management Bar (Réinitialiser points / Supprimer compte) */}
         <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              Base de Données Cloudflare :
-            </span>
-            {isD1Active ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[11px] font-black">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
-                Cloudflare D1 (SQL Connecté)
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
-                <Server className="h-3 w-3 text-amber-400" />
-                Mode Local (Prêt pour D1)
-              </span>
-            )}
-            {isSyncingD1 && (
-              <span className="text-[10px] text-cyan-400 animate-pulse flex items-center gap-1">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Synchronisation D1...
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <User className="h-3.5 w-3.5 text-slate-400" />
+            <span>Gestion de votre compte & données</span>
           </div>
 
           <div className="flex items-center gap-2">
-            {isD1Active && (
-              <button
-                onClick={() => syncWithD1(profile)}
-                disabled={isSyncingD1}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold transition border border-slate-700 cursor-pointer active:scale-95"
-                title="Synchroniser immédiatement mes points avec Cloudflare D1"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncingD1 ? 'animate-spin' : ''}`} />
-                <span>Synchroniser D1</span>
-              </button>
-            )}
             <button
-              onClick={() => setIsD1ConfigOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 text-xs font-black transition border border-blue-500/40 cursor-pointer active:scale-95"
+              onClick={() => setIsResetConfirmOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition border border-amber-500/30 cursor-pointer active:scale-95"
+              title="Remettre vos points à zéro"
             >
-              <Database className="h-3.5 w-3.5 text-blue-400" />
-              <span>{isD1Active ? 'Paramètres D1' : '📡 Configurer Cloudflare D1'}</span>
+              <RotateCcw className="h-3.5 w-3.5 text-amber-400" />
+              <span>Réinitialiser mes points</span>
+            </button>
+            <button
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold transition border border-rose-500/30 cursor-pointer active:scale-95"
+              title="Supprimer mon compte pour en créer un nouveau"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-rose-400" />
+              <span>Supprimer mon compte</span>
             </button>
           </div>
         </div>
@@ -464,32 +739,69 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
 
       {/* 2. Quick Action Panels: Geolocation Discovery, Community & Amazon Bonus */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Geo Discovery */}
+        {/* Geo Discovery - Verrouillé sur la vraie localisation de l'appareil */}
         <div className="rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-5 shadow-xl space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
               <Navigation className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-white">Géolocalisation & Lieux</h3>
-              <p className="text-[11px] text-slate-400">Visitez de nouvelles communes pour remporter +75 pts</p>
+              <h3 className="font-black text-sm text-white">Géolocalisation Lieux</h3>
+              <p className="text-[11px] text-slate-400">Enregistrez votre commune réelle pour remporter +75 pts</p>
             </div>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Position Actuelle :</span>
-            <span className="font-black text-white text-sm">📍 {currentStation.name}</span>
-            <span className="text-slate-400 block text-[11px]">
-              {currentStation.latitude.toFixed(3)}°, {currentStation.longitude.toFixed(3)}° • Alt. {currentStation.altitude || 0}m
-            </span>
+          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">Position Actuelle (GPS Réel) :</span>
+              <button
+                onClick={acquireDeviceGps}
+                disabled={isLocatingDevice}
+                className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-bold cursor-pointer"
+                title="Actualiser ma position GPS"
+              >
+                <RefreshCw className={`h-2.5 w-2.5 ${isLocatingDevice ? 'animate-spin' : ''}`} />
+                <span>Actualiser</span>
+              </button>
+            </div>
+            {deviceGpsLocation ? (
+              <>
+                <span className="font-black text-white text-sm block">
+                  📍 {deviceGpsLocation.name} {deviceGpsLocation.department ? `(${deviceGpsLocation.department})` : ''}
+                </span>
+                <span className="text-slate-400 block text-[11px]">
+                  {deviceGpsLocation.latitude.toFixed(3)}°, {deviceGpsLocation.longitude.toFixed(3)}° • Alt. {deviceGpsLocation.altitude || 0}m
+                </span>
+                <span className="text-[10px] text-emerald-400/90 font-medium block">
+                  🔒 Fixé sur votre localisation physique (ne change pas lors des recherches)
+                </span>
+              </>
+            ) : (
+              <div className="py-1">
+                <span className="text-amber-400 text-xs font-semibold block">
+                  {gpsError || 'Recherche de votre commune physique par GPS...'}
+                </span>
+                <button
+                  onClick={acquireDeviceGps}
+                  className="mt-1.5 px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-[11px] font-bold border border-emerald-500/40 cursor-pointer"
+                >
+                  Activer la géolocalisation
+                </button>
+              </div>
+            )}
           </div>
 
           <button
             onClick={handleRegisterLocation}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 text-xs shadow-lg shadow-emerald-600/30 transition cursor-pointer active:scale-95"
+            disabled={!deviceGpsLocation || isLocatingDevice}
+            className={`w-full flex items-center justify-center gap-2 rounded-xl text-white font-bold py-2.5 text-xs shadow-lg transition cursor-pointer active:scale-95 ${
+              deviceGpsLocation 
+                ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30' 
+                : 'bg-slate-800 text-slate-400 cursor-not-allowed'
+            }`}
           >
             <Navigation className="h-3.5 w-3.5" />
-            <span>Enregistrer ce lieu (+75 pts)</span>
+            <span>Enregistrer ma position réelle (+75 pts)</span>
           </button>
         </div>
 
@@ -656,24 +968,15 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-base text-white">Classement National des Chasseurs Météo</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] font-black">
-                  100% Joueurs Réels (Sans Bots)
-                </span>
-                {isD1Active ? (
+                {isD1Active && (
                   <span className="px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
-                    Cloudflare D1 En Direct
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-bold">
-                    Mode Local
+                    En Direct
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400">
-                {isD1Active 
-                  ? 'Synchronisé en continu sur la base SQL Cloudflare D1 mondiale. Seuls les vrais joueurs inscrits apparaissent.' 
-                  : 'Scores des utilisateurs réels sauvegardés. Connectez Cloudflare D1 pour affronter les joueurs en ligne.'}
+                Classement en temps réel des observateurs et passionnés de météorologie.
               </p>
             </div>
           </div>
@@ -913,6 +1216,78 @@ npx wrangler deploy`}
               <div className="text-[11px] text-slate-400 leading-relaxed">
                 💡 Une fois déployé, collez l'URL finale fournie par Wrangler dans le champ ci-dessus. Tout le code prêt à l'emploi est déjà généré dans le dossier <strong>cloudflare-d1/</strong> !
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmation : Réinitialiser ses points */}
+      {isResetConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl border border-amber-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Réinitialiser vos points ?</h3>
+                <p className="text-xs text-slate-400">Cette action remettra votre score à zéro.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800 leading-relaxed">
+              Vos points accumulés, vos lieux enregistrés et vos trophées débloqués seront remis à zéro. Votre pseudo ({profile?.pseudo}) et vos flammes de connexion consécutives seront conservés.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setIsResetConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleResetPoints}
+                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-lg shadow-amber-600/30 transition cursor-pointer"
+              >
+                Confirmer la réinitialisation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmation : Supprimer son compte */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Supprimer votre compte ?</h3>
+                <p className="text-xs text-slate-400">Suppression définitive du profil joueur.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800 leading-relaxed">
+              Votre compte actuel <strong>{profile?.pseudo}</strong>, tous vos points, flammes et badges seront totalement supprimés. Vous pourrez immédiatement créer un tout nouveau profil avec un nouveau pseudo !
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition cursor-pointer"
+              >
+                Supprimer définitivement le compte
+              </button>
             </div>
           </div>
         </div>

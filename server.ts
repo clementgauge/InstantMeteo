@@ -1,0 +1,419 @@
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { createServer as createViteServer } from 'vite';
+
+const app = express();
+const PORT = 3000;
+const DB_FILE = path.join(process.cwd(), 'data', 'meteo_database.json');
+const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
+
+// Middlewares généraux
+app.use(express.json({ limit: '10mb' }));
+
+// Entêtes CORS permissives pour tous les clients
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
+// Initialisation & Persistance de la Base de Données
+interface DatabaseSchema {
+  databaseId: string;
+  databaseName: string;
+  updatedAt: string;
+  players: any[];
+  communityReports: any[];
+  discussionMessages: any[];
+  adminAnnouncement: any | null;
+  bannedUsers: any[];
+}
+
+function ensureDataDir(): void {
+  const dir = path.dirname(DB_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+function getInitialDatabase(): DatabaseSchema {
+  return {
+    databaseId: DATABASE_ID,
+    databaseName: 'meteo-competitive-db',
+    updatedAt: new Date().toISOString(),
+    players: [],
+    communityReports: [],
+    discussionMessages: [],
+    adminAnnouncement: null,
+    bannedUsers: []
+  };
+}
+
+function loadDatabase(): DatabaseSchema {
+  ensureDataDir();
+  try {
+    if (!fs.existsSync(DB_FILE)) {
+      const initial = getInitialDatabase();
+      saveDatabase(initial);
+      return initial;
+    }
+    const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    data.databaseId = DATABASE_ID; // Garantir la synchronisation avec l'ID utilisateur
+    return data;
+  } catch (err) {
+    console.error('Erreur lecture DB:', err);
+    return getInitialDatabase();
+  }
+}
+
+function saveDatabase(data: DatabaseSchema): void {
+  ensureDataDir();
+  try {
+    data.updatedAt = new Date().toISOString();
+    const tempFile = `${DB_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (err) {
+    console.error('Erreur sauvegarde DB:', err);
+  }
+}
+
+// -------------------------------------------------------------
+// ROUTES API BACKEND CENTRALISÉES (Accès multi-plateformes)
+// -------------------------------------------------------------
+
+// 1. Santé et état de la base de données
+app.get('/api/health', (req, res) => {
+  const db = loadDatabase();
+  res.json({
+    status: 'ok',
+    database: 'Cloudflare D1 & Serveur Instant Météo connecté',
+    databaseId: db.databaseId,
+    alive: true,
+    totalPlayers: db.players.length,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 2. Classement TOP mondial des joueurs (Leaderboard)
+app.get('/api/leaderboard', (req, res) => {
+  const db = loadDatabase();
+  const currentPseudo = (req.query.pseudo as string || '').toLowerCase().trim();
+
+  // Filtrer les utilisateurs bannis
+  const bannedPseudos = new Set(
+    (db.bannedUsers || []).map((b: any) => (b.pseudo || '').toLowerCase())
+  );
+
+  const activePlayers = (db.players || []).filter(
+    (p: any) => p && p.pseudo && !bannedPseudos.has(p.pseudo.toLowerCase())
+  );
+
+  // Tri par totalPoints décroissant
+  activePlayers.sort((a: any, b: any) => (b.totalPoints || 0) - (a.totalPoints || 0));
+
+  const ranked = activePlayers.map((player: any, idx: number) => {
+    let badgeTitle = player.badgeTitle || 'Apprenti Météo';
+    if (player.isAdmin) badgeTitle = 'Admin';
+    else if (player.totalPoints >= 3000) badgeTitle = 'Grand Maître Cumulonimbus';
+    else if (player.totalPoints >= 2000) badgeTitle = 'Sentinelle Météorologique';
+    else if (player.totalPoints >= 1000) badgeTitle = 'Chasseur Émérite';
+    else if (player.totalPoints >= 400) badgeTitle = 'Observateur Averti';
+
+    return {
+      rank: idx + 1,
+      id: player.id,
+      pseudo: player.pseudo,
+      points: Number(player.totalPoints) || 0,
+      streakDays: Number(player.streakDays) || 1,
+      locationsCount: Number(player.locationsCount) || 0,
+      badgesCount: Number(player.badgesCount) || 0,
+      badgeTitle,
+      isAdmin: !!player.isAdmin,
+      isCurrentUser: currentPseudo ? player.pseudo.toLowerCase() === currentPseudo : false
+    };
+  });
+
+  res.json({
+    success: true,
+    databaseId: db.databaseId,
+    count: ranked.length,
+    leaderboard: ranked
+  });
+});
+
+// 3. Synchronisation d'un profil joueur (Téléphone <-> Ordinateur)
+app.post('/api/player/sync', (req, res) => {
+  const body = req.body || {};
+  const {
+    id,
+    pseudo,
+    totalPoints = 0,
+    streakDays = 1,
+    multiplier = 1,
+    locationsCount = 0,
+    badgesCount = 0,
+    badgeTitle = 'Apprenti Météo',
+    minutesSpent = 0,
+    unlockedBadges = [],
+    isAdmin = false
+  } = body;
+
+  const cleanPseudo = (pseudo || '').trim();
+  if (!cleanPseudo) {
+    res.status(400).json({ error: 'Pseudo obligatoire manquant' });
+    return;
+  }
+
+  const db = loadDatabase();
+  const normPseudo = cleanPseudo.toLowerCase();
+
+  // Recherche du joueur existant par pseudo ou id
+  let existingIndex = db.players.findIndex(
+    (p: any) => p.pseudo.toLowerCase() === normPseudo || (id && p.id === id)
+  );
+
+  const stableId = id || `usr-${normPseudo.replace(/[^a-z0-9_-]/g, '_')}`;
+
+  if (existingIndex >= 0) {
+    const prev = db.players[existingIndex];
+    db.players[existingIndex] = {
+      ...prev,
+      id: stableId,
+      pseudo: cleanPseudo,
+      // Prendre le score le plus élevé pour éviter tout retour en arrière
+      totalPoints: Math.max(Number(prev.totalPoints) || 0, Number(totalPoints) || 0),
+      streakDays: Math.max(Number(prev.streakDays) || 1, Number(streakDays) || 1),
+      multiplier: Math.max(Number(prev.multiplier) || 1, Number(multiplier) || 1),
+      locationsCount: Math.max(Number(prev.locationsCount) || 0, Number(locationsCount) || 0),
+      badgesCount: Math.max(Number(prev.badgesCount) || 0, Number(badgesCount) || 0),
+      badgeTitle: isAdmin ? 'Admin' : (badgeTitle || prev.badgeTitle || 'Apprenti Météo'),
+      minutesSpent: Math.max(Number(prev.minutesSpent) || 0, Number(minutesSpent) || 0),
+      unlockedBadges: Array.from(new Set([...(prev.unlockedBadges || []), ...(unlockedBadges || [])])),
+      isAdmin: Boolean(prev.isAdmin || isAdmin),
+      lastActive: new Date().toISOString()
+    };
+  } else {
+    db.players.push({
+      id: stableId,
+      pseudo: cleanPseudo,
+      totalPoints: Number(totalPoints) || 0,
+      streakDays: Number(streakDays) || 1,
+      multiplier: Number(multiplier) || 1,
+      locationsCount: Number(locationsCount) || 0,
+      badgesCount: Number(badgesCount) || 0,
+      badgeTitle: isAdmin ? 'Admin' : badgeTitle,
+      minutesSpent: Number(minutesSpent) || 0,
+      unlockedBadges: unlockedBadges || [],
+      isAdmin: Boolean(isAdmin),
+      createdAt: new Date().toISOString(),
+      lastActive: new Date().toISOString()
+    });
+  }
+
+  saveDatabase(db);
+
+  // Calcul du nouveau rang du joueur
+  const sorted = [...db.players].sort((a: any, b: any) => (b.totalPoints || 0) - (a.totalPoints || 0));
+  const rank = sorted.findIndex((p: any) => p.pseudo.toLowerCase() === normPseudo) + 1;
+
+  res.json({
+    success: true,
+    message: `Joueur ${cleanPseudo} synchronisé avec succès sur la base de données`,
+    databaseId: db.databaseId,
+    rank: rank > 0 ? rank : 1,
+    totalPlayers: sorted.length
+  });
+});
+
+// 4. Réinitialisation des points d'un joueur
+app.post('/api/player/reset', (req, res) => {
+  const { pseudo, id } = req.body || {};
+  const normPseudo = (pseudo || '').toLowerCase().trim();
+  if (!normPseudo && !id) {
+    res.status(400).json({ error: 'Pseudo ou ID manquant' });
+    return;
+  }
+
+  const db = loadDatabase();
+  const player = db.players.find((p: any) => (normPseudo && p.pseudo.toLowerCase() === normPseudo) || (id && p.id === id));
+  if (player) {
+    player.totalPoints = 0;
+    player.locationsCount = 0;
+    player.badgesCount = 0;
+    player.unlockedBadges = [];
+    player.lastActive = new Date().toISOString();
+    saveDatabase(db);
+  }
+
+  res.json({ success: true, message: 'Points réinitialisés avec succès' });
+});
+
+// 5. Suppression d'un joueur
+app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
+  const { pseudo, id } = req.body || {};
+  const normPseudo = (pseudo || '').toLowerCase().trim();
+
+  const db = loadDatabase();
+  db.players = db.players.filter((p: any) => {
+    if (normPseudo && p.pseudo.toLowerCase() === normPseudo) return false;
+    if (id && p.id === id) return false;
+    return true;
+  });
+  saveDatabase(db);
+
+  res.json({ success: true, message: 'Compte supprimé de la base de données' });
+});
+
+// 6. Signalements météo collaboratifs du jour
+app.get('/api/reports', (req, res) => {
+  const db = loadDatabase();
+  const today = new Date().toISOString().split('T')[0];
+
+  // Garder uniquement les signalements postés aujourd'hui
+  const activeReports = (db.communityReports || []).filter((r: any) => {
+    try {
+      return r.timestamp && r.timestamp.startsWith(today);
+    } catch {
+      return false;
+    }
+  });
+
+  res.json({
+    success: true,
+    count: activeReports.length,
+    reports: activeReports
+  });
+});
+
+// 7. Publier un signalement météo citoyen
+app.post('/api/reports', (req, res) => {
+  const db = loadDatabase();
+  const report = req.body || {};
+
+  const newReport = {
+    id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    city: report.city || 'Commune',
+    department: report.department || '',
+    latitude: Number(report.latitude) || 48.8,
+    longitude: Number(report.longitude) || 2.3,
+    weatherCode: report.weatherCode || 'sun',
+    weatherLabel: report.weatherLabel || 'Beau temps',
+    emoji: report.emoji || '☀️',
+    temperature: Number(report.temperature) || 20,
+    intensity: report.intensity || 'MODÉRÉE',
+    comment: report.comment || '',
+    reporterPseudo: report.reporterPseudo || 'Anonyme',
+    timestamp: report.timestamp || new Date().toISOString(),
+    confirmations: Number(report.confirmations) || 1
+  };
+
+  db.communityReports = [newReport, ...(db.communityReports || [])].slice(0, 300);
+  saveDatabase(db);
+
+  res.json({
+    success: true,
+    message: 'Signalement enregistré dans la base de données',
+    report: newReport
+  });
+});
+
+// 8. Confirmer un signalement
+app.post('/api/reports/:id/confirm', (req, res) => {
+  const { id } = req.params;
+  const db = loadDatabase();
+  const target = (db.communityReports || []).find((r: any) => r.id === id);
+  if (target) {
+    target.confirmations = (Number(target.confirmations) || 1) + 1;
+    saveDatabase(db);
+    res.json({ success: true, confirmations: target.confirmations });
+  } else {
+    res.status(404).json({ error: 'Signalement non trouvé' });
+  }
+});
+
+// 9. Messages du salon de discussion citoyen
+app.get('/api/discussion/messages', (req, res) => {
+  const db = loadDatabase();
+  const channel = req.query.channel as string;
+  let messages = db.discussionMessages || [];
+  if (channel) {
+    messages = messages.filter((m: any) => m.channelId === channel);
+  }
+  res.json({ success: true, messages });
+});
+
+// 10. Poster un message dans le salon de discussion
+app.post('/api/discussion/messages', (req, res) => {
+  const db = loadDatabase();
+  const msg = req.body || {};
+  if (!msg.content || !msg.author) {
+    res.status(400).json({ error: 'Contenu ou auteur manquant' });
+    return;
+  }
+
+  const newMsg = {
+    id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    channelId: msg.channelId || 'general',
+    author: msg.author,
+    authorBadge: msg.authorBadge || 'Observateur Citoyen',
+    isAdmin: Boolean(msg.isAdmin),
+    timestamp: msg.timestamp || "Aujourd'hui à " + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    content: msg.content,
+    locationTag: msg.locationTag || '',
+    weatherTag: msg.weatherTag || '',
+    reactions: msg.reactions || { thumbsUp: 0, storm: 0, fire: 0, rain: 0, snow: 0 }
+  };
+
+  db.discussionMessages = [...(db.discussionMessages || []), newMsg].slice(-200);
+  saveDatabase(db);
+
+  res.json({ success: true, message: newMsg });
+});
+
+// 11. Réagir à un message de discussion
+app.post('/api/discussion/messages/:id/reaction', (req, res) => {
+  const { id } = req.params;
+  const { reaction } = req.body || {};
+  const db = loadDatabase();
+  const msg = (db.discussionMessages || []).find((m: any) => m.id === id);
+  if (msg && reaction && msg.reactions && msg.reactions[reaction] !== undefined) {
+    msg.reactions[reaction] = (msg.reactions[reaction] || 0) + 1;
+    saveDatabase(db);
+    res.json({ success: true, reactions: msg.reactions });
+  } else {
+    res.status(404).json({ error: 'Message ou réaction non trouvée' });
+  }
+});
+
+// -------------------------------------------------------------
+// DÉMARRAGE DU SERVEUR EXPRESS & MIDDLEWARE VITE
+// -------------------------------------------------------------
+async function startServer() {
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*all', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[Serveur Instant Météo] En écoute sur le port ${PORT} (Database ID: ${DATABASE_ID})`);
+  });
+}
+
+startServer();

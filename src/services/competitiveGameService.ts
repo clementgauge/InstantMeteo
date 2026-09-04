@@ -34,6 +34,23 @@ export interface PlayerProfile {
   amazonBonusesClaimed: number;
   communityReportsCount: number;
   createdAt: string;
+  isAdmin?: boolean;
+}
+
+export interface BannedUser {
+  pseudo: string;
+  bannedAt: string;
+  bannedUntil: string; // ISO string ou 'permanent'
+  durationLabel: string;
+  reason: string;
+}
+
+export interface AdminAnnouncement {
+  title: string;
+  message: string;
+  author: string;
+  createdAt: string;
+  active: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -45,9 +62,105 @@ export interface LeaderboardEntry {
   badgesCount: number;
   isCurrentUser?: boolean;
   badgeTitle: string;
+  isAdmin?: boolean;
 }
 
 const STORAGE_KEY = 'instant_meteo_competitive_profile';
+const BANNED_USERS_KEY = 'instant_meteo_banned_users';
+const ADMIN_ANNOUNCEMENT_KEY = 'instant_meteo_admin_announcement';
+const ADMIN_SECRET_CODE = 'meteoversailles78';
+
+export function verifyAdminCode(candidateCode: string): boolean {
+  if (!candidateCode) return false;
+  return candidateCode.trim().toLowerCase() === ADMIN_SECRET_CODE.toLowerCase();
+}
+
+export function getBannedUsers(): BannedUser[] {
+  try {
+    const raw = localStorage.getItem(BANNED_USERS_KEY);
+    if (!raw) return [];
+    const list: BannedUser[] = JSON.parse(raw);
+    const now = new Date().getTime();
+    // Nettoyer les bans expirés non permanents
+    return list.filter(u => {
+      if (u.bannedUntil === 'permanent') return true;
+      const expireTime = new Date(u.bannedUntil).getTime();
+      return expireTime > now;
+    });
+  } catch {
+    return [];
+  }
+}
+
+export function banUser(pseudo: string, durationHours: number | 'permanent', reason: string): void {
+  try {
+    const list = getBannedUsers().filter(u => u.pseudo.toLowerCase() !== pseudo.toLowerCase());
+    let bannedUntil = 'permanent';
+    let durationLabel = 'Définitif';
+
+    if (durationHours !== 'permanent') {
+      const expire = new Date(Date.now() + durationHours * 3600 * 1000);
+      bannedUntil = expire.toISOString();
+      if (durationHours === 1) durationLabel = '1 heure';
+      else if (durationHours === 24) durationLabel = '24 heures';
+      else if (durationHours === 168) durationLabel = '7 jours';
+      else if (durationHours === 720) durationLabel = '30 jours';
+      else durationLabel = `${durationHours}h`;
+    }
+
+    list.push({
+      pseudo: pseudo.trim(),
+      bannedAt: new Date().toISOString(),
+      bannedUntil,
+      durationLabel,
+      reason: reason.trim() || 'Non respect du règlement du concours météo'
+    });
+
+    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(list));
+    window.dispatchEvent(new CustomEvent('instant_meteo_banned_users_updated', { detail: list }));
+  } catch (err) {
+    console.warn('Erreur bannissement utilisateur:', err);
+  }
+}
+
+export function unbanUser(pseudo: string): void {
+  try {
+    const list = getBannedUsers().filter(u => u.pseudo.toLowerCase() !== pseudo.toLowerCase());
+    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(list));
+    window.dispatchEvent(new CustomEvent('instant_meteo_banned_users_updated', { detail: list }));
+  } catch (err) {
+    console.warn('Erreur débannissement utilisateur:', err);
+  }
+}
+
+export function isUserBanned(pseudo: string): boolean {
+  if (!pseudo) return false;
+  const bannedList = getBannedUsers();
+  return bannedList.some(u => u.pseudo.toLowerCase() === pseudo.toLowerCase());
+}
+
+export function getAdminAnnouncement(): AdminAnnouncement | null {
+  try {
+    const raw = localStorage.getItem(ADMIN_ANNOUNCEMENT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminAnnouncement(announcement: AdminAnnouncement | null): void {
+  try {
+    if (!announcement) {
+      localStorage.removeItem(ADMIN_ANNOUNCEMENT_KEY);
+    } else {
+      localStorage.setItem(ADMIN_ANNOUNCEMENT_KEY, JSON.stringify(announcement));
+    }
+    window.dispatchEvent(new CustomEvent('instant_meteo_admin_announcement_updated', { detail: announcement }));
+  } catch (e) {
+    console.warn('Erreur sauvegarde annonce admin:', e);
+  }
+}
 
 export const WEATHER_BADGES_CATALOG: WeatherBadge[] = [
   { id: 'sun', name: 'Plein Soleil', emoji: '☀️', description: 'Ciel limpide & fort ensoleillement', points: 50, unlocked: false },
@@ -113,6 +226,30 @@ export function initPlayerProfile(pseudo: string): PlayerProfile {
   };
   savePlayerProfile(newProfile);
   return newProfile;
+}
+
+// Réinitialisation des points et de la progression du joueur
+export function resetPlayerPoints(profile: PlayerProfile): PlayerProfile {
+  const updated: PlayerProfile = {
+    ...profile,
+    totalPoints: 0,
+    visitedLocations: [],
+    unlockedWeatherIds: [],
+    amazonBonusesClaimed: 0,
+    communityReportsCount: 0
+  };
+  savePlayerProfile(updated);
+  return updated;
+}
+
+// Suppression complète du compte joueur
+export function deletePlayerProfile(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: null }));
+  } catch (err) {
+    console.warn('Erreur suppression profil joueur:', err);
+  }
 }
 
 // Actualisation quotidienne des flammes de connexion consécutive
@@ -268,22 +405,33 @@ export function getLeaderboard(currentProfile: PlayerProfile | null): Leaderboar
   const allEntries: (Omit<LeaderboardEntry, 'rank'> & { isCurrentUser: boolean })[] = [];
 
   if (currentProfile && currentProfile.pseudo) {
-    const userBadgeCount = currentProfile.unlockedWeatherIds.length;
-    let badgeTitle = 'Apprenti Météo';
-    if (currentProfile.totalPoints >= 3000) badgeTitle = 'Grand Maître Cumulonimbus';
-    else if (currentProfile.totalPoints >= 2000) badgeTitle = 'Sentinelle Météorologique';
-    else if (currentProfile.totalPoints >= 1000) badgeTitle = 'Chasseur Émérite';
-    else if (currentProfile.totalPoints >= 400) badgeTitle = 'Observateur Averti';
+    // Si l'utilisateur est banni, il n'apparaît pas dans le classement du concours
+    if (!isUserBanned(currentProfile.pseudo)) {
+      const userBadgeCount = currentProfile.unlockedWeatherIds.length;
+      let badgeTitle = 'Apprenti Météo';
+      if (currentProfile.isAdmin) {
+        badgeTitle = 'Admin';
+      } else if (currentProfile.totalPoints >= 3000) {
+        badgeTitle = 'Grand Maître Cumulonimbus';
+      } else if (currentProfile.totalPoints >= 2000) {
+        badgeTitle = 'Sentinelle Météorologique';
+      } else if (currentProfile.totalPoints >= 1000) {
+        badgeTitle = 'Chasseur Émérite';
+      } else if (currentProfile.totalPoints >= 400) {
+        badgeTitle = 'Observateur Averti';
+      }
 
-    allEntries.push({
-      pseudo: currentProfile.pseudo,
-      points: currentProfile.totalPoints,
-      streakDays: currentProfile.streakDays,
-      locationsCount: currentProfile.visitedLocations.length,
-      badgesCount: userBadgeCount,
-      isCurrentUser: true,
-      badgeTitle
-    });
+      allEntries.push({
+        pseudo: currentProfile.pseudo,
+        points: currentProfile.totalPoints,
+        streakDays: currentProfile.streakDays,
+        locationsCount: currentProfile.visitedLocations.length,
+        badgesCount: userBadgeCount,
+        isCurrentUser: true,
+        badgeTitle,
+        isAdmin: !!currentProfile.isAdmin
+      });
+    }
   }
 
   // Tri par points décroissants
@@ -293,4 +441,42 @@ export function getLeaderboard(currentProfile: PlayerProfile | null): Leaderboar
     ...item,
     rank: index + 1
   }));
+}
+
+// Fonctions exclusives Admin
+export function adminUpdatePoints(profile: PlayerProfile, newPoints: number): PlayerProfile {
+  const updated: PlayerProfile = {
+    ...profile,
+    totalPoints: Math.max(0, Math.floor(newPoints))
+  };
+  savePlayerProfile(updated);
+  return updated;
+}
+
+export function adminUpdateStreak(profile: PlayerProfile, newStreakDays: number): PlayerProfile {
+  const updated: PlayerProfile = {
+    ...profile,
+    streakDays: Math.max(1, Math.floor(newStreakDays))
+  };
+  savePlayerProfile(updated);
+  return updated;
+}
+
+export function adminUnlockAllBadges(profile: PlayerProfile): PlayerProfile {
+  const allIds = WEATHER_BADGES_CATALOG.map(b => b.id);
+  const updated: PlayerProfile = {
+    ...profile,
+    unlockedWeatherIds: allIds
+  };
+  savePlayerProfile(updated);
+  return updated;
+}
+
+export function adminToggleAdminStatus(profile: PlayerProfile, isAdmin: boolean): PlayerProfile {
+  const updated: PlayerProfile = {
+    ...profile,
+    isAdmin
+  };
+  savePlayerProfile(updated);
+  return updated;
 }

@@ -36,10 +36,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache external APIs (Open-Meteo, Windy, OSM, etc.) in Service Worker to avoid stale weather data
+  // Do not cache external APIs or version.json in Service Worker to ensure instant update detection
   if (
     url.origin !== location.origin ||
     url.pathname.startsWith('/api') ||
+    url.pathname.includes('version.json') ||
     url.hostname.includes('open-meteo.com') ||
     url.hostname.includes('openstreetmap.org') ||
     url.hostname.includes('windy.com')

@@ -300,14 +300,10 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
                   🔄 Réinitialisation Quotidienne (00h)
                 </span>
-                {isD1Configured() ? (
+                {isD1Configured() && (
                   <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
                     Cloudflare D1 Connecté
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-800/80 text-slate-400 border border-slate-700 text-[10px] font-bold">
-                    Mode Local (D1 Prêt)
                   </span>
                 )}
               </div>
@@ -401,7 +397,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
               📍 Aucun signalement pour aujourd'hui
             </p>
             <p className="text-[11px] text-slate-300 mt-1">
-              La carte est 100% participative (sans bots) et se réinitialise chaque jour à 00h. Soyez le premier à signaler le temps observé chez vous !
+              La carte se réinitialise chaque jour à 00h. Soyez le premier à signaler le temps observé chez vous !
             </p>
             <button
               onClick={() => setIsFormOpen(true)}

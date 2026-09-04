@@ -15,7 +15,13 @@ import {
   Layers, 
   Gauge,
   BellRing,
-  Sparkles
+  Sparkles,
+  BarChart3,
+  Navigation,
+  Trophy,
+  MessageSquare,
+  Send,
+  Hash
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
@@ -47,7 +53,7 @@ import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration } 
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio, Trophy } from 'lucide-react';
+import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
@@ -55,10 +61,17 @@ import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
 import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
 import { CompetitiveGamingView } from './views/CompetitiveGamingView';
+import { DiscussionGroupView } from './views/DiscussionGroupView';
+import { PseudoModal } from './components/PseudoModal';
+import { AdminPanelModal } from './components/AdminPanelModal';
+import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
+import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile } from './services/competitiveGameService';
+import { isPageVisible } from './services/displayPreferencesService';
 import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
+import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -100,6 +113,27 @@ function WeatherApp() {
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState<boolean>(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
+  const [isPseudoModalOpen, setIsPseudoModalOpen] = useState<boolean>(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
+  const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      const p = loadPlayerProfile();
+      return !!(p && p.isAdmin);
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleScoreUpdated = () => {
+      const p = loadPlayerProfile();
+      setIsAdmin(!!(p && p.isAdmin));
+    };
+    window.addEventListener('instant_meteo_score_updated', handleScoreUpdated);
+    return () => window.removeEventListener('instant_meteo_score_updated', handleScoreUpdated);
+  }, []);
+
   const [activeRecalibration, setActiveRecalibration] = useState<RecalibrationState | null>(() => getActiveRecalibration());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -138,6 +172,16 @@ function WeatherApp() {
 
   const handleTriggerSecretCode = (code: string): boolean => {
     const cleanCode = code.trim().toLowerCase();
+    // Secret admin code (meteoversailles78)
+    if (verifyAdminCode(cleanCode)) {
+      const p = loadPlayerProfile();
+      if (p) {
+        adminToggleAdminStatus(p, true);
+      }
+      setIsAdmin(true);
+      setIsAdminPanelOpen(true);
+      return true;
+    }
     if (cleanCode === 'noel' || cleanCode === 'christmas') {
       setChristmasEventOverride('noel');
       setAtmosphereEventTrigger((prev) => prev + 1);
@@ -369,13 +413,13 @@ function WeatherApp() {
     { id: 'radar', category: 'MAPS', label: '5. 📡 Radar Précipitations, Feux NASA & Vents', icon: CloudRain, highlight: true },
     { id: 'eightMonths', category: 'LONG', label: '6. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
     { id: 'historicalTrends', category: 'LONG', label: '7. 📈 Évolution depuis 2000 & Temps Réel (1 min)', icon: History, highlight: true },
-    { id: 'idealLocation', category: 'MAPS', label: '8. 🧭 Lieu Idéal & Où Partir', icon: Compass },
-    { id: 'sportsActivities', category: 'MAPS', label: '9. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
-    { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
-    { id: 'weatherArchive', category: 'LONG', label: '11. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
-    { id: 'bulletin', category: 'MEDIUM', label: '12. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
-    { id: 'competitive', category: 'DIRECT', label: '13. 🏆 Défis Compétitifs & Classement', icon: Trophy, highlight: true },
-  ];
+    { id: 'sportsActivities', category: 'MAPS', label: '8. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
+    { id: 'worldDisasters', category: 'MAPS', label: '9. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
+    { id: 'weatherArchive', category: 'LONG', label: '10. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
+    { id: 'bulletin', category: 'MEDIUM', label: '11. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
+    { id: 'competitive', category: 'DIRECT', label: '12. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
+    { id: 'discussionGroup', category: 'DIRECT', label: '13. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
+  ].filter((item) => isPageVisible(item.id));
 
   const genericPageSection = (label: string, icon: any): SidebarSectionItem[] => [
     { id: `page-${activeTab}`, label, icon },
@@ -385,13 +429,13 @@ function WeatherApp() {
 
   const pageSections: SidebarSectionItem[] = activeTab === 'realtime'
     ? [
-        { id: 'realtime-radiography', label: 'Radiographie météo', icon: Sun },
-        { id: 'realtime-certified-precision', label: 'Observatoire de précision', icon: Sliders },
-        { id: 'realtime-forecast-week', label: 'Prévisions jour / semaine', icon: Calendar },
+        { id: 'realtime-radiography', label: 'Radiographie météo & Station', icon: Sun },
+        { id: 'realtime-forecast-week', label: 'Prévisions jour & semaine', icon: Calendar },
         { id: 'realtime-indicators', label: 'Indicateurs & Précision Météorologique', icon: Gauge },
+        { id: 'realtime-precipitation', label: 'Précipitations & Radar Direct', icon: CloudRain },
+        { id: 'realtime-certified-precision', label: 'Observatoire certifié (Expert)', icon: Sliders },
         { id: 'realtime-deep-conditions', label: 'Conditions météorologiques approfondies', icon: Layers },
-        { id: 'realtime-precipitation', label: 'Précipitations', icon: CloudRain },
-        { id: 'realtime-more-forecast', label: 'Autres prévisions', icon: Split },
+        { id: 'realtime-more-forecast', label: 'Accès autres prévisions', icon: Split },
         { id: 'realtime-download', label: "Télécharger l'application", icon: FileText },
       ]
     : activeTab === 'cloudNephology'
@@ -419,8 +463,20 @@ function WeatherApp() {
                       : activeTab === 'weatherArchive'
                         ? genericPageSection('Archives Journalières Météo', Calendar)
                         : activeTab === 'competitive'
-                          ? genericPageSection('Mode Compétitif & Classement', Trophy)
-                          : genericPageSection('Stations & Sommets de France', Map);
+                          ? [
+                              { id: 'competitive-header-hero', label: 'Profil, Points & Flammes', icon: Sparkles },
+                              { id: 'competitive-geo-section', label: 'Géolocalisation Physique Lieux', icon: Navigation },
+                              { id: 'competitive-trophies-section', label: 'Trophées Météo Débloqués', icon: Trophy },
+                              { id: 'competitive-leaderboard-section', label: 'Classement Général Chasseurs', icon: BarChart3 },
+                            ]
+                          : activeTab === 'discussionGroup'
+                            ? [
+                                { id: 'discussion-header-hero', label: 'Observatoire Citoyen & Salon', icon: MessageSquare },
+                                { id: 'discussion-channels-bar', label: 'Salons Thématiques', icon: Hash },
+                                { id: 'discussion-messages-feed', label: 'Fil de Discussion en Direct', icon: MessageSquare },
+                                { id: 'discussion-composer-section', label: 'Poster une Observation', icon: Send },
+                              ]
+                            : genericPageSection('Stations & Sommets de France', Map);
 
   // Quick navigation helper
   const currentNavIndex = navItems.findIndex(item => item.id === activeTab);
@@ -566,6 +622,9 @@ function WeatherApp() {
           onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
           onOpenTutorial={() => setIsTutorialOpen(true)}
           activeAlertCount={activeAlertCount}
+          onOpenPageBlockCustomizer={() => setIsPageBlockCustomizerOpen(true)}
+          onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+          isAdmin={isAdmin}
         />
       </div>
 
@@ -792,7 +851,44 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onNavigateToTab={(tab) => setActiveTab(tab as any)}
+                onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
               />
+            )}
+
+            {activeTab === 'discussionGroup' && (
+              <DiscussionGroupView
+                station={currentStation}
+                seniorMode={seniorMode}
+                onOpenPseudoModal={() => setIsPseudoModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'communityReports' && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+                  <button
+                    onClick={() => setActiveTab('competitive')}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700 cursor-pointer active:scale-95"
+                  >
+                    <ChevronLeft className="h-4 w-4 text-amber-400" />
+                    <span>Retour à l'Arène Compétitive</span>
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('radar')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 text-xs font-bold transition border border-blue-500/40 cursor-pointer"
+                    >
+                      <Radio className="h-3.5 w-3.5 text-blue-400" />
+                      <span>Ouvrir Radar & Pluie</span>
+                    </button>
+                  </div>
+                </div>
+
+                <CommunityWeatherMap
+                  currentStation={currentStation}
+                  seniorMode={seniorMode}
+                />
+              </div>
             )}
           </div>
         )}
@@ -961,6 +1057,27 @@ function WeatherApp() {
       <UpdateNotificationPrompt
         isDirectPage={activeTab === 'realtime'}
         onEnableNotifications={() => setIsNotificationModalOpen(true)}
+        onOpenPseudoModal={() => setIsPseudoModalOpen(true)}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+      />
+
+      {/* Pseudo Creation & Secret Admin Code Modal */}
+      <PseudoModal
+        isOpen={isPseudoModalOpen}
+        onClose={() => setIsPseudoModalOpen(false)}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+      />
+
+      {/* Admin Panel Modal (Restricted to Admins) */}
+      <AdminPanelModal
+        isOpen={isAdminPanelOpen}
+        onClose={() => setIsAdminPanelOpen(false)}
+      />
+
+      {/* Page & Block Customizer Modal */}
+      <PageBlockCustomizerModal
+        isOpen={isPageBlockCustomizerOpen}
+        onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
     </div>
   );
