@@ -300,12 +300,10 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
                   🔄 Réinitialisation Quotidienne (00h)
                 </span>
-                {isD1Configured() && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
-                    Cloudflare D1 Connecté
-                  </span>
-                )}
+                <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-black flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+                  Base Synchronisée
+                </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
                 Chaque utilisateur signale la météo observée en direct dans sa commune. Affichage instantané sur fond de carte OpenStreetMap. Réinitialisé chaque jour.

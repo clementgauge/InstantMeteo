@@ -188,16 +188,16 @@ app.post('/api/player/sync', (req, res) => {
       ...prev,
       id: stableId,
       pseudo: cleanPseudo,
-      // Prendre le score le plus élevé pour éviter tout retour en arrière
-      totalPoints: Math.max(Number(prev.totalPoints) || 0, Number(totalPoints) || 0),
-      streakDays: Math.max(Number(prev.streakDays) || 1, Number(streakDays) || 1),
-      multiplier: Math.max(Number(prev.multiplier) || 1, Number(multiplier) || 1),
-      locationsCount: Math.max(Number(prev.locationsCount) || 0, Number(locationsCount) || 0),
-      badgesCount: Math.max(Number(prev.badgesCount) || 0, Number(badgesCount) || 0),
+      // Mettre à jour avec les points transmis par le client
+      totalPoints: totalPoints !== undefined ? Number(totalPoints) : (Number(prev.totalPoints) || 0),
+      streakDays: streakDays !== undefined ? Number(streakDays) : (Number(prev.streakDays) || 1),
+      multiplier: multiplier !== undefined ? Number(multiplier) : (Number(prev.multiplier) || 1),
+      locationsCount: locationsCount !== undefined ? Number(locationsCount) : (Number(prev.locationsCount) || 0),
+      badgesCount: badgesCount !== undefined ? Number(badgesCount) : (Number(prev.badgesCount) || 0),
       badgeTitle: isAdmin ? 'Admin' : (badgeTitle || prev.badgeTitle || 'Apprenti Météo'),
-      minutesSpent: Math.max(Number(prev.minutesSpent) || 0, Number(minutesSpent) || 0),
+      minutesSpent: minutesSpent !== undefined ? Number(minutesSpent) : (Number(prev.minutesSpent) || 0),
       unlockedBadges: Array.from(new Set([...(prev.unlockedBadges || []), ...(unlockedBadges || [])])),
-      isAdmin: Boolean(prev.isAdmin || isAdmin),
+      isAdmin: Boolean(isAdmin !== undefined ? isAdmin : prev.isAdmin),
       lastActive: new Date().toISOString()
     };
   } else {
@@ -270,6 +270,136 @@ app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
   saveDatabase(db);
 
   res.json({ success: true, message: 'Compte supprimé de la base de données' });
+});
+
+// 5b. Routes Administrateur Centralisées
+app.post('/api/admin/set-points', (req, res) => {
+  const { pseudo, points } = req.body || {};
+  if (!pseudo || points === undefined) {
+    res.status(400).json({ error: 'Pseudo ou points manquants' });
+    return;
+  }
+  const db = loadDatabase();
+  const norm = pseudo.toLowerCase().trim();
+  let player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
+  if (!player) {
+    player = {
+      id: `usr-${norm.replace(/[^a-z0-9_-]/g, '_')}`,
+      pseudo: pseudo.trim(),
+      totalPoints: Number(points),
+      streakDays: 1,
+      multiplier: 1,
+      locationsCount: 0,
+      badgesCount: 0,
+      badgeTitle: 'Apprenti Météo',
+      minutesSpent: 0,
+      unlockedBadges: [],
+      isAdmin: false,
+      createdAt: new Date().toISOString(),
+      lastActive: new Date().toISOString()
+    };
+    db.players.push(player);
+  } else {
+    player.totalPoints = Number(points);
+    player.lastActive = new Date().toISOString();
+  }
+  saveDatabase(db);
+  res.json({ success: true, points: player.totalPoints, pseudo: player.pseudo });
+});
+
+app.post('/api/admin/set-streak', (req, res) => {
+  const { pseudo, streakDays } = req.body || {};
+  if (!pseudo || streakDays === undefined) {
+    res.status(400).json({ error: 'Pseudo ou streakDays manquants' });
+    return;
+  }
+  const db = loadDatabase();
+  const norm = pseudo.toLowerCase().trim();
+  const player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
+  if (player) {
+    player.streakDays = Number(streakDays);
+    player.lastActive = new Date().toISOString();
+    saveDatabase(db);
+  }
+  res.json({ success: true, streakDays: Number(streakDays) });
+});
+
+app.post('/api/admin/unlock-all-badges', (req, res) => {
+  const { pseudo } = req.body || {};
+  if (!pseudo) {
+    res.status(400).json({ error: 'Pseudo manquant' });
+    return;
+  }
+  const db = loadDatabase();
+  const norm = pseudo.toLowerCase().trim();
+  const player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
+  if (player) {
+    const allBadgeIds = ['sun', 'rain', 'storm', 'snow', 'frost', 'fog', 'gale', 'heat', 'altitude', 'night_stars'];
+    player.unlockedBadges = allBadgeIds;
+    player.badgesCount = allBadgeIds.length;
+    saveDatabase(db);
+  }
+  res.json({ success: true });
+});
+
+app.post('/api/admin/ban', (req, res) => {
+  const { pseudo, reason, durationHours } = req.body || {};
+  if (!pseudo) {
+    res.status(400).json({ error: 'Pseudo manquant' });
+    return;
+  }
+  const db = loadDatabase();
+  const norm = pseudo.toLowerCase().trim();
+  db.bannedUsers = (db.bannedUsers || []).filter((b: any) => (b.pseudo || '').toLowerCase() !== norm);
+  
+  let bannedUntil = 'permanent';
+  let durationLabel = 'Définitif';
+  if (durationHours && durationHours !== 'permanent') {
+    const expire = new Date(Date.now() + Number(durationHours) * 3600 * 1000);
+    bannedUntil = expire.toISOString();
+    durationLabel = `${durationHours}h`;
+  }
+
+  db.bannedUsers.push({
+    pseudo: pseudo.trim(),
+    bannedAt: new Date().toISOString(),
+    bannedUntil,
+    durationLabel,
+    reason: reason || 'Non respect des règles'
+  });
+  saveDatabase(db);
+  res.json({ success: true, banned: pseudo });
+});
+
+app.post('/api/admin/unban', (req, res) => {
+  const { pseudo } = req.body || {};
+  if (!pseudo) {
+    res.status(400).json({ error: 'Pseudo manquant' });
+    return;
+  }
+  const db = loadDatabase();
+  const norm = pseudo.toLowerCase().trim();
+  db.bannedUsers = (db.bannedUsers || []).filter((b: any) => (b.pseudo || '').toLowerCase() !== norm);
+  saveDatabase(db);
+  res.json({ success: true, unbanned: pseudo });
+});
+
+app.get('/api/admin/banned', (req, res) => {
+  const db = loadDatabase();
+  res.json({ success: true, bannedUsers: db.bannedUsers || [] });
+});
+
+app.post('/api/admin/announcement', (req, res) => {
+  const announcement = req.body;
+  const db = loadDatabase();
+  db.adminAnnouncement = announcement;
+  saveDatabase(db);
+  res.json({ success: true, announcement: db.adminAnnouncement });
+});
+
+app.get('/api/admin/announcement', (req, res) => {
+  const db = loadDatabase();
+  res.json({ success: true, announcement: db.adminAnnouncement || null });
 });
 
 // 6. Signalements météo collaboratifs du jour
@@ -391,6 +521,41 @@ app.post('/api/discussion/messages/:id/reaction', (req, res) => {
   } else {
     res.status(404).json({ error: 'Message ou réaction non trouvée' });
   }
+});
+
+// 12. Supprimer un message de discussion (Admin & Auteur)
+app.post(['/api/discussion/messages/:id/delete', '/api/discussion/messages/:id/remove'], (req, res) => {
+  const { id } = req.params;
+  const db = loadDatabase();
+  const initialLength = (db.discussionMessages || []).length;
+  db.discussionMessages = (db.discussionMessages || []).filter((m: any) => m.id !== id);
+  saveDatabase(db);
+  res.json({ success: true, deleted: initialLength !== db.discussionMessages.length });
+});
+
+// 13. Statut détaillé et auto-réparation de la base de données
+app.get('/api/database/status', (req, res) => {
+  const db = loadDatabase();
+  res.json({
+    status: 'online',
+    healthy: true,
+    totalPlayers: (db.players || []).length,
+    totalReports: (db.communityReports || []).length,
+    totalMessages: (db.discussionMessages || []).length,
+    totalBanned: (db.bannedUsers || []).length,
+    announcementActive: !!db.adminAnnouncement,
+    updatedAt: db.updatedAt
+  });
+});
+
+app.post('/api/database/repair', (req, res) => {
+  const db = loadDatabase();
+  if (!Array.isArray(db.players)) db.players = [];
+  if (!Array.isArray(db.communityReports)) db.communityReports = [];
+  if (!Array.isArray(db.discussionMessages)) db.discussionMessages = [];
+  if (!Array.isArray(db.bannedUsers)) db.bannedUsers = [];
+  saveDatabase(db);
+  res.json({ success: true, message: 'Base de données vérifiée et réparée avec succès.' });
 });
 
 // -------------------------------------------------------------

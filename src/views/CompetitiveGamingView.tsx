@@ -227,7 +227,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
     const fetchLatest = async () => {
       try {
         const remote = await fetchLeaderboardFromD1(profile);
-        if (isMounted && remote && remote.length > 0) {
+        if (isMounted && remote !== null) {
           setRemoteLeaderboard(remote);
         }
       } catch (err) {
@@ -245,7 +245,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   }, [profile?.pseudo]);
 
   useEffect(() => {
-    if (profile && isD1Configured()) {
+    if (profile) {
       syncWithD1(profile);
     }
   }, [profile?.totalPoints, profile?.pseudo, profile?.streakDays]);
@@ -253,23 +253,18 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   const handleTestD1Connection = async () => {
     setD1Testing(true);
     setD1TestFeedback(null);
-    const res = await testD1Connection(d1UrlInput);
+    const res = await testD1Connection(d1UrlInput.trim() || undefined);
     setD1Testing(false);
     setD1TestFeedback(res);
   };
 
   const handleSaveD1Config = async () => {
     setD1WorkerUrl(d1UrlInput);
-    const configured = d1UrlInput.trim().length > 0;
-    setIsD1Active(configured);
-    if (configured && profile) {
-      syncWithD1(profile);
-      showToast('API Cloudflare D1 connectée avec succès !', 0);
-    } else {
-      setRemoteLeaderboard(null);
-      setD1RankBadge(null);
-      showToast('Mode local activé (Cloudflare D1 désactivé).', 0);
+    setIsD1Active(true);
+    if (profile) {
+      await syncWithD1(profile);
     }
+    showToast('Base de données synchronisée et active !', 0);
     setIsD1ConfigOpen(false);
   };
 
@@ -398,7 +393,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
 
   // Leaderboard data (Cloudflare D1 priority if connected, local fallback otherwise)
   const localLeaderboard = getLeaderboard(profile);
-  const leaderboard = (remoteLeaderboard && remoteLeaderboard.length > 0) ? remoteLeaderboard : localLeaderboard;
+  const leaderboard = remoteLeaderboard !== null ? remoteLeaderboard : localLeaderboard;
   const currentRank = d1RankBadge?.rank || leaderboard.find(l => l.isCurrentUser)?.rank || 1;
   const totalPlayersCount = d1RankBadge?.total || leaderboard.length;
   const multiplierInfo = profile ? getMultiplier(profile.streakDays) : { multiplier: 1, label: 'x1', nextTier: '' };
@@ -522,7 +517,9 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                 {leaderboard.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-6 text-center text-slate-400">
-                      Chargement des joueurs depuis la base de données...
+                      {remoteLeaderboard === null 
+                        ? 'Chargement des joueurs depuis la base de données...' 
+                        : 'Aucun joueur enregistré pour le moment. Créez votre pseudo ci-dessus pour figurer en 1ère place !'}
                     </td>
                   </tr>
                 ) : (
@@ -1139,11 +1136,11 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 <button
                   onClick={handleTestD1Connection}
-                  disabled={d1Testing || !d1UrlInput.trim()}
+                  disabled={d1Testing}
                   className="flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-750 disabled:opacity-50 text-slate-200 font-bold px-4 py-2.5 text-xs transition border border-slate-700 cursor-pointer active:scale-95"
                 >
                   <Wifi className="h-3.5 w-3.5 text-cyan-400" />
-                  <span>{d1Testing ? 'Test en cours...' : 'Tester la connexion'}</span>
+                  <span>{d1Testing ? 'Test en cours...' : (d1UrlInput.trim() ? 'Tester le Worker' : 'Tester la Base Centrale')}</span>
                 </button>
 
                 <button
@@ -1151,23 +1148,22 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                   className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black px-5 py-2.5 text-xs transition shadow-lg shadow-cyan-600/30 cursor-pointer active:scale-95 ml-auto"
                 >
                   <Check className="h-4 w-4" />
-                  <span>Enregistrer & Activer D1</span>
+                  <span>Enregistrer & Synchroniser</span>
                 </button>
 
-                {isD1Active && (
+                {d1UrlInput.trim() && (
                   <button
                     onClick={() => {
                       setD1UrlInput('');
                       setD1WorkerUrl('');
-                      setIsD1Active(false);
-                      setRemoteLeaderboard(null);
-                      setD1RankBadge(null);
+                      setIsD1Active(true);
+                      syncWithD1(profile);
                       setIsD1ConfigOpen(false);
-                      showToast('D1 déconnecté (retour au mode local).', 0);
+                      showToast('Base réinitialisée sur le serveur central.', 0);
                     }}
-                    className="text-[11px] text-slate-400 hover:text-rose-400 transition cursor-pointer px-2"
+                    className="text-[11px] text-slate-400 hover:text-cyan-400 transition cursor-pointer px-2"
                   >
-                    Désactiver D1 (Mode Local)
+                    Réinitialiser sur le serveur central
                   </button>
                 )}
               </div>

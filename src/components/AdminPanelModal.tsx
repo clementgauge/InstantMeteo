@@ -38,7 +38,17 @@ import {
   verifyAdminCode,
   initPlayerProfile
 } from '../services/competitiveGameService';
-import { syncPlayerProfileToD1 } from '../services/cloudflareD1Service';
+import { 
+  syncPlayerProfileToD1,
+  adminSetPointsInD1,
+  adminSetStreakInD1,
+  adminUnlockAllBadgesInD1,
+  adminBanUserInD1,
+  adminUnbanUserInD1,
+  adminSaveAnnouncementInD1,
+  adminGetAnnouncementFromD1,
+  adminGetBannedUsersFromD1
+} from '../services/cloudflareD1Service';
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -140,6 +150,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     const updated = adminUpdatePoints(profile, pts);
     setProfile(updated);
     syncPlayerProfileToD1(updated).catch(() => {});
+    adminSetPointsInD1(profile.pseudo, pts).catch(() => {});
     if (onProfileUpdated) onProfileUpdated(updated);
     showToast(`✅ Points modifiés avec succès : ${pts.toLocaleString()} pts`);
   };
@@ -152,6 +163,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setProfile(updated);
     setNewPointsInput(target.toString());
     syncPlayerProfileToD1(updated).catch(() => {});
+    adminSetPointsInD1(profile.pseudo, target).catch(() => {});
     if (onProfileUpdated) onProfileUpdated(updated);
     showToast(`⚡ +${amount.toLocaleString()} points ajoutés ! (Nouveau total: ${target.toLocaleString()} pts)`);
   };
@@ -165,6 +177,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     const updated = adminUpdateStreak(profile, days);
     setProfile(updated);
     syncPlayerProfileToD1(updated).catch(() => {});
+    adminSetStreakInD1(profile.pseudo, days).catch(() => {});
     if (onProfileUpdated) onProfileUpdated(updated);
     showToast(`🔥 Flammes consécutives mises à jour : ${days} jours`);
   };
@@ -175,6 +188,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     const updated = adminUnlockAllBadges(profile);
     setProfile(updated);
     syncPlayerProfileToD1(updated).catch(() => {});
+    adminUnlockAllBadgesInD1(profile.pseudo).catch(() => {});
     if (onProfileUpdated) onProfileUpdated(updated);
     showToast('🏆 Les 10 trophées météorologiques ont été débloqués instantanément !');
   };
@@ -186,6 +200,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (!cleanPseudo) return;
 
     banUser(cleanPseudo, banDuration, banReasonInput);
+    adminBanUserInD1(cleanPseudo, banDuration, banReasonInput).catch(() => {});
     setBannedList(getBannedUsers());
     setBanPseudoInput('');
     setBanReasonInput('');
@@ -194,6 +209,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   const handleUnban = (pseudo: string) => {
     unbanUser(pseudo);
+    adminUnbanUserInD1(pseudo).catch(() => {});
     setBannedList(getBannedUsers());
     showToast(`✅ L'utilisateur "${pseudo}" a été débanni du concours.`);
   };
@@ -212,12 +228,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     };
 
     setAdminAnnouncement(ann);
+    adminSaveAnnouncementInD1(ann).catch(() => {});
     setActiveAnnouncement(ann);
     showToast('📢 Annonce officielle d\'administrateur diffusée sur tout le site !');
   };
 
   const handleClearAnnouncement = () => {
     setAdminAnnouncement(null);
+    adminSaveAnnouncementInD1(null).catch(() => {});
     setActiveAnnouncement(null);
     setAnnouncementTitle('');
     setAnnouncementMessage('');

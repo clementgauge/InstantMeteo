@@ -75,7 +75,7 @@ export async function fetchRemoteChatMessages(): Promise<ChatMessage[] | null> {
     const res = await fetch('/api/discussion/messages');
     if (!res.ok) return null;
     const data = await res.json();
-    if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+    if (data.success && Array.isArray(data.messages)) {
       saveChatMessages(data.messages);
       return data.messages;
     }
@@ -113,6 +113,11 @@ export function postChatMessage(message: Omit<ChatMessage, 'id' | 'timestamp' | 
 export function deleteChatMessage(id: string): void {
   const all = getChatMessages().filter(m => m.id !== id);
   saveChatMessages(all);
+
+  // Supprimer également sur le serveur central
+  fetch(`/api/discussion/messages/${encodeURIComponent(id)}/delete`, {
+    method: 'POST'
+  }).catch(() => {});
 }
 
 export function addMessageReaction(messageId: string, reactionType: keyof ChatMessage['reactions']): void {
