@@ -65,8 +65,7 @@ import { DiscussionGroupView } from './views/DiscussionGroupView';
 import { PseudoModal } from './components/PseudoModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
-import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile, initPlayerProfile } from './services/competitiveGameService';
-import { syncPlayerProfileToD1 } from './services/cloudflareD1Service';
+import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile } from './services/competitiveGameService';
 import { isPageVisible } from './services/displayPreferencesService';
 import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
@@ -132,13 +131,6 @@ function WeatherApp() {
       setIsAdmin(!!(p && p.isAdmin));
     };
     window.addEventListener('instant_meteo_score_updated', handleScoreUpdated);
-
-    // Auto-synchronisation du profil joueur actif vers la base de données centralisée
-    const existing = loadPlayerProfile();
-    if (existing && existing.pseudo) {
-      syncPlayerProfileToD1(existing).catch(() => {});
-    }
-
     return () => window.removeEventListener('instant_meteo_score_updated', handleScoreUpdated);
   }, []);
 
@@ -182,12 +174,10 @@ function WeatherApp() {
     const cleanCode = code.trim().toLowerCase();
     // Secret admin code (meteoversailles78)
     if (verifyAdminCode(cleanCode)) {
-      let p = loadPlayerProfile();
-      if (!p) {
-        p = initPlayerProfile('Admin Météo');
+      const p = loadPlayerProfile();
+      if (p) {
+        adminToggleAdminStatus(p, true);
       }
-      adminToggleAdminStatus(p, true);
-      syncPlayerProfileToD1(p).catch(() => {});
       setIsAdmin(true);
       setIsAdminPanelOpen(true);
       return true;
