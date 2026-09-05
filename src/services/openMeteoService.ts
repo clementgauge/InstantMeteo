@@ -57,6 +57,7 @@ import {
   calculateExactWindChill,
   calculateReliableFeelsLike
 } from '../utils/bioclimaticCalculations';
+import { getRecalibrationOffsetForStation } from './userObservationService';
 
 export function getWeatherDescription(code: number, isDay: boolean = true): { label: string; icon: string; emoji: string; shortLabel: string } {
   const info = getRichWeatherInfo(code, isDay);
@@ -978,10 +979,12 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide&timezone=auto`;
+    const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,ecmwf_ifs025,icon_seamless,gfs_seamless&forecast_days=1&timezone=auto`;
 
-    const [weatherRes, aqiRes] = await Promise.all([
+    const [weatherRes, aqiRes, multiModelLiveRes] = await Promise.all([
       fetch(weatherUrl),
-      fetch(aqiUrl).catch(() => null)
+      fetch(aqiUrl).catch(() => null),
+      fetch(multiModelLiveUrl).catch(() => null)
     ]);
 
     if (!weatherRes.ok) {
@@ -1421,9 +1424,86 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const curCape = hourlyData.cape?.[currentHourIndexInHourly] ?? 40;
     const curLiftedIndex = hourlyData.lifted_index?.[currentHourIndexInHourly] ?? (curCape > 500 ? -2.0 : 4.0);
 
+    // 11. Multi-Model Real-Time Verification & Reliability Analysis (ECMWF, Météo-France, ICON, GFS)
+    let multiModelRealtime: CurrentWeather['multiModelRealtime'] | undefined;
+    let mfTemp: number | undefined;
+    let ecTemp: number | undefined;
+    let iconTemp: number | undefined;
+    let gfsTemp: number | undefined;
+    let weightedConsensus: number = Math.round(cur.temperature_2m * 10) / 10;
+    let morningInversionText: string | undefined;
+
+    if (multiModelLiveRes && multiModelLiveRes.ok) {
+      try {
+        const mmData = await multiModelLiveRes.json();
+        const mmHourly = mmData?.hourly;
+        if (mmHourly && mmHourly.time && Array.isArray(mmHourly.time)) {
+          let mmIdx = mmHourly.time.findIndex((t: string) => t.startsWith(curHourPrefix));
+          if (mmIdx === -1) mmIdx = Math.min(12, mmHourly.time.length - 1);
+          if (mmIdx >= 0) {
+            mfTemp = mmHourly['temperature_2m_meteofrance_seamless']?.[mmIdx] ?? undefined;
+            ecTemp = mmHourly['temperature_2m_ecmwf_ifs025']?.[mmIdx] ?? undefined;
+            iconTemp = mmHourly['temperature_2m_icon_seamless']?.[mmIdx] ?? undefined;
+            gfsTemp = mmHourly['temperature_2m_gfs_seamless']?.[mmIdx] ?? undefined;
+
+            const validTemps: number[] = [mfTemp, ecTemp, iconTemp, gfsTemp].filter((v): v is number => typeof v === 'number');
+            if (validTemps.length > 0) {
+              const minT = Math.min(...validTemps);
+              const maxT = Math.max(...validTemps);
+              const spread = Number((maxT - minT).toFixed(1));
+
+              // High-resolution Météo-France AROME + ECMWF IFS weighting
+              if (typeof mfTemp === 'number' && typeof ecTemp === 'number') {
+                weightedConsensus = Number(((mfTemp * 0.45) + (ecTemp * 0.35) + ((iconTemp ?? ecTemp) * 0.20)).toFixed(1));
+              } else {
+                weightedConsensus = Number((validTemps.reduce((a, b) => a + b, 0) / validTemps.length).toFixed(1));
+              }
+
+              // Detect morning thermal inversion / radiative gradient
+              const currentHour = nowTime.getHours();
+              if (currentHour >= 5 && currentHour <= 10 && cur.wind_speed_10m < 15 && cur.relative_humidity_2m > 65) {
+                morningInversionText = `Inversion thermique matinale active (${spread}°C d'écart entre modèles). Contrastes marqués entre cuvettes froides et coteaux/villes.`;
+              }
+
+              multiModelRealtime = {
+                meteoFrance: typeof mfTemp === 'number' ? Number(mfTemp.toFixed(1)) : undefined,
+                ecmwf: typeof ecTemp === 'number' ? Number(ecTemp.toFixed(1)) : undefined,
+                icon: typeof iconTemp === 'number' ? Number(iconTemp.toFixed(1)) : undefined,
+                gfs: typeof gfsTemp === 'number' ? Number(gfsTemp.toFixed(1)) : undefined,
+                consensusTemp: weightedConsensus,
+                spreadC: spread,
+                morningInversionEffect: morningInversionText
+              };
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Multi-model realtime parsing skipped:", e);
+      }
+    }
+
+    // 12. Local Ground-Truth Temperature Recalibration (User Observation / Thermometer Offset)
+    const userRecalibOffset = getRecalibrationOffsetForStation(station.id);
+    let finalCurTemp = weightedConsensus;
+    if (userRecalibOffset !== 0) {
+      finalCurTemp = Number((cur.temperature_2m + userRecalibOffset).toFixed(1));
+    } else if (Math.abs(weightedConsensus - cur.temperature_2m) > 0.6) {
+      finalCurTemp = weightedConsensus;
+    } else {
+      finalCurTemp = Math.round(cur.temperature_2m * 10) / 10;
+    }
+
+    const calibratedFeelsLike = calculateReliableFeelsLike(
+      finalCurTemp,
+      cur.relative_humidity_2m,
+      cur.wind_speed_10m,
+      solarRadiationTotal,
+      cur.apparent_temperature
+    );
+
     const currentPartial: CurrentWeather = {
-      temperature: Math.round(cur.temperature_2m * 10) / 10,
-      feelsLike: reliableFeelsLike,
+      temperature: finalCurTemp,
+      feelsLike: calibratedFeelsLike,
       tempMin: Math.round(minTempToday * 10) / 10,
       tempMax: Math.round(maxTempToday * 10) / 10,
       humidity: Math.round(cur.relative_humidity_2m),
@@ -1451,7 +1531,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       solarRadiationWm2: solarRadiationTotal,
       sunshineDurationTodayHours,
       soilMoisturePct: Math.round(Math.min(95, Math.max(15, (curHum * 0.4) + (currentPrecip * 10)))),
-      soilTemperatureC: Number((curTemp - (cur.is_day ? 0.5 : 2.0)).toFixed(1)),
+      soilTemperatureC: Number((finalCurTemp - (cur.is_day ? 0.5 : 2.0)).toFixed(1)),
       visibilityKm: estimatedVisibilityKm,
       barometricTendency3hHpa: baroDelta3h,
       barometricTendencyLabel: baroTendencyLabel,
@@ -1469,7 +1549,10 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       pastHourly,
       dailyPrecipitationDiagnostic: dailyPrecipDiagnostic,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      isDay: cur.is_day === 1
+      isDay: cur.is_day === 1,
+      multiModelRealtime,
+      recalibrationOffsetApplied: userRecalibOffset !== 0 ? userRecalibOffset : undefined,
+      recalibrationSource: userRecalibOffset !== 0 ? "Thermomètre réel local" : undefined
     };
 
     const outdoorIndices = calculateOutdoorIndices(currentPartial, station);

@@ -904,6 +904,22 @@ export interface CurrentWeather {
   nowcasting3h?: NowcastingThreeHourDiagnostic;
   timestamp: string;
   isDay: boolean;
+
+  // Real-time Temperature Reliability & Multi-Model Calibration
+  multiModelRealtime?: {
+    meteoFrance?: number;
+    ecmwf?: number;
+    icon?: number;
+    gfs?: number;
+    consensusTemp?: number;
+    spreadC?: number;
+    morningInversionEffect?: string;
+    microclimateAdjustmentC?: number;
+  };
+  recalibrationOffsetApplied?: number;
+  recalibrationOffset?: number;
+  isUserRecalibrated?: boolean;
+  recalibrationSource?: string;
 }
 
 export interface ThermalTierDefinition {
@@ -1946,16 +1962,31 @@ export interface EnsoAndTeleconnectionsObservatoryData {
 // ==========================================
 
 export interface DayScenarioBranch {
-  name: string; // e.g. "Scénario Dominant (Ensemble ECMWF/ARPEGE)"
-  probabilityPct: number; // e.g. 65%
+  name: string; // e.g. "Scénario 1 : Dominant (Anticyclone et Subsidence)"
+  type?: 'dominant' | 'alt1' | 'alt2';
+  title?: string; // e.g. "Temps sec, doux et lumineux"
+  probabilityPct: number; // e.g. 60%
+  supportingModels?: string[]; // e.g. ["ECMWF IFS", "Météo-France AROME", "UKMO"]
   synopticPattern: string; // e.g. "Dorsale anticyclonique d'altitude"
   tempMin: number;
   tempMax: number;
+  feelsLikeMax?: number;
   precipitationMm: number;
+  precipitationProbPct?: number;
+  precipitationType?: string; // "Ciel sec", "Ondées locales", "Pluie continue", "Orages"
   snowfallCm: number;
   windGustKmh: number;
+  windDirection?: string;
+  sunshineHours?: number;
   isotherm0Meters?: number;
   description: string; // Detailed narrative of atmospheric mechanism
+  synopticTrigger?: string; // Explication physique détaillée du déclencheur synoptique
+  practicalImpacts?: {
+    clothing: string; // Conseil tenue vestimentaire
+    agricultureOutdoor: string; // Arrosage, fenaison, chantiers, jardinage
+    drivingTransit: string; // Conditions de circulation routière, vent latéral
+    homeComfort: string; // Confort intérieur, ventilation nocturne, chauffage
+  };
 }
 
 export interface PreviousYearComparisonRecord {
@@ -2001,8 +2032,50 @@ export interface FourteenDayDayDetail {
     gemVote: string;
   };
   
+  // Real Multi-Model Consensus Data (10 Models)
+  multiModelConsensus?: DayMultiModelConsensus;
+
   // Comparison with N-1 (Same calendar day in previous year)
   previousYearComparison: PreviousYearComparisonRecord;
+}
+
+export interface ModelForecastValue {
+  modelId: string;
+  name: string;
+  shortName?: string;
+  fullName: string;
+  countryOrOrg: string;
+  flag?: string; // e.g. "🇪🇺", "🇫🇷", "🇩🇪", "🇺🇸", "🇨🇦", "🇬🇧", "🇯🇵", "🇨🇳"
+  resolutionKm?: string; // e.g. "9 km", "1.3 km", "6.5 km", "13 km", "25 km"
+  modelCategory?: 'REGIONAL_FINE' | 'GLOBAL_EUROPE' | 'GLOBAL_WORLD';
+  tempMin: number | null;
+  tempMax: number | null;
+  precipitationMm: number | null;
+  weatherCode: number | null;
+  isAvailable: boolean;
+  runStatus?: 'DIRECT_RUN' | 'ENSEMBLE_TREND' | 'REGIONAL_HORIZON_ENDED';
+}
+
+export interface DayMultiModelConsensus {
+  dayIndex: number;
+  date: string;
+  models: Record<string, ModelForecastValue>;
+  availableModelsCount: number;
+  tempMaxMin: number;
+  tempMaxMax: number;
+  tempMaxMedian: number;
+  tempMaxSpread: number;
+  tempMinMin: number;
+  tempMinMax: number;
+  tempMinMedian: number;
+  tempMinSpread: number;
+  precipitationMedian: number;
+  precipitationMax: number;
+  agreementStatus: 'UNANIME' | 'BON_ACCORD' | 'DIVERGENCE_MODEREE' | 'FORTE_DISPERSION';
+  agreementLabel: string;
+  synopticDiscrepancyReason: string;
+  warmestModelName?: string;
+  coldestModelName?: string;
 }
 
 export interface FourteenDayMilestoneSynthesis {
@@ -2025,6 +2098,7 @@ export interface FourteenDayScenariosCollection {
   lastRunTime: string;
   days: FourteenDayDayDetail[];
   milestones: FourteenDayMilestoneSynthesis[];
+  multiModelDays?: DayMultiModelConsensus[];
   overallSummary: string;
 }
 

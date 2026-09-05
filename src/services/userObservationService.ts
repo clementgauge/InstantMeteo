@@ -99,6 +99,39 @@ export function clearActiveRecalibration(): void {
 }
 
 /**
+ * Apply direct temperature calibration (e.g. +2°C from home thermometer)
+ */
+export function applyDirectTemperatureOffset(
+  stationId: string,
+  stationName: string,
+  tempOffset: number,
+  durationHours: number = 12
+): RecalibrationState {
+  const now = new Date();
+  const expires = new Date(now.getTime() + durationHours * 3600 * 1000);
+  const state: RecalibrationState = {
+    isActive: true,
+    stationId,
+    stationName,
+    startTimeIso: now.toISOString(),
+    expiresTimeIso: expires.toISOString(),
+    tempOffset: Math.round(tempOffset * 10) / 10
+  };
+  setActiveRecalibration(state);
+  return state;
+}
+
+export function getRecalibrationOffsetForStation(stationId: string): number {
+  const active = getActiveRecalibration();
+  if (!active || !active.isActive) return 0;
+  // If set for this station or global
+  if (active.stationId === stationId || !active.stationId) {
+    return active.tempOffset || 0;
+  }
+  return 0;
+}
+
+/**
  * Builds structured email text and links to ensure the user receives the report directly in Gmail
  */
 export function buildReportEmailData(

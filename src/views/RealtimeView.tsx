@@ -59,6 +59,7 @@ import { CertifiedPrecisionMeteoHub } from '../components/CertifiedPrecisionMete
 import { FrostAndColdObservatoryCard } from '../components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from '../components/CloudNephologyObservatoryCard';
 import { DayWeatherOverviewCard } from '../components/DayWeatherOverviewCard';
+import { TemperatureReliabilityCalibrationCard } from '../components/TemperatureReliabilityCalibrationCard';
 import { ImouWeatherSecurityBanner } from '../components/ImouWeatherSecurityBanner';
 import { AgricultureWeatherCard } from '../components/AgricultureWeatherCard';
 import { AviationWeatherCard } from '../components/AviationWeatherCard';
@@ -81,6 +82,8 @@ interface RealtimeViewProps {
   onOpenInstallModal?: () => void;
   onToggleFullscreen?: () => void;
   isFullscreen?: boolean;
+  onRecalibrate?: (offset: number) => void;
+  onResetRecalibration?: () => void;
 }
 
 export const RealtimeView: React.FC<RealtimeViewProps> = ({
@@ -98,7 +101,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   onLocateGps,
   onOpenInstallModal,
   onToggleFullscreen,
-  isFullscreen
+  isFullscreen,
+  onRecalibrate,
+  onResetRecalibration
 }) => {
   const [activeProfileTab, setActiveProfileTab] = useState<'classic' | 'agriculture' | 'aviation' | 'pro'>('classic');
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
@@ -277,13 +282,20 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               {/* Massive Current Temperature Display */}
               <div className="relative overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950/95 p-5 sm:p-6 shadow-2xl ring-1 ring-white/10">
                 <div className="flex items-center justify-between gap-2 mb-2 border-b border-slate-800/80 pb-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/40">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/40">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      En direct
                     </span>
-                    En direct
-                  </span>
+                    {weather.isUserRecalibrated && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                        Ajusté {weather.recalibrationOffset && weather.recalibrationOffset > 0 ? `+${weather.recalibrationOffset}` : weather.recalibrationOffset}°C
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                     Température Actuelle
                   </span>
@@ -376,6 +388,15 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Module de Fiabilisation & Calibrage Température Observée en Temps Réel */}
+      <TemperatureReliabilityCalibrationCard
+        station={station}
+        currentWeather={weather}
+        tempUnit={tempUnit}
+        onRecalibrate={onRecalibrate}
+        onReset={onResetRecalibration}
+      />
 
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}

@@ -49,7 +49,7 @@ import { FranceMapView } from './views/FranceMapView';
 import { UserWeatherReportModal } from './components/UserWeatherReportModal';
 import { WeatherNotificationCenterModal } from './components/WeatherNotificationCenterModal';
 import { evaluateLiveThreatAndAlerts } from './services/notificationService';
-import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration } from './services/userObservationService';
+import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration, applyDirectTemperatureOffset } from './services/userObservationService';
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
@@ -389,6 +389,12 @@ function WeatherApp() {
     loadStationData(currentStation, false);
   };
 
+  const handleApplyDirectOffset = (offset: number) => {
+    applyDirectTemperatureOffset(currentStation.id, currentStation.name, offset);
+    setActiveRecalibration(getActiveRecalibration());
+    loadStationData(currentStation, false);
+  };
+
   const handleResetToDefaultStation = () => {
     const defaultStation = FRENCH_STATIONS[0]; // Paris-Montsouris
     clearActiveRecalibration();
@@ -695,6 +701,8 @@ function WeatherApp() {
                 onOpenInstallModal={() => setIsInstallModalOpen(true)}
                 onToggleFullscreen={handleToggleFullscreen}
                 isFullscreen={isFullscreen}
+                onRecalibrate={handleApplyDirectOffset}
+                onResetRecalibration={handleClearRecalibration}
               />
             )}
 
