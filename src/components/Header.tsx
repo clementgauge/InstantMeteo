@@ -21,7 +21,8 @@ import {
   SlidersHorizontal,
   HelpCircle,
   LayoutGrid,
-  Crown
+  Crown,
+  KeyRound
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -67,6 +68,7 @@ interface HeaderProps {
   onOpenPageBlockCustomizer?: () => void;
   onOpenAdminPanel?: () => void;
   isAdmin?: boolean;
+  onTriggerSecretCode?: (code: string) => boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -104,13 +106,38 @@ export const Header: React.FC<HeaderProps> = ({
   activeAlertCount = 0,
   onOpenPageBlockCustomizer,
   onOpenAdminPanel,
-  isAdmin = false
+  isAdmin = false,
+  onTriggerSecretCode
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
   const [headerHeight, setHeaderHeight] = React.useState(0);
+  const [adminCodeInput, setAdminCodeInput] = React.useState('');
+  const [adminCodeFeedback, setAdminCodeFeedback] = React.useState<string | null>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const headerRef = React.useRef<HTMLElement>(null);
+
+  const handleAdminCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = adminCodeInput.trim();
+    if (!clean) return;
+
+    if (onTriggerSecretCode) {
+      const ok = onTriggerSecretCode(clean);
+      if (ok) {
+        setAdminCodeFeedback('👑 Code secret validé avec succès !');
+        setAdminCodeInput('');
+        setTimeout(() => {
+          setAdminCodeFeedback(null);
+          setSettingsSidebarOpen(false);
+          if (onOpenAdminPanel) onOpenAdminPanel();
+        }, 600);
+        return;
+      }
+    }
+    setAdminCodeFeedback('❌ Code secret incorrect.');
+    setTimeout(() => setAdminCodeFeedback(null), 3000);
+  };
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -525,40 +552,87 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
+                {/* Administration & Code Secret dans les Paramètres */}
                 {onOpenAdminPanel && (
-                  <button
-                    id="sidebar-open-admin-panel"
-                    type="button"
-                    onClick={() => {
-                      setSettingsSidebarOpen(false);
-                      onOpenAdminPanel();
-                    }}
-                    className={`group flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition shadow-lg cursor-pointer ${
-                      isAdmin
-                        ? 'border-red-500/50 bg-gradient-to-r from-red-950/60 to-amber-950/40 text-red-200 hover:bg-red-600 hover:text-white shadow-red-950/40'
-                        : 'border-amber-500/40 bg-gradient-to-r from-amber-950/50 via-slate-900 to-slate-950 text-amber-200 hover:border-amber-400 hover:bg-amber-900/40 hover:text-white shadow-amber-950/30'
-                    }`}
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/20 group-hover:bg-red-700">
-                      <Crown className="h-5 w-5 text-amber-400" />
-                    </div>
-                    <div>
-                      <div className="font-black flex items-center gap-1.5">
-                        <span>{isAdmin ? "Panneau d'Administration" : "Accès Administrateur"}</span>
-                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
-                          isAdmin ? 'bg-red-600 text-white' : 'bg-amber-600 text-slate-950'
-                        }`}>
-                          {isAdmin ? 'Admin' : 'Code Secret'}
-                        </span>
+                  isAdmin ? (
+                    <div className="rounded-2xl border border-red-500/50 bg-gradient-to-r from-red-950/60 to-amber-950/40 p-4 shadow-lg shadow-red-950/40 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/20 text-red-300">
+                          <Crown className="h-5 w-5 text-amber-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 font-black text-red-200">
+                            <span>Panneau d'Administration</span>
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-red-600 text-white">
+                              Actif
+                            </span>
+                          </div>
+                          <div className="text-xs text-red-300/80">
+                            Gestion des alertes flash, points &amp; modération
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-white/90">
-                        {isAdmin 
-                          ? "Gestion points, bannissements concours & super-pouvoirs" 
-                          : "Entrer le code secret pour activer les super-pouvoirs"
-                        }
-                      </div>
+                      <button
+                        id="sidebar-open-admin-panel"
+                        type="button"
+                        onClick={() => {
+                          setSettingsSidebarOpen(false);
+                          onOpenAdminPanel();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs transition shadow-md cursor-pointer"
+                      >
+                        <Crown className="h-4 w-4 text-amber-300" />
+                        <span>Ouvrir la Console d'Administration</span>
+                      </button>
                     </div>
-                  </button>
+                  ) : (
+                    <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-slate-900 via-amber-950/20 to-slate-900 p-4 shadow-md space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5 font-black text-amber-200 text-sm">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
+                            <KeyRound className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div>Administration &amp; Code Secret</div>
+                            <div className="text-[11px] font-normal text-slate-400">Accès restreint aux gestionnaires</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <form onSubmit={handleAdminCodeSubmit} className="flex items-center gap-1.5 pt-1">
+                        <input
+                          type="password"
+                          value={adminCodeInput}
+                          onChange={(e) => setAdminCodeInput(e.target.value)}
+                          placeholder="Entrer le code secret..."
+                          className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                        />
+                        <button
+                          type="submit"
+                          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer shrink-0 shadow-sm"
+                        >
+                          Valider
+                        </button>
+                      </form>
+
+                      {adminCodeFeedback && (
+                        <div className="text-[11px] font-bold p-2 rounded-lg bg-amber-950/80 border border-amber-500/50 text-amber-300">
+                          {adminCodeFeedback}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSettingsSidebarOpen(false);
+                          onOpenAdminPanel();
+                        }}
+                        className="w-full text-center text-[11px] text-slate-400 hover:text-amber-300 transition py-0.5 underline underline-offset-2 cursor-pointer"
+                      >
+                        Ouvrir la fenêtre d'authentification
+                      </button>
+                    </div>
+                  )
                 )}
 
                 {onToggleFullscreen && (

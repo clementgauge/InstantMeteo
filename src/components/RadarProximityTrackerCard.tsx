@@ -34,11 +34,11 @@ export const RadarProximityTrackerCard: React.FC<RadarProximityTrackerCardProps>
   seniorMode,
   onOpenGigaRadar
 }) => {
-  if (!radarProximity) return null;
-
   const [activeTab, setActiveTab] = useState<'all' | 'rain' | 'storm'>('all');
   const [distanceBandFilter, setDistanceBandFilter] = useState<'all' | '0-25km' | '25-75km' | '75-150km' | '150-300km'>('all');
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+
+  if (!radarProximity) return null;
 
   const rainEchoes300 = radarProximity.topRainEchoes300km || radarProximity.topRainEchoes100km || [];
   const stormCells300 = radarProximity.topThunderstormCells300km || radarProximity.topThunderstormCells100km || [];

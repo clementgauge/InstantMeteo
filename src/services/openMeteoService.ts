@@ -987,7 +987,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       fetch(multiModelLiveUrl).catch(() => null)
     ]);
 
-    if (!weatherRes.ok) {
+    if (!weatherRes.ok && !(weatherRes.status >= 200 && weatherRes.status < 400)) {
       throw new Error(`Erreur Open-Meteo: ${weatherRes.status}`);
     }
 

@@ -11,6 +11,117 @@ const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
 // Middlewares généraux
 app.use(express.json({ limit: '10mb' }));
 
+// -------------------------------------------------------------
+// PROTECTION ANTI-BOTS, SCRAPERS & SÉCURITÉ DES EN-TÊTES
+// -------------------------------------------------------------
+
+// Signatures de robots malveillants, scrapers agressifs et bibliothèques automatisées
+const MALICIOUS_BOT_PATTERNS = [
+  /bot\b/i,
+  /spider\b/i,
+  /crawl(er)?\b/i,
+  /scrape(r)?\b/i,
+  /python-requests/i,
+  /aiohttp/i,
+  /scrapy/i,
+  /curl\//i,
+  /wget\//i,
+  /httpclient/i,
+  /bytespider/i,
+  /petalbot/i,
+  /ahrefsbot/i,
+  /semrushbot/i,
+  /dotbot/i,
+  /mj12bot/i,
+  /baiduspider/i,
+  /sogou/i,
+  /gptbot/i,
+  /chatgpt-user/i,
+  /claudebot/i,
+  /anthropic-ai/i,
+  /ccbot/i,
+  /diffbot/i,
+  /headlesschrome/i,
+  /phantomjs/i,
+  /selenium/i,
+  /sqlmap/i,
+  /nikto/i
+];
+
+// Rate limiting & liste noire en mémoire
+const ipRequestCounts = new Map<string, { count: number; resetTime: number }>();
+const blacklistedIps = new Set<string>();
+
+// Middleware global anti-bot et renforcement des en-têtes
+app.use((req, res, next) => {
+  // En-têtes de sécurité renforcés contre l'indexation IA et le reniflage
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Robots-Tag', 'noai, noimageai, nofollow');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+
+  // 1. Rejet immédiat si IP piégée par un honeypot
+  if (blacklistedIps.has(clientIp)) {
+    res.status(403).json({ error: 'Accès interdit - Protection anti-bot active', status: 403 });
+    return;
+  }
+
+  // 2. Trappe Honeypot : attrape les scanners automatisés de fichiers sensibles
+  const pathLower = req.path.toLowerCase();
+  if (
+    pathLower.includes('.env') ||
+    pathLower.includes('wp-login') ||
+    pathLower.includes('xmlrpc') ||
+    pathLower.includes('.git') ||
+    pathLower.includes('phpmyadmin') ||
+    pathLower.includes('/admin/config') ||
+    pathLower.includes('/autodiscover')
+  ) {
+    blacklistedIps.add(clientIp);
+    res.status(403).json({ error: 'Scanner automatisé détecté et bloqué', status: 403 });
+    return;
+  }
+
+  // 3. Filtrage anti-bot sur les endpoints d'API
+  if (req.path.startsWith('/api/')) {
+    const userAgent = req.headers['user-agent'] || '';
+
+    // Bloquer les requêtes API sans User-Agent ou issues d'outils automatisés connus
+    if (!userAgent && req.method !== 'OPTIONS') {
+      res.status(403).json({ error: 'User-Agent requis pour interagir avec les APIs', status: 403 });
+      return;
+    }
+
+    const isBadBot = MALICIOUS_BOT_PATTERNS.some((pattern) => pattern.test(userAgent));
+    if (isBadBot) {
+      res.status(403).json({ 
+        error: 'Accès automatisé interdit - Protection anti-bot Instant Météo active',
+        status: 403
+      });
+      return;
+    }
+
+    // 4. Protection contre les inondations (Rate Limiting : max 150 requêtes/minute par IP)
+    const now = Date.now();
+    const rateData = ipRequestCounts.get(clientIp);
+    if (!rateData || now > rateData.resetTime) {
+      ipRequestCounts.set(clientIp, { count: 1, resetTime: now + 60000 });
+    } else {
+      rateData.count++;
+      if (rateData.count > 150) {
+        res.status(429).json({
+          error: 'Limite de requêtes atteinte. Protection anti-scraping active.',
+          status: 429
+        });
+        return;
+      }
+    }
+  }
+
+  next();
+});
+
 // Entêtes CORS permissives pour tous les clients et domaines (ai.studio, workers.dev, localhost, etc.)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

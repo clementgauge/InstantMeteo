@@ -229,7 +229,12 @@ export function calculateThunderstormAnalysis(
     } else if (hasShowerCode) {
       riskPct = Math.min(85, Math.round(45 + (precipProb * 0.35) + (hCape > 800 ? 15 : 0)));
     } else {
-      riskPct = Math.min(95, Math.round((precipProb * 0.6) + (hCape > 1000 ? 30 : hCape > 500 ? 15 : 0)));
+      // Si aucune précipitation ni probabilité significative, la CAPE seule ne déclenche pas d'orage sans forçage
+      if (precipProb < 20 && rainAmount < 0.2) {
+        riskPct = 0;
+      } else {
+        riskPct = Math.min(95, Math.round((precipProb * 0.6) + (hCape > 1000 ? 30 : hCape > 500 ? 15 : 0)));
+      }
     }
 
     if (riskPct > maxRiskIn24h) {
@@ -302,9 +307,13 @@ export function calculateThunderstormAnalysis(
 
   // Global Vigilance Level
   let globalVigilance: ThunderstormConvectiveAnalysis['globalVigilanceLevel'] = 'VERT';
-  if (globalRiskScore >= 75 || currentWeatherCode >= 95) globalVigilance = 'ROUGE';
-  else if (globalRiskScore >= 50) globalVigilance = 'ORANGE';
-  else if (globalRiskScore >= 25) globalVigilance = 'JAUNE';
+  if (currentWeatherCode === 99 || (globalRiskScore >= 85 && baseCape >= 1600 && maxDownburstGustKmh >= 95)) {
+    globalVigilance = 'ROUGE';
+  } else if (currentWeatherCode === 96 || (currentWeatherCode === 95 && (globalRiskScore >= 60 || baseCape >= 1000)) || globalRiskScore >= 60) {
+    globalVigilance = 'ORANGE';
+  } else if (currentWeatherCode >= 95 || globalRiskScore >= 25) {
+    globalVigilance = 'JAUNE';
+  }
 
   // Critical Window description
   let criticalWindowStr = "Aucune fenêtre orageuse critique identifiée";

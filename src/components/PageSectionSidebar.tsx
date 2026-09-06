@@ -126,10 +126,6 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileViewMode, setMobileViewMode] = useState<'sections' | 'pages'>('sections');
 
-  // Christmas secret code
-  const [secretCodeInput, setSecretCodeInput] = useState('');
-  const [secretCodeFeedback, setSecretCodeFeedback] = useState<string | null>(null);
-
   const scrollingToRef = useRef<string | null>(null);
   const unlockTimerRef = useRef<number | null>(null);
 
@@ -238,28 +234,6 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
 
     // Close mobile drawer on navigation
     setIsMobileOpen(false);
-  };
-
-  const handleSecretCodeSubmit = (e?: React.FormEvent, directCode?: string) => {
-    if (e) e.preventDefault();
-    const cleanCode = (directCode || secretCodeInput).trim().toLowerCase();
-    if (!cleanCode) return;
-
-    if (onTriggerSecretCode) {
-      const success = onTriggerSecretCode(cleanCode);
-      if (success) {
-        if (cleanCode === 'noel' || cleanCode === 'christmas') {
-          setSecretCodeFeedback('✨ Code accepté avec succès !');
-        } else {
-          setSecretCodeFeedback('✅ Réinitialisation effectuée.');
-        }
-        setTimeout(() => setSecretCodeFeedback(null), 3000);
-      } else {
-        setSecretCodeFeedback(`❌ Code incorrect.`);
-        setTimeout(() => setSecretCodeFeedback(null), 2500);
-      }
-    }
-    setSecretCodeInput('');
   };
 
   const handleSelectPage = (tabId: string) => {
@@ -521,56 +495,6 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 <span className="text-xs font-semibold">Atmosphère &amp; Thème</span>
               </button>
             )}
-          </div>
-
-          {/* Secret Code Box in Mobile Drawer */}
-          <div className="pt-2">
-            <div className="p-2.5 rounded-2xl bg-blue-950/60 border border-blue-400/30 space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold text-white">
-                <span className="flex items-center gap-1 text-amber-300">
-                  <KeyRound className="h-3 w-3 text-amber-400" />
-                  Code secret
-                </span>
-                {isChristmasActive && (
-                  <span className="text-[9px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded-md font-black border border-amber-400/40">
-                    Actif ✨
-                  </span>
-                )}
-              </div>
-
-              <form onSubmit={handleSecretCodeSubmit} className="flex items-center gap-1">
-                <input
-                  type="text"
-                  value={secretCodeInput}
-                  onChange={(e) => setSecretCodeInput(e.target.value)}
-                  placeholder="Entrez un code..."
-                  className="flex-1 min-w-0 px-2 py-1 text-[10px] rounded-lg bg-blue-900/60 border border-blue-400/40 text-white placeholder-blue-300/60 focus:outline-none focus:border-amber-400"
-                />
-                <button
-                  type="submit"
-                  className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] transition cursor-pointer shrink-0"
-                >
-                  OK
-                </button>
-              </form>
-
-              {isChristmasActive && (
-                <button
-                  type="button"
-                  onClick={() => handleSecretCodeSubmit(undefined, 'clear')}
-                  className="w-full flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-[10px] font-bold transition cursor-pointer"
-                >
-                  <X className="h-3 w-3" />
-                  <span>Réinitialiser</span>
-                </button>
-              )}
-
-              {secretCodeFeedback && (
-                <div className="text-[9px] font-bold text-amber-300 bg-amber-950/70 p-1.5 rounded border border-amber-500/50">
-                  {secretCodeFeedback}
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -843,54 +767,6 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* Secret Code Box */}
-                  <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-200">
-                      <span className="flex items-center gap-1 text-amber-300">
-                        <KeyRound className="h-3 w-3 text-amber-400" />
-                        Code secret
-                      </span>
-                      {isChristmasActive && (
-                        <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">
-                          Actif ✨
-                        </span>
-                      )}
-                    </div>
-
-                    <form onSubmit={handleSecretCodeSubmit} className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        value={secretCodeInput}
-                        onChange={(e) => setSecretCodeInput(e.target.value)}
-                        placeholder="Entrez un code..."
-                        className="flex-1 min-w-0 px-2 py-0.5 text-[10px] rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-                      />
-                      <button
-                        type="submit"
-                        className="px-2 py-0.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] transition cursor-pointer shrink-0"
-                      >
-                        OK
-                      </button>
-                    </form>
-
-                    {isChristmasActive && (
-                      <button
-                        type="button"
-                        onClick={() => handleSecretCodeSubmit(undefined, 'clear')}
-                        className="w-full flex items-center justify-center gap-1 py-0.5 px-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-[9px] font-bold transition cursor-pointer"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                        <span>Réinitialiser</span>
-                      </button>
-                    )}
-
-                    {secretCodeFeedback && (
-                      <div className="text-[9px] font-bold text-amber-300 bg-amber-950/60 p-1 rounded border border-amber-500/40">
-                        {secretCodeFeedback}
-                      </div>
-                    )}
-                  </div>
-
                   {/* Station badge */}
                   {currentStation && (
                     <div className="flex items-center justify-between p-1.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[10px]">

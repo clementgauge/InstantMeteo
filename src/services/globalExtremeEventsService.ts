@@ -91,7 +91,7 @@ export async function fetchLiveGlobalCitiesWeather(): Promise<GlobalCityWeather[
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
+    if (!res.ok && !(res.status >= 200 && res.status < 400)) {
       throw new Error(`Open-Meteo returned status ${res.status}`);
     }
 

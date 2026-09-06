@@ -71,6 +71,16 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
   const [selectedWeatherTag, setSelectedWeatherTag] = useState<string>('');
   const [includeLocation, setIncludeLocation] = useState<boolean>(true);
 
+  // Moderation modal states
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [authorToBan, setAuthorToBan] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   const refreshMessages = () => {
     setMessages(getChatMessages());
     setProfile(loadPlayerProfile());
@@ -137,16 +147,15 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
   };
 
   const handleDeleteMessage = (messageId: string) => {
-    if (confirm('Supprimer ce message du groupe de discussion ?')) {
-      deleteChatMessage(messageId);
-    }
+    deleteChatMessage(messageId);
+    setMessageToDelete(null);
+    showToast('Message supprimé.');
   };
 
   const handleQuickBan = (author: string) => {
-    if (confirm(`Bannir l'utilisateur "${author}" du concours et du groupe pendant 24h ?`)) {
-      banUser(author, 24, 'Modération via salon de discussion');
-      alert(`Utilisateur "${author}" banni pendant 24h.`);
-    }
+    banUser(author, 24, 'Modération via salon de discussion');
+    setAuthorToBan(null);
+    showToast(`Utilisateur "${author}" banni pendant 24h.`);
   };
 
   return (
@@ -312,7 +321,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                       <div className="flex items-center gap-1 ml-2">
                         <button
                           type="button"
-                          onClick={() => handleDeleteMessage(msg.id)}
+                          onClick={() => setMessageToDelete(msg.id)}
                           title="Supprimer ce message (Admin)"
                           className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
                         >
@@ -322,7 +331,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                         {!msg.isAdmin && (
                           <button
                             type="button"
-                            onClick={() => handleQuickBan(msg.author)}
+                            onClick={() => setAuthorToBan(msg.author)}
                             title="Bannir cet auteur (Admin)"
                             className="p-1 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
                           >
@@ -452,6 +461,88 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
             </div>
           </div>
         </form>
+      )}
+
+      {/* Confirmation Dialog : Supprimer un message */}
+      {messageToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-sm rounded-3xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-white">Supprimer ce message ?</h4>
+                <p className="text-xs text-slate-400">Action immédiate dans le salon.</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">
+              Voulez-vous vraiment retirer définitivement ce message du salon de discussion ?
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setMessageToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteMessage(messageToDelete)}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition cursor-pointer"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog : Bannir un utilisateur */}
+      {authorToBan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-sm rounded-3xl border border-red-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/20 text-red-400">
+                <UserX className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-white">Bannir {authorToBan} ?</h4>
+                <p className="text-xs text-red-300 font-semibold">Exclusion temporaire de 24h</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-300">
+              L'utilisateur <strong>« {authorToBan} »</strong> sera exclu de l'accès au salon de discussion et aux concours pendant 24 heures.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setAuthorToBan(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickBan(authorToBan)}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition cursor-pointer"
+              >
+                Confirmer le ban
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-24 right-4 sm:right-8 z-50 animate-in slide-in-from-bottom duration-200">
+          <div className="px-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs font-bold shadow-2xl flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+            <span>{toastMessage}</span>
+          </div>
+        </div>
       )}
 
     </div>

@@ -290,10 +290,10 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
         setAdminUserToDelete(null);
         window.dispatchEvent(new CustomEvent('instant_meteo_score_updated'));
       } else {
-        alert(res.message || 'Erreur lors de la suppression.');
+        showToast(res.message || 'Erreur lors de la suppression.', 0);
       }
     } catch (e: any) {
-      alert(e?.message || 'Erreur lors de la suppression.');
+      showToast(e?.message || 'Erreur lors de la suppression.', 0);
     } finally {
       setAdminDeletingPseudo(null);
     }
@@ -657,7 +657,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                     title="Accès Administrateur / Code Secret"
                   >
                     <Crown className="h-3 w-3 text-amber-400" />
-                    <span>{profile.isAdmin ? 'Panneau Admin' : 'Code Secret Admin'}</span>
+                    <span>{profile?.isAdmin ? 'Panneau Admin' : 'Code Secret Admin'}</span>
                   </button>
                 )}
               </div>

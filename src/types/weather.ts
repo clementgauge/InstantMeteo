@@ -2019,6 +2019,16 @@ export interface FourteenDayDayDetail {
   divergenceSummary: string; // Explanation of what models agree / disagree on
   modelConsensusScorePct: number; // e.g. 92% at J+1 down to 42% at J+14
   
+  // Honest Uncertainty & Scientific Transparency (Added fields)
+  uncertaintyMarginC: number; // e.g. ±0.8°C at J+1, ±2.5°C at J+5, ±5.5°C at J+12
+  confidenceGrade: 'EXCELLENTE' | 'BONNE' | 'MOYENNE' | 'FAIBLE_SPÉCULATIVE';
+  confidenceGradeLabel: string; // e.g. "Fiabilité Haute • Déterministe", "Tendance Probable", etc.
+  whatIsCertain: string; // Ce qui est scientifiquement acquis pour cette date
+  whatIsUncertain: string; // Ce qui reste incertain / le piège météo
+  synopticPivot: string; // L'élément clé qui fera basculer vers un scénario plutôt qu'un autre
+  probableTxRange: { min: number; max: number }; // Fourchette réaliste de Tx
+  probableTnRange: { min: number; max: number }; // Fourchette réaliste de Tn
+  
   dominantScenario: DayScenarioBranch;
   alternativeScenario1: DayScenarioBranch;
   alternativeScenario2?: DayScenarioBranch;

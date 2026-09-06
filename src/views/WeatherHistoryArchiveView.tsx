@@ -149,7 +149,7 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
       const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${targetDate}&end_date=${targetDate}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum,snowfall_sum,wind_speed_10m_max,wind_gusts_10m_max,shortwave_radiation_sum,weather_code&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto`;
 
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`Erreur API Archive Météo (${res.status})`);
+      if (!res.ok && !(res.status >= 200 && res.status < 400)) throw new Error(`Erreur API Archive Météo (${res.status})`);
       const data = await res.json();
 
       if (!data.daily || !data.daily.temperature_2m_max || data.daily.temperature_2m_max.length === 0) {

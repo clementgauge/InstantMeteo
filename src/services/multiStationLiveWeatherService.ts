@@ -68,7 +68,7 @@ export async function fetchLiveWeatherForStations(
           const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&timezone=auto`;
 
           const res = await fetch(url);
-          if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
+          if (!res.ok && !(res.status >= 200 && res.status < 400)) throw new Error(`Open-Meteo error: ${res.status}`);
 
           const rawData = await res.json();
           const items = Array.isArray(rawData) ? rawData : [rawData];

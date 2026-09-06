@@ -562,6 +562,49 @@ export function generateFourteenDayScenarios(
       synopticDiscrepancyReason: synopticReason
     };
 
+    // Scientific Honesty & Realistic Meteorological Uncertainty Modeling
+    const uncertaintyMarginC = d === 0 ? 0.5 : d <= 2 ? 0.9 : d <= 4 ? 1.5 : d <= 7 ? 2.4 : d <= 10 ? 3.8 : 5.5;
+    const confidenceGrade: FourteenDayDayDetail['confidenceGrade'] = 
+      d <= 3 ? 'EXCELLENTE' : d <= 7 ? 'BONNE' : d <= 10 ? 'MOYENNE' : 'FAIBLE_SPÉCULATIVE';
+    const confidenceGradeLabel = 
+      d <= 3 ? 'Fiabilité Très Haute (Prévision Déterministe)' :
+      d <= 7 ? 'Fiabilité Bonne (Tendance Globale Probable)' :
+      d <= 10 ? 'Fiabilité Moyenne (Bifurcation de Scénarios)' :
+      'Fiabilité Faible (Projection Ensembliste Spéculative)';
+
+    const whatIsCertain = d <= 3
+      ? `Acquis à plus de 90% : La masse d'air dominante et l'évolution globale des pressions sont consolidées par AROME et ECMWF. Les températures maximales (${tMaxDom}°C) ne s'écarteront pas de plus de 1°C.`
+      : d <= 7
+      ? `Acquis à 75% : La tendance synoptique de fond (maintien des hauts géopotentiels ou transit d'un flux atlantique). Pas de rupture thermique brutale imprévue.`
+      : d <= 10
+      ? `Acquis à 50% : La zone géographique générale des anomalies de géopotentiel (dorsale ou dépression). Absence de signal d'épisode extrême hors norme.`
+      : `Acquis à 30% : Seule l'orientation statistique moyenne du jet-stream est modélisée. Tout détail local relève de l'approximation climatologique.`;
+
+    const whatIsUncertain = d <= 3
+      ? `Incertitudes minimes : Présence éventuelle de grisailles ou brumes matinales locales retardant la hausse du thermomètre de 1 à 2 heures.`
+      : d <= 7
+      ? `Incertitudes ciblées : Vitesse de progression des fronts ondulants (marge d'erreur de 6h à 12h) et localisation précise des ondées orageuses.`
+      : d <= 10
+      ? `Divergence critique : Trajectoire fine des dépressions d'altitude. Un décalage de 300 km peut transformer une journée ensoleillée en journée pluvieuse.`
+      : `Incertitude maximale (chaos ensembliste) : La dispersion des 51 scénarios ECMWF s'élargit fortement (écart thermique possible de plus de 6°C).`;
+
+    const synopticPivot = d <= 3
+      ? "Verrou synoptique : Positionnement stable du centre d'action anticyclonique européen."
+      : d <= 7
+      ? "Point de bascule : Résistance de la dorsale subtropicale face aux poussées dépressionnaires britanniques."
+      : d <= 10
+      ? "Point de bascule : Éventuel décrochage d'une goutte froide 500 hPa vers le Sud ou régénération anticyclonique."
+      : "Moteur synoptique : Régime de circulation générale en Europe (Oscillation Nord-Atlantique NAO & Blocage Scandinave).";
+
+    const probableTxRange = {
+      min: Number((tMaxDom - uncertaintyMarginC).toFixed(1)),
+      max: Number((tMaxDom + uncertaintyMarginC).toFixed(1))
+    };
+    const probableTnRange = {
+      min: Number((tMinDom - uncertaintyMarginC * 0.6).toFixed(1)),
+      max: Number((tMinDom + uncertaintyMarginC * 0.6).toFixed(1))
+    };
+
     days.push({
       dayIndex: d,
       date: dateStr,
@@ -572,6 +615,14 @@ export function generateFourteenDayScenarios(
       divergenceLevelLabel,
       divergenceSummary,
       modelConsensusScorePct: consensusScore,
+      uncertaintyMarginC,
+      confidenceGrade,
+      confidenceGradeLabel,
+      whatIsCertain,
+      whatIsUncertain,
+      synopticPivot,
+      probableTxRange,
+      probableTnRange,
       dominantScenario,
       alternativeScenario1,
       alternativeScenario2,
@@ -690,7 +741,7 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
 
   try {
     const res = await fetch(url);
-    if (!res.ok) {
+    if (!res.ok && !(res.status >= 200 && res.status < 400)) {
       throw new Error(`Erreur API Multi-Modèles: ${res.status}`);
     }
     const apiData = await res.json();
@@ -1065,8 +1116,18 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
         supportingModels: supportingAlt2.length > 0 ? supportingAlt2 : [`${highestReal.name} (${highestReal.tempMax}°C)`]
       } : undefined;
 
+      const margin = Math.max(day.uncertaintyMarginC, Number((maxSpread / 2).toFixed(1)));
       return {
         ...day,
+        uncertaintyMarginC: margin,
+        probableTxRange: {
+          min: Number((medMax - margin).toFixed(1)),
+          max: Number((medMax + margin).toFixed(1))
+        },
+        probableTnRange: {
+          min: Number((medMin - margin * 0.6).toFixed(1)),
+          max: Number((medMin + margin * 0.6).toFixed(1))
+        },
         dominantScenario: updatedDominant,
         alternativeScenario1: updatedAlt1,
         alternativeScenario2: updatedAlt2,

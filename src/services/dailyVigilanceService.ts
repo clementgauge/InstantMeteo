@@ -638,13 +638,29 @@ export function computeDayVigilanceAlerts(
   const maxCape = hoursToUse.reduce((max, h) => Math.max(max, h.convectiveCape || 0), 0);
   const minLifted = hoursToUse.reduce((min, h) => Math.min(min, h.liftedIndex ?? 10), 10);
   const isStormCode = [95, 96, 99].includes(day.weatherCode) || hoursToUse.some(h => [95, 96, 99].includes(h.weatherCode));
-  const stormProb = Math.max(
-    ...hoursToUse.map(h => h.thunderstormProbability || 0),
-    isStormCode ? 70 : (maxCape > 500 && rainProb > 40 ? 55 : 0)
-  );
   const maxGustDuringStorm = hoursToUse.reduce((max, h) => Math.max(max, h.windGust || 0), day.windGustMax || 0);
 
-  if (isStormCode || maxCape >= 400 || (minLifted <= -1 && rainProb >= 35) || stormProb >= 30) {
+  // RÈGLE MÉTÉOROLOGIQUE FONDAMENTALE :
+  // Une valeur de CAPE élevée en atmosphère anticyclonique sèche/bloquée sous une inversion (couvercle de CIN)
+  // ne constitue PAS un orage en cours ni prévu (énergie potentielle latente non déclenchée).
+  // Pour qu'il y ait vigilance orage (Météo-France / Keraunos), il FAUT un forçage / déclencheur convectif actif :
+  // code météo orageux (95, 96, 99) OU précipitation convective modélisée (rainSum >= 0.5 mm ou maxHourlyRain >= 0.4 mm/h avec proba >= 30%)
+  const hasConvectiveTrigger = isStormCode || (
+    (rainSum >= 0.5 || maxHourlyRain >= 0.4) && 
+    rainProb >= 30 && 
+    (maxCape >= 450 || minLifted <= -1)
+  );
+
+  const stormProb = isStormCode
+    ? Math.max(70, ...hoursToUse.map(h => h.thunderstormProbability || 0))
+    : (hasConvectiveTrigger
+        ? Math.max(
+            ...hoursToUse.map(h => h.thunderstormProbability || 0),
+            Math.min(90, Math.round(rainProb * 0.7 + (maxCape > 1000 ? 25 : 10)))
+          )
+        : 0);
+
+  if (hasConvectiveTrigger && (isStormCode || stormProb >= 35 || (maxCape >= 600 && rainSum >= 1.5))) {
     let level: VigilanceLevel = 'JAUNE';
     let title = "Vigilance Orages";
     let message = "Développement d'ondées orageuses localisées avec activité électrique, averses et brèves rafales.";
@@ -656,7 +672,16 @@ export function computeDayVigilanceAlerts(
       "Rafales de vent convectives localisées sous les cellules."
     ];
 
-    if (day.weatherCode === 99 || maxCape >= 1800 || (maxCape >= 1100 && maxGustDuringStorm >= 90)) {
+    // VIGILANCE ROUGE ORAGES : Événement paroxystique exceptionnel (Météo-France / Keraunos Niveau 4/4).
+    // Nécessite impérativement un code orageux sévère ET de violentes rafales ET de fortes pluies convectives ET une CAPE extrême.
+    const isExtremeSupercellOutbreak = (
+      (day.weatherCode === 99 || hoursToUse.some(h => h.weatherCode === 99)) &&
+      maxCape >= 1500 &&
+      (maxGustDuringStorm >= 95 || maxHourlyRain >= 15 || rainSum >= 20)
+    );
+    const isCatastrophicDerecho = isStormCode && maxCape >= 2000 && maxGustDuringStorm >= 105 && (rainSum >= 20 || maxHourlyRain >= 12);
+
+    if (isExtremeSupercellOutbreak || isCatastrophicDerecho) {
       level = 'ROUGE';
       title = "Alerte Rouge Orages Extrêmes & Risque Destructeur";
       message = `Orages supercellulaires violents très probables. Risque élevé de gros grêlons (>3 cm), foudroiement intense et rafales de vent dévastatrices (jusqu'à ${Math.max(95, maxGustDuringStorm)} km/h).`;
@@ -667,7 +692,11 @@ export function computeDayVigilanceAlerts(
         "Chutes d'arbres et de branches rompues sur les voies.",
         "Coupures d'électricité et perturbations massives des réseaux ferroviaires et routiers."
       ];
-    } else if (day.weatherCode === 96 || maxCape >= 850 || minLifted <= -3 || (maxGustDuringStorm >= 75 && stormProb >= 50)) {
+    } else if (
+      day.weatherCode === 96 || 
+      (isStormCode && (maxCape >= 950 || maxGustDuringStorm >= 80 || minLifted <= -3)) || 
+      (stormProb >= 60 && maxCape >= 1200 && maxGustDuringStorm >= 75 && (rainSum >= 5 || maxHourlyRain >= 5))
+    ) {
       level = 'ORANGE';
       title = "Vigilance Orange Orages Violents & Grêle";
       message = `Orages organisés et potentiellement violents. Fortes intensités pluvieuses en peu de temps, chutes de grêle (1 à 3 cm) et rafales de vent soutenues (${Math.max(70, maxGustDuringStorm)} km/h).`;
@@ -686,8 +715,8 @@ export function computeDayVigilanceAlerts(
       durationHours, isOngoing 
     } = computeDualTimingWindow(
       hoursToUse,
-      h => [95, 96, 99].includes(h.weatherCode) || (h.convectiveCape || 0) >= 350 || (h.thunderstormProbability || 0) >= 30,
-      h => (h.convectiveCape || 0) + (h.rainMm || 0) * 40,
+      h => [95, 96, 99].includes(h.weatherCode) || ((h.convectiveCape || 0) >= 400 && (h.rainMm || 0) >= 0.2) || (h.thunderstormProbability || 0) >= 40,
+      h => (h.convectiveCape || 0) * ((h.rainMm || 0) > 0 ? 1 : 0.2) + (h.rainMm || 0) * 40,
       isToday,
       currentHourNum,
       "13h00", "17h00", "22h00"
@@ -753,9 +782,9 @@ export function computeDayVigilanceAlerts(
       "Vigilance lors des activités de loisirs en extérieur et en milieu boisé."
     ];
 
-    if (actualMaxGust >= 115 || (actualMaxGust >= 100 && maxCape >= 800)) {
+    if (actualMaxGust >= 125 || (actualMaxGust >= 110 && isStormCode && maxCape >= 1200)) {
       level = 'ROUGE';
-      title = actualMaxGust >= 125 || maxCape >= 1200 ? "Alerte Rouge Tempête / Rafales Destructrices & Risque Tornadique" : "Alerte Rouge Tempête Violente";
+      title = (actualMaxGust >= 135 || (isStormCode && maxCape >= 1500)) ? "Alerte Rouge Tempête / Rafales Destructrices & Risque Tornadique" : "Alerte Rouge Tempête Violente";
       message = `Phénomène venteux majeur avec rafales dépassant ${actualMaxGust} km/h. Chutes d'arbres, toitures arrachées et coupures de courant généralisées très probables.`;
       triggerCriteria = `Rafales d'échelle tempétueuse destructrice ≥ ${actualMaxGust} km/h`;
       dangerDesc = "Conditions de tempête majeure avec risque élevé d'accidents corporels dus aux chutes d'arbres et débris volants.";

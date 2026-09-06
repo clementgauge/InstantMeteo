@@ -122,7 +122,6 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
 
     const cooldownRemaining = checkRateLimit();
     if (cooldownRemaining > 0) {
-      alert(`Veuillez patienter encore ${Math.floor(cooldownRemaining / 60)} min ${cooldownRemaining % 60} s avant d'envoyer un nouveau signalement (limite de sécurité de 15 minutes).`);
       return;
     }
 

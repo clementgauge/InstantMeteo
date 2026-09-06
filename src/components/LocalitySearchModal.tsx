@@ -50,6 +50,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
   const [customLon, setCustomLon] = useState('6.865');
   const [customAlt, setCustomAlt] = useState('4809');
   const [customName, setCustomName] = useState('Point Personnalisé');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -163,8 +164,9 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
   };
 
   const handleUseGps = () => {
+    setErrorMessage(null);
     if (!navigator.geolocation) {
-      alert("La géolocalisation n'est pas supportée par votre navigateur.");
+      setErrorMessage("La géolocalisation n'est pas supportée par votre navigateur.");
       return;
     }
     setGpsLoading(true);
@@ -177,6 +179,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
           handleSelect(point);
         } catch (e) {
           console.error(e);
+          setErrorMessage("Erreur lors de la récupération des informations de localisation.");
         } finally {
           setGpsLoading(false);
         }
@@ -184,18 +187,19 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
       (err) => {
         console.warn(err);
         setGpsLoading(false);
-        alert("Impossible de récupérer la position GPS. Vérifiez les autorisations.");
+        setErrorMessage("Impossible de récupérer la position GPS. Vérifiez les autorisations de localisation.");
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
   };
 
   const handleApplyCustomCoords = () => {
+    setErrorMessage(null);
     const lat = parseFloat(customLat);
     const lon = parseFloat(customLon);
     const alt = parseInt(customAlt, 10) || 0;
     if (isNaN(lat) || isNaN(lon)) {
-      alert("Veuillez saisir des coordonnées valides.");
+      setErrorMessage("Veuillez saisir des coordonnées valides (latitude et longitude numériques).");
       return;
     }
     const customPoint: LocationPoint = {
@@ -248,6 +252,20 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Error notification banner */}
+        {errorMessage && (
+          <div className="mx-6 mt-3 p-3 rounded-2xl bg-rose-950/90 border border-rose-500/50 text-rose-200 text-xs font-bold flex items-center justify-between shadow-lg">
+            <span>⚠️ {errorMessage}</span>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="p-1 text-rose-400 hover:text-white transition"
+              title="Fermer l'alerte"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Search Bar & GPS Button */}
         <div className="p-4 sm:p-6 bg-slate-900 border-b border-slate-800 space-y-3">

@@ -72,7 +72,13 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   tempUnit = 'C',
   simplifiedMode = false
 }) => {
-  const [data, setData] = useState<FourteenDayScenariosCollection | null>(null);
+  const [data, setData] = useState<FourteenDayScenariosCollection | null>(() => {
+    try {
+      return generateFourteenDayScenarios(station, currentTemp, currentAnomaly, dailyForecasts, currentWeather);
+    } catch {
+      return null;
+    }
+  });
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(1);
   const [selectedMilestoneIdx, setSelectedMilestoneIdx] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'dayDetail' | 'multiModels' | 'milestones' | 'n1Compare' | 'divergenceSynthesis'>('dayDetail');
@@ -108,19 +114,6 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     refreshData();
   }, [station, currentTemp, currentAnomaly, dailyForecasts, currentWeather]);
 
-  if (!data) return null;
-
-  const formatTemp = (celsius?: number | null) => {
-    if (celsius === undefined || celsius === null || isNaN(celsius)) return '--';
-    if (tempUnit === 'F') {
-      return `${Math.round((celsius * 9/5 + 32) * 10) / 10}°F`;
-    }
-    return `${celsius > 0 ? '+' : ''}${celsius}°C`;
-  };
-
-  const selectedDay: FourteenDayDayDetail = data.days.find(d => d.dayIndex === selectedDayIdx) || data.days[1] || data.days[0];
-  const selectedMilestone: FourteenDayMilestoneSynthesis = data.milestones[selectedMilestoneIdx] || data.milestones[0];
-
   const stats14Day = React.useMemo(() => {
     if (!data?.days || data.days.length === 0) return null;
     let warmest = data.days[0];
@@ -142,6 +135,19 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     const avgTx = (totalTx / data.days.length).toFixed(1);
     return { warmest, coldest, wettest, avgTx, rainDays, highConfDays };
   }, [data]);
+
+  if (!data) return null;
+
+  const formatTemp = (celsius?: number | null) => {
+    if (celsius === undefined || celsius === null || isNaN(celsius)) return '--';
+    if (tempUnit === 'F') {
+      return `${Math.round((celsius * 9/5 + 32) * 10) / 10}°F`;
+    }
+    return `${celsius > 0 ? '+' : ''}${celsius}°C`;
+  };
+
+  const selectedDay: FourteenDayDayDetail = data.days.find(d => d.dayIndex === selectedDayIdx) || data.days[1] || data.days[0];
+  const selectedMilestone: FourteenDayMilestoneSynthesis = data.milestones[selectedMilestoneIdx] || data.milestones[0];
 
   const filteredDays = data.days.filter((d) => {
     if (horizonFilter === 'SHORT') return d.dayIndex >= 1 && d.dayIndex <= 3;

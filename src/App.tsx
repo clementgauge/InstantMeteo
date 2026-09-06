@@ -56,6 +56,7 @@ import { CloudNephologyObservatoryCard } from './components/CloudNephologyObserv
 import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
+import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
 import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
@@ -596,6 +597,7 @@ function WeatherApp() {
           onOpenPageBlockCustomizer={() => setIsPageBlockCustomizerOpen(true)}
           onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
           isAdmin={isAdmin}
+          onTriggerSecretCode={handleTriggerSecretCode}
         />
       </div>
 
@@ -666,6 +668,9 @@ function WeatherApp() {
         </div>
 
         <section className="min-w-0 w-full">
+        {/* Flash Announcement Banner from Administrator */}
+        <AdminAnnouncementBanner />
+
         {/* Tab Content */}
         {isLoading || !weather || !anomaly ? (
           <div className="flex flex-col items-center justify-center py-20">

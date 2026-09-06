@@ -103,6 +103,22 @@ export function getApiCandidates(cleanPath: string): string[] {
 
 let cachedWorkingBase: string | null = null;
 
+// Fonctions utilitaires de validation HTTP (gestion robuste des codes 2xx et 3xx)
+export function isHttpSuccess(res: Response): boolean {
+  return res.ok || (res.status >= 200 && res.status < 400);
+}
+
+export async function safeJsonParse(res: Response, fallback: any = {}): Promise<any> {
+  if (res.status === 204 || res.status === 304) return fallback;
+  try {
+    const text = await res.text();
+    if (!text || !text.trim()) return fallback;
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
+}
+
 // Requête résiliente : tente les candidats jusqu'à trouver un endpoint valide qui renvoie du vrai JSON
 export async function resilientFetch(path: string, options: RequestInit = {}, timeoutMs: number = 6000): Promise<Response> {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -135,7 +151,8 @@ export async function resilientFetch(path: string, options: RequestInit = {}, ti
         continue; // Ignorer le fallback HTML statique et basculer sur le serveur backend central
       }
 
-      if (res.ok) {
+      // Codes 2xx (succès) et 3xx (redirections, 304 Not Modified) sont valides
+      if (isHttpSuccess(res)) {
         try {
           if (url.startsWith('http')) {
             const parsed = new URL(url);
@@ -234,9 +251,9 @@ export async function fetchLeaderboardFromD1(currentProfile: PlayerProfile | nul
       headers: { 'Accept': 'application/json' }
     }, 5000);
 
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.success || !Array.isArray(data.leaderboard)) return null;
+    if (!isHttpSuccess(res)) return null;
+    const data = await safeJsonParse(res, null);
+    if (!data || !data.success || !Array.isArray(data.leaderboard)) return null;
 
     const entries: LeaderboardEntry[] = data.leaderboard.map((item: any) => ({
       rank: item.rank || 1,
@@ -292,11 +309,11 @@ export async function syncPlayerProfileToD1(profile: PlayerProfile): Promise<{ o
       body: JSON.stringify(payload)
     }, 6000);
 
-    if (!res.ok) {
-      return { ok: false, message: `Erreur HTTP ${res.status}` };
+    if (!isHttpSuccess(res)) {
+      return { ok: false, message: `Statut HTTP ${res.status}` };
     }
 
-    const data = await res.json();
+    const data = await safeJsonParse(res, {});
     return {
       ok: true,
       rank: data.rank,
@@ -318,7 +335,7 @@ export async function resetPlayerPointsInD1(pseudo: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ pseudo })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch (err) {
     console.warn('Erreur réinitialisation points D1:', err);
     return false;
@@ -335,7 +352,7 @@ export async function deletePlayerFromD1(pseudo: string, id?: string): Promise<b
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ pseudo, id })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch (err) {
     console.warn('Erreur suppression joueur D1:', err);
     return false;
@@ -357,10 +374,10 @@ export async function adminDeleteOtherUserAccount(
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ pseudo: targetPseudo, id: targetId })
     });
-    if (!res.ok) {
-      return { success: false, message: `Erreur serveur (${res.status})` };
+    if (!isHttpSuccess(res)) {
+      return { success: false, message: `Réponse serveur (${res.status})` };
     }
-    const data = await res.json();
+    const data = await safeJsonParse(res, {});
     return { 
       success: !!data.success, 
       message: data.message || `Compte ${targetPseudo} supprimé avec succès` 
@@ -381,8 +398,8 @@ export async function fetchAdminAllUsers(): Promise<any[]> {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
     });
-    if (!res.ok) return [];
-    const data = await res.json();
+    if (!isHttpSuccess(res)) return [];
+    const data = await safeJsonParse(res, {});
     return Array.isArray(data.players) ? data.players : [];
   } catch {
     return [];
@@ -397,8 +414,8 @@ export async function fetchCommunityReportsFromD1(): Promise<CommunityWeatherRep
       headers: { 'Accept': 'application/json' }
     }, 5000);
 
-    if (!res.ok) return null;
-    const data = await res.json();
+    if (!isHttpSuccess(res)) return null;
+    const data = await safeJsonParse(res, {});
     if (!data.success || !Array.isArray(data.reports)) return null;
 
     return data.reports.map((r: any) => ({
@@ -434,7 +451,7 @@ export async function postCommunityReportToD1(report: CommunityWeatherReport): P
       },
       body: JSON.stringify(report)
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch (err) {
     console.warn('Erreur envoi signalement vers D1:', err);
     return false;
@@ -448,7 +465,7 @@ export async function confirmReportInD1(reportId: string): Promise<boolean> {
       method: 'POST',
       headers: { 'Accept': 'application/json' }
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch (err) {
     console.warn('Erreur confirmation signalement D1:', err);
     return false;
@@ -464,7 +481,7 @@ export async function adminSetPointsInD1(pseudo: string, points: number): Promis
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo, points })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -477,7 +494,7 @@ export async function adminSetStreakInD1(pseudo: string, streakDays: number): Pr
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo, streakDays })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -490,7 +507,7 @@ export async function adminUnlockAllBadgesInD1(pseudo: string): Promise<boolean>
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -503,7 +520,7 @@ export async function adminBanUserInD1(pseudo: string, durationHours: number | '
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo, durationHours, reason })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -516,7 +533,7 @@ export async function adminUnbanUserInD1(pseudo: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo })
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -525,8 +542,8 @@ export async function adminUnbanUserInD1(pseudo: string): Promise<boolean> {
 export async function adminGetBannedUsersFromD1(): Promise<BannedUser[] | null> {
   try {
     const res = await resilientFetch('/api/admin/banned', { method: 'GET' });
-    if (!res.ok) return null;
-    const data = await res.json();
+    if (!isHttpSuccess(res)) return null;
+    const data = await safeJsonParse(res, {});
     return data.bannedUsers || [];
   } catch {
     return null;
@@ -540,7 +557,7 @@ export async function adminSaveAnnouncementInD1(announcement: AdminAnnouncement 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(announcement)
     });
-    return res.ok;
+    return isHttpSuccess(res);
   } catch {
     return false;
   }
@@ -549,8 +566,8 @@ export async function adminSaveAnnouncementInD1(announcement: AdminAnnouncement 
 export async function adminGetAnnouncementFromD1(): Promise<AdminAnnouncement | null> {
   try {
     const res = await resilientFetch('/api/admin/announcement', { method: 'GET' });
-    if (!res.ok) return null;
-    const data = await res.json();
+    if (!isHttpSuccess(res)) return null;
+    const data = await safeJsonParse(res, {});
     return data.announcement || null;
   } catch {
     return null;
