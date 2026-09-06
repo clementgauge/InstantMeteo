@@ -18,7 +18,10 @@ import {
   Radio,
   UserCheck,
   AlertTriangle,
-  Key
+  Key,
+  Users,
+  Search,
+  RefreshCw
 } from 'lucide-react';
 import { 
   loadPlayerProfile, 
@@ -47,7 +50,10 @@ import {
   adminUnbanUserInD1,
   adminSaveAnnouncementInD1,
   adminGetAnnouncementFromD1,
-  adminGetBannedUsersFromD1
+  adminGetBannedUsersFromD1,
+  adminDeleteOtherUserAccount,
+  fetchAdminAllUsers,
+  fetchLeaderboardFromD1
 } from '../services/cloudflareD1Service';
 
 interface AdminPanelModalProps {
@@ -62,7 +68,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   onProfileUpdated
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'points' | 'bans' | 'powers' | 'broadcast'>('points');
+  const [activeTab, setActiveTab] = useState<'points' | 'users' | 'bans' | 'powers' | 'broadcast'>('points');
   
   // Secret code authentication
   const [secretCodeInput, setSecretCodeInput] = useState<string>('');
@@ -71,6 +77,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   // Points tab
   const [newPointsInput, setNewPointsInput] = useState<string>('');
   
+  // Users management tab
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
+  const [userSearchTerm, setUserSearchTerm] = useState<string>('');
+  const [manualDeletePseudo, setManualDeletePseudo] = useState<string>('');
+  const [deletingUserPseudo, setDeletingUserPseudo] = useState<string | null>(null);
+  const [userToDeleteConfirm, setUserToDeleteConfirm] = useState<{ pseudo: string; id?: string } | null>(null);
+
   // Bans tab
   const [banPseudoInput, setBanPseudoInput] = useState<string>('');
   const [banDuration, setBanDuration] = useState<number | 'permanent'>(24);
@@ -87,6 +101,25 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   const [notification, setNotification] = useState<{ text: string; type: 'success' | 'warn' } | null>(null);
 
+  const loadUsersList = async () => {
+    setLoadingUsers(true);
+    try {
+      const list = await fetchAdminAllUsers();
+      if (list && list.length > 0) {
+        setUsersList(list);
+      } else {
+        const lb = await fetchLeaderboardFromD1(profile);
+        if (lb) {
+          setUsersList(lb);
+        }
+      }
+    } catch (err) {
+      console.warn('Erreur chargement utilisateurs:', err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   const refreshData = () => {
     const p = loadPlayerProfile();
     setProfile(p);
@@ -100,6 +133,30 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (ann) {
       setAnnouncementTitle(ann.title);
       setAnnouncementMessage(ann.message);
+    }
+    if (p?.isAdmin) {
+      loadUsersList();
+    }
+  };
+
+  const handleDeleteUserAccount = async (targetPseudo: string, targetId?: string) => {
+    if (!targetPseudo) return;
+    setDeletingUserPseudo(targetPseudo);
+    try {
+      const res = await adminDeleteOtherUserAccount(targetPseudo, targetId);
+      if (res.success) {
+        showToast(res.message || `Le compte de « ${targetPseudo} » a été supprimé définitivement.`, 'success');
+        setUsersList(prev => prev.filter(u => (u.pseudo || '').toLowerCase() !== targetPseudo.toLowerCase()));
+        setUserToDeleteConfirm(null);
+        setManualDeletePseudo('');
+        window.dispatchEvent(new CustomEvent('instant_meteo_score_updated'));
+      } else {
+        showToast(res.message || 'Erreur lors de la suppression du compte.', 'warn');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Erreur lors de la suppression.', 'warn');
+    } finally {
+      setDeletingUserPseudo(null);
     }
   };
 
@@ -377,57 +434,73 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         ) : (
           <>
             {/* Navigation Tabs */}
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
           <button
             type="button"
             onClick={() => setActiveTab('points')}
-            className={`py-2 px-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'points'
                 ? 'bg-red-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            <Trophy className="h-3.5 w-3.5" />
+            <Trophy className="h-3.5 w-3.5 shrink-0" />
             <span>Mes Points</span>
           </button>
 
           <button
             type="button"
+            onClick={() => {
+              setActiveTab('users');
+              loadUsersList();
+            }}
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === 'users'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Users className="h-3.5 w-3.5 shrink-0" />
+            <span>Comptes ({usersList.length})</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('bans')}
-            className={`py-2 px-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'bans'
                 ? 'bg-red-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            <UserX className="h-3.5 w-3.5" />
-            <span>Bannissements ({bannedList.length})</span>
+            <UserX className="h-3.5 w-3.5 shrink-0" />
+            <span>Bans ({bannedList.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('powers')}
-            className={`py-2 px-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'powers'
                 ? 'bg-red-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Super-Pouvoirs</span>
+            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+            <span>Pouvoirs</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('broadcast')}
-            className={`py-2 px-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'broadcast'
                 ? 'bg-red-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
             }`}
           >
-            <Megaphone className="h-3.5 w-3.5" />
-            <span>Annonce Flash</span>
+            <Megaphone className="h-3.5 w-3.5 shrink-0" />
+            <span>Flash</span>
           </button>
         </div>
 
@@ -500,6 +573,178 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 Vous pouvez définir la valeur de votre choix. La mise à jour est immédiatement prise en compte dans le classement national.
               </p>
             </form>
+          </div>
+        )}
+
+        {/* TAB 2: GESTION & SUPPRESSION DES COMPTES UTILISATEURS */}
+        {activeTab === 'users' && (
+          <div className="mt-5 space-y-5">
+            {/* Header info & refresh */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-red-400" />
+                  <h4 className="text-sm font-black text-white">Gestion des Comptes Joueurs</h4>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Synchronisé en direct avec la base centrale (Cloudflare D1 &amp; Serveur Instant Météo)
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={loadUsersList}
+                disabled={loadingUsers}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${loadingUsers ? 'animate-spin' : ''}`} />
+                <span>Actualiser</span>
+              </button>
+            </div>
+
+            {/* Manual delete by pseudo */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const target = manualDeletePseudo.trim();
+                if (!target) return;
+                setUserToDeleteConfirm({ pseudo: target });
+              }}
+              className="p-4 rounded-2xl bg-slate-950/70 border border-red-500/30 space-y-3"
+            >
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-red-400">
+                <Trash2 className="h-4 w-4" />
+                <span>Supprimer un compte manuellement par pseudo</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualDeletePseudo}
+                  onChange={(e) => setManualDeletePseudo(e.target.value)}
+                  placeholder="Entrez le pseudo exact du joueur à supprimer..."
+                  className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-semibold focus:outline-none focus:border-red-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!manualDeletePseudo.trim()}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs transition cursor-pointer shadow-md disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Supprimer</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Search filter */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+              <Search className="h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+                placeholder="Rechercher un utilisateur par son pseudo..."
+                className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
+              />
+              {userSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setUserSearchTerm('')}
+                  className="text-slate-400 hover:text-white text-xs"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Users list table */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-[11px] font-black uppercase text-slate-400 bg-slate-900/60">
+                      <th className="py-2.5 px-3">Joueur</th>
+                      <th className="py-2.5 px-3">Points</th>
+                      <th className="py-2.5 px-3">Flammes</th>
+                      <th className="py-2.5 px-3">Lieux</th>
+                      <th className="py-2.5 px-3 text-right">Action Admin</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {loadingUsers ? (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-slate-400">
+                          <div className="flex items-center justify-center gap-2">
+                            <RefreshCw className="h-4 w-4 animate-spin text-red-400" />
+                            <span>Chargement des comptes depuis la base centrale...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : usersList.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-slate-400">
+                          Aucun compte utilisateur trouvé dans la base de données.
+                        </td>
+                      </tr>
+                    ) : (
+                      usersList
+                        .filter(u => {
+                          if (!userSearchTerm) return true;
+                          return (u.pseudo || '').toLowerCase().includes(userSearchTerm.toLowerCase());
+                        })
+                        .map(u => {
+                          const isMe = profile && (u.pseudo || '').toLowerCase() === profile.pseudo.toLowerCase();
+                          return (
+                            <tr key={u.id || u.pseudo} className="hover:bg-slate-900/40 transition">
+                              <td className="py-3 px-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-white">{u.pseudo}</span>
+                                  {u.isAdmin && (
+                                    <span className="px-1.5 py-0.5 rounded bg-red-950 border border-red-500/40 text-red-300 text-[9px] font-black">
+                                      Admin
+                                    </span>
+                                  )}
+                                  {isMe && (
+                                    <span className="text-[10px] text-amber-400 font-semibold">
+                                      (Vous)
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-slate-400">
+                                  {u.badgeTitle || 'Chasseur Météo'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 font-bold text-amber-300">
+                                {(u.totalPoints || u.points || 0).toLocaleString()} pts
+                              </td>
+                              <td className="py-3 px-3 text-amber-400 font-semibold">
+                                🔥 {u.streakDays || 1} j
+                              </td>
+                              <td className="py-3 px-3 text-slate-300">
+                                📍 {u.locationsCount || 0}
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                {isMe ? (
+                                  <span className="text-[10px] text-slate-500 italic">Compte actif</span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setUserToDeleteConfirm({ pseudo: u.pseudo, id: u.id })}
+                                    disabled={deletingUserPseudo === u.pseudo}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                                    title={`Supprimer définitivement le compte de ${u.pseudo}`}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                                    <span>Supprimer</span>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -792,6 +1037,54 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         )}
       </>
     )}
+
+      {/* Confirmation Modal: Suppression Définitive Compte Utilisateur */}
+      {userToDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-red-500/40 p-5 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="p-2.5 rounded-xl bg-red-950/80 border border-red-500/30">
+                <Trash2 className="h-6 w-6 text-red-400" />
+              </div>
+              <div>
+                <h4 className="text-base font-black text-white">Supprimer ce compte joueur ?</h4>
+                <p className="text-xs text-red-300 font-semibold">Action Administrateur irréversible</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Êtes-vous absolument sûr de vouloir supprimer définitivement le compte de <strong className="text-white">« {userToDeleteConfirm.pseudo} »</strong> ?
+              Toutes ses données, points et trophées seront supprimés de la base de données centralisée (synchronisée entre ai.studio et workers.dev).
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setUserToDeleteConfirm(null)}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={deletingUserPseudo === userToDeleteConfirm.pseudo}
+                onClick={() => handleDeleteUserAccount(userToDeleteConfirm.pseudo, userToDeleteConfirm.id)}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black transition shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {deletingUserPseudo === userToDeleteConfirm.pseudo ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    <span>Suppression en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Confirmer la suppression</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       </div>
     </div>

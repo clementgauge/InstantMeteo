@@ -327,24 +327,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Admin / Code Secret Quick Access Button */}
-          {onOpenAdminPanel && (
-            <button
-              id="header-admin-quick-btn"
-              onClick={onOpenAdminPanel}
-              className={`flex items-center gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
-                isAdmin
-                  ? 'border-red-500/60 bg-red-950/70 text-red-200 hover:bg-red-900/80 hover:text-white shadow-red-950/40'
-                  : 'border-amber-500/40 bg-slate-900/90 text-amber-300 hover:border-amber-400 hover:bg-amber-950/50 hover:text-white'
-              }`}
-              title={isAdmin ? "Panneau d'Administration (Actif)" : "Accès Administrateur (Entrer le Code Secret)"}
-              aria-label="Accès Administrateur / Code Secret"
-            >
-              <Crown className={`h-4 w-4 shrink-0 ${isAdmin ? 'text-amber-400 animate-pulse' : 'text-amber-400'}`} />
-              <span className="hidden sm:inline">{isAdmin ? 'Admin' : 'Code Secret'}</span>
-            </button>
-          )}
-
           {/* Language Selector (FR default, EN, DE, IT, ZH, RU, JA) */}
           <div className="flex items-center shrink-0">
             <GoogleTranslateWidget compact={false} />

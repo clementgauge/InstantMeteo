@@ -11,11 +11,11 @@ const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
 // Middlewares généraux
 app.use(express.json({ limit: '10mb' }));
 
-// Entêtes CORS permissives pour tous les clients
+// Entêtes CORS permissives pour tous les clients et domaines (ai.studio, workers.dev, localhost, etc.)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
@@ -89,16 +89,36 @@ function saveDatabase(data: DatabaseSchema): void {
 // ROUTES API BACKEND CENTRALISÉES (Accès multi-plateformes)
 // -------------------------------------------------------------
 
-// 1. Santé et état de la base de données
-app.get('/api/health', (req, res) => {
+// 1. Santé et état de la base de données (Multi-domaines : ai.studio & workers.dev synchronisés)
+app.get(['/api/health', '/health'], (req, res) => {
   const db = loadDatabase();
   res.json({
     status: 'ok',
-    database: 'Cloudflare D1 & Serveur Instant Météo connecté',
+    database: 'Base Instant Météo Synchronisée (Cloudflare Workers & AI Studio)',
     databaseId: db.databaseId,
     alive: true,
     totalPlayers: db.players.length,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    syncSupported: true,
+    domains: [
+      'https://instantmeteo-fr.ai.studio',
+      'https://instantmeteo.instantmeteofr.workers.dev'
+    ]
+  });
+});
+
+// 1b. Statut de synchronisation multi-domaines
+app.get('/api/sync/status', (req, res) => {
+  const db = loadDatabase();
+  res.json({
+    status: 'synchronized',
+    masterServer: 'https://instantmeteo-fr.ai.studio',
+    workerClient: 'https://instantmeteo.instantmeteofr.workers.dev',
+    databaseId: db.databaseId,
+    totalPlayers: (db.players || []).length,
+    totalReports: (db.communityReports || []).length,
+    totalMessages: (db.discussionMessages || []).length,
+    lastUpdate: db.updatedAt
   });
 });
 
@@ -263,7 +283,7 @@ app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
 
   const db = loadDatabase();
   db.players = db.players.filter((p: any) => {
-    if (normPseudo && p.pseudo.toLowerCase() === normPseudo) return false;
+    if (normPseudo && p.pseudo && p.pseudo.toLowerCase() === normPseudo) return false;
     if (id && p.id === id) return false;
     return true;
   });
@@ -272,7 +292,68 @@ app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
   res.json({ success: true, message: 'Compte supprimé de la base de données' });
 });
 
-// 5b. Routes Administrateur Centralisées
+// 5b. Suppression de compte utilisateur par un Administrateur
+app.post(['/api/admin/delete-user', '/api/admin/delete-player'], (req, res) => {
+  const { pseudo, id } = req.body || {};
+  const normPseudo = (pseudo || '').toLowerCase().trim();
+  if (!normPseudo && !id) {
+    res.status(400).json({ error: 'Pseudo ou identifiant obligatoire manquant' });
+    return;
+  }
+
+  const db = loadDatabase();
+  const initialCount = db.players.length;
+
+  db.players = db.players.filter((p: any) => {
+    if (normPseudo && p.pseudo && p.pseudo.toLowerCase() === normPseudo) return false;
+    if (id && p.id === id) return false;
+    return true;
+  });
+
+  // Nettoyer également de la liste des utilisateurs bannis s'il y figurait
+  db.bannedUsers = (db.bannedUsers || []).filter((b: any) => {
+    if (normPseudo && (b.pseudo || '').toLowerCase() === normPseudo) return false;
+    return true;
+  });
+
+  saveDatabase(db);
+
+  const isDeleted = initialCount !== db.players.length;
+  res.json({
+    success: true,
+    deleted: isDeleted,
+    message: isDeleted
+      ? `Le compte de "${pseudo || id}" a été supprimé définitivement de la base de données.`
+      : `Utilisateur "${pseudo || id}" non trouvé ou déjà supprimé.`,
+    totalPlayers: db.players.length
+  });
+});
+
+// 5c. Liste complète des utilisateurs enregistrés pour la gestion administrative
+app.get('/api/admin/all-users', (req, res) => {
+  const db = loadDatabase();
+  const players = (db.players || []).map((p: any) => ({
+    id: p.id,
+    pseudo: p.pseudo,
+    totalPoints: Number(p.totalPoints) || 0,
+    streakDays: Number(p.streakDays) || 1,
+    locationsCount: Number(p.locationsCount) || 0,
+    badgesCount: Number(p.badgesCount) || 0,
+    badgeTitle: p.badgeTitle || 'Apprenti Météo',
+    isAdmin: !!p.isAdmin,
+    createdAt: p.createdAt,
+    lastActive: p.lastActive
+  }));
+
+  res.json({
+    success: true,
+    count: players.length,
+    players,
+    bannedCount: (db.bannedUsers || []).length
+  });
+});
+
+// 5d. Routes Administrateur Centralisées
 app.post('/api/admin/set-points', (req, res) => {
   const { pseudo, points } = req.body || {};
   if (!pseudo || points === undefined) {

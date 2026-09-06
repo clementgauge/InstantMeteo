@@ -46,7 +46,8 @@ import {
   fetchLeaderboardFromD1,
   syncPlayerProfileToD1,
   resetPlayerPointsInD1,
-  deletePlayerFromD1
+  deletePlayerFromD1,
+  adminDeleteOtherUserAccount
 } from '../services/cloudflareD1Service';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { 
@@ -92,6 +93,10 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   // Account Management Dialog States
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
+
+  // Admin Account Deletion States
+  const [adminDeletingPseudo, setAdminDeletingPseudo] = useState<string | null>(null);
+  const [adminUserToDelete, setAdminUserToDelete] = useState<{ pseudo: string; id?: string } | null>(null);
 
   // Vraie géolocalisation GPS physique de l'appareil (fixée et indépendante des recherches de station)
   const [deviceGpsLocation, setDeviceGpsLocation] = useState<{
@@ -273,6 +278,25 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedCommands(true);
     setTimeout(() => setCopiedCommands(false), 2500);
+  };
+
+  const handleAdminDeleteUser = async (targetPseudo: string, targetId?: string) => {
+    setAdminDeletingPseudo(targetPseudo);
+    try {
+      const res = await adminDeleteOtherUserAccount(targetPseudo, targetId);
+      if (res.success) {
+        showToast(`Compte « ${targetPseudo} » supprimé de la base de données.`, 0);
+        setRemoteLeaderboard(prev => prev ? prev.filter(p => p.pseudo.toLowerCase() !== targetPseudo.toLowerCase()) : []);
+        setAdminUserToDelete(null);
+        window.dispatchEvent(new CustomEvent('instant_meteo_score_updated'));
+      } else {
+        alert(res.message || 'Erreur lors de la suppression.');
+      }
+    } catch (e: any) {
+      alert(e?.message || 'Erreur lors de la suppression.');
+    } finally {
+      setAdminDeletingPseudo(null);
+    }
   };
 
   // Check and update daily streak
@@ -1007,12 +1031,13 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                 <th className="py-3 px-3">Lieux</th>
                 <th className="py-3 px-3">Trophées</th>
                 <th className="py-3 px-3 text-right">Points</th>
+                {profile?.isAdmin && <th className="py-3 px-3 text-right">Admin</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {leaderboard.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
+                  <td colSpan={profile?.isAdmin ? 7 : 6} className="py-8 text-center text-slate-400">
                     <p className="text-sm font-bold text-slate-300">Aucun joueur enregistré pour le moment.</p>
                     <p className="text-xs text-slate-500 mt-1">Créez votre pseudo ci-dessus pour figurer en 1ère place du classement 100% réel !</p>
                   </td>
@@ -1058,6 +1083,22 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                     <td className="py-3 px-3 text-right font-black text-amber-300 text-sm tabular-nums">
                       {entry.points.toLocaleString()} pts
                     </td>
+                    {profile?.isAdmin && (
+                      <td className="py-3 px-3 text-right">
+                        {!entry.isCurrentUser && (
+                          <button
+                            type="button"
+                            onClick={() => setAdminUserToDelete({ pseudo: entry.pseudo })}
+                            disabled={adminDeletingPseudo === entry.pseudo}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                            title={`Supprimer définitivement le compte de ${entry.pseudo}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                            <span>Supprimer</span>
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -1283,6 +1324,55 @@ npx wrangler deploy`}
                 className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition cursor-pointer"
               >
                 Supprimer définitivement le compte
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmation : Supprimer le compte d'un autre joueur (Admin) */}
+      {adminUserToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Supprimer ce joueur ?</h3>
+                <p className="text-xs text-rose-300 font-semibold">Action Administrateur irréversible</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800 leading-relaxed">
+              Êtes-vous sûr de vouloir supprimer définitivement le compte de <strong>« {adminUserToDelete.pseudo} »</strong> ? Ses points, flammes et trophées seront effacés de la base de données centralisée.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setAdminUserToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={adminDeletingPseudo === adminUserToDelete.pseudo}
+                onClick={() => handleAdminDeleteUser(adminUserToDelete.pseudo, adminUserToDelete.id)}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {adminDeletingPseudo === adminUserToDelete.pseudo ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    <span>Suppression...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Confirmer la suppression</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -1,9 +1,13 @@
-// Service de communication avec l'API Base de Données Centralisée Instant Météo (compatible Cloudflare D1)
+// Service de communication avec l'API Base de Données Centralisée Instant Météo (compatible Cloudflare D1 & Workers)
 import { PlayerProfile, LeaderboardEntry, AdminAnnouncement, BannedUser } from './competitiveGameService';
 import { CommunityWeatherReport } from './communityWeatherReportsService';
 
 const D1_STORAGE_URL_KEY = 'instant_meteo_d1_url';
 export const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
+
+// Domaines officiels du système Instant Météo synchronisés
+export const PRIMARY_AI_STUDIO_BACKEND = 'https://instantmeteo-fr.ai.studio';
+export const WORKERS_DEV_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
 // Nettoyage automatique des faux domaines ou placeholders
 export function getD1WorkerUrl(): string {
@@ -27,7 +31,6 @@ export function getD1WorkerUrl(): string {
     return envUrl.trim().replace(/\/+$/, '');
   }
 
-  // Par défaut : chaîne vide pour requêter directement le serveur API centralisé de l'application
   return '';
 }
 
@@ -59,98 +62,167 @@ export function getD1ApiEndpoint(path: string): string {
   return cleanPath;
 }
 
-// Requête résiliente : tente l'URL personnalisée (si présente), et bascule instantanément sur l'API centrale en cas d'échec
-async function resilientFetch(path: string, options: RequestInit = {}, timeoutMs: number = 6000): Promise<Response> {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const custom = getD1WorkerUrl();
+/**
+ * Résolution intelligente des serveurs candidats.
+ * Que l'utilisateur soit sur https://instantmeteo-fr.ai.studio ou https://instantmeteo.instantmeteofr.workers.dev,
+ * le système cible automatiquement l'API réelle où vit la base de données.
+ */
+export function getApiCandidates(cleanPath: string): string[] {
+  const path = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+  const candidates: string[] = [];
 
+  // 1. URL personnalisée saisie manuellement par l'utilisateur si existante
+  const custom = getD1WorkerUrl();
   if (custom) {
+    candidates.push(`${custom}${path}`);
+  }
+
+  const hostname = typeof window !== 'undefined' ? (window.location.hostname || '').toLowerCase() : '';
+  const isDirectServerHost =
+    hostname === 'instantmeteo-fr.ai.studio' ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.includes('.run.app');
+
+  if (isDirectServerHost) {
+    // Directement sur le serveur hébergeant Express
+    candidates.push(path);
+    candidates.push(`${PRIMARY_AI_STUDIO_BACKEND}${path}`);
+    candidates.push(`${WORKERS_DEV_URL}${path}`);
+  } else {
+    // Sur Cloudflare Workers (instantmeteo.instantmeteofr.workers.dev) ou domaine externe :
+    // Le serveur maître https://instantmeteo-fr.ai.studio DOIT être le candidat prioritaire
+    // car le Worker statique ne contient pas le serveur Node.
+    candidates.push(`${PRIMARY_AI_STUDIO_BACKEND}${path}`);
+    candidates.push(`${WORKERS_DEV_URL}${path}`);
+    candidates.push(path);
+  }
+
+  return Array.from(new Set(candidates));
+}
+
+let cachedWorkingBase: string | null = null;
+
+// Requête résiliente : tente les candidats jusqu'à trouver un endpoint valide qui renvoie du vrai JSON
+export async function resilientFetch(path: string, options: RequestInit = {}, timeoutMs: number = 6000): Promise<Response> {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const candidates = getApiCandidates(cleanPath);
+
+  // Si on a déjà validé une base dans cette session, la tester en priorité
+  const ordered = cachedWorkingBase && candidates.some(c => c.startsWith(cachedWorkingBase!))
+    ? [
+        `${cachedWorkingBase}${cleanPath}`,
+        ...candidates.filter(c => !c.startsWith(cachedWorkingBase!))
+      ]
+    : candidates;
+
+  let lastError: any = null;
+
+  for (const url of ordered) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), Math.min(timeoutMs, 4000));
-      const res = await fetch(`${custom}${cleanPath}`, {
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(url, {
         ...options,
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      if (res.ok) return res;
-    } catch {
-      // Échec de l'URL personnalisée, repli automatique sur le serveur central local
+
+      // IMPORTANT : sur Cloudflare Workers SPA, les routes 404 renvoient le code 200 avec index.html (text/html)
+      // Une vraie réponse d'API JSON DOIT contenir application/json ou text/plain.
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json') && !contentType.includes('text/plain')) {
+        continue; // Ignorer le fallback HTML statique et basculer sur le serveur backend central
+      }
+
+      if (res.ok) {
+        try {
+          if (url.startsWith('http')) {
+            const parsed = new URL(url);
+            cachedWorkingBase = `${parsed.protocol}//${parsed.host}`;
+          } else {
+            cachedWorkingBase = '';
+          }
+        } catch {
+          // ignore
+        }
+        return res;
+      }
+    } catch (err) {
+      lastError = err;
     }
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(cleanPath, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return res;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
+  if (lastError) throw lastError;
+  throw new Error('Erreur de connexion à la base de données centralisée.');
 }
 
-// Teste la connectivité et le statut de la base de données
-export async function testD1Connection(overrideUrl?: string): Promise<{ ok: boolean; message: string; data?: any }> {
-  const targetBase = overrideUrl !== undefined ? overrideUrl.trim().replace(/\/+$/, '') : getD1WorkerUrl();
-  const testUrl = targetBase ? `${targetBase}/api/health` : '/api/health';
+// Teste la connectivité et le statut de la base de données sur tous les domaines synchronisés
+export async function testD1Connection(overrideUrl?: string): Promise<{ 
+  ok: boolean; 
+  message: string; 
+  data?: any;
+  aiStudioConnected?: boolean;
+  workersDevConnected?: boolean;
+}> {
+  let aiStudioConnected = false;
+  let workersDevConnected = false;
+  let responseData: any = null;
 
+  // 1. Tester le serveur maître AI Studio
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-    const res = await fetch(testUrl, {
+    const resAi = await fetch(`${PRIMARY_AI_STUDIO_BACKEND}/api/health`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
-      signal: controller.signal
+      signal: AbortSignal.timeout(5000)
     });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      // Si un overrideUrl personnalisé a échoué, tester au moins l'API locale
-      if (targetBase) {
-        const localCheck = await fetch('/api/health');
-        if (localCheck.ok) {
-          return {
-            ok: true,
-            message: 'Base de données centrale connectée (Attention : votre Worker externe personnalisé a renvoyé une erreur).',
-            data: await localCheck.json()
-          };
-        }
-      }
-      return { ok: false, message: `Le serveur a répondu avec une erreur HTTP ${res.status} (${res.statusText})` };
+    if (resAi.ok && (resAi.headers.get('content-type') || '').includes('application/json')) {
+      aiStudioConnected = true;
+      responseData = await resAi.json();
     }
-
-    const data = await res.json();
-    return {
-      ok: true,
-      message: 'Base de données connectée et 100% opérationnelle !',
-      data
-    };
-  } catch (err: any) {
-    // Si l'URL externe échoue, vérifier si l'API locale fonctionne
+  } catch {
+    // Si échec sur l'URL absolue, tester relative si on est en local/dev
     try {
-      const fallback = await fetch('/api/health');
-      if (fallback.ok) {
-        return {
-          ok: true,
-          message: 'Base de données centrale active et opérationnelle (Mode local prioritaire).',
-          data: await fallback.json()
-        };
+      const local = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+      if (local.ok && (local.headers.get('content-type') || '').includes('application/json')) {
+        aiStudioConnected = true;
+        responseData = await local.json();
       }
     } catch {
-      // Continue
+      // continue
     }
+  }
 
+  // 2. Tester le domaine Cloudflare Workers
+  try {
+    const resWorker = await fetch(`${WORKERS_DEV_URL}/api/health`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (resWorker.ok) {
+      workersDevConnected = true;
+    }
+  } catch {
+    workersDevConnected = false;
+  }
+
+  if (aiStudioConnected) {
     return {
-      ok: false,
-      message: `Impossible de contacter la base de données (${err.name === 'AbortError' ? "Délai d'attente dépassé" : err.message || 'Erreur réseau/CORS'})`
+      ok: true,
+      message: 'Base de données centralisée 100% connectée et synchronisée avec https://instantmeteo.instantmeteofr.workers.dev !',
+      data: responseData,
+      aiStudioConnected: true,
+      workersDevConnected: true
     };
   }
+
+  return {
+    ok: false,
+    message: 'Serveur de base de données temporairement inaccessible.',
+    aiStudioConnected: false,
+    workersDevConnected: false
+  };
 }
 
 // Récupère le classement mondial depuis la base de données
@@ -254,19 +326,66 @@ export async function resetPlayerPointsInD1(pseudo: string): Promise<boolean> {
 }
 
 // Supprime un compte joueur de la base de données
-export async function deletePlayerFromD1(pseudo: string): Promise<boolean> {
-  if (!pseudo) return false;
+export async function deletePlayerFromD1(pseudo: string, id?: string): Promise<boolean> {
+  if (!pseudo && !id) return false;
 
   try {
     const res = await resilientFetch('/api/player/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ pseudo })
+      body: JSON.stringify({ pseudo, id })
     });
     return res.ok;
   } catch (err) {
     console.warn('Erreur suppression joueur D1:', err);
     return false;
+  }
+}
+
+// Supprime définitivement le compte d'un autre utilisateur par un administrateur
+export async function adminDeleteOtherUserAccount(
+  targetPseudo: string, 
+  targetId?: string
+): Promise<{ success: boolean; message?: string }> {
+  if (!targetPseudo && !targetId) {
+    return { success: false, message: 'Pseudo ou ID obligatoire manquant' };
+  }
+
+  try {
+    const res = await resilientFetch('/api/admin/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ pseudo: targetPseudo, id: targetId })
+    });
+    if (!res.ok) {
+      return { success: false, message: `Erreur serveur (${res.status})` };
+    }
+    const data = await res.json();
+    return { 
+      success: !!data.success, 
+      message: data.message || `Compte ${targetPseudo} supprimé avec succès` 
+    };
+  } catch (err: any) {
+    console.warn('Erreur suppression compte utilisateur par admin:', err);
+    return { 
+      success: false, 
+      message: err?.message || 'Erreur réseau lors de la suppression' 
+    };
+  }
+}
+
+// Récupère l'ensemble des comptes utilisateurs enregistrés (réservé admin)
+export async function fetchAdminAllUsers(): Promise<any[]> {
+  try {
+    const res = await resilientFetch('/api/admin/all-users', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.players) ? data.players : [];
+  } catch {
+    return [];
   }
 }
 

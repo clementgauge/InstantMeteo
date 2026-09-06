@@ -1,4 +1,6 @@
 // Service du Groupe de Discussion & Salon Météo (Page 13)
+import { resilientFetch } from './cloudflareD1Service';
+
 export interface ChatMessage {
   id: string;
   channelId: string;
@@ -72,7 +74,9 @@ export function saveChatMessages(messages: ChatMessage[]): void {
 
 export async function fetchRemoteChatMessages(): Promise<ChatMessage[] | null> {
   try {
-    const res = await fetch('/api/discussion/messages');
+    const res = await resilientFetch('/api/discussion/messages', {
+      headers: { 'Accept': 'application/json' }
+    });
     if (!res.ok) return null;
     const data = await res.json();
     if (data.success && Array.isArray(data.messages)) {
@@ -100,10 +104,10 @@ export function postChatMessage(message: Omit<ChatMessage, 'id' | 'timestamp' | 
   const updated = [newMsg, ...all];
   saveChatMessages(updated);
 
-  // Sync avec le serveur distant
-  fetch('/api/discussion/messages', {
+  // Sync avec la base de données centralisée
+  resilientFetch('/api/discussion/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(newMsg)
   }).catch(() => {});
 
@@ -115,8 +119,9 @@ export function deleteChatMessage(id: string): void {
   saveChatMessages(all);
 
   // Supprimer également sur le serveur central
-  fetch(`/api/discussion/messages/${encodeURIComponent(id)}/delete`, {
-    method: 'POST'
+  resilientFetch(`/api/discussion/messages/${encodeURIComponent(id)}/delete`, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json' }
   }).catch(() => {});
 }
 
@@ -137,9 +142,9 @@ export function addMessageReaction(messageId: string, reactionType: keyof ChatMe
   saveChatMessages(updated);
 
   // Sync réaction
-  fetch(`/api/discussion/messages/${encodeURIComponent(messageId)}/reaction`, {
+  resilientFetch(`/api/discussion/messages/${encodeURIComponent(messageId)}/reaction`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({ reaction: reactionType })
   }).catch(() => {});
 }
