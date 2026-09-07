@@ -1,5 +1,5 @@
 // Service de communication avec l'API Base de Données Centralisée Instant Météo (compatible Cloudflare D1 & Workers)
-import { PlayerProfile, LeaderboardEntry, AdminAnnouncement, BannedUser } from './competitiveGameService';
+import { PlayerProfile, LeaderboardEntry, AdminAnnouncement, BannedUser, getPlayerClass } from './competitiveGameService';
 import { CommunityWeatherReport } from './communityWeatherReportsService';
 
 const D1_STORAGE_URL_KEY = 'instant_meteo_d1_url';
@@ -278,13 +278,8 @@ export async function fetchLeaderboardFromD1(currentProfile: PlayerProfile | nul
 export async function syncPlayerProfileToD1(profile: PlayerProfile): Promise<{ ok: boolean; rank?: number; totalPlayers?: number; message?: string }> {
   try {
     const stableId = 'usr-' + profile.pseudo.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-
-    let badgeTitle = 'Apprenti Météo';
-    if (profile.isAdmin) badgeTitle = 'Admin';
-    else if (profile.totalPoints >= 3000) badgeTitle = 'Grand Maître Cumulonimbus';
-    else if (profile.totalPoints >= 2000) badgeTitle = 'Sentinelle Météorologique';
-    else if (profile.totalPoints >= 1000) badgeTitle = 'Chasseur Émérite';
-    else if (profile.totalPoints >= 400) badgeTitle = 'Observateur Averti';
+    const playerTier = getPlayerClass(profile.totalPoints, profile.isAdmin);
+    const badgeTitle = playerTier.name;
 
     const payload = {
       id: stableId,

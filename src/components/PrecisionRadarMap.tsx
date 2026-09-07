@@ -47,6 +47,7 @@ import { WORLD_STATIONS } from '../data/worldStations';
 import { getAllNasaFirmsHotspots } from '../services/nasaFirmsService';
 import { getOfficialAgencyForLocation } from '../utils/internationalAgencies';
 import { fetchLiveWeatherForStations, StationLiveWeather } from '../services/multiStationLiveWeatherService';
+import { fetchLiveRadarDetections, LiveRadarStormDetection, LiveRadarFireDetection } from '../services/radarDetectionApiService';
 
 export interface PrecisionRadarMapProps {
   currentStation: LocationPoint;
@@ -1941,7 +1942,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
       {/* Convective & Lightning Impact Zone Sounding HUD (Compact on Mobile phones, Full on Desktop, Hidden in Simplified Mode) */}
       {!simplifiedMode && (activeLayer === 'keraunos_storms' || activeLayer === 'radar') && (
-        <div className="absolute bottom-14 sm:bottom-4 left-2 sm:left-3 z-[1000] pointer-events-auto max-w-[125px] sm:max-w-xs p-1 sm:p-3 rounded-lg sm:rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-0.5 sm:space-y-2">
+        <div className="absolute bottom-40 sm:bottom-4 left-2 sm:left-3 z-[1000] pointer-events-auto max-w-[145px] sm:max-w-xs p-1.5 sm:p-3 rounded-xl sm:rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-xl space-y-1 sm:space-y-2">
           {/* Header */}
           <div className="flex items-center justify-between gap-1 pb-0.5 sm:pb-1.5 border-b border-slate-800/80">
             <div className="flex items-center gap-1 text-[8px] sm:text-[11px] font-black text-amber-400">

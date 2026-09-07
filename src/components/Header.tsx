@@ -22,7 +22,13 @@ import {
   HelpCircle,
   LayoutGrid,
   Crown,
-  KeyRound
+  KeyRound,
+  Play,
+  AlertTriangle,
+  Radio,
+  ShieldAlert,
+  CloudRain,
+  Bell
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -63,6 +69,8 @@ interface HeaderProps {
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
   onOpenVigilanceTab?: () => void;
+  onOpenRadarTab?: () => void;
+  onSelectTab?: (tabId: any) => void;
   onOpenNotificationsModal?: () => void;
   activeAlertCount?: number;
   onOpenPageBlockCustomizer?: () => void;
@@ -102,6 +110,8 @@ export const Header: React.FC<HeaderProps> = ({
   isFullscreen = false,
   onToggleFullscreen,
   onOpenVigilanceTab,
+  onOpenRadarTab,
+  onSelectTab,
   onOpenNotificationsModal,
   activeAlertCount = 0,
   onOpenPageBlockCustomizer,
@@ -184,8 +194,265 @@ export const Header: React.FC<HeaderProps> = ({
   const isMountain = (currentStation.altitude ?? 0) >= 800;
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-2.5 py-2.5 sm:px-6 sm:py-3">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 sm:gap-3">
+    <header ref={headerRef} className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-2.5 py-2 sm:px-6 sm:py-3">
+      {/* ========================================================================= */}
+      {/* MOBILE EXCLUSIVE HEADER - Pixel-perfect match with reference design       */}
+      {/* ========================================================================= */}
+      <div className="block sm:hidden w-full space-y-3 px-1 pt-0.5 pb-1">
+        {/* Native Mobile Status Bar (9:41, wifi, cellular, battery) */}
+        <div className="flex items-center justify-between text-xs text-white font-semibold px-2 pt-0.5 pb-1 select-none">
+          <span>9:41</span>
+          <div className="flex items-center gap-1.5">
+            {/* Cellular Signal Icon */}
+            <svg className="w-4 h-3 text-white fill-current" viewBox="0 0 17 12">
+              <rect x="0" y="8" width="2.5" height="4" rx="0.5" />
+              <rect x="4" y="5.5" width="2.5" height="6.5" rx="0.5" />
+              <rect x="8" y="3" width="2.5" height="9" rx="0.5" />
+              <rect x="12" y="0.5" width="2.5" height="11.5" rx="0.5" />
+            </svg>
+            {/* Wi-Fi Icon */}
+            <svg className="w-3.5 h-3.5 text-white stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <line x1="12" y1="20" x2="12.01" y2="20" strokeWidth="3" />
+            </svg>
+            {/* Battery Icon */}
+            <div className="flex items-center">
+              <div className="w-5 h-2.5 rounded-sm border border-white p-[1px] flex items-center">
+                <div className="w-full h-full bg-white rounded-[1px]" />
+              </div>
+              <div className="w-[1.5px] h-1 bg-white rounded-r-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Top Header Row: App Logo, Title, HD & DIRECT Pill, Notification Bell */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-2.5">
+            {/* App squircle icon with sun and cloud */}
+            <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-sky-500/20 border border-white/30 bg-gradient-to-br from-sky-400 via-blue-500 to-amber-300 flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 100 100" className="w-full h-full p-1" fill="none">
+                <circle cx="68" cy="36" r="22" fill="#f59e0b" />
+                <path d="M24 66h48c9 0 16-7 16-16 0-8-6-14.5-14-15.8-1-11.5-10.5-20.2-22-20.2-9.5 0-18 6-21 15.2-1.5-.6-3.4-.6-5-.6-9.5 0-17.5 8-17.5 17.5 0 9.5 8 19.9 15.5 19.9z" fill="#ffffff" />
+                <polygon points="49,52 40,68 49,68 41,84 62,64 51,64" fill="#ea580c" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-base font-black tracking-tight leading-none text-white flex items-center gap-1">
+                <span>INSTANT</span>
+                <span className="text-sky-400 font-black">MÉTÉO</span>
+              </h1>
+              <p className="text-[10px] text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
+                Radar Doppler HD &amp; Prévisions Temps Réel
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* HD & DIRECT Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-black tracking-wide shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>HD &amp; DIRECT</span>
+            </div>
+
+            {/* Notification Bell Circle with Red Badge Dot */}
+            <button
+              onClick={onOpenNotificationsModal}
+              title="Centre d'alertes"
+              className="relative w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-slate-950" />
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Search Bar + Station Dropdown Button */}
+        <div className="flex items-center gap-2">
+          {/* Search Button */}
+          <button
+            onClick={onOpenSearchModal}
+            className="flex-1 flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-300 transition active:scale-98 text-left shadow-sm"
+          >
+            <Search className="h-4 w-4 text-slate-400 shrink-0" />
+            <span className="truncate">Rechercher une ville...</span>
+          </button>
+
+          {/* Station Selector Dropdown Button */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
+              className="flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3 py-1.5 text-left hover:border-slate-700 transition active:scale-98 shadow-sm"
+            >
+              <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                <MapPin className="h-3.5 w-3.5 text-blue-400" />
+              </div>
+              <div className="min-w-0 max-w-[125px]">
+                <div className="text-xs font-bold text-white truncate">{currentStation.name}</div>
+                <div className="text-[10px] text-slate-400 truncate">
+                  {currentStation.department || '75 - Paris'} • {currentStation.altitude} m
+                </div>
+              </div>
+              <ChevronDown className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${stationDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Mobile Station Dropdown popup */}
+            {stationDropdownOpen && (
+              <div className="absolute right-0 mt-2 max-h-80 w-72 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl z-50">
+                <button
+                  onClick={() => {
+                    setStationDropdownOpen(false);
+                    onOpenSearchModal();
+                  }}
+                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  <span>Recherche avancée</span>
+                </button>
+                <div className="space-y-0.5">
+                  {FRENCH_STATIONS.slice(0, 12).map((st) => (
+                    <button
+                      key={st.id}
+                      onClick={() => {
+                        onSelectStation(st);
+                        setStationDropdownOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs ${
+                        st.id === currentStation.id ? 'bg-blue-600 text-white font-bold' : 'text-slate-200 hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="truncate">
+                        <div className="font-semibold">{st.name}</div>
+                        <div className="text-[9px] text-slate-400">{st.department} • {st.altitude} m</div>
+                      </div>
+                      {st.id === currentStation.id && <Check className="h-3.5 w-3.5 text-white shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 3: Quick Action Circles (Radar, Vidéos, Premium, France, Paramètres) */}
+        <div className="flex items-center justify-between px-1 pt-1">
+          {/* 1. Radar */}
+          <button
+            onClick={() => {
+              if (onOpenRadarTab) onOpenRadarTab();
+              else if (onSelectTab) onSelectTab('radar');
+            }}
+            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-full bg-blue-600/30 border border-blue-400/60 shadow-lg shadow-blue-500/25 flex items-center justify-center text-cyan-300">
+              <Radio className="h-5 w-5 text-cyan-300" />
+            </div>
+            <span className="text-[11px] font-medium text-slate-300">Radar</span>
+          </button>
+
+          {/* 2. Vidéos */}
+          <a
+            href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-full bg-purple-600/30 border border-purple-400/60 shadow-lg shadow-purple-500/25 flex items-center justify-center text-purple-300">
+              <Play className="h-5 w-5 text-purple-300 fill-purple-300/30 ml-0.5" />
+            </div>
+            <span className="text-[11px] font-medium text-slate-300">Vidéos</span>
+          </a>
+
+          {/* 3. Premium */}
+          <button
+            onClick={onOpenAndroidModal}
+            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-500/30 border border-amber-400/60 shadow-lg shadow-amber-500/25 flex items-center justify-center text-amber-300">
+              <Crown className="h-5 w-5 text-amber-300" />
+            </div>
+            <span className="text-[11px] font-medium text-slate-300">Premium</span>
+          </button>
+
+          {/* 4. Pays (France) */}
+          <button
+            onClick={onOpenSearchModal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#0c1424] border border-slate-800 text-xs text-slate-200 font-medium active:scale-95 transition shadow-sm"
+          >
+            <span className="text-base leading-none">🇫🇷</span>
+            <span>France</span>
+            <ChevronDown className="h-3 w-3 text-slate-400" />
+          </button>
+
+          {/* 5. Paramètres */}
+          <button
+            onClick={() => setSettingsSidebarOpen(true)}
+            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-full bg-[#0c1424] border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+              <Settings className="h-5 w-5 text-slate-300" />
+            </div>
+            <span className="text-[11px] font-medium text-slate-300">Paramètres</span>
+          </button>
+        </div>
+
+        {/* Row 4: Three Warning / Status Cards (Alertes & Push, Vigilance 5j, Radar HD) */}
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          {/* Card 1: Alertes & Push (Red) */}
+          <button
+            onClick={onOpenNotificationsModal}
+            className="flex items-center gap-2 p-2.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 shadow-lg shadow-rose-950/30 text-left active:scale-95 transition hover:border-rose-400 cursor-pointer min-w-0"
+          >
+            <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-bold text-white truncate leading-tight">Alertes &amp; Push</div>
+              <div className="text-[9px] text-slate-400 truncate">Restez informé</div>
+            </div>
+          </button>
+
+          {/* Card 2: Vigilance 5j (Amber) */}
+          <button
+            onClick={onOpenVigilanceTab}
+            className="flex items-center gap-2 p-2.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 shadow-lg shadow-amber-950/30 text-left active:scale-95 transition hover:border-amber-400 cursor-pointer min-w-0"
+          >
+            <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+              <ShieldAlert className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance 5j</div>
+              <div className="text-[9px] text-slate-400 truncate">Cartes officielles</div>
+            </div>
+          </button>
+
+          {/* Card 3: Radar HD (Teal) */}
+          <button
+            onClick={() => {
+              if (onOpenRadarTab) onOpenRadarTab();
+              else if (onSelectTab) onSelectTab('radar');
+            }}
+            className="flex items-center gap-2 p-2.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 shadow-lg shadow-emerald-950/30 text-left active:scale-95 transition hover:border-emerald-400 cursor-pointer min-w-0"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+              <Radio className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-bold text-white truncate leading-tight">Radar HD</div>
+              <div className="text-[9px] text-slate-400 truncate">En temps réel</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* DESKTOP EXCLUSIVE HEADER (Unchanged, for tablet & computer viewports)     */}
+      {/* ========================================================================= */}
+      <div className="hidden sm:flex mx-auto max-w-7xl flex-wrap items-center justify-between gap-2 sm:gap-3">
         {/* Brand & Logo */}
         <AppLogo size="md" />
 

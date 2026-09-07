@@ -51,7 +51,7 @@ export const Past24HoursAnalysisCard: React.FC<Past24HoursAnalysisCardProps> = (
   const totalPastRain = pastHours.reduce((acc, h) => acc + (h.rainMm || 0), 0);
 
   return (
-    <div id="past-24h-analysis-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur sm:p-8">
+    <div id="past-24h-analysis-card" className="rounded-[24px] sm:rounded-3xl border border-slate-800/90 bg-[#0c1424]/95 sm:bg-slate-900/90 p-3.5 sm:p-8 shadow-xl backdrop-blur">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3.5">

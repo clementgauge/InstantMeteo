@@ -35,8 +35,11 @@ import {
   Flame,
   Droplets,
   Zap,
-  Check
+  Check,
+  Target,
+  Scale
 } from 'lucide-react';
+import { FourteenDayUncertaintyConeChart } from './FourteenDayUncertaintyConeChart';
 import { 
   LocationPoint, 
   FourteenDayScenariosCollection, 
@@ -81,7 +84,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   });
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(1);
   const [selectedMilestoneIdx, setSelectedMilestoneIdx] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'dayDetail' | 'multiModels' | 'milestones' | 'n1Compare' | 'divergenceSynthesis'>('dayDetail');
+  const [activeTab, setActiveTab] = useState<'dayDetail' | 'uncertaintyCone' | 'multiModels' | 'milestones' | 'n1Compare' | 'divergenceSynthesis'>('dayDetail');
   const [isLoadingMultiModel, setIsLoadingMultiModel] = useState<boolean>(false);
   const [multiModelMetric, setMultiModelMetric] = useState<'tmax' | 'tmin' | 'precip'>('tmax');
 
@@ -185,6 +188,22 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     }
   };
 
+  const getWeatherEmoji = (d: FourteenDayDayDetail): string => {
+    const rain = d.dominantScenario.precipitationMm;
+    const tmax = d.dominantScenario.tempMax;
+    const desc = `${d.dominantScenario.name} ${d.dominantScenario.precipitationType || ''}`.toLowerCase();
+
+    if (desc.includes('orage') || desc.includes('tonnerre') || desc.includes('foudre')) return '⛈️';
+    if (desc.includes('neige') || d.dominantScenario.snowfallCm > 0 || (rain > 0 && tmax <= 1.5)) return '❄️';
+    if (rain >= 8) return '🌧️';
+    if (rain >= 2) return '🌦️';
+    if (rain > 0) return '🌦️';
+    if (d.dominantScenario.windGustKmh && d.dominantScenario.windGustKmh > 55) return '💨';
+    if (tmax >= 25) return '☀️';
+    if (tmax >= 18) return '🌤️';
+    return '⛅';
+  };
+
   return (
     <div id="fourteen-day-scenarios-trends-card" className="space-y-6">
       {/* Top Banner */}
@@ -238,60 +257,75 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               onClick={() => setActiveTab('dayDetail')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 activeTab === 'dayDetail'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-1 ring-blue-400'
                   : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Calendar className="h-3.5 w-3.5" />
-              <span>1. Tendances Jour par Jour & Scénarios (J+0 à J+14)</span>
+              <span>1. Tendances Quotidiennes & Scénarios</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('uncertaintyCone')}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                activeTab === 'uncertaintyCone'
+                  ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-cyan-400'
+                  : 'bg-slate-950/70 border border-cyan-500/30 text-cyan-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+              <span className="flex items-center gap-1.5">
+                <span>2. 📈 Cône d'Incertitude & Plume (Honnêteté)</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-cyan-400/20 text-cyan-200 border border-cyan-400/40">NOUVEAU</span>
+              </span>
             </button>
 
             <button
               onClick={() => setActiveTab('multiModels')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 activeTab === 'multiModels'
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 ring-1 ring-amber-400'
                   : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Globe className="h-3.5 w-3.5 text-amber-400" />
-              <span>2. 🌐 Comparatif 10 Modèles Mondiaux (14 Jours)</span>
+              <span>3. 🌐 Comparatif 10 Modèles Mondiaux</span>
             </button>
 
             <button
               onClick={() => setActiveTab('milestones')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 activeTab === 'milestones'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-indigo-400'
                   : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Layers className="h-3.5 w-3.5" />
-              <span>3. Synthèse par Grandes Phases (4 Horizons)</span>
+              <span>4. Synthèse des 4 Grandes Phases</span>
             </button>
 
             <button
               onClick={() => setActiveTab('n1Compare')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 activeTab === 'n1Compare'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400'
                   : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               <History className="h-3.5 w-3.5" />
-              <span>4. Comparatif Thermique avec l'Année Dernière (N-1)</span>
+              <span>5. Comparatif Année N vs N-1</span>
             </button>
 
             <button
               onClick={() => setActiveTab('divergenceSynthesis')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 activeTab === 'divergenceSynthesis'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 ring-1 ring-purple-400'
                   : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <Activity className="h-3.5 w-3.5" />
-              <span>5. Matrice de Vote des Modèles (ECMWF, GFS, ICON...)</span>
+              <Scale className="h-3.5 w-3.5" />
+              <span>6. Vote & Convergence des Centres</span>
             </button>
           </div>
         )}
@@ -408,73 +442,141 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                 </div>
               </div>
 
-              {/* Scannable 14-Day Visual Trajectory Ribbon */}
-              <div className="space-y-2 pt-2">
-                <div className="flex items-center justify-between text-xs text-slate-400 font-bold px-1">
-                  <span>Frise synthétique jour par jour (Tn • Tx • Pluie • Fiabilité) :</span>
-                  <span className="text-[11px] text-slate-500">Cliquez pour ouvrir</span>
+              {/* SINGLE UNIFIED 14-DAY FORECAST & RELIABILITY RIBBON */}
+              <div className="pt-2 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-white uppercase tracking-wide flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                      Ligne unique de tendances & fiabilité (14 jours) :
+                    </span>
+                    <span className="text-[11px] text-slate-400 hidden sm:inline">• Touchez un jour pour ouvrir l'analyse</span>
+                  </div>
+
+                  {/* Horizon filter buttons directly on the single line */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1">
+                    <button
+                      onClick={() => setHorizonFilter('ALL')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        horizonFilter === 'ALL' ? 'bg-blue-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      Tous (14J)
+                    </button>
+                    <button
+                      onClick={() => setHorizonFilter('SHORT')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        horizonFilter === 'SHORT' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      J+1 à J+3 (Haute Fiabilité)
+                    </button>
+                    <button
+                      onClick={() => setHorizonFilter('MEDIUM')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        horizonFilter === 'MEDIUM' ? 'bg-amber-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      J+4 à J+7 (Moyen Terme)
+                    </button>
+                    <button
+                      onClick={() => setHorizonFilter('LONG')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        horizonFilter === 'LONG' ? 'bg-purple-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      J+8 à J+14 (Tendances)
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-15 gap-2">
-                  {data.days.map((d) => {
+                {/* Mobile-optimized single line horizontal carousel */}
+                <div className="flex items-stretch gap-2.5 overflow-x-auto pb-3 pt-1 scrollbar-thin snap-x snap-mandatory">
+                  {filteredDays.map((d) => {
                     const isSelected = d.dayIndex === selectedDayIdx;
-                    const mm = d.multiModelConsensus;
+                    const badge = getDivergenceBadge(d.divergenceLevel);
                     const hasRain = d.dominantScenario.precipitationMm >= 0.5;
+                    const weatherEmoji = getWeatherEmoji(d);
 
                     return (
                       <button
                         key={d.dayIndex}
                         onClick={() => setSelectedDayIdx(d.dayIndex)}
-                        className={`rounded-2xl p-2.5 text-center transition flex flex-col justify-between border ${
+                        className={`snap-start min-w-[115px] sm:min-w-[130px] rounded-2xl p-3 text-left transition relative border flex flex-col justify-between cursor-pointer shrink-0 ${
                           isSelected
-                            ? 'bg-blue-600/30 border-blue-400 ring-2 ring-blue-500 shadow-lg shadow-blue-500/20'
-                            : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+                            ? 'bg-gradient-to-b from-blue-600/30 via-indigo-950/60 to-slate-900 border-blue-400 ring-2 ring-blue-500 shadow-xl shadow-blue-500/25'
+                            : 'bg-slate-950/85 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
                         }`}
                       >
-                        <div>
-                          <div className="text-[10px] font-black text-slate-400 uppercase truncate">
-                            {d.dayIndex === 0 ? "Aujourd'hui" : `J+${d.dayIndex}`}
-                          </div>
-                          <div className="text-xs font-black text-white truncate mt-0.5">
-                            {d.dayLabel.split(' ')[0]}
-                          </div>
-                          <div className="text-[9px] text-slate-500">
-                            {d.dayLabel.split(' ').slice(1).join(' ')}
-                          </div>
+                        {/* Day offset & Symbol */}
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                            isSelected ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                          }`}>
+                            {d.dayIndex === 0 ? "Auj." : d.dayIndex === 1 ? "Dem." : `J+${d.dayIndex}`}
+                          </span>
+                          <span className="text-xl" title={d.dominantScenario.name}>
+                            {weatherEmoji}
+                          </span>
                         </div>
 
-                        {/* Thermal Pill */}
-                        <div className="my-2 py-1 px-1.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
-                          <div className="text-xs font-black text-rose-400 font-mono">
-                            {d.dominantScenario.tempMax}°
-                          </div>
-                          <div className="h-0.5 w-full bg-gradient-to-r from-cyan-500 via-emerald-500 to-rose-500 rounded-full opacity-60"></div>
-                          <div className="text-[11px] font-bold text-cyan-300 font-mono">
+                        {/* Day Label */}
+                        <div className="text-xs font-black text-white truncate">
+                          {d.dayLabel}
+                        </div>
+
+                        {/* Thermal Range */}
+                        <div className="my-2 py-1 px-2 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-cyan-300 font-mono">
                             {d.dominantScenario.tempMin}°
-                          </div>
+                          </span>
+                          <span className="text-slate-600 font-bold">•</span>
+                          <span className="text-xs font-black text-rose-400 font-mono">
+                            {d.dominantScenario.tempMax}°
+                          </span>
                         </div>
 
-                        {/* Rain badge */}
-                        <div className="text-[10px] font-bold">
+                        {/* Precipitation */}
+                        <div className="text-[11px] font-semibold mb-2 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500">Pluie :</span>
                           {hasRain ? (
-                            <span className="text-blue-400 flex items-center justify-center gap-0.5 font-mono">
+                            <span className="text-blue-400 font-bold font-mono flex items-center gap-0.5 text-[11px]">
                               <Droplets className="h-2.5 w-2.5" />
-                              {d.dominantScenario.precipitationMm}m
+                              {d.dominantScenario.precipitationMm} mm
                             </span>
                           ) : (
-                            <span className="text-slate-500">Sec</span>
+                            <span className="text-slate-400 text-[10px]">Sec</span>
                           )}
                         </div>
 
-                        {/* Model Consensus Bar */}
-                        <div className="mt-1.5 pt-1 border-t border-slate-800/80 flex items-center justify-center gap-1">
-                          <span className={`h-1.5 w-1.5 rounded-full ${
-                            d.modelConsensusScorePct >= 80 ? 'bg-emerald-400' : d.modelConsensusScorePct >= 65 ? 'bg-amber-400' : 'bg-purple-400'
-                          }`}></span>
-                          <span className="text-[9px] text-slate-400 font-bold font-mono">
-                            {d.modelConsensusScorePct}%
-                          </span>
+                        {/* Single unified reliability & uncertainty badge */}
+                        <div className="pt-1.5 border-t border-slate-800/80">
+                          <div className="flex items-center justify-between text-[10px] font-bold mb-1">
+                            <div className="flex items-center gap-1">
+                              <span className={`h-2 w-2 rounded-full ${badge.dot}`}></span>
+                              <span className="text-slate-300">{d.modelConsensusScorePct}%</span>
+                            </div>
+                            <span className="text-[9px] font-mono font-bold text-cyan-300">
+                              ±{d.uncertaintyMarginC}°
+                            </span>
+                          </div>
+                          {/* Mini reliability bar */}
+                          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                d.modelConsensusScorePct >= 80 ? 'bg-emerald-400' :
+                                d.modelConsensusScorePct >= 65 ? 'bg-amber-400' :
+                                'bg-purple-400'
+                              }`}
+                              style={{ width: `${d.modelConsensusScorePct}%` }}
+                            />
+                          </div>
                         </div>
+
+                        {/* Bottom selection indicator */}
+                        {isSelected && (
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-400 rounded-full shadow-lg shadow-blue-400"></div>
+                        )}
                       </button>
                     );
                   })}
@@ -482,90 +584,6 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               </div>
             </div>
           )}
-
-          {/* Day Horizon Selector Bar */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-                <span>Filtrer l'horizon d'échéance :</span>
-                <button
-                  onClick={() => setHorizonFilter('ALL')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                    horizonFilter === 'ALL' ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Tous (14 Jours)
-                </button>
-                <button
-                  onClick={() => setHorizonFilter('SHORT')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                    horizonFilter === 'SHORT' ? 'bg-emerald-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  J+1 à J+3 (Haute Fiabilité)
-                </button>
-                <button
-                  onClick={() => setHorizonFilter('MEDIUM')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                    horizonFilter === 'MEDIUM' ? 'bg-amber-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  J+4 à J+7 (Moyen Terme)
-                </button>
-                <button
-                  onClick={() => setHorizonFilter('LONG')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                    horizonFilter === 'LONG' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  J+8 à J+14 (Longue Échéance)
-                </button>
-              </div>
-
-              <span className="text-[11px] text-slate-400">
-                Cliquez sur un jour pour ouvrir l'analyse synoptique complète :
-              </span>
-            </div>
-
-            {/* Horizontal Scrollable Days Slider */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1">
-              {filteredDays.map((d) => {
-                const isSel = d.dayIndex === selectedDayIdx;
-                const badge = getDivergenceBadge(d.divergenceLevel);
-                return (
-                  <button
-                    key={d.dayIndex}
-                    onClick={() => setSelectedDayIdx(d.dayIndex)}
-                    className={`rounded-xl border p-3 min-w-[125px] text-left transition shrink-0 ${
-                      isSel
-                        ? 'bg-blue-600/20 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-400'
-                        : 'bg-slate-950/80 border-slate-800 hover:bg-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1">
-                      <span>{d.dayIndex === 0 ? "Auj." : `J+${d.dayIndex}`}</span>
-                      <span className={`h-2 w-2 rounded-full ${badge.dot}`}></span>
-                    </div>
-                    <div className="text-xs font-black text-white truncate">{d.dayLabel}</div>
-                    
-                    <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-800/80">
-                      <span className="px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-[11px] font-black text-cyan-300">
-                        Tn {d.dominantScenario.tempMin}°
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-rose-950/80 border border-rose-500/40 text-[11px] font-black text-rose-300">
-                        Tx {d.dominantScenario.tempMax}°
-                      </span>
-                    </div>
-
-                    <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-400 font-semibold pt-1">
-                      <span>Confiance :</span>
-                      <span className="text-white font-bold">{d.modelConsensusScorePct}%</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Selected Day Deep Scenario & Divergence Inspector */}
           <div className="rounded-3xl border border-blue-500/30 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6">
@@ -619,16 +637,142 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               </div>
             </div>
 
+            {/* Scientific Honesty & Uncertainty Transparency Dashboard */}
+            <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 space-y-5 shadow-xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-cyan-400">
+                      <Scale className="h-4 w-4" />
+                      Honnêteté Scientifique & Fiabilisation Météorologique
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                      selectedDay.confidenceGrade === 'EXCELLENTE'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        : selectedDay.confidenceGrade === 'BONNE'
+                        ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                        : selectedDay.confidenceGrade === 'MOYENNE'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                    }`}>
+                      {selectedDay.confidenceGradeLabel || selectedDay.confidenceGrade}
+                    </span>
+                  </div>
+                  <h4 className="text-lg font-black text-white">
+                    Analyse des Incertitudes & Fourchette Réelle pour {selectedDay.fullDateFormatted}
+                  </h4>
+                </div>
+
+                <button
+                  onClick={() => setActiveTab('uncertaintyCone')}
+                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 px-3 py-1.5 text-xs font-bold transition"
+                >
+                  <Activity className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Voir la Plume & Cône 14J</span>
+                </button>
+              </div>
+
+              {/* Realistic Temperature Span Bar (Avoiding False Precision) */}
+              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                    <Thermometer className="h-4 w-4 text-cyan-400" />
+                    <span>Fourchettes Probables Réelles (Marge de dispersion : ±{selectedDay.uncertaintyMarginC}°C)</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Refus des chiffres illusoires fixes
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* Tx Range */}
+                  <div className="rounded-xl bg-slate-900/90 border border-rose-500/20 p-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-black tracking-wider text-rose-400 block">
+                        Tx Après-Midi Probable
+                      </span>
+                      <div className="text-sm font-black text-white font-mono mt-0.5">
+                        {selectedDay.probableTxRange ? `${selectedDay.probableTxRange.min}°C à ${selectedDay.probableTxRange.max}°C` : `${selectedDay.dominantScenario.tempMax}°C`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 block font-semibold">Médiane Dominante</span>
+                      <span className="text-sm font-black text-rose-300 font-mono">{selectedDay.dominantScenario.tempMax}°C</span>
+                    </div>
+                  </div>
+
+                  {/* Tn Range */}
+                  <div className="rounded-xl bg-slate-900/90 border border-cyan-500/20 p-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-black tracking-wider text-cyan-400 block">
+                        Tn Nuit / Aube Probable
+                      </span>
+                      <div className="text-sm font-black text-white font-mono mt-0.5">
+                        {selectedDay.probableTnRange ? `${selectedDay.probableTnRange.min}°C à ${selectedDay.probableTnRange.max}°C` : `${selectedDay.dominantScenario.tempMin}°C`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 block font-semibold">Médiane Dominante</span>
+                      <span className="text-sm font-black text-cyan-300 font-mono">{selectedDay.dominantScenario.tempMin}°C</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Honesty Pillars */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* 1. What is Certain */}
+                <div className="rounded-2xl bg-emerald-950/20 border border-emerald-500/30 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-black uppercase tracking-wider">Ce qui est Acquis</span>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    {selectedDay.whatIsCertain}
+                  </p>
+                </div>
+
+                {/* 2. What is Uncertain */}
+                <div className="rounded-2xl bg-amber-950/20 border border-amber-500/30 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-black uppercase tracking-wider">Ce qui Reste Indécis</span>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    {selectedDay.whatIsUncertain}
+                  </p>
+                </div>
+
+                {/* 3. Synoptic Pivot Point */}
+                <div className="rounded-2xl bg-indigo-950/20 border border-indigo-500/30 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Split className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-black uppercase tracking-wider">Point de Bascule</span>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    {selectedDay.synopticPivot}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Scenario Switcher Buttons */}
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase mb-2">Sélectionnez le scénario atmosphérique à inspecter :</div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-400 uppercase">
+                  Faisceau de Scénarios Ensemblistes Alternatifs (Cliquez pour détailler) :
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Somme des probabilités = 100%
+                </span>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* DOMINANT SCENARIO */}
                 <button
                   onClick={() => setActiveScenarioType('dominant')}
-                  className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between ${
+                  className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between relative overflow-hidden ${
                     activeScenarioType === 'dominant'
-                      ? 'bg-blue-600/20 border-blue-500 shadow-md ring-1 ring-blue-400'
+                      ? 'bg-blue-600/20 border-blue-500 shadow-md ring-2 ring-blue-400'
                       : 'bg-slate-950/80 border-slate-800 hover:bg-slate-800'
                   }`}
                 >
@@ -636,23 +780,27 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                     <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
                       Scénario Principal
                     </span>
-                    <span className="text-xs font-black text-blue-400">{selectedDay.dominantScenario.probabilityPct}% prob.</span>
+                    <span className="text-xs font-black text-blue-400 font-mono">{selectedDay.dominantScenario.probabilityPct}% prob.</span>
+                  </div>
+                  {/* Probability mini bar */}
+                  <div className="w-full h-1 bg-slate-800 rounded-full mb-2 overflow-hidden">
+                    <div className="h-full bg-blue-400" style={{ width: `${selectedDay.dominantScenario.probabilityPct}%` }}></div>
                   </div>
                   <h4 className="font-bold text-white text-xs line-clamp-1">{selectedDay.dominantScenario.name}</h4>
                   <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-sm font-black text-cyan-400">{formatTemp(selectedDay.dominantScenario.tempMin)}</span>
+                    <span className="text-sm font-black text-cyan-400 font-mono">{formatTemp(selectedDay.dominantScenario.tempMin)}</span>
                     <span className="text-slate-500">/</span>
-                    <span className="text-sm font-black text-rose-400">{formatTemp(selectedDay.dominantScenario.tempMax)}</span>
-                    <span className="text-[11px] text-slate-400 ml-auto">{selectedDay.dominantScenario.precipitationMm} mm</span>
+                    <span className="text-sm font-black text-rose-400 font-mono">{formatTemp(selectedDay.dominantScenario.tempMax)}</span>
+                    <span className="text-[11px] text-slate-400 ml-auto font-mono">{selectedDay.dominantScenario.precipitationMm} mm</span>
                   </div>
                 </button>
 
                 {/* ALT 1 SCENARIO */}
                 <button
                   onClick={() => setActiveScenarioType('alt1')}
-                  className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between ${
+                  className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between relative overflow-hidden ${
                     activeScenarioType === 'alt1'
-                      ? 'bg-amber-600/20 border-amber-500 shadow-md ring-1 ring-amber-400'
+                      ? 'bg-amber-600/20 border-amber-500 shadow-md ring-2 ring-amber-400'
                       : 'bg-slate-950/80 border-slate-800 hover:bg-slate-800'
                   }`}
                 >
@@ -660,14 +808,18 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                     <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
                       Scénario Alternatif 1
                     </span>
-                    <span className="text-xs font-black text-amber-400">{selectedDay.alternativeScenario1.probabilityPct}% prob.</span>
+                    <span className="text-xs font-black text-amber-400 font-mono">{selectedDay.alternativeScenario1.probabilityPct}% prob.</span>
+                  </div>
+                  {/* Probability mini bar */}
+                  <div className="w-full h-1 bg-slate-800 rounded-full mb-2 overflow-hidden">
+                    <div className="h-full bg-amber-400" style={{ width: `${selectedDay.alternativeScenario1.probabilityPct}%` }}></div>
                   </div>
                   <h4 className="font-bold text-white text-xs line-clamp-1">{selectedDay.alternativeScenario1.name}</h4>
                   <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-sm font-black text-cyan-400">{formatTemp(selectedDay.alternativeScenario1.tempMin)}</span>
+                    <span className="text-sm font-black text-cyan-400 font-mono">{formatTemp(selectedDay.alternativeScenario1.tempMin)}</span>
                     <span className="text-slate-500">/</span>
-                    <span className="text-sm font-black text-rose-400">{formatTemp(selectedDay.alternativeScenario1.tempMax)}</span>
-                    <span className="text-[11px] text-slate-400 ml-auto">{selectedDay.alternativeScenario1.precipitationMm} mm</span>
+                    <span className="text-sm font-black text-rose-400 font-mono">{formatTemp(selectedDay.alternativeScenario1.tempMax)}</span>
+                    <span className="text-[11px] text-slate-400 ml-auto font-mono">{selectedDay.alternativeScenario1.precipitationMm} mm</span>
                   </div>
                 </button>
 
@@ -675,9 +827,9 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                 {selectedDay.alternativeScenario2 && (
                   <button
                     onClick={() => setActiveScenarioType('alt2')}
-                    className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between ${
+                    className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between relative overflow-hidden ${
                       activeScenarioType === 'alt2'
-                        ? 'bg-purple-600/20 border-purple-500 shadow-md ring-1 ring-purple-400'
+                        ? 'bg-purple-600/20 border-purple-500 shadow-md ring-2 ring-purple-400'
                         : 'bg-slate-950/80 border-slate-800 hover:bg-slate-800'
                     }`}
                   >
@@ -685,14 +837,18 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30">
                         Scénario Alternatif 2
                       </span>
-                      <span className="text-xs font-black text-purple-400">{selectedDay.alternativeScenario2.probabilityPct}% prob.</span>
+                      <span className="text-xs font-black text-purple-400 font-mono">{selectedDay.alternativeScenario2.probabilityPct}% prob.</span>
+                    </div>
+                    {/* Probability mini bar */}
+                    <div className="w-full h-1 bg-slate-800 rounded-full mb-2 overflow-hidden">
+                      <div className="h-full bg-purple-400" style={{ width: `${selectedDay.alternativeScenario2.probabilityPct}%` }}></div>
                     </div>
                     <h4 className="font-bold text-white text-xs line-clamp-1">{selectedDay.alternativeScenario2.name}</h4>
                     <div className="flex items-baseline gap-2 mt-2">
-                      <span className="text-sm font-black text-cyan-400">{formatTemp(selectedDay.alternativeScenario2.tempMin)}</span>
+                      <span className="text-sm font-black text-cyan-400 font-mono">{formatTemp(selectedDay.alternativeScenario2.tempMin)}</span>
                       <span className="text-slate-500">/</span>
-                      <span className="text-sm font-black text-rose-400">{formatTemp(selectedDay.alternativeScenario2.tempMax)}</span>
-                      <span className="text-[11px] text-slate-400 ml-auto">{selectedDay.alternativeScenario2.precipitationMm} mm</span>
+                      <span className="text-sm font-black text-rose-400 font-mono">{formatTemp(selectedDay.alternativeScenario2.tempMax)}</span>
+                      <span className="text-[11px] text-slate-400 ml-auto font-mono">{selectedDay.alternativeScenario2.precipitationMm} mm</span>
                     </div>
                   </button>
                 )}
@@ -1126,7 +1282,21 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         </div>
       )}
 
-      {/* TAB 2: GRAND COMPARATIF MULTI-MODÈLES 14 JOURS (10 MODÈLES) */}
+      {/* TAB 2: CÔNE D'INCERTITUDE & PLUME ENSEMBLISTE 14 JOURS (HONNÊTETÉ SCIENTIFIQUE) */}
+      {activeTab === 'uncertaintyCone' && (
+        <FourteenDayUncertaintyConeChart
+          days={data.days}
+          selectedDayIdx={selectedDayIdx}
+          onSelectDay={(idx) => {
+            setSelectedDayIdx(idx);
+            setActiveTab('dayDetail');
+          }}
+          formatTemp={formatTemp}
+          stationName={station.name}
+        />
+      )}
+
+      {/* TAB 3: GRAND COMPARATIF MULTI-MODÈLES 14 JOURS (10 MODÈLES) */}
       {activeTab === 'multiModels' && (
         <div className="space-y-6">
           <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
@@ -1181,19 +1351,19 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               </div>
             </div>
 
-            {/* Model Agency Cards Header (10 Models) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 mb-6">
+            {/* Model Agency Cards Header (10 Models with European & American Ensembles) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 mb-4">
               {[
                 { name: 'ECMWF IFS', res: '9 km', org: 'Europe', flag: '🇪🇺', desc: 'Référence mondiale CEPMMT' },
+                { name: 'ECMWF EPS', res: '51 membres', org: 'Europe', flag: '🇪🇺', desc: 'Ensemble probabiliste' },
                 { name: 'AROME', res: '1.3 km', org: 'France', flag: '🇫🇷', desc: 'Ultra-haute résolution' },
                 { name: 'ARPEGE', res: '5 km', org: 'France', flag: '🇫🇷', desc: 'Maille fine Météo-France' },
                 { name: 'ICON-EU', res: '6.5 km', org: 'Allemagne', flag: '🇩🇪', desc: 'DWD haute résolution' },
                 { name: 'ICON Global', res: '13 km', org: 'Allemagne', flag: '🇩🇪', desc: 'Physique globale DWD' },
                 { name: 'NOAA GFS', res: '25 km', org: 'USA', flag: '🇺🇸', desc: 'Modèle américain NCEP' },
+                { name: 'NOAA GEFS', res: '31 membres', org: 'USA', flag: '🇺🇸', desc: 'Ensemble américain' },
                 { name: 'UKMO Unified', res: '10 km', org: 'Royaume-Uni', flag: '🇬🇧', desc: 'Dynamique atlantique' },
-                { name: 'CMC GEM', res: '15 km', org: 'Canada', flag: '🇨🇦', desc: 'Flux arctiques & polaires' },
-                { name: 'JMA GSM', res: '13 km', org: 'Japon', flag: '🇯🇵', desc: 'Centre météo de Tokyo' },
-                { name: 'CMA GRAPES', res: '15 km', org: 'Chine', flag: '🇨🇳', desc: 'Administration chinoise' }
+                { name: 'CMC GEM', res: '15 km', org: 'Canada', flag: '🇨🇦', desc: 'Flux arctiques & polaires' }
               ].map(m => (
                 <div key={m.name} className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
                   <div className="flex items-center gap-1 text-xs font-bold text-white mb-0.5">
@@ -1206,6 +1376,17 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               ))}
             </div>
 
+            {/* Region Calibration & Exclusion Notice Banner */}
+            <div className="rounded-xl bg-blue-950/40 border border-blue-500/30 p-3 mb-5 flex items-start gap-3 text-xs text-slate-300">
+              <span className="text-base">🛡️</span>
+              <div>
+                <strong className="text-blue-300 font-semibold">Exclusion méthodologique des modèles asiatiques (JMA, CMA) hors Asie :</strong>
+                <p className="mt-0.5 text-slate-400 leading-relaxed">
+                  Conformément aux standards prévisionnels de l'OMM et à votre consigne, les modèles japonais (JMA) et chinois (CMA) sont exclus de la légitimité décisionnelle en Europe, Afrique et Amériques. Ils présentent des biais systématiques sans intégration fine des radiosondages régionaux. Les ensembles occidentaux (ECMWF EPS 51 membres, NOAA GEFS 31 membres) garantissent une fiabilité maximale.
+                </p>
+              </div>
+            </div>
+
             {/* 14-Day Comparative Matrix Table with 10 Columns and Heat-Coloring */}
             <div className="overflow-x-auto rounded-2xl border border-slate-800">
               <table className="w-full text-left text-xs border-collapse">
@@ -1216,15 +1397,15 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                     <th className="py-3 px-2 text-center text-slate-300">Médiane</th>
                     <th className="py-3 px-2 text-center text-amber-300">Écart</th>
                     <th className="py-3 px-2 text-center text-blue-300" title="ECMWF IFS (9 km)">🇪🇺 ECMWF</th>
+                    <th className="py-3 px-2 text-center text-blue-400" title="ECMWF EPS (51 membres)">🇪🇺 EPS 51m</th>
                     <th className="py-3 px-2 text-center text-emerald-300" title="Météo-France AROME (1.3 km)">🇫🇷 AROME</th>
                     <th className="py-3 px-2 text-center text-emerald-400" title="Météo-France ARPEGE (5 km)">🇫🇷 ARPEGE</th>
                     <th className="py-3 px-2 text-center text-cyan-300" title="DWD ICON-EU (6.5 km)">🇩🇪 ICON-EU</th>
                     <th className="py-3 px-2 text-center text-cyan-400" title="DWD ICON Global (13 km)">🇩🇪 ICON</th>
                     <th className="py-3 px-2 text-center text-amber-300" title="NOAA GFS (25 km)">🇺🇸 GFS</th>
+                    <th className="py-3 px-2 text-center text-amber-400" title="NOAA GEFS (31 membres)">🇺🇸 GEFS 31m</th>
                     <th className="py-3 px-2 text-center text-rose-300" title="UK Met Office (10 km)">🇬🇧 UKMO</th>
                     <th className="py-3 px-2 text-center text-purple-300" title="CMC GEM (15 km)">🇨🇦 GEM</th>
-                    <th className="py-3 px-2 text-center text-indigo-300" title="JMA GSM (13 km)">🇯🇵 JMA</th>
-                    <th className="py-3 px-2 text-center text-yellow-300" title="CMA GRAPES (15 km)">🇨🇳 CMA</th>
                     <th className="py-3 px-3">Extrêmes Modélisés</th>
                   </tr>
                 </thead>
@@ -1305,15 +1486,15 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                           {mm.tempMaxSpread}°C
                         </td>
                         <td className="py-3 px-2 text-center">{renderCell('ecmwf')}</td>
+                        <td className="py-3 px-2 text-center">{renderCell('ecmwf_eps')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('arome')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('meteofrance')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('iconEu')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('icon')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('gfs')}</td>
+                        <td className="py-3 px-2 text-center">{renderCell('gefs')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('ukmo')}</td>
                         <td className="py-3 px-2 text-center">{renderCell('gem')}</td>
-                        <td className="py-3 px-2 text-center">{renderCell('jma')}</td>
-                        <td className="py-3 px-2 text-center">{renderCell('cma')}</td>
                         <td className="py-3 px-3 text-[11px] whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {mm.warmestModelName && (

@@ -29,7 +29,10 @@ import {
   Cloud,
   Trophy,
   Users,
-  MessageSquare
+  MessageSquare,
+  Home,
+  MoreHorizontal,
+  Bell
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { isPageVisible } from '../services/displayPreferencesService';
@@ -339,60 +342,55 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       {/* Floating Bottom Dock */}
       <nav 
         aria-label="Navigation rapide inférieure"
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-4xl transition-all duration-300 ease-out"
+        className="fixed bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-5xl transition-all duration-300 ease-out"
       >
         {isDockMinimized ? (
-          /* Minimized Capsule on Desktop / Mobile */
+          /* Minimized Capsule */
           <div className="flex items-center justify-center">
             <button
               onClick={() => setIsDockMinimized(false)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-xl shadow-2xl text-xs font-bold text-slate-200 hover:text-white transition active:scale-95 animate-bounce"
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/40 bg-[#070d18]/95 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] text-xs font-bold text-slate-200 hover:text-white transition active:scale-95 animate-bounce ring-1 ring-white/10"
               style={{
-                borderColor: currentTheme.glowAccentColor,
-                background: 'rgba(10, 15, 29, 0.92)',
-                boxShadow: `0 8px 25px -4px ${currentTheme.glowAccentColor}40`
+                boxShadow: `0 8px 25px -4px ${currentTheme.glowAccentColor}50`
               }}
             >
               <Layers className="h-4 w-4" style={{ color: currentTheme.glowAccentColor }} />
-              <span>Afficher la barre d'accès rapide ({primaryDockItems.length})</span>
-              <ChevronUp className="h-3.5 w-3.5" />
+              <span>Afficher la navigation ({primaryDockItems.length} modules)</span>
+              <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
             </button>
           </div>
         ) : (
+          /* Full High-Craft Floating Glass Dock */
           <div 
-            className="relative rounded-3xl border backdrop-blur-xl shadow-2xl p-1.5 sm:p-2 flex items-center justify-between gap-1 transition-all duration-500"
+            className="relative rounded-full border border-slate-700/80 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.85)] p-1.5 flex items-center justify-between gap-1.5 transition-all duration-300 ring-1 ring-white/10"
             style={{
-              borderColor: currentTheme.glowAccentColor,
-              background: 'rgba(10, 15, 29, 0.92)',
-              boxShadow: `0 10px 30px -5px ${currentTheme.glowAccentColor}30, 0 0 1px 1px ${currentTheme.glowAccentColor}40`
+              background: 'rgba(7, 13, 24, 0.96)',
+              boxShadow: `0 12px 35px -5px ${currentTheme.glowAccentColor}35, 0 0 1px 1px rgba(255,255,255,0.08)`
             }}
           >
-            {/* Zone défilante : le premier libellé n'est plus tronqué et la rangée
-                avance automatiquement quand la souris reste près d'un bord. */}
+            {/* 1. Left: Atmosphere Theme Selector */}
+            <button
+              onClick={onOpenAtmosphereModal}
+              title={`Atmosphère actuelle : ${currentTheme.name}. Cliquez pour changer.`}
+              className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-full border border-slate-700/60 bg-slate-900/80 hover:bg-slate-800 text-white transition active:scale-95 shrink-0"
+              style={{
+                borderColor: `${currentTheme.glowAccentColor}50`
+              }}
+            >
+              <Sparkles className="h-4 w-4 animate-pulse shrink-0" style={{ color: currentTheme.glowAccentColor }} />
+              <span className="text-[11px] font-bold hidden md:inline ml-1.5 whitespace-nowrap">
+                {currentTheme.skyToneLabel}
+              </span>
+            </button>
+
+            {/* 2. Center: Smooth Touch Horizontal Scroll Track */}
             <div
               ref={dockScrollRef}
               onPointerMove={handleDockPointerMove}
               onPointerLeave={stopDockAutoScroll}
-              className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 justify-start px-2 scroll-smooth min-w-0"
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 justify-start px-1 scroll-smooth min-w-0"
               style={{ scrollbarWidth: 'none', overscrollBehaviorX: 'contain' }}
             >
-              {/* Atmosphere Indicator Button */}
-              <button
-                onClick={onOpenAtmosphereModal}
-                title={`Atmosphère actuelle : ${currentTheme.name}. Cliquez pour personnaliser.`}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl border transition active:scale-95 shrink-0"
-                style={{
-                  borderColor: `${currentTheme.glowAccentColor}50`,
-                  backgroundColor: `${currentTheme.glowAccentColor}18`,
-                  color: '#ffffff'
-                }}
-              >
-                <Sparkles className="h-4 w-4 animate-pulse shrink-0" style={{ color: currentTheme.glowAccentColor }} />
-                <span className="text-[11px] font-bold hidden lg:inline whitespace-nowrap">
-                  {currentTheme.skyToneLabel}
-                </span>
-              </button>
-
               {primaryDockItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -401,48 +399,46 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                     key={item.id}
                     id={`dock-tab-${item.id}`}
                     onClick={() => onSelectTab(item.id)}
-                    className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl text-xs font-bold transition-all relative shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all relative shrink-0 active:scale-95 ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40'
-                        : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                        ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/40 border border-blue-400/40'
+                        : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700'
                     } ${seniorMode ? 'py-2 px-3 text-sm' : ''}`}
                   >
                     <div className="relative">
-                      <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                       {item.badge && !isActive && (
-                        <span className="absolute -top-1.5 -right-2 px-1 py-0.2 text-[8px] font-extrabold bg-amber-500 text-slate-950 rounded-full">
+                        <span className="absolute -top-1.5 -right-2 px-1 py-0.2 text-[8px] font-extrabold bg-amber-500 text-slate-950 rounded-full leading-tight">
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] sm:text-xs tracking-tight">
+                    <span className="whitespace-nowrap tracking-tight">
                       {item.shortLabel}
                     </span>
                     {isActive && (
-                      <span className="hidden sm:block h-1 w-1 rounded-full bg-white animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                     )}
                   </button>
                 );
               })}
             </div>
 
+            {/* 3. Right: 20 Pages Hub Drawer & Minimize Button */}
             <div className="flex items-center gap-1 shrink-0">
-              {/* Quick Universal Hub Launcher */}
               <button
                 onClick={() => setIsMenuDrawerOpen(true)}
-                title="Ouvrir le menu complet des 20 modules"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition active:scale-95"
+                title="Ouvrir le sommaire complet des 20 modules"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition active:scale-95 shrink-0"
               >
-                <Layers className="h-4 w-4" />
-                <span className="hidden sm:inline">20 Pages</span>
-                <ChevronUp className="h-3.5 w-3.5" />
+                <Layers className="h-3.5 w-3.5" />
+                <span className="text-xs font-black whitespace-nowrap">20 Pages</span>
               </button>
 
-              {/* Minimize Dock button */}
               <button
                 onClick={() => setIsDockMinimized(true)}
-                title="Réduire la barre inférieure pour libérer 100% de l'écran"
-                className="p-2 rounded-2xl border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                title="Masquer la barre"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0 active:scale-95"
               >
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>

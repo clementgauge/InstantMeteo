@@ -36,7 +36,11 @@ import {
   resetPlayerPoints,
   deletePlayerProfile,
   LeaderboardEntry,
-  WEATHER_BADGES_CATALOG 
+  WEATHER_BADGES_CATALOG,
+  addActiveMinute,
+  getPlayerClass,
+  PLAYER_CLASSES,
+  PlayerClassTier
 } from '../services/competitiveGameService';
 import {
   getD1WorkerUrl,
@@ -93,6 +97,8 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   // Account Management Dialog States
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
+  const [isClassesModalOpen, setIsClassesModalOpen] = useState<boolean>(false);
+  const [secondsUntilNextPoint, setSecondsUntilNextPoint] = useState<number>(60);
 
   // Admin Account Deletion States
   const [adminDeletingPseudo, setAdminDeletingPseudo] = useState<string | null>(null);
@@ -254,6 +260,30 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
       syncWithD1(profile);
     }
   }, [profile?.totalPoints, profile?.pseudo, profile?.streakDays]);
+
+  // Minuteur de gain de points par minute passée sur l'application (+10 pts x multiplicateur)
+  useEffect(() => {
+    if (!profile) return;
+
+    const timer = setInterval(() => {
+      if (document.hidden) return; // Ne pas compter si l'onglet est masqué
+
+      setSecondsUntilNextPoint(prev => {
+        if (prev <= 1) {
+          const updated = addActiveMinute(profile);
+          setProfile(updated);
+          const { multiplier } = getMultiplier(updated.streakDays);
+          const earned = 10 * multiplier;
+          showToast(`⏱️ +${earned} pts gagnés pour 1 minute passée sur Instant Météo !`, earned);
+          syncPlayerProfileToD1(updated).catch(() => {});
+          return 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [profile?.pseudo, profile?.totalPoints, profile?.streakDays]);
 
   const handleTestD1Connection = async () => {
     setD1Testing(true);
@@ -645,9 +675,22 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                     </button>
                   </div>
                 )}
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-bold">
-                  {leaderboard.find(l => l.isCurrentUser)?.badgeTitle || 'Chasseur Météo'}
-                </span>
+                {/* Classe Météo Dynamique */}
+                {(() => {
+                  const currentClass = getPlayerClass(profile?.totalPoints || 0);
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setIsClassesModalOpen(true)}
+                      className={`px-3 py-1 rounded-full text-[11px] font-black border flex items-center gap-1.5 transition cursor-pointer hover:scale-105 active:scale-95 ${currentClass.color}`}
+                      title="Voir toutes les classes météorologiques"
+                    >
+                      <span>{currentClass.emoji}</span>
+                      <span>{currentClass.name}</span>
+                      <ChevronRight className="h-3 w-3 opacity-60" />
+                    </button>
+                  );
+                })()}
 
                 {onOpenAdminPanel && (
                   <button
@@ -662,7 +705,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-300">
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-300">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 text-emerald-400" />
                   <strong>{profile.visitedLocations.length}</strong> lieux découverts
@@ -673,11 +716,45 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                   <strong>{profile.unlockedWeatherIds.length}</strong> trophées météo
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-sky-400" />
-                  <strong>{profile.minutesSpent}</strong> min actives (+10 pts/min)
+                <span className="flex items-center gap-1 bg-slate-950/70 px-2 py-0.5 rounded-lg border border-sky-500/30 text-sky-200">
+                  <Clock className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
+                  <strong>{profile.minutesSpent} min</strong> actives (+{10 * multiplierInfo.multiplier} pts/min)
+                  <span className="text-[10px] text-amber-300 font-mono font-black ml-1">
+                    ⏱️ Prochain gain: {secondsUntilNextPoint}s
+                  </span>
                 </span>
               </div>
+
+              {/* Barre de progression vers le rang suivant */}
+              {(() => {
+                const currentClass = getPlayerClass(profile?.totalPoints || 0);
+                const currentClassIdx = PLAYER_CLASSES.findIndex(c => c.id === currentClass.id);
+                const nextClass = currentClassIdx < PLAYER_CLASSES.length - 1 ? PLAYER_CLASSES[currentClassIdx + 1] : null;
+                if (!nextClass) {
+                  return (
+                    <div className="mt-2 text-[10px] font-bold text-amber-300 flex items-center gap-1">
+                      👑 Rang Maximum atteint : Légende Climatologique !
+                    </div>
+                  );
+                }
+                const ptsDiff = nextClass.minPoints - currentClass.minPoints;
+                const ptsProgress = Math.max(0, (profile?.totalPoints || 0) - currentClass.minPoints);
+                const pct = Math.min(100, Math.round((ptsProgress / ptsDiff) * 100));
+                return (
+                  <div className="mt-2.5 max-w-md">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 mb-1">
+                      <span>Prochain rang : <strong className="text-white">{nextClass.name} {nextClass.emoji}</strong></span>
+                      <span className="text-amber-300">{profile?.totalPoints} / {nextClass.minPoints} pts ({pct}%)</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div 
+                        className="h-full bg-gradient-to-r from-sky-500 to-amber-400 transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -1373,6 +1450,88 @@ npx wrangler deploy`}
                     <span>Confirmer la suppression</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal : Tableau des Classes Météo */}
+      {isClassesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl max-h-[85vh] flex flex-col rounded-3xl border border-sky-500/40 bg-slate-950 p-6 shadow-2xl space-y-4 overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-sky-500 text-2xl shadow-lg">
+                  🏆
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white">Rangs &amp; Classes Météorologiques</h3>
+                  <p className="text-xs text-slate-400">Paliers de prestige basés sur vos points d'activité &amp; observations</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsClassesModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto pr-1 space-y-2.5 flex-1">
+              {PLAYER_CLASSES.map((cls) => {
+                const isCurrent = getPlayerClass(profile?.totalPoints || 0).id === cls.id;
+                const isUnlocked = (profile?.totalPoints || 0) >= cls.minPoints;
+
+                return (
+                  <div
+                    key={cls.id}
+                    className={`p-3 sm:p-3.5 rounded-2xl border transition flex items-center justify-between gap-3 ${
+                      isCurrent
+                        ? 'bg-gradient-to-r from-sky-950/80 to-slate-900 border-amber-400/80 ring-2 ring-amber-400/30 shadow-lg'
+                        : isUnlocked
+                        ? 'bg-slate-900/80 border-slate-800 opacity-90'
+                        : 'bg-slate-950/60 border-slate-900 opacity-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl sm:text-3xl shrink-0">
+                        {cls.emoji}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black text-white">{cls.name}</span>
+                          {isCurrent && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black">
+                              Actuel
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{cls.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-xs font-black text-amber-300">
+                        {cls.minPoints.toLocaleString()} pts
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {isUnlocked ? '✅ Débloqué' : '🔒 Verrouillé'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span>Gagnez des points chaque minute et lors de vos signalements !</span>
+              <button
+                type="button"
+                onClick={() => setIsClassesModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition cursor-pointer"
+              >
+                Fermer
               </button>
             </div>
           </div>

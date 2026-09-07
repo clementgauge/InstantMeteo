@@ -26,6 +26,7 @@ import {
   RecalibrationState,
   REPORT_CONTACT_EMAIL
 } from '../services/userObservationService';
+import { loadPlayerProfile } from '../services/competitiveGameService';
 
 interface UserWeatherReportModalProps {
   isOpen: boolean;
@@ -37,17 +38,21 @@ interface UserWeatherReportModalProps {
 }
 
 const COMMON_WEATHER_CONDITIONS = [
-  'Ensoleillé / Ciel dégagé',
-  'Éclaircies / Passages nuageux',
+  'Nuageux et soleil / Belles éclaircies',
+  'Ensoleillé / Ciel dégagé limpide',
+  'Ciel voilé / Cirrus légers',
   'Ciel très nuageux / Couvert',
-  'Brume / Brouillard dense',
-  'Pluie faible / Bruine',
-  'Pluie modérée continue',
-  'Averses fortes',
-  'Orage / Foudre et tonnerre',
-  'Grêle',
-  'Chutes de neige / Neige fondue',
-  'Bourrasques / Coup de vent fort'
+  'Brume / Brouillard dense opaque',
+  'Bruine fine / Crachin intermittent',
+  'Pluie faible à modérée continue',
+  'Averses fortes / Pluie battante',
+  'Orage / Foudre et tonnerre actifs',
+  'Orage sec (Foudre sans pluie)',
+  'Chute de Grêle / Grésil',
+  'Chutes de neige au sol / Neige fondue',
+  'Pluie verglaçante / Verglas',
+  'Bourrasques / Coup de vent fort',
+  'Arc-en-ciel après averse'
 ];
 
 const DISCREPANCY_TYPES = [
@@ -127,6 +132,7 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const activePseudo = loadPlayerProfile()?.pseudo;
       const { report, recalibration } = await processUserObservationSubmission(
         currentStation,
         currentWeather,
@@ -135,7 +141,8 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
           observedWeatherCondition: observedCondition,
           discrepancyType,
           userComments: userComments.trim(),
-          userEmail: userEmail.trim() || undefined
+          userEmail: userEmail.trim() || undefined,
+          userPseudo: activePseudo
         }
       );
 

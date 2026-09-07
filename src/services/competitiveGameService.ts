@@ -1,5 +1,6 @@
 // Service de Compétition, Gamification & Chasse Météo pour Instant Météo
 import { LocationPoint, CurrentWeather } from '../types/weather';
+import { secureSave, secureLoad, secureRemove } from '../utils/securityCrypto';
 
 export interface VisitedLocation {
   id: string;
@@ -65,6 +66,142 @@ export interface LeaderboardEntry {
   isAdmin?: boolean;
 }
 
+export interface PlayerClassTier {
+  id: string;
+  name: string;
+  minPoints: number;
+  maxPoints: number;
+  emoji: string;
+  color: string;
+  borderClass: string;
+  badgeBg: string;
+  description: string;
+}
+
+export const PLAYER_CLASSES: PlayerClassTier[] = [
+  { 
+    id: 'apprenti', 
+    name: 'Apprenti Météo', 
+    minPoints: 0, 
+    maxPoints: 249, 
+    emoji: '🌱', 
+    color: 'text-emerald-400', 
+    borderClass: 'border-emerald-500/40',
+    badgeBg: 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40', 
+    description: 'Niveau d\'initiation : découverte des instruments et des bases de l\'observation.' 
+  },
+  { 
+    id: 'observateur_amateur', 
+    name: 'Observateur Amateur', 
+    minPoints: 250, 
+    maxPoints: 499, 
+    emoji: '🧭', 
+    color: 'text-sky-400', 
+    borderClass: 'border-sky-500/40',
+    badgeBg: 'bg-sky-950/40 text-sky-300 border-sky-500/40', 
+    description: 'Relevés quotidiens assidus et suivi des évolutions de masses d\'air.' 
+  },
+  { 
+    id: 'observateur_averti', 
+    name: 'Observateur Averti', 
+    minPoints: 500, 
+    maxPoints: 999, 
+    emoji: '👁️', 
+    color: 'text-blue-400', 
+    borderClass: 'border-blue-500/40',
+    badgeBg: 'bg-blue-950/40 text-blue-300 border-blue-500/40', 
+    description: 'Vigie locale reconnue capable de détecter les anomalies et inversions thermiques.' 
+  },
+  { 
+    id: 'pro_meteo', 
+    name: 'Pro Météo', 
+    minPoints: 1000, 
+    maxPoints: 1999, 
+    emoji: '⚡', 
+    color: 'text-amber-400', 
+    borderClass: 'border-amber-500/40',
+    badgeBg: 'bg-amber-950/40 text-amber-300 border-amber-500/40', 
+    description: 'Expertise avancée : lecture fluide des modèles numériques (AROME, GFS, ECMWF).' 
+  },
+  { 
+    id: 'chasseur_emerite', 
+    name: 'Chasseur d\'Orages Émérite', 
+    minPoints: 2000, 
+    maxPoints: 3499, 
+    emoji: '🌩️', 
+    color: 'text-purple-400', 
+    borderClass: 'border-purple-500/40',
+    badgeBg: 'bg-purple-950/40 text-purple-300 border-purple-500/40', 
+    description: 'Spécialiste de la convection profonde, des cellules supercellulaires et de la foudre.' 
+  },
+  { 
+    id: 'sentinelle', 
+    name: 'Sentinelle Synoptique', 
+    minPoints: 3500, 
+    maxPoints: 4999, 
+    emoji: '🛰️', 
+    color: 'text-indigo-400', 
+    borderClass: 'border-indigo-500/40',
+    badgeBg: 'bg-indigo-950/40 text-indigo-300 border-indigo-500/40', 
+    description: 'Vision globale des centres d\'action, des fronts ondulants et des gouttes froides.' 
+  },
+  { 
+    id: 'maitre_meteo', 
+    name: 'Maître Météo', 
+    minPoints: 5000, 
+    maxPoints: 7999, 
+    emoji: '🌪️', 
+    color: 'text-rose-400', 
+    borderClass: 'border-rose-500/40',
+    badgeBg: 'bg-rose-950/40 text-rose-300 border-rose-500/40', 
+    description: 'Maîtrise suprême de la dynamique atmosphérique et prévisions ultra-fiables.' 
+  },
+  { 
+    id: 'grand_maitre', 
+    name: 'Grand Maître Météo', 
+    minPoints: 8000, 
+    maxPoints: 11999, 
+    emoji: '👑', 
+    color: 'text-yellow-300', 
+    borderClass: 'border-yellow-500/50',
+    badgeBg: 'bg-yellow-950/50 text-yellow-300 border-yellow-500/50', 
+    description: 'Élite nationale des prévisionnistes et gardien de la précision d\'Instant Météo.' 
+  },
+  { 
+    id: 'legende', 
+    name: 'Légende Climatologique', 
+    minPoints: 12000, 
+    maxPoints: Infinity, 
+    emoji: '🌟', 
+    color: 'text-cyan-300', 
+    borderClass: 'border-cyan-400/50',
+    badgeBg: 'bg-cyan-950/50 text-cyan-200 border-cyan-400/50', 
+    description: 'Haut fait ultime : inscrit au panthéon éternel des observateurs météorologiques.' 
+  }
+];
+
+export function getPlayerClass(points: number, isAdmin?: boolean): PlayerClassTier {
+  if (isAdmin) {
+    return {
+      id: 'admin',
+      name: 'Admin Météo',
+      minPoints: 0,
+      maxPoints: Infinity,
+      emoji: '👑',
+      color: 'text-red-400',
+      borderClass: 'border-red-500/60',
+      badgeBg: 'bg-red-950/60 text-red-300 border-red-500/60',
+      description: 'Gestionnaire administrateur suprême du réseau Instant Météo'
+    };
+  }
+  for (let i = PLAYER_CLASSES.length - 1; i >= 0; i--) {
+    if (points >= PLAYER_CLASSES[i].minPoints) {
+      return PLAYER_CLASSES[i];
+    }
+  }
+  return PLAYER_CLASSES[0];
+}
+
 const STORAGE_KEY = 'instant_meteo_competitive_profile';
 const BANNED_USERS_KEY = 'instant_meteo_banned_users';
 const ADMIN_ANNOUNCEMENT_KEY = 'instant_meteo_admin_announcement';
@@ -77,9 +214,7 @@ export function verifyAdminCode(candidateCode: string): boolean {
 
 export function getBannedUsers(): BannedUser[] {
   try {
-    const raw = localStorage.getItem(BANNED_USERS_KEY);
-    if (!raw) return [];
-    const list: BannedUser[] = JSON.parse(raw);
+    const list = secureLoad<BannedUser[]>(BANNED_USERS_KEY, []);
     const now = new Date().getTime();
     // Nettoyer les bans expirés non permanents
     return list.filter(u => {
@@ -116,7 +251,7 @@ export function banUser(pseudo: string, durationHours: number | 'permanent', rea
       reason: reason.trim() || 'Non respect du règlement du concours météo'
     });
 
-    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(list));
+    secureSave(BANNED_USERS_KEY, list);
     window.dispatchEvent(new CustomEvent('instant_meteo_banned_users_updated', { detail: list }));
   } catch (err) {
     console.warn('Erreur bannissement utilisateur:', err);
@@ -126,7 +261,7 @@ export function banUser(pseudo: string, durationHours: number | 'permanent', rea
 export function unbanUser(pseudo: string): void {
   try {
     const list = getBannedUsers().filter(u => u.pseudo.toLowerCase() !== pseudo.toLowerCase());
-    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(list));
+    secureSave(BANNED_USERS_KEY, list);
     window.dispatchEvent(new CustomEvent('instant_meteo_banned_users_updated', { detail: list }));
   } catch (err) {
     console.warn('Erreur débannissement utilisateur:', err);
@@ -141,9 +276,7 @@ export function isUserBanned(pseudo: string): boolean {
 
 export function getAdminAnnouncement(): AdminAnnouncement | null {
   try {
-    const raw = localStorage.getItem(ADMIN_ANNOUNCEMENT_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    return secureLoad<AdminAnnouncement | null>(ADMIN_ANNOUNCEMENT_KEY, null);
   } catch {
     return null;
   }
@@ -152,9 +285,9 @@ export function getAdminAnnouncement(): AdminAnnouncement | null {
 export function setAdminAnnouncement(announcement: AdminAnnouncement | null): void {
   try {
     if (!announcement) {
-      localStorage.removeItem(ADMIN_ANNOUNCEMENT_KEY);
+      secureRemove(ADMIN_ANNOUNCEMENT_KEY);
     } else {
-      localStorage.setItem(ADMIN_ANNOUNCEMENT_KEY, JSON.stringify(announcement));
+      secureSave(ADMIN_ANNOUNCEMENT_KEY, announcement);
     }
     window.dispatchEvent(new CustomEvent('instant_meteo_admin_announcement_updated', { detail: announcement }));
   } catch (e) {
@@ -191,10 +324,7 @@ export function getMultiplier(streakDays: number): { multiplier: number; label: 
 
 export function loadPlayerProfile(): PlayerProfile | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const profile = JSON.parse(raw) as PlayerProfile;
-    return profile;
+    return secureLoad<PlayerProfile | null>(STORAGE_KEY, null);
   } catch (err) {
     console.warn('Erreur lecture profil joueur:', err);
     return null;
@@ -203,7 +333,7 @@ export function loadPlayerProfile(): PlayerProfile | null {
 
 export function savePlayerProfile(profile: PlayerProfile): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    secureSave(STORAGE_KEY, profile);
     window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: profile }));
   } catch (err) {
     console.warn('Erreur sauvegarde profil:', err);
@@ -245,7 +375,7 @@ export function resetPlayerPoints(profile: PlayerProfile): PlayerProfile {
 // Suppression complète du compte joueur
 export function deletePlayerProfile(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    secureRemove(STORAGE_KEY);
     window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: null }));
   } catch (err) {
     console.warn('Erreur suppression profil joueur:', err);
@@ -408,18 +538,8 @@ export function getLeaderboard(currentProfile: PlayerProfile | null): Leaderboar
     // Si l'utilisateur est banni, il n'apparaît pas dans le classement du concours
     if (!isUserBanned(currentProfile.pseudo)) {
       const userBadgeCount = currentProfile.unlockedWeatherIds.length;
-      let badgeTitle = 'Apprenti Météo';
-      if (currentProfile.isAdmin) {
-        badgeTitle = 'Admin';
-      } else if (currentProfile.totalPoints >= 3000) {
-        badgeTitle = 'Grand Maître Cumulonimbus';
-      } else if (currentProfile.totalPoints >= 2000) {
-        badgeTitle = 'Sentinelle Météorologique';
-      } else if (currentProfile.totalPoints >= 1000) {
-        badgeTitle = 'Chasseur Émérite';
-      } else if (currentProfile.totalPoints >= 400) {
-        badgeTitle = 'Observateur Averti';
-      }
+      const playerTier = getPlayerClass(currentProfile.totalPoints, currentProfile.isAdmin);
+      const badgeTitle = playerTier.name;
 
       allEntries.push({
         pseudo: currentProfile.pseudo,

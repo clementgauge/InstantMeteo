@@ -246,26 +246,24 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
   return (
     <>
       {/* ========================================================================= */}
-      {/* MOBILE TRIGGER FLOTTANT (Format Téléphone: Flèche élégante sur le côté)   */}
+      {/* MOBILE TRIGGER DU BAS (Format Téléphone : Bouton Sommaire discret en bas)  */}
       {/* ========================================================================= */}
-      <div className="lg:hidden fixed left-0 top-[30%] z-40">
+      <div className="lg:hidden fixed left-2.5 bottom-16 sm:bottom-20 z-30">
         <button
           type="button"
           onClick={() => setIsMobileOpen(true)}
-          title="Ouvrir le menu et les rubriques"
+          title="Ouvrir le sommaire et les rubriques"
           aria-label="Ouvrir la barre latérale mobile"
-          className="group relative flex items-center pl-1.5 pr-2.5 py-3.5 rounded-r-2xl bg-gradient-to-r from-[#2948f2] via-[#243edd] to-[#1a2dbb] text-white shadow-2xl shadow-blue-700/50 border-y border-r border-blue-300/40 hover:pl-2.5 hover:pr-3.5 transition-all duration-300 active:scale-95 cursor-pointer"
+          className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#070d18]/95 border border-slate-700/80 text-white shadow-xl backdrop-blur-2xl ring-1 ring-white/10 hover:bg-slate-900 active:scale-95 transition-all cursor-pointer font-bold text-xs"
         >
-          <div className="flex flex-col items-center gap-1">
-            <ChevronRight className="h-5 w-5 text-white drop-shadow animate-pulse" />
-            <span className="text-[8px] font-black uppercase tracking-widest text-blue-200 [writing-mode:vertical-rl] rotate-180">
-              Menu
-            </span>
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
+            <ChevronRight className="h-3.5 w-3.5 text-white" />
           </div>
+          <span className="text-[11px] font-black text-white">Sommaire</span>
 
           {/* Active alert indicator pill */}
           {activeAlertCount > 0 && (
-            <span className="absolute -top-1.5 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-black text-slate-950 shadow-md">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-black text-slate-950 shadow-md">
               {activeAlertCount}
             </span>
           )}

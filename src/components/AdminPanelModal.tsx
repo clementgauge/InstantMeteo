@@ -55,6 +55,16 @@ import {
   fetchAdminAllUsers,
   fetchLeaderboardFromD1
 } from '../services/cloudflareD1Service';
+import {
+  getAdminSignalements,
+  approveSignalement,
+  rejectSignalement,
+  deleteSignalement,
+  AdminSignalementItem,
+  getActiveRecalibration,
+  clearActiveRecalibration,
+  RecalibrationState
+} from '../services/userObservationService';
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -68,7 +78,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   onProfileUpdated
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'points' | 'users' | 'bans' | 'powers' | 'broadcast'>('points');
+  const [activeTab, setActiveTab] = useState<'points' | 'signalements' | 'users' | 'bans' | 'powers' | 'broadcast'>('points');
+  
+  // Signalements admin queue
+  const [signalementsList, setSignalementsList] = useState<AdminSignalementItem[]>(() => getAdminSignalements());
+  const [activeRecalib, setActiveRecalib] = useState<RecalibrationState | null>(() => getActiveRecalibration());
+  const [signalementFilter, setSignalementFilter] = useState<'ALL' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'>('ALL');
   
   // Secret code authentication
   const [secretCodeInput, setSecretCodeInput] = useState<string>('');
@@ -137,6 +152,40 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (p?.isAdmin) {
       loadUsersList();
     }
+    setSignalementsList(getAdminSignalements());
+    setActiveRecalib(getActiveRecalibration());
+  };
+
+  const handleApproveSignalement = (item: AdminSignalementItem) => {
+    const res = approveSignalement(item.id, profile?.pseudo || 'Admin');
+    if (res.success) {
+      setSignalementsList(getAdminSignalements());
+      setActiveRecalib(getActiveRecalibration());
+      showToast(res.message, 'success');
+      window.dispatchEvent(new CustomEvent('instant_meteo_score_updated'));
+    } else {
+      showToast(res.message, 'warn');
+    }
+  };
+
+  const handleRejectSignalement = (item: AdminSignalementItem) => {
+    const res = rejectSignalement(item.id, profile?.pseudo || 'Admin');
+    setSignalementsList(getAdminSignalements());
+    setActiveRecalib(getActiveRecalibration());
+    showToast(res.message, 'warn');
+  };
+
+  const handleDeleteSignalementItem = (id: string) => {
+    deleteSignalement(id);
+    setSignalementsList(getAdminSignalements());
+    showToast('Signalement supprimé de la file admin.');
+  };
+
+  const handleRevokeActiveRecalibration = () => {
+    clearActiveRecalibration();
+    window.dispatchEvent(new CustomEvent('instant_meteo_recalibration_changed', { detail: null }));
+    setActiveRecalib(null);
+    showToast('Recalibration annulée. Données officielles restaurées.');
   };
 
   const handleDeleteUserAccount = async (targetPseudo: string, targetId?: string) => {
@@ -434,7 +483,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         ) : (
           <>
             {/* Navigation Tabs */}
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-6 gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold">
           <button
             type="button"
             onClick={() => setActiveTab('points')}
@@ -446,6 +495,28 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
           >
             <Trophy className="h-3.5 w-3.5 shrink-0" />
             <span>Mes Points</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('signalements');
+              setSignalementsList(getAdminSignalements());
+              setActiveRecalib(getActiveRecalibration());
+            }}
+            className={`py-2 px-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === 'signalements'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Radio className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+            <span>Signalements</span>
+            {signalementsList.filter(s => s.status === 'EN_ATTENTE').length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 font-black text-[9px]">
+                {signalementsList.filter(s => s.status === 'EN_ATTENTE').length}
+              </span>
+            )}
           </button>
 
           <button
@@ -573,6 +644,283 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 Vous pouvez définir la valeur de votre choix. La mise à jour est immédiatement prise en compte dans le classement national.
               </p>
             </form>
+          </div>
+        )}
+
+        {/* TAB SIGNALEMENTS: ARBITRAGE DES CORRECTIONS OBSERVATEURS */}
+        {activeTab === 'signalements' && (
+          <div className="mt-5 space-y-5">
+            {/* 1. Active recalibration banner if any */}
+            {activeRecalib && activeRecalib.isActive && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/50 shadow-lg space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-3 w-3 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                      Recalibration Active en cours sur l'application
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRevokeActiveRecalibration}
+                    className="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 text-rose-400" />
+                    <span>Rétablir données officielles</span>
+                  </button>
+                </div>
+                <div className="text-xs text-slate-200">
+                  Station ciblée : <strong className="text-white">{activeRecalib.stationName}</strong> • Température forcée : <strong className="text-emerald-300 font-black">{activeRecalib.exactTemperature !== undefined ? `${activeRecalib.exactTemperature}°C` : `${activeRecalib.tempOffset > 0 ? '+' : ''}${activeRecalib.tempOffset}°C`}</strong> {activeRecalib.weatherOverride && <span>• Conditions : <strong className="text-emerald-300">{activeRecalib.weatherOverride}</strong></span>}
+                </div>
+                <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                  <span>Validé par : <strong>{activeRecalib.approvedBy || 'Admin'}</strong></span>
+                  <span>•</span>
+                  <span>Expire automatiquement : {new Date(activeRecalib.expiresTimeIso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Header with stats and filters */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Radio className="h-4 w-4 text-amber-400" />
+                  <h4 className="text-sm font-black text-white">Arbitrage des Signalements Citoyens</h4>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Approuvez avec <strong className="text-emerald-400">OUI</strong> pour écraser automatiquement les données de l'application, ou <strong className="text-rose-400">NON</strong> pour rejeter.
+                </p>
+              </div>
+
+              {/* Filter pills */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setSignalementFilter('ALL')}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                    signalementFilter === 'ALL' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Tous ({signalementsList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignalementFilter('EN_ATTENTE')}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
+                    signalementFilter === 'EN_ATTENTE' ? 'bg-amber-500/30 text-amber-300 border border-amber-500/50' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>En attente</span>
+                  <span className="font-black text-[10px]">({signalementsList.filter(s => s.status === 'EN_ATTENTE').length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignalementFilter('VALIDE')}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                    signalementFilter === 'VALIDE' ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/50' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Validés OUI ({signalementsList.filter(s => s.status === 'VALIDE_OUI').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignalementFilter('REJETE')}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                    signalementFilter === 'REJETE' ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Rejetés NON ({signalementsList.filter(s => s.status === 'REJETE_NON').length})
+                </button>
+              </div>
+            </div>
+
+            {/* List of Signalements */}
+            {(() => {
+              const filtered = signalementsList.filter(s => {
+                if (signalementFilter === 'EN_ATTENTE') return s.status === 'EN_ATTENTE';
+                if (signalementFilter === 'VALIDE') return s.status === 'VALIDE_OUI';
+                if (signalementFilter === 'REJETE') return s.status === 'REJETE_NON';
+                return true;
+              });
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="p-8 text-center rounded-2xl bg-slate-950 border border-slate-800/80 text-slate-400 text-xs space-y-2">
+                    <Radio className="h-8 w-8 text-slate-600 mx-auto" />
+                    <p className="font-bold">Aucun signalement dans cette vue.</p>
+                    <p className="text-[11px] text-slate-500">
+                      Dès qu'un observateur signale une anomalie météo depuis le bouton "Signaler une météo", son rapport apparaîtra ici pour arbitrage.
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  {filtered.map(item => {
+                    const isPending = item.status === 'EN_ATTENTE';
+                    const isApproved = item.status === 'VALIDE_OUI';
+                    const isRejected = item.status === 'REJETE_NON';
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                          isPending
+                            ? 'bg-slate-950 border-amber-500/40 shadow-lg shadow-amber-500/5'
+                            : isApproved
+                            ? 'bg-slate-950/80 border-emerald-500/40'
+                            : 'bg-slate-950/60 border-slate-800/80 opacity-75'
+                        }`}
+                      >
+                        {/* Header: Station + Status Badge */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-black text-white">📍 {item.stationName}</span>
+                            {item.department && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 font-bold border border-slate-800">
+                                Dép. {item.department}
+                              </span>
+                            )}
+                            <span className="text-[11px] text-slate-400">🕒 {item.timestamp}</span>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div>
+                            {isPending && (
+                              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[10px] font-black flex items-center gap-1.5 animate-pulse">
+                                🟡 En Attente d'Arbitrage
+                              </span>
+                            )}
+                            {isApproved && (
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 text-[10px] font-black flex items-center gap-1.5">
+                                ✅ Validé (OUI) par {item.decidedBy || 'Admin'} {item.decidedAt && `à ${item.decidedAt}`}
+                              </span>
+                            )}
+                            {isRejected && (
+                              <span className="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/50 text-[10px] font-black flex items-center gap-1.5">
+                                ❌ Rejeté (NON) par {item.decidedBy || 'Admin'} {item.decidedAt && `à ${item.decidedAt}`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Author info */}
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                          <span>
+                            Signalé par : <strong className="text-white">{item.userPseudo || 'Observateur Anonyme'}</strong>
+                          </span>
+                          {item.userEmail && (
+                            <>
+                              <span>•</span>
+                              <span>Email : <strong className="text-slate-300">{item.userEmail}</strong></span>
+                            </>
+                          )}
+                          {item.discrepancyType && (
+                            <>
+                              <span>•</span>
+                              <span className="text-amber-300">Motif : {item.discrepancyType}</span>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Side-by-side comparison: App vs User */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <div className="text-[10px] font-black uppercase text-slate-400">
+                              📱 Données actuelles sur l'Appli
+                            </div>
+                            <div className="text-base font-black text-slate-200">
+                              {item.appDisplayedTemperature}°C
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {item.appDisplayedWeather}
+                            </div>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-1">
+                            <div className="text-[10px] font-black uppercase text-amber-300 flex items-center justify-between">
+                              <span>👤 Valeur signalée par l'observateur</span>
+                              <span className="font-bold text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                                Écart {item.tempDiff > 0 ? `+${item.tempDiff}` : item.tempDiff}°C
+                              </span>
+                            </div>
+                            <div className="text-base font-black text-amber-400">
+                              {item.observedTemperature}°C
+                            </div>
+                            <div className="text-xs text-slate-200 font-semibold">
+                              {item.observedWeatherCondition}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* User comments */}
+                        {item.userComments && (
+                          <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs text-slate-300 italic">
+                            💬 « {item.userComments} »
+                          </div>
+                        )}
+
+                        {/* Admin Action Buttons: OUI and NON */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                          <div className="flex items-center gap-2">
+                            {/* OUI Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleApproveSignalement(item)}
+                              className={`px-4 py-2 rounded-xl text-xs font-black shadow-lg transition cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                                isApproved
+                                  ? 'bg-emerald-700 text-white opacity-60'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 ring-2 ring-emerald-500/50'
+                              }`}
+                            >
+                              <Check className="h-4 w-4 stroke-[3]" />
+                              <span>OUI (Valider &amp; Changer la météo de l'appli)</span>
+                            </button>
+
+                            {/* NON Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleRejectSignalement(item)}
+                              className={`px-4 py-2 rounded-xl text-xs font-black shadow-lg transition cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                                isRejected
+                                  ? 'bg-rose-700 text-white opacity-60'
+                                  : 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
+                              }`}
+                            >
+                              <X className="h-4 w-4 stroke-[3]" />
+                              <span>NON (Rejeter)</span>
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {item.userEmail && (
+                              <a
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(item.userEmail)}&su=${encodeURIComponent(`[Instant Météo] Suite à votre signalement à ${item.stationName}`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition text-xs font-bold flex items-center gap-1"
+                                title="Répondre à l'observateur par Gmail"
+                              >
+                                <span>Gmail</span>
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSignalementItem(item.id)}
+                              className="p-2 rounded-xl bg-slate-900 hover:bg-rose-950 text-slate-500 hover:text-rose-400 border border-slate-800 transition cursor-pointer"
+                              title="Supprimer définitivement ce signalement de la liste"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
 

@@ -2063,7 +2063,10 @@ export interface ModelForecastValue {
   precipitationMm: number | null;
   weatherCode: number | null;
   isAvailable: boolean;
-  runStatus?: 'DIRECT_RUN' | 'ENSEMBLE_TREND' | 'REGIONAL_HORIZON_ENDED';
+  runStatus?: 'DIRECT_RUN' | 'ENSEMBLE_TREND' | 'REGIONAL_HORIZON_ENDED' | 'NON_RETENU_REGION';
+  isExcludedOutsideAsia?: boolean;
+  exclusionReason?: string;
+  ensembleMembersCount?: number;
 }
 
 export interface DayMultiModelConsensus {

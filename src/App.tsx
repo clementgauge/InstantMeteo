@@ -598,11 +598,13 @@ function WeatherApp() {
           onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
+          onOpenRadarTab={() => setActiveTab('radar')}
+          onSelectTab={(tabId) => setActiveTab(tabId)}
         />
       </div>
 
       {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1720px] px-3 sm:px-6 lg:px-8 xl:px-10 lg:pl-[84px] py-4 pb-36 overflow-x-hidden">
+      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1720px] px-2 sm:px-6 lg:px-8 xl:px-10 lg:pl-[84px] py-2 sm:py-4 pb-36 overflow-x-hidden">
         {/* Full-Page Collapsible Left Sidebar Rail & Mobile Drawer */}
         <PageSectionSidebar
           title={pageSidebarTitle}
@@ -619,8 +621,8 @@ function WeatherApp() {
           activeAlertCount={activeAlertCount}
         />
 
-        {/* Atmosphere Context & Hub Filter Bar */}
-        <div className="mb-3 rounded-3xl bg-slate-950/80 border border-slate-800/80 backdrop-blur-xl shadow-xl p-3 sm:p-4">
+        {/* Atmosphere Context & Hub Filter Bar (Desktop only, mobile has it directly in the top header) */}
+        <div className="hidden sm:block mb-3 rounded-3xl bg-slate-950/80 border border-slate-800/80 backdrop-blur-xl shadow-xl p-3 sm:p-4">
           {/* Quick shortcuts — centered. Search is already available in the global header. */}
           <div className="flex flex-wrap items-center justify-center gap-1.5">
             <button

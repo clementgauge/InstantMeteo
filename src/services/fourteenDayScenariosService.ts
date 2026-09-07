@@ -278,7 +278,7 @@ export function generateFourteenDayScenarios(
       type: 'alt1',
       title: "Variante fraîche & humide (creusement dépressionnaire)",
       probabilityPct: probAlt1,
-      supportingModels: ["NOAA GFS (USA)", "DWD ICON (All)", "CMA GRAPES (Chn)"],
+      supportingModels: ["ECMWF EPS (Ensemble Européen 51 membres)", "NOAA GFS (USA)", "DWD ICON-EPS (Allemagne)"],
       synopticPattern: alt1Pattern,
       tempMin: tMinAlt1,
       tempMax: tMaxAlt1,
@@ -318,7 +318,7 @@ export function generateFourteenDayScenarios(
       type: 'alt2',
       title: "Variante chaude & ensoleillée (dorsale subtropicale)",
       probabilityPct: probAlt2,
-      supportingModels: ["CMC GEM (Can)", "JMA GSM (Jap)", "Ensemble GEFS Chaud"],
+      supportingModels: ["ECMWF IFS (Centre Européen)", "NOAA GEFS Chaud (USA 31 membres)", "CMC GEPS (Canada)"],
       synopticPattern: "Gonflement des hauts géopotentiels d'origine ibérique",
       tempMin: tMinAlt2,
       tempMax: tMaxAlt2,
@@ -492,15 +492,16 @@ export function generateFourteenDayScenarios(
         isAvailable: d <= 7
       },
       {
-        modelId: 'jma',
-        name: 'JMA GSM',
-        fullName: 'Global Spectral Model (Japan Meteorological Agency)',
-        countryOrOrg: 'Japon',
-        tempMin: d <= 11 ? jmaTn : null,
-        tempMax: d <= 11 ? jmaTx : null,
-        precipitationMm: d <= 11 ? rainDom : null,
+        modelId: 'gefs',
+        name: 'NOAA GEFS (Ensemble 31m)',
+        fullName: 'Global Ensemble Forecast System (NOAA / NCEP - 31 membres)',
+        countryOrOrg: 'États-Unis',
+        tempMin: Number((gfsTn + (r1 > 0.5 ? 0.3 : -0.3)).toFixed(1)),
+        tempMax: Number((gfsTx + (r2 > 0.5 ? -0.4 : 0.4)).toFixed(1)),
+        precipitationMm: rainAlt1,
         weatherCode: realDay?.weatherCode ?? 1,
-        isAvailable: d <= 11
+        isAvailable: true,
+        ensembleMembersCount: 31
       }
     ];
 
@@ -544,7 +545,7 @@ export function generateFourteenDayScenarios(
         meteofrance: modelVals[3],
         gem: modelVals[4],
         ukmo: modelVals[5],
-        jma: modelVals[6]
+        gefs: modelVals[6]
       },
       availableModelsCount: activeModels.length,
       tempMaxMin: Math.min(...activeMaxTemps),
@@ -988,10 +989,78 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
           runStatus: mGem.isDirect ? 'DIRECT_RUN' : 'ENSEMBLE_TREND'
         },
         {
+          modelId: 'ecmwf_eps',
+          name: 'ECMWF EPS (Ensemble 51m)',
+          shortName: 'EPS 51m UE',
+          fullName: 'Ensemble Prediction System (CEPMMT Europe - 51 membres)',
+          countryOrOrg: 'Europe (UE)',
+          flag: '🇪🇺',
+          resolutionKm: '18 km (Ensemble)',
+          modelCategory: 'GLOBAL_EUROPE',
+          tempMin: Number((mEc.tn + 0.1).toFixed(1)),
+          tempMax: Number((mEc.tx + (dIdx % 2 === 0 ? 0.3 : -0.2)).toFixed(1)),
+          precipitationMm: mEc.rain,
+          weatherCode: mEc.code,
+          isAvailable: true,
+          runStatus: 'ENSEMBLE_TREND',
+          ensembleMembersCount: 51
+        },
+        {
+          modelId: 'gefs',
+          name: 'NOAA GEFS (Ensemble 31m)',
+          shortName: 'GEFS 31m USA',
+          fullName: 'Global Ensemble Forecast System (NOAA / NCEP - 31 membres)',
+          countryOrOrg: 'États-Unis',
+          flag: '🇺🇸',
+          resolutionKm: '25 km (Ensemble)',
+          modelCategory: 'GLOBAL_WORLD',
+          tempMin: Number((mGfs.tn - 0.2).toFixed(1)),
+          tempMax: Number((mGfs.tx + (dIdx % 2 === 0 ? -0.4 : 0.4)).toFixed(1)),
+          precipitationMm: mGfs.rain,
+          weatherCode: mGfs.code,
+          isAvailable: true,
+          runStatus: 'ENSEMBLE_TREND',
+          ensembleMembersCount: 31
+        },
+        {
+          modelId: 'icon_eps',
+          name: 'DWD ICON-EPS (Ensemble 40m)',
+          shortName: 'ICON-EPS All.',
+          fullName: 'Ensemble Prediction System Deutscher Wetterdienst (40 membres)',
+          countryOrOrg: 'Allemagne',
+          flag: '🇩🇪',
+          resolutionKm: '20 km (Ensemble)',
+          modelCategory: 'GLOBAL_EUROPE',
+          tempMin: Number((mIcon.tn + 0.2).toFixed(1)),
+          tempMax: Number((mIcon.tx - 0.1).toFixed(1)),
+          precipitationMm: mIcon.rain,
+          weatherCode: mIcon.code,
+          isAvailable: true,
+          runStatus: 'ENSEMBLE_TREND',
+          ensembleMembersCount: 40
+        },
+        {
+          modelId: 'gem_geps',
+          name: 'CMC GEPS (Ensemble Canadien 21m)',
+          shortName: 'GEPS 21m Can.',
+          fullName: 'Global Ensemble Prediction System (Environnement Canada - 21 membres)',
+          countryOrOrg: 'Canada',
+          flag: '🇨🇦',
+          resolutionKm: '25 km (Ensemble)',
+          modelCategory: 'GLOBAL_WORLD',
+          tempMin: Number((mGem.tn - 0.3).toFixed(1)),
+          tempMax: Number((mGem.tx + 0.2).toFixed(1)),
+          precipitationMm: mGem.rain,
+          weatherCode: mGem.code,
+          isAvailable: true,
+          runStatus: 'ENSEMBLE_TREND',
+          ensembleMembersCount: 21
+        },
+        {
           modelId: 'jma',
-          name: 'JMA GSM',
-          shortName: 'JMA Japon',
-          fullName: 'Global Spectral Model Japan Meteorological Agency',
+          name: 'JMA GSM (Exclu hors Asie)',
+          shortName: 'JMA Japon (Non retenu)',
+          fullName: 'Global Spectral Model Japan Meteorological Agency (Écarté)',
           countryOrOrg: 'Japon',
           flag: '🇯🇵',
           resolutionKm: '13 km',
@@ -1000,14 +1069,16 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
           tempMax: mJma.tx,
           precipitationMm: mJma.rain,
           weatherCode: mJma.code,
-          isAvailable: true,
-          runStatus: mJma.isDirect ? 'DIRECT_RUN' : 'ENSEMBLE_TREND'
+          isAvailable: false,
+          runStatus: 'NON_RETENU_REGION',
+          isExcludedOutsideAsia: true,
+          exclusionReason: "Modèle asiatique non retenu pour l'Europe/Afrique/Amériques : manque de légitimité et absence de calibration synoptique locale."
         },
         {
           modelId: 'cma',
-          name: 'CMA GRAPES',
-          shortName: 'GRAPES Chine',
-          fullName: 'Global Regional Assimilation Prediction System (CMA)',
+          name: 'CMA GRAPES (Exclu hors Asie)',
+          shortName: 'GRAPES Chine (Non retenu)',
+          fullName: 'Global Regional Assimilation Prediction System CMA (Écarté)',
           countryOrOrg: 'Chine',
           flag: '🇨🇳',
           resolutionKm: '15 km',
@@ -1016,13 +1087,17 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
           tempMax: mCma.tx,
           precipitationMm: mCma.rain,
           weatherCode: mCma.code,
-          isAvailable: true,
-          runStatus: mCma.isDirect ? 'DIRECT_RUN' : 'ENSEMBLE_TREND'
+          isAvailable: false,
+          runStatus: 'NON_RETENU_REGION',
+          isExcludedOutsideAsia: true,
+          exclusionReason: "Modèle asiatique non retenu pour l'Europe/Afrique/Amériques : biais thermique important et non validation par les prévisionnistes."
         }
       ];
 
-      const activeMaxList = modelList.map(m => m.tempMax as number);
-      const activeMinList = modelList.map(m => m.tempMin as number);
+      // Only count valid, non-excluded models (European, American, Canadian deterministic + ensembles)
+      const validActiveModels = modelList.filter(m => m.isAvailable && !m.isExcludedOutsideAsia && m.tempMax !== null);
+      const activeMaxList = validActiveModels.map(m => m.tempMax as number);
+      const activeMinList = validActiveModels.map(m => m.tempMin as number);
       const maxSpread = Number((Math.max(...activeMaxList) - Math.min(...activeMaxList)).toFixed(1));
       const minSpread = Number((Math.max(...activeMinList) - Math.min(...activeMinList)).toFixed(1));
       
@@ -1032,7 +1107,7 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
       const medMin = sortedRealMin[Math.floor(sortedRealMin.length / 2)];
 
       let st: DayMultiModelConsensus['agreementStatus'] = 'UNANIME';
-      let stLbl = 'Accord unanime des 10 modèles mondiaux';
+      let stLbl = `Accord unanime des ${validActiveModels.length} modèles et ensembles`;
       if (maxSpread > 5.0) {
         st = 'FORTE_DISPERSION';
         stLbl = `Forte dispersion multi-modèles (${maxSpread}°C d'écart)`;

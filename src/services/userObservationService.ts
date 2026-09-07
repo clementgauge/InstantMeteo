@@ -1,4 +1,6 @@
 import { LocationPoint, CurrentWeather } from '../types/weather';
+import { secureSave, secureLoad, secureRemove } from '../utils/securityCrypto';
+import { loadPlayerProfile, savePlayerProfile } from './competitiveGameService';
 
 export const REPORT_CONTACT_EMAIL = 'instantmeteofr@gmail.com';
 export const FORMSUBMIT_TOKEN = '1c7dac087c2f4d7b58aeaa4ee8a1ec13';
@@ -16,6 +18,7 @@ export interface UserObservationReport {
   discrepancyType: string;
   userComments: string;
   userEmail?: string;
+  userPseudo?: string;
 
   // App baseline at time of report
   appDisplayedTemperature: number;
@@ -34,6 +37,27 @@ export interface UserObservationReport {
   };
 }
 
+export interface AdminSignalementItem {
+  id: string;
+  timestamp: string;
+  isoTimestamp: string;
+  stationId: string;
+  stationName: string;
+  department: string;
+  observedTemperature: number;
+  observedWeatherCondition: string;
+  appDisplayedTemperature: number;
+  appDisplayedWeather: string;
+  tempDiff: number;
+  discrepancyType: string;
+  userComments: string;
+  userEmail?: string;
+  userPseudo?: string;
+  status: 'EN_ATTENTE' | 'VALIDE_OUI' | 'REJETE_NON';
+  decidedAt?: string;
+  decidedBy?: string;
+}
+
 export interface RecalibrationState {
   isActive: boolean;
   stationId: string;
@@ -41,18 +65,19 @@ export interface RecalibrationState {
   startTimeIso: string;
   expiresTimeIso: string;
   tempOffset: number;
+  exactTemperature?: number;
   weatherOverride?: string;
   activeReportId?: string;
+  approvedBy?: string;
 }
 
 const STORAGE_KEY_REPORTS = 'climafrance_user_observation_reports';
 const STORAGE_KEY_CALIBRATION = 'climafrance_active_recalibration';
+const STORAGE_KEY_ADMIN_SIGNALEMENTS = 'instant_meteo_admin_signalements_queue_v1';
 
 export function getSavedUserReports(): UserObservationReport[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_REPORTS);
-    if (!raw) return [];
-    return JSON.parse(raw);
+    return secureLoad<UserObservationReport[]>(STORAGE_KEY_REPORTS, []);
   } catch (e) {
     console.warn('Failed to load user observation reports:', e);
     return [];
@@ -63,21 +88,179 @@ export function saveUserReport(report: UserObservationReport): void {
   try {
     const existing = getSavedUserReports();
     const updated = [report, ...existing.filter(r => r.id !== report.id)].slice(0, 30);
-    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(updated));
+    secureSave(STORAGE_KEY_REPORTS, updated);
   } catch (e) {
     console.warn('Failed to save user report:', e);
   }
 }
 
+// === GESTION DES SIGNALEMENTS ADMIN (Validation OUI / NON) ===
+
+export function getAdminSignalements(): AdminSignalementItem[] {
+  try {
+    return secureLoad<AdminSignalementItem[]>(STORAGE_KEY_ADMIN_SIGNALEMENTS, []);
+  } catch (e) {
+    console.warn('Erreur lecture signalements admin:', e);
+    return [];
+  }
+}
+
+export function saveAdminSignalement(item: AdminSignalementItem): void {
+  try {
+    const list = getAdminSignalements();
+    const updated = [item, ...list.filter(s => s.id !== item.id)];
+    secureSave(STORAGE_KEY_ADMIN_SIGNALEMENTS, updated);
+    window.dispatchEvent(new CustomEvent('instant_meteo_admin_signalements_updated', { detail: updated }));
+  } catch (e) {
+    console.warn('Erreur sauvegarde signalement admin:', e);
+  }
+}
+
+/**
+ * Validation par l'administrateur : Bouton OUI
+ * Applique immédiatement la température et la météo observées par l'utilisateur à l'application.
+ */
+export function approveSignalement(
+  reportId: string, 
+  adminPseudo: string
+): { success: boolean; recalibration: RecalibrationState | null; message: string } {
+  const list = getAdminSignalements();
+  const target = list.find(s => s.id === reportId);
+  if (!target) {
+    return { success: false, recalibration: null, message: 'Signalement introuvable.' };
+  }
+
+  const offset = Number((target.observedTemperature - target.appDisplayedTemperature).toFixed(1));
+  const nowIso = new Date().toISOString();
+  const expiresIso = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 heure de validité
+
+  const recalibration: RecalibrationState = {
+    isActive: true,
+    stationId: target.stationId,
+    stationName: target.stationName,
+    startTimeIso: nowIso,
+    expiresTimeIso: expiresIso,
+    tempOffset: offset,
+    exactTemperature: target.observedTemperature,
+    weatherOverride: target.observedWeatherCondition,
+    activeReportId: target.id,
+    approvedBy: adminPseudo || 'Administrateur Instant Météo'
+  };
+
+  // 1. Sauvegarde de la recalibration active
+  setActiveRecalibration(recalibration);
+
+  // 2. Mise à jour du statut du signalement dans la liste admin
+  const updatedList = list.map(s => {
+    if (s.id === reportId) {
+      return {
+        ...s,
+        status: 'VALIDE_OUI' as const,
+        decidedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        decidedBy: adminPseudo || 'Administrateur'
+      };
+    }
+    return s;
+  });
+  secureSave(STORAGE_KEY_ADMIN_SIGNALEMENTS, updatedList);
+
+  // 3. Attribution éventuelle de points bonus à l'observateur s'il a un profil
+  try {
+    const profile = loadPlayerProfile();
+    if (profile && (profile.pseudo === target.userPseudo || profile.pseudo === target.userEmail)) {
+      const updatedProfile = {
+        ...profile,
+        totalPoints: profile.totalPoints + 200,
+        communityReportsCount: (profile.communityReportsCount || 0) + 1
+      };
+      savePlayerProfile(updatedProfile);
+    }
+  } catch (e) {
+    console.warn('Erreur crédit points après validation signalement:', e);
+  }
+
+  // 4. Notification immédiate à toute l'application pour modifier la météo en direct
+  window.dispatchEvent(new CustomEvent('instant_meteo_admin_signalements_updated', { detail: updatedList }));
+  window.dispatchEvent(new CustomEvent('instant_meteo_recalibration_changed', { detail: recalibration }));
+
+  return {
+    success: true,
+    recalibration,
+    message: `Signalement validé avec succès ! La météo de ${target.stationName} est désormais recalibrée sur ${target.observedTemperature}°C (${target.observedWeatherCondition}).`
+  };
+}
+
+/**
+ * Rejet par l'administrateur : Bouton NON
+ * Rejette le signalement sans modifier les données météorologiques de l'application.
+ */
+export function rejectSignalement(
+  reportId: string, 
+  adminPseudo: string
+): { success: boolean; message: string } {
+  const list = getAdminSignalements();
+  const target = list.find(s => s.id === reportId);
+  if (!target) {
+    return { success: false, message: 'Signalement introuvable.' };
+  }
+
+  // Si une recalibration était active pour ce signalement, on la retire
+  const curRecalib = getActiveRecalibration();
+  if (curRecalib && curRecalib.activeReportId === reportId) {
+    clearActiveRecalibration();
+    window.dispatchEvent(new CustomEvent('instant_meteo_recalibration_changed', { detail: null }));
+  }
+
+  const updatedList = list.map(s => {
+    if (s.id === reportId) {
+      return {
+        ...s,
+        status: 'REJETE_NON' as const,
+        decidedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        decidedBy: adminPseudo || 'Administrateur'
+      };
+    }
+    return s;
+  });
+
+  secureSave(STORAGE_KEY_ADMIN_SIGNALEMENTS, updatedList);
+  window.dispatchEvent(new CustomEvent('instant_meteo_admin_signalements_updated', { detail: updatedList }));
+
+  return {
+    success: true,
+    message: `Le signalement pour ${target.stationName} a été rejeté. Les données officielles de l'application sont conservées.`
+  };
+}
+
+/**
+ * Révocation manuelle d'une correction météo active
+ */
+export function revokeStationRecalibration(stationId?: string): void {
+  const active = getActiveRecalibration();
+  if (!active) return;
+  if (!stationId || active.stationId === stationId) {
+    clearActiveRecalibration();
+    window.dispatchEvent(new CustomEvent('instant_meteo_recalibration_changed', { detail: null }));
+  }
+}
+
+export function deleteSignalement(reportId: string): void {
+  const list = getAdminSignalements();
+  const filtered = list.filter(s => s.id !== reportId);
+  secureSave(STORAGE_KEY_ADMIN_SIGNALEMENTS, filtered);
+  window.dispatchEvent(new CustomEvent('instant_meteo_admin_signalements_updated', { detail: filtered }));
+}
+
+// === FIN GESTION SIGNALEMENTS ADMIN ===
+
 export function getActiveRecalibration(): RecalibrationState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_CALIBRATION);
-    if (!raw) return null;
-    const parsed: RecalibrationState = JSON.parse(raw);
+    const parsed = secureLoad<RecalibrationState | null>(STORAGE_KEY_CALIBRATION, null);
+    if (!parsed) return null;
     const now = new Date().getTime();
     const expires = new Date(parsed.expiresTimeIso).getTime();
     if (now > expires) {
-      localStorage.removeItem(STORAGE_KEY_CALIBRATION);
+      secureRemove(STORAGE_KEY_CALIBRATION);
       return null;
     }
     return { ...parsed, isActive: true };
@@ -88,14 +271,18 @@ export function getActiveRecalibration(): RecalibrationState | null {
 
 export function setActiveRecalibration(state: RecalibrationState): void {
   try {
-    localStorage.setItem(STORAGE_KEY_CALIBRATION, JSON.stringify(state));
+    secureSave(STORAGE_KEY_CALIBRATION, state);
   } catch (e) {
     console.warn('Failed to save recalibration state:', e);
   }
 }
 
 export function clearActiveRecalibration(): void {
-  localStorage.removeItem(STORAGE_KEY_CALIBRATION);
+  try {
+    localStorage.removeItem(STORAGE_KEY_CALIBRATION);
+  } catch (e) {
+    console.warn('Failed to clear recalibration state:', e);
+  }
 }
 
 /**
@@ -143,6 +330,7 @@ export function buildReportEmailData(
     discrepancyType: string;
     userComments: string;
     userEmail?: string;
+    userPseudo?: string;
   }
 ) {
   const dateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'medium' });
@@ -239,6 +427,7 @@ export async function processUserObservationSubmission(
     discrepancyType: string;
     userComments: string;
     userEmail?: string;
+    userPseudo?: string;
   }
 ): Promise<{ report: UserObservationReport; recalibration: RecalibrationState }> {
   const reportId = `rep_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -330,6 +519,7 @@ export async function processUserObservationSubmission(
     discrepancyType: userInput.discrepancyType,
     userComments: userInput.userComments,
     userEmail: userInput.userEmail,
+    userPseudo: userInput.userPseudo,
     appDisplayedTemperature: currentAppWeather.temperature,
     appDisplayedWeather: currentAppWeather.weatherDescription,
     humanDispatch: {
@@ -340,12 +530,32 @@ export async function processUserObservationSubmission(
       mailBody: body,
       gmailComposeUrl,
       mailtoUrl,
-      recalibrationApplied: `Signalement expédié à l'administrateur (${REPORT_CONTACT_EMAIL}). L'application conserve les données officielles de la station.`
+      recalibrationApplied: `Signalement expédié à la messagerie (${REPORT_CONTACT_EMAIL}) et placé dans la file d'attente Administrateur.`
     }
   };
 
   saveUserReport(report);
-  clearActiveRecalibration();
+
+  // Enregistrement dans la file des signalements Administrateur pour arbitrage Oui / Non
+  const adminItem: AdminSignalementItem = {
+    id: reportId,
+    timestamp: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }),
+    isoTimestamp: nowIso,
+    stationId: station.id,
+    stationName: station.name,
+    department: station.department,
+    observedTemperature: userInput.observedTemperature,
+    observedWeatherCondition: userInput.observedWeatherCondition,
+    appDisplayedTemperature: currentAppWeather.temperature,
+    appDisplayedWeather: currentAppWeather.weatherDescription,
+    tempDiff,
+    discrepancyType: userInput.discrepancyType,
+    userComments: userInput.userComments,
+    userEmail: userInput.userEmail,
+    userPseudo: userInput.userPseudo,
+    status: 'EN_ATTENTE'
+  };
+  saveAdminSignalement(adminItem);
 
   const recalibration: RecalibrationState = {
     isActive: false,

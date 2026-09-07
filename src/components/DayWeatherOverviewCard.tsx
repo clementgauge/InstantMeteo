@@ -282,7 +282,7 @@ export const DayWeatherOverviewCard: React.FC<DayWeatherOverviewCardProps> = ({
   });
 
   return (
-    <div id="day-weather-overview-card" className={`rounded-2xl border ${dayVisual.borderColor} bg-gradient-to-br ${dayVisual.accentBg} p-4 sm:p-5 text-slate-200 shadow-xl backdrop-blur-md w-full flex flex-col justify-between space-y-4`}>
+    <div id="day-weather-overview-card" className={`rounded-[24px] sm:rounded-2xl border ${dayVisual.borderColor} bg-gradient-to-br ${dayVisual.accentBg} p-3.5 sm:p-5 text-slate-200 shadow-xl backdrop-blur-md w-full flex flex-col justify-between space-y-4`}>
       {/* Header with Title & Day Badge */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
         <div className="flex items-center gap-2">

@@ -38,7 +38,12 @@ import {
   Layers,
   Sprout,
   Plane,
-  Tv
+  Tv,
+  MapPin,
+  Moon,
+  Play,
+  Map,
+  Radio
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { WeatherGauge } from '../components/WeatherGauge';
@@ -209,10 +214,318 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         </div>
       )}
 
-      {/* 1. Hero Current Weather & Active GPS Localization Banner */}
+      {/* ========================================================================= */}
+      {/* MOBILE EXCLUSIVE HERO & FORECAST (Exact 1:1 match with user reference)    */}
+      {/* ========================================================================= */}
+      <div className="block sm:hidden space-y-3.5 mb-4">
+        {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
+        <div className="relative overflow-hidden rounded-[28px] border border-slate-700/60 shadow-2xl text-white bg-slate-950">
+          {/* Photographic Background Asset */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-all duration-700 filter brightness-[0.82] contrast-[1.05]"
+            style={{
+              backgroundImage: 'url(/paris_weather_hero_bg.jpg)',
+              backgroundPosition: 'center 35%'
+            }}
+          />
+          {/* Subtle Atmospheric Gradient Overlay for contrast and readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
+
+          {/* Card Content */}
+          <div className="relative z-10 p-4 pt-4 space-y-3.5">
+            {/* Top Station & Reference Header */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 drop-shadow-sm block">
+                  Station Météo de Référence
+                </span>
+                <h2 className="text-2xl font-black text-white tracking-tight leading-none drop-shadow-md">
+                  {station.name}
+                </h2>
+                <div className="flex items-center gap-1 text-[11px] text-slate-300 drop-shadow-sm">
+                  <MapPin className="h-3 w-3 text-sky-400 shrink-0" />
+                  <span>{station.department || '75 - Paris'}</span>
+                  <span>•</span>
+                  <span>Altitude : {station.altitude || 75} m</span>
+                  <ChevronDown className="h-3 w-3 text-slate-400" />
+                </div>
+              </div>
+
+              {/* Top Right "Changer de station" pill */}
+              {onOpenSearchModal && (
+                <button
+                  onClick={onOpenSearchModal}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 border border-slate-700/80 backdrop-blur-md text-[11px] font-bold text-slate-200 hover:text-white shadow-lg active:scale-95 transition cursor-pointer shrink-0"
+                >
+                  <Search className="h-3 w-3 text-sky-400" />
+                  <span>Changer</span>
+                </button>
+              )}
+            </div>
+
+            {/* Tags row: Climat & ICU */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950/75 border border-slate-700/70 backdrop-blur-md text-[10px] font-semibold text-slate-200 shadow-sm">
+                <span>🌱</span>
+                <span>Climat {station.climateZone || 'Océanique dégradé'}</span>
+              </span>
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950/75 border border-slate-700/70 backdrop-blur-md text-[10px] font-semibold text-slate-200 shadow-sm">
+                <span>🏢</span>
+                <span>Îlot de chaleur urbain</span>
+              </span>
+            </div>
+
+            {/* Center: Massive Temperature + Live Badge & Radiant Sun Graphic */}
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div>
+                <div className="text-5xl font-black tracking-tighter text-white drop-shadow-lg leading-none">
+                  {formatTemp(weather.temperature)}
+                </div>
+                <p className="text-xs font-medium text-slate-200 mt-1.5 max-w-[200px] leading-snug drop-shadow-sm">
+                  {weather.weatherDescription || 'Ciel principalement clair avec quelques cirrus / voiles'}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                {/* En Direct Badge */}
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-950/85 border border-slate-700 text-emerald-400 text-[10px] font-black tracking-wide shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>En direct</span>
+                </div>
+
+                {/* Radiant Glowing Sun Graphic */}
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-amber-400/25 rounded-full blur-lg animate-pulse" />
+                  <div className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-200 shadow-xl shadow-amber-500/40 border border-yellow-200/60 flex items-center justify-center">
+                    <Sun className="h-7 w-7 text-amber-950" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Translucent Glass 4-Metric Strip */}
+            <div className="rounded-2xl bg-slate-950/85 border border-slate-800/80 backdrop-blur-md p-2.5 grid grid-cols-4 divide-x divide-slate-800/90 text-center shadow-lg">
+              {/* 1. Ressenti */}
+              <div className="flex flex-col items-center px-1">
+                <div className="flex items-center gap-1 text-[10px] text-cyan-400 font-bold mb-0.5">
+                  <ThermometerSnowflake className="h-3 w-3 text-cyan-400" />
+                  <span>Ressenti</span>
+                </div>
+                <span className="text-xs font-black text-white">{formatTemp(weather.feelsLike)}</span>
+              </div>
+
+              {/* 2. Humidité */}
+              <div className="flex flex-col items-center px-1">
+                <div className="flex items-center gap-1 text-[10px] text-blue-400 font-bold mb-0.5">
+                  <Droplets className="h-3 w-3 text-blue-400" />
+                  <span>Humidité</span>
+                </div>
+                <span className="text-xs font-black text-white">{weather.humidity}%</span>
+              </div>
+
+              {/* 3. Vent */}
+              <div className="flex flex-col items-center px-1">
+                <div className="flex items-center gap-1 text-[10px] text-sky-400 font-bold mb-0.5">
+                  <Wind className="h-3 w-3 text-sky-400" />
+                  <span>Vent</span>
+                </div>
+                <span className="text-xs font-black text-white">
+                  {Math.round(weather.windSpeed)} km/h <span className="text-[9px] text-slate-400 font-normal">{weather.windDirection !== undefined ? `${Math.round(weather.windDirection)}°` : 'SO'}</span>
+                </span>
+              </div>
+
+              {/* 4. UV */}
+              <div className="flex flex-col items-center px-1">
+                <div className="flex items-center gap-1 text-[10px] text-amber-400 font-bold mb-0.5">
+                  <Sun className="h-3 w-3 text-amber-400" />
+                  <span>UV</span>
+                </div>
+                <span className="text-xs font-black text-white">
+                  {weather.uvIndex || 5} <span className="text-[9px] text-slate-400 font-normal">{weather.uvIndex && weather.uvIndex >= 6 ? 'Élevé' : 'Modéré'}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom 2 Action Buttons (GPS & Voir sur la carte) */}
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
+              {onLocateGps && (
+                <button
+                  onClick={onLocateGps}
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer"
+                >
+                  <Navigation className="h-3.5 w-3.5 fill-emerald-300/30 text-emerald-300" />
+                  <span>Ma position GPS</span>
+                </button>
+              )}
+              <button
+                onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-slate-200 font-bold text-xs shadow-lg active:scale-95 transition hover:text-white cursor-pointer"
+              >
+                <Map className="h-3.5 w-3.5 text-sky-400" />
+                <span>Voir sur la carte</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Hourly Forecast Row ("Prévisions à {station.name}") */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xs font-black text-white tracking-wide">
+              Prévisions à {station.name}
+            </h3>
+            <button
+              onClick={() => onNavigateTab ? onNavigateTab('scenarios14d') : null}
+              className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center gap-0.5 transition"
+            >
+              <span>Voir plus</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-0.5 px-0.5">
+            {/* Active Card: Maintenant (Glowing Blue) */}
+            <div className="flex flex-col items-center justify-between min-w-[72px] h-[96px] rounded-2xl p-2 bg-gradient-to-b from-blue-600 to-blue-700 border-2 border-blue-400 shadow-lg shadow-blue-600/35 text-white shrink-0">
+              <span className="text-[10px] font-black text-blue-100 uppercase tracking-tight">Maintenant</span>
+              <Sun className="h-6 w-6 text-amber-300 drop-shadow" />
+              <span className="text-xs font-black text-white tracking-tight">{formatTemp(weather.temperature)}</span>
+            </div>
+
+            {/* Next Hours from hourly dataset */}
+            {hourly.slice(0, 8).map((slot, idx) => {
+              const label = slot.hourLabel || (slot.time ? slot.time.slice(11, 16) : `${idx + 1}h`);
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-col items-center justify-between min-w-[70px] h-[96px] rounded-2xl p-2 bg-[#0c1424] border border-slate-800 text-slate-200 shrink-0 shadow-sm"
+                >
+                  <span className="text-[10px] font-bold text-slate-400">{label}</span>
+                  {slot.precipitationProbability > 40 || slot.rainMm > 0 ? (
+                    <CloudRain className="h-6 w-6 text-sky-400" />
+                  ) : slot.hourNumber !== undefined && (slot.hourNumber >= 21 || slot.hourNumber <= 5) ? (
+                    <Moon className="h-6 w-6 text-indigo-300" />
+                  ) : (
+                    <Sun className="h-6 w-6 text-amber-400" />
+                  )}
+                  <span className="text-xs font-black text-white">{Math.round(slot.temperature)}°</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Two Live Interactive Preview Cards (Radar Pluie HD & Vigilance Météo) */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {/* Card 1: Radar Pluie HD */}
+          <div
+            onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
+            className="rounded-2xl border border-slate-800 bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-blue-500/50 transition shadow-lg group"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/40 text-sky-400 flex items-center justify-center shrink-0">
+                  <Radio className="h-3.5 w-3.5 text-sky-400" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-white truncate leading-tight">Radar Pluie HD</div>
+                  <div className="text-[9px] text-slate-400 truncate">Suivi en temps réel</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white shrink-0">
+                <ChevronRight className="h-3 w-3" />
+              </div>
+            </div>
+
+            {/* Radar Map Graphic with rain echoes and central glowing Play button */}
+            <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 flex items-center justify-center">
+              {/* Radar echo circles / rain pattern */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950 via-[#071328] to-slate-950" />
+              {/* Simulated radar sweep / echoes */}
+              <div className="absolute w-20 h-20 rounded-full bg-emerald-500/20 blur-md top-1 left-2" />
+              <div className="absolute w-14 h-14 rounded-full bg-amber-500/25 blur-md bottom-2 right-4" />
+              <div className="absolute w-10 h-10 rounded-full bg-rose-500/30 blur-sm top-3 right-6" />
+
+              {/* Grid radar rings */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-20 h-20 rounded-full border border-sky-500/20" />
+                <div className="w-12 h-12 rounded-full border border-sky-500/30 absolute" />
+              </div>
+
+              {/* Glowing circular Play button in the center */}
+              <div className="relative z-10 w-8 h-8 rounded-full bg-blue-600 border border-blue-300 text-white flex items-center justify-center shadow-lg shadow-blue-600/50 group-hover:scale-110 transition">
+                <Play className="h-3.5 w-3.5 fill-white ml-0.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Vigilance Météo */}
+          <div
+            onClick={() => onNavigateTab ? onNavigateTab('vigilance') : null}
+            className="rounded-2xl border border-slate-800 bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-amber-500/50 transition shadow-lg group"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance Météo</div>
+                  <div className="text-[9px] text-slate-400 truncate">Météo-France</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white shrink-0">
+                <ChevronRight className="h-3 w-3" />
+              </div>
+            </div>
+
+            {/* Vigilance Map Graphic & Legend */}
+            <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 p-2 flex items-center justify-between">
+              {/* Simulated stylized France contour with vigilance colors */}
+              <div className="relative w-16 h-20 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow">
+                  <path d="M45,10 L70,25 L85,45 L75,75 L60,90 L35,85 L15,60 L20,30 Z" fill="#10b981" opacity="0.85" />
+                  <path d="M50,30 L75,45 L65,70 L45,55 Z" fill="#f59e0b" opacity="0.9" />
+                  <path d="M30,40 L45,55 L35,70 L20,55 Z" fill="#ef4444" opacity="0.85" />
+                </svg>
+              </div>
+
+              {/* Legend List */}
+              <div className="space-y-0.5 text-[8px] font-bold pl-1 border-l border-slate-800/80">
+                <div className="flex items-center gap-1 text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>Aucune</span>
+                </div>
+                <div className="flex items-center gap-1 text-amber-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>Modérée</span>
+                </div>
+                <div className="flex items-center gap-1 text-orange-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  <span>Marquée</span>
+                </div>
+                <div className="flex items-center gap-1 text-rose-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  <span>Sévère</span>
+                </div>
+                <div className="flex items-center gap-1 text-purple-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <span>Extrême</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop) */}
       <div
         id="realtime-radiography"
-        className={`relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-xl backdrop-blur-md sm:p-8 scroll-mt-28 ${
+        className={`hidden sm:block relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-xl backdrop-blur-md sm:p-8 scroll-mt-28 ${
           seniorMode ? 'p-8 ring-1 ring-blue-500/30' : ''
         }`}
       >

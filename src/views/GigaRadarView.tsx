@@ -72,10 +72,10 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   return (
     <div id="giga-radar-view" className="space-y-6">
       {/* Top Map Mode Switcher */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-x-auto">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-[22px] sm:rounded-2xl bg-[#0c1424]/95 sm:bg-slate-900/90 border border-slate-800/90 shadow-xl overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveMapMode('radar')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
             activeMapMode === 'radar'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -88,7 +88,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         <button
           id="radar-tab-world-temperatures"
           onClick={() => setActiveMapMode('worldTemperature')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
             activeMapMode === 'worldTemperature'
               ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -101,7 +101,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         <button
           id="radar-tab-community-reports"
           onClick={() => setActiveMapMode('communityReports')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
             activeMapMode === 'communityReports'
               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -136,7 +136,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
           </button>
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-4 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+        <div className="rounded-[24px] sm:rounded-3xl border border-slate-800/90 bg-[#0c1424]/95 sm:bg-gradient-to-br sm:from-slate-900 sm:via-blue-950/40 sm:to-slate-900 p-3.5 sm:p-8 shadow-xl backdrop-blur relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-cyan-600/10 blur-3xl pointer-events-none"></div>
           
           {/* Mobile-Only Header Bar: logos removed next to search */}

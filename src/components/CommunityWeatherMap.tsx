@@ -74,6 +74,12 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
         }
       });
     }
+
+    const interval = setInterval(() => {
+      setReports(getCommunityReports());
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // 1. Initialize Map with pure OpenStreetMap basemap
@@ -157,9 +163,8 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
       const marker = L.marker([report.latitude, report.longitude], { icon: customIcon });
 
       const relativeMinutes = Math.round((Date.now() - new Date(report.timestamp).getTime()) / (1000 * 60));
-      const timeStr = relativeMinutes < 60 
-        ? `Il y a ${relativeMinutes} min` 
-        : `Il y a ${Math.round(relativeMinutes / 60)}h`;
+      const remainingMinutes = Math.max(1, 60 - relativeMinutes);
+      const timeStr = `Il y a ${relativeMinutes} min (expire dans ${remainingMinutes} min)`;
 
       const popupContent = document.createElement('div');
       popupContent.className = 'community-popup p-1 text-slate-900';
@@ -181,7 +186,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
           ${report.comment ? `<p style="font-size: 11px; color: #475569; margin: 4px 0 8px 0; font-style: italic; background: #f8fafc; padding: 6px; border-radius: 6px;">"${report.comment}"</p>` : ''}
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 6px;">
             <span>Par <strong>${report.reporterPseudo}</strong></span>
-            <span>🕒 ${timeStr}</span>
+            <span style="color: #ea580c; font-weight: 700;">⏱️ Expire dans ${remainingMinutes}m</span>
           </div>
           <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 10px; color: #059669; font-weight: 700;">✅ ${report.confirmations} confirmations</span>
