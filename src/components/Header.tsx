@@ -127,6 +127,51 @@ export const Header: React.FC<HeaderProps> = ({
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const headerRef = React.useRef<HTMLElement>(null);
 
+  // État temps réel pour la barre de statut mobile (heure exacte, vraie batterie, vrai wifi)
+  const [realClock, setRealClock] = React.useState<string>(() => {
+    const d = new Date();
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  });
+  const [batteryLevel, setBatteryLevel] = React.useState<number | null>(null);
+  const [isCharging, setIsCharging] = React.useState<boolean>(false);
+  const [isOnline, setIsOnline] = React.useState<boolean>(true);
+
+  React.useEffect(() => {
+    // 1. Horloge temps réel mise à jour chaque seconde
+    const clockTimer = setInterval(() => {
+      const d = new Date();
+      setRealClock(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
+    }, 1000);
+
+    // 2. Statut réseau connecté / déconnecté
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    setIsOnline(navigator.onLine);
+
+    // 3. API Vraie Batterie système (si supportée par l'appareil/navigateur)
+    if (typeof navigator !== 'undefined' && 'getBattery' in (navigator as any)) {
+      (navigator as any).getBattery().then((battery: any) => {
+        setBatteryLevel(Math.round(battery.level * 100));
+        setIsCharging(battery.charging);
+
+        battery.addEventListener('levelchange', () => {
+          setBatteryLevel(Math.round(battery.level * 100));
+        });
+        battery.addEventListener('chargingchange', () => {
+          setIsCharging(battery.charging);
+        });
+      }).catch(() => {});
+    }
+
+    return () => {
+      clearInterval(clockTimer);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const handleAdminCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = adminCodeInput.trim();
@@ -199,31 +244,44 @@ export const Header: React.FC<HeaderProps> = ({
       {/* MOBILE EXCLUSIVE HEADER - Pixel-perfect match with reference design       */}
       {/* ========================================================================= */}
       <div className="block sm:hidden w-full space-y-3 px-1 pt-0.5 pb-1">
-        {/* Native Mobile Status Bar (9:41, wifi, cellular, battery) */}
+        {/* Native Mobile Status Bar (Heure réelle, wifi réel, vraie batterie si disponible) */}
         <div className="flex items-center justify-between text-xs text-white font-semibold px-2 pt-0.5 pb-1 select-none">
-          <span>9:41</span>
-          <div className="flex items-center gap-1.5">
+          <span className="font-bold tracking-tight">{realClock}</span>
+          <div className="flex items-center gap-2">
             {/* Cellular Signal Icon */}
-            <svg className="w-4 h-3 text-white fill-current" viewBox="0 0 17 12">
+            <svg className={`w-3.5 h-3 ${isOnline ? 'text-white' : 'text-slate-500'} fill-current`} viewBox="0 0 17 12">
               <rect x="0" y="8" width="2.5" height="4" rx="0.5" />
               <rect x="4" y="5.5" width="2.5" height="6.5" rx="0.5" />
               <rect x="8" y="3" width="2.5" height="9" rx="0.5" />
               <rect x="12" y="0.5" width="2.5" height="11.5" rx="0.5" />
             </svg>
-            {/* Wi-Fi Icon */}
-            <svg className="w-3.5 h-3.5 text-white stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+            {/* Wi-Fi Icon (Verte/Blanche si en ligne, rouge si hors-ligne) */}
+            <svg className={`w-3.5 h-3.5 ${isOnline ? 'text-white' : 'text-rose-400'} stroke-current fill-none`} viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
               <path d="M5 12.55a11 11 0 0 1 14.08 0" />
               <path d="M1.42 9a16 16 0 0 1 21.16 0" />
               <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
               <line x1="12" y1="20" x2="12.01" y2="20" strokeWidth="3" />
             </svg>
-            {/* Battery Icon */}
-            <div className="flex items-center">
-              <div className="w-5 h-2.5 rounded-sm border border-white p-[1px] flex items-center">
-                <div className="w-full h-full bg-white rounded-[1px]" />
+            {/* Vraie Batterie système si disponible */}
+            {batteryLevel !== null ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-medium text-slate-200">{batteryLevel}%</span>
+                <div className="flex items-center">
+                  <div className="w-5 h-2.5 rounded-sm border border-white p-[1px] flex items-center relative">
+                    <div 
+                      className={`h-full rounded-[1px] transition-all ${
+                        isCharging ? 'bg-emerald-400' : batteryLevel <= 20 ? 'bg-rose-500' : 'bg-white'
+                      }`} 
+                      style={{ width: `${Math.max(10, Math.min(100, batteryLevel))}%` }} 
+                    />
+                    {isCharging && (
+                      <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-slate-900 leading-none">⚡</span>
+                    )}
+                  </div>
+                  <div className="w-[1.5px] h-1 bg-white rounded-r-sm" />
+                </div>
               </div>
-              <div className="w-[1.5px] h-1 bg-white rounded-r-sm" />
-            </div>
+            ) : null}
           </div>
         </div>
 

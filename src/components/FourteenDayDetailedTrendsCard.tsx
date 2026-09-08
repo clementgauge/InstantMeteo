@@ -189,19 +189,133 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   };
 
   const getWeatherEmoji = (d: FourteenDayDayDetail): string => {
-    const rain = d.dominantScenario.precipitationMm;
-    const tmax = d.dominantScenario.tempMax;
-    const desc = `${d.dominantScenario.name} ${d.dominantScenario.precipitationType || ''}`.toLowerCase();
+    // 1. Chercher d'abord le code WMO du scénario ou de la prévision réelle
+    let wmoCode = d.dominantScenario.weatherCode;
+    if (wmoCode === undefined && dailyForecasts) {
+      const match = dailyForecasts.find(df => df.date === d.date);
+      if (match && typeof match.weatherCode === 'number') {
+        wmoCode = match.weatherCode;
+      }
+    }
 
-    if (desc.includes('orage') || desc.includes('tonnerre') || desc.includes('foudre')) return '⛈️';
-    if (desc.includes('neige') || d.dominantScenario.snowfallCm > 0 || (rain > 0 && tmax <= 1.5)) return '❄️';
-    if (rain >= 8) return '🌧️';
-    if (rain >= 2) return '🌦️';
-    if (rain > 0) return '🌦️';
-    if (d.dominantScenario.windGustKmh && d.dominantScenario.windGustKmh > 55) return '💨';
-    if (tmax >= 25) return '☀️';
-    if (tmax >= 18) return '🌤️';
-    return '⛅';
+    if (typeof wmoCode === 'number') {
+      switch (wmoCode) {
+        case 0: return '☀️';
+        case 1: return '🌤️';
+        case 2: return '⛅';
+        case 3: return '☁️';
+        case 45:
+        case 48: return '🌫️';
+        case 51:
+        case 53:
+        case 55:
+        case 56:
+        case 57: return '🌦️';
+        case 61:
+        case 63:
+        case 65:
+        case 66:
+        case 67: return '🌧️';
+        case 71:
+        case 73:
+        case 75:
+        case 77:
+        case 85:
+        case 86: return '❄️';
+        case 80:
+        case 81:
+        case 82: return '🌦️';
+        case 95:
+        case 96:
+        case 99: return '⛈️';
+      }
+    }
+
+    // 2. Détection physique stricte (sans raccourci erroné sur la température)
+    const rain = d.dominantScenario.precipitationMm;
+    const snow = d.dominantScenario.snowfallCm ?? 0;
+    const tmax = d.dominantScenario.tempMax;
+    const textDesc = `${d.dominantScenario.name} ${d.dominantScenario.title || ''} ${d.dominantScenario.precipitationType || ''} ${d.dominantScenario.description || ''}`.toLowerCase();
+
+    if (textDesc.includes('orage') || textDesc.includes('tonnerre') || textDesc.includes('foudre')) {
+      return '⛈️';
+    }
+    if (snow > 0 || textDesc.includes('neige') || textDesc.includes('flocon') || (rain > 0 && tmax <= 1.5)) {
+      return '❄️';
+    }
+    if (textDesc.includes('brouillard') || textDesc.includes('brume dense')) {
+      return '🌫️';
+    }
+    if (rain >= 5) {
+      return '🌧️';
+    }
+    if (rain >= 1.5) {
+      return '🌧️';
+    }
+    if (rain > 0.1) {
+      return '🌦️';
+    }
+
+    // Temps sec
+    if (textDesc.includes('couvert') || textDesc.includes('gris') || textDesc.includes('très nuageux')) {
+      return '☁️';
+    }
+    if (textDesc.includes('éclaircie') || textDesc.includes('variable') || textDesc.includes('mitigé') || textDesc.includes('nuage')) {
+      return '⛅';
+    }
+    if (textDesc.includes('soleil') || textDesc.includes('ensoleillé') || textDesc.includes('dégagé') || textDesc.includes('sec') || textDesc.includes('lumineux')) {
+      return '☀️';
+    }
+
+    return '🌤️';
+  };
+
+  const getBranchWeatherEmoji = (b: { weatherCode?: number; precipitationMm: number; snowfallCm?: number; tempMax: number; name: string; title?: string; precipitationType?: string; description?: string }): string => {
+    if (typeof b.weatherCode === 'number') {
+      switch (b.weatherCode) {
+        case 0: return '☀️';
+        case 1: return '🌤️';
+        case 2: return '⛅';
+        case 3: return '☁️';
+        case 45:
+        case 48: return '🌫️';
+        case 51:
+        case 53:
+        case 55:
+        case 56:
+        case 57: return '🌦️';
+        case 61:
+        case 63:
+        case 65:
+        case 66:
+        case 67: return '🌧️';
+        case 71:
+        case 73:
+        case 75:
+        case 77:
+        case 85:
+        case 86: return '❄️';
+        case 80:
+        case 81:
+        case 82: return '🌦️';
+        case 95:
+        case 96:
+        case 99: return '⛈️';
+      }
+    }
+    const rain = b.precipitationMm;
+    const snow = b.snowfallCm ?? 0;
+    const tmax = b.tempMax;
+    const textDesc = `${b.name} ${b.title || ''} ${b.precipitationType || ''} ${b.description || ''}`.toLowerCase();
+    if (textDesc.includes('orage')) return '⛈️';
+    if (snow > 0 || textDesc.includes('neige') || (rain > 0 && tmax <= 1.5)) return '❄️';
+    if (rain >= 5) return '🌧️';
+    if (rain >= 1.5) return '🌧️';
+    if (rain > 0.1) return '🌦️';
+    if (textDesc.includes('couvert') || textDesc.includes('gris')) return '☁️';
+    if (textDesc.includes('éclaircie') || textDesc.includes('variable')) return '⛅';
+    if (textDesc.includes('soleil') || textDesc.includes('dégagé') || textDesc.includes('sec')) return '☀️';
+    return '🌤️';
   };
 
   return (
@@ -777,8 +891,9 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                      Scénario Principal
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
+                      <span>{getBranchWeatherEmoji(selectedDay.dominantScenario)}</span>
+                      <span>Scénario Principal</span>
                     </span>
                     <span className="text-xs font-black text-blue-400 font-mono">{selectedDay.dominantScenario.probabilityPct}% prob.</span>
                   </div>
@@ -805,8 +920,9 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Scénario Alternatif 1
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                      <span>{getBranchWeatherEmoji(selectedDay.alternativeScenario1)}</span>
+                      <span>Scénario Alternatif 1</span>
                     </span>
                     <span className="text-xs font-black text-amber-400 font-mono">{selectedDay.alternativeScenario1.probabilityPct}% prob.</span>
                   </div>
@@ -834,8 +950,9 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                        Scénario Alternatif 2
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                        <span>{getBranchWeatherEmoji(selectedDay.alternativeScenario2)}</span>
+                        <span>Scénario Alternatif 2</span>
                       </span>
                       <span className="text-xs font-black text-purple-400 font-mono">{selectedDay.alternativeScenario2.probabilityPct}% prob.</span>
                     </div>
@@ -884,12 +1001,15 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-slate-900 border border-slate-800 px-4 py-2 text-center">
-                        <span className="text-[10px] text-slate-400 block font-semibold">Probabilité</span>
-                        <span className="text-lg font-black text-emerald-400">{activeBranch.probabilityPct} %</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl" title={activeBranch.weatherDescription || activeBranch.name}>
+                          {getBranchWeatherEmoji(activeBranch)}
+                        </span>
+                        <div className="rounded-xl bg-slate-900 border border-slate-800 px-4 py-2 text-center">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Probabilité</span>
+                          <span className="text-lg font-black text-emerald-400">{activeBranch.probabilityPct} %</span>
+                        </div>
                       </div>
-                    </div>
                   </div>
 
                   {/* Supporting Models Pills */}

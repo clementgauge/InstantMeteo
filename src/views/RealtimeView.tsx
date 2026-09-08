@@ -46,6 +46,7 @@ import {
   Radio
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
+import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
 import { WeatherGauge } from '../components/WeatherGauge';
 import { AnomalyBadge } from '../components/AnomalyBadge';
 import { AltitudeMeteorologyCard } from '../components/AltitudeMeteorologyCard';
@@ -64,11 +65,14 @@ import { CertifiedPrecisionMeteoHub } from '../components/CertifiedPrecisionMete
 import { FrostAndColdObservatoryCard } from '../components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from '../components/CloudNephologyObservatoryCard';
 import { DayWeatherOverviewCard } from '../components/DayWeatherOverviewCard';
+import { DesktopWeatherHeroDashboard } from '../components/DesktopWeatherHeroDashboard';
 import { TemperatureReliabilityCalibrationCard } from '../components/TemperatureReliabilityCalibrationCard';
 import { ImouWeatherSecurityBanner } from '../components/ImouWeatherSecurityBanner';
 import { AgricultureWeatherCard } from '../components/AgricultureWeatherCard';
 import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
+import { LiveMiniRadarMapCard } from '../components/LiveMiniRadarMapCard';
+import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { isBlockVisible } from '../services/displayPreferencesService';
 
 interface RealtimeViewProps {
@@ -115,6 +119,44 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
   const [showMoreObservatories, setShowMoreObservatories] = useState<boolean>(false);
+  const initialGeoBackdrop = getClientGeographicBackdrop(
+    station.name,
+    station.region,
+    station.department,
+    station.altitude
+  );
+  const [cityPhotoUrl, setCityPhotoUrl] = useState<string>(initialGeoBackdrop);
+
+  useEffect(() => {
+    let isMounted = true;
+    const initialBg = getClientGeographicBackdrop(
+      station.name,
+      station.region,
+      station.department,
+      station.altitude
+    );
+    setCityPhotoUrl(initialBg);
+
+    const query = station.name || 'Paris';
+    const region = station.region || '';
+    const dept = station.department || '';
+    const alt = station.altitude || 0;
+    fetch(`/api/city-photo?city=${encodeURIComponent(query)}&region=${encodeURIComponent(region)}&department=${encodeURIComponent(dept)}&altitude=${alt}`)
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted && data) {
+          const validUrl = data.photoUrl || data.url;
+          if (validUrl) {
+            setCityPhotoUrl(validUrl);
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [station.name, station.region, station.department, station.altitude]);
 
   // Reinitialise sur profil classique dès que le mode simple est activé
   useEffect(() => {
@@ -224,7 +266,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           <div 
             className="absolute inset-0 bg-cover bg-center transition-all duration-700 filter brightness-[0.82] contrast-[1.05]"
             style={{
-              backgroundImage: 'url(/paris_weather_hero_bg.jpg)',
+              backgroundImage: `url(${cityPhotoUrl})`,
               backgroundPosition: 'center 35%'
             }}
           />
@@ -417,290 +459,35 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
         </div>
 
-        {/* 3. Two Live Interactive Preview Cards (Radar Pluie HD & Vigilance Météo) */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Card 1: Radar Pluie HD */}
-          <div
+        {/* 3. Two Live Interactive Preview Cards (Radar Pluie HD Direct & Vigilance Météo-France) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Card 1: Radar Pluie HD Direct */}
+          <LiveMiniRadarMapCard
+            station={station}
             onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-            className="rounded-2xl border border-slate-800 bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-blue-500/50 transition shadow-lg group"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-1 mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/40 text-sky-400 flex items-center justify-center shrink-0">
-                  <Radio className="h-3.5 w-3.5 text-sky-400" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-white truncate leading-tight">Radar Pluie HD</div>
-                  <div className="text-[9px] text-slate-400 truncate">Suivi en temps réel</div>
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white shrink-0">
-                <ChevronRight className="h-3 w-3" />
-              </div>
-            </div>
+          />
 
-            {/* Radar Map Graphic with rain echoes and central glowing Play button */}
-            <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 flex items-center justify-center">
-              {/* Radar echo circles / rain pattern */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950 via-[#071328] to-slate-950" />
-              {/* Simulated radar sweep / echoes */}
-              <div className="absolute w-20 h-20 rounded-full bg-emerald-500/20 blur-md top-1 left-2" />
-              <div className="absolute w-14 h-14 rounded-full bg-amber-500/25 blur-md bottom-2 right-4" />
-              <div className="absolute w-10 h-10 rounded-full bg-rose-500/30 blur-sm top-3 right-6" />
-
-              {/* Grid radar rings */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-20 h-20 rounded-full border border-sky-500/20" />
-                <div className="w-12 h-12 rounded-full border border-sky-500/30 absolute" />
-              </div>
-
-              {/* Glowing circular Play button in the center */}
-              <div className="relative z-10 w-8 h-8 rounded-full bg-blue-600 border border-blue-300 text-white flex items-center justify-center shadow-lg shadow-blue-600/50 group-hover:scale-110 transition">
-                <Play className="h-3.5 w-3.5 fill-white ml-0.5" />
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Vigilance Météo */}
-          <div
+          {/* Card 2: Vigilance Météo Officielle Météo-France */}
+          <LiveMeteoFranceVigilanceCard
+            station={station}
             onClick={() => onNavigateTab ? onNavigateTab('vigilance') : null}
-            className="rounded-2xl border border-slate-800 bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-amber-500/50 transition shadow-lg group"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-1 mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0">
-                  <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance Météo</div>
-                  <div className="text-[9px] text-slate-400 truncate">Météo-France</div>
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white shrink-0">
-                <ChevronRight className="h-3 w-3" />
-              </div>
-            </div>
-
-            {/* Vigilance Map Graphic & Legend */}
-            <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 p-2 flex items-center justify-between">
-              {/* Simulated stylized France contour with vigilance colors */}
-              <div className="relative w-16 h-20 flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow">
-                  <path d="M45,10 L70,25 L85,45 L75,75 L60,90 L35,85 L15,60 L20,30 Z" fill="#10b981" opacity="0.85" />
-                  <path d="M50,30 L75,45 L65,70 L45,55 Z" fill="#f59e0b" opacity="0.9" />
-                  <path d="M30,40 L45,55 L35,70 L20,55 Z" fill="#ef4444" opacity="0.85" />
-                </svg>
-              </div>
-
-              {/* Legend List */}
-              <div className="space-y-0.5 text-[8px] font-bold pl-1 border-l border-slate-800/80">
-                <div className="flex items-center gap-1 text-emerald-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>Aucune</span>
-                </div>
-                <div className="flex items-center gap-1 text-amber-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>Modérée</span>
-                </div>
-                <div className="flex items-center gap-1 text-orange-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                  <span>Marquée</span>
-                </div>
-                <div className="flex items-center gap-1 text-rose-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                  <span>Sévère</span>
-                </div>
-                <div className="flex items-center gap-1 text-purple-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  <span>Extrême</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </div>
 
-      {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop) */}
-      <div
-        id="realtime-radiography"
-        className={`hidden sm:block relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-xl backdrop-blur-md sm:p-8 scroll-mt-28 ${
-          seniorMode ? 'p-8 ring-1 ring-blue-500/30' : ''
-        }`}
-      >
-        {/* GPS Live Notification if Active */}
-        {isGpsPosition && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-4 py-2 text-xs text-emerald-300">
-            <div className="flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-emerald-400 fill-emerald-400/20" />
-              <span className="font-bold">
-                📍 Position GPS Locale Active : {station.latitude}°, {station.longitude}° • Altitude : {station.altitude} m
-              </span>
-            </div>
-            {onLocateGps && (
-              <button
-                onClick={onLocateGps}
-                className="font-bold underline hover:text-emerald-200 transition cursor-pointer"
-              >
-                Actualiser position
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full">
-          {/* Main Temperature & Location Info */}
-          <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-wider">
-                <span>Station Météo de Référence</span>
-                <span>•</span>
-                <span>{station.country || 'France'} ({station.region})</span>
-              </div>
-              
-              <div className="mt-1 flex flex-wrap items-center gap-3">
-                <h2 className={`font-black text-white ${seniorMode ? 'text-4xl' : 'text-3xl sm:text-4xl'}`}>
-                  {station.name}
-                </h2>
-
-                {onLocateGps && !isGpsPosition && (
-                  <button
-                    onClick={onLocateGps}
-                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition active:scale-95 cursor-pointer"
-                  >
-                    <Navigation className="h-3.5 w-3.5" />
-                    <span>Ma Position GPS</span>
-                  </button>
-                )}
-
-                {onOpenSearchModal && (
-                  <button
-                    onClick={onOpenSearchModal}
-                    className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-bold text-blue-300 hover:bg-blue-500/20 transition active:scale-95 cursor-pointer"
-                  >
-                    <Search className="h-3.5 w-3.5" />
-                    <span>Changer de station</span>
-                  </button>
-                )}
-              </div>
-              
-              <p className="mt-1 text-sm text-slate-400">
-                {station.department} — Altitude : <strong className="text-slate-200">{station.altitude} m</strong> — Climat : {station.climateZone}
-              </p>
-            </div>
-
-            {/* Temperature & Thermal Metrics Display */}
-            <div className="space-y-3 w-full">
-              {/* Massive Current Temperature Display */}
-              <div className="relative overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950/95 p-5 sm:p-6 shadow-2xl ring-1 ring-white/10">
-                <div className="flex items-center justify-between gap-2 mb-2 border-b border-slate-800/80 pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/40">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      En direct
-                    </span>
-                    {weather.isUserRecalibrated && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-500/30">
-                        Ajusté {weather.recalibrationOffset && weather.recalibrationOffset > 0 ? `+${weather.recalibrationOffset}` : weather.recalibrationOffset}°C
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Température Actuelle
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                  <span className={`font-black tracking-tight text-white tabular-nums leading-none ${seniorMode ? 'text-6xl sm:text-7xl md:text-8xl' : 'text-5xl sm:text-6xl md:text-7xl'}`}>
-                    {formatTemp(weather.temperature)}
-                  </span>
-                  <div className="text-right">
-                    <span className={`inline-block rounded-xl bg-blue-600/20 border border-blue-500/30 px-3 py-1.5 font-bold text-blue-200 ${
-                      seniorMode ? 'text-sm' : 'text-xs'
-                    }`}>
-                      {weather.weatherDescription}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Secondary Thermal Metrics: Feels Like & Tmin/Tmax in a 2-column balanced grid */}
-              <div className="grid grid-cols-2 gap-3 w-full">
-                {/* Feels Like Card */}
-                <div className="flex flex-col justify-between rounded-2xl border border-cyan-500/40 bg-cyan-950/40 p-3.5 sm:p-4 shadow-md">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400/90">
-                      Ressenti
-                    </span>
-                    <span className="text-[10px] text-cyan-300/90 font-bold px-1.5 py-0.5 rounded bg-cyan-900/60">
-                      {weather.windSpeed > 20 ? 'Ventilée' : weather.humidity > 70 ? 'Humidex' : 'Confort'}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <span className="text-2xl sm:text-3xl font-black text-cyan-300 tabular-nums leading-tight">
-                      {formatTemp(weather.feelsLike)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tmin & Tmax Highlights */}
-                <div className="flex flex-col justify-center gap-1.5 rounded-2xl border border-slate-700/80 bg-slate-950/80 p-3 sm:p-3.5 shadow-sm">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-800/90 pb-1">
-                    <span className="text-xs font-bold text-blue-300 flex items-center gap-1">
-                      ❄️ Tmin :
-                    </span>
-                    <strong className="text-sm sm:text-base font-black text-blue-200 tabular-nums">
-                      {formatTemp(weather.tempMin)}
-                    </strong>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
-                      🔥 Tmax :
-                    </span>
-                    <strong className="text-sm sm:text-base font-black text-amber-200 tabular-nums">
-                      {formatTemp(weather.tempMax)}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Condition badge & Live Physical Tags */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              {weather.dewPoint !== undefined && (
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 font-medium whitespace-nowrap">
-                  Point de rosée : <strong className="tabular-nums">{formatTemp(weather.dewPoint)}</strong>
-                </span>
-              )}
-              {weather.pressureMsl && (
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-indigo-950/40 border border-indigo-800/60 text-indigo-300 font-medium whitespace-nowrap">
-                  QNH : <strong className="tabular-nums">{weather.pressureMsl} hPa</strong>
-                </span>
-              )}
-              {weather.windSpeed !== undefined && (
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-300 font-medium whitespace-nowrap">
-                  Vent : <strong className="tabular-nums">{Math.round(weather.windSpeed)} km/h</strong>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Representative Day Weather & Key Slots Overview */}
-          <div className="lg:col-span-7 xl:col-span-7 flex flex-col w-full h-full">
-            <DayWeatherOverviewCard
-              weather={weather}
-              daily={daily}
-              hourly={hourly}
-              tempUnit={tempUnit}
-              seniorMode={seniorMode}
-            />
-          </div>
-        </div>
-      </div>
+      {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop - Exact Reference Design) */}
+      <DesktopWeatherHeroDashboard
+        station={station}
+        weather={weather}
+        hourly={hourly}
+        daily={daily}
+        anomaly={anomaly}
+        tempUnit={tempUnit}
+        onOpenSearchModal={onOpenSearchModal}
+        onOpenGigaRadar={onOpenGigaRadar}
+        onNavigateTab={onNavigateTab}
+        onLocateGps={onLocateGps}
+      />
 
       {/* Module de Fiabilisation & Calibrage Température Observée en Temps Réel */}
       <TemperatureReliabilityCalibrationCard

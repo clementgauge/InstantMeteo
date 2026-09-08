@@ -1,6 +1,7 @@
 // Service de Compétition, Gamification & Chasse Météo pour Instant Météo
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { secureSave, secureLoad, secureRemove } from '../utils/securityCrypto';
+import { syncPlayerProfileToD1, fetchPlayerProfileFromD1 } from './cloudflareD1Service';
 
 export interface VisitedLocation {
   id: string;
@@ -334,10 +335,60 @@ export function loadPlayerProfile(): PlayerProfile | null {
 export function savePlayerProfile(profile: PlayerProfile): void {
   try {
     secureSave(STORAGE_KEY, profile);
+    // Sauvegarder également le pseudo en clair en clé permanente de secours
+    // pour survivre aux purges de cache de mises à jour applicatives
+    try {
+      if (typeof window !== 'undefined' && profile?.pseudo) {
+        localStorage.setItem('instant_meteo_last_pseudo', profile.pseudo);
+      }
+    } catch (_) {}
+
     window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: profile }));
+
+    // Synchronisation automatique et transparente avec la base de données backend
+    syncPlayerProfileToD1(profile).catch((err) => {
+      console.warn('Sync profil vers serveur (non-bloquant):', err);
+    });
   } catch (err) {
     console.warn('Erreur sauvegarde profil:', err);
   }
+}
+
+/**
+ * Restaure automatiquement le compte et la progression depuis la base de données
+ * si le cache local a été vidé lors d'une mise à jour de version.
+ */
+export async function ensurePlayerProfileRestored(): Promise<PlayerProfile | null> {
+  const local = loadPlayerProfile();
+  if (local && local.pseudo) {
+    // Profil déjà en mémoire locale, on synchronise avec le serveur
+    syncPlayerProfileToD1(local).catch(() => {});
+    return local;
+  }
+
+  // Si aucun profil local n'est présent (ex: post-mise à jour avec cache nettoyé),
+  // on vérifie si un pseudo permanent de secours existe
+  let fallbackPseudo = '';
+  try {
+    if (typeof window !== 'undefined') {
+      fallbackPseudo = localStorage.getItem('instant_meteo_last_pseudo') || '';
+    }
+  } catch (_) {}
+
+  if (fallbackPseudo) {
+    try {
+      const serverProfile = await fetchPlayerProfileFromD1(fallbackPseudo);
+      if (serverProfile) {
+        secureSave(STORAGE_KEY, serverProfile);
+        window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: serverProfile }));
+        return serverProfile;
+      }
+    } catch (e) {
+      console.warn('Échec restauration profil depuis base de données:', e);
+    }
+  }
+
+  return null;
 }
 
 export function initPlayerProfile(pseudo: string): PlayerProfile {

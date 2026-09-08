@@ -32,7 +32,8 @@ import {
   MessageSquare,
   Home,
   MoreHorizontal,
-  Bell
+  Bell,
+  Camera
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { isPageVisible } from '../services/displayPreferencesService';
@@ -43,6 +44,7 @@ export type NavTabId =
   | 'vigilance' 
   | 'scenarios14d' 
   | 'radar' 
+  | 'liveWebcams'
   | 'eightMonths' 
   | 'historicalTrends'
   | 'sportsActivities'
@@ -141,6 +143,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'vigilance', label: 'Vigilances', shortLabel: 'Alertes', icon: ShieldAlert, badge: '5m' },
     { id: 'scenarios14d', label: '14 Jours', shortLabel: '14 Jours', icon: Split },
     { id: 'radar', label: 'Radar', shortLabel: 'Radar', icon: CloudRain },
+    { id: 'liveWebcams', label: 'Caméras & Webcams Direct', shortLabel: 'Caméras 📹', icon: Camera, badge: 'Live' },
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
     { id: 'historicalTrends', label: 'Évolution', shortLabel: 'Évolution', icon: History, badge: '2000' },
     { id: 'sportsActivities', label: 'Sport & Trajet', shortLabel: 'Trajet', icon: TrendingUp },
@@ -159,9 +162,10 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       categoryName: '⚡ Direct, Alertes & Précipitations',
       items: [
         { id: 'realtime', label: '1. Temps Réel & Observatoire Direct', icon: Sun, desc: 'Conditions actuelles, thermo-hygrométrie, vent et relevé de la station' },
-        { id: 'cloudNephology', label: '2. Observatoire Néphologique & Nuages 48h', icon: Cloud, desc: 'Sondage vertical 0-12000m, décomposition par étage, LCL, base/sommet, givrage & atlas OMM' },
-        { id: 'vigilance', label: '3. Vigilances & Alertes Multi-Jours', icon: ShieldAlert, desc: 'Matrice 12 risques actualisée toutes les 5 min' },
-        { id: 'radar', label: '4. Radar Précipitations, Feux NASA & Vents Open-Meteo', icon: CloudRain, desc: 'Radar Doppler légal, imagerie feux de forêt NASA FIRMS et vecteurs vents Open-Meteo' },
+        { id: 'liveWebcams', label: '2. Caméras & Webcams Direct', icon: Camera, desc: 'Vue caméra en direct de la ville choisie pour observer la météo et le ciel en temps réel' },
+        { id: 'cloudNephology', label: '3. Observatoire Néphologique & Nuages 48h', icon: Cloud, desc: 'Sondage vertical 0-12000m, décomposition par étage, LCL, base/sommet, givrage & atlas OMM' },
+        { id: 'vigilance', label: '4. Vigilances & Alertes Multi-Jours', icon: ShieldAlert, desc: 'Matrice 12 risques actualisée toutes les 5 min' },
+        { id: 'radar', label: '5. Radar Précipitations, Feux NASA & Vents Open-Meteo', icon: CloudRain, desc: 'Radar Doppler légal, imagerie feux de forêt NASA FIRMS et vecteurs vents Open-Meteo' },
       ]
     },
     {

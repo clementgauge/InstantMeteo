@@ -185,7 +185,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   }
 
   return (
-    <div id="grand-day-week-detailed-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur-xl space-y-6">
+    <div id="grand-day-week-detailed-card" className="rounded-[28px] border border-slate-700/70 bg-[#0c1424]/90 p-5 sm:p-7 shadow-2xl backdrop-blur-2xl space-y-6">
       {/* Header with 3 main view tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3.5">
@@ -195,7 +195,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-white">
-                Prévisions Détaillées du Jour & de la Semaine
+                Prévisions Détaillées du Jour &amp; de la Semaine
               </h2>
               <span className="rounded-full bg-blue-500/20 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 border border-blue-500/30">
                 Haute Précision Heure par Heure
@@ -208,7 +208,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex rounded-2xl bg-slate-950 p-1 border border-slate-800 self-start md:self-auto">
+        <div className="flex rounded-2xl bg-slate-950/80 p-1 border border-slate-800/90 self-start md:self-auto">
           <button
             onClick={() => setActiveTab('day')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${

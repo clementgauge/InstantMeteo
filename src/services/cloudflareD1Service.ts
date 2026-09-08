@@ -71,34 +71,56 @@ export function getApiCandidates(cleanPath: string): string[] {
   const path = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
   const candidates: string[] = [];
 
-  // 1. URL personnalisée saisie manuellement par l'utilisateur si existante
+  // 1. Toujours tester le serveur local / même origine en premier (réponse instantanée du serveur Express)
+  candidates.push(path);
+
+  // 2. URL personnalisée saisie manuellement par l'utilisateur si existante
   const custom = getD1WorkerUrl();
   if (custom) {
     candidates.push(`${custom}${path}`);
   }
 
-  const hostname = typeof window !== 'undefined' ? (window.location.hostname || '').toLowerCase() : '';
-  const isDirectServerHost =
-    hostname === 'instantmeteo-fr.ai.studio' ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.includes('.run.app');
-
-  if (isDirectServerHost) {
-    // Directement sur le serveur hébergeant Express
-    candidates.push(path);
-    candidates.push(`${PRIMARY_AI_STUDIO_BACKEND}${path}`);
-    candidates.push(`${WORKERS_DEV_URL}${path}`);
-  } else {
-    // Sur Cloudflare Workers (instantmeteo.instantmeteofr.workers.dev) ou domaine externe :
-    // Le serveur maître https://instantmeteo-fr.ai.studio DOIT être le candidat prioritaire
-    // car le Worker statique ne contient pas le serveur Node.
-    candidates.push(`${PRIMARY_AI_STUDIO_BACKEND}${path}`);
-    candidates.push(`${WORKERS_DEV_URL}${path}`);
-    candidates.push(path);
-  }
+  // 3. Fallbacks externes pour environnements Worker statiques
+  candidates.push(`${PRIMARY_AI_STUDIO_BACKEND}${path}`);
+  candidates.push(`${WORKERS_DEV_URL}${path}`);
 
   return Array.from(new Set(candidates));
+}
+
+// Récupère un profil joueur depuis la base de données centralisée par son pseudo
+export async function fetchPlayerProfileFromD1(pseudo: string): Promise<PlayerProfile | null> {
+  const cleanPseudo = (pseudo || '').trim();
+  if (!cleanPseudo) return null;
+
+  try {
+    const res = await resilientFetch(`/api/player/${encodeURIComponent(cleanPseudo)}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    }, 4000);
+
+    if (isHttpSuccess(res)) {
+      const data = await safeJsonParse(res, {});
+      if (data?.success && data?.player) {
+        return {
+          pseudo: data.player.pseudo,
+          totalPoints: Number(data.player.totalPoints) || 0,
+          streakDays: Number(data.player.streakDays) || 1,
+          lastActiveDate: data.player.lastActive?.split('T')[0] || new Date().toISOString().split('T')[0],
+          minutesSpent: Number(data.player.minutesSpent) || 0,
+          visitedLocations: data.player.visitedLocations || [],
+          unlockedWeatherIds: data.player.unlockedBadges || [],
+          amazonBonusesClaimed: Number(data.player.amazonBonusesClaimed) || 0,
+          communityReportsCount: Number(data.player.locationsCount) || 0,
+          createdAt: data.player.createdAt || new Date().toISOString(),
+          isAdmin: Boolean(data.player.isAdmin)
+        };
+      }
+    }
+    return null;
+  } catch (e) {
+    console.warn('Erreur récupération profil joueur depuis BD:', e);
+    return null;
+  }
 }
 
 let cachedWorkingBase: string | null = null;

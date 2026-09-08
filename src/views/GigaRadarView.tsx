@@ -248,7 +248,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
       {/* 4. Meteorological & Radar Guide */}
       {!simplifiedMode && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {/* Card 1: Windy Radar Precision */}
+          {/* Card 1: RainViewer Radar Precision */}
           <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">

@@ -23,14 +23,17 @@ import {
   LucideIcon,
   Map,
   MapPin,
+  Moon,
   Mountain,
   Navigation,
+  Plane,
   Radio,
   Search,
   Settings,
   ShieldAlert,
   Sparkles,
   Split,
+  Sprout,
   Sun,
   ThermometerSnowflake,
   TrendingUp,
@@ -115,11 +118,9 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
 
   const visiblePages = ALL_PAGES.filter(p => isPageVisible(p.id));
 
-  // Desktop state: 3 distinct levels
-  // Level 1: 'full' (on voit tout : titres, rubriques détaillées, noël, météo)
-  // Level 2: 'icons' (les logos/icônes sont affichés en colonne rail avec infobulles)
-  // Level 3: 'minimal' (juste la flèche / bouton discret de sommaire en bas à gauche, niveau par défaut)
-  const [sidebarLevel, setSidebarLevel] = useState<'minimal' | 'icons' | 'full'>('minimal');
+  // Desktop state: 3 distinct levels ('full', 'icons', 'minimal')
+  const [sidebarLevel, setSidebarLevel] = useState<'minimal' | 'icons' | 'full'>('full');
+  const [showRubriques, setShowRubriques] = useState(false);
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? '');
   
   // Mobile drawer state
@@ -655,66 +656,127 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 </div>
               )}
 
-              {/* MAIN LIST: GRANDS TITRES / RUBRIQUES DE LA PAGE ACTUELLE */}
+              {/* PRIMARY DESKTOP NAVIGATION (ACCUEIL, RADAR HD, ALERTES & PUSH, CARTES & MODELES, AGRO-METEO, AVIATION, PARAMETRES) */}
               <div className="mt-2.5 space-y-1">
+                {[
+                  { id: 'realtime', label: 'Accueil', icon: Home, action: () => onSelectTab && onSelectTab('realtime') },
+                  { id: 'radar', label: 'Radar HD', icon: Radio, action: () => onSelectTab && onSelectTab('radar') },
+                  { id: 'vigilance', label: 'Alertes & Push', icon: Bell, action: () => onSelectTab && onSelectTab('vigilance') },
+                  { id: 'cloudNephology', label: 'Cartes & Modèles', icon: Layers, action: () => onSelectTab && onSelectTab('cloudNephology') },
+                  { id: 'sportsActivities', label: 'Agro-Météo', icon: Sprout, action: () => onSelectTab && onSelectTab('sportsActivities') },
+                  { id: 'historicalTrends', label: 'Aviation', icon: Plane, action: () => onSelectTab && onSelectTab('historicalTrends') },
+                  { id: 'settings', label: 'Paramètres', icon: Settings, action: () => onOpenAtmosphere && onOpenAtmosphere() },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id || (!activeTab && item.id === 'realtime');
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={item.action}
+                      title={item.label}
+                      className={`group relative flex w-full items-center rounded-xl transition-all duration-200 cursor-pointer ${
+                        sidebarLevel === 'icons' ? 'justify-center p-2.5' : 'gap-3 px-3 py-2 text-left'
+                      } ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold'
+                          : 'text-slate-300 hover:bg-slate-900/90 hover:text-white'
+                      }`}
+                    >
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'}`} />
+                      {sidebarLevel === 'full' && (
+                        <span className="text-xs font-semibold leading-snug truncate">
+                          {item.label}
+                        </span>
+                      )}
+                      {sidebarLevel === 'icons' && (
+                        <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition shadow-xl border border-slate-800 z-50">
+                          {item.label}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* COLLAPSIBLE RUBRIQUES / SECTIONS DE LA PAGE ACTUELLE */}
+              <div className="mt-3 pt-2.5 border-t border-slate-800/80">
                 {sidebarLevel === 'full' && (
-                  <div className="px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowRubriques(!showRubriques)}
+                    className="w-full px-1 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-blue-400 flex items-center justify-between cursor-pointer"
+                  >
                     <span>Rubriques ({sections.length})</span>
-                    <span className="text-[8px] text-blue-400 lowercase font-normal">clic direct</span>
-                  </div>
+                    <span className="text-[9px] text-blue-400 lowercase font-normal">{showRubriques ? '▲ masquer' : '▼ afficher'}</span>
+                  </button>
                 )}
 
-                <nav className="space-y-1" aria-label="Sections de la page">
-                  {sections.map((section, index) => {
-                    const Icon = section.icon ?? fallbackIcons[index % fallbackIcons.length];
-                    const active = activeSection === section.id;
+                {showRubriques && (
+                  <nav className="space-y-1 mt-1 max-h-48 overflow-y-auto scrollbar-thin" aria-label="Sections de la page">
+                    {sections.map((section, index) => {
+                      const Icon = section.icon ?? fallbackIcons[index % fallbackIcons.length];
+                      const active = activeSection === section.id;
 
-                    return (
-                      <button
-                        key={section.id}
-                        type="button"
-                        onClick={() => goToSection(section.id)}
-                        title={section.label}
-                        aria-current={active ? 'location' : undefined}
-                        className={`group relative flex w-full items-center rounded-xl transition-all duration-200 cursor-pointer ${
-                          sidebarLevel === 'icons' ? 'justify-center p-2' : 'gap-2 px-2.5 py-1.5 text-left'
-                        } ${
-                          active
-                            ? 'bg-white text-slate-950 shadow-md shadow-black/25 font-bold'
-                            : 'text-slate-300 hover:bg-slate-900/90 hover:text-white'
-                        }`}
-                      >
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition ${
+                      return (
+                        <button
+                          key={section.id}
+                          type="button"
+                          onClick={() => goToSection(section.id)}
+                          title={section.label}
+                          aria-current={active ? 'location' : undefined}
+                          className={`group relative flex w-full items-center rounded-xl transition-all duration-200 cursor-pointer ${
+                            sidebarLevel === 'icons' ? 'justify-center p-2' : 'gap-2 px-2 py-1 text-left'
+                          } ${
                             active
-                              ? 'bg-slate-200 text-slate-950 font-black'
-                              : 'bg-slate-900 text-slate-400 group-hover:text-blue-300 group-hover:bg-slate-800'
+                              ? 'bg-white text-slate-950 shadow-md shadow-black/25 font-bold'
+                              : 'text-slate-300 hover:bg-slate-900/90 hover:text-white'
                           }`}
                         >
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-
-                        {sidebarLevel === 'full' && (
-                          <span className="text-xs font-semibold leading-snug truncate">
-                            {section.label}
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition ${
+                              active
+                                ? 'bg-slate-200 text-slate-950 font-black'
+                                : 'bg-slate-900 text-slate-400 group-hover:text-blue-300 group-hover:bg-slate-800'
+                            }`}
+                          >
+                            <Icon className="h-3 w-3" />
                           </span>
-                        )}
 
-                        {/* Tooltip in icon mode */}
-                        {sidebarLevel === 'icons' && (
-                          <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition shadow-xl border border-slate-800 z-50">
-                            {section.label}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </nav>
+                          {sidebarLevel === 'full' && (
+                            <span className="text-[11px] font-medium leading-snug truncate">
+                              {section.label}
+                            </span>
+                          )}
+
+                          {sidebarLevel === 'icons' && (
+                            <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition shadow-xl border border-slate-800 z-50">
+                              {section.label}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                )}
               </div>
             </div>
 
-            {/* BOTTOM: BULLETIN BUTTON, NOEL / CLEAR & LEVEL TOGGLES */}
+            {/* BOTTOM: MODE SOMBRE, BULLETIN, STATION & LEVEL TOGGLES */}
             <div className="mt-3 pt-2.5 border-t border-slate-800/80 space-y-2">
+              {/* MODE SOMBRE CARD */}
+              {sidebarLevel === 'full' && (
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800/90 text-slate-200">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Moon className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                    <span className="text-xs font-bold truncate">Mode Sombre</span>
+                  </div>
+                  <div className="relative inline-flex h-4 w-7 items-center rounded-full bg-blue-600 shrink-0 cursor-pointer">
+                    <span className="inline-block h-3 w-3 transform rounded-full bg-white transition translate-x-3.5 shadow-sm" />
+                  </div>
+                </div>
+              )}
+
               {/* Quick Bulletin button */}
               {onSelectTab && (
                 <button

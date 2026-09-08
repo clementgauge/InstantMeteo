@@ -151,8 +151,8 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
   return (
     <div id="agro-weather-card" className="space-y-6">
       {/* Header Banner */}
-      <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+      <div className="rounded-[28px] border border-emerald-500/40 bg-gradient-to-br from-[#061917]/95 via-[#081522]/95 to-[#06101c]/95 p-6 sm:p-7 shadow-2xl backdrop-blur-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
 
         <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
           <div>
@@ -198,7 +198,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
       {/* Grid 1 : Conditions de Pulvérisation & Delta T (Critique pour traitements) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Module Pulvérisation Phytosanitaire */}
-        <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="lg:col-span-7 rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-6 shadow-xl backdrop-blur-2xl space-y-4 hover:border-slate-600/90 transition-all">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -217,7 +217,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Delta T */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>Delta T (ΔT)</span>
                 <span className="text-emerald-400 font-mono">Idéal: 2-8°C</span>
@@ -231,7 +231,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* Vent Actuel & Limite Légale */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>Vent &amp; Dérive</span>
                 <span className="text-cyan-400 font-mono">Max: 19 km/h</span>
@@ -245,7 +245,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* Hygrométrie */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>Hygrométrie</span>
                 <span className="text-blue-400 font-mono">&gt; 60%</span>
@@ -259,7 +259,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* Bulbe humide Tw */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>T° Humide Tw</span>
                 <span className="text-indigo-400 font-mono">Thermique</span>
@@ -274,7 +274,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
           </div>
 
           {/* Guide des Créneaux de Traitement Recommandés */}
-          <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-3 text-xs text-slate-300">
+          <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 flex items-start gap-3 text-xs text-slate-300">
             <Info className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <div className="font-bold text-emerald-300">
@@ -288,7 +288,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
         </div>
 
         {/* Module Bilan Hydrique & Évapotranspiration ET0 */}
-        <div className="lg:col-span-5 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-6 shadow-xl backdrop-blur-2xl space-y-4 flex flex-col justify-between hover:border-slate-600/90 transition-all">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90">
                 <span className="text-[11px] text-slate-400 font-bold block">ET0 du jour</span>
                 <span className="text-2xl font-black text-cyan-400 tabular-nums">
                   {et0Estimated} <span className="text-xs text-slate-400 font-normal">mm/j</span>
@@ -316,7 +316,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
                 <span className="text-[10px] text-slate-500 block mt-0.5">Demande évaporative</span>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90">
                 <span className="text-[11px] text-slate-400 font-bold block">Pluie mesurée</span>
                 <span className="text-2xl font-black text-blue-400 tabular-nums">
                   {rainToday} <span className="text-xs text-slate-400 font-normal">mm</span>
@@ -325,7 +325,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
               </div>
             </div>
 
-            <div className="mt-4 p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div className="mt-4 p-3 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400 font-bold">Réserve Utile du Sol (RU) :</span>
                 <span className="text-emerald-400 font-black">{soilMoisturePercent}%</span>
@@ -357,7 +357,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
       {/* Grid 2 : Température du Sol à 4 profondeurs & Risque de Gel Blanc sous herbe */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Module Température du Sol à 4 Profondeurs */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-6 shadow-xl backdrop-blur-2xl space-y-4 hover:border-slate-600/90 transition-all">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <div className="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Layers className="h-5 w-5" />
@@ -370,7 +370,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* 0 cm */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-center space-y-1">
               <span className="text-[11px] text-slate-400 font-bold block">Surface (0 cm)</span>
               <span className="text-xl font-black text-amber-400 tabular-nums">
                 {formatTemp(soilTemp0cm)}
@@ -379,7 +379,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* 5 cm */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-center space-y-1">
               <span className="text-[11px] text-slate-400 font-bold block">Semis (5 cm)</span>
               <span className="text-xl font-black text-amber-300 tabular-nums">
                 {formatTemp(soilTemp5cm)}
@@ -388,7 +388,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* 10 cm */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-center space-y-1">
               <span className="text-[11px] text-slate-400 font-bold block">Racines (10 cm)</span>
               <span className="text-xl font-black text-emerald-400 tabular-nums">
                 {formatTemp(soilTemp10cm)}
@@ -397,7 +397,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
 
             {/* 20 cm */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-center space-y-1">
               <span className="text-[11px] text-slate-400 font-bold block">Profondeur (20 cm)</span>
               <span className="text-xl font-black text-teal-400 tabular-nums">
                 {formatTemp(soilTemp20cm)}
@@ -406,7 +406,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
+          <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-xs text-slate-300">
             <span className="font-bold text-slate-200">Indicateur de semis : </span>
             {soilTemp10cm >= 10 ? (
               <span className="text-emerald-400">Sol réchauffé (&gt; 10°C) propice à l'implantation rapide du maïs, tournesol et cultures d'été.</span>
@@ -419,7 +419,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
         </div>
 
         {/* Module Gel Agricole & Vulnérabilité sous Herbe */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-6 shadow-xl backdrop-blur-2xl space-y-4 hover:border-slate-600/90 transition-all">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
@@ -437,7 +437,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90">
               <span className="text-[11px] text-slate-400 font-bold block">Tmin Sous Abri (1.5 m)</span>
               <span className="text-2xl font-black text-white tabular-nums">
                 {formatTemp(weather.tempMin)}
@@ -445,7 +445,7 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
               <span className="text-[10px] text-slate-500 block mt-0.5">Norme station Météo-France</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90">
               <span className="text-[11px] text-slate-400 font-bold block">Tmin Sous Herbe (Sol +10 cm)</span>
               <span className={`text-2xl font-black tabular-nums ${
                 grassMinTemp <= 0 ? 'text-blue-400' : 'text-emerald-400'
@@ -460,15 +460,15 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
           <div className="space-y-1.5 text-xs">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Paliers de Vulnérabilité des Bourgeons :</span>
             <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
-              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800/90">
                 <span className="text-slate-400 block">Débourrement</span>
                 <strong className="text-amber-300">-1.0°C</strong>
               </div>
-              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800/90">
                 <span className="text-slate-400 block">Boutons floraux</span>
                 <strong className="text-orange-400">-2.0°C</strong>
               </div>
-              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800/90">
                 <span className="text-slate-400 block">Pleine floraison</span>
                 <strong className="text-rose-400">-2.5°C</strong>
               </div>
@@ -480,21 +480,21 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
       {/* Grid 3 : Degrés-Jours de Croissance (GDD) & Maladies Fongiques & Portance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Carte Somme de Températures GDD */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl space-y-3">
+        <div className="rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-5 shadow-xl backdrop-blur-2xl space-y-3 hover:border-slate-600/90 transition-all">
           <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase">
             <Calendar className="h-4 w-4" />
             <span>Degrés-Jours de Croissance (GDD)</span>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Base 0°C (Céréales / Blé) :</span>
               <span className="font-black text-amber-300 font-mono">+{gddBase0} DJ</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Base 6°C (Prairies / Colza) :</span>
               <span className="font-black text-emerald-300 font-mono">+{gddBase6} DJ</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Base 10°C (Maïs / Vigne) :</span>
               <span className="font-black text-cyan-300 font-mono">+{gddBase10} DJ</span>
             </div>
@@ -505,21 +505,21 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
         </div>
 
         {/* Carte Humectation & Risques Maladies Fongiques */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl space-y-3">
+        <div className="rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-5 shadow-xl backdrop-blur-2xl space-y-3 hover:border-slate-600/90 transition-all">
           <div className="flex items-center gap-2 text-rose-400 text-xs font-black uppercase">
             <Bug className="h-4 w-4" />
             <span>Humectation &amp; Pression Maladies</span>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Humectation foliaire :</span>
               <span className="font-black text-blue-300">{leafWetnessHours} h / jour</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Risque Mildiou :</span>
               <span className="font-black text-amber-300">{mildewRisk}</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 text-xs">
               <span className="text-slate-300 font-bold">Risque Oïdium / Rouille :</span>
               <span className="font-black text-slate-200">{oidiumRisk}</span>
             </div>
@@ -530,18 +530,18 @@ export const AgricultureWeatherCard: React.FC<AgricultureWeatherCardProps> = ({
         </div>
 
         {/* Carte Portance des Terres & Travaux de Récolte */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl space-y-3">
+        <div className="rounded-[24px] border border-slate-700/70 bg-[#0c1424]/90 p-5 shadow-xl backdrop-blur-2xl space-y-3 hover:border-slate-600/90 transition-all">
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase">
             <Tractor className="h-4 w-4" />
             <span>Portance des Parcelles &amp; Chantiers</span>
           </div>
-          <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
+          <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1.5">
             <span className="text-[11px] text-slate-400 font-bold block">Praticabilité engins lourds :</span>
             <span className="text-xs font-black text-white block">
               {soilTrafficability}
             </span>
           </div>
-          <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+          <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-1">
             <span className="text-[11px] text-slate-400 font-bold block">Fenaison / Fauche (Prévision 4 jours) :</span>
             <span className="text-xs font-bold text-emerald-400">
               {daily.slice(0, 3).every(d => (d.precipitationSumMm ?? 0) < 1.0) ? 'Fenêtre de fauchage continue favorable' : 'Averses intermittentes : séchage lent'}

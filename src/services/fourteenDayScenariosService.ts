@@ -22,6 +22,45 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
+function computePhysicWeatherCode(
+  rainMm: number,
+  snowfallCm: number,
+  tempMax: number,
+  tempMin: number,
+  randomFactor: number,
+  isWarm: boolean
+): { code: number; description: string } {
+  if (snowfallCm > 0 || (rainMm > 0 && tempMax <= 1.5)) {
+    if (snowfallCm >= 4 || rainMm >= 4) {
+      return { code: 73, description: "Chutes de neige" };
+    }
+    return { code: 71, description: "Quelques flocons" };
+  }
+  if (rainMm >= 8) {
+    return { code: 63, description: "Pluie soutenue" };
+  }
+  if (rainMm >= 2) {
+    return { code: 61, description: "Pluie modérée" };
+  }
+  if (rainMm > 0) {
+    return { code: 80, description: "Averses éparses" };
+  }
+  // Ciel sec
+  if (isWarm && randomFactor > 0.35) {
+    return { code: 0, description: "Ciel dégagé et très ensoleillé" };
+  }
+  if (randomFactor > 0.60) {
+    return { code: 0, description: "Ciel clair et ensoleillé" };
+  }
+  if (randomFactor > 0.38) {
+    return { code: 1, description: "Larges éclaircies ensoleillées" };
+  }
+  if (randomFactor > 0.18) {
+    return { code: 2, description: "Éclaircies et nuages" };
+  }
+  return { code: 3, description: "Ciel couvert" };
+}
+
 /**
  * Generate 14-Day Deep Textual Trends with Multi-Scenario Divergences & N-1 Historical Comparison.
  * Harmonized with real forecast data from the consensus API.
@@ -202,6 +241,21 @@ export function generateFourteenDayScenarios(
       domNarrative = `Conditions proches des moyennes climatiques avec Tn de ${tMinDom}°C et Tx de ${tMaxDom}°C.`;
     }
 
+    const domPhysicWeather = computePhysicWeatherCode(
+      rainDom,
+      snowfallDom,
+      tMaxDom,
+      tMinDom,
+      r2,
+      (tMaxDom - baseTMax) > 1.5
+    );
+    const finalDomWeatherCode = (realDay && typeof realDay.weatherCode === 'number')
+      ? realDay.weatherCode
+      : domPhysicWeather.code;
+    const finalDomWeatherDesc = (realDay && typeof realDay.weatherCode === 'number')
+      ? getWeatherDescription(realDay.weatherCode)
+      : domPhysicWeather.description;
+
     const dominantScenario: DayScenarioBranch = {
       name: domName,
       type: 'dominant',
@@ -216,6 +270,8 @@ export function generateFourteenDayScenarios(
       tempMin: tMinDom,
       tempMax: tMaxDom,
       feelsLikeMax: Number((tMaxDom + (tMaxDom > 22 ? 1.4 : -0.7)).toFixed(1)),
+      weatherCode: finalDomWeatherCode,
+      weatherDescription: finalDomWeatherDesc,
       precipitationMm: rainDom,
       precipitationProbPct: rainDom > 5 ? 85 : rainDom > 0 ? 55 : 12,
       precipitationType: rainDom > 12 ? "Pluie soutenue et continue" : rainDom > 2 ? "Averses ou ondées locales" : rainDom > 0 ? "Bruine intermittente" : "Temps sec",
@@ -272,6 +328,8 @@ export function generateFourteenDayScenarios(
     }
 
     const snowLimitAlt1 = calculateSnowRainLimit(iso0Alt1, (tMinAlt1 + tMaxAlt1)/2, rainAlt1, (tMinAlt1 + tMaxAlt1)/2, alt);
+    const snowfallAlt1 = (rainAlt1 > 0 && alt >= snowLimitAlt1 - 100) ? Number((rainAlt1 * 1.1).toFixed(1)) : 0;
+    const alt1PhysicWeather = computePhysicWeatherCode(rainAlt1, snowfallAlt1, tMaxAlt1, tMinAlt1, r3, false);
 
     const alternativeScenario1: DayScenarioBranch = {
       name: alt1Name,
@@ -283,10 +341,12 @@ export function generateFourteenDayScenarios(
       tempMin: tMinAlt1,
       tempMax: tMaxAlt1,
       feelsLikeMax: Number((tMaxAlt1 - 1.2).toFixed(1)),
+      weatherCode: alt1PhysicWeather.code,
+      weatherDescription: alt1PhysicWeather.description,
       precipitationMm: rainAlt1,
       precipitationProbPct: Math.min(95, (dominantScenario.precipitationProbPct ?? 20) + 30),
       precipitationType: rainAlt1 > 8 ? "Pluie froide continue" : "Averses fraîches et ventées",
-      snowfallCm: (rainAlt1 > 0 && alt >= snowLimitAlt1 - 100) ? Number((rainAlt1 * 1.1).toFixed(1)) : 0,
+      snowfallCm: snowfallAlt1,
       windGustKmh: Math.round(28 + r4 * 28),
       windDirection: "Nord-Nord-Ouest",
       sunshineHours: Math.max(1, (dominantScenario.sunshineHours ?? 8) - 3.5),
@@ -323,6 +383,8 @@ export function generateFourteenDayScenarios(
       tempMin: tMinAlt2,
       tempMax: tMaxAlt2,
       feelsLikeMax: Number((tMaxAlt2 + 2.1).toFixed(1)),
+      weatherCode: 0,
+      weatherDescription: "Grand ciel bleu et ensoleillé",
       precipitationMm: rainAlt2,
       precipitationProbPct: 5,
       precipitationType: "Temps totalement sec",

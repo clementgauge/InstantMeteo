@@ -1971,6 +1971,8 @@ export interface DayScenarioBranch {
   tempMin: number;
   tempMax: number;
   feelsLikeMax?: number;
+  weatherCode?: number;
+  weatherDescription?: string;
   precipitationMm: number;
   precipitationProbPct?: number;
   precipitationType?: string; // "Ciel sec", "Ondées locales", "Pluie continue", "Orages"

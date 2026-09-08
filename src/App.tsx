@@ -73,6 +73,9 @@ import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt'
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
+import { LiveWebcamsView } from './views/LiveWebcamsView';
+import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
+import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -127,6 +130,7 @@ function WeatherApp() {
   });
 
   useEffect(() => {
+    ensurePlayerProfileRestored();
     const handleScoreUpdated = () => {
       const p = loadPlayerProfile();
       setIsAdmin(!!(p && p.isAdmin));
@@ -824,6 +828,14 @@ function WeatherApp() {
               />
             )}
 
+            {activeTab === 'liveWebcams' && (
+              <LiveWebcamsView
+                station={currentStation}
+                weather={weather}
+                onOpenSearchModal={() => setIsSearchModalOpen(true)}
+              />
+            )}
+
             {activeTab === 'competitive' && (
               <CompetitiveGamingView
                 currentStation={currentStation}
@@ -945,6 +957,15 @@ function WeatherApp() {
         onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
         currentTheme={currentTheme}
         seniorMode={seniorMode}
+      />
+
+      {/* Floating Weather Bubble on Mobile */}
+      <FloatingWeatherBubble
+        station={currentStation}
+        weather={weather}
+        tempUnit={tempUnit}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onScrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       />
 
       {/* Real-time Weather Push Notification Center Modal */}
