@@ -189,7 +189,32 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   };
 
   const getWeatherEmoji = (d: FourteenDayDayDetail): string => {
-    // 1. Chercher d'abord le code WMO du scénario ou de la prévision réelle
+    const rain = d.dominantScenario.precipitationMm;
+    const snow = d.dominantScenario.snowfallCm ?? 0;
+    const tmax = d.dominantScenario.tempMax;
+    const textDesc = `${d.dominantScenario.name} ${d.dominantScenario.title || ''} ${d.dominantScenario.precipitationType || ''} ${d.dominantScenario.description || ''}`.toLowerCase();
+
+    // Priorité absolue aux phénomènes actifs : Orages, Neige, Pluie
+    if (textDesc.includes('orage') || textDesc.includes('tonnerre') || textDesc.includes('foudre')) {
+      return '⛈️';
+    }
+    if (snow > 0 || textDesc.includes('neige') || textDesc.includes('flocon') || (rain > 0 && tmax <= 1.5)) {
+      return '❄️';
+    }
+    if (textDesc.includes('brouillard') || textDesc.includes('brume dense')) {
+      return '🌫️';
+    }
+    if (rain >= 5) {
+      return '🌧️';
+    }
+    if (rain >= 1.5) {
+      return '🌧️';
+    }
+    if (rain > 0.2) {
+      return '🌦️';
+    }
+
+    // 1. Chercher le code WMO du scénario ou de la prévision réelle
     let wmoCode = d.dominantScenario.weatherCode;
     if (wmoCode === undefined && dailyForecasts) {
       const match = dailyForecasts.find(df => df.date === d.date);
@@ -199,6 +224,8 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     }
 
     if (typeof wmoCode === 'number') {
+      // Si wmoCode indique du soleil mais que de la pluie résiduelle est notée
+      if (wmoCode <= 1 && rain > 0.2) return '🌦️';
       switch (wmoCode) {
         case 0: return '☀️';
         case 1: return '🌤️';
@@ -231,43 +258,18 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
       }
     }
 
-    // 2. Détection physique stricte (sans raccourci erroné sur la température)
-    const rain = d.dominantScenario.precipitationMm;
-    const snow = d.dominantScenario.snowfallCm ?? 0;
-    const tmax = d.dominantScenario.tempMax;
-    const textDesc = `${d.dominantScenario.name} ${d.dominantScenario.title || ''} ${d.dominantScenario.precipitationType || ''} ${d.dominantScenario.description || ''}`.toLowerCase();
-
-    if (textDesc.includes('orage') || textDesc.includes('tonnerre') || textDesc.includes('foudre')) {
-      return '⛈️';
-    }
-    if (snow > 0 || textDesc.includes('neige') || textDesc.includes('flocon') || (rain > 0 && tmax <= 1.5)) {
-      return '❄️';
-    }
-    if (textDesc.includes('brouillard') || textDesc.includes('brume dense')) {
-      return '🌫️';
-    }
-    if (rain >= 5) {
-      return '🌧️';
-    }
-    if (rain >= 1.5) {
-      return '🌧️';
-    }
-    if (rain > 0.1) {
-      return '🌦️';
-    }
-
     // Temps sec
-    if (textDesc.includes('couvert') || textDesc.includes('gris') || textDesc.includes('très nuageux')) {
+    if (textDesc.includes('couvert') || textDesc.includes('gris') || textDesc.includes('très nuageux') || textDesc.includes('bouché')) {
       return '☁️';
     }
-    if (textDesc.includes('éclaircie') || textDesc.includes('variable') || textDesc.includes('mitigé') || textDesc.includes('nuage')) {
+    if (textDesc.includes('éclaircie') || textDesc.includes('variable') || textDesc.includes('mitigé') || textDesc.includes('nuage') || textDesc.includes('voile')) {
       return '⛅';
     }
-    if (textDesc.includes('soleil') || textDesc.includes('ensoleillé') || textDesc.includes('dégagé') || textDesc.includes('sec') || textDesc.includes('lumineux')) {
+    if (textDesc.includes('soleil') || textDesc.includes('ensoleillé') || textDesc.includes('dégagé') || textDesc.includes('lumineux')) {
       return '☀️';
     }
 
-    return '🌤️';
+    return '⛅';
   };
 
   const getBranchWeatherEmoji = (b: { weatherCode?: number; precipitationMm: number; snowfallCm?: number; tempMax: number; name: string; title?: string; precipitationType?: string; description?: string }): string => {

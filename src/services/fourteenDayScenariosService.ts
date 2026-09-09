@@ -45,20 +45,17 @@ function computePhysicWeatherCode(
   if (rainMm > 0) {
     return { code: 80, description: "Averses éparses" };
   }
-  // Ciel sec
-  if (isWarm && randomFactor > 0.35) {
+  // Ciel sec : distribution réaliste (les éclaircies avec passages nuageux sont le temps le plus fréquent)
+  if (isWarm && randomFactor > 0.70) {
     return { code: 0, description: "Ciel dégagé et très ensoleillé" };
   }
-  if (randomFactor > 0.60) {
-    return { code: 0, description: "Ciel clair et ensoleillé" };
+  if (randomFactor > 0.65) {
+    return { code: 1, description: "Peu nuageux et belles éclaircies" };
   }
-  if (randomFactor > 0.38) {
-    return { code: 1, description: "Larges éclaircies ensoleillées" };
+  if (randomFactor > 0.25) {
+    return { code: 2, description: "Belles éclaircies et passages nuageux" };
   }
-  if (randomFactor > 0.18) {
-    return { code: 2, description: "Éclaircies et nuages" };
-  }
-  return { code: 3, description: "Ciel couvert" };
+  return { code: 3, description: "Ciel très nuageux à couvert" };
 }
 
 /**
@@ -253,7 +250,7 @@ export function generateFourteenDayScenarios(
       ? realDay.weatherCode
       : domPhysicWeather.code;
     const finalDomWeatherDesc = (realDay && typeof realDay.weatherCode === 'number')
-      ? getWeatherDescription(realDay.weatherCode)
+      ? getWeatherDescription(realDay.weatherCode).label
       : domPhysicWeather.description;
 
     const dominantScenario: DayScenarioBranch = {

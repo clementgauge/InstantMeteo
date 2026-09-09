@@ -18,7 +18,7 @@ import {
   verifyAdminCode, 
   PlayerProfile 
 } from '../services/competitiveGameService';
-import { syncPlayerProfileToD1 } from '../services/cloudflareD1Service';
+import { syncPlayerProfileToD1, fetchPlayerProfileFromD1 } from '../services/cloudflareD1Service';
 
 interface PseudoModalProps {
   isOpen: boolean;
@@ -35,6 +35,7 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
   const [pseudoInput, setPseudoInput] = useState('');
   const [secretCodeInput, setSecretCodeInput] = useState('');
   const [feedback, setFeedback] = useState<{ text: string; type: 'success' | 'error' | 'admin' } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,58 +46,95 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
       }
       setSecretCodeInput('');
       setFeedback(null);
+      setIsSubmitting(false);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const cleanPseudo = pseudoInput.trim();
     const cleanSecret = secretCodeInput.trim();
 
-    // Vérification du code admin secret (ne doit jamais être affiché)
-    const isAdminTriggered = verifyAdminCode(cleanSecret) || verifyAdminCode(cleanPseudo);
-
-    let current = profile || initPlayerProfile(cleanPseudo || 'Chasseur Météo');
-
-    if (isAdminTriggered) {
-      // Activer les super-pouvoirs Admin
-      current = {
-        ...current,
-        pseudo: (cleanPseudo && !verifyAdminCode(cleanPseudo)) ? cleanPseudo : (current.pseudo || 'Admin Météo'),
-        isAdmin: true
-      };
-      savePlayerProfile(current);
-      setProfile(current);
-      syncPlayerProfileToD1(current).catch(() => {});
-      setFeedback({
-        text: '👑 Statut Administrateur débloqué ! Votre rang est désormais Admin.',
-        type: 'admin'
-      });
-      setTimeout(() => {
-        onClose();
-        if (onOpenAdminPanel) onOpenAdminPanel();
-      }, 1500);
-      return;
-    }
-
-    if (!cleanPseudo) {
+    if (!cleanPseudo && !cleanSecret) {
       setFeedback({ text: 'Veuillez saisir un pseudo valide.', type: 'error' });
       return;
     }
 
-    current = {
-      ...current,
-      pseudo: cleanPseudo
-    };
-    savePlayerProfile(current);
-    setProfile(current);
-    syncPlayerProfileToD1(current).catch(() => {});
-    setFeedback({ text: '✅ Pseudo enregistré avec succès !', type: 'success' });
-    setTimeout(() => {
-      onClose();
-    }, 1200);
+    setIsSubmitting(true);
+
+    // Vérification du code admin secret (ne doit jamais être affiché)
+    const isAdminTriggered = verifyAdminCode(cleanSecret) || verifyAdminCode(cleanPseudo);
+
+    try {
+      // 1. Tenter de récupérer un compte existant enregistré dans la base de données
+      const existingServer = await fetchPlayerProfileFromD1(cleanPseudo);
+
+      let current: PlayerProfile;
+      if (existingServer) {
+        // Compte déjà existant dans la base : restauration immédiate avec préservation de tous les points
+        current = {
+          ...existingServer,
+          pseudo: cleanPseudo,
+          totalPoints: Math.max(existingServer.totalPoints || 0, profile?.totalPoints || 0),
+          streakDays: Math.max(existingServer.streakDays || 1, profile?.streakDays || 1),
+          isAdmin: isAdminTriggered ? true : Boolean(existingServer.isAdmin || profile?.isAdmin)
+        };
+        setFeedback({
+          text: `🎉 Compte retrouvé ! ${current.totalPoints} pts et flammes restaurés.`,
+          type: 'success'
+        });
+      } else if (profile && profile.pseudo) {
+        // Compte local existant qui met à jour son pseudo
+        current = {
+          ...profile,
+          pseudo: cleanPseudo,
+          isAdmin: isAdminTriggered ? true : Boolean(profile.isAdmin)
+        };
+        setFeedback({ text: '✅ Pseudo enregistré avec succès !', type: 'success' });
+      } else {
+        // Nouveau compte tout neuf
+        current = initPlayerProfile(cleanPseudo || 'Chasseur Météo');
+        if (isAdminTriggered) {
+          current.isAdmin = true;
+        }
+        setFeedback({ text: '🎉 Bienvenue ! Votre compte est créé et sécurisé en base.', type: 'success' });
+      }
+
+      if (isAdminTriggered) {
+        current.isAdmin = true;
+        setFeedback({
+          text: '👑 Statut Administrateur débloqué ! Votre rang est désormais Admin.',
+          type: 'admin'
+        });
+      }
+
+      savePlayerProfile(current);
+      setProfile(current);
+      await syncPlayerProfileToD1(current).catch(() => {});
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onClose();
+        if (isAdminTriggered && onOpenAdminPanel) {
+          onOpenAdminPanel();
+        }
+      }, 1200);
+    } catch (err) {
+      console.warn('Erreur validation pseudo:', err);
+      const fallback = profile || initPlayerProfile(cleanPseudo || 'Chasseur Météo');
+      fallback.pseudo = cleanPseudo;
+      if (isAdminTriggered) fallback.isAdmin = true;
+      savePlayerProfile(fallback);
+      setFeedback({ text: '✅ Profil enregistré localement.', type: 'success' });
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onClose();
+      }, 1000);
+    }
   };
 
   return (

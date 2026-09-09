@@ -43,10 +43,14 @@ import {
   Moon,
   Play,
   Map,
-  Radio
+  Radio,
+  Plus
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
+import { DynamicSkyHeroArt } from '../components/DynamicSkyHeroArt';
+import { FloatingWeatherBubble } from '../components/FloatingWeatherBubble';
+import { UnifiedHourly48hTrend } from '../components/UnifiedHourly48hTrend';
 import { WeatherGauge } from '../components/WeatherGauge';
 import { AnomalyBadge } from '../components/AnomalyBadge';
 import { AltitudeMeteorologyCard } from '../components/AltitudeMeteorologyCard';
@@ -115,6 +119,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   onResetRecalibration
 }) => {
   const [activeProfileTab, setActiveProfileTab] = useState<'classic' | 'agriculture' | 'aviation' | 'pro'>('classic');
+  const [showFloatingBubble, setShowFloatingBubble] = useState<boolean>(false);
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
@@ -293,16 +298,33 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 </div>
               </div>
 
-              {/* Top Right "Changer de station" pill */}
-              {onOpenSearchModal && (
+              {/* Top Right Action Pills */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Mobile Floating Weather Bubble Toggle */}
                 <button
-                  onClick={onOpenSearchModal}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 border border-slate-700/80 backdrop-blur-md text-[11px] font-bold text-slate-200 hover:text-white shadow-lg active:scale-95 transition cursor-pointer shrink-0"
+                  onClick={() => setShowFloatingBubble(!showFloatingBubble)}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border backdrop-blur-md text-[11px] font-bold shadow-lg active:scale-95 transition cursor-pointer ${
+                    showFloatingBubble 
+                      ? 'bg-sky-500 text-white border-sky-400 shadow-sky-500/40' 
+                      : 'bg-slate-950/80 border-slate-700/80 text-sky-300 hover:text-white'
+                  }`}
+                  title="Afficher la bulle météo flottante sur le téléphone"
                 >
-                  <Search className="h-3 w-3 text-sky-400" />
-                  <span>Changer</span>
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Bulle</span>
                 </button>
-              )}
+
+                {/* Top Right "Changer de station" pill */}
+                {onOpenSearchModal && (
+                  <button
+                    onClick={onOpenSearchModal}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 border border-slate-700/80 backdrop-blur-md text-[11px] font-bold text-slate-200 hover:text-white shadow-lg active:scale-95 transition cursor-pointer"
+                  >
+                    <Search className="h-3 w-3 text-sky-400" />
+                    <span>Changer</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Tags row: Climat & ICU */}
@@ -317,7 +339,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </span>
             </div>
 
-            {/* Center: Massive Temperature + Live Badge & Radiant Sun Graphic */}
+            {/* Center: Massive Temperature + Live Badge & Dynamic Sky Artwork */}
             <div className="flex items-center justify-between gap-2 pt-1">
               <div>
                 <div className="text-5xl font-black tracking-tighter text-white drop-shadow-lg leading-none">
@@ -338,13 +360,12 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   <span>En direct</span>
                 </div>
 
-                {/* Radiant Glowing Sun Graphic */}
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-amber-400/25 rounded-full blur-lg animate-pulse" />
-                  <div className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-200 shadow-xl shadow-amber-500/40 border border-yellow-200/60 flex items-center justify-center">
-                    <Sun className="h-7 w-7 text-amber-950" />
-                  </div>
-                </div>
+                {/* Dynamic Sky Artwork (Sun, Cloud+Sun, Rain, etc.) */}
+                <DynamicSkyHeroArt 
+                  weatherCode={weather.weatherCode} 
+                  isDay={weather.isDay ?? true} 
+                  size="sm" 
+                />
               </div>
             </div>
 
@@ -413,55 +434,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
         </div>
 
-        {/* 2. Hourly Forecast Row ("Prévisions à {station.name}") */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-xs font-black text-white tracking-wide">
-              Prévisions à {station.name}
-            </h3>
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('scenarios14d') : null}
-              className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center gap-0.5 transition"
-            >
-              <span>Voir plus</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-0.5 px-0.5">
-            {/* Active Card: Maintenant (Glowing Blue) */}
-            <div className="flex flex-col items-center justify-between min-w-[72px] h-[96px] rounded-2xl p-2 bg-gradient-to-b from-blue-600 to-blue-700 border-2 border-blue-400 shadow-lg shadow-blue-600/35 text-white shrink-0">
-              <span className="text-[10px] font-black text-blue-100 uppercase tracking-tight">Maintenant</span>
-              <Sun className="h-6 w-6 text-amber-300 drop-shadow" />
-              <span className="text-xs font-black text-white tracking-tight">{formatTemp(weather.temperature)}</span>
-            </div>
-
-            {/* Next Hours from hourly dataset */}
-            {hourly.slice(0, 8).map((slot, idx) => {
-              const label = slot.hourLabel || (slot.time ? slot.time.slice(11, 16) : `${idx + 1}h`);
-              return (
-                <div
-                  key={idx}
-                  className="flex flex-col items-center justify-between min-w-[70px] h-[96px] rounded-2xl p-2 bg-[#0c1424] border border-slate-800 text-slate-200 shrink-0 shadow-sm"
-                >
-                  <span className="text-[10px] font-bold text-slate-400">{label}</span>
-                  {slot.precipitationProbability > 40 || slot.rainMm > 0 ? (
-                    <CloudRain className="h-6 w-6 text-sky-400" />
-                  ) : slot.hourNumber !== undefined && (slot.hourNumber >= 21 || slot.hourNumber <= 5) ? (
-                    <Moon className="h-6 w-6 text-indigo-300" />
-                  ) : (
-                    <Sun className="h-6 w-6 text-amber-400" />
-                  )}
-                  <span className="text-xs font-black text-white">{Math.round(slot.temperature)}°</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3. Two Live Interactive Preview Cards (Radar Pluie HD Direct & Vigilance Météo-France) */}
+        {/* 2. Two Live Interactive Preview Cards (Radar Pluie HD Direct & Vigilance Météo-France) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {/* Card 1: Radar Pluie HD Direct */}
+          {/* Card 1: Radar Pluie HD Direct (avec vue France / Local) */}
           <LiveMiniRadarMapCard
             station={station}
             onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
@@ -473,7 +448,29 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             onClick={() => onNavigateTab ? onNavigateTab('vigilance') : null}
           />
         </div>
+
+        {/* 3. Unique & Ultra-Clair Fil de Tendance Heure par Heure 48h (Remplaçant l'ancien doublon) */}
+        <UnifiedHourly48hTrend
+          station={station}
+          currentWeather={weather}
+          hourly={hourly}
+          tempUnit={tempUnit}
+          onNavigateTab={onNavigateTab}
+        />
       </div>
+
+      {/* Bulle Météo Flottante Mobile (activable via le bouton + en haut de l'app) */}
+      {showFloatingBubble && (
+        <FloatingWeatherBubble
+          station={station}
+          weather={weather}
+          tempUnit={tempUnit}
+          onClose={() => setShowFloatingBubble(false)}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      )}
 
       {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop - Exact Reference Design) */}
       <DesktopWeatherHeroDashboard

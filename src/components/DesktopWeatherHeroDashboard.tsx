@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
+import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
+import { UnifiedHourly48hTrend } from './UnifiedHourly48hTrend';
 
 interface DesktopWeatherHeroDashboardProps {
   station: LocationPoint;
@@ -55,7 +57,6 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   onNavigateTab,
   onLocateGps
 }) => {
-  const [activeForecastTab, setActiveForecastTab] = useState<'24h' | '48h' | '7j' | 'curve'>('24h');
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
@@ -135,30 +136,6 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
 
   const todayMin = daily[0]?.tempMin ?? Math.round((weather.temperature - 4) * 10) / 10;
   const todayMax = daily[0]?.tempMax ?? Math.round((weather.temperature + 3) * 10) / 10;
-
-  // Prepare 9 hours for the preview row
-  const currentSlot = {
-    label: 'Maintenant',
-    temp: weather.temperature,
-    desc: weather.weatherDescription || 'Peu nuageux',
-    isNow: true,
-    isNight: false
-  };
-
-  const nextSlots = hourly.slice(0, 8).map((h, i) => {
-    const hourNum = h.hourNumber ?? (new Date().getHours() + i + 1) % 24;
-    const isNight = hourNum >= 21 || hourNum <= 6;
-    const label = `${hourNum.toString().padStart(2, '0')}h`;
-    return {
-      label,
-      temp: h.temperature,
-      desc: h.weatherDescription || (isNight ? 'Ciel dégagé' : 'Peu nuageux'),
-      isNow: false,
-      isNight
-    };
-  });
-
-  const slotsToDisplay = [currentSlot, ...nextSlots];
 
   // Radar region label
   const regionLabel = station.department?.split(' - ')[1] || station.region || 'Île-de-France';
@@ -277,20 +254,13 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               </div>
             </div>
 
-            {/* Center: Glowing Radiant Sun & Cloud Artwork */}
+            {/* Center: Dynamic Responsive 3D Sky Artwork matching exact condition */}
             <div className="hidden sm:flex col-span-3 items-center justify-center">
-              <div className="relative flex items-center justify-center w-36 h-36">
-                {/* Sun Glow */}
-                <div className="absolute w-24 h-24 rounded-full bg-amber-400/40 blur-2xl animate-pulse" />
-                
-                {/* 3D Sun Orb */}
-                <div className="relative z-10 w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-yellow-100 shadow-[0_0_40px_rgba(245,158,11,0.7)] border border-yellow-200/80" />
-                
-                {/* Fluffy Translucent Cloud */}
-                <div className="absolute z-20 top-12 left-10 w-24 h-14 rounded-full bg-white/80 backdrop-blur-sm shadow-lg border border-white/60 flex items-center justify-center">
-                  <div className="w-16 h-10 -mt-4 ml-3 rounded-full bg-white/90" />
-                </div>
-              </div>
+              <DynamicSkyHeroArt 
+                weatherCode={weather.weatherCode} 
+                isDay={weather.isDay ?? true} 
+                size="lg" 
+              />
             </div>
 
             {/* Right: Vertical Metric Stack */}
@@ -354,106 +324,15 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* 2. MIDDLE ROW: 24H FORECAST (Left ~65%) & RADAR HD (Right ~35%)           */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-12 gap-4 items-stretch">
-        {/* Left: 24h Hourly Forecast Card */}
-        <div className="col-span-12 lg:col-span-8 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
-          {/* Card Header */}
-          <div className="flex items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
-                <Activity className="h-4 w-4" />
-              </div>
-              <h3 className="text-sm font-black text-white tracking-wide">
-                Prévision heure par heure (prochaines 24h)
-              </h3>
-            </div>
-
-            {/* Filter Tabs on Right */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/80 text-xs font-bold">
-              <button
-                onClick={() => setActiveForecastTab('24h')}
-                className={`px-3 py-1 rounded-lg transition ${
-                  activeForecastTab === '24h'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                24h
-              </button>
-              <button
-                onClick={() => setActiveForecastTab('48h')}
-                className={`px-3 py-1 rounded-lg transition ${
-                  activeForecastTab === '48h'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                48h
-              </button>
-              <button
-                onClick={() => setActiveForecastTab('7j')}
-                className={`px-3 py-1 rounded-lg transition ${
-                  activeForecastTab === '7j'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                7 jours
-              </button>
-              <button
-                onClick={() => setActiveForecastTab('curve')}
-                className={`px-3 py-1 rounded-lg transition ${
-                  activeForecastTab === 'curve'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Courbe
-              </button>
-              <button
-                onClick={() => onNavigateTab ? onNavigateTab('scenarios14d') : null}
-                className="p-1 rounded-lg text-slate-400 hover:text-white transition"
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Row of 9 Hourly Cards */}
-          <div className="grid grid-cols-3 sm:grid-cols-9 gap-2">
-            {slotsToDisplay.map((slot, idx) => {
-              const isActiveNow = slot.isNow;
-              return (
-                <div
-                  key={idx}
-                  className={`flex flex-col items-center justify-between p-3 rounded-2xl text-center transition min-h-[145px] ${
-                    isActiveNow
-                      ? 'border-2 border-blue-500 bg-blue-950/60 shadow-lg shadow-blue-500/25'
-                      : 'border border-slate-800/80 bg-slate-900/60 hover:bg-slate-800/60'
-                  }`}
-                >
-                  <span className={`text-[11px] font-bold ${isActiveNow ? 'text-sky-300' : 'text-slate-400'}`}>
-                    {slot.label}
-                  </span>
-
-                  <div className="my-1 flex items-center justify-center">
-                    {slot.isNight ? (
-                      <Moon className="h-7 w-7 text-indigo-300 drop-shadow" />
-                    ) : (
-                      <Sun className="h-7 w-7 text-amber-400 drop-shadow" />
-                    )}
-                  </div>
-
-                  <span className="text-sm font-black text-white">
-                    {formatSimpleTemp(slot.temp)}
-                  </span>
-
-                  <span className="text-[10px] text-slate-400 line-clamp-1 leading-tight mt-1">
-                    {slot.desc}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+        {/* Left: 48h Unified Hourly Forecast Card */}
+        <div className="col-span-12 lg:col-span-8 flex flex-col">
+          <UnifiedHourly48hTrend
+            station={station}
+            currentWeather={weather}
+            hourly={hourly}
+            tempUnit={tempUnit}
+            onNavigateTab={onNavigateTab}
+          />
         </div>
 
         {/* Right: Radar HD Card */}

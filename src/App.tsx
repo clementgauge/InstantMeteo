@@ -959,15 +959,6 @@ function WeatherApp() {
         seniorMode={seniorMode}
       />
 
-      {/* Floating Weather Bubble on Mobile */}
-      <FloatingWeatherBubble
-        station={currentStation}
-        weather={weather}
-        tempUnit={tempUnit}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
-        onScrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      />
-
       {/* Real-time Weather Push Notification Center Modal */}
       <WeatherNotificationCenterModal
         isOpen={isNotificationModalOpen}

@@ -64,7 +64,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   tempUnit,
   onOpenDayAnalyzer
 }) => {
-  const [activeTab, setActiveTab] = useState<'day' | 'week' | 'all168h'>('day');
+  const [activeTab, setActiveTab] = useState<'day' | 'week' | 'all168h'>('week');
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [selectedHourIdx, setSelectedHourIdx] = useState<number>(0);
   const [hourlyMetricFilter, setHourlyMetricFilter] = useState<'all' | 'temp' | 'rain' | 'wind' | 'convection' | 'clouds' | 'trend' | 'isotherm'>('all');

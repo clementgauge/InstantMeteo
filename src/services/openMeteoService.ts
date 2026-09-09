@@ -1501,14 +1501,19 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       cur.apparent_temperature
     );
 
-    // Affinage précis du code météo en fonction de la couverture nuageuse réelle
+    // Affinage précis du code météo en fonction de la couverture nuageuse réelle et du rayonnement
     let calibratedWeatherCode = cur.weather_code;
+    const rawHourlyCloud = hourlyData.cloud_cover?.[currentHourIndexInHourly];
+    const effectiveCloudCover = (rawHourlyCloud !== undefined && rawHourlyCloud !== null)
+      ? rawHourlyCloud
+      : Math.max(cloudCoverTotal, cloudCoverLow, cloudCoverMid, cloudCoverHigh);
+
     if (calibratedWeatherCode <= 1 && (cur.precipitation || 0) < 0.2) {
-      if (cloudCoverTotal >= 80) {
+      if (effectiveCloudCover >= 75) {
         calibratedWeatherCode = 3; // Ciel très nuageux à couvert
-      } else if (cloudCoverTotal >= 30) {
+      } else if (effectiveCloudCover >= 25) {
         calibratedWeatherCode = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
-      } else if (cloudCoverTotal >= 15 || cloudCoverHigh >= 35) {
+      } else if (effectiveCloudCover >= 10 || cloudCoverHigh >= 25) {
         calibratedWeatherCode = 1; // Peu nuageux / voilé
       }
     }
@@ -1636,17 +1641,28 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const windGst = Math.round(hourlyData.wind_gusts_10m?.[i] ?? windSpd * 1.3);
       const windDir = hourlyData.wind_direction_10m?.[i] ?? 220;
       const windCompass = getCompassDirection(windDir);
-      const weatherC = hourlyData.weather_code[i];
-      const weatherD = getWeatherDescription(weatherC).label;
+      const cloudC = hourlyData.cloud_cover?.[i] ?? 40;
+      const cloudLow = hourlyData.cloud_cover_low?.[i] ?? Math.min(100, Math.round(cloudC * 0.6));
+      const cloudMid = hourlyData.cloud_cover_mid?.[i] ?? Math.min(100, Math.round(cloudC * 0.5));
+      const cloudHigh = hourlyData.cloud_cover_high?.[i] ?? Math.min(100, Math.round(cloudC * 0.4));
+
+      let weatherC = hourlyData.weather_code[i];
+      if (weatherC <= 1 && rainMm < 0.2) {
+        if (cloudC >= 75) {
+          weatherC = 3; // Couvert
+        } else if (cloudC >= 25) {
+          weatherC = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
+        } else if (cloudC >= 10 || cloudHigh >= 25) {
+          weatherC = 1; // Peu nuageux / voilé
+        }
+      }
+      const isDayHour = hourlyData.is_day?.[i] === 1 || (date.getHours() >= 6 && date.getHours() <= 21);
+      const weatherD = getWeatherDescription(weatherC, isDayHour).label;
       const dewP = hourlyData.dew_point_2m?.[i] !== undefined && hourlyData.dew_point_2m?.[i] !== null
         ? Math.round(hourlyData.dew_point_2m[i] * 10) / 10 
         : calculateExactDewPoint(temp, hum);
       const pressureSurface = Math.round(hourlyData.surface_pressure?.[i] ?? qfe);
       const pressureSea = Math.round(hourlyData.pressure_msl?.[i] ?? qnh);
-      const cloudC = hourlyData.cloud_cover?.[i] ?? 40;
-      const cloudLow = hourlyData.cloud_cover_low?.[i] ?? Math.min(100, Math.round(cloudC * 0.6));
-      const cloudMid = hourlyData.cloud_cover_mid?.[i] ?? Math.min(100, Math.round(cloudC * 0.5));
-      const cloudHigh = hourlyData.cloud_cover_high?.[i] ?? Math.min(100, Math.round(cloudC * 0.4));
       const uv = Math.round((hourlyData.uv_index?.[i] ?? 0) * uvElevationFactor * 10) / 10;
       const capeVal = hourlyData.cape?.[i] ?? (proba > 50 && temp > 20 ? 650 : 50);
       const liftIdx = hourlyData.lifted_index?.[i] ?? (capeVal > 500 ? -2.5 : 3.0);
@@ -1687,7 +1703,6 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const dayIdx = Math.max(0, diffDays);
       const dayL = dayIdx === 0 ? "Aujourd'hui" : dayIdx === 1 ? "Demain" : `${dayShort[hourDateObj.getDay()]} ${hourDateObj.getDate()}`;
 
-      const isDayHour = hourlyData.is_day?.[i] === 1 || (date.getHours() >= 6 && date.getHours() <= 21);
       const cloudDetail = getDetailedCloudCover(cloudC, cloudLow, cloudMid, cloudHigh, isDayHour);
       const rainRisk = getRainRiskExplanation(proba, rainMm, 1);
 
@@ -1950,14 +1965,17 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         if (liquidRainCodesList.includes(dailyWCode) || dailyWCode === 0) {
           dailyWCode = totalDaySnowfallCm >= 10 ? 75 : totalDaySnowfallCm >= 3 ? 73 : 71;
         }
-      } else if (rainSum === 0 && dailyWCode <= 1) {
-        if (dayCloudCoverMean >= 80) {
-          dailyWCode = 3;
-        } else if (dayCloudCoverMean >= 30) {
-          dailyWCode = 2; // Belles éclaircies et passages nuageux
-        } else if (dayCloudCoverMean >= 15) {
-          dailyWCode = 1;
+      } else if (rainSum < 0.3 && dailyWCode <= 1) {
+        if (dayCloudCoverMean >= 75) {
+          dailyWCode = 3; // Ciel couvert
+        } else if (dayCloudCoverMean >= 25) {
+          dailyWCode = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
+        } else if (dayCloudCoverMean >= 10) {
+          dailyWCode = 1; // Peu nuageux / voilé
         }
+      } else if (rainSum >= 0.5 && dailyWCode <= 2) {
+        // En cas de pluie constatée, attribuer un code de pluie réel cohérent
+        dailyWCode = rainSum >= 6 ? 63 : rainSum >= 2 ? 61 : 51;
       }
 
       let rainTimingSummary = "Temps sec stable sur l'ensemble de la journée.";

@@ -360,8 +360,24 @@ export function savePlayerProfile(profile: PlayerProfile): void {
  */
 export async function ensurePlayerProfileRestored(): Promise<PlayerProfile | null> {
   const local = loadPlayerProfile();
+  
+  // Si profil en mémoire locale, vérifier avec le serveur pour fusionner avec le maximum de points
   if (local && local.pseudo) {
-    // Profil déjà en mémoire locale, on synchronise avec le serveur
+    try {
+      const serverProfile = await fetchPlayerProfileFromD1(local.pseudo);
+      if (serverProfile) {
+        const merged: PlayerProfile = {
+          ...local,
+          totalPoints: Math.max(local.totalPoints || 0, serverProfile.totalPoints || 0),
+          streakDays: Math.max(local.streakDays || 1, serverProfile.streakDays || 1),
+          minutesSpent: Math.max(local.minutesSpent || 0, serverProfile.minutesSpent || 0),
+          isAdmin: Boolean(local.isAdmin || serverProfile.isAdmin),
+          unlockedWeatherIds: Array.from(new Set([...(local.unlockedWeatherIds || []), ...(serverProfile.unlockedWeatherIds || [])]))
+        };
+        savePlayerProfile(merged);
+        return merged;
+      }
+    } catch (_) {}
     syncPlayerProfileToD1(local).catch(() => {});
     return local;
   }

@@ -10,17 +10,16 @@ export function encryptString(plainText: string): string {
   if (!plainText) return '';
   try {
     const salt = CIPHER_SALT;
-    let result = '';
-    for (let i = 0; i < plainText.length; i++) {
-      const charCode = plainText.charCodeAt(i);
-      const saltCode = salt.charCodeAt(i % salt.length);
-      const mixed = charCode ^ saltCode;
-      result += String.fromCharCode(mixed);
+    const utf8Bytes = new TextEncoder().encode(plainText);
+    const xored = new Uint8Array(utf8Bytes.length);
+    for (let i = 0; i < utf8Bytes.length; i++) {
+      const saltByte = salt.charCodeAt(i % salt.length) & 0xFF;
+      xored[i] = utf8Bytes[i] ^ saltByte;
     }
-    // Encodage en base64 sécurisé pour UTF-8
-    const bytes = new TextEncoder().encode(result);
     let binary = '';
-    bytes.forEach(b => binary += String.fromCharCode(b));
+    for (let i = 0; i < xored.length; i++) {
+      binary += String.fromCharCode(xored[i]);
+    }
     return STORAGE_PREFIX + btoa(binary);
   } catch (err) {
     console.warn('Erreur chiffrement données:', err);
@@ -41,24 +40,39 @@ export function decryptString(cipherText: string): string {
   try {
     const rawB64 = cipherText.slice(STORAGE_PREFIX.length);
     const binary = atob(rawB64);
-    const bytes = new Uint8Array(binary.length);
+    const xored = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+      xored[i] = binary.charCodeAt(i);
     }
-    const decodedIntermediate = new TextDecoder().decode(bytes);
-
     const salt = CIPHER_SALT;
-    let plainText = '';
-    for (let i = 0; i < decodedIntermediate.length; i++) {
-      const charCode = decodedIntermediate.charCodeAt(i);
-      const saltCode = salt.charCodeAt(i % salt.length);
-      const original = charCode ^ saltCode;
-      plainText += String.fromCharCode(original);
+    const plainBytes = new Uint8Array(xored.length);
+    for (let i = 0; i < xored.length; i++) {
+      const saltByte = salt.charCodeAt(i % salt.length) & 0xFF;
+      plainBytes[i] = xored[i] ^ saltByte;
     }
-    return plainText;
+    return new TextDecoder().decode(plainBytes);
   } catch (err) {
-    console.warn('Erreur déchiffrement données:', err);
-    return '';
+    // Tentative de secours ancienne méthode au cas où
+    try {
+      const rawB64 = cipherText.slice(STORAGE_PREFIX.length);
+      const binary = atob(rawB64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const decodedIntermediate = new TextDecoder().decode(bytes);
+      const salt = CIPHER_SALT;
+      let plainText = '';
+      for (let i = 0; i < decodedIntermediate.length; i++) {
+        const charCode = decodedIntermediate.charCodeAt(i);
+        const saltCode = salt.charCodeAt(i % salt.length);
+        plainText += String.fromCharCode(charCode ^ saltCode);
+      }
+      return plainText;
+    } catch {
+      console.warn('Erreur déchiffrement données:', err);
+      return '';
+    }
   }
 }
 
