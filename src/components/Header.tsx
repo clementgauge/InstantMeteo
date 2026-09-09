@@ -77,6 +77,8 @@ interface HeaderProps {
   onOpenAdminPanel?: () => void;
   isAdmin?: boolean;
   onTriggerSecretCode?: (code: string) => boolean;
+  showFloatingBubble?: boolean;
+  onToggleFloatingBubble?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -117,7 +119,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPageBlockCustomizer,
   onOpenAdminPanel,
   isAdmin = false,
-  onTriggerSecretCode
+  onTriggerSecretCode,
+  showFloatingBubble,
+  onToggleFloatingBubble
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -308,6 +312,23 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Floating Weather Bubble Launcher */}
+            {onToggleFloatingBubble && (
+              <button
+                type="button"
+                onClick={onToggleFloatingBubble}
+                title={showFloatingBubble ? "Masquer la bulle météo" : "Afficher la bulle météo (détachable sur l'écran d'accueil)"}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
+                  showFloatingBubble
+                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sky-500/20'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>🫧</span>
+                <span className="hidden sm:inline">Bulle Écran</span>
+              </button>
+            )}
+
             {/* HD & DIRECT Pill */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-black tracking-wide shadow-sm">
               <span className="relative flex h-2 w-2">

@@ -38,6 +38,7 @@ import { ThirtyDayDailyForecastCard } from './components/ThirtyDayDailyForecastC
 import { SeasonalEightMonthTrendsCard } from './components/SeasonalEightMonthTrendsCard';
 import { ShortTermMultiModelEnsembleCard } from './components/ShortTermMultiModelEnsembleCard';
 import { MultiDayVigilanceMatrixCard } from './components/MultiDayVigilanceMatrixCard';
+import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
 import { InstallAppModal } from './components/InstallAppModal';
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
@@ -74,7 +75,6 @@ import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffili
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { LiveWebcamsView } from './views/LiveWebcamsView';
-import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 
 function WeatherApp() {
@@ -141,6 +141,24 @@ function WeatherApp() {
 
   const [activeRecalibration, setActiveRecalibration] = useState<RecalibrationState | null>(() => getActiveRecalibration());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showFloatingBubble, setShowFloatingBubble] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('instant_meteo_bubble_active');
+      return saved !== null ? saved === 'true' : true;
+    } catch (e) {
+      return true;
+    }
+  });
+
+  const handleToggleFloatingBubble = () => {
+    setShowFloatingBubble((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('instant_meteo_bubble_active', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
 
   // Live Threat Evaluation & Selective Alert Engine
   const liveThreat = evaluateLiveThreatAndAlerts(currentStation, weather, hourly, daily);
@@ -604,6 +622,8 @@ function WeatherApp() {
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
           onSelectTab={(tabId) => setActiveTab(tabId)}
+          showFloatingBubble={showFloatingBubble}
+          onToggleFloatingBubble={handleToggleFloatingBubble}
         />
       </div>
 
@@ -714,6 +734,8 @@ function WeatherApp() {
                 isFullscreen={isFullscreen}
                 onRecalibrate={handleApplyDirectOffset}
                 onResetRecalibration={handleClearRecalibration}
+                showFloatingBubble={showFloatingBubble}
+                onToggleFloatingBubble={handleToggleFloatingBubble}
               />
             )}
 
@@ -958,6 +980,18 @@ function WeatherApp() {
         currentTheme={currentTheme}
         seniorMode={seniorMode}
       />
+
+      {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}
+      {showFloatingBubble && weather && (
+        <FloatingWeatherBubble
+          station={currentStation}
+          weather={weather}
+          tempUnit={tempUnit}
+          onClose={handleToggleFloatingBubble}
+          onOpenSearchModal={() => setIsSearchModalOpen(true)}
+          onRefresh={handleRefresh}
+        />
+      )}
 
       {/* Real-time Weather Push Notification Center Modal */}
       <WeatherNotificationCenterModal

@@ -97,6 +97,8 @@ interface RealtimeViewProps {
   isFullscreen?: boolean;
   onRecalibrate?: (offset: number) => void;
   onResetRecalibration?: () => void;
+  showFloatingBubble?: boolean;
+  onToggleFloatingBubble?: () => void;
 }
 
 export const RealtimeView: React.FC<RealtimeViewProps> = ({
@@ -116,10 +118,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   onToggleFullscreen,
   isFullscreen,
   onRecalibrate,
-  onResetRecalibration
+  onResetRecalibration,
+  showFloatingBubble: propShowFloatingBubble,
+  onToggleFloatingBubble
 }) => {
   const [activeProfileTab, setActiveProfileTab] = useState<'classic' | 'agriculture' | 'aviation' | 'pro'>('classic');
-  const [showFloatingBubble, setShowFloatingBubble] = useState<boolean>(false);
+  const [localShowBubble, setLocalShowBubble] = useState<boolean>(true);
+  const isBubbleActive = propShowFloatingBubble !== undefined ? propShowFloatingBubble : localShowBubble;
+  const toggleBubble = onToggleFloatingBubble || (() => setLocalShowBubble(!localShowBubble));
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
@@ -300,15 +306,15 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
               {/* Top Right Action Pills */}
               <div className="flex items-center gap-1.5 shrink-0">
-                {/* Mobile Floating Weather Bubble Toggle */}
+                {/* Mobile & Desktop Floating Weather Bubble Toggle */}
                 <button
-                  onClick={() => setShowFloatingBubble(!showFloatingBubble)}
+                  onClick={toggleBubble}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border backdrop-blur-md text-[11px] font-bold shadow-lg active:scale-95 transition cursor-pointer ${
-                    showFloatingBubble 
+                    isBubbleActive 
                       ? 'bg-sky-500 text-white border-sky-400 shadow-sky-500/40' 
                       : 'bg-slate-950/80 border-slate-700/80 text-sky-300 hover:text-white'
                   }`}
-                  title="Afficher la bulle météo flottante sur le téléphone"
+                  title="Afficher / Masquer la bulle météo flottante (détachable sur l'écran d'accueil)"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Bulle</span>
@@ -458,19 +464,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onNavigateTab={onNavigateTab}
         />
       </div>
-
-      {/* Bulle Météo Flottante Mobile (activable via le bouton + en haut de l'app) */}
-      {showFloatingBubble && (
-        <FloatingWeatherBubble
-          station={station}
-          weather={weather}
-          tempUnit={tempUnit}
-          onClose={() => setShowFloatingBubble(false)}
-          onClick={() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
-      )}
 
       {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop - Exact Reference Design) */}
       <DesktopWeatherHeroDashboard
