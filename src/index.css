@@ -46,6 +46,96 @@ html, body {
   font-family: inherit;
 }
 
+/* ========================================================================= */
+/* MODE BLANC / LIGHT THEME DESIGN                                           */
+/* ========================================================================= */
+.theme-light {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.theme-light .bg-\[\#090d16\],
+.theme-light .bg-\[\#0c1424\],
+.theme-light .bg-slate-950 {
+  background-color: #ffffff !important;
+}
+
+.theme-light .bg-slate-900 {
+  background-color: #f8fafc !important;
+}
+
+.theme-light .bg-slate-850,
+.theme-light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+.theme-light .border-slate-800,
+.theme-light .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .text-white {
+  color: #0f172a !important;
+}
+
+.theme-light .text-slate-100 {
+  color: #1e293b !important;
+}
+
+.theme-light .text-slate-200 {
+  color: #334155 !important;
+}
+
+.theme-light .text-slate-300 {
+  color: #475569 !important;
+}
+
+.theme-light .text-slate-400 {
+  color: #64748b !important;
+}
+
+.theme-light .bg-slate-900\/80,
+.theme-light .bg-slate-900\/90,
+.theme-light .bg-slate-950\/80,
+.theme-light .bg-slate-950\/90,
+.theme-light .bg-slate-950\/70,
+.theme-light .bg-slate-950\/60 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.theme-light .bg-slate-900\/40,
+.theme-light .bg-slate-900\/50,
+.theme-light .bg-slate-800\/40,
+.theme-light .bg-slate-800\/50 {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+}
+
+.theme-light .shadow-2xl {
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-light input,
+.theme-light select,
+.theme-light textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+.theme-light .leaflet-container {
+  background-color: #e2e8f0 !important;
+}
+
+.theme-light .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.theme-light .leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
 .leaflet-popup-content-wrapper {
   background: #0f172a !important;
   color: #f8fafc !important;

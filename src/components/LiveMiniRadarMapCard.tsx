@@ -85,7 +85,7 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
       {/* Carte Radar en direct intégrée dans la page avec source ouverte légale */}
       <div 
         onClick={onClick}
-        className="relative w-full h-28 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-inner cursor-pointer"
+        className="relative w-full h-32 sm:h-40 md:h-52 lg:h-60 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-inner cursor-pointer"
       >
         <iframe
           title="Radar Pluie Ouvert RainViewer"
@@ -95,18 +95,18 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
         />
 
         {/* Repère station sélectionnée */}
-        <div className="absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 bg-slate-950/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-slate-700/80 text-[8px] font-medium text-slate-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-          <span className="max-w-[80px] truncate font-bold">{station.name}</span>
+        <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700/80 text-[10px] font-medium text-slate-200 shadow-md">
+          <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+          <span className="max-w-[120px] truncate font-black">{station.name}</span>
           {viewMode === 'france' && (
-            <span className="text-[7px] text-emerald-400 font-semibold">• France HD</span>
+            <span className="text-[8px] text-emerald-400 font-bold bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">Direct National</span>
           )}
         </div>
 
         {/* Bouton Agrandir au survol */}
-        <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600/90 text-white p-1 rounded-md shadow flex items-center gap-1 text-[9px] font-bold">
-          <Maximize2 className="w-2.5 h-2.5" />
-          <span>Ouvrir Radar HD</span>
+        <div className="absolute top-2 right-2 z-10 opacity-90 group-hover:opacity-100 transition-opacity bg-blue-600/95 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 text-[10px] font-black border border-blue-400/50">
+          <Maximize2 className="w-3 h-3" />
+          <span>Agrandir Radar HD</span>
         </div>
       </div>
     </div>

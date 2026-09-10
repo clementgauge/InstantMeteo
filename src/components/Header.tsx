@@ -28,7 +28,9 @@ import {
   Radio,
   ShieldAlert,
   CloudRain,
-  Bell
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -43,6 +45,8 @@ interface HeaderProps {
   onToggleSeniorMode: () => void;
   simplifiedMode?: boolean;
   onToggleSimplifiedMode?: () => void;
+  themeMode?: 'dark' | 'light';
+  onToggleThemeMode?: () => void;
   onOpenAndroidModal: () => void;
   onOpenDossierModal: () => void;
   onOpenSearchModal: () => void;
@@ -88,6 +92,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleSeniorMode,
   simplifiedMode = false,
   onToggleSimplifiedMode,
+  themeMode = 'dark',
+  onToggleThemeMode,
   onOpenAndroidModal,
   onOpenDossierModal,
   onOpenSearchModal,
@@ -687,6 +693,34 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
+          {/* Mode Blanc / Mode Noir Toggle */}
+          {onToggleThemeMode && (
+            <button
+              id="header-theme-mode-btn"
+              onClick={onToggleThemeMode}
+              title={themeMode === 'light' ? "Passer en Mode Noir (Design sombre)" : "Passer en Mode Blanc (Design clair)"}
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+                themeMode === 'light'
+                  ? 'border-amber-400 bg-amber-100 text-amber-950 font-black shadow-md'
+                  : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              {themeMode === 'light' ? (
+                <>
+                  <Sun className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span className="hidden sm:inline">Mode Blanc</span>
+                  <span className="sm:hidden">Blanc</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="h-4 w-4 text-sky-400 shrink-0" />
+                  <span className="hidden sm:inline">Mode Noir</span>
+                  <span className="sm:hidden">Noir</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* Interactive Tutorial Button */}
           {onOpenTutorial && (
             <button
@@ -870,6 +904,35 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">Améliorer la lisibilité de l'interface</div>
                   </div>
                 </button>
+
+                {onToggleThemeMode && (
+                  <button
+                    id="sidebar-theme-mode-toggle"
+                    type="button"
+                    onClick={onToggleThemeMode}
+                    className={`group flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition cursor-pointer ${
+                      themeMode === 'light'
+                        ? 'border-amber-400 bg-amber-50 text-amber-950 shadow-sm'
+                        : 'border-slate-800 bg-slate-900/80 text-slate-200 hover:bg-white hover:text-slate-950'
+                    }`}
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 group-hover:bg-slate-100">
+                      {themeMode === 'light' ? (
+                        <Sun className="h-5 w-5 text-amber-500 group-hover:text-amber-600" />
+                      ) : (
+                        <Moon className="h-5 w-5 text-sky-400 group-hover:text-slate-950" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-black">
+                        {themeMode === 'light' ? 'Mode Blanc (Design Clair)' : 'Mode Noir (Design Sombre)'}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
+                        {themeMode === 'light' ? 'Cliquez pour passer au design sombre' : 'Cliquez pour passer au design clair'}
+                      </div>
+                    </div>
+                  </button>
+                )}
 
                 {onOpenPageBlockCustomizer && (
                   <button

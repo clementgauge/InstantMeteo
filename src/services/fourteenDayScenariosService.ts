@@ -14,6 +14,7 @@ import { getNormalsForStation } from '../data/climateNormals';
 import { getWeatherDescription } from './openMeteoService';
 import { 
   calculatePhysicalIsotherm0, 
+  calculateWetBulbZero,
   calculateSnowRainLimit 
 } from '../utils/isothermCalculations';
 
@@ -30,11 +31,16 @@ function computePhysicWeatherCode(
   randomFactor: number,
   isWarm: boolean
 ): { code: number; description: string } {
-  if (snowfallCm > 0 || (rainMm > 0 && tempMax <= 1.5)) {
+  // SÉCURITÉ PHYSIQUE STRICTE : La neige requiert impérativement des températures négatives ou proches de 0°C
+  const isFreezing = tempMax <= 2.5 && tempMin <= 1.0;
+  if (snowfallCm > 0 && isFreezing) {
     if (snowfallCm >= 4 || rainMm >= 4) {
       return { code: 73, description: "Chutes de neige" };
     }
     return { code: 71, description: "Quelques flocons" };
+  }
+  if (rainMm > 0 && isFreezing && tempMax <= 1.5) {
+    return { code: 68, description: "Pluie et neige mêlées" };
   }
   if (rainMm >= 8) {
     return { code: 63, description: "Pluie soutenue" };
@@ -46,13 +52,13 @@ function computePhysicWeatherCode(
     return { code: 80, description: "Averses éparses" };
   }
   // Ciel sec : distribution réaliste (les éclaircies avec passages nuageux sont le temps le plus fréquent)
-  if (isWarm && randomFactor > 0.70) {
+  if (isWarm || randomFactor > 0.70) {
     return { code: 0, description: "Ciel dégagé et très ensoleillé" };
   }
-  if (randomFactor > 0.65) {
+  if (randomFactor > 0.45) {
     return { code: 1, description: "Peu nuageux et belles éclaircies" };
   }
-  if (randomFactor > 0.25) {
+  if (randomFactor > 0.20) {
     return { code: 2, description: "Belles éclaircies et passages nuageux" };
   }
   return { code: 3, description: "Ciel très nuageux à couvert" };
@@ -173,19 +179,22 @@ export function generateFourteenDayScenarios(
       tMaxDom = realDay.tempMax;
       rainDom = realDay.precipitationSumMm ?? realDay.rainMm ?? 0;
       probDom = d <= 3 ? Math.round(85 - d * 3) : Math.round(70 - (d - 3) * 4);
+      const tMeanDom = (tMinDom + tMaxDom) / 2;
       iso0Dom = calculatePhysicalIsotherm0({
         stationAltitude: alt,
-        temperature: (tMinDom + tMaxDom) / 2,
+        temperature: tMeanDom,
         precipitationMm: rainDom
       });
+      const wetBulb0Dom = calculateWetBulbZero(iso0Dom, tMeanDom);
       const snowLimit = calculateSnowRainLimit(
         iso0Dom,
-        (tMinDom + tMaxDom) / 2,
+        wetBulb0Dom,
         rainDom,
-        (tMinDom + tMaxDom) / 2,
+        tMeanDom,
         alt
       );
-      snowfallDom = (rainDom > 0 && alt >= snowLimit - 100) ? Number((rainDom * 0.9).toFixed(1)) : 0;
+      const canSnow = alt >= snowLimit && tMeanDom <= 2.0 && tMaxDom <= 3.0;
+      snowfallDom = (rainDom > 0 && canSnow) ? Number((rainDom * 0.9).toFixed(1)) : 0;
     } else {
       // Extrapolate from J+7 or use Rossby wave oscillation
       const waveOsc = Math.sin((d * 0.42) + lon * 0.12) * (3.8 + Math.abs(curAnom) * 0.3);
@@ -195,19 +204,22 @@ export function generateFourteenDayScenarios(
       tMinDom = Number((baseTMin + synopticTrend + (r1 * 1.8 - 0.9)).toFixed(1));
       tMaxDom = Number((baseTMax + synopticTrend + (r2 * 2.4 - 1.2)).toFixed(1));
       rainDom = r3 > 0.65 ? Number((Math.pow(r4, 1.5) * 16 + 1.5).toFixed(1)) : 0;
+      const tMeanDom = (tMinDom + tMaxDom) / 2;
       iso0Dom = calculatePhysicalIsotherm0({
         stationAltitude: alt,
-        temperature: (tMinDom + tMaxDom) / 2,
+        temperature: tMeanDom,
         precipitationMm: rainDom
       });
+      const wetBulb0Dom = calculateWetBulbZero(iso0Dom, tMeanDom);
       const snowLimit = calculateSnowRainLimit(
         iso0Dom,
-        (tMinDom + tMaxDom) / 2,
+        wetBulb0Dom,
         rainDom,
-        (tMinDom + tMaxDom) / 2,
+        tMeanDom,
         alt
       );
-      snowfallDom = (rainDom > 0 && alt >= snowLimit - 100) ? Number((rainDom * 0.9).toFixed(1)) : 0;
+      const canSnow = alt >= snowLimit && tMeanDom <= 2.0 && tMaxDom <= 3.0;
+      snowfallDom = (rainDom > 0 && canSnow) ? Number((rainDom * 0.9).toFixed(1)) : 0;
     }
 
     let domName = "Scénario Médian Ensembliste (ECMWF IFS / Météo-France ARPEGE)";
@@ -246,12 +258,22 @@ export function generateFourteenDayScenarios(
       r2,
       (tMaxDom - baseTMax) > 1.5
     );
-    const finalDomWeatherCode = (realDay && typeof realDay.weatherCode === 'number')
+    let finalDomWeatherCode = (realDay && typeof realDay.weatherCode === 'number')
       ? realDay.weatherCode
       : domPhysicWeather.code;
-    const finalDomWeatherDesc = (realDay && typeof realDay.weatherCode === 'number')
+    let finalDomWeatherDesc = (realDay && typeof realDay.weatherCode === 'number')
       ? getWeatherDescription(realDay.weatherCode).label
       : domPhysicWeather.description;
+
+    // SÉCURITÉ PHYSIQUE ABSOLUE : Corriger tout code neige si les températures sont positives
+    const isSnowDom = [71, 73, 75, 77, 85, 86].includes(finalDomWeatherCode) || (snowfallDom > 0);
+    if (tMaxDom > 2.5 || (tMinDom + tMaxDom) / 2 > 1.8) {
+      snowfallDom = 0;
+      if (isSnowDom) {
+        finalDomWeatherCode = rainDom >= 5 ? 63 : rainDom >= 1 ? 61 : rainDom > 0 ? 80 : 2;
+        finalDomWeatherDesc = rainDom >= 5 ? "Pluie soutenue" : rainDom >= 1 ? "Pluie modérée" : rainDom > 0 ? "Averses éparses" : "Belles éclaircies";
+      }
+    }
 
     const dominantScenario: DayScenarioBranch = {
       name: domName,
@@ -324,8 +346,11 @@ export function generateFourteenDayScenarios(
       alt1Narrative = `Poussée d'air plus froid avec baisse des températures (Tx ${tMaxAlt1}°C, ${(tMaxAlt1 - baseTMax).toFixed(1)}°C vs normales). Isotherme 0°C à ${iso0Alt1}m.`;
     }
 
-    const snowLimitAlt1 = calculateSnowRainLimit(iso0Alt1, (tMinAlt1 + tMaxAlt1)/2, rainAlt1, (tMinAlt1 + tMaxAlt1)/2, alt);
-    const snowfallAlt1 = (rainAlt1 > 0 && alt >= snowLimitAlt1 - 100) ? Number((rainAlt1 * 1.1).toFixed(1)) : 0;
+    const tMeanAlt1 = (tMinAlt1 + tMaxAlt1) / 2;
+    const wetBulb0Alt1 = calculateWetBulbZero(iso0Alt1, tMeanAlt1);
+    const snowLimitAlt1 = calculateSnowRainLimit(iso0Alt1, wetBulb0Alt1, rainAlt1, tMeanAlt1, alt);
+    const canSnowAlt1 = alt >= snowLimitAlt1 && tMeanAlt1 <= 1.5 && tMaxAlt1 <= 2.5;
+    const snowfallAlt1 = (rainAlt1 > 0 && canSnowAlt1) ? Number((rainAlt1 * 1.1).toFixed(1)) : 0;
     const alt1PhysicWeather = computePhysicWeatherCode(rainAlt1, snowfallAlt1, tMaxAlt1, tMinAlt1, r3, false);
 
     const alternativeScenario1: DayScenarioBranch = {
@@ -888,21 +913,31 @@ export async function fetchAndGenerateFourteenDayMultiModelScenarios(
         rawCode: number | null,
         modelBias: number
       ): { tx: number; tn: number; rain: number; code: number; isDirect: boolean } => {
+        // Trend extrapolation from ensemble baseline
+        const txVal = rawTx !== null ? rawTx : Number((baseEnsTx + modelBias).toFixed(1));
+        const tnVal = rawTn !== null ? rawTn : Number((baseEnsTn + modelBias * 0.6).toFixed(1));
+        const rainVal = rawRain !== null ? (rawRain ?? 0) : Number((baseEnsRain * (1 + modelBias * 0.1)).toFixed(1));
+        let codeVal = rawCode !== null ? rawCode : (ecCode ?? 1);
+
+        // Sanitize erroneous snow codes if temperatures are positive
+        if ([71, 73, 75, 77, 85, 86].includes(codeVal) && txVal > 2.5) {
+          codeVal = rainVal >= 5 ? 63 : rainVal > 0 ? 61 : 2;
+        }
+
         if (rawTx !== null && rawTn !== null) {
           return {
-            tx: rawTx,
-            tn: rawTn,
-            rain: rawRain ?? 0,
-            code: rawCode ?? 1,
+            tx: txVal,
+            tn: tnVal,
+            rain: rainVal,
+            code: codeVal,
             isDirect: true
           };
         }
-        // Trend extrapolation from ensemble baseline
         return {
-          tx: Number((baseEnsTx + modelBias).toFixed(1)),
-          tn: Number((baseEnsTn + modelBias * 0.6).toFixed(1)),
-          rain: Number((baseEnsRain * (1 + modelBias * 0.1)).toFixed(1)),
-          code: ecCode ?? 1,
+          tx: txVal,
+          tn: tnVal,
+          rain: rainVal,
+          code: codeVal,
           isDirect: false
         };
       };

@@ -26,6 +26,7 @@ import {
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
 import { fetchWeatherData } from './services/openMeteoService';
+import { getRichWeatherInfo } from './utils/weatherIcons';
 import { Header } from './components/Header';
 import { DossierExportModal } from './components/DossierExportModal';
 import { LocalitySearchModal } from './components/LocalitySearchModal';
@@ -109,6 +110,23 @@ function WeatherApp() {
   const [seniorMode, setSeniorMode] = useState<boolean>(false);
   const [simplifiedMode, setSimplifiedMode] = useState<boolean>(false);
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem('instant_meteo_theme_mode');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch (_) {}
+    return 'dark';
+  });
+
+  const handleToggleThemeMode = () => {
+    setThemeMode((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('instant_meteo_theme_mode', next);
+      } catch (_) {}
+      return next;
+    });
+  };
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isComparatorModalOpen, setIsComparatorModalOpen] = useState<boolean>(false);
@@ -566,14 +584,55 @@ function WeatherApp() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentNavIndex]);
 
+  // Mode Bulle Flottante Détachée (Extérieure à l'application / Bureau / Widget)
+  const isMiniBubbleMode = typeof window !== 'undefined' && window.location.search.includes('mini_bubble=true');
+  if (isMiniBubbleMode && weather) {
+    const info = getRichWeatherInfo(weather.weatherCode, weather.isDay ?? true, weather.precipitation, weather.windGust);
+    const tempDisp = tempUnit === 'F' ? `${Math.round(weather.temperature * 9/5 + 32)}°F` : `${weather.temperature > 0 ? '+' : ''}${Math.round(weather.temperature * 10) / 10}°C`;
+
+    return (
+      <div className="w-screen h-screen bg-[#020617] flex items-center justify-center p-2 text-white select-none overflow-hidden font-sans">
+        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-[#0c1424] via-[#071533] to-[#0e2247] border-2 border-sky-400/60 p-3.5 shadow-2xl flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-black text-sky-400 truncate">
+              <span>📍</span>
+              <span className="truncate">{currentStation.name}</span>
+            </div>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] text-emerald-300 font-black shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>EN DIRECT</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between my-1">
+            <div>
+              <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">{tempDisp}</div>
+              <div className="text-xs text-slate-300 font-medium truncate max-w-[200px]">{info.shortLabel || weather.weatherDescription}</div>
+            </div>
+            <div className="text-4xl shrink-0">{info.emoji || '☀️'}</div>
+          </div>
+          <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px] text-slate-400">
+            <span>💨 {weather.windSpeed} km/h • 💧 {weather.precipitation > 0 ? `${weather.precipitation} mm` : `${weather.humidity}% hum.`}</span>
+            <button
+              onClick={() => window.open('/', '_blank')}
+              className="text-sky-400 hover:text-sky-300 font-bold underline cursor-pointer"
+            >
+              Ouvrir Appli
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
-      className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''}`}
+      className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
     >
       {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
       <AtmosphereBackground 
         theme={currentTheme} 
-        seniorMode={seniorMode} 
+        seniorMode={seniorMode}
+        isLightMode={themeMode === 'light'}
       />
 
       {/* Header */}
@@ -585,6 +644,8 @@ function WeatherApp() {
           onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
           simplifiedMode={simplifiedMode}
           onToggleSimplifiedMode={() => setSimplifiedMode(prev => !prev)}
+          themeMode={themeMode}
+          onToggleThemeMode={handleToggleThemeMode}
           onOpenAndroidModal={() => setIsInstallModalOpen(true)}
           onOpenDossierModal={() => setIsDossierModalOpen(true)}
           onOpenSearchModal={() => setIsSearchModalOpen(true)}
@@ -725,6 +786,7 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 simplifiedMode={simplifiedMode}
                 tempUnit={tempUnit}
+                onSelectStation={(st) => setCurrentStation(st)}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onOpenGigaRadar={() => setActiveTab('radar')}
                 onNavigateTab={(tab) => setActiveTab(tab as any)}

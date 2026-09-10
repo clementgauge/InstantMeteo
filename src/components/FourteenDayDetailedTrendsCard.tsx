@@ -189,18 +189,29 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   };
 
   const getWeatherEmoji = (d: FourteenDayDayDetail): string => {
-    const rain = d.dominantScenario.precipitationMm;
-    const snow = d.dominantScenario.snowfallCm ?? 0;
+    const rain = d.dominantScenario.precipitationMm || 0;
     const tmax = d.dominantScenario.tempMax;
+    const tmin = d.dominantScenario.tempMin;
+    const snow = (tmax <= 2.5) ? (d.dominantScenario.snowfallCm ?? 0) : 0;
     const textDesc = `${d.dominantScenario.name} ${d.dominantScenario.title || ''} ${d.dominantScenario.precipitationType || ''} ${d.dominantScenario.description || ''}`.toLowerCase();
 
-    // Priorité absolue aux phénomènes actifs : Orages, Neige, Pluie
+    // Priorité absolue aux orages
     if (textDesc.includes('orage') || textDesc.includes('tonnerre') || textDesc.includes('foudre')) {
       return '⛈️';
     }
-    if (snow > 0 || textDesc.includes('neige') || textDesc.includes('flocon') || (rain > 0 && tmax <= 1.5)) {
+
+    // SÉCURITÉ PHYSIQUE STRICTE NEIGE :
+    // La neige ou les flocons ne peuvent se produire QUE si la température maximale est proche ou sous le gel (<= 2.5°C)
+    const isColdEnoughForSnow = tmax <= 2.5;
+    const mentionsSnow = (textDesc.includes('chute de neige') || textDesc.includes('flocon') || textDesc.includes('averses de neige') || textDesc.includes('neige modérée') || textDesc.includes('neige forte')) &&
+      !textDesc.includes('pas de neige') &&
+      !textDesc.includes('absence de neige') &&
+      !textDesc.includes('aucun flocon');
+
+    if (isColdEnoughForSnow && (snow > 0 || (rain > 0 && tmax <= 1.2) || mentionsSnow)) {
       return '❄️';
     }
+
     if (textDesc.includes('brouillard') || textDesc.includes('brume dense')) {
       return '🌫️';
     }
@@ -224,6 +235,14 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     }
 
     if (typeof wmoCode === 'number') {
+      // Si le code WMO indiquait de la neige mais que la température est douce (> 2.5°C), requalifier en pluie ou éclaircies
+      if ([71, 73, 75, 77, 85, 86].includes(wmoCode)) {
+        if (!isColdEnoughForSnow) {
+          return rain > 0.2 ? '🌧️' : '⛅';
+        }
+        return '❄️';
+      }
+
       // Si wmoCode indique du soleil mais que de la pluie résiduelle est notée
       if (wmoCode <= 1 && rain > 0.2) return '🌦️';
       switch (wmoCode) {
@@ -243,12 +262,6 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         case 65:
         case 66:
         case 67: return '🌧️';
-        case 71:
-        case 73:
-        case 75:
-        case 77:
-        case 85:
-        case 86: return '❄️';
         case 80:
         case 81:
         case 82: return '🌦️';
@@ -273,7 +286,21 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   };
 
   const getBranchWeatherEmoji = (b: { weatherCode?: number; precipitationMm: number; snowfallCm?: number; tempMax: number; name: string; title?: string; precipitationType?: string; description?: string }): string => {
+    const rain = b.precipitationMm || 0;
+    const tmax = b.tempMax;
+    const isColdEnoughForSnow = tmax <= 2.5;
+    const snow = isColdEnoughForSnow ? (b.snowfallCm ?? 0) : 0;
+    const textDesc = `${b.name} ${b.title || ''} ${b.precipitationType || ''} ${b.description || ''}`.toLowerCase();
+
+    if (textDesc.includes('orage') || textDesc.includes('tonnerre') || textDesc.includes('foudre')) return '⛈️';
+
     if (typeof b.weatherCode === 'number') {
+      if ([71, 73, 75, 77, 85, 86].includes(b.weatherCode)) {
+        if (!isColdEnoughForSnow) {
+          return rain > 0.2 ? '🌧️' : '⛅';
+        }
+        return '❄️';
+      }
       switch (b.weatherCode) {
         case 0: return '☀️';
         case 1: return '🌤️';
@@ -291,12 +318,6 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         case 65:
         case 66:
         case 67: return '🌧️';
-        case 71:
-        case 73:
-        case 75:
-        case 77:
-        case 85:
-        case 86: return '❄️';
         case 80:
         case 81:
         case 82: return '🌦️';
@@ -305,12 +326,12 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         case 99: return '⛈️';
       }
     }
-    const rain = b.precipitationMm;
-    const snow = b.snowfallCm ?? 0;
-    const tmax = b.tempMax;
-    const textDesc = `${b.name} ${b.title || ''} ${b.precipitationType || ''} ${b.description || ''}`.toLowerCase();
-    if (textDesc.includes('orage')) return '⛈️';
-    if (snow > 0 || textDesc.includes('neige') || (rain > 0 && tmax <= 1.5)) return '❄️';
+
+    const mentionsSnow = (textDesc.includes('chute de neige') || textDesc.includes('flocon') || textDesc.includes('averses de neige')) &&
+      !textDesc.includes('pas de neige') &&
+      !textDesc.includes('aucun');
+
+    if (isColdEnoughForSnow && (snow > 0 || (rain > 0 && tmax <= 1.2) || mentionsSnow)) return '❄️';
     if (rain >= 5) return '🌧️';
     if (rain >= 1.5) return '🌧️';
     if (rain > 0.1) return '🌦️';

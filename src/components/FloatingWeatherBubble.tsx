@@ -429,7 +429,23 @@ export const FloatingWeatherBubble: React.FC<FloatingWeatherBubbleProps> = ({
       console.warn('Video Picture-in-Picture failed:', videoPipErr);
     }
 
-    // Attempt 3: If browser blocks PiP, offer direct Home Screen install guide
+    // Attempt 3: Standalone Popup Window (works in all browsers without PiP permission)
+    try {
+      const bubbleUrl = `/?mini_bubble=true&station=${encodeURIComponent(station.name)}`;
+      const newWin = window.open(
+        bubbleUrl,
+        'MeteoBubbleWindow',
+        'width=380,height=180,menubar=no,toolbar=no,location=no,status=no,resizable=yes'
+      );
+      if (newWin) {
+        newWin.focus();
+        return;
+      }
+    } catch (popupErr) {
+      console.warn('Popup window fallback:', popupErr);
+    }
+
+    // Attempt 4: If browser blocks window.open, offer direct Home Screen install guide
     setShowInstallGuide(true);
   };
 

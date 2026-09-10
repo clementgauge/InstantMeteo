@@ -107,6 +107,16 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
   const [selectedWorldCityWeather, setSelectedWorldCityWeather] = useState<any | null>(null);
   const [isLoadingSelectedCity, setIsLoadingSelectedCity] = useState<boolean>(false);
 
+  // Filtrage des informations les plus entendues et les plus intéressantes (Activé par défaut)
+  const [focusHighlights, setFocusHighlights] = useState<boolean>(true);
+
+  // Liste des métropoles mondiales les plus entendues et emblématiques
+  const FAMOUS_TOP_CITIES = [
+    'paris', 'london', 'new-york', 'tokyo', 'rome', 'madrid', 
+    'dubai', 'los-angeles', 'rio-de-janeiro', 'cairo', 'sydney', 
+    'bangkok', 'montreal', 'berlin', 'moscow', 'singapore'
+  ];
+
   // 1. Load Live NASA & USGS Events
   const loadLiveEvents = async () => {
     setIsLoadingLive(true);
@@ -163,12 +173,34 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       d.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.verifiedMedia.some(m => m.toLowerCase().includes(searchQuery.toLowerCase())) ||
       d.officialMeteoCentres.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Si mode "Plus entendues & plus intéressantes" activé : filtrer les événements majeurs et captivants
+    if (focusHighlights) {
+      const isCaptivating = 
+        d.severity === 'Extrême' || 
+        d.severity === 'Critique' ||
+        d.type === 'cyclone' ||
+        d.type === 'tsunami' ||
+        d.type === 'tornado' ||
+        d.title.toLowerCase().includes('record') ||
+        d.title.toLowerCase().includes('ouragan') ||
+        d.title.toLowerCase().includes('volcan') ||
+        d.title.toLowerCase().includes('séisme');
+      if (!isCaptivating) return false;
+    }
+
     return matchesCategory && matchesSearch;
   });
 
   // Filtered Global Cities
   const filteredCities = globalCities.filter(c => {
     if (selectedContinent !== 'ALL' && c.continent !== selectedContinent) return false;
+    
+    // Si mode "Plus entendues & plus intéressantes" activé : ne garder que les métropoles phares et emblématiques
+    if (focusHighlights && !citySearchQuery.trim()) {
+      if (!FAMOUS_TOP_CITIES.includes(c.cityId)) return false;
+    }
+
     if (citySearchQuery.trim() !== '') {
       const q = citySearchQuery.toLowerCase();
       const matchName = c.cityName.toLowerCase().includes(q);
@@ -249,19 +281,35 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                 </span>
               </div>
 
-              {/* Live Refresh Button */}
-              <button
-                onClick={() => {
-                  loadLiveEvents();
-                  loadCitiesWeather();
-                }}
-                disabled={isLoadingLive || isLoadingCities}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow cursor-pointer disabled:opacity-50"
-                title="Actualiser les données satellites NASA, sismomètres USGS et stations météo mondiales"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${(isLoadingLive || isLoadingCities) ? 'animate-spin text-cyan-400' : ''}`} />
-                <span>{(isLoadingLive || isLoadingCities) ? 'Synchronisation...' : 'Actualiser les flux directs'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Focus Highlights Button */}
+                <button
+                  onClick={() => setFocusHighlights(prev => !prev)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-black transition shadow cursor-pointer ${
+                    focusHighlights
+                      ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 hover:bg-amber-500/30'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                  title="Garder uniquement les informations les plus entendues et les plus intéressantes"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${focusHighlights ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
+                  <span>{focusHighlights ? '⭐ Les + entendues & intéressantes' : 'Afficher Tout le Catalogue'}</span>
+                </button>
+
+                {/* Live Refresh Button */}
+                <button
+                  onClick={() => {
+                    loadLiveEvents();
+                    loadCitiesWeather();
+                  }}
+                  disabled={isLoadingLive || isLoadingCities}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow cursor-pointer disabled:opacity-50"
+                  title="Actualiser les données satellites NASA, sismomètres USGS et stations météo mondiales"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${(isLoadingLive || isLoadingCities) ? 'animate-spin text-cyan-400' : ''}`} />
+                  <span>{(isLoadingLive || isLoadingCities) ? 'Synchronisation...' : 'Actualiser'}</span>
+                </button>
+              </div>
             </div>
 
             <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>

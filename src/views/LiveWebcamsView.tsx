@@ -65,7 +65,8 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(true);
-  const [displayMode, setDisplayMode] = useState<'video' | 'snapshot'>('video');
+  const [displayMode, setDisplayMode] = useState<'video' | 'snapshot' | 'interactive'>('snapshot');
+  const [videoError, setVideoError] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const getAppropriateVideoForStation = (city: string, altitude: number, code: number) => {
@@ -282,19 +283,8 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
             </div>
 
             {/* Mode Switcher & Source Link */}
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
               <div className="flex rounded-xl bg-slate-900 p-1 border border-slate-800 text-xs">
-                <button
-                  onClick={() => setDisplayMode('video')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                    displayMode === 'video'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Video className="h-3.5 w-3.5" />
-                  <span>Vidéo Ciel (Flux Réel)</span>
-                </button>
                 <button
                   onClick={() => setDisplayMode('snapshot')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
@@ -306,6 +296,31 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
                   <Eye className="h-3.5 w-3.5" />
                   <span>Panoramique HD</span>
                 </button>
+                <button
+                  onClick={() => setDisplayMode('interactive')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    displayMode === 'interactive'
+                      ? 'bg-emerald-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                  <span>Radar &amp; Ciel Direct</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setVideoError(false);
+                    setDisplayMode('video');
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    displayMode === 'video'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Video className="h-3.5 w-3.5" />
+                  <span>Vidéo Ciel</span>
+                </button>
               </div>
 
               <a
@@ -315,15 +330,22 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
                 className="flex items-center gap-1 text-xs font-bold text-sky-400 hover:text-sky-300 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
                 title="Consulter le site officiel de l'observatoire ou de la commune"
               >
-                <span>Observatoire officiel</span>
+                <span>Observatoire</span>
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           </div>
 
           {/* Player Media Container */}
-          <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden group">
-            {displayMode === 'video' && selectedWebcam.videoUrl ? (
+          <div className="relative w-full aspect-video bg-slate-900 flex items-center justify-center overflow-hidden group">
+            {displayMode === 'interactive' ? (
+              <iframe
+                title={`Radar et Ciel en direct pour ${station.name}`}
+                src={`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=9&overlay=radar&product=radar&level=surface&lat=${station.latitude}&lon=${station.longitude}&detailLat=${station.latitude}&detailLon=${station.longitude}&marker=true`}
+                className="w-full h-full border-0"
+                allow="fullscreen"
+              />
+            ) : displayMode === 'video' && selectedWebcam.videoUrl && !videoError ? (
               <video
                 ref={videoRef}
                 src={selectedWebcam.videoUrl}
@@ -331,12 +353,24 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
                 loop
                 muted={isMuted}
                 playsInline
+                onError={() => {
+                  setVideoError(true);
+                  setDisplayMode('snapshot');
+                }}
                 className="w-full h-full object-cover"
               />
             ) : (
               <img
                 src={selectedWebcam.previewUrl}
                 alt={selectedWebcam.title}
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  const fallback = getClientGeographicBackdrop(station.name, station.region, station.department, station.altitude);
+                  if (target.src !== fallback) {
+                    target.src = fallback;
+                  }
+                }}
                 className="w-full h-full object-cover"
               />
             )}
@@ -345,7 +379,13 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
             <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
               <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-[10px] font-black text-white shadow">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>{displayMode === 'video' ? 'VIDÉO 1080P ACTIVE' : 'PANORAMIQUE GÉOGRAPHIQUE HD'}</span>
+                <span>
+                  {displayMode === 'interactive' 
+                    ? 'RADAR & CIEL EN CONTINU' 
+                    : displayMode === 'video' 
+                    ? 'VIDÉO 1080P ACTIVE' 
+                    : 'PANORAMIQUE GÉOGRAPHIQUE HD DIRECT'}
+                </span>
               </span>
               <span className="px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-[10px] font-bold text-slate-200">
                 {station.name} ({station.region})
@@ -418,10 +458,18 @@ export const LiveWebcamsView: React.FC<LiveWebcamsViewProps> = ({
                 }`}
               >
                 {/* Thumbnail */}
-                <div className="relative aspect-video w-full overflow-hidden bg-slate-950">
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
                   <img
                     src={cam.previewUrl}
                     alt={cam.title}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const fallback = getClientGeographicBackdrop(cam.city, cam.region, '', 0);
+                      if (target.src !== fallback) {
+                        target.src = fallback;
+                      }
+                    }}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-[9px] font-black text-white">

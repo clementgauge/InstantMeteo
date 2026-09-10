@@ -77,6 +77,8 @@ import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMiniRadarMapCard } from '../components/LiveMiniRadarMapCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
+import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
+import { MeteoFranceNationalRadarCard } from '../components/MeteoFranceNationalRadarCard';
 import { isBlockVisible } from '../services/displayPreferencesService';
 
 interface RealtimeViewProps {
@@ -88,6 +90,7 @@ interface RealtimeViewProps {
   seniorMode: boolean;
   simplifiedMode?: boolean;
   tempUnit: 'C' | 'F';
+  onSelectStation?: (station: LocationPoint) => void;
   onOpenSearchModal?: () => void;
   onOpenGigaRadar?: () => void;
   onNavigateTab?: (tab: string) => void;
@@ -110,6 +113,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   seniorMode,
   simplifiedMode = false,
   tempUnit,
+  onSelectStation,
   onOpenSearchModal,
   onOpenGigaRadar,
   onNavigateTab,
@@ -455,6 +459,15 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           />
         </div>
 
+        {/* Widget Pluie dans l'heure & Comparaison aux Normales de Saison (Météo-France) */}
+        <MeteoFrancePluieEtNormalesWidget
+          station={station}
+          weather={weather}
+          hourly={hourly}
+          tempUnit={tempUnit}
+          onRefresh={onLocateGps}
+        />
+
         {/* 3. Unique & Ultra-Clair Fil de Tendance Heure par Heure 48h (Remplaçant l'ancien doublon) */}
         <UnifiedHourly48hTrend
           station={station}
@@ -495,6 +508,21 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
       {activeProfileTab === 'classic' && (
         <div className="space-y-6">
+          {/* Radar HD en direct National Météo-France (Format ordinateur fidèle à la maquette) */}
+          <div id="realtime-national-radar-hd-pc" className="scroll-mt-28 w-full">
+            <MeteoFranceNationalRadarCard
+              station={station}
+              weather={weather}
+              hourly={hourly}
+              tempUnit={tempUnit}
+              onSelectStation={onSelectStation}
+              onOpenSearchModal={onOpenSearchModal}
+              onOpenGigaRadar={onOpenGigaRadar}
+              onNavigateTab={onNavigateTab}
+              onLocateGps={onLocateGps}
+            />
+          </div>
+
           {/* Prévisions du jour et à 7 jours */}
           <div id="realtime-forecast-week" className="scroll-mt-28">
             <GrandDayAndWeekDetailedForecastCard

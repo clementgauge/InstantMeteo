@@ -339,6 +339,22 @@ export async function fetchLiveWorldDisasters(): Promise<{
           if (!ev.title) continue;
 
           const mainCat = ev.categories && ev.categories[0] ? ev.categories[0].id : 'severeStorms';
+          
+          // Filtrer pour ne garder que les informations les plus entendues et les plus intéressantes :
+          // Cyclones/ouragans/typhons, volcans actifs majeurs, tempêtes sévères, feux majeurs (ignorer micro-feux agricoles ou broutilles)
+          const titleLower = ev.title.toLowerCase();
+          const isInterestingCategory = mainCat === 'severeStorms' || mainCat === 'volcanoes' || mainCat === 'seaLakeIce';
+          const isMajorWildfire = mainCat === 'wildfires' && (
+            titleLower.includes('complex') || 
+            titleLower.includes('national') || 
+            titleLower.includes('fire') && (titleLower.includes('california') || titleLower.includes('canada') || titleLower.includes('australia') || titleLower.includes('greece') || titleLower.includes('spain') || titleLower.includes('france'))
+          );
+          const isNotableStorm = titleLower.includes('cyclone') || titleLower.includes('hurricane') || titleLower.includes('typhoon') || titleLower.includes('storm') || titleLower.includes('volcano') || titleLower.includes('eruption');
+
+          if (!isInterestingCategory && !isMajorWildfire && !isNotableStorm) {
+            continue;
+          }
+
           const mapped = mapEonetCategory(mainCat, ev.title);
 
           const geo = ev.geometry && ev.geometry.length > 0 ? ev.geometry[ev.geometry.length - 1] : null;
@@ -398,8 +414,15 @@ export async function fetchLiveWorldDisasters(): Promise<{
       const data: UsgsEarthquakeResponse = await res.json();
       if (data && Array.isArray(data.features)) {
         isUsgsOk = true;
-        // Take the top 8 most significant or recent
-        for (const feat of data.features.slice(0, 8)) {
+        // Ne garder que les séismes majeurs et réellement entendus / marquants (Mag >= 5.0 ou alerte tsunami ou fort impact)
+        const significantQuakes = data.features.filter(feat => {
+          const mag = feat.properties.mag;
+          const tsunami = feat.properties.tsunami === 1;
+          const sig = feat.properties.sig || 0;
+          return mag >= 5.0 || tsunami || sig >= 400;
+        }).slice(0, 6);
+
+        for (const feat of significantQuakes) {
           const mag = feat.properties.mag;
           const place = feat.properties.place || 'Région sous-marine';
           const time = new Date(feat.properties.time);
@@ -410,16 +433,16 @@ export async function fetchLiveWorldDisasters(): Promise<{
           liveEvents.push({
             id: `usgs-${feat.id}`,
             type: 'tsunami',
-            title: `[Direct USGS] Séisme Magnitude ${mag.toFixed(1)} - ${place}`,
+            title: `[Direct USGS] Séisme Majeur Magnitude ${mag.toFixed(1)} - ${place}`,
             region: `${place} (${lat.toFixed(2)}°, ${lon.toFixed(2)}° - Profondeur ${depth.toFixed(0)} km)`,
             severity: mag >= 6.5 ? 'Extrême' : mag >= 5.5 ? 'Critique' : 'Majeur',
             badgeColor: 'cyan',
             metric: `Magnitude Mw ${mag.toFixed(1)} • Profondeur ${depth.toFixed(0)} km • ${hasTsunamiAlert ? '⚠️ Risque Tsunami Océanique' : 'Surveillance Tsunami Normale'}`,
-            desc: `Secousse tellurique enregistrée et localisée par les stations du réseau sismologique mondial USGS. Évaluation de l'aléa tsunami par le PTWC / NOAA et marégraphes côtiers.`,
+            desc: `Secousse tellurique significative enregistrée par les stations du réseau sismologique mondial USGS. Événement majeur sous surveillance internationale.`,
             updated: `Direct USGS (${timeStr})`,
             timestampUtc: time.toISOString().replace('T', ' ').slice(0, 16) + ' UTC',
             verifiedWithin24h: true,
-            categoryLabel: hasTsunamiAlert ? '🌊 Séisme & Alerte Tsunami (USGS)' : '🌍 Séisme Majeur Direct (USGS)',
+            categoryLabel: hasTsunamiAlert ? '🌊 Séisme & Alerte Tsunami (USGS)' : '🌍 Séisme Notifié International (USGS)',
             officialMeteoCentres: ['USGS Earthquake Hazards Program', 'NOAA Pacific Tsunami Warning Center (PTWC)', 'EMSC-CSEM'],
             verifiedMedia: ['USGS Real-Time Earthquake Notification', 'AFP World', 'GDACS Alerting Service'],
             dataVerification: `Réseau sismologique mondial GSN • ${feat.properties.sig || 100} stations de détection`,

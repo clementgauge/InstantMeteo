@@ -5,8 +5,14 @@ import { createServer as createViteServer } from 'vite';
 
 const app = express();
 const PORT = 3000;
+// -------------------------------------------------------------
+// FICHIERS DE PERSISTANCE MULTI-SOURCES (RÉSILIENCE TOTALE AUX MISES À JOUR)
+// -------------------------------------------------------------
 const DB_FILE = path.join(process.cwd(), 'data', 'meteo_database.json');
 const DB_BACKUP_FILE = path.join(process.cwd(), 'data', 'meteo_database_backup.json');
+const DB_COMMITTED_FILE = path.join(process.cwd(), 'src', 'data', 'meteo_database_committed.json');
+const DB_PUBLIC_FILE = path.join(process.cwd(), 'public', 'data', 'meteo_database_committed.json');
+const DB_TMP_FILE = path.join('/tmp', 'meteo_database_persistent.json');
 const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
 
 // Middlewares généraux
@@ -55,10 +61,17 @@ const blacklistedIps = new Set<string>();
 
 // Middleware global anti-bot et renforcement des en-têtes
 app.use((req, res, next) => {
-  // En-têtes de sécurité renforcés contre l'indexation IA et le reniflage
+  // En-têtes de sécurité renforcés : Autoriser expressément Google et les moteurs légitimes tout en protégeant contre le scraping IA non autorisé
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Robots-Tag', 'noai, noimageai, nofollow');
+  res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, noai, noimageai');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Route dédiée prioritaire de validation Google Search Console (Google Site Verification)
+  if (req.path.startsWith('/google') && req.path.endsWith('.html')) {
+    res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+    res.send('google-site-verification: googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html');
+    return;
+  }
 
   const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
 
@@ -147,11 +160,15 @@ interface DatabaseSchema {
   bannedUsers: any[];
 }
 
-function ensureDataDir(): void {
-  const dir = path.dirname(DB_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+function ensureDataDirs(): void {
+  [DB_FILE, DB_BACKUP_FILE, DB_COMMITTED_FILE, DB_PUBLIC_FILE].forEach((f) => {
+    try {
+      const dir = path.dirname(f);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch (_) {}
+  });
 }
 
 function getInitialDatabase(): DatabaseSchema {
@@ -167,72 +184,174 @@ function getInitialDatabase(): DatabaseSchema {
   };
 }
 
-function loadDatabase(): DatabaseSchema {
-  ensureDataDir();
-  try {
-    if (!fs.existsSync(DB_FILE)) {
-      // Vérifier si une sauvegarde de secours existe
-      if (fs.existsSync(DB_BACKUP_FILE)) {
-        const backupRaw = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
-        const backupData = JSON.parse(backupRaw);
-        backupData.databaseId = DATABASE_ID;
-        saveDatabase(backupData);
-        console.log(`[Base de Données] Base restaurée depuis la sauvegarde de secours (${backupData.players?.length || 0} joueurs conservés)`);
-        return backupData;
-      }
-      const initial = getInitialDatabase();
-      saveDatabase(initial);
-      return initial;
-    }
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const data = JSON.parse(raw);
-    data.databaseId = DATABASE_ID; // Garantir la synchronisation avec l'ID utilisateur
+/**
+ * Fusionne intelligemment deux listes de profils joueurs sans jamais perdre de données.
+ * Conserve le pseudo, le maximum de points, la plus longue série de flammes (streak),
+ * l'union des badges débloqués et l'historique complet.
+ */
+function mergePlayerLists(listA: any[] = [], listB: any[] = []): any[] {
+  const map = new Map<string, any>();
 
-    // Si le fichier principal est vide mais que la sauvegarde contient des joueurs, restaurer les joueurs
-    if ((!data.players || data.players.length === 0) && fs.existsSync(DB_BACKUP_FILE)) {
-      try {
-        const backupRaw = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
-        const backupData = JSON.parse(backupRaw);
-        if (backupData.players && backupData.players.length > 0) {
-          data.players = backupData.players;
-          if (backupData.communityReports?.length) data.communityReports = backupData.communityReports;
-          if (backupData.discussionMessages?.length) data.discussionMessages = backupData.discussionMessages;
-          saveDatabase(data);
-          console.log(`[Base de Données] Joueurs récupérés depuis la sauvegarde (${data.players.length} comptes sécurisés)`);
-        }
-      } catch (_) {}
+  const processPlayer = (p: any) => {
+    if (!p || !p.pseudo) return;
+    const key = p.pseudo.toLowerCase().trim();
+    if (!map.has(key)) {
+      map.set(key, { ...p, pseudo: p.pseudo.trim() });
+      return;
     }
 
-    return data;
-  } catch (err) {
-    console.error('Erreur lecture DB:', err);
-    if (fs.existsSync(DB_BACKUP_FILE)) {
-      try {
-        const backupRaw = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
-        return JSON.parse(backupRaw);
-      } catch (_) {}
-    }
-    return getInitialDatabase();
-  }
+    const existing = map.get(key);
+    const safePoints = Math.max(Number(existing.totalPoints) || 0, Number(p.totalPoints) || 0);
+    const safeStreak = Math.max(Number(existing.streakDays) || 1, Number(p.streakDays) || 1);
+    const safeMinutes = Math.max(Number(existing.minutesSpent) || 0, Number(p.minutesSpent) || 0);
+    const safeLocationsCount = Math.max(Number(existing.locationsCount) || 0, Number(p.locationsCount) || 0);
+
+    const mergedBadges = Array.from(new Set([
+      ...(existing.unlockedBadges || []),
+      ...(p.unlockedBadges || []),
+      ...(existing.unlockedWeatherIds || []),
+      ...(p.unlockedWeatherIds || [])
+    ]));
+
+    map.set(key, {
+      ...existing,
+      ...p,
+      pseudo: p.pseudo.trim() || existing.pseudo,
+      totalPoints: safePoints,
+      streakDays: safeStreak,
+      minutesSpent: safeMinutes,
+      locationsCount: safeLocationsCount,
+      badgesCount: Math.max(Number(existing.badgesCount) || 0, Number(p.badgesCount) || 0, mergedBadges.length),
+      unlockedBadges: mergedBadges,
+      isAdmin: Boolean(existing.isAdmin || p.isAdmin),
+      createdAt: existing.createdAt || p.createdAt || new Date().toISOString(),
+      lastActive: (existing.lastActive && p.lastActive)
+        ? (new Date(existing.lastActive) > new Date(p.lastActive) ? existing.lastActive : p.lastActive)
+        : (existing.lastActive || p.lastActive || new Date().toISOString())
+    });
+  };
+
+  listA.forEach(processPlayer);
+  listB.forEach(processPlayer);
+
+  return Array.from(map.values());
 }
 
-function saveDatabase(data: DatabaseSchema): void {
-  ensureDataDir();
-  try {
-    data.updatedAt = new Date().toISOString();
-    const tempFile = `${DB_FILE}.tmp`;
-    const payload = JSON.stringify(data, null, 2);
-    fs.writeFileSync(tempFile, payload, 'utf-8');
-    fs.renameSync(tempFile, DB_FILE);
+/**
+ * Charge la base de données depuis toutes les sources de persistance disponibles
+ * (fichiers locaux, miroir commit, public, backup et tmp).
+ * Garantit qu'aucun compte n'est écrasé ou supprimé lors des redémarrages ou mises à jour.
+ */
+function loadDatabase(): DatabaseSchema {
+  ensureDataDirs();
 
-    // Sauvegarde miroir persistante pour résister aux mises à jour applicatives
+  const candidatePaths = [
+    DB_FILE,
+    DB_BACKUP_FILE,
+    DB_COMMITTED_FILE,
+    DB_PUBLIC_FILE,
+    DB_TMP_FILE
+  ];
+
+  let accumulatedPlayers: any[] = [];
+  let accumulatedReports: any[] = [];
+  let accumulatedMessages: any[] = [];
+  let announcement: any | null = null;
+  let banned: any[] = [];
+  let mostRecentUpdate = '';
+
+  for (const filePath of candidatePaths) {
     try {
-      if (data.players && data.players.length > 0) {
-        fs.writeFileSync(DB_BACKUP_FILE, payload, 'utf-8');
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        if (raw && raw.trim().startsWith('{')) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.players) && parsed.players.length > 0) {
+            accumulatedPlayers = mergePlayerLists(accumulatedPlayers, parsed.players);
+          }
+          if (Array.isArray(parsed.communityReports) && parsed.communityReports.length > 0) {
+            const existingIds = new Set(accumulatedReports.map((r: any) => r.id));
+            parsed.communityReports.forEach((r: any) => {
+              if (r && r.id && !existingIds.has(r.id)) accumulatedReports.push(r);
+            });
+          }
+          if (Array.isArray(parsed.discussionMessages) && parsed.discussionMessages.length > 0) {
+            const existingMsgIds = new Set(accumulatedMessages.map((m: any) => m.id));
+            parsed.discussionMessages.forEach((m: any) => {
+              if (m && m.id && !existingMsgIds.has(m.id)) accumulatedMessages.push(m);
+            });
+          }
+          if (parsed.adminAnnouncement && !announcement) {
+            announcement = parsed.adminAnnouncement;
+          }
+          if (Array.isArray(parsed.bannedUsers) && parsed.bannedUsers.length > 0) {
+            banned = parsed.bannedUsers;
+          }
+          if (parsed.updatedAt && parsed.updatedAt > mostRecentUpdate) {
+            mostRecentUpdate = parsed.updatedAt;
+          }
+        }
       }
     } catch (_) {}
+  }
+
+  const resolvedDb: DatabaseSchema = {
+    databaseId: DATABASE_ID,
+    databaseName: 'meteo-competitive-db',
+    updatedAt: mostRecentUpdate || new Date().toISOString(),
+    players: accumulatedPlayers,
+    communityReports: accumulatedReports,
+    discussionMessages: accumulatedMessages,
+    adminAnnouncement: announcement,
+    bannedUsers: banned
+  };
+
+  return resolvedDb;
+}
+
+/**
+ * Sauvegarde synchrone et miroir sur tous les emplacements de stockage persistants.
+ */
+function saveDatabase(data: DatabaseSchema): void {
+  ensureDataDirs();
+  try {
+    data.databaseId = DATABASE_ID;
+    data.updatedAt = new Date().toISOString();
+
+    // Re-charger l'état existant pour ne JAMAIS écraser des joueurs déjà créés
+    try {
+      const currentOnDisk = loadDatabase();
+      if (currentOnDisk.players && currentOnDisk.players.length > 0) {
+        data.players = mergePlayerLists(currentOnDisk.players, data.players || []);
+      }
+    } catch (_) {}
+
+    const payload = JSON.stringify(data, null, 2);
+
+    const targetPaths = [
+      DB_FILE,
+      DB_BACKUP_FILE,
+      DB_COMMITTED_FILE,
+      DB_PUBLIC_FILE,
+      DB_TMP_FILE
+    ];
+
+    for (const target of targetPaths) {
+      try {
+        const dir = path.dirname(target);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        const tempPath = `${target}.tmp`;
+        fs.writeFileSync(tempPath, payload, 'utf-8');
+        fs.renameSync(tempPath, target);
+      } catch (err) {
+        // Fallback écriture directe
+        try {
+          fs.writeFileSync(target, payload, 'utf-8');
+        } catch (_) {}
+      }
+    }
   } catch (err) {
-    console.error('Erreur sauvegarde DB:', err);
+    console.error('Erreur sauvegarde globale DB:', err);
   }
 }
 
@@ -432,6 +551,28 @@ app.get('/api/player/get', (req, res) => {
     return;
   }
   res.json({ success: true, player });
+});
+
+// Endpoint pour auto-reconnexion des comptes après mise à jour de l'application
+app.get('/api/players/recent', (req, res) => {
+  const db = loadDatabase();
+  const sorted = [...(db.players || [])].sort((a: any, b: any) => {
+    const tA = new Date(a.lastActive || a.createdAt || 0).getTime();
+    const tB = new Date(b.lastActive || b.createdAt || 0).getTime();
+    return tB - tA;
+  });
+  res.json({
+    success: true,
+    count: sorted.length,
+    players: sorted.slice(0, 20).map((p: any) => ({
+      id: p.id,
+      pseudo: p.pseudo,
+      totalPoints: p.totalPoints,
+      streakDays: p.streakDays,
+      badgeTitle: p.badgeTitle,
+      lastActive: p.lastActive
+    }))
+  });
 });
 
 // 4. Réinitialisation des points d'un joueur
