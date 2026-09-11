@@ -1,6 +1,19 @@
-# Robots.txt - Instant Météo Protection Anti-Bot
-# Bloque l'aspiration automatisée, les bots agressifs et les moissonneurs d'IA
+# Robots.txt - Instant Météo Protection & Référencement
+# Indexation autorisée pour Googlebot et moteurs de recherche légitimes
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-InspectionTool
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Bloque l'aspiration automatisée, les bots agressifs et les moissonneurs d'IA
 User-agent: GPTBot
 Disallow: /
 
@@ -62,3 +75,5 @@ User-agent: *
 Disallow: /api/
 Disallow: /data/
 Allow: /
+
+Sitemap: /sitemap.xml

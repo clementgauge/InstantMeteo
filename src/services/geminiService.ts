@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import { CurrentWeather, LocationPoint, ClimateAnomaly, AiDiagnostic } from '../types/weather';
 
 export async function generateClimateDiagnostic(
@@ -6,64 +5,32 @@ export async function generateClimateDiagnostic(
   weather: CurrentWeather,
   anomaly: ClimateAnomaly
 ): Promise<AiDiagnostic> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (window as unknown as { GEMINI_API_KEY?: string }).GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return generateLocalIntelligentDiagnostic(station, weather, anomaly);
-  }
-
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    const prompt = `Tu es un expert climatologue de Météo-France et du GIEC. 
-Rédige une analyse synthétique, claire et bienveillante pour la station suivante en France :
-- Station : ${station.name} (${station.department}, ${station.region})
-- Climat régional : ${station.climateZone}
-- Température actuelle : ${weather.temperature}°C (Ressentie : ${weather.feelsLike}°C, Min: ${weather.tempMin}°C, Max: ${weather.tempMax}°C)
-- Normale de saison 1991-2020 : ${anomaly.normalTemp}°C
-- Écart thermique (Anomalie) : ${anomaly.tempAnomaly > 0 ? '+' : ''}${anomaly.tempAnomaly}°C
-- Humidité : ${weather.humidity}%, Vent : ${weather.windSpeed} km/h, Indice UV : ${weather.uvIndex}
-- Qualité de l'air : AQI ${weather.airQualityAqi} (${weather.airQualityLabel})
-- Conditions : ${weather.weatherDescription}
-- Record historique de la station : Max ${station.allTimeRecordMax}°C / Min ${station.allTimeRecordMin}°C
-
-Fournis une réponse au format JSON strict avec les clés suivantes :
-{
-  "summary": "Résumé concis de la situation météo-climatique (2 phrases claires sans jargon).",
-  "healthAdvice": [
-    "Conseil santé n°1 pratique et bienveillant (notamment pour les seniors/personnes sensibles)",
-    "Conseil santé n°2 sur l'aération, l'hydratation ou les horaires de sortie",
-    "Conseil santé n°3 sur l'exposition UV ou la qualité de l'air"
-  ],
-  "agricultureImpact": "Impact direct sur les cultures locales, les jardins, la végétation ou la réserve en eau du sol.",
-  "energyImpact": "Conséquence sur la consommation électrique / chauffage ou climatisation.",
-  "extremeRiskLevel": "FAIBLE" | "MODÉRÉ" | "ÉLEVÉ" | "EXTRÊME",
-  "vigilanceMessage": "Consigne clé de vigilance ou message rassurant pour les prochaines 24 heures."
-}`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      }
+    const res = await fetch('/api/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ station, weather, anomaly })
     });
 
-    const responseText = response.text || '';
-    const parsed = JSON.parse(responseText);
-
-    return {
-      summary: parsed.summary || "Diagnostic météorologique établi avec succès.",
-      healthAdvice: Array.isArray(parsed.healthAdvice) ? parsed.healthAdvice : ["Restez bien hydraté tout au long de la journée."],
-      agricultureImpact: parsed.agricultureImpact || "Conditions stables pour la végétation locale.",
-      energyImpact: parsed.energyImpact || "Consommation énergétique modérée.",
-      extremeRiskLevel: parsed.extremeRiskLevel || (anomaly.severity === 'CRITICAL' ? 'ÉLEVÉ' : 'FAIBLE'),
-      vigilanceMessage: parsed.vigilanceMessage || "Aucune vigilance particulière requise à cette heure.",
-      generatedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    };
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.diagnostic) {
+        return {
+          summary: data.diagnostic.summary || "Diagnostic météorologique établi avec succès.",
+          healthAdvice: Array.isArray(data.diagnostic.healthAdvice) ? data.diagnostic.healthAdvice : ["Restez bien hydraté tout au long de la journée."],
+          agricultureImpact: data.diagnostic.agricultureImpact || "Conditions stables pour la végétation locale.",
+          energyImpact: data.diagnostic.energyImpact || "Consommation énergétique modérée.",
+          extremeRiskLevel: data.diagnostic.extremeRiskLevel || (anomaly.severity === 'CRITICAL' ? 'ÉLEVÉ' : 'FAIBLE'),
+          vigilanceMessage: data.diagnostic.vigilanceMessage || "Aucune vigilance particulière requise à cette heure.",
+          generatedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        };
+      }
+    }
   } catch (err) {
-    console.warn("Gemini API call skipped or fallback used:", err);
-    return generateLocalIntelligentDiagnostic(station, weather, anomaly);
+    console.warn('Utilisation du moteur de diagnostic local optimisé:', err);
   }
+
+  return generateLocalIntelligentDiagnostic(station, weather, anomaly);
 }
 
 export function generateLocalIntelligentDiagnostic(

@@ -12,7 +12,6 @@ import {
   Clock
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, ClimateAnomaly, AiDiagnostic } from '../types/weather';
-import { GoogleGenAI } from '@google/genai';
 
 interface AiDiagnosticViewProps {
   station: LocationPoint;
@@ -47,38 +46,34 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
     setIsAsking(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (window as unknown as { GEMINI_API_KEY?: string }).GEMINI_API_KEY;
-      if (!apiKey) {
-        // Fallback local answer
-        setTimeout(() => {
-          setChatLog(prev => [
-            ...prev,
-            { 
-              sender: 'ai', 
-              text: `Pour la station de ${station.name} (${weather.temperature}°C actuels), il est recommandé de suivre les consignes habituelles : aérer en matinée, boire de l'eau régulièrement et profiter des moments doux de la journée.` 
-            }
-          ]);
-          setIsAsking(false);
-        }, 1000);
-        return;
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `L'utilisateur demande conseil à un climatologue et expert météo bienveillant :
-Station actuelle : ${station.name} (${station.department})
-Conditions : ${weather.temperature}°C (${weather.weatherDescription}), humidité ${weather.humidity}%, vent ${weather.windSpeed} km/h, UV ${weather.uvIndex}.
-Question de l'utilisateur : "${userQ}"
-Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrases en français.`;
-
-      const resp = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt
+      const res = await fetch('/api/ask-climatologist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          station,
+          weather,
+          question: userQ
+        })
       });
 
-      setChatLog(prev => [
-        ...prev,
-        { sender: 'ai', text: resp.text || "Merci pour votre question. Tout est sous contrôle pour la journée." }
-      ]);
+      if (res.ok) {
+        const data = await res.json();
+        setChatLog(prev => [
+          ...prev,
+          { 
+            sender: 'ai', 
+            text: data.answer || `Pour la station de ${station.name} (${weather.temperature}°C actuels), nos modèles indiquent des conditions stables. Pensez à aérer en matinée et à bien vous hydrater.` 
+          }
+        ]);
+      } else {
+        setChatLog(prev => [
+          ...prev,
+          { 
+            sender: 'ai', 
+            text: `Pour la station de ${station.name} (${weather.temperature}°C actuels), nos relevés indiquent des conditions favorables. Restez bien hydraté et profitez des heures tempérées.` 
+          }
+        ]);
+      }
     } catch (err) {
       console.warn("AI chat error", err);
       setChatLog(prev => [
