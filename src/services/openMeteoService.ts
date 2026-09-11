@@ -1501,20 +1501,25 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       cur.apparent_temperature
     );
 
-    // Affinage précis du code météo en fonction de la couverture nuageuse réelle et du rayonnement
+    // Calibration fidèle du code météo : respecter le modèle WMO officiel sans dégrader le beau temps
     let calibratedWeatherCode = cur.weather_code;
     const rawHourlyCloud = hourlyData.cloud_cover?.[currentHourIndexInHourly];
     const effectiveCloudCover = (rawHourlyCloud !== undefined && rawHourlyCloud !== null)
       ? rawHourlyCloud
       : Math.max(cloudCoverTotal, cloudCoverLow, cloudCoverMid, cloudCoverHigh);
 
-    if (calibratedWeatherCode <= 1 && (cur.precipitation || 0) < 0.2) {
-      if (effectiveCloudCover >= 75) {
-        calibratedWeatherCode = 3; // Ciel très nuageux à couvert
-      } else if (effectiveCloudCover >= 25) {
-        calibratedWeatherCode = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
-      } else if (effectiveCloudCover >= 10 || cloudCoverHigh >= 25) {
-        calibratedWeatherCode = 1; // Peu nuageux / voilé
+    if ((cur.precipitation || 0) < 0.2) {
+      if (calibratedWeatherCode <= 1) {
+        // Ne dégrader en couvert que si la couverture nuageuse est réellement massive (>85%) et sans soleil direct
+        if (effectiveCloudCover >= 85 && solarRadiationTotal < 80) {
+          calibratedWeatherCode = 3; // Ciel très nuageux à couvert
+        } else if (effectiveCloudCover >= 60 && solarRadiationTotal < 180) {
+          calibratedWeatherCode = 2; // Éclaircies et passages nuageux
+        }
+        // Sinon (y compris ciel bleu ou quelques cumulus décoratifs), conserver Plein Soleil (0) ou Ensoleillé (1)
+      } else if (calibratedWeatherCode === 2 && effectiveCloudCover <= 20) {
+        // Rehausser vers Plein Soleil si les nuages sont minimes
+        calibratedWeatherCode = 0;
       }
     }
     const finalWeatherDesc = getWeatherDescription(calibratedWeatherCode, cur.is_day);
@@ -1647,13 +1652,16 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const cloudHigh = hourlyData.cloud_cover_high?.[i] ?? Math.min(100, Math.round(cloudC * 0.4));
 
       let weatherC = hourlyData.weather_code[i];
-      if (weatherC <= 1 && rainMm < 0.2) {
-        if (cloudC >= 75) {
-          weatherC = 3; // Couvert
-        } else if (cloudC >= 25) {
-          weatherC = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
-        } else if (cloudC >= 10 || cloudHigh >= 25) {
-          weatherC = 1; // Peu nuageux / voilé
+      if (rainMm < 0.2) {
+        if (weatherC <= 1) {
+          if (cloudC >= 85) {
+            weatherC = 3; // Couvert uniquement sous forte chape nuageuse
+          } else if (cloudC >= 60) {
+            weatherC = 2; // Éclaircies et passages nuageux
+          }
+          // Sinon conserver Plein Soleil (0) ou Ensoleillé (1)
+        } else if (weatherC === 2 && cloudC <= 20) {
+          weatherC = 0; // Ciel bien dégagé
         }
       }
       const isDayHour = hourlyData.is_day?.[i] === 1 || (date.getHours() >= 6 && date.getHours() <= 21);
@@ -1847,15 +1855,17 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
                   hWeatherCode = 68; // Pluie et neige mêlées
                 }
               }
-            } else if (hRain === 0 && hWeatherCode <= 1) {
-              // Affinage nuages/soleil pour les heures sans pluie
+            } else if (hRain === 0) {
+              // Respecter le modèle sans dégrader le soleil
               const hTotalCloud = hourlyData.cloud_cover?.[hIdx] ?? 0;
-              if (hTotalCloud >= 80) {
-                hWeatherCode = 3;
-              } else if (hTotalCloud >= 30) {
-                hWeatherCode = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
-              } else if (hTotalCloud >= 15) {
-                hWeatherCode = 1;
+              if (hWeatherCode <= 1) {
+                if (hTotalCloud >= 85) {
+                  hWeatherCode = 3;
+                } else if (hTotalCloud >= 60) {
+                  hWeatherCode = 2;
+                }
+              } else if (hWeatherCode === 2 && hTotalCloud <= 20) {
+                hWeatherCode = 0;
               }
             }
 
@@ -1966,12 +1976,11 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
           dailyWCode = totalDaySnowfallCm >= 10 ? 75 : totalDaySnowfallCm >= 3 ? 73 : 71;
         }
       } else if (rainSum < 0.3 && dailyWCode <= 1) {
-        if (dayCloudCoverMean >= 75) {
+        // Préserver le temps ensoleillé officiel sauf ciel totalement bouché sans soleil
+        if (dayCloudCoverMean >= 85 && sunshineH < 2.5) {
           dailyWCode = 3; // Ciel couvert
-        } else if (dayCloudCoverMean >= 25) {
-          dailyWCode = 2; // Belles éclaircies et passages nuageux (nuageux avec soleil)
-        } else if (dayCloudCoverMean >= 10) {
-          dailyWCode = 1; // Peu nuageux / voilé
+        } else if (dayCloudCoverMean >= 65 && sunshineH < 5) {
+          dailyWCode = 2; // Éclaircies et passages nuageux
         }
       } else if (rainSum >= 0.5 && dailyWCode <= 2) {
         // En cas de pluie constatée, attribuer un code de pluie réel cohérent
@@ -2079,7 +2088,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     const anomaly: ClimateAnomaly = {
       currentTemp: current.temperature,
-      normalTemp: monthNormal.tMean,
+      normalTemp: slot3hNormal.slotNormalTemp,
       tempAnomaly: slotTempAnomaly,
       isWarmAnomaly,
       normalPrecip: normalPrecipMonth,
@@ -2358,7 +2367,7 @@ function getFallbackWeatherData(station: LocationPoint): {
     }),
     anomaly: {
       currentTemp: tempBase,
-      normalTemp: monthNormal.tMean,
+      normalTemp: slotNormal.slotNormalTemp,
       tempAnomaly: delta,
       isWarmAnomaly: delta >= 0,
       normalPrecip: monthNormal.precipitationMm,

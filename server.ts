@@ -858,6 +858,56 @@ app.post('/api/reports', (req, res) => {
   });
 });
 
+// 7b. Enregistrer et diffuser une contradiction météo en direct (Régénération Haute Intensité)
+app.post('/api/weather-contradiction', (req, res) => {
+  const db = loadDatabase();
+  const report = req.body || {};
+  if (!db.weatherContradictions) {
+    db.weatherContradictions = [];
+  }
+
+  const newContra = {
+    id: report.id || `contra-${Date.now()}`,
+    stationId: report.stationId || 'station-direct',
+    stationName: report.stationName || 'Station',
+    timestamp: report.timestamp || Date.now(),
+    durationSeconds: Number(report.durationSeconds) || 180,
+    observedWeatherCode: Number(report.observedWeatherCode) || 0,
+    observedWeatherDesc: report.observedWeatherDesc || 'Plein Soleil',
+    temperatureAdjustment: Number(report.temperatureAdjustment) || 0,
+    exactTemperature: report.exactTemperature !== undefined ? Number(report.exactTemperature) : undefined,
+    comment: report.comment || '',
+    activeUntil: Number(report.activeUntil) || (Date.now() + 180000)
+  };
+
+  // Keep latest per station, remove expired
+  const now = Date.now();
+  db.weatherContradictions = [
+    newContra,
+    ...(db.weatherContradictions.filter((c: any) => c.stationId !== newContra.stationId && c.activeUntil > now))
+  ].slice(0, 50);
+
+  saveDatabase(db);
+
+  res.json({
+    success: true,
+    message: 'Contradiction enregistrée et régénération haute intensité démarrée',
+    contradiction: newContra
+  });
+});
+
+app.get('/api/weather-contradiction/:stationId', (req, res) => {
+  const db = loadDatabase();
+  const { stationId } = req.params;
+  const list = db.weatherContradictions || [];
+  const now = Date.now();
+  const active = list.find((c: any) => c.stationId === stationId && c.activeUntil > now);
+  res.json({
+    success: true,
+    active: active || null
+  });
+});
+
 // 8. Confirmer un signalement
 app.post('/api/reports/:id/confirm', (req, res) => {
   const { id } = req.params;
@@ -1255,6 +1305,23 @@ const KNOWN_WEBCAMS_CATALOG: Record<string, any[]> = {
       directUrl: 'https://tourisme.biarritz.fr/',
       isDirect: true,
       provider: 'Biarritz Tourisme - Observatoire Côtier',
+      lastUpdate: 'En direct HD'
+    }
+  ],
+  'saint-malo': [
+    {
+      id: 'cam-saint-malo-thalasso-sillon',
+      title: 'Saint-Malo - Grande Plage du Sillon & Thermes Marins',
+      city: 'Saint-Malo',
+      region: 'Bretagne',
+      altitude: '8 m',
+      direction: 'Nord-Ouest',
+      liveType: 'snapshot',
+      previewUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+      previewImg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+      directUrl: 'https://www.thalasso-saintmalo.com/fr/webcam/',
+      isDirect: true,
+      provider: 'Grand Hôtel des Thermes Marins - Observatoire Côtier de Saint-Malo',
       lastUpdate: 'En direct HD'
     }
   ]

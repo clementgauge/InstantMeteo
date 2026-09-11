@@ -43,6 +43,8 @@ import {
   Moon,
   Play,
   Map,
+  Zap,
+  RotateCcw,
   Radio,
   Plus
 } from 'lucide-react';
@@ -78,7 +80,9 @@ import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMiniRadarMapCard } from '../components/LiveMiniRadarMapCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
-import { MeteoFranceNationalRadarCard } from '../components/MeteoFranceNationalRadarCard';
+import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
+import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
+import { IntenseRegenerationBanner } from '../components/IntenseRegenerationBanner';
 import { isBlockVisible } from '../services/displayPreferencesService';
 
 interface RealtimeViewProps {
@@ -102,6 +106,7 @@ interface RealtimeViewProps {
   onResetRecalibration?: () => void;
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
+  onWeatherRectified?: () => void;
 }
 
 export const RealtimeView: React.FC<RealtimeViewProps> = ({
@@ -124,8 +129,10 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   onRecalibrate,
   onResetRecalibration,
   showFloatingBubble: propShowFloatingBubble,
-  onToggleFloatingBubble
+  onToggleFloatingBubble,
+  onWeatherRectified
 }) => {
+  const [isContradictionModalOpen, setIsContradictionModalOpen] = useState<boolean>(false);
   const [activeProfileTab, setActiveProfileTab] = useState<'classic' | 'agriculture' | 'aviation' | 'pro'>('classic');
   const [localShowBubble, setLocalShowBubble] = useState<boolean>(true);
   const isBubbleActive = propShowFloatingBubble !== undefined ? propShowFloatingBubble : localShowBubble;
@@ -270,6 +277,18 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 0. BANNIÈRE DE RÉGÉNÉRATION HAUTE INTENSITÉ (Si contradiction active)     */}
+      {/* ========================================================================= */}
+      <IntenseRegenerationBanner
+        station={station}
+        tempUnit={tempUnit}
+        onOpenContradictionModal={() => setIsContradictionModalOpen(true)}
+        onStateChanged={() => {
+          if (onWeatherRectified) onWeatherRectified();
+        }}
+      />
 
       {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HERO & FORECAST (Exact 1:1 match with user reference)    */}
@@ -441,6 +460,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 <span>Voir sur la carte</span>
               </button>
             </div>
+
+            {/* Bouton de Contradiction Météo Directe & Régénération Intense */}
+            <button
+              onClick={() => setIsContradictionModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
+              title="Signaler un écart entre la météo affichée et le temps réel observé dehors"
+            >
+              <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+              <span>⚡ Contredire le direct (Régénération intense)</span>
+            </button>
           </div>
         </div>
 
@@ -490,6 +519,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onOpenGigaRadar={onOpenGigaRadar}
         onNavigateTab={onNavigateTab}
         onLocateGps={onLocateGps}
+        onOpenContradictionModal={() => setIsContradictionModalOpen(true)}
       />
 
       {/* Module de Fiabilisation & Calibrage Température Observée en Temps Réel */}
@@ -508,18 +538,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
       {activeProfileTab === 'classic' && (
         <div className="space-y-6">
-          {/* Radar HD en direct National Météo-France (Format ordinateur fidèle à la maquette) */}
-          <div id="realtime-national-radar-hd-pc" className="scroll-mt-28 w-full">
-            <MeteoFranceNationalRadarCard
-              station={station}
-              weather={weather}
-              hourly={hourly}
+          {/* Carte de France miniature compacte avec icônes météo et températures (Notre propre carte vectorielle indépendante) */}
+          <div id="realtime-national-overview-mini" className="scroll-mt-28 w-full">
+            <FranceMiniOverviewCard
+              currentStation={station}
               tempUnit={tempUnit}
               onSelectStation={onSelectStation}
               onOpenSearchModal={onOpenSearchModal}
-              onOpenGigaRadar={onOpenGigaRadar}
               onNavigateTab={onNavigateTab}
-              onLocateGps={onLocateGps}
             />
           </div>
 
@@ -992,6 +1018,18 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         seniorMode={seniorMode}
         tempUnit={tempUnit}
         initialDayIndex={selectedDayIndexForAnalyzer}
+      />
+
+      {/* Weather Contradiction & Intense Regeneration Modal */}
+      <WeatherContradictionModal
+        isOpen={isContradictionModalOpen}
+        onClose={() => setIsContradictionModalOpen(false)}
+        station={station}
+        currentWeather={weather}
+        tempUnit={tempUnit}
+        onRegenerationStarted={() => {
+          if (onWeatherRectified) onWeatherRectified();
+        }}
       />
     </div>
   );

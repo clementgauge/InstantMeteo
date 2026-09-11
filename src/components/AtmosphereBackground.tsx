@@ -204,7 +204,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
         className="absolute inset-0 transition-all duration-1000 ease-in-out"
         style={{
           background: isLightMode 
-            ? 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 40%, #f1f5f9 100%)' 
+            ? '#ffffff' 
             : theme.bgGradient,
         }}
       />
@@ -213,7 +213,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full blur-[120px] transition-all duration-1000 ease-in-out pointer-events-none"
         style={{
-          backgroundColor: isLightMode ? '#93c5fd40' : theme.meshGlowPrimary,
+          backgroundColor: isLightMode ? 'transparent' : theme.meshGlowPrimary,
           transform: `translate(-50%, 0) scale(${1 + theme.lightingIntensity * 0.2})`,
         }}
       />
@@ -222,7 +222,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute top-1/3 -right-20 w-[600px] h-[600px] rounded-full blur-[140px] transition-all duration-1000 ease-in-out pointer-events-none"
         style={{
-          backgroundColor: isLightMode ? '#fde68a30' : theme.meshGlowSecondary,
+          backgroundColor: isLightMode ? 'transparent' : theme.meshGlowSecondary,
         }}
       />
 
@@ -230,18 +230,18 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute -bottom-40 -left-20 w-[700px] h-[500px] rounded-full blur-[130px] transition-all duration-1000 ease-in-out pointer-events-none opacity-50"
         style={{
-          backgroundColor: isLightMode ? '#e0f2fe60' : theme.glowAccentColor,
+          backgroundColor: isLightMode ? 'transparent' : theme.glowAccentColor,
         }}
       />
 
       {/* 5. Delicate Atmospheric Micro-Particles Canvas */}
       <canvas 
         ref={canvasRef} 
-        className="absolute inset-0 w-full h-full opacity-40 transition-opacity duration-1000"
+        className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${isLightMode ? 'opacity-0 pointer-events-none' : 'opacity-40'}`}
       />
 
       {/* 6. Subtle Noise / Texture Overlay for High-End Glassmorphism */}
-      <div className={`absolute inset-0 [background-size:24px_24px] ${isLightMode ? 'bg-[radial-gradient(#0000000a_1px,transparent_1px)] opacity-20' : 'bg-[radial-gradient(#ffffff08_1px,transparent_1px)] opacity-40'}`} />
+      <div className={`absolute inset-0 [background-size:24px_24px] ${isLightMode ? 'bg-[radial-gradient(#00000005_1px,transparent_1px)] opacity-10' : 'bg-[radial-gradient(#ffffff08_1px,transparent_1px)] opacity-40'}`} />
     </div>
   );
 };

@@ -25,7 +25,8 @@ import {
   Crosshair,
   Thermometer,
   Flame,
-  Check
+  Check,
+  Zap
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
@@ -43,6 +44,7 @@ interface DesktopWeatherHeroDashboardProps {
   onOpenGigaRadar?: () => void;
   onNavigateTab?: (tab: string) => void;
   onLocateGps?: () => void;
+  onOpenContradictionModal?: () => void;
 }
 
 export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardProps> = ({
@@ -55,7 +57,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   onOpenSearchModal,
   onOpenGigaRadar,
   onNavigateTab,
-  onLocateGps
+  onLocateGps,
+  onOpenContradictionModal
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
@@ -208,18 +211,29 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 Climat : {station.climateZone || 'Océanique dégradé / Îlot de chaleur urbain'}
               </div>
 
-              {/* Changer de station button */}
-              {onOpenSearchModal && (
-                <div className="pt-1">
+              {/* Changer de station and Contredire buttons */}
+              <div className="pt-1 flex items-center gap-2 flex-wrap">
+                {onOpenSearchModal && (
                   <button
                     onClick={onOpenSearchModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200 transition active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
                   >
                     <Search className="h-3.5 w-3.5 text-sky-400" />
                     <span>Changer de station</span>
                   </button>
-                </div>
-              )}
+                )}
+
+                {onOpenContradictionModal && (
+                  <button
+                    onClick={onOpenContradictionModal}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs font-bold text-amber-300 transition active:scale-95 cursor-pointer shadow-sm"
+                    title="Signaler un écart avec la météo observée et lancer une régénération haute intensité pendant quelques minutes"
+                  >
+                    <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                    <span>⚡ Contredire le direct (Recalibration)</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Right Header Group: Date, Live Clock & Status */}

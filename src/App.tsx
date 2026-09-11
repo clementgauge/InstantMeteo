@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sun, 
   Map, 
@@ -40,6 +40,7 @@ import { SeasonalEightMonthTrendsCard } from './components/SeasonalEightMonthTre
 import { ShortTermMultiModelEnsembleCard } from './components/ShortTermMultiModelEnsembleCard';
 import { MultiDayVigilanceMatrixCard } from './components/MultiDayVigilanceMatrixCard';
 import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
+import { applyCorrectionToWeather, subscribeToContradictions } from './services/liveContradictionService';
 import { InstallAppModal } from './components/InstallAppModal';
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
@@ -101,9 +102,21 @@ function WeatherApp() {
     return FRENCH_STATIONS[0];
   });
   const [weather, setWeather] = useState<CurrentWeather | null>(null);
+  const rawWeatherRef = useRef<CurrentWeather | null>(null);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [anomaly, setAnomaly] = useState<ClimateAnomaly | null>(null);
+
+  // Écoute dynamique des contradictions & régénérations haute intensité
+  useEffect(() => {
+    const unsubscribe = subscribeToContradictions(() => {
+      if (rawWeatherRef.current && currentStation) {
+        const { weather: rectified } = applyCorrectionToWeather(currentStation.id, rawWeatherRef.current);
+        setWeather(rectified);
+      }
+    });
+    return unsubscribe;
+  }, [currentStation]);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<NavTabId>('realtime');
@@ -127,6 +140,21 @@ function WeatherApp() {
       return next;
     });
   };
+
+  useEffect(() => {
+    if (themeMode === 'light') {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.classList.remove('dark');
+      document.body.classList.add('theme-light');
+      document.body.style.backgroundColor = '#ffffff';
+      document.body.style.color = '#0f172a';
+    } else {
+      document.documentElement.classList.remove('theme-light');
+      document.body.classList.remove('theme-light');
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
+    }
+  }, [themeMode]);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isComparatorModalOpen, setIsComparatorModalOpen] = useState<boolean>(false);
@@ -344,7 +372,11 @@ function WeatherApp() {
     try {
       const data = await fetchWeatherData(station);
 
-      setWeather(data.current);
+      rawWeatherRef.current = data.current;
+      // Applique une éventuelle rectification par régénération haute intensité en cours
+      const { weather: rectifiedWeather } = applyCorrectionToWeather(station.id, data.current);
+
+      setWeather(rectifiedWeather);
       setHourly(data.hourly);
       setDaily(data.daily);
       setAnomaly(data.anomaly);
@@ -798,6 +830,12 @@ function WeatherApp() {
                 onResetRecalibration={handleClearRecalibration}
                 showFloatingBubble={showFloatingBubble}
                 onToggleFloatingBubble={handleToggleFloatingBubble}
+                onWeatherRectified={() => {
+                  if (rawWeatherRef.current && currentStation) {
+                    const { weather: rectified } = applyCorrectionToWeather(currentStation.id, rawWeatherRef.current);
+                    setWeather(rectified);
+                  }
+                }}
               />
             )}
 
