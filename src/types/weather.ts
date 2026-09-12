@@ -629,6 +629,11 @@ export type VigilancePhenomenon =
   | 'CANICULE_CHALEUR'
   | 'AVALANCHES'
   | 'BROUILLARD_GIVRANT'
+  | 'BROUILLARD_RAYONNEMENT'
+  | 'BROUILLARD_ADVECTION'
+  | 'BROUILLARD_VALLEE'
+  | 'BROUILLARD_OROGRAPHIQUE'
+  | 'BROUILLARD_DENSE'
   | 'CALME';
 
 export interface VigilancePhaseItem {
@@ -688,6 +693,11 @@ export interface DailyVigilanceAlertItem {
     isPeak: boolean;
   }>;
   
+  // Locality Climatological Context & Specific Adaptations
+  localityClimatologyContext?: string;
+  localityProfileName?: string;
+  fogDiagnosis?: any;
+
   // Legacy / Compatibility fields
   riskSlotLabel: string; // e.g. "Créneau critique : 14h00 - 19h30"
   startHourFormatted: string; // "14h00"

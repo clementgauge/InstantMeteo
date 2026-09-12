@@ -1,4 +1,5 @@
 import { DailyForecast, HourlyForecast, LocationPoint, DailyVigilanceAlertItem, VigilanceLevel, VigilancePhenomenon, MultiDayVigilanceMatrix, MultiDayVigilanceDay, VigilancePhaseItem } from '../types/weather';
+import { getLocalityClimatologyProfile, diagnosePreciseFogType, FogDiagnosis } from './localityClimatologyService';
 
 /**
  * DAILY & MULTI-DAY VIGILANCE METEOROLOGICAL THREAT ENGINE (5-MIN REFRESH CADENCE)
@@ -441,6 +442,67 @@ export function computeDetailedVigilancePhases(
       expectedConditions: "Dégel progressif des routes.",
       recommendedAction: "Prudence aux zones d'ombre persistance."
     });
+  } else if (phenomenon.startsWith('BROUILLARD')) {
+    const isFreezing = phenomenon === 'BROUILLARD_GIVRANT';
+    phases.push({
+      phaseNumber: 1,
+      phaseName: "Phase 1 : Refroidissement & Condensation Naissante",
+      timeWindow: `${p1Start} ➔ ${p1End}`,
+      startHour: p1Start,
+      endHour: p1End,
+      statusBadge: "🟡 FORMATION DU BROUILLARD",
+      level: 'JAUNE',
+      icon: "🌫️",
+      description: "Chute de la température au point de rosée et saturation en vapeur d'eau.",
+      expectedConditions: "Brumes opaques naissantes, baisse de visibilité sous 500 mètres.",
+      recommendedAction: "Allumer les feux de croisement et adapter les distances de sécurité."
+    });
+
+    phases.push({
+      phaseNumber: 2,
+      phaseName: isFreezing ? "Phase 2 : Paroxysme Givrant & Visibilité Nulle" : "Phase 2 : Paroxysme d'Opacité & Visibilité Minimale",
+      timeWindow: `${p2Start} ➔ ${p2End}`,
+      startHour: p2Start,
+      endHour: p2End,
+      statusBadge: isFreezing ? "❄️ RISQUE GIVRANT MAXIMAL" : "🌫️ VISIBILITÉ MINIMALE (<150m)",
+      level: level,
+      icon: isFreezing ? "❄️🌫️" : "🌫️",
+      description: isFreezing
+        ? `Épaisseur maximale de la nappe givrante avec dépôt de verglas et givre immédiat (pic à ${eventPeak}).`
+        : `Paroxysme d'opacité avec visibilité horizontale inférieure à 150 mètres (pic à ${eventPeak}).`,
+      expectedConditions: isFreezing
+        ? "Visibilité < 100m, chaussées verglacées et glissantes, routes piégeuses."
+        : "Nappe compacte, visibilité très compromise, circulation au ralenti.",
+      recommendedAction: "Réduire la vitesse à 50 km/h et allumer les feux de brouillard."
+    });
+
+    phases.push({
+      phaseNumber: 3,
+      phaseName: "Phase 3 : Amorçage de Dissipation ou Soulèvement",
+      timeWindow: `${p3Start} ➔ ${p3End}`,
+      startHour: p3Start,
+      endHour: p3End,
+      statusBadge: "🟢 DÉBUT D'ÉCLAIRCIES",
+      level: 'JAUNE',
+      icon: "🌤️",
+      description: "Réchauffement du sol par le soleil ou brassage par le vent provoquant la rupture de la couche.",
+      expectedConditions: "Élévation de la nappe en stratus bas et amélioration progressive de la visibilité (>500m).",
+      recommendedAction: "Éteindre les feux antibrouillard arrière dès que la visibilité dépasse 150m."
+    });
+
+    phases.push({
+      phaseNumber: 4,
+      phaseName: "Phase 4 : Dissipation Complète & Ciel Dégagé",
+      timeWindow: `${p4Start} ➔ ${p4End}`,
+      startHour: p4Start,
+      endHour: p4End,
+      statusBadge: "✅ VISIBILITÉ NORMALE",
+      level: 'VERT',
+      icon: "☀️",
+      description: "Évaporation complète des gouttelettes d'eau au sol et retour à une visibilité excellente.",
+      expectedConditions: "Visibilité supérieure à 10 km (conditions CAVOK), chaussées séchant.",
+      recommendedAction: "Reprise d'une circulation tout à fait normale."
+    });
   } else {
     phases.push({
       phaseNumber: 1,
@@ -529,12 +591,15 @@ export function computeDayVigilanceAlerts(
   const alt = station?.altitude ?? 0;
   const isMountain = alt >= 800;
 
+  // Local Climatology & Regional Regime Profile (Sahara vs Alps vs Mediterranean vs Plain)
+  const profile = getLocalityClimatologyProfile(station);
+
   const minTemp = day.tempMin ?? (hoursToUse.length > 0 ? Math.min(...hoursToUse.map(h => h.temperature)) : 10);
   const maxTemp = day.tempMax ?? (hoursToUse.length > 0 ? Math.max(...hoursToUse.map(h => h.temperature)) : 15);
   const tMean = day.tempMean ?? (minTemp + maxTemp) / 2;
 
   // ----------------------------------------------------
-  // 1. PLUIE & INONDATION / CUMULS SOUTENUS
+  // 1. PLUIE & INONDATION / CUMULS SOUTENUS (ADAPTÉ AU CLIMAT LOCAL)
   // ----------------------------------------------------
   const rainSum = Number((day.rainMm ?? day.precipitationSumMm ?? 0).toFixed(1));
   const rainProb = day.precipitationProbability ?? 0;
@@ -542,35 +607,72 @@ export function computeDayVigilanceAlerts(
 
   const isMainlySnow = (minTemp <= 1.0 && maxTemp <= 2.5) || hoursToUse.every(h => (h.rainMm || 0) === 0 || h.temperature <= 1.5) || (day.snowfallCm || 0) > 0;
 
-  if (!isMainlySnow && (rainSum >= 8 || maxHourlyRain >= 3.5 || (rainSum >= 4 && rainProb >= 70))) {
-    let level: VigilanceLevel = 'JAUNE';
-    let title = "Vigilance Pluie-Inondation";
-    let message = `Cumul notable de ${rainSum} mm (${rainSum} L/m²) attendu. Sols humidifiés, ruissellements locaux et fossés sous surveillance.`;
-    let triggerCriteria = `Cumul 24h ≥ ${rainSum} mm (intensité horaire pic : ${maxHourlyRain} mm/h)`;
-    let dangerDesc = "Risque d'aquaplaning sur les axes rapides et engorgement passager des réseaux pluviaux urbains.";
-    let impacts = [
-      "Risque d'aquaplaning et visibilité réduite sous les plus fortes intensités.",
-      "Engorgement possible des caniveaux et passages souterrains ponctuels.",
-      "Ralentissements sur les réseaux de transport et conditions de circulation délicates."
-    ];
+  const rainJaune = profile.rainThresholds.jaune24hMm;
+  const rainOrange = profile.rainThresholds.orange24hMm;
+  const rainRouge = profile.rainThresholds.rouge24hMm;
+  const hourlyJaune = profile.rainThresholds.hourlyPeakJauneMm;
+  const hourlyOrange = profile.rainThresholds.hourlyPeakOrangeMm;
+  const hourlyRouge = profile.rainThresholds.hourlyPeakRougeMm;
 
-    if (rainSum >= 65 || maxHourlyRain >= 22) {
+  const isRainTriggered = !isMainlySnow && (
+    rainSum >= rainJaune || 
+    maxHourlyRain >= hourlyJaune || 
+    (rainSum >= (rainJaune * 0.65) && rainProb >= 70)
+  );
+
+  if (isRainTriggered) {
+    let level: VigilanceLevel = 'JAUNE';
+    let title = profile.isAridOrDesert 
+      ? "Vigilance Pluie & Ruissellement d'Oueds (Milieu Aride)"
+      : "Vigilance Pluie-Inondation";
+    let message = profile.isAridOrDesert
+      ? `Pluie rare mais notable de ${rainSum} mm (${rainSum} L/m²) en milieu aride. Risque de ruissellement immédiat et remplissage violent des lits d'oueds asséchés.`
+      : `Cumul notable de ${rainSum} mm (${rainSum} L/m²) attendu. Sols humidifiés, ruissellements locaux et fossés sous surveillance.`;
+    let triggerCriteria = `Cumul 24h ≥ ${rainSum} mm (pic horaire : ${maxHourlyRain} mm/h) • Seuil adapté au ${profile.regimeName} (Jaune dès ${rainJaune} mm)`;
+    let dangerDesc = profile.isAridOrDesert
+      ? "Crues torrentielles subites d'oueds traversant routes et pistes désertiques, ravinement rapide."
+      : "Risque d'aquaplaning sur les axes rapides et engorgement passager des réseaux pluviaux urbains.";
+    let impacts = profile.isAridOrDesert
+      ? [
+          "Crues éclairs violentes dans les lits d'oueds ordinairement à sec.",
+          "Submersion rapide des passages à gué (radiers) et coupures de pistes.",
+          "Coulées boueuses instantanées sur les zones basses et oasis."
+        ]
+      : [
+          "Risque d'aquaplaning et visibilité réduite sous les plus fortes intensités.",
+          "Engorgement possible des caniveaux et passages souterrains ponctuels.",
+          "Ralentissements sur les réseaux de transport et conditions de circulation délicates."
+        ];
+
+    if (rainSum >= rainRouge || maxHourlyRain >= hourlyRouge) {
       level = 'ROUGE';
-      title = "Alerte Rouge Pluie Torrentielle & Crue Majeure";
-      message = `Épisode pluvieux exceptionnel avec cumuls estimés à ${rainSum} mm (intensité max : ${maxHourlyRain} mm/h). Risque de crues soudaines et inondations généralisées.`;
-      triggerCriteria = `Cumul exceptionnel ≥ ${rainSum} mm en 24h avec intensité de pointe de ${maxHourlyRain} mm/h`;
-      dangerDesc = "Inondations majeures généralisées, débordements rapides de cours d'eau et coupures d'axes routiers.";
+      title = profile.isAridOrDesert 
+        ? "Alerte Rouge Crue Éclair Torrentielle d'Oueds (Sahara)" 
+        : "Alerte Rouge Pluie Torrentielle & Crue Majeure";
+      message = profile.isAridOrDesert
+        ? `Événement pluvieux historique en zone aride (${rainSum} mm, intensité ${maxHourlyRain} mm/h). Inondations désertiques destructrices et débordements massifs d'oueds.`
+        : `Épisode pluvieux exceptionnel avec cumuls estimés à ${rainSum} mm (intensité max : ${maxHourlyRain} mm/h). Risque de crues soudaines et inondations généralisées.`;
+      triggerCriteria = `Cumul exceptionnel ≥ ${rainSum} mm en 24h (Seuil Rouge local: ${rainRouge} mm)`;
+      dangerDesc = profile.isAridOrDesert
+        ? "Vagues de crue d'oueds submergeant agglomérations, pistes et oasis sahariennes."
+        : "Inondations majeures généralisées, débordements rapides de cours d'eau et coupures d'axes routiers.";
       impacts = [
         "Inondations de caves, sous-sols et rez-de-chaussée dans les points bas.",
         "Crues éclairs des ruisseaux et rivières secondaires.",
         "Coupures de routes et d'électricité possibles."
       ];
-    } else if (rainSum >= 28 || maxHourlyRain >= 9) {
+    } else if (rainSum >= rainOrange || maxHourlyRain >= hourlyOrange) {
       level = 'ORANGE';
-      title = "Vigilance Orange Fortes Précipitations";
-      message = `Précipitations soutenues et abondantes prévues (${rainSum} mm). Risque de saturation des sols, fossés débordants et ruissellements significatifs.`;
-      triggerCriteria = `Cumul 24h ≥ ${rainSum} mm (intensité de pointe ${maxHourlyRain} mm/h)`;
-      dangerDesc = "Saturation des sols en eau et débordements ponctuels de fossés et petits cours d'eau.";
+      title = profile.isAridOrDesert
+        ? "Vigilance Orange Inondation Soudaine d'Oueds"
+        : "Vigilance Orange Fortes Précipitations";
+      message = profile.isAridOrDesert
+        ? `Précipitations très soutenues et anormales en milieu désertique (${rainSum} mm). Sols arides imperméables et crues violentes dans les oueds.`
+        : `Précipitations soutenues et abondantes prévues (${rainSum} mm). Risque de saturation des sols, fossés débordants et ruissellements significatifs.`;
+      triggerCriteria = `Cumul 24h ≥ ${rainSum} mm (Seuil Orange local: ${rainOrange} mm)`;
+      dangerDesc = profile.isAridOrDesert
+        ? "Crues soudaines dans les dépressions désertiques et oueds, pistes coupées."
+        : "Saturation des sols en eau et débordements ponctuels de fossés et petits cours d'eau.";
       impacts = [
         "Infiltration dans les garages et caves vulnérables.",
         "Circulation fortement perturbée par de grandes flaques et coulées de boue locales.",
@@ -627,6 +729,8 @@ export function computeDayVigilanceAlerts(
         "Évitez les passages souterrains et les zones habituellement inondables.",
         "Ne vous engagez jamais sur une chaussée submergée (même 20 cm d'eau peuvent emporter une voiture)."
       ],
+      localityClimatologyContext: profile.rainThresholds.climatologicalContext,
+      localityProfileName: profile.regimeName,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
@@ -764,17 +868,21 @@ export function computeDayVigilanceAlerts(
   }
 
   // ----------------------------------------------------
-  // 3. VENT VIOLENT, TEMPÊTE & RISQUE TORNADIQUE
+  // 3. VENT VIOLENT, TEMPÊTE & RISQUE TORNADIQUE (ADAPTÉ AU RELIEF & RÉGIME LOCAL)
   // ----------------------------------------------------
   const maxGust = day.windGustMax ?? Math.round(day.windSpeedMax * 1.35);
   const maxHourlyGust = hoursToUse.reduce((max, h) => Math.max(max, h.windGust || 0), maxGust);
   const actualMaxGust = Math.max(maxGust, maxHourlyGust);
 
-  if (actualMaxGust >= 60 || day.windSpeedMax >= 42) {
+  const windJaune = profile.windThresholds.jauneGustKmh;
+  const windOrange = profile.windThresholds.orangeGustKmh;
+  const windRouge = profile.windThresholds.rougeGustKmh;
+
+  if (actualMaxGust >= windJaune || day.windSpeedMax >= Math.round(windJaune * 0.65)) {
     let level: VigilanceLevel = 'JAUNE';
     let title = "Vigilance Coup de Vent";
     let message = `Rafales de vent notables attendues jusqu'à ${actualMaxGust} km/h. Prudence pour les structures légères et circulation.`;
-    let triggerCriteria = `Rafales de vent maximales modélisées ≥ ${actualMaxGust} km/h`;
+    let triggerCriteria = `Rafales maximales ≥ ${actualMaxGust} km/h • Seuil adapté au ${profile.regimeName} (Jaune dès ${windJaune} km/h)`;
     let dangerDesc = "Bourrasques soutenues pouvant déstabiliser les deux-roues et faire voler des branchages.";
     let impacts = [
       "Branches mortes et objets légers susceptibles de s'envoler.",
@@ -782,22 +890,22 @@ export function computeDayVigilanceAlerts(
       "Vigilance lors des activités de loisirs en extérieur et en milieu boisé."
     ];
 
-    if (actualMaxGust >= 125 || (actualMaxGust >= 110 && isStormCode && maxCape >= 1200)) {
+    if (actualMaxGust >= windRouge || (actualMaxGust >= (windRouge - 12) && isStormCode && maxCape >= 1200)) {
       level = 'ROUGE';
-      title = (actualMaxGust >= 135 || (isStormCode && maxCape >= 1500)) ? "Alerte Rouge Tempête / Rafales Destructrices & Risque Tornadique" : "Alerte Rouge Tempête Violente";
+      title = (actualMaxGust >= (windRouge + 10) || (isStormCode && maxCape >= 1500)) ? "Alerte Rouge Tempête / Rafales Destructrices & Risque Tornadique" : "Alerte Rouge Tempête Violente";
       message = `Phénomène venteux majeur avec rafales dépassant ${actualMaxGust} km/h. Chutes d'arbres, toitures arrachées et coupures de courant généralisées très probables.`;
-      triggerCriteria = `Rafales d'échelle tempétueuse destructrice ≥ ${actualMaxGust} km/h`;
+      triggerCriteria = `Rafales d'échelle tempétueuse destructrice ≥ ${actualMaxGust} km/h (Seuil Rouge local: ${windRouge} km/h)`;
       dangerDesc = "Conditions de tempête majeure avec risque élevé d'accidents corporels dus aux chutes d'arbres et débris volants.";
       impacts = [
         "Nombreuses chutes d'arbres obstruant les axes de circulation.",
         "Dommages sévères aux toitures, cheminées et lignes électriques.",
         "Interruption complète de transports ferroviaires et aériens."
       ];
-    } else if (actualMaxGust >= 85) {
+    } else if (actualMaxGust >= windOrange) {
       level = 'ORANGE';
       title = "Vigilance Orange Vent Violent & Bourrasques";
       message = `Vents très soutenus avec bourrasques atteignant ${actualMaxGust} km/h. Risque de branches cassées et perturbations sur les réseaux.`;
-      triggerCriteria = `Rafales de vent violentes modélisées ≥ ${actualMaxGust} km/h`;
+      triggerCriteria = `Rafales de vent violentes modélisées ≥ ${actualMaxGust} km/h (Seuil Orange local: ${windOrange} km/h)`;
       dangerDesc = "Coups de vent violents provoquant des chutes de branches et des difficultés majeures de circulation.";
       impacts = [
         "Branches cassées et chutes de tuiles sur la voie publique.",
@@ -812,7 +920,7 @@ export function computeDayVigilanceAlerts(
       durationHours, isOngoing 
     } = computeDualTimingWindow(
       hoursToUse,
-      h => (h.windGust || 0) >= 55 || (h.windSpeed || 0) >= 38,
+      h => (h.windGust || 0) >= (windJaune - 5) || (h.windSpeed || 0) >= (windJaune * 0.6),
       h => h.windGust || 0,
       isToday,
       currentHourNum,
@@ -855,22 +963,31 @@ export function computeDayVigilanceAlerts(
         "Fixez ou rangez tout mobilier de jardin, bâches et objets légers.",
         "Prenez garde aux chutes d'arbres, de tuiles et d'objets divers."
       ],
+      localityClimatologyContext: profile.windThresholds.climatologicalContext,
+      localityProfileName: profile.regimeName,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
   }
 
   // ----------------------------------------------------
-  // 4. GEL, GRAND FROID & JOURNÉE SANS DÉGEL
+  // 4. GEL, GRAND FROID & JOURNÉE SANS DÉGEL (ADAPTÉ À LA VULNÉRABILITÉ LOCALE)
   // ----------------------------------------------------
   const isFreezingDay = maxTemp <= 0;
   const isFrost = minTemp <= 0;
 
-  if (isFrost || minTemp <= 1.0) {
+  const coldJaune = profile.coldThresholds.jauneTnC;
+  const coldOrange = profile.coldThresholds.orangeTnC;
+  const coldRouge = profile.coldThresholds.rougeTnC;
+
+  // In deep mountain valleys / cold sinks (combe), standard sub-zero morning is routine and doesn't trigger yellow until colder
+  const isColdTriggered = minTemp <= coldJaune || (!profile.isMountain && minTemp <= 0.5);
+
+  if (isColdTriggered) {
     let level: VigilanceLevel = 'JAUNE';
-    let title = "Vigilance Gelée Blanche & Froid";
+    let title = isFreezingDay ? "Vigilance Journée Sans Dégel" : "Vigilance Gelée Blanche & Froid";
     let message = `Température minimale de ${minTemp}°C. Gelée matinale sur la végétation et surfaces au sol.`;
-    let triggerCriteria = `Température minimale sous abri ≤ ${minTemp}°C`;
+    let triggerCriteria = `Température minimale sous abri Tn ≤ ${minTemp}°C • Seuil adapté au ${profile.regimeName} (Jaune dès ${coldJaune}°C)`;
     let dangerDesc = "Gelées blanches matinales et chaussées localement glissantes à l'aube.";
     let impacts = [
       "Gelée blanche en plaine et vallées exposées.",
@@ -878,24 +995,24 @@ export function computeDayVigilanceAlerts(
       "Protection nécessaire pour les plantes sensibles."
     ];
 
-    if (minTemp <= -8.0 || (isFreezingDay && minTemp <= -5.0)) {
+    if (minTemp <= coldRouge || (isFreezingDay && minTemp <= (coldOrange - 3.5))) {
       level = 'ROUGE';
       title = "Alerte Rouge Grand Froid Extrême";
       message = `Vague de froid intense avec gel sévère permanent (${minTemp}°C). Risque d'hypothermie rapide et gel des canalisations non isolées.`;
-      triggerCriteria = `Température extrême sous abri Tn: ${minTemp}°C avec ressenti éolien très bas`;
+      triggerCriteria = `Température extrême sous abri Tn: ${minTemp}°C (Seuil Rouge local: ${coldRouge}°C)`;
       dangerDesc = "Froid polaire dangereux pour les personnes vulnérables et les animaux.";
       impacts = [
         "Risque vital d'hypothermie et d'engelures lors d'expositions prolongées.",
         "Gel des canalisations d'eau potable et compteurs non protégés.",
         "Batteries de véhicules affaiblies et verglas tenace."
       ];
-    } else if (minTemp <= -3.5 || isFreezingDay) {
+    } else if (minTemp <= coldOrange || (isFreezingDay && !profile.isMountain)) {
       level = 'ORANGE';
       title = isFreezingDay ? "Vigilance Orange Journée Sans Dégel" : "Vigilance Orange Gel Sévère";
       message = isFreezingDay
         ? `La température restera négative toute la journée (Tx: ${maxTemp}°C, Tn: ${minTemp}°C). Sols gelés en profondeur.`
         : `Gelée marquée sous abri (${minTemp}°C). Fort impact sur les cultures horticoles et conduites d'eau.`;
-      triggerCriteria = isFreezingDay ? `Journée sans dégel (Tx ≤ 0°C, Tn: ${minTemp}°C)` : `Gelée sévère Tn ≤ -3.5°C`;
+      triggerCriteria = isFreezingDay ? `Journée sans dégel (Tx ≤ 0°C, Tn: ${minTemp}°C)` : `Gelée marquée Tn ≤ ${minTemp}°C (Seuil Orange local: ${coldOrange}°C)`;
       dangerDesc = isFreezingDay ? "Gel permanent 24h/24 durcissant les sols et pérennisant les plaques de verglas." : "Fort gel affectant l'agriculture et les infrastructures.";
       impacts = [
         "Plaques de verglas persistant toute la journée à l'ombre.",
@@ -948,6 +1065,8 @@ export function computeDayVigilanceAlerts(
         "Prévoyez des équipements hivernaux sur votre véhicule et grattez le pare-brise.",
         "Soyez attentif aux personnes sans-abri et signalez toute détresse au 115."
       ],
+      localityClimatologyContext: profile.coldThresholds.climatologicalContext,
+      localityProfileName: profile.regimeName,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
@@ -982,15 +1101,31 @@ export function computeDayVigilanceAlerts(
       "Retards dans les transports scolaires et collectifs."
     ];
 
+    const snowJaune = profile.snowThresholds.jauneCm;
+    const snowOrange = profile.snowThresholds.orangeCm;
+    const snowRouge = profile.snowThresholds.rougeCm;
+
+    const snowBreakdown = computeHourlyEpisodeBreakdown(hoursToUse, 'NEIGE');
+    const estimatedSnowCm = snowBreakdown.totalSnowCm > 0 ? snowBreakdown.totalSnowCm : Number((rainSum * (minTemp <= 0 ? 1.1 : 0.8)).toFixed(1));
+    const minSnowRange = Number((estimatedSnowCm * 0.85).toFixed(1));
+    const maxSnowRange = Number((estimatedSnowCm * 1.25).toFixed(1));
+
     if (hasFreezingRain && rainSum >= 4.0) {
       level = 'ORANGE';
       title = "Vigilance Orange Verglas Généralisé";
       message = "Épisode de pluie verglaçante notable. Routes impraticables sans salage préalable et risque d'arbres pliés sous le poids de la glace.";
       dangerDesc = "Couche de verglas généralisée rendant le réseau routier dangereux.";
-    } else if (isSnowCode && (rainSum >= 10 || (isMountain && rainSum >= 20))) {
+    } else if (isSnowCode && estimatedSnowCm >= snowRouge) {
+      level = 'ROUGE';
+      title = "Alerte Rouge Chutes de Neige Majeures & Blocage Général";
+      message = `Épisode neigeux exceptionnel (${estimatedSnowCm} cm attendus). Paralysie routière complète et risque d'effondrement sous le poids de la neige.`;
+      triggerCriteria = `Cumul de neige exceptionnel ≥ ${estimatedSnowCm} cm (Seuil Rouge local: ${snowRouge} cm)`;
+      dangerDesc = "Conditions extrêmes avec routes coupées et coupures d'électricité massives.";
+    } else if (isSnowCode && estimatedSnowCm >= snowOrange) {
       level = 'ORANGE';
       title = "Vigilance Orange Fortes Chutes de Neige";
-      message = `Chutes de neige abondantes (>5 à 15 cm en plaine / >30 cm en montagne). Conditions de circulation très difficiles.`;
+      message = `Chutes de neige abondantes (${estimatedSnowCm} cm). Conditions de circulation très difficiles sur l'ensemble du réseau.`;
+      triggerCriteria = `Cumul de neige soutenu ≥ ${estimatedSnowCm} cm (Seuil Orange local: ${snowOrange} cm)`;
       dangerDesc = "Fortes accumulations de neige entraînant des blocages routiers.";
     }
 
@@ -1006,11 +1141,6 @@ export function computeDayVigilanceAlerts(
       currentHourNum,
       "04h00", "08h00", "14h00"
     );
-
-    const snowBreakdown = computeHourlyEpisodeBreakdown(hoursToUse, 'NEIGE');
-    const estimatedSnowCm = snowBreakdown.totalSnowCm > 0 ? snowBreakdown.totalSnowCm : Number((rainSum * (minTemp <= 0 ? 1.1 : 0.8)).toFixed(1));
-    const minSnowRange = Number((estimatedSnowCm * 0.85).toFixed(1));
-    const maxSnowRange = Number((estimatedSnowCm * 1.25).toFixed(1));
 
     alerts.push({
       id: `snow-${dayDateStr}`,
@@ -1055,22 +1185,28 @@ export function computeDayVigilanceAlerts(
         "Augmentez significativement vos distances de freinage.",
         "Évitez tout déplacement non indispensable lors des pluies verglaçantes."
       ],
+      localityClimatologyContext: profile.snowThresholds.climatologicalContext,
+      localityProfileName: profile.regimeName,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
   }
 
   // ----------------------------------------------------
-  // 6. CANICULE & VAGUE DE CHALEUR
+  // 6. CANICULE & VAGUE DE CHALEUR (ADAPTÉ AU RÉGIME THERMIQUE LOCAL)
   // ----------------------------------------------------
-  const isHighHeat = day.tempMax >= 32;
-  const isTropicalNight = day.tempMin >= 19;
+  const heatJaune = profile.heatThresholds.jauneTxC;
+  const heatOrange = profile.heatThresholds.orangeTxC;
+  const heatOrangeTn = profile.heatThresholds.orangeTnC;
+  const heatRouge = profile.heatThresholds.rougeTxC;
 
-  if (isHighHeat || (day.tempMax >= 30 && isTropicalNight)) {
+  const isHeatTriggered = day.tempMax >= heatJaune || (day.tempMax >= (heatJaune - 2) && day.tempMin >= heatOrangeTn);
+
+  if (isHeatTriggered) {
     let level: VigilanceLevel = 'JAUNE';
     let title = "Vigilance Forte Chaleur";
-    let message = `Température de pointe de ${day.tempMax}°C avec nuit douce (${day.tempMin}°C). Inconfort thermique en milieu urbain.`;
-    let triggerCriteria = `Température maximale Tx: ${day.tempMax}°C (Tn: ${day.tempMin}°C)`;
+    let message = `Température de pointe de ${day.tempMax}°C avec nuit à ${day.tempMin}°C. Inconfort thermique en milieu exposé.`;
+    let triggerCriteria = `Température maximale Tx: ${day.tempMax}°C (Tn: ${day.tempMin}°C) • Seuil adapté au ${profile.regimeName} (Jaune dès ${heatJaune}°C)`;
     let dangerDesc = "Stress thermique pour les personnes fragiles et nourrissons.";
     let impacts = [
       "Coup de chaleur possible lors d'efforts physiques intenses.",
@@ -1078,15 +1214,17 @@ export function computeDayVigilanceAlerts(
       "Augmentation des concentrations d'ozone dans l'air."
     ];
 
-    if (day.tempMax >= 39 || (day.tempMax >= 37 && day.tempMin >= 22)) {
+    if (day.tempMax >= heatRouge || (day.tempMax >= (heatOrange + 2) && day.tempMin >= (heatOrangeTn + 2))) {
       level = 'ROUGE';
       title = "Alerte Rouge Canicule Extrême";
       message = `Canicule exceptionnelle et durable. Températures de l'ordre de ${day.tempMax}°C l'après-midi et ${day.tempMin}°C la nuit. Danger pour l'ensemble de la population.`;
+      triggerCriteria = `Température extrême sous abri Tx: ${day.tempMax}°C (Seuil Rouge local: ${heatRouge}°C)`;
       dangerDesc = "Chaleur accablante avec risque majeur de déshydratation et coups de chaleur.";
-    } else if (day.tempMax >= 35 || (day.tempMax >= 33 && day.tempMin >= 20)) {
+    } else if (day.tempMax >= heatOrange || (day.tempMax >= (heatOrange - 2) && day.tempMin >= heatOrangeTn)) {
       level = 'ORANGE';
       title = "Vigilance Orange Canicule";
       message = `Vague de chaleur marquée (Tx: ${day.tempMax}°C, Tn: ${day.tempMin}°C). Récupération nocturne difficile sans climatisation.`;
+      triggerCriteria = `Températures couplées Tx: ${day.tempMax}°C / Tn: ${day.tempMin}°C (Seuil Orange local: Tx ≥ ${heatOrange}°C, Tn ≥ ${heatOrangeTn}°C)`;
       dangerDesc = "Période de chaleur intense et prolongée nécessitant des précautions sanitaires strictes.";
     }
 
@@ -1096,7 +1234,7 @@ export function computeDayVigilanceAlerts(
       durationHours, isOngoing 
     } = computeDualTimingWindow(
       hoursToUse,
-      h => h.temperature >= 28,
+      h => h.temperature >= (heatJaune - 4),
       h => h.temperature,
       isToday,
       currentHourNum,
@@ -1134,17 +1272,28 @@ export function computeDayVigilanceAlerts(
         "Fermez volets et fenêtres pendant la journée et aérez la nuit.",
         "Évitez les efforts physiques intenses aux heures les plus chaudes (12h-18h)."
       ],
+      localityClimatologyContext: profile.heatThresholds.climatologicalContext,
+      localityProfileName: profile.regimeName,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
   }
 
   // ----------------------------------------------------
-  // 7. BROUILLARD GIVRANT & VISIBILITÉ NULLE
+  // 7. BROUILLARDS SCIENTIFIQUEMENT DIFFÉRENCIÉS (GIVRANT, RAYONNEMENT, ADVECTION, VALLÉE, OROGRAPHIQUE, DENSE)
   // ----------------------------------------------------
   const isFogCode = [45, 48].includes(day.weatherCode) || hoursToUse.some(h => [45, 48].includes(h.weatherCode));
   if (isFogCode) {
-    const isFreezingFog = minTemp <= 0 || day.weatherCode === 48;
+    const fogDiagnosis = diagnosePreciseFogType({
+      station,
+      minTemp,
+      maxTemp,
+      weatherCode: day.weatherCode,
+      hoursToUse,
+      rainSum,
+      windSpeedMax: day.windSpeedMax || 8
+    });
+
     const { 
       vigilanceStart, vigilanceEnd, 
       eventStart, eventPeak, eventEnd, 
@@ -1160,40 +1309,34 @@ export function computeDayVigilanceAlerts(
 
     alerts.push({
       id: `fog-${dayDateStr}`,
-      phenomenon: 'BROUILLARD_GIVRANT',
-      phenomenonLabel: isFreezingFog ? 'Brouillard Givrant' : 'Brouillard Épais',
+      phenomenon: fogDiagnosis.phenomenonKey,
+      phenomenonLabel: fogDiagnosis.label,
       level: 'JAUNE',
-      emoji: isFreezingFog ? '🌫️❄️' : '🌫️',
-      title: isFreezingFog ? "Vigilance Brouillard Givrant" : "Vigilance Brouillard Épais",
-      message: isFreezingFog
-        ? `Nappes de brouillard dense avec dépôt de givre glissant par températures négatives (${minTemp}°C).`
-        : `Brouillard dense réduisant la visibilité à moins de 200 mètres en matinée.`,
+      emoji: fogDiagnosis.emoji,
+      title: fogDiagnosis.vigilanceTitle,
+      message: fogDiagnosis.vigilanceMessage,
       vigilanceStartHour: vigilanceStart,
       vigilanceEndHour: vigilanceEnd,
       vigilanceWindowLabel: `Vigilance active de ${vigilanceStart} à ${vigilanceEnd}`,
       eventStartHour: eventStart,
       eventPeakHour: eventPeak,
       eventEndHour: eventEnd,
-      eventWindowLabel: `Brouillard dense : ${eventStart} à ${eventEnd} (Densité max à ${eventPeak})`,
-      eventDescription: `Brouillard d'inversion thermique avec visibilité horizontale réduite sous les 200 m.`,
-      dangerLevelDescription: "Réduction drastique de la visibilité sur route et formation de givre local.",
-      triggerThresholdCriteria: `Brouillard WMO ${day.weatherCode} avec visibilité < 200m`,
-      impactsSummary: [
-        "Visibilité très restreinte imposant l'allumage des feux de brouillard.",
-        "Chaussées rendues glissantes par condensation ou givrage.",
-        "Ralentissements aux abords des cours d'eau et cuvettes."
-      ],
-      phases: computeDetailedVigilancePhases('BROUILLARD_GIVRANT', 'JAUNE', vigilanceStart, eventStart, eventPeak, eventEnd, vigilanceEnd),
+      eventWindowLabel: `${fogDiagnosis.shortLabel} : ${eventStart} à ${eventEnd} (Densité max à ${eventPeak})`,
+      eventDescription: `${fogDiagnosis.scientificMechanism} Dissipation attendue vers ${fogDiagnosis.dissipationExpectedHour}.`,
+      dangerLevelDescription: fogDiagnosis.dangerDescription,
+      triggerThresholdCriteria: `${fogDiagnosis.triggerCriteria} • Régime : ${profile.regimeName}`,
+      impactsSummary: fogDiagnosis.impactsSummary,
+      phases: computeDetailedVigilancePhases(fogDiagnosis.phenomenonKey, 'JAUNE', vigilanceStart, eventStart, eventPeak, eventEnd, vigilanceEnd),
       riskSlotLabel: `Créneau de brouillard : ${eventStart} à ${eventEnd} (Densité max : ${eventPeak})`,
       startHourFormatted: eventStart,
       peakHourFormatted: eventPeak,
       endHourFormatted: eventEnd,
       durationHours,
-      severityMetric: `Visibilité < 200 m • ${isFreezingFog ? 'Givre sur chaussée' : 'Humidité saturée 100%'}`,
-      safetyInstructions: [
-        "Allumez vos feux de brouillard avant et arrière (éteignez l'arrière dès dissipation).",
-        "Réduisez votre vitesse à 50 km/h si visibilité inférieure à 50 mètres."
-      ],
+      severityMetric: fogDiagnosis.severityMetric,
+      safetyInstructions: fogDiagnosis.safetyInstructions,
+      localityClimatologyContext: profile.summary,
+      localityProfileName: profile.regimeName,
+      fogDiagnosis,
       isOngoingNow: isOngoing,
       lastUpdatedTimestamp: getFreshTimestamp()
     });
@@ -1287,20 +1430,24 @@ function sanitizeAndDeconflictAlerts(
     list = list.filter(a => a.phenomenon !== 'GRAND_FROID_GEL' && a.phenomenon !== 'NEIGE_VERGLAS');
   }
 
-  // If not hot (maxTemp < 30°C or minTemp < 19°C), remove CANICULE_CHALEUR
-  if (maxTemp < 30 || minTemp < 19) {
+  const profile = getLocalityClimatologyProfile(station);
+
+  // If not hot compared to local heat threshold, remove CANICULE_CHALEUR
+  if (maxTemp < (profile.heatThresholds.jauneTxC - 1.0) || minTemp < (profile.heatThresholds.orangeTnC - 2.5)) {
     list = list.filter(a => a.phenomenon !== 'CANICULE_CHALEUR');
   }
 
-  // If no rain or low rain (< 15mm), remove PLUIE_INONDATION unless convective storm
+  // If no rain or low rain compared to locality threshold, remove PLUIE_INONDATION unless convective storm
   const totalRain = day.rainMm ?? day.precipitationSumMm ?? 0;
-  if (totalRain < 15.0) {
+  const rainJauneThreshold = profile.rainThresholds.jaune24hMm;
+  if (totalRain < (rainJauneThreshold - 1.0)) {
     list = list.filter(a => a.phenomenon !== 'PLUIE_INONDATION');
   }
 
-  // If wind gust is below threshold (< 65 km/h in plain, < 80 km/h in mountain), remove VENT_VIOLENT
+  // If wind gust is below local threshold (minus tolerance), remove VENT_VIOLENT
   const maxGust = day.windGustMax || ((day.windSpeedMax || 15) * 1.4);
-  if (maxGust < (isMountain ? 80 : 65)) {
+  const windJauneThreshold = profile.windThresholds.jauneGustKmh;
+  if (maxGust < (windJauneThreshold - 6)) {
     list = list.filter(a => a.phenomenon !== 'VENT_VIOLENT_TORNADE');
   }
 

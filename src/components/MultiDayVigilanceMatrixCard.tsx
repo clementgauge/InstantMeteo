@@ -99,10 +99,45 @@ const PHENOMENA_CONFIG: Record<VigilancePhenomenon, { label: string; icon: strin
   },
   BROUILLARD_GIVRANT: { 
     label: 'Brouillard Givrant', 
+    icon: '❄️🌫️', 
+    bg: 'bg-slate-800/60 border-slate-600/40', 
+    text: 'text-slate-300',
+    description: 'Visibilité horizontale inférieure à 200 m avec risque de dépôt de givre et verglas sur les chaussées.'
+  },
+  BROUILLARD_RAYONNEMENT: { 
+    label: 'Brouillard de Rayonnement', 
     icon: '🌫️', 
     bg: 'bg-slate-800/60 border-slate-600/40', 
     text: 'text-slate-300',
-    description: 'Visibilité horizontale inférieure à 200 m avec risque de dépôt de givre sur les chaussées.'
+    description: 'Refroidissement nocturne radiatif du sol par ciel clair sous anticyclone.'
+  },
+  BROUILLARD_ADVECTION: { 
+    label: 'Brouillard d\'Advection', 
+    icon: '🌊🌫️', 
+    bg: 'bg-slate-800/60 border-slate-600/40', 
+    text: 'text-slate-300',
+    description: 'Masse d\'air maritime tiède et humide glissant sur un sol ou une eau froide.'
+  },
+  BROUILLARD_VALLEE: { 
+    label: 'Brouillard de Vallée', 
+    icon: '⛰️🌫️', 
+    bg: 'bg-slate-800/60 border-slate-600/40', 
+    text: 'text-slate-300',
+    description: 'Inversion thermique et accumulation d\'air froid et humide dans les fonds de vallée.'
+  },
+  BROUILLARD_OROGRAPHIQUE: { 
+    label: 'Brouillard Orographique', 
+    icon: '🏔️🌫️', 
+    bg: 'bg-slate-800/60 border-slate-600/40', 
+    text: 'text-slate-300',
+    description: 'Soulèvement d\'air humide le long des pentes montagneuses condensant en stratus.'
+  },
+  BROUILLARD_DENSE: { 
+    label: 'Brouillard Dense', 
+    icon: '🌫️', 
+    bg: 'bg-slate-800/60 border-slate-600/40', 
+    text: 'text-slate-300',
+    description: 'Épaisse nappe de brouillard avec visibilité routière inférieure à 150 mètres.'
   },
   AVALANCHES: { 
     label: 'Avalanches', 
@@ -432,10 +467,21 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {OFFICIAL_PHENOMENA_LIST.map((phenom) => {
-                  const cfg = PHENOMENA_CONFIG[phenom];
-                  const alertItem = selectedDay.alerts.find(a => a.phenomenon === phenom);
                   const isAvalanche = phenom === 'AVALANCHES';
                   const isPlainStation = !isMountainStation;
+
+                  // Match either the exact phenomenon or any specific fog diagnosis
+                  const alertItem = selectedDay.alerts.find(a => 
+                    a.phenomenon === phenom || 
+                    (phenom === 'BROUILLARD_GIVRANT' && a.phenomenon.startsWith('BROUILLARD'))
+                  );
+
+                  const cfg = alertItem && PHENOMENA_CONFIG[alertItem.phenomenon]
+                    ? PHENOMENA_CONFIG[alertItem.phenomenon]
+                    : PHENOMENA_CONFIG[phenom];
+
+                  const displayLabel = alertItem?.phenomenonLabel || cfg.label;
+                  const displayIcon = alertItem?.emoji || cfg.icon;
 
                   // If avalanche for plain station, show plain status
                   const level: VigilanceLevel = (isAvalanche && isPlainStation) 
@@ -462,11 +508,11 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl p-1.5 rounded-xl bg-slate-900 border border-slate-800 shrink-0">
-                            {cfg.icon}
+                            {displayIcon}
                           </span>
                           <div>
                             <h4 className="text-xs font-black text-white leading-tight">
-                              {cfg.label}
+                              {displayLabel}
                             </h4>
                             <p className="text-[10px] text-slate-400 mt-0.5">
                               {isAvalanche && isPlainStation ? 'Zone de plaine' : (isActiveWarning ? 'Vigilance en cours' : 'Situation calme')}
@@ -514,22 +560,33 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
 
             {/* EXPANDED DETAILS FOR SELECTED PHENOMENON */}
             {selectedPhenomenon && (() => {
-              const cfg = PHENOMENA_CONFIG[selectedPhenomenon];
-              const alertItem = selectedDay.alerts.find(a => a.phenomenon === selectedPhenomenon);
+              // Match exact or general fog
+              const alertItem = selectedDay.alerts.find(a => 
+                a.phenomenon === selectedPhenomenon || 
+                (selectedPhenomenon === 'BROUILLARD_GIVRANT' && a.phenomenon.startsWith('BROUILLARD'))
+              );
+
+              const cfg = alertItem && PHENOMENA_CONFIG[alertItem.phenomenon]
+                ? PHENOMENA_CONFIG[alertItem.phenomenon]
+                : PHENOMENA_CONFIG[selectedPhenomenon];
+
               const isAvalanche = selectedPhenomenon === 'AVALANCHES';
               const isPlainStation = !isMountainStation;
               const level: VigilanceLevel = (isAvalanche && isPlainStation) ? 'VERT' : (alertItem ? alertItem.level : 'VERT');
               const badge = getLevelBadge(level);
 
+              const displayLabel = alertItem?.phenomenonLabel || cfg.label;
+              const displayIcon = alertItem?.emoji || cfg.icon;
+
               return (
                 <div className="rounded-2xl border border-blue-500/50 bg-slate-950/90 p-5 space-y-4 shadow-2xl animate-fadeIn">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl p-2 rounded-2xl bg-slate-900 border border-slate-800">{cfg.icon}</span>
+                      <span className="text-3xl p-2 rounded-2xl bg-slate-900 border border-slate-800">{displayIcon}</span>
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-base font-black text-white">
-                            Détails &amp; Consignes : {cfg.label}
+                            Détails &amp; Consignes : {displayLabel}
                           </h4>
                           <span className={`px-2 py-0.5 rounded-full text-xs font-black border ${badge.bg}`}>
                             {level}
@@ -550,41 +607,86 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
                   </div>
 
                   {level !== 'VERT' && alertItem ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-                      {/* Left: Timing and Mechanics */}
-                      <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                        <h5 className="font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                          <Clock className="h-4 w-4 text-amber-400" />
-                          Créneau Horaire &amp; Description de l'Événement
-                        </h5>
-                        <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-300 font-mono font-bold">
-                          ⏱️ Début : {alertItem.eventStartHour || alertItem.startHourFormatted} • Pic : {alertItem.eventPeakHour || alertItem.peakHourFormatted} • Fin : {alertItem.eventEndHour || alertItem.endHourFormatted}
-                        </div>
-                        <p className="text-slate-200 leading-relaxed">
-                          {alertItem.eventDescription || alertItem.message}
-                        </p>
-                        {alertItem.severityMetric && (
-                          <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
-                            <strong>Métriques : </strong> <span className="text-amber-300 font-mono font-bold">{alertItem.severityMetric}</span>
+                    <div className="space-y-4 text-xs">
+                      {/* Grid 1: Timing & Instructions */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* Left: Timing and Mechanics */}
+                        <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                          <h5 className="font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-amber-400" />
+                            Créneau Horaire &amp; Description de l'Événement
+                          </h5>
+                          <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-300 font-mono font-bold">
+                            ⏱️ Début : {alertItem.eventStartHour || alertItem.startHourFormatted} • Pic : {alertItem.eventPeakHour || alertItem.peakHourFormatted} • Fin : {alertItem.eventEndHour || alertItem.endHourFormatted}
                           </div>
-                        )}
+                          <p className="text-slate-200 leading-relaxed">
+                            {alertItem.eventDescription || alertItem.message}
+                          </p>
+                          {alertItem.severityMetric && (
+                            <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+                              <strong>Métriques : </strong> <span className="text-amber-300 font-mono font-bold">{alertItem.severityMetric}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right: Official Safety Instructions */}
+                        <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                          <h5 className="font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                            Consignes de Sécurité Officielles
+                          </h5>
+                          <ul className="space-y-2">
+                            {alertItem.safetyInstructions.map((inst, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-slate-200">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                                <span>{inst}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
 
-                      {/* Right: Official Safety Instructions */}
-                      <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                        <h5 className="font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                          Consignes de Sécurité Officielles
-                        </h5>
-                        <ul className="space-y-2">
-                          {alertItem.safetyInstructions.map((inst, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-slate-200">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                              <span>{inst}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {/* Specialized Box 1: Local Climatological Adaptation */}
+                      {(alertItem.localityProfileName || alertItem.localityClimatologyContext || alertItem.triggerThresholdCriteria) && (
+                        <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-950/30 via-slate-900 to-indigo-950/30 border border-blue-500/30 space-y-1.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-blue-300 font-bold">
+                              <span className="text-base">🌍</span>
+                              <span>Vigilance Adaptée au Contexte Local : <strong className="text-white">{alertItem.localityProfileName || station.name}</strong></span>
+                            </div>
+                            {alertItem.triggerThresholdCriteria && (
+                              <span className="text-[11px] font-mono bg-blue-900/40 text-blue-200 px-2 py-0.5 rounded border border-blue-500/30">
+                                {alertItem.triggerThresholdCriteria}
+                              </span>
+                            )}
+                          </div>
+                          {alertItem.localityClimatologyContext && (
+                            <p className="text-slate-300 text-[11px] leading-relaxed">
+                              {alertItem.localityClimatologyContext}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Specialized Box 2: Scientific Fog Diagnosis Details */}
+                      {alertItem.fogDiagnosis && (
+                        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-amber-300 font-bold">
+                              <span>🔬 Diagnostic Micrométéorologique : {alertItem.fogDiagnosis.label}</span>
+                            </div>
+                            <span className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                              ☀️ Dissipation : ~{alertItem.fogDiagnosis.dissipationExpectedHour}
+                            </span>
+                          </div>
+                          <p className="text-slate-300 text-[11px] leading-relaxed">
+                            <strong className="text-slate-200">Mécanisme physique : </strong>{alertItem.fogDiagnosis.scientificMechanism}
+                          </p>
+                          <p className="text-slate-400 text-[11px]">
+                            <strong className="text-slate-300">Conditions favorables : </strong>{alertItem.fogDiagnosis.associatedConditions}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-slate-300 space-y-2">

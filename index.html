@@ -13,9 +13,9 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="robots" content="index, follow, max-image-preview:large, noai, noimageai" />
     <meta name="tdm-reservation" content="1" />
-    <title>Instant Météo - Prévisions & Radar HD Haute Précision</title>
-    <meta name="description" content="Application météorologique de précision pour les 35 000 communes de France : prévisions directes et temps réel (0-24h / 7j), observatoire néphologique et atlas nuages OMM, archives journalières et bilan du mois en cours, matrice de vigilances Météo-France multi-jours, modèles court terme (AROME, IFS, GFS, ICON), tendances et scénarios à 14 jours, bulletins météo J+1 à J+7, prévisions sub-saisonnières à 30 jours, tendances saisonnières à 8 mois par département, région et France entière, et radar précipitations HD." />
-    <meta name="keywords" content="météo france, prévisions météo, radar précipitations, webcam météo saint malo, observatoire néphologique, vigilance météo france, météo temps réel" />
+    <title>Instant Météo France - Météo Direct, Température & Radar Pluie HD</title>
+    <meta name="description" content="Instant Météo (InstantMétéo) : Prévisions météo en direct pour toute la France et 35 000 communes. Consultez la température en temps réel, le radar pluie HD haute précision, les vigilances Météo-France, les webcams en direct et les modèles AROME." />
+    <meta name="keywords" content="instantmétéo, instant météo, instantmeteo, météo, meteo, météo france, meteofrance, instant, température, temperature, radar, radar pluie, radar météo, france, prévisions météo, météo en direct, vigilance météo france, météo temps réel, arome, météo direct, météo 14 jours" />
     <meta name="author" content="Instant Météo" />
     <link rel="canonical" href="https://instant-meteo.fr/" />
 
@@ -23,15 +23,15 @@
     <meta property="og:site_name" content="Instant Météo" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://instant-meteo.fr/" />
-    <meta property="og:title" content="Instant Météo - Prévisions & Radar HD Haute Précision" />
-    <meta property="og:description" content="Application météorologique de précision pour les 35 000 communes de France : prévisions directes et temps réel, radar précipitations HD, webcams panoramiques et vigilances Météo-France." />
+    <meta property="og:title" content="Instant Météo France - Météo Direct, Température & Radar Pluie HD" />
+    <meta property="og:description" content="Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France, température instantanée, radar précipitations pluie/neige HD, alertes vigilances Météo-France et webcams en direct." />
     <meta property="og:image" content="/icon-512.png" />
     <meta property="og:locale" content="fr_FR" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Instant Météo - Prévisions & Radar HD Haute Précision" />
-    <meta name="twitter:description" content="Prévisions météo haute précision 35 000 communes, radar précipitations HD, webcams panoramiques motorisées et observatoire nuages." />
+    <meta name="twitter:title" content="Instant Météo France - Météo Direct, Température & Radar Pluie HD" />
+    <meta name="twitter:description" content="Prévisions météo instantanées en France : température temps réel, radar pluie HD, alertes Météo-France et webcams en direct." />
     <meta name="twitter:image" content="/icon-512.png" />
 
     <!-- Schema.org JSON-LD Structured Data for Google Search Console -->
@@ -43,11 +43,13 @@
           "@type": "WebApplication",
           "@id": "https://instant-meteo.fr/#app",
           "name": "Instant Météo",
+          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Instant Météo France", "Météo France Instant"],
           "url": "https://instant-meteo.fr/",
           "applicationCategory": "WeatherApplication",
           "operatingSystem": "All",
           "browserRequirements": "Requires JavaScript. Requires HTML5.",
-          "description": "Application météorologique de précision pour les 35 000 communes de France : prévisions directes, radar précipitations HD, webcams et observatoires en direct.",
+          "description": "Application météorologique de précision pour les 35 000 communes de France : prévisions directes, température temps réel, radar précipitations HD, webcams et vigilances Météo-France.",
+          "keywords": "instantmétéo, météo, instant, météofrance, france, température, radar, radar pluie, prévisions météo, météo direct, vigilance",
           "offers": {
             "@type": "Offer",
             "price": "0",
@@ -59,8 +61,14 @@
           "@id": "https://instant-meteo.fr/#website",
           "url": "https://instant-meteo.fr/",
           "name": "Instant Météo",
-          "description": "Application météorologique de précision pour les 35 000 communes de France",
-          "inLanguage": "fr-FR"
+          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Météo France Instantanée"],
+          "description": "Portail météo de précision pour la France : prévisions, températures en temps réel, radar pluie HD et vigilances Météo-France",
+          "inLanguage": "fr-FR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://instant-meteo.fr/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
         }
       ]
     }
@@ -127,7 +135,23 @@
      crossorigin="anonymous"></script>
   </head>
   <body class="bg-slate-100 text-slate-900 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">
-    <div id="root"></div>
+    <div id="root">
+      <noscript>
+        <header style="padding: 24px; font-family: sans-serif; background: #0f172a; color: #f8fafc;">
+          <h1>Instant Météo France - Prévisions Météo Direct, Température &amp; Radar Pluie</h1>
+          <p>Bienvenue sur <strong>Instant Météo</strong> (InstantMétéo) : votre portail météo instantané pour toute la <strong>France</strong> et ses 35 000 communes.</p>
+          <p>Consultez la <strong>température</strong> en direct, les cartes du <strong>radar</strong> de précipitations en temps réel, les vigilances officielles de <strong>Météo-France</strong>, les webcams panoramiques et les prévisions haute précision à 14 jours.</p>
+          <nav>
+            <ul>
+              <li><a href="/direct" style="color: #38bdf8;">Météo en direct et température</a></li>
+              <li><a href="/radar" style="color: #38bdf8;">Radar des précipitations pluie et neige</a></li>
+              <li><a href="/vigilances" style="color: #38bdf8;">Carte de vigilance Météo-France</a></li>
+              <li><a href="/webcams" style="color: #38bdf8;">Webcams météo panoramiques</a></li>
+            </ul>
+          </nav>
+        </header>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

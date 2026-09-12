@@ -76,4 +76,4 @@ Disallow: /api/
 Disallow: /data/
 Allow: /
 
-Sitemap: /sitemap.xml
+Sitemap: https://instant-meteo.fr/sitemap.xml
