@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { WorldAverageTemperatureMap } from '../components/WorldAverageTemperatureMap';
 import { CommunityWeatherMap } from '../components/CommunityWeatherMap';
+import { ThematicMapsSuite, ThematicMapType } from '../components/ThematicMapsSuite';
 
 interface GigaRadarViewProps {
   currentStation: LocationPoint;
@@ -46,7 +47,7 @@ interface GigaRadarViewProps {
   simplifiedMode?: boolean;
   onOpenSearchModal: () => void;
   onNavigateTab?: (tabId: string) => void;
-  initialMapMode?: 'radar' | 'worldTemperature' | 'communityReports';
+  initialMapMode?: 'radar' | 'worldTemperature' | 'communityReports' | 'thematic';
 }
 
 export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
@@ -61,7 +62,8 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   onNavigateTab,
   initialMapMode = 'radar'
 }) => {
-  const [activeMapMode, setActiveMapMode] = useState<'radar' | 'worldTemperature' | 'communityReports'>(initialMapMode);
+  const [activeMapMode, setActiveMapMode] = useState<'radar' | 'worldTemperature' | 'communityReports' | 'thematic'>(initialMapMode);
+  const [thematicType, setThematicType] = useState<ThematicMapType>('airQuality');
   const [activeSubBlock, setActiveSubBlock] = useState<'storm' | 'fire' | null>(null);
   const [showOtherMapsModal, setShowOtherMapsModal] = useState<boolean>(false);
 
@@ -110,6 +112,22 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
           <Users className="h-4 w-4 text-emerald-300" />
           <span>👥 Carte Collaborative Utilisateurs</span>
         </button>
+
+        <button
+          id="radar-tab-thematic-maps"
+          onClick={() => {
+            setActiveMapMode('thematic');
+            setThematicType('airQuality');
+          }}
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
+            activeMapMode === 'thematic'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 ring-2 ring-purple-400/40'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Layers className="h-4 w-4 text-purple-300" />
+          <span>✨ 6 Cartes Thématiques (OSM)</span>
+        </button>
       </div>
 
       {activeMapMode === 'worldTemperature' ? (
@@ -121,6 +139,13 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         <CommunityWeatherMap
           currentStation={currentStation}
           seniorMode={seniorMode}
+        />
+      ) : activeMapMode === 'thematic' ? (
+        <ThematicMapsSuite
+          initialType={thematicType}
+          currentStation={currentStation}
+          seniorMode={seniorMode}
+          onClose={() => setActiveMapMode('radar')}
         />
       ) : (
         <>
@@ -361,92 +386,256 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
         {/* Collapsible / Expandable Grid of Available Other Maps */}
         {showOtherMapsModal && (
-          <div className="mt-6 pt-5 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in duration-200">
-            <button
-              id="btn-show-world-temp-map"
-              onClick={() => {
-                setActiveMapMode('worldTemperature');
-                setShowOtherMapsModal(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xl">🌡️</span>
-                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60">
-                  OpenStreetMap
-                </span>
-              </div>
-              <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
-                Températures Moyennes Mondiales
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                Normales climatiques annuelles par pays &amp; records absolus.
-              </div>
-            </button>
+          <div className="mt-6 pt-5 border-t border-slate-800 space-y-4 animate-in fade-in duration-200">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-cyan-400" />
+              <span>Les 6 Nouvelles Cartes Thématiques Spécialisées (OpenStreetMap &amp; Copernicus)</span>
+            </div>
 
-            <button
-              id="btn-show-community-map"
-              onClick={() => {
-                setActiveMapMode('communityReports');
-                setShowOtherMapsModal(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xl">👥</span>
-                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60">
-                  Direct Citoyen
-                </span>
-              </div>
-              <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
-                Carte Collaborative Utilisateurs
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                Observations constatées par les utilisateurs (+150 pts par signalement).
-              </div>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* 1. Qualité de l'air ATMO */}
+              <button
+                id="btn-thematic-air-quality"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('airQuality');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🍃</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/70 px-2 py-0.5 rounded-full border border-emerald-800/70">
+                    ATMO &amp; Copernicus
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
+                  Qualité de l'Air &amp; Polluants
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Indice ATMO en direct, PM2.5, PM10, Ozone O3, NO2 et seuils sanitaires.
+                </div>
+              </button>
 
-            <button
-              onClick={() => {
-                setActiveMapMode('radar');
-                setShowOtherMapsModal(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-blue-500/50 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xl">🌧️</span>
-                <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-800/60">
-                  Radar HD
-                </span>
-              </div>
-              <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
-                Radar Précipitations ARAMIS
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                Pluie, neige, grêle et suivi des foyers orageux en temps réel.
-              </div>
-            </button>
+              {/* 2. Indice UV et risque solaire */}
+              <button
+                id="btn-thematic-uv-index"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('uvIndex');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">☀️</span>
+                  <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/70 px-2 py-0.5 rounded-full border border-amber-800/70">
+                    Norme OMS UV
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
+                  Indice UV &amp; Risque Solaire
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Niveau maximum quotidien d'UV et conseils certifiés de protection de la peau.
+                </div>
+              </button>
 
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xl">🚗</span>
-                <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/60">
-                  Itinéraire
-                </span>
-              </div>
-              <div className="font-black text-sm text-white group-hover:text-indigo-300 transition">
-                Carte Routes &amp; Déplacements
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                Calculateur météo routier d'autoroutes, vent traversier et intempéries.
-              </div>
-            </button>
+              {/* 3. Carte des risques d'incendie */}
+              <button
+                id="btn-thematic-fire-risk"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('fireRisk');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-orange-950/40 to-slate-900 hover:bg-slate-850 border border-orange-500/40 hover:border-orange-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🔥</span>
+                  <span className="text-[10px] font-black uppercase text-orange-300 bg-orange-950/70 px-2 py-0.5 rounded-full border border-orange-800/70">
+                    EFFIS / IFM
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-orange-300 transition">
+                  Risques d'Incendie &amp; Forêts
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Indice Forêt Météo (IFM), sécheresse des sols, vent asséchant et massifs.
+                </div>
+              </button>
+
+              {/* 4. Vigilance Orages & Foudre */}
+              <button
+                id="btn-thematic-storms"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('stormsLightning');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-purple-950/40 to-slate-900 hover:bg-slate-850 border border-purple-500/40 hover:border-purple-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">⚡</span>
+                  <span className="text-[10px] font-black uppercase text-purple-300 bg-purple-950/70 px-2 py-0.5 rounded-full border border-purple-800/70">
+                    Foudre &amp; CAPE
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-purple-300 transition">
+                  Vigilance Orages &amp; Foudre
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Densité convective, énergie CAPE en J/kg et impacts d'éclairs en direct.
+                </div>
+              </button>
+
+              {/* 5. Pression atmosphérique & Isobares */}
+              <button
+                id="btn-thematic-pressure"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('pressureIsobars');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-cyan-950/40 to-slate-900 hover:bg-slate-850 border border-cyan-500/40 hover:border-cyan-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">⏱️</span>
+                  <span className="text-[10px] font-black uppercase text-cyan-300 bg-cyan-950/70 px-2 py-0.5 rounded-full border border-cyan-800/70">
+                    Synoptique ARPEGE
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-cyan-300 transition">
+                  Pression &amp; Isobares
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Centres d'action Dépression (D) / Anticyclone (A) et baromètres régionaux.
+                </div>
+              </button>
+
+              {/* 6. Température Mer & Côtes */}
+              <button
+                id="btn-thematic-sea-temp"
+                onClick={() => {
+                  setActiveMapMode('thematic');
+                  setThematicType('seaTemperature');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-blue-950/40 to-slate-900 hover:bg-slate-850 border border-blue-500/40 hover:border-blue-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🌊</span>
+                  <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-950/70 px-2 py-0.5 rounded-full border border-blue-800/70">
+                    Copernicus Marine
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
+                  Température Mer &amp; Côtes
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Température de surface de la mer (SST), houle et état des bassins maritimes.
+                </div>
+              </button>
+            </div>
+
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-3 border-t border-slate-800/60 flex items-center gap-2">
+              <Globe2 className="h-4 w-4 text-amber-400" />
+              <span>Autres Cartes Synoptiques &amp; Collaboratives</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <button
+                id="btn-show-world-temp-map"
+                onClick={() => {
+                  setActiveMapMode('worldTemperature');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🌡️</span>
+                  <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60">
+                    OpenStreetMap
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
+                  Températures Mondiales
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Normales climatiques annuelles par pays &amp; records absolus.
+                </div>
+              </button>
+
+              <button
+                id="btn-show-community-map"
+                onClick={() => {
+                  setActiveMapMode('communityReports');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">👥</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60">
+                    Direct Citoyen
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
+                  Carte Collaborative
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Observations constatées par les utilisateurs (+150 pts).
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveMapMode('radar');
+                  setShowOtherMapsModal(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-blue-500/50 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🌧️</span>
+                  <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-800/60">
+                    Radar HD
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
+                  Radar ARAMIS
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Pluie, neige, grêle et suivi des foyers orageux en temps réel.
+                </div>
+              </button>
+
+              <button
+                onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">🚗</span>
+                  <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/60">
+                    Itinéraire
+                  </span>
+                </div>
+                <div className="font-black text-sm text-white group-hover:text-indigo-300 transition">
+                  Carte Routes
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  Calculateur météo routier d'autoroutes et vent traversier.
+                </div>
+              </button>
+            </div>
           </div>
         )}
       </div>

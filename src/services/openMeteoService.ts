@@ -518,7 +518,7 @@ export async function searchLocalities(query: string): Promise<LocationPoint[]> 
  */
 export async function getLocalityFromCoordinates(latitude: number, longitude: number): Promise<LocationPoint> {
   try {
-    // 1. Fetch elevation and locality name via Open-Meteo elevation & geocoding / reverse
+    // 1. Fetch elevation via Open-Meteo elevation API
     const elevationUrl = `https://api.open-meteo.com/v1/elevation?latitude=${latitude}&longitude=${longitude}`;
     const elevRes = await fetch(elevationUrl).catch(() => null);
     let elevation = 150;
@@ -533,12 +533,110 @@ export async function getLocalityFromCoordinates(latitude: number, longitude: nu
     const isHighAltitude = elevation >= 1500;
     const stage = getBioclimaticStage(elevation);
 
+    let localityName = '';
+    let localityDept = '';
+    let localityRegion = '';
+    let localityCountry = isFrench ? 'France' : 'Monde';
+
+    // 2. High-Accuracy Reverse Geocoding (Base Adresse Nationale & API Gouv + BigDataCloud fallback)
+    if (isFrench) {
+      try {
+        // Source 1: API Adresse Data Gouv (Base Adresse Nationale - ultra-précise au mètre près)
+        const banRes = await fetch(
+          `https://api-adresse.data.gouv.fr/reverse/?lon=${longitude}&lat=${latitude}`,
+          { signal: AbortSignal.timeout(3500) }
+        );
+        if (banRes.ok) {
+          const banData = await banRes.json();
+          const feat = banData?.features?.[0]?.properties;
+          if (feat && feat.city) {
+            localityName = feat.city;
+            if (feat.context) {
+              const parts = feat.context.split(',').map((p: string) => p.trim());
+              localityDept = parts[1] ? `${parts[0]} - ${parts[1]}` : parts[0] || '';
+              localityRegion = parts[2] || '';
+            } else if (feat.postcode) {
+              localityDept = feat.postcode.substring(0, 2);
+            }
+          }
+        }
+      } catch (e) {
+        // Pass through to next geocoder
+      }
+
+      if (!localityName) {
+        try {
+          // Source 2 : API Découpage Administratif Gouv
+          const gouvRes = await fetch(
+            `https://geo.api.gouv.fr/communes?lat=${latitude}&lon=${longitude}&fields=nom,code,codeDepartement,codeRegion,population`,
+            { signal: AbortSignal.timeout(3000) }
+          );
+          if (gouvRes.ok) {
+            const communes = await gouvRes.json();
+            if (Array.isArray(communes) && communes.length > 0 && communes[0]?.nom) {
+              localityName = communes[0].nom;
+              localityDept = communes[0].codeDepartement ? `Dép. ${communes[0].codeDepartement}` : '';
+            }
+          }
+        } catch (e) {
+          // Pass through
+        }
+      }
+    }
+
+    // Source 3 : BigDataCloud international reverse geocoder
+    if (!localityName) {
+      try {
+        const bdcRes = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=fr`,
+          { signal: AbortSignal.timeout(3000) }
+        );
+        if (bdcRes.ok) {
+          const bdc = await bdcRes.json();
+          localityName = bdc.locality || bdc.city || bdc.principalSubdivision || '';
+          if (!localityDept && bdc.principalSubdivision) {
+            localityDept = bdc.principalSubdivision;
+          }
+          if (!localityRegion && bdc.countryName) {
+            localityRegion = bdc.countryName;
+          }
+          if (bdc.countryName) {
+            localityCountry = bdc.countryName;
+          }
+        }
+      } catch (e) {
+        // Fallback below
+      }
+    }
+
+    // Fallback: nearest French station metadata
+    if (!localityName && isFrench) {
+      let closest = FRENCH_STATIONS[0];
+      let minDist = Number.MAX_VALUE;
+      for (const st of FRENCH_STATIONS) {
+        const dLat = st.latitude - latitude;
+        const dLon = st.longitude - longitude;
+        const d = Math.sqrt(dLat * dLat + dLon * dLon);
+        if (d < minDist) {
+          minDist = d;
+          closest = st;
+        }
+      }
+      localityName = closest.name;
+      localityDept = closest.department || '';
+      localityRegion = closest.region || '';
+    }
+
+    if (!localityName) {
+      localityName = `Position GPS (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°)`;
+    }
+
     return {
-      id: `gps-${latitude.toFixed(3)}-${longitude.toFixed(3)}`,
-      name: `Position GPS (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°)`,
-      department: isFrench ? "France (Coordonnées directes)" : "Monde (GPS)",
-      region: isFrench ? "Métropole" : "Localisation personnalisée",
-      country: isFrench ? "France" : "Monde",
+      id: `gps-${latitude.toFixed(4)}-${longitude.toFixed(4)}`,
+      name: localityName,
+      department: localityDept || (isFrench ? "France" : "Localité"),
+      region: localityRegion || (isFrench ? "Métropole" : "International"),
+      country: localityCountry,
       countryCode: isFrench ? "FR" : "WLD",
       latitude: Math.round(latitude * 10000) / 10000,
       longitude: Math.round(longitude * 10000) / 10000,

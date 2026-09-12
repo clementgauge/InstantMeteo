@@ -118,8 +118,8 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
 
   const visiblePages = ALL_PAGES.filter(p => isPageVisible(p.id));
 
-  // Desktop state: 3 distinct levels ('full', 'icons', 'minimal')
-  const [sidebarLevel, setSidebarLevel] = useState<'minimal' | 'icons' | 'full'>('full');
+  // Desktop state: 3 distinct levels ('full', 'icons', 'minimal') - default is 'minimal' (réduit de base)
+  const [sidebarLevel, setSidebarLevel] = useState<'minimal' | 'icons' | 'full'>('minimal');
   const [showRubriques, setShowRubriques] = useState(false);
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? '');
   

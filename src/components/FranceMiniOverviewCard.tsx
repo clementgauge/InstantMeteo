@@ -3,7 +3,10 @@ import L from 'leaflet';
 import { 
   Compass, 
   RotateCcw,
-  Maximize2
+  Maximize2,
+  Minimize2,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -60,6 +63,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 }) => {
   const [selectedSlot, setSelectedSlot] = useState<'current' | 'afternoon' | 'tomorrow'>('current');
   const [regionsData, setRegionsData] = useState<RegionWeather[]>(FRANCE_REGIONS);
+  const [isExpandedPc, setIsExpandedPc] = useState<boolean>(false);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -169,16 +173,14 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         touchZoom: true
       });
 
-      // OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        subdomains: ['a', 'b', 'c']
+      // High-Quality Crisp Retina Map Tiles (CartoDB Voyager HD)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        // @ts-ignore
+        detectRetina: true,
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
       }).addTo(map);
-
-      // Attribution discreet
-      L.control.attribution({ position: 'bottomright', prefix: false })
-        .addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OSM</a>')
-        .addTo(map);
 
       // Markers Layer Group
       const markersGroup = L.layerGroup().addTo(map);
@@ -186,14 +188,14 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
       mapInstanceRef.current = map;
 
-      // Fit France bounds tightly so it fits in the smaller compact container
-      map.fitBounds(FRANCE_BOUNDS, { padding: [6, 6] });
+      // Fit France bounds tightly
+      map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
     }
 
     const timer = setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
-        mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [6, 6] });
+        mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
       }
     }, 150);
 
@@ -277,12 +279,38 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [6, 6] });
+      mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
     }
   };
 
+  const handleZoomIn = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.zoomOut();
+    }
+  };
+
+  const handleToggleExpandPc = () => {
+    setIsExpandedPc(prev => !prev);
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+        if (!isExpandedPc) {
+          mapInstanceRef.current.setZoom(mapInstanceRef.current.getZoom() + 0.5);
+        }
+      }
+    }, 200);
+  };
+
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-200">
+    <div className={`rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
+      isExpandedPc ? 'ring-2 ring-blue-500/50 shadow-xl' : ''
+    }`}>
       {/* Sleek Compact Header */}
       <div className="flex items-center justify-between gap-2 pb-2 mb-1.5 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2 min-w-0">
@@ -299,8 +327,8 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           </div>
         </div>
 
-        {/* Compact Slot Controls */}
-        <div className="flex items-center gap-1 shrink-0">
+        {/* Compact Slot Controls & Zoom Actions */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-800 text-[11px]">
             <button
               onClick={() => setSelectedSlot('current')}
@@ -334,32 +362,62 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
             </button>
           </div>
 
+          {/* PC Zoom Buttons */}
+          <div className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+            <button
+              onClick={handleZoomIn}
+              title="Zoomer sur la carte (PC)"
+              aria-label="Zoomer"
+              className="flex items-center justify-center h-6 w-6 rounded-md bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 shadow-xs border border-slate-200 dark:border-slate-700 transition active:scale-95 cursor-pointer"
+            >
+              <ZoomIn className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleZoomOut}
+              title="Dézoomer de la carte (PC)"
+              aria-label="Dézoomer"
+              className="flex items-center justify-center h-6 w-6 rounded-md bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 shadow-xs border border-slate-200 dark:border-slate-700 transition active:scale-95 cursor-pointer"
+            >
+              <ZoomOut className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleToggleExpandPc}
+              title={isExpandedPc ? "Réduire la vue" : "Agrandir le bloc (Vue HD)"}
+              className={`hidden md:flex items-center gap-1 px-1.5 h-6 rounded-md text-[10px] font-bold border transition cursor-pointer ${
+                isExpandedPc 
+                  ? 'bg-blue-600 text-white border-blue-500' 
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+              }`}
+            >
+              {isExpandedPc ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+              <span>{isExpandedPc ? 'Réduire' : 'Zoomer'}</span>
+            </button>
+          </div>
+
           <button
             onClick={handleRecenter}
-            title="Recentrer la carte"
+            title="Recentrer sur toute la France"
             className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
           >
             <RotateCcw className="h-3 w-3" />
           </button>
-
-          {onNavigateTab && (
-            <button
-              onClick={() => onNavigateTab('franceMap')}
-              title="Agrandir la carte"
-              className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-            >
-              <Maximize2 className="h-3 w-3" />
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Much Smaller Compact Map Container */}
-      <div className="relative w-full h-[185px] sm:h-[210px] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+      {/* Map Container (Dynamically scalable on PC via Zoom toggle) */}
+      <div className={`relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
+        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'h-[195px] sm:h-[220px]'
+      }`}>
         <div 
           ref={mapContainerRef} 
           className="w-full h-full z-0"
         />
+
+        {/* Floating PC Zoom Overlay Badge */}
+        <div className="absolute bottom-2 left-2 z-[400] flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-slate-300 border border-slate-700/60 pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>HD Retina • 13 Régions</span>
+        </div>
       </div>
     </div>
   );

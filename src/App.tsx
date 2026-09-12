@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
-import { fetchWeatherData } from './services/openMeteoService';
+import { fetchWeatherData, getLocalityFromCoordinates } from './services/openMeteoService';
 import { getRichWeatherInfo } from './utils/weatherIcons';
 import { Header } from './components/Header';
 import { DossierExportModal } from './components/DossierExportModal';
@@ -76,7 +76,6 @@ import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt'
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
-import { LiveWebcamsView } from './views/LiveWebcamsView';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 
 function WeatherApp() {
@@ -314,16 +313,27 @@ function WeatherApp() {
   const [vigilanceRefreshSeconds, setVigilanceRefreshSeconds] = useState<number>(300); // 5 min (300s)
   const [macroRefreshSeconds, setMacroRefreshSeconds] = useState<number>(1800); // 30 min (1800s)
 
-  // Automatic and Manual GPS Geolocation
+  // Automatic and Manual High-Precision GPS Geolocation
   const handleLocateGps = () => {
     if (typeof window !== 'undefined' && navigator.geolocation) {
       setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const userLat = position.coords.latitude;
           const userLon = position.coords.longitude;
 
-          // Find closest station in FRENCH_STATIONS
+          try {
+            // Obtain high-accuracy locality with exact commune name via official French reverse geocoding
+            const preciseLocality = await getLocalityFromCoordinates(userLat, userLon);
+            if (preciseLocality && preciseLocality.name) {
+              setCurrentStation(preciseLocality);
+              return;
+            }
+          } catch (geoErr) {
+            console.warn("High-precision reverse geocoding error, falling back:", geoErr);
+          }
+
+          // Fallback if network lookup failed
           let closest = FRENCH_STATIONS[0];
           let minDistance = Number.MAX_VALUE;
 
@@ -337,31 +347,27 @@ function WeatherApp() {
             }
           });
 
-          if (minDistance < 0.2) {
-            setCurrentStation(closest);
-          } else {
-            const gpsStation: LocationPoint = {
-              id: 'gps-local-user',
-              name: `Ma Position GPS (${closest.region || closest.name})`,
-              department: closest.department,
-              region: closest.region,
-              latitude: Number(userLat.toFixed(4)),
-              longitude: Number(userLon.toFixed(4)),
-              altitude: closest.altitude || 150,
-              climateZone: closest.climateZone || 'Tempéré',
-              allTimeRecordMax: closest.allTimeRecordMax || 40.5,
-              allTimeRecordMin: closest.allTimeRecordMin || -15.0,
-              allTimeRecordRain24h: closest.allTimeRecordRain24h || 75.0,
-              isMountain: closest.altitude ? closest.altitude >= 800 : false
-            };
-            setCurrentStation(gpsStation);
-          }
+          const fallbackStation: LocationPoint = {
+            id: `gps-${userLat.toFixed(4)}-${userLon.toFixed(4)}`,
+            name: `Position (${userLat.toFixed(2)}°, ${userLon.toFixed(2)}°)`,
+            department: closest.department,
+            region: closest.region,
+            latitude: Number(userLat.toFixed(4)),
+            longitude: Number(userLon.toFixed(4)),
+            altitude: closest.altitude || 150,
+            climateZone: closest.climateZone || 'Tempéré',
+            allTimeRecordMax: closest.allTimeRecordMax || 40.5,
+            allTimeRecordMin: closest.allTimeRecordMin || -15.0,
+            allTimeRecordRain24h: closest.allTimeRecordRain24h || 75.0,
+            isMountain: closest.altitude ? closest.altitude >= 800 : false
+          };
+          setCurrentStation(fallbackStation);
         },
         (err) => {
           console.log("GPS geolocation fallback to default station:", err.message);
           setIsLoading(false);
         },
-        { enableHighAccuracy: true, timeout: 8000 }
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
       );
     }
   };
@@ -947,14 +953,6 @@ function WeatherApp() {
                 tempUnit={tempUnit}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onBackToMain={() => setActiveTab('realtime')}
-              />
-            )}
-
-            {activeTab === 'liveWebcams' && (
-              <LiveWebcamsView
-                station={currentStation}
-                weather={weather}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
               />
             )}
 

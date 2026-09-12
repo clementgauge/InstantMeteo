@@ -49,7 +49,7 @@ import {
   Plus
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
-import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
+import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
 import { DynamicSkyHeroArt } from '../components/DynamicSkyHeroArt';
 import { FloatingWeatherBubble } from '../components/FloatingWeatherBubble';
 import { UnifiedHourly48hTrend } from '../components/UnifiedHourly48hTrend';
@@ -140,7 +140,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
-  const [showMoreObservatories, setShowMoreObservatories] = useState<boolean>(false);
   const initialGeoBackdrop = getClientGeographicBackdrop(
     station.name,
     station.region,
@@ -159,21 +158,17 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
     );
     setCityPhotoUrl(initialBg);
 
-    const query = station.name || 'Paris';
-    const region = station.region || '';
-    const dept = station.department || '';
-    const alt = station.altitude || 0;
-    fetch(`/api/city-photo?city=${encodeURIComponent(query)}&region=${encodeURIComponent(region)}&department=${encodeURIComponent(dept)}&altitude=${alt}`)
-      .then(res => res.json())
-      .then(data => {
-        if (isMounted && data) {
-          const validUrl = data.photoUrl || data.url;
-          if (validUrl) {
-            setCityPhotoUrl(validUrl);
-          }
-        }
-      })
-      .catch(() => {});
+    // Résolution multi-source asynchrone (Wikipedia REST API + Wikimedia + backend)
+    fetchCityRealPhoto(
+      station.name,
+      station.region,
+      station.department,
+      station.altitude
+    ).then((resolvedPhoto) => {
+      if (isMounted && resolvedPhoto) {
+        setCityPhotoUrl(resolvedPhoto);
+      }
+    }).catch(() => {});
 
     return () => {
       isMounted = false;
@@ -675,123 +670,100 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             />
           )}
 
-          {/* Blocs experts avancés (collapsibles via "Voir plus" en mode standard) */}
+          {/* Blocs experts avancés affichés directement sans bouton voir plus */}
           {!simplifiedMode && (
-            <div className="space-y-6 pt-2">
-              <div className="flex justify-center">
-                <button
-                  id="realtime-see-more-toggle-btn"
-                  onClick={() => setShowMoreObservatories(!showMoreObservatories)}
-                  className="flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-900/60 via-slate-900 to-indigo-900/60 border border-blue-500/40 text-blue-200 hover:text-white hover:border-blue-400 hover:scale-[1.02] shadow-xl transition active:scale-95 cursor-pointer font-bold text-sm"
-                >
-                  <span>
-                    {showMoreObservatories
-                      ? "Masquer les données & observatoires détaillés"
-                      : "Voir plus (Radiographie certifiée, Nuages 48h, Gelées, Gradient vertical)"}
-                  </span>
-                  <ChevronDown 
-                    className={`h-5 w-5 transition-transform duration-300 ${
-                      showMoreObservatories ? 'rotate-180 text-cyan-300' : 'text-blue-400 animate-bounce'
-                    }`} 
-                  />
-                </button>
+            <div className="space-y-6 pt-6 border-t border-slate-800/80">
+              {/* Radiographie complète des données météorologiques certifiées */}
+              <div id="realtime-certified-precision" className="scroll-mt-28">
+                <CertifiedPrecisionMeteoHub
+                  weather={weather}
+                  station={station}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
               </div>
 
-              {showMoreObservatories && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 border-t border-slate-800/80 pt-6">
-                  {/* Radiographie complète des données météorologiques certifiées */}
-                  <div id="realtime-certified-precision" className="scroll-mt-28">
-                    <CertifiedPrecisionMeteoHub
-                      weather={weather}
-                      station={station}
-                      seniorMode={seniorMode}
-                      tempUnit={tempUnit}
-                    />
-                  </div>
+              {/* Observatoires Spécialisés */}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Observatoires Spécialisés :</span>
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'CLOUD' ? 'NONE' : 'CLOUD')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'CLOUD'
+                        ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                        : 'bg-slate-900/80 text-sky-300 border-sky-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    ☁️ Observatoire Néphologique &amp; Nuages 48h
+                  </button>
 
-                  {/* Observatoires Spécialisés */}
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Observatoires Spécialisés :</span>
-                      <button
-                        onClick={() => setActiveWinterModule(activeWinterModule === 'CLOUD' ? 'NONE' : 'CLOUD')}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-                          activeWinterModule === 'CLOUD'
-                            ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
-                            : 'bg-slate-900/80 text-sky-300 border-sky-800/40 hover:bg-slate-800'
-                        }`}
-                      >
-                        ☁️ Observatoire Néphologique &amp; Nuages 48h
-                      </button>
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'FROST' ? 'NONE' : 'FROST')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'FROST'
+                        ? 'bg-indigo-500 text-slate-950 border-indigo-400 shadow-md shadow-indigo-500/20'
+                        : 'bg-slate-900/80 text-indigo-300 border-indigo-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    🧊 Gelées &amp; Grands Froids (5 Paliers)
+                  </button>
 
-                      <button
-                        onClick={() => setActiveWinterModule(activeWinterModule === 'FROST' ? 'NONE' : 'FROST')}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-                          activeWinterModule === 'FROST'
-                            ? 'bg-indigo-500 text-slate-950 border-indigo-400 shadow-md shadow-indigo-500/20'
-                            : 'bg-slate-900/80 text-indigo-300 border-indigo-800/40 hover:bg-slate-800'
-                        }`}
-                      >
-                        🧊 Gelées &amp; Grands Froids (5 Paliers)
-                      </button>
-
-                      <button
-                        onClick={() => setActiveWinterModule(activeWinterModule === 'ALTITUDE' ? 'NONE' : 'ALTITUDE')}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
-                          activeWinterModule === 'ALTITUDE'
-                            ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md shadow-blue-500/20'
-                            : 'bg-slate-900/80 text-blue-300 border-blue-800/40 hover:bg-slate-800'
-                        }`}
-                      >
-                        ⛰️ Isotherme 0°C &amp; Gradient Vertical
-                      </button>
-                    </div>
-
-                    {activeWinterModule === 'CLOUD' && (
-                      <div className="animate-in fade-in duration-200">
-                        <CloudNephologyObservatoryCard
-                          station={station}
-                          weather={weather}
-                          hourlyForecasts={hourly}
-                          seniorMode={seniorMode}
-                          tempUnit={tempUnit}
-                          simplifiedMode={simplifiedMode}
-                        />
-                      </div>
-                    )}
-
-                    {activeWinterModule === 'FROST' && (
-                      <div className="animate-in fade-in duration-200">
-                        <FrostAndColdObservatoryCard
-                          station={station}
-                          seniorMode={seniorMode}
-                          tempUnit={tempUnit}
-                        />
-                      </div>
-                    )}
-
-                    {activeWinterModule === 'ALTITUDE' && (
-                      <div className="animate-in fade-in duration-200">
-                        <AltitudeMeteorologyCard
-                          station={station}
-                          weather={weather}
-                          seniorMode={seniorMode}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Radiographie complète des conditions atmosphériques */}
-                  <div id="realtime-deep-conditions" className="scroll-mt-28">
-                    <DeepWeatherConditionsCard
-                      weather={weather}
-                      station={station}
-                      seniorMode={seniorMode}
-                      tempUnit={tempUnit}
-                    />
-                  </div>
+                  <button
+                    onClick={() => setActiveWinterModule(activeWinterModule === 'ALTITUDE' ? 'NONE' : 'ALTITUDE')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                      activeWinterModule === 'ALTITUDE'
+                        ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md shadow-blue-500/20'
+                        : 'bg-slate-900/80 text-blue-300 border-blue-800/40 hover:bg-slate-800'
+                    }`}
+                  >
+                    ⛰️ Isotherme 0°C &amp; Gradient Vertical
+                  </button>
                 </div>
-              )}
+
+                {activeWinterModule === 'CLOUD' && (
+                  <div className="animate-in fade-in duration-200">
+                    <CloudNephologyObservatoryCard
+                      station={station}
+                      weather={weather}
+                      hourlyForecasts={hourly}
+                      seniorMode={seniorMode}
+                      tempUnit={tempUnit}
+                      simplifiedMode={simplifiedMode}
+                    />
+                  </div>
+                )}
+
+                {activeWinterModule === 'FROST' && (
+                  <div className="animate-in fade-in duration-200">
+                    <FrostAndColdObservatoryCard
+                      station={station}
+                      seniorMode={seniorMode}
+                      tempUnit={tempUnit}
+                    />
+                  </div>
+                )}
+
+                {activeWinterModule === 'ALTITUDE' && (
+                  <div className="animate-in fade-in duration-200">
+                    <AltitudeMeteorologyCard
+                      station={station}
+                      weather={weather}
+                      seniorMode={seniorMode}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Radiographie complète des conditions atmosphériques */}
+              <div id="realtime-deep-conditions" className="scroll-mt-28">
+                <DeepWeatherConditionsCard
+                  weather={weather}
+                  station={station}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
+              </div>
             </div>
           )}
         </div>
