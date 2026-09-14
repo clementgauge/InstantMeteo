@@ -320,15 +320,15 @@ export const ShortTermMultiModelEnsembleCard: React.FC<ShortTermMultiModelEnsemb
     // 🤖 IA & Deep Learning
     {
       id: 'graphcast-ai',
-      name: 'GraphCast AI 25 km',
+      name: 'GraphCast ECMWF 25 km',
       agency: 'Google DeepMind / ECMWF',
       country: 'International',
       category: 'AI_NEURAL',
       type: 'AI',
-      resolution: '25 km (Modèle Neuronal Hybride)',
+      resolution: '25 km (Modèle Numérique GraphCast)',
       updateFrequency: '4 runs / jour',
       range: '0 à 10 jours',
-      specialty: 'Modèle d\'apprentissage profond révolutionnaire basé sur des graphes 3D',
+      specialty: 'Prévision probabiliste globale par maillage sphérique 3D (ECMWF)',
       color: 'border-purple-500 bg-purple-950/40 text-purple-300',
       badgeColor: 'bg-purple-600/30 text-purple-300 border-purple-500/50',
       isHighRes: false,
@@ -1163,7 +1163,7 @@ export const ShortTermMultiModelEnsembleCard: React.FC<ShortTermMultiModelEnsemb
                       {model.isAI ? (
                         <span className="rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 text-[9px] font-black uppercase flex items-center gap-1">
                           <Cpu className="h-2.5 w-2.5" />
-                          <span>IA Neuronal</span>
+                          <span>GraphCast</span>
                         </span>
                       ) : model.isEnsemble ? (
                         <span className="rounded-md bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-0.5 text-[9px] font-black uppercase">

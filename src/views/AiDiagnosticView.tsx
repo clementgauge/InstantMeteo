@@ -95,11 +95,11 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
               <Sparkles className="h-6 w-6" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                Intelligence Artificielle Climatologique
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                Synthèse Climatologique &amp; Expertises
               </span>
               <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl'}`}>
-                Diagnostic Expert & Santé ({station.name})
+                Diagnostic Expert &amp; Santé ({station.name})
               </h2>
             </div>
           </div>
@@ -107,10 +107,10 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           <button
             onClick={onRefreshDiagnostic}
             disabled={isLoadingDiagnostic}
-            className="flex items-center gap-2 rounded-2xl border border-indigo-500/40 bg-indigo-600/20 px-4 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-600 hover:text-white transition disabled:opacity-50"
+            className="flex items-center gap-2 rounded-2xl border border-sky-500/40 bg-sky-600/20 px-4 py-2 text-xs font-bold text-sky-300 hover:bg-sky-600 hover:text-white transition disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${isLoadingDiagnostic ? 'animate-spin' : ''}`} />
-            <span>Régénérer l'analyse</span>
+            <span>Actualiser le diagnostic</span>
           </button>
         </div>
 
@@ -119,15 +119,15 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
             <p className={`text-slate-200 leading-relaxed font-medium ${seniorMode ? 'text-xl' : 'text-base'}`}>
               « {diagnostic.summary} »
             </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-indigo-300">
+            <div className="mt-3 flex items-center gap-2 text-xs text-sky-300">
               <Clock className="h-3.5 w-3.5" />
-              <span>Généré à {diagnostic.generatedAt || diagnostic.generationDate || 'Temps réel'} pour les conditions de {station.name}</span>
+              <span>Synthèse établie à {diagnostic.generatedAt || diagnostic.generationDate || 'Temps réel'} pour les conditions de {station.name}</span>
             </div>
           </div>
         ) : (
           <div className="mt-6 flex items-center justify-center py-6">
-            <RefreshCw className="h-6 w-6 animate-spin text-indigo-400" />
-            <span className="ml-3 text-sm text-slate-400">Génération de l'analyse intelligente en cours...</span>
+            <RefreshCw className="h-6 w-6 animate-spin text-sky-400" />
+            <span className="ml-3 text-sm text-slate-400">Analyse des observations et prévisions en cours...</span>
           </div>
         )}
       </div>
@@ -139,7 +139,7 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
             <div className="flex items-center gap-2 text-emerald-400 font-bold mb-4">
               <HeartHandshake className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Conseils Santé & Confort</h3>
+              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Conseils Santé &amp; Confort</h3>
             </div>
             <ul className="space-y-3 text-xs text-slate-300">
               {(diagnostic.healthAdvice || [diagnostic.healthAdviceSenior || "Restez bien hydraté."]).map((adv: string, i: number) => (
@@ -155,7 +155,7 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
             <div className="flex items-center gap-2 text-lime-400 font-bold mb-4">
               <Sprout className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Jardin & Végétation</h3>
+              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Jardin &amp; Végétation</h3>
             </div>
             <p className={`text-slate-300 leading-relaxed ${seniorMode ? 'text-base' : 'text-xs'}`}>
               {diagnostic.agricultureImpact}
@@ -166,7 +166,7 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
             <div className="flex items-center gap-2 text-amber-400 font-bold mb-4">
               <Zap className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Énergie & Logement</h3>
+              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Énergie &amp; Logement</h3>
             </div>
             <p className={`text-slate-300 leading-relaxed ${seniorMode ? 'text-base' : 'text-xs'}`}>
               {diagnostic.energyImpact || diagnostic.waterResourceStatus || "Consommation normale."}
@@ -175,12 +175,12 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
         </div>
       )}
 
-      {/* Interactive Question Box with AI Climatologist */}
+      {/* Interactive Question Box with Climatologist */}
       <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
         <div className="flex items-center gap-2 mb-4">
-          <MessageSquare className="h-5 w-5 text-indigo-400" />
+          <MessageSquare className="h-5 w-5 text-sky-400" />
           <h3 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
-            Posez une question au Climatologue IA
+            Poser une question à l'Expert Météo
           </h3>
         </div>
 
@@ -193,7 +193,7 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
                 className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'ai' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
@@ -209,9 +209,9 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
               </div>
             ))}
             {isAsking && (
-              <div className="flex gap-2 text-xs text-indigo-400 items-center">
+              <div className="flex gap-2 text-xs text-sky-400 items-center">
                 <Bot className="h-4 w-4 animate-bounce" />
-                <span>Le climatologue formule sa réponse...</span>
+                <span>L'expert formule ses recommandations...</span>
               </div>
             )}
           </div>
@@ -223,14 +223,14 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ex : Dois-je arroser mon jardin ce soir ? Quel est le meilleur moment pour sortir ?"
-            className={`flex-1 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none ${
+            className={`flex-1 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200 placeholder-slate-500 focus:border-sky-500 focus:outline-none ${
               seniorMode ? 'text-base' : 'text-sm'
             }`}
           />
           <button
             type="submit"
             disabled={isAsking || !question.trim()}
-            className="flex items-center justify-center rounded-2xl bg-indigo-600 px-5 font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-40"
+            className="flex items-center justify-center rounded-2xl bg-sky-600 px-5 font-bold text-white shadow-lg shadow-sky-600/30 hover:bg-sky-500 transition disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
           </button>

@@ -292,15 +292,25 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
         <div className="relative overflow-hidden rounded-[28px] border border-slate-700/60 shadow-2xl text-white bg-slate-950">
           {/* Photographic Background Asset */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center transition-all duration-700 filter brightness-[0.82] contrast-[1.05]"
-            style={{
-              backgroundImage: `url(${cityPhotoUrl})`,
-              backgroundPosition: 'center 35%'
+          <img 
+            src={cityPhotoUrl}
+            alt={`Météo à ${station.name}`}
+            referrerPolicy="no-referrer"
+            onError={() => {
+              const fallback = getClientGeographicBackdrop(
+                station.name,
+                station.region,
+                station.department,
+                station.altitude
+              );
+              if (cityPhotoUrl !== fallback) {
+                setCityPhotoUrl(fallback);
+              }
             }}
+            className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 filter brightness-[0.85] contrast-[1.05]"
           />
           {/* Subtle Atmospheric Gradient Overlay for contrast and readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30" />
 
           {/* Card Content */}
           <div className="relative z-10 p-4 pt-4 space-y-3.5">
@@ -456,14 +466,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </button>
             </div>
 
-            {/* Bouton de Contradiction Météo Directe & Régénération Intense */}
+            {/* Bouton de signalement d'observation de terrain */}
             <button
               onClick={() => setIsContradictionModalOpen(true)}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
               title="Signaler un écart entre la météo affichée et le temps réel observé dehors"
             >
-              <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-              <span>⚡ Contredire le direct (Régénération intense)</span>
+              <Zap className="h-3.5 w-3.5 text-amber-400" />
+              <span>Ajuster le direct (Observation de terrain)</span>
             </button>
           </div>
         </div>

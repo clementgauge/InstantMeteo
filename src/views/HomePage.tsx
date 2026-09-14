@@ -177,31 +177,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
       <main className="relative z-10">
         <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:pb-24 lg:pt-20">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-blue-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              Météo, radar & prévisions
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-950/50 px-3.5 py-1.5 text-xs font-semibold text-sky-200">
+              <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+              Météo, radar &amp; prévisions certifiées
             </div>
-            <h1 className="max-w-3xl text-4xl font-black leading-[1.03] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-3xl text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl text-white">
               Comprendre la météo,
-              <span className="block bg-gradient-to-r from-blue-300 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">
+              <span className="block text-sky-300">
                 avant qu’elle ne vous surprenne.
               </span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-slate-300 sm:text-lg">
-              Instant Météo réunit les observations en direct, les prévisions, le radar, les cartes et les alertes dans une interface pensée pour aller vite sans perdre les détails importants.
+            <p className="mt-6 max-w-2xl text-base font-normal leading-relaxed text-slate-300 sm:text-lg">
+              Instant Météo réunit les observations de terrain en direct, les prévisions numériques haute résolution, le radar officiel, les cartes et les alertes de vigilance dans une interface claire, sobre et humaine.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 onClick={onEnterApp}
-                className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-3.5 text-sm font-black shadow-lg shadow-blue-900/30 transition hover:-translate-y-0.5 hover:shadow-blue-700/30"
+                className="group inline-flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/50 transition active:scale-95 cursor-pointer"
               >
                 Accéder à la météo en direct
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
               <a
                 href="#decouvrir"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-black text-slate-200 transition hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 px-6 py-3.5 text-sm font-semibold text-slate-200 transition cursor-pointer"
               >
                 Découvrir les fonctionnalités
               </a>

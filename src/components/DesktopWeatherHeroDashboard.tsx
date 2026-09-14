@@ -29,7 +29,7 @@ import {
   Zap
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
-import { getClientGeographicBackdrop } from '../utils/geoBackdrops';
+import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 import { UnifiedHourly48hTrend } from './UnifiedHourly48hTrend';
 
@@ -82,21 +82,17 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
     );
     setCityPhotoUrl(initialBg);
 
-    const query = station.name || 'Paris';
-    const region = station.region || '';
-    const dept = station.department || '';
-    const alt = station.altitude || 0;
-    fetch(`/api/city-photo?city=${encodeURIComponent(query)}&region=${encodeURIComponent(region)}&department=${encodeURIComponent(dept)}&altitude=${alt}`)
-      .then(res => res.json())
-      .then(data => {
-        if (isMounted && data) {
-          const validUrl = data.photoUrl || data.url;
-          if (validUrl) {
-            setCityPhotoUrl(validUrl);
-          }
-        }
-      })
-      .catch(() => {});
+    // Résolution multi-source asynchrone (Wikipedia REST API + Wikimedia + backend + terroir)
+    fetchCityRealPhoto(
+      station.name,
+      station.region,
+      station.department,
+      station.altitude
+    ).then((resolvedPhoto) => {
+      if (isMounted && resolvedPhoto) {
+        setCityPhotoUrl(resolvedPhoto);
+      }
+    }).catch(() => {});
 
     return () => {
       isMounted = false;
@@ -149,17 +145,28 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* 1. TOP HERO CARD (Exact 1:1 match with Reference Image)                   */}
       {/* ========================================================================= */}
       <div className="relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl">
-        {/* Photographic Sunset Panorama of Selected City / Landscape */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-700 filter brightness-[0.88] contrast-[1.05]"
-          style={{
-            backgroundImage: `url(${cityPhotoUrl})`,
-            backgroundPosition: 'center 40%'
+        {/* Photographic Panorama of Selected City / Landscape with no-referrer to prevent hotlinking blocks */}
+        <img
+          key={cityPhotoUrl}
+          src={cityPhotoUrl}
+          alt={`Panorama météo de ${station.name}`}
+          referrerPolicy="no-referrer"
+          onError={() => {
+            const fallback = getClientGeographicBackdrop(
+              station.name,
+              station.region,
+              station.department,
+              station.altitude
+            );
+            if (cityPhotoUrl !== fallback) {
+              setCityPhotoUrl(fallback);
+            }
           }}
+          className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 filter brightness-[0.92] contrast-[1.05]"
         />
-        {/* Soft atmospheric gradient overlays for optical depth and text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071120]/95 via-[#071120]/65 to-[#071120]/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071120]/95 via-transparent to-[#071120]/40" />
+        {/* Soft, natural atmospheric vignette for optical depth and crisp text legibility - Never pitch black */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071120]/95 via-[#071120]/45 to-[#071120]/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071120]/85 via-transparent to-[#071120]/50" />
 
         {/* Hero Card Interior */}
         <div className="relative z-10 p-6 sm:p-7 flex flex-col justify-between min-h-[310px]">
@@ -227,10 +234,10 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                   <button
                     onClick={onOpenContradictionModal}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs font-bold text-amber-300 transition active:scale-95 cursor-pointer shadow-sm"
-                    title="Signaler un écart avec la météo observée et lancer une régénération haute intensité pendant quelques minutes"
+                    title="Signaler un écart avec la météo observée et affiner les données avec votre observation de terrain"
                   >
-                    <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-                    <span>⚡ Contredire le direct (Recalibration)</span>
+                    <Zap className="h-3.5 w-3.5 text-amber-400" />
+                    <span>Ajuster le direct (Observation de terrain)</span>
                   </button>
                 )}
               </div>
