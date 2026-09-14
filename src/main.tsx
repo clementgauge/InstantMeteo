@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import './index.css';
 import { initAppUpdateChecker } from './services/appUpdateCheckerService';
+import { initDynamicGoogleVerification } from './utils/seoVerification';
 
 // Initialize background update checker for real-time code deployments
 initAppUpdateChecker();
+initDynamicGoogleVerification();
 
 // Intercept benign third-party script errors (e.g. translation widgets in sandboxed iframes)
 window.addEventListener('error', (event) => {

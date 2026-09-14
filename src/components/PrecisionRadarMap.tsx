@@ -620,8 +620,8 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       baseTileLayerRef.current = null;
     }
 
-    let tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-    let maxNativeZoom = 17;
+    let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+    let maxNativeZoom = 18;
 
     switch (baseEngine) {
       case 'osm':
@@ -637,13 +637,10 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         maxNativeZoom = 18;
         break;
       case 'esri_topo':
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
-        maxNativeZoom = 18;
-        break;
       case 'topo':
       default:
-        tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-        maxNativeZoom = 17;
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+        maxNativeZoom = 18;
         break;
     }
 

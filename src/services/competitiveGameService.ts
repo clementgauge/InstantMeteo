@@ -26,6 +26,7 @@ export interface WeatherBadge {
 }
 
 export interface PlayerProfile {
+  id?: string;
   pseudo: string;
   totalPoints: number;
   streakDays: number; // Flammes consécutives 🔥
@@ -443,6 +444,9 @@ export function resetPlayerPoints(profile: PlayerProfile): PlayerProfile {
 export function deletePlayerProfile(): void {
   try {
     secureRemove(STORAGE_KEY);
+    try {
+      localStorage.removeItem('instant_meteo_last_pseudo');
+    } catch {}
     window.dispatchEvent(new CustomEvent('instant_meteo_score_updated', { detail: null }));
   } catch (err) {
     console.warn('Erreur suppression profil joueur:', err);

@@ -407,9 +407,10 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   const handleDeleteAccount = async () => {
     if (!profile) return;
     const oldPseudo = profile.pseudo;
+    const oldId = profile.id;
     deletePlayerProfile();
     if (isD1Configured()) {
-      await deletePlayerFromD1(oldPseudo);
+      await deletePlayerFromD1(oldPseudo, oldId);
       const remote = await fetchLeaderboardFromD1(null);
       if (remote) setRemoteLeaderboard(remote);
     }

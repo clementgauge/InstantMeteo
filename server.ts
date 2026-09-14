@@ -1651,6 +1651,42 @@ app.get('/api/vigilance-meteofrance', async (req, res) => {
 });
 
 // -------------------------------------------------------------
+// VÉRIFICATION GOOGLE SEARCH CONSOLE SÉCURISÉE (MASQUÉE AUX VISITEURS)
+// -------------------------------------------------------------
+const GOOGLE_VERIF_TAGS = `    <meta name="google-site-verification" content="kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY" />\n    <meta name="google-site-verification" content="w0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM" />`;
+
+// Routes directes de validation Google (méthode fichier HTML)
+app.get('/googlekKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY.html', (req, res) => {
+  res.type('text/html').send('google-site-verification: googlekKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY.html');
+});
+
+app.get('/googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html', (req, res) => {
+  res.type('text/html').send('google-site-verification: googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html');
+});
+
+function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Response, filePath: string) {
+  try {
+    let content = fs.readFileSync(filePath, 'utf-8');
+    const ua = (req.headers['user-agent'] || '').toLowerCase();
+    const isGoogle =
+      ua.includes('google') ||
+      ua.includes('googlebot') ||
+      ua.includes('google-site-verification') ||
+      ua.includes('google-inspectiontool') ||
+      ua.includes('mediapartners-google') ||
+      req.query['google-site-verification'] !== undefined;
+
+    if (isGoogle) {
+      content = content.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(content);
+  } catch (err) {
+    res.sendFile(filePath);
+  }
+}
+
+// -------------------------------------------------------------
 // DÉMARRAGE DU SERVEUR EXPRESS & MIDDLEWARE VITE
 // -------------------------------------------------------------
 async function startServer() {
@@ -1659,12 +1695,42 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    // Intercepter spécifiquement les requêtes des robots Google pour injecter les balises sans les exposer aux utilisateurs
+    app.use(async (req, res, next) => {
+      // Uniquement pour les requêtes de document racine ou HTML
+      if (req.method === 'GET' && (req.path === '/' || req.path === '/index.html' || !req.path.includes('.'))) {
+        const ua = (req.headers['user-agent'] || '').toLowerCase();
+        const isGoogle =
+          ua.includes('google') ||
+          ua.includes('googlebot') ||
+          ua.includes('google-site-verification') ||
+          ua.includes('google-inspectiontool') ||
+          ua.includes('mediapartners-google') ||
+          req.query['google-site-verification'] !== undefined;
+
+        if (isGoogle) {
+          try {
+            let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
+            html = await vite.transformIndexHtml(req.originalUrl, html);
+            html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.send(html);
+          } catch (e) {
+            return next(e);
+          }
+        }
+      }
+      next();
+    });
+
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    const distIndexPath = path.join(distPath, 'index.html');
+    app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      sendHtmlWithConditionalGoogleTags(req, res, distIndexPath);
     });
   }
 

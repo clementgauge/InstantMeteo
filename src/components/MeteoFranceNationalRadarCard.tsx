@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { LiveMiniRadarMapCard } from './LiveMiniRadarMapCard';
 
 interface MeteoFranceNationalRadarCardProps {
   station: LocationPoint;
@@ -770,46 +771,31 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
           </div>
         )}
 
-        {/* TAB 2: LIVE RADAR PLUIE HD DIRECT (Interactive RainViewer Doppler Radar) */}
+        {/* TAB 2: LIVE RADAR PLUIE HD DIRECT (Sans iframe ni clé requise) */}
         {activeTab === 'radar-pluie' && (
-          <div className="relative w-full h-full bg-slate-950">
-            <iframe
-              src={`https://www.rainviewer.com/map.html?loc=46.6,2.4,${radarZoom}&oFa=0&oc=1&layer=radar&sm=1&sn=1`}
-              title="Radar Pluie Météo-France RainViewer"
-              className="w-full h-full border-0"
-              loading="lazy"
-            />
-
-            {/* Radar Controls Toolbar */}
-            <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-20">
-              <button
-                onClick={() => setRadarZoom(prev => Math.min(prev + 1, 9))}
-                className="w-8 h-8 rounded-xl bg-slate-900/90 border border-slate-700 text-white font-black text-sm flex items-center justify-center shadow hover:bg-slate-800 transition"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setRadarZoom(prev => Math.max(prev - 1, 4))}
-                className="w-8 h-8 rounded-xl bg-slate-900/90 border border-slate-700 text-white font-black text-sm flex items-center justify-center shadow hover:bg-slate-800 transition"
-              >
-                -
-              </button>
+          <div className="relative w-full h-full bg-slate-950 p-2 sm:p-3 flex flex-col justify-between">
+            <div className="flex-1 min-h-[360px]">
+              <LiveMiniRadarMapCard
+                station={station}
+                onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
+              />
             </div>
 
-            {/* Reflectivity Color Bar */}
-            <div className="absolute bottom-3 inset-x-3 bg-slate-950/90 backdrop-blur-md p-2 rounded-xl border border-slate-800 flex items-center justify-between text-[10px] text-slate-300 z-20">
+            {/* Reflectivity Color Bar & Quick Fullscreen Button */}
+            <div className="mt-2 bg-slate-950/90 backdrop-blur-md p-2 rounded-xl border border-slate-800 flex items-center justify-between text-[10px] text-slate-300">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sky-400">Échos Radar (dBZ) :</span>
                 <span className="text-slate-400">Faible</span>
-                <div className="w-32 sm:w-48 h-2.5 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 via-amber-400 via-rose-500 to-purple-600 shadow-inner" />
-                <span className="text-rose-400 font-bold">Grêle / Orage violent</span>
+                <div className="w-28 sm:w-48 h-2 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 via-amber-400 via-rose-500 to-purple-600 shadow-inner" />
+                <span className="text-rose-400 font-bold">Grêle / Orage</span>
               </div>
 
               <button
+                type="button"
                 onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-                className="font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1 transition"
+                className="font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1 transition cursor-pointer"
               >
-                <span>Plein Écran</span>
+                <span>Giga Radar</span>
                 <Maximize2 className="h-3 w-3" />
               </button>
             </div>

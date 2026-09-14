@@ -531,10 +531,10 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         subdomains: 'abcd'
       },
       topo: {
-        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-        maxNativeZoom: 17,
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        maxNativeZoom: 18,
         maxZoom: 19,
-        subdomains: 'abc'
+        subdomains: 'abcd'
       },
       hybrid: {
         url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',

@@ -40,7 +40,8 @@ export const AnomaliesView: React.FC<AnomaliesViewProps> = ({
     station.latitude, 
     station.altitude, 
     station.name, 
-    station.country
+    station.country,
+    station.longitude
   );
 
   const currentMonthIdx = new Date().getMonth();

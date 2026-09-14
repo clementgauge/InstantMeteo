@@ -149,19 +149,28 @@ export function getDetailedSeasonalNormals(
     station.latitude,
     station.altitude,
     station.name,
-    station.country
+    station.country,
+    station.longitude
   );
 
   const m = normals.monthly;
   const alt = station.altitude ?? 150;
   const isSouth = station.latitude < 45.0;
+  const isSouthernHemisphere = station.latitude < 0;
   const isCoast = (station.name.toLowerCase().includes('marseille') || 
                    station.name.toLowerCase().includes('nice') || 
                    station.name.toLowerCase().includes('brest') || 
                    station.name.toLowerCase().includes('biarritz'));
 
-  // Season 1: Printemps (Mars: 2, Avril: 3, Mai: 4)
-  const springMonths = [m[2], m[3], m[4]];
+  // Define months for each season based on hemisphere
+  // Northern: Spring (Mar-May), Summer (Jun-Aug), Autumn (Sep-Nov), Winter (Dec-Feb)
+  // Southern: Spring (Sep-Nov), Summer (Dec-Feb), Autumn (Mar-May), Winter (Jun-Aug)
+  const springMonths = isSouthernHemisphere ? [m[8], m[9], m[10]] : [m[2], m[3], m[4]];
+  const summerMonths = isSouthernHemisphere ? [m[11], m[0], m[1]] : [m[5], m[6], m[7]];
+  const autumnMonths = isSouthernHemisphere ? [m[2], m[3], m[4]] : [m[8], m[9], m[10]];
+  const winterMonths = isSouthernHemisphere ? [m[5], m[6], m[7]] : [m[11], m[0], m[1]];
+
+  // Season 1: Printemps
   const springTMin = Number((springMonths.reduce((a, b) => a + b.tMin, 0) / 3).toFixed(1));
   const springTMax = Number((springMonths.reduce((a, b) => a + b.tMax, 0) / 3).toFixed(1));
   const springTMean = Number((springMonths.reduce((a, b) => a + b.tMean, 0) / 3).toFixed(1));
@@ -172,8 +181,7 @@ export function getDetailedSeasonalNormals(
   const springETP = Math.round(springSun * 0.42 + (springTMean > 10 ? (springTMean - 10) * 8 : 0));
   const springDJU = Math.round(Math.max(50, (18 - springTMean) * 92));
 
-  // Season 2: Été (Juin: 5, Juillet: 6, Août: 7)
-  const summerMonths = [m[5], m[6], m[7]];
+  // Season 2: Été
   const summerTMin = Number((summerMonths.reduce((a, b) => a + b.tMin, 0) / 3).toFixed(1));
   const summerTMax = Number((summerMonths.reduce((a, b) => a + b.tMax, 0) / 3).toFixed(1));
   const summerTMean = Number((summerMonths.reduce((a, b) => a + b.tMean, 0) / 3).toFixed(1));
@@ -187,8 +195,7 @@ export function getDetailedSeasonalNormals(
   const summerETP = Math.round(summerSun * 0.58 + (summerTMean > 18 ? (summerTMean - 18) * 14 : 0));
   const summerDJUCooling = Math.round(Math.max(0, (summerTMean - 22) * 92));
 
-  // Season 3: Automne (Septembre: 8, Octobre: 9, Novembre: 10)
-  const autumnMonths = [m[8], m[9], m[10]];
+  // Season 3: Automne
   const autumnTMin = Number((autumnMonths.reduce((a, b) => a + b.tMin, 0) / 3).toFixed(1));
   const autumnTMax = Number((autumnMonths.reduce((a, b) => a + b.tMax, 0) / 3).toFixed(1));
   const autumnTMean = Number((autumnMonths.reduce((a, b) => a + b.tMean, 0) / 3).toFixed(1));
@@ -199,8 +206,7 @@ export function getDetailedSeasonalNormals(
   const autumnETP = Math.round(autumnSun * 0.35);
   const autumnDJU = Math.round(Math.max(120, (18 - autumnTMean) * 91));
 
-  // Season 4: Hiver (Décembre: 11, Janvier: 0, Février: 1)
-  const winterMonths = [m[11], m[0], m[1]];
+  // Season 4: Hiver
   const winterTMin = Number((winterMonths.reduce((a, b) => a + b.tMin, 0) / 3).toFixed(1));
   const winterTMax = Number((winterMonths.reduce((a, b) => a + b.tMax, 0) / 3).toFixed(1));
   const winterTMean = Number((winterMonths.reduce((a, b) => a + b.tMean, 0) / 3).toFixed(1));
@@ -453,14 +459,24 @@ export function generateRealtimeSeasonalComparison(
   weather: CurrentWeather
 ): RealtimeSeasonalComparison {
   const currentMonthIdx = new Date().getMonth(); // 0-11
+  const isSouthern = station.latitude < 0;
   let currentSeasonId: SeasonKey = 'hiver';
-  if (currentMonthIdx >= 2 && currentMonthIdx <= 4) currentSeasonId = 'printemps';
-  else if (currentMonthIdx >= 5 && currentMonthIdx <= 7) currentSeasonId = 'ete';
-  else if (currentMonthIdx >= 8 && currentMonthIdx <= 10) currentSeasonId = 'automne';
+  if (!isSouthern) {
+    if (currentMonthIdx >= 2 && currentMonthIdx <= 4) currentSeasonId = 'printemps';
+    else if (currentMonthIdx >= 5 && currentMonthIdx <= 7) currentSeasonId = 'ete';
+    else if (currentMonthIdx >= 8 && currentMonthIdx <= 10) currentSeasonId = 'automne';
+    else currentSeasonId = 'hiver';
+  } else {
+    // Southern Hemisphere (Sydney, Melbourne, etc.)
+    if (currentMonthIdx >= 2 && currentMonthIdx <= 4) currentSeasonId = 'automne';
+    else if (currentMonthIdx >= 5 && currentMonthIdx <= 7) currentSeasonId = 'hiver';
+    else if (currentMonthIdx >= 8 && currentMonthIdx <= 10) currentSeasonId = 'printemps';
+    else currentSeasonId = 'ete';
+  }
 
   const { seasons } = getDetailedSeasonalNormals(station);
   const currentSeasonData = seasons[currentSeasonId];
-  const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country);
+  const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country, station.longitude);
   const currentMonthNormal = normals.monthly[currentMonthIdx];
 
   // Observed vs normal calculations

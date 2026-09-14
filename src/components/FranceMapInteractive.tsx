@@ -301,8 +301,8 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
     switch (layer) {
       case 'topo':
         return {
-          url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-          attribution: '© OpenTopoMap'
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+          attribution: '© Esri Topo'
         };
       case 'dark':
         return {

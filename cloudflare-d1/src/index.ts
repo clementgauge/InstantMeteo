@@ -164,17 +164,18 @@ export default {
         return jsonResponse({ success: true, message: 'Points réinitialisés sur Cloudflare D1' });
       }
 
-      // 3c. Supprimer un compte joueur
-      if (path === '/api/player/delete' && (request.method === 'POST' || request.method === 'DELETE')) {
+      // 3c. Supprimer un compte joueur (joueur ou administrateur)
+      if ((path === '/api/player/delete' || path === '/api/admin/delete-user' || path === '/api/admin/delete-player') && (request.method === 'POST' || request.method === 'DELETE')) {
         const body: any = await request.json();
-        const { pseudo, id } = body;
-        const targetId = id || (pseudo ? 'usr-' + pseudo.toLowerCase().replace(/[^a-z0-9_-]/g, '_') : null);
-        if (!targetId) {
+        const { pseudo, id } = body || {};
+        const cleanPseudo = (pseudo || '').trim().toLowerCase();
+        const targetId = id || (cleanPseudo ? 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_') : '');
+        if (!targetId && !cleanPseudo) {
           return jsonResponse({ error: 'Identifiant ou pseudo manquant' }, 400);
         }
 
-        await env.DB.prepare('DELETE FROM players WHERE id = ?1').bind(targetId).run();
-        return jsonResponse({ success: true, message: 'Compte joueur supprimé de Cloudflare D1' });
+        await env.DB.prepare('DELETE FROM players WHERE id = ?1 OR LOWER(pseudo) = ?2').bind(targetId, cleanPseudo).run();
+        return jsonResponse({ success: true, message: 'Compte joueur supprimé de Cloudflare D1 avec succès' });
       }
 
       // 4. Liste des Signalements Météo Citoyens du Jour (Réinitialisation quotidienne automatique)

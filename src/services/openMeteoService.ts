@@ -1168,7 +1168,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     // Freezing level (Isotherme 0°C) with advanced atmospheric physics & isothermie
     const nowTime = new Date();
     const currentMonthIndex = nowTime.getMonth();
-    const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country);
+    const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country, station.longitude);
 
     const currentPrecip = cur.precipitation || 0;
     const currentHum = cur.relative_humidity_2m ?? 65;
@@ -1270,7 +1270,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const hoursAgo = currentHourIndexInHourly - p;
 
       // 3-hour diurnal slot normal for that hour
-      const slotNormalInfo = getThreeHourSlotNormal(station.id, lat, alt, currentMonthIndex, pHour, station.name, station.country);
+      const slotNormalInfo = getThreeHourSlotNormal(station.id, lat, alt, currentMonthIndex, pHour, station.name, station.country, station.longitude);
       const tempAnomalyVsSlot = Number((pTemp - slotNormalInfo.slotNormalTemp).toFixed(1));
 
       const isYesterday = pDate.getDate() !== nowTime.getDate();
@@ -2146,7 +2146,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     // Calculate Climate Anomalies against 1991-2020 normals adapted to location & altitude
     const currentHour = nowTime.getHours();
-    const slot3hNormal = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, currentHour, station.name, station.country);
+    const slot3hNormal = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, currentHour, station.name, station.country, station.longitude);
     const monthNormal = normals.monthly[currentMonthIndex];
     
     // Anomaly compared to the 3-hour time slot normal (for short-term high precision)
@@ -2220,11 +2220,11 @@ function getFallbackWeatherData(station: LocationPoint): {
   const isSouth = station.latitude < 45.0;
   const lapse = (alt / 1000) * 6.5;
   const tempBase = Number(((isSouth ? 23.4 : 19.8) - lapse).toFixed(1));
-  const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country);
+  const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country, station.longitude);
   const currentMonthIndex = new Date().getMonth();
   const currentHour = new Date().getHours();
   const monthNormal = normals.monthly[currentMonthIndex];
-  const slotNormal = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, currentHour, station.name, station.country);
+  const slotNormal = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, currentHour, station.name, station.country, station.longitude);
   const delta = Math.round((tempBase - slotNormal.slotNormalTemp) * 10) / 10;
 
   const isotherm = Math.round(Math.max(alt, alt + (tempBase / 0.0065)));
@@ -2232,7 +2232,7 @@ function getFallbackWeatherData(station: LocationPoint): {
   const fallbackPastHourly: PastHourObservation[] = Array.from({ length: 24 }).map((_, i) => {
     const hoursAgo = 24 - i;
     const h = (currentHour - hoursAgo + 24) % 24;
-    const sNorm = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, h, station.name, station.country);
+    const sNorm = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, h, station.name, station.country, station.longitude);
     const temp = Math.round((tempBase - 2 + Math.sin(h / 3.5) * 3) * 10) / 10;
     return {
       timestamp: new Date(Date.now() - hoursAgo * 3600000).toISOString(),

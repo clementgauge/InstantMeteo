@@ -64,6 +64,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const [selectedSlot, setSelectedSlot] = useState<'current' | 'afternoon' | 'tomorrow'>('current');
   const [regionsData, setRegionsData] = useState<RegionWeather[]>(FRANCE_REGIONS);
   const [isExpandedPc, setIsExpandedPc] = useState<boolean>(false);
+  const [mapScope, setMapScope] = useState<'city' | 'france' | 'world'>('city');
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -188,14 +189,24 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
       mapInstanceRef.current = map;
 
-      // Fit France bounds tightly
-      map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+      // Initial View: Center on current station or France
+      if (currentStation && currentStation.latitude && currentStation.longitude) {
+        map.setView([currentStation.latitude, currentStation.longitude], 7);
+      } else {
+        map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+      }
     }
 
     const timer = setTimeout(() => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
-        mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+        if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
+          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 7);
+        } else if (mapScope === 'france') {
+          mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+        } else {
+          mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2);
+        }
       }
     }, 150);
 
@@ -204,13 +215,28 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     };
   }, []);
 
-  // Update Markers: ONLY Weather Symbols for each region!
+  // Update View when station changes or scope changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
+      map.flyTo([currentStation.latitude, currentStation.longitude], 7, { duration: 0.8 });
+    } else if (mapScope === 'france') {
+      map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+    } else if (mapScope === 'world') {
+      map.flyTo([20, currentStation?.longitude || 0], 2, { duration: 0.8 });
+    }
+  }, [currentStation.latitude, currentStation.longitude, currentStation.id, mapScope]);
+
+  // Update Markers: Weather Symbols for regions + Active Marker for currentStation!
   useEffect(() => {
     if (!mapInstanceRef.current || !markersLayerRef.current) return;
 
     const markersGroup = markersLayerRef.current;
     markersGroup.clearLayers();
 
+    // 1. Regional Weather Symbols
     regionsData.forEach(reg => {
       const isCurrentRegion = currentStation.region && 
         (reg.name.toLowerCase().includes(currentStation.region.toLowerCase()) || 
@@ -265,6 +291,40 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
       marker.addTo(markersGroup);
     });
+
+    // 2. Active Pulse Marker for the selected station anywhere in France or on Earth
+    if (currentStation && currentStation.latitude && currentStation.longitude) {
+      const currentStationHtml = `
+        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer group">
+          <span class="absolute inline-flex h-10 w-10 animate-ping rounded-full bg-blue-500 opacity-60"></span>
+          <div class="relative flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-white shadow-xl border-2 border-white ring-2 ring-blue-400 font-bold text-xs whitespace-nowrap">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>${currentStation.name}</span>
+            <span class="text-[10px] text-blue-200">(${currentStation.altitude}m)</span>
+          </div>
+        </div>
+      `;
+
+      const currentIcon = L.divIcon({
+        className: 'current-station-marker',
+        html: currentStationHtml,
+        iconSize: [120, 36],
+        iconAnchor: [60, 18]
+      });
+
+      const currentMarker = L.marker([currentStation.latitude, currentStation.longitude], {
+        icon: currentIcon,
+        zIndexOffset: 1000
+      });
+
+      currentMarker.bindTooltip(`<strong>${currentStation.name}</strong><br/>Altitude: ${currentStation.altitude}m<br/>${currentStation.department || currentStation.country || ''}`, {
+        direction: 'top',
+        offset: [0, -14],
+        opacity: 0.95
+      });
+
+      currentMarker.addTo(markersGroup);
+    }
   }, [regionsData, selectedSlot, currentStation]);
 
   const handleRegionClick = (reg: RegionWeather) => {
@@ -279,7 +339,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+      if (mapScope === 'city') {
+        mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], 7);
+      } else if (mapScope === 'france') {
+        mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+      } else {
+        mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2);
+      }
     }
   };
 
@@ -307,28 +373,67 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     }, 200);
   };
 
+  const isFrenchLocation = !currentStation.country || currentStation.country === 'France';
+
   return (
     <div className={`rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
       isExpandedPc ? 'ring-2 ring-blue-500/50 shadow-xl' : ''
     }`}>
       {/* Sleek Compact Header */}
-      <div className="flex items-center justify-between gap-2 pb-2 mb-1.5 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-1.5 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 shrink-0">
             <Compass className="h-4 w-4" />
           </div>
           <div className="truncate">
             <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none truncate">
-              France Météo Régions
+              {isFrenchLocation ? `Carte Météo Direct • ${currentStation.name}` : `Carte Météo Globale • ${currentStation.name}`}
             </h3>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Symboles du temps par région
+              {currentStation.country ? `${currentStation.name} (${currentStation.country}) • ${currentStation.altitude}m` : `${currentStation.name} (${currentStation.altitude}m)`}
             </span>
           </div>
         </div>
 
-        {/* Compact Slot Controls & Zoom Actions */}
+        {/* Scope Selector: Ma Ville / France / Monde */}
         <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-800 text-[11px]">
+            <button
+              onClick={() => setMapScope('city')}
+              className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
+                mapScope === 'city'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Centrer sur ma ville sélectionnée"
+            >
+              Ma Ville
+            </button>
+            <button
+              onClick={() => setMapScope('france')}
+              className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
+                mapScope === 'france'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Vue d'ensemble de la France métropolitaine"
+            >
+              France
+            </button>
+            <button
+              onClick={() => setMapScope('world')}
+              className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
+                mapScope === 'world'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Vue d'ensemble de la Terre entière"
+            >
+              Monde
+            </button>
+          </div>
+
+          {/* Time Slot Controls */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-800 text-[11px]">
             <button
               onClick={() => setSelectedSlot('current')}
@@ -396,7 +501,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
           <button
             onClick={handleRecenter}
-            title="Recentrer sur toute la France"
+            title="Recentrer sur la sélection"
             className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
           >
             <RotateCcw className="h-3 w-3" />
@@ -416,7 +521,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         {/* Floating PC Zoom Overlay Badge */}
         <div className="absolute bottom-2 left-2 z-[400] flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-slate-300 border border-slate-700/60 pointer-events-none">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>HD Retina • 13 Régions</span>
+          <span>Carte Mondiale Active • {currentStation.name}</span>
         </div>
       </div>
     </div>

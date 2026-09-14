@@ -134,7 +134,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [headerHeight, setHeaderHeight] = React.useState(0);
   const [adminCodeInput, setAdminCodeInput] = React.useState('');
   const [adminCodeFeedback, setAdminCodeFeedback] = React.useState<string | null>(null);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const mobileDropdownRef = React.useRef<HTMLDivElement>(null);
+  const desktopDropdownRef = React.useRef<HTMLDivElement>(null);
   const headerRef = React.useRef<HTMLElement>(null);
 
   // État temps réel pour la barre de statut mobile (heure exacte, vraie batterie, vrai wifi)
@@ -205,13 +206,20 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      const insideMobile = mobileDropdownRef.current && mobileDropdownRef.current.contains(target);
+      const insideDesktop = desktopDropdownRef.current && desktopDropdownRef.current.contains(target);
+      if (!insideMobile && !insideDesktop) {
         setStationDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -356,30 +364,24 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Search Bar + Station Dropdown Button */}
+        {/* Row 2: Station Dropdown Button (on the left) + Search Bar (on the right) */}
         <div className="flex items-center gap-2">
-          {/* Search Button */}
-          <button
-            onClick={onOpenSearchModal}
-            className="flex-1 flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-300 transition active:scale-98 text-left shadow-sm"
-          >
-            <Search className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="truncate">Rechercher une ville...</span>
-          </button>
-
-          {/* Station Selector Dropdown Button */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Station Selector Dropdown Button (A gauche de la recherche) */}
+          <div className="relative shrink-0" ref={mobileDropdownRef}>
             <button
+              type="button"
+              id="mobile-station-selector-btn"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className="flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3 py-1.5 text-left hover:border-slate-700 transition active:scale-98 shadow-sm"
+              className="flex items-center gap-1.5 sm:gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-2.5 sm:px-3 py-2 text-left hover:border-slate-700 transition active:scale-98 shadow-sm cursor-pointer"
+              title="Changer de ville parmi les proposées"
             >
               <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                 <MapPin className="h-3.5 w-3.5 text-blue-400" />
               </div>
-              <div className="min-w-0 max-w-[125px]">
+              <div className="min-w-0 max-w-[100px] sm:max-w-[130px]">
                 <div className="text-xs font-bold text-white truncate">{currentStation.name}</div>
                 <div className="text-[10px] text-slate-400 truncate">
-                  {currentStation.department || '75 - Paris'} • {currentStation.altitude} m
+                  {currentStation.department || '75 - Paris'}
                 </div>
               </div>
               <ChevronDown className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${stationDropdownOpen ? 'rotate-180' : ''}`} />
@@ -387,27 +389,39 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mobile Station Dropdown popup */}
             {stationDropdownOpen && (
-              <div className="absolute right-0 mt-2 max-h-80 w-72 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl z-50">
+              <div 
+                className="absolute left-0 mt-2 max-h-80 w-72 sm:w-80 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl z-50"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <button
+                  type="button"
                   onClick={() => {
                     setStationDropdownOpen(false);
                     onOpenSearchModal();
                   }}
-                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow"
+                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Recherche avancée</span>
+                  <span>Recherche avancée (35 000 villes)</span>
                 </button>
                 <div className="space-y-0.5">
-                  {FRENCH_STATIONS.slice(0, 12).map((st) => (
+                  {FRENCH_STATIONS.slice(0, 16).map((st) => (
                     <button
                       key={st.id}
-                      onClick={() => {
+                      type="button"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         onSelectStation(st);
                         setStationDropdownOpen(false);
                       }}
-                      className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs ${
-                        st.id === currentStation.id ? 'bg-blue-600 text-white font-bold' : 'text-slate-200 hover:bg-slate-800'
+                      className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs transition cursor-pointer active:scale-98 ${
+                        st.id === currentStation.id ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-200 hover:bg-slate-800'
                       }`}
                     >
                       <div className="truncate">
@@ -421,6 +435,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Search Button (A droite de la selection de ville) */}
+          <button
+            type="button"
+            onClick={onOpenSearchModal}
+            className="flex-1 flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-300 transition active:scale-98 text-left shadow-sm cursor-pointer"
+          >
+            <Search className="h-4 w-4 text-slate-400 shrink-0" />
+            <span className="truncate">Rechercher une ville...</span>
+          </button>
         </div>
 
         {/* Row 3: Quick Action Circles (Radar, Vidéos, Premium, France, Paramètres) */}
@@ -574,11 +598,12 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Quick Dropdown Picker */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative" ref={desktopDropdownRef}>
             <button
               id="station-selector-button"
+              type="button"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-700 bg-slate-900/90 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 ${
+              className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-700 bg-slate-900/90 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 cursor-pointer ${
                 seniorMode ? 'text-base py-3 px-5' : 'text-xs sm:text-sm'
               }`}
             >
@@ -602,14 +627,20 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Station List Dropdown */}
             {stationDropdownOpen && (
-              <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl z-50">
+              <div 
+                className="absolute left-0 sm:left-auto sm:right-0 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl z-50"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 {/* Search banner in dropdown */}
                 <button
+                  type="button"
                   onClick={() => {
                     setStationDropdownOpen(false);
                     onOpenSearchModal();
                   }}
-                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow hover:bg-blue-500 transition"
+                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow hover:bg-blue-500 transition cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>Recherche avancée (35 000 communes & Monde)</span>
@@ -624,11 +655,17 @@ export const Header: React.FC<HeaderProps> = ({
                     return (
                       <button
                         key={station.id}
-                        onClick={() => {
+                        type="button"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           onSelectStation(station);
                           setStationDropdownOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition ${
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition cursor-pointer active:scale-98 ${
                           isSelected
                             ? 'bg-blue-600 text-white font-bold'
                             : 'text-slate-200 hover:bg-slate-800'

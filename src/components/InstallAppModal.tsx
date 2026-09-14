@@ -39,7 +39,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   isFullscreen,
   onToggleFullscreen
 }) => {
-  const [activeTab, setActiveTab] = useState<'windows' | 'apk' | 'android' | 'ios' | 'fullscreen'>('windows');
+  const [activeTab, setActiveTab] = useState<'apk' | 'android' | 'ios' | 'windows' | 'fullscreen'>('apk');
   const [copied, setCopied] = useState(false);
   const [copiedApkUrl, setCopiedApkUrl] = useState(false);
   const [copiedWindowsCmdUrl, setCopiedWindowsCmdUrl] = useState(false);
@@ -316,18 +316,6 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
         {/* Navigation Tabs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 p-2 bg-slate-950/90 border-b border-slate-800">
           <button
-            onClick={() => setActiveTab('windows')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
-              activeTab === 'windows'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-            }`}
-          >
-            <Monitor className="h-4 w-4 text-cyan-300" />
-            <span>Windows (PC)</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('apk')}
             className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeTab === 'apk'
@@ -361,6 +349,18 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
           >
             <Apple className="h-4 w-4" />
             <span>iPhone / iPad</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('windows')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              activeTab === 'windows'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+            }`}
+          >
+            <Monitor className="h-4 w-4 text-cyan-300" />
+            <span>Windows (PC)</span>
           </button>
 
           <button
