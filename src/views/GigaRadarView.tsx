@@ -72,45 +72,45 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   }, [currentStation, weather, hourly]);
 
   return (
-    <div id="giga-radar-view" className="space-y-6">
+    <div id="giga-radar-view" className="space-y-4">
       {/* Top Map Mode Switcher */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-[22px] sm:rounded-2xl bg-[#0c1424]/95 sm:bg-slate-900/90 border border-slate-800/90 shadow-xl overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-[#0F172A] border border-slate-800 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveMapMode('radar')}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
             activeMapMode === 'radar'
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+              ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
           <CloudRain className="h-4 w-4" />
-          <span>🌧️ Radar Précipitations &amp; Vents HD</span>
+          <span>Radar Précipitations &amp; Vents HD</span>
         </button>
 
         <button
           id="radar-tab-world-temperatures"
           onClick={() => setActiveMapMode('worldTemperature')}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
             activeMapMode === 'worldTemperature'
-              ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+              ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <Thermometer className="h-4 w-4 text-amber-300" />
-          <span>🌡️ Températures Moyennes Mondiales (OSM)</span>
+          <Thermometer className="h-4 w-4" />
+          <span>Températures Moyennes Mondiales</span>
         </button>
 
         <button
           id="radar-tab-community-reports"
           onClick={() => setActiveMapMode('communityReports')}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
             activeMapMode === 'communityReports'
-              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+              ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <Users className="h-4 w-4 text-emerald-300" />
-          <span>👥 Carte Collaborative Utilisateurs</span>
+          <Users className="h-4 w-4" />
+          <span>Carte Collaborative Terrain</span>
         </button>
 
         <button
@@ -119,14 +119,14 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
             setActiveMapMode('thematic');
             setThematicType('airQuality');
           }}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 active:scale-95 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
             activeMapMode === 'thematic'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 ring-2 ring-purple-400/40'
+              ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
-          <Layers className="h-4 w-4 text-purple-300" />
-          <span>✨ 6 Cartes Thématiques (OSM)</span>
+          <Layers className="h-4 w-4" />
+          <span>Cartes Thématiques (OSM)</span>
         </button>
       </div>
 
@@ -149,55 +149,53 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         />
       ) : (
         <>
-      {/* Top Banner - In Simplified Mode: ONLY the search button. In Normal Mode: full banner (without mobile logos next to search) */}
+      {/* Top Banner - In Simplified Mode: ONLY the search button. In Normal Mode: clean structured header */}
       {simplifiedMode ? (
         <div className="flex items-center justify-between gap-3 p-1">
           <button
             onClick={onOpenSearchModal}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-6 py-3.5 text-sm shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-4 py-2.5 text-xs transition cursor-pointer"
           >
-            <MapPin className="h-4 w-4" />
-            <span>Recherche commune, ville ou pays...</span>
+            <MapPin className="h-3.5 w-3.5" />
+            <span>Rechercher une commune, ville ou station...</span>
           </button>
         </div>
       ) : (
-        <div className="rounded-[24px] sm:rounded-3xl border border-slate-800/90 bg-[#0c1424]/95 sm:bg-gradient-to-br sm:from-slate-900 sm:via-blue-950/40 sm:to-slate-900 p-3.5 sm:p-8 shadow-xl backdrop-blur relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-cyan-600/10 blur-3xl pointer-events-none"></div>
-          
-          {/* Mobile-Only Header Bar: logos removed next to search */}
+        <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+          {/* Mobile Search Button */}
           <div className="sm:hidden flex items-center justify-end">
             <button
               onClick={onOpenSearchModal}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-4 py-2.5 text-xs shadow-md shadow-cyan-600/20 active:scale-95 transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-md bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-3 py-2 text-xs transition cursor-pointer"
             >
               <MapPin className="h-3.5 w-3.5" />
-              <span>Recherche commune</span>
+              <span>Changer de commune</span>
             </button>
           </div>
 
           {/* Desktop / Tablet Header */}
-          <div className="hidden sm:block relative z-10">
+          <div className="hidden sm:block">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
-                  <Radio className="h-4 w-4 text-cyan-400 animate-pulse" />
-                  <span>Cartographie OpenStreetMap &amp; Données Météo Publiques Réseau ARAMIS</span>
+                <div className="flex items-center gap-2 text-[#0284C7] text-xs font-bold uppercase tracking-wider mb-1">
+                  <Radio className="h-3.5 w-3.5 text-[#0284C7]" />
+                  <span>Réseau ARAMIS &amp; Cartographie OpenStreetMap</span>
                 </div>
-                <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-                  Radar Météorologique &amp; Surveillance Feux de Forêt
+                <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+                  Radar Météorologique &amp; Détection des Précipitations
                 </h2>
-                <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-                  Précipitations, orages, vent et détection satellitaire des départs de feux en temps réel avec analyse approfondie dans un rayon de 10 km autour de votre localisation.
+                <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                  Échos de précipitations, détection Doppler et surveillance du risque d'incendie autour de votre commune.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={onOpenSearchModal}
-                  className="flex items-center gap-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-5 py-3 text-xs shadow-lg shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 rounded-md bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-4 py-2 text-xs transition cursor-pointer"
                 >
-                  <MapPin className="h-4 w-4" />
-                  <span>Centrer sur une Ville ou un Pays...</span>
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>Changer de commune...</span>
                 </button>
               </div>
             </div>
@@ -217,31 +215,31 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
       {/* Interactive Toggle Buttons for Storm and Fire Blocks */}
       {!simplifiedMode && (
-        <div className="flex flex-wrap items-center justify-center gap-4 py-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 py-1">
           <button
             id="radar-toggle-storm-btn"
             onClick={() => setActiveSubBlock(activeSubBlock === 'storm' ? null : 'storm')}
-            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition active:scale-95 shadow-xl border cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm transition border cursor-pointer ${
               activeSubBlock === 'storm'
-                ? 'bg-amber-500 text-slate-950 border-amber-300 ring-4 ring-amber-500/30 shadow-amber-500/20'
-                : 'bg-slate-900/90 text-amber-300 border-amber-500/40 hover:bg-slate-800 hover:border-amber-400'
+                ? 'bg-amber-600 text-white border-amber-500'
+                : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
             }`}
           >
-            <Zap className="h-5 w-5 fill-amber-400" />
-            <span>⚡ Estimation du Risque d'Orage &amp; Évolution Horaire</span>
+            <Zap className="h-4 w-4 text-amber-400" />
+            <span>Risque d'Orage &amp; Évolution Convective</span>
           </button>
 
           <button
             id="radar-toggle-fire-btn"
             onClick={() => setActiveSubBlock(activeSubBlock === 'fire' ? null : 'fire')}
-            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition active:scale-95 shadow-xl border cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm transition border cursor-pointer ${
               activeSubBlock === 'fire'
-                ? 'bg-orange-600 text-white border-orange-400 ring-4 ring-orange-500/30 shadow-orange-600/20'
-                : 'bg-slate-900/90 text-orange-400 border-orange-500/40 hover:bg-slate-800 hover:border-orange-400'
+                ? 'bg-orange-600 text-white border-orange-500'
+                : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
             }`}
           >
-            <Flame className="h-5 w-5 fill-orange-400" />
-            <span>🔥 Radar Feux de Forêt &amp; Risque Végétation (10 km)</span>
+            <Flame className="h-4 w-4 text-orange-400" />
+            <span>Indice Risque Feux de Forêt (10 km)</span>
           </button>
         </div>
       )}
@@ -272,76 +270,72 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
       {/* 4. Meteorological & Radar Guide */}
       {!simplifiedMode && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Card 1: RainViewer Radar Precision */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <CloudRain className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-[#0284C7] text-xs font-bold uppercase tracking-wider mb-2">
+                <CloudRain className="h-3.5 w-3.5" />
                 <span>Réseau Radar Doppler ARAMIS</span>
               </div>
-              <h3 className="font-bold text-white text-base mb-2">Précipitations Réelles</h3>
+              <h3 className="font-bold text-white text-sm mb-1.5">Précipitations Réelles</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
                 Données radar temps réel croisées avec les mailles AROME 1.3 km et ECMWF pour éliminer les faux échos et garantir une concordance physique absolue avec le terrain.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-cyan-300 font-semibold flex items-center gap-1">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Mise à jour en continu 24h/24</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
+              Mise à jour en continu 24h/24
             </div>
           </div>
 
           {/* Card 2: 10 KM Fire Radar */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Flame className="h-4 w-4" />
+                <Flame className="h-3.5 w-3.5" />
                 <span>Surveillance 10 km</span>
               </div>
-              <h3 className="font-bold text-white text-base mb-2">Détection Incendies</h3>
+              <h3 className="font-bold text-white text-sm mb-1.5">Détection Incendies</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Surveillance satellitaire infrarouge thermique (MODIS / VIIRS) et calcul de l'Indice Météo Forêt (FWI) pour alerter immédiatement sur les départs de feux rapprochés.
+                Surveillance satellitaire thermique et calcul de l'Indice Forêt Météo pour évaluer la sécheresse de surface et le risque de départ de feu.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-orange-300 font-semibold flex items-center gap-1">
-              <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Consignes de sécurité SDIS intégrées</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
+              Consignes de sécurité SDIS intégrées
             </div>
           </div>
 
           {/* Card 3: Wind Particle Streams */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Wind className="h-4 w-4" />
+                <Wind className="h-3.5 w-3.5" />
                 <span>Champs de Vent</span>
               </div>
-              <h3 className="font-bold text-white text-base mb-2">Flux &amp; Propagation</h3>
+              <h3 className="font-bold text-white text-sm mb-1.5">Flux &amp; Propagation</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Animation particulaire des courants de vent pour anticiper la trajectoire des panaches de fumée et la progression des lignes d'averses ou de grains orageux.
+                Visualisation des vecteurs de vent pour anticiper le déplacement des lignes de grains et la progression des masses d'air.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-teal-300 font-semibold flex items-center gap-1">
-              <Compass className="h-3.5 w-3.5" />
-              <span>Vitesse, rafales et direction</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
+              Vitesse, rafales et direction
             </div>
           </div>
 
           {/* Card 4: Convective Storm Cells */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Zap className="h-4 w-4" />
+                <Zap className="h-3.5 w-3.5" />
                 <span>Orages &amp; Foudre</span>
               </div>
-              <h3 className="font-bold text-white text-base mb-2">Activité Électrique</h3>
+              <h3 className="font-bold text-white text-sm mb-1.5">Activité Électrique</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Détection des impacts d'éclairs et modélisation de l'instabilité (CAPE) pour repérer les cellules orageuses virulentes et les risques de grêle associés.
+                Détection des impacts d'éclairs et modélisation de l'instabilité (CAPE) pour repérer les cellules orageuses virulentes.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-amber-300 font-semibold flex items-center gap-1">
-              <Radio className="h-3.5 w-3.5" />
-              <span>Traçage en temps réel des impacts</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
+              Traçage des impacts réseau Météorage
             </div>
           </div>
         </div>
@@ -350,36 +344,36 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
       )}
 
       {/* 4. Bottom Section: See other map button */}
-      <div className="rounded-3xl border border-slate-800/90 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/30">
-              <Globe2 className="h-6 w-6" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-[#0284C7] border border-slate-700">
+              <Globe2 className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="text-base font-black text-white">Cartes Thématiques Complémentaires</h4>
+              <h4 className="text-sm font-bold text-white">Cartes Thématiques Complémentaires</h4>
               <p className="text-xs text-slate-400">
-                Explorez les cartes synoptiques mondiales, régionales, d'altitude ou les vigilances routières.
+                Consultez la qualité de l'air ATMO, les indices UV, les isobares ou la température de la mer.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               id="radar-bottom-see-other-map-btn"
               onClick={() => setShowOtherMapsModal(!showOtherMapsModal)}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-slate-950 font-black px-6 py-3.5 text-sm shadow-xl shadow-cyan-600/30 transition active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-md bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-4 py-2 text-xs transition cursor-pointer"
             >
-              <Layers className="h-4 w-4" />
-              <span>{showOtherMapsModal ? 'Masquer les cartes' : '🗺️ Voir autre carte'}</span>
+              <Layers className="h-3.5 w-3.5" />
+              <span>{showOtherMapsModal ? 'Masquer les cartes' : 'Explorer les autres cartes'}</span>
             </button>
 
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center justify-center gap-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white px-4 py-3.5 text-xs font-bold transition active:scale-95 cursor-pointer"
+              className="flex items-center justify-center gap-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 text-xs font-semibold transition cursor-pointer"
               title="Remonter en haut de la page radar"
             >
-              <span>🔝 Haut de page</span>
+              <span>Haut de page</span>
             </button>
           </div>
         </div>
@@ -402,18 +396,18 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🍃</span>
-                  <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/70 px-2 py-0.5 rounded-full border border-emerald-800/70">
+                  <span className="text-lg">🍃</span>
+                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800/80">
                     ATMO &amp; Copernicus
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-emerald-400 transition">
                   Qualité de l'Air &amp; Polluants
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-[11px] text-slate-400 mt-1">
                   Indice ATMO en direct, PM2.5, PM10, Ozone O3, NO2 et seuils sanitaires.
                 </div>
               </button>
@@ -427,19 +421,19 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">☀️</span>
-                  <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/70 px-2 py-0.5 rounded-full border border-amber-800/70">
+                  <span className="text-lg">☀️</span>
+                  <span className="text-[10px] font-semibold text-amber-400 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-800/80">
                     Norme OMS UV
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-amber-400 transition">
                   Indice UV &amp; Risque Solaire
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Niveau maximum quotidien d'UV et conseils certifiés de protection de la peau.
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Niveau maximum quotidien d'UV et conseils de protection solaire.
                 </div>
               </button>
 
@@ -452,19 +446,19 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-orange-950/40 to-slate-900 hover:bg-slate-850 border border-orange-500/40 hover:border-orange-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🔥</span>
-                  <span className="text-[10px] font-black uppercase text-orange-300 bg-orange-950/70 px-2 py-0.5 rounded-full border border-orange-800/70">
+                  <span className="text-lg">🔥</span>
+                  <span className="text-[10px] font-semibold text-orange-400 bg-orange-950 px-1.5 py-0.5 rounded border border-orange-800/80">
                     EFFIS / IFM
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-orange-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-orange-400 transition">
                   Risques d'Incendie &amp; Forêts
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Indice Forêt Météo (IFM), sécheresse des sols, vent asséchant et massifs.
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Indice Forêt Météo (IFM), sécheresse des sols et vent asséchant.
                 </div>
               </button>
 
@@ -477,19 +471,19 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-purple-950/40 to-slate-900 hover:bg-slate-850 border border-purple-500/40 hover:border-purple-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">⚡</span>
-                  <span className="text-[10px] font-black uppercase text-purple-300 bg-purple-950/70 px-2 py-0.5 rounded-full border border-purple-800/70">
+                  <span className="text-lg">⚡</span>
+                  <span className="text-[10px] font-semibold text-purple-400 bg-purple-950 px-1.5 py-0.5 rounded border border-purple-800/80">
                     Foudre &amp; CAPE
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-purple-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-purple-400 transition">
                   Vigilance Orages &amp; Foudre
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Densité convective, énergie CAPE en J/kg et impacts d'éclairs en direct.
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Densité convective, énergie CAPE en J/kg et impacts d'éclairs.
                 </div>
               </button>
 
@@ -502,19 +496,19 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-cyan-950/40 to-slate-900 hover:bg-slate-850 border border-cyan-500/40 hover:border-cyan-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">⏱️</span>
-                  <span className="text-[10px] font-black uppercase text-cyan-300 bg-cyan-950/70 px-2 py-0.5 rounded-full border border-cyan-800/70">
+                  <span className="text-lg">⏱️</span>
+                  <span className="text-[10px] font-semibold text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800/80">
                     Synoptique ARPEGE
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-cyan-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-cyan-400 transition">
                   Pression &amp; Isobares
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Centres d'action Dépression (D) / Anticyclone (A) et baromètres régionaux.
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Centres d'action Dépression (D) / Anticyclone (A) et baromètres.
                 </div>
               </button>
 
@@ -527,25 +521,25 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-blue-950/40 to-slate-900 hover:bg-slate-850 border border-blue-500/40 hover:border-blue-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🌊</span>
-                  <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-950/70 px-2 py-0.5 rounded-full border border-blue-800/70">
+                  <span className="text-lg">🌊</span>
+                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-950 px-1.5 py-0.5 rounded border border-blue-800/80">
                     Copernicus Marine
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-blue-400 transition">
                   Température Mer &amp; Côtes
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Température de surface de la mer (SST), houle et état des bassins maritimes.
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Température de surface de la mer (SST) et état des bassins maritimes.
                 </div>
               </button>
             </div>
 
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-3 border-t border-slate-800/60 flex items-center gap-2">
-              <Globe2 className="h-4 w-4 text-amber-400" />
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-3 border-t border-slate-800 flex items-center gap-2">
+              <Globe2 className="h-4 w-4 text-[#0284C7]" />
               <span>Autres Cartes Synoptiques &amp; Collaboratives</span>
             </div>
 
@@ -557,18 +551,18 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-amber-950/40 to-slate-900 hover:bg-slate-850 border border-amber-500/40 hover:border-amber-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🌡️</span>
-                  <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60">
+                  <span className="text-lg">🌡️</span>
+                  <span className="text-[10px] font-semibold text-amber-400 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-800/80">
                     OpenStreetMap
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-amber-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-amber-400 transition">
                   Températures Mondiales
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-[11px] text-slate-400 mt-1">
                   Normales climatiques annuelles par pays &amp; records absolus.
                 </div>
               </button>
@@ -580,19 +574,19 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-gradient-to-b from-emerald-950/40 to-slate-900 hover:bg-slate-850 border border-emerald-500/40 hover:border-emerald-400 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">👥</span>
-                  <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60">
-                    Direct Citoyen
+                  <span className="text-lg">👥</span>
+                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800/80">
+                    Terrain Citoyen
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-emerald-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-emerald-400 transition">
                   Carte Collaborative
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Observations constatées par les utilisateurs (+150 pts).
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Observations constatées par les utilisateurs du réseau.
                 </div>
               </button>
 
@@ -602,36 +596,36 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
                   setShowOtherMapsModal(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-blue-500/50 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🌧️</span>
-                  <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-800/60">
+                  <span className="text-lg">🌧️</span>
+                  <span className="text-[10px] font-semibold text-[#0284C7] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                     Radar HD
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-blue-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-[#0284C7] transition">
                   Radar ARAMIS
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-[11px] text-slate-400 mt-1">
                   Pluie, neige, grêle et suivi des foyers orageux en temps réel.
                 </div>
               </button>
 
               <button
                 onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="flex flex-col text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition group cursor-pointer"
+                className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">🚗</span>
-                  <span className="text-[10px] font-black uppercase text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-800/60">
+                  <span className="text-lg">🚗</span>
+                  <span className="text-[10px] font-semibold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                     Itinéraire
                   </span>
                 </div>
-                <div className="font-black text-sm text-white group-hover:text-indigo-300 transition">
+                <div className="font-bold text-xs text-white group-hover:text-sky-400 transition">
                   Carte Routes
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-[11px] text-slate-400 mt-1">
                   Calculateur météo routier d'autoroutes et vent traversier.
                 </div>
               </button>

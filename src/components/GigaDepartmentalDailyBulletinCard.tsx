@@ -151,75 +151,74 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
   };
 
   return (
-    <div id="giga-departmental-bulletin-card" className="space-y-6">
+    <div id="giga-departmental-bulletin-card" className="space-y-4">
       {/* Top Banner: Giga Bulletin Départemental J+1 à J+7 */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1.5">
               <FileText className="h-4 w-4" />
-              <span>Giga Bulletin Météorologique & Synoptique Quotidien (J+1 à J+7)</span>
+              <span>Bulletin Météorologique & Synoptique Quotidien (J+1 à J+7)</span>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-              Bulletin Expert par Département & Territoire : <span className="text-cyan-300">{bulletin.departmentName} ({bulletin.departmentCode})</span>
+            <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
+              Bulletin par Département : <span className="text-cyan-300">{bulletin.departmentName} ({bulletin.departmentCode})</span>
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Découpage synoptique ultra-précis par tranches diurnes (Matin, Après-midi, Soirée/Nuit), microclimats locaux, modélisations comparées AROME / ARPEGE / ECMWF et vigilances métiers.
+            <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Découpage synoptique par tranches diurnes (Matin, Après-midi, Soirée/Nuit), microclimats locaux, modélisations comparées AROME / ARPEGE / ECMWF et vigilances métiers.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <span className="text-[10px] text-slate-400 block font-semibold">Réactualisation continue</span>
-              <span className="text-xs font-bold text-cyan-400 flex items-center gap-1 justify-end">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span className="text-[10px] text-slate-400 block font-medium">Réactualisation continue</span>
+              <span className="text-xs font-semibold text-cyan-400 flex items-center gap-1 justify-end">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
                 {lastRefreshed || 'En direct'}
               </span>
             </div>
             <button
               onClick={handleRefresh}
-              className="flex items-center gap-1.5 rounded-2xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-200 px-4 py-2.5 text-xs font-bold transition shadow active:scale-95"
+              className="flex items-center gap-1.5 rounded-md bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-cyan-200 px-3 py-2 text-xs font-semibold transition cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>Actualiser le Bulletin</span>
+              <span>Actualiser</span>
             </button>
           </div>
         </div>
 
         {/* Executive Departmental Synthesis */}
-        <div className="mt-6 rounded-2xl bg-slate-950/85 border border-cyan-500/30 p-4 sm:p-5 space-y-2 text-xs text-slate-200 leading-relaxed shadow-lg">
-          <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
-            <div className="flex items-center gap-2 text-cyan-300 font-black uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
-              <span>Diagnostic Synoptique à 7 Jours pour le {bulletin.departmentCode} ({bulletin.departmentName}) :</span>
+        <div className="mt-4 rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2 text-xs text-slate-300 leading-relaxed">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2">
+            <div className="flex items-center gap-2 text-cyan-400 font-bold uppercase tracking-wider text-xs">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Diagnostic Synoptique à 7 Jours ({bulletin.departmentName}) :</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-semibold">
+            <span className="text-[11px] text-slate-400">
               Région : <strong className="text-white">{bulletin.regionName}</strong> • Climat : <strong className="text-cyan-300">{bulletin.climateType}</strong>
             </span>
           </div>
-          <p className="text-slate-100 font-medium text-xs sm:text-sm pt-1">
+          <p className="text-slate-200 font-medium text-xs sm:text-sm pt-1">
             {bulletin.executiveSynoptic7DaySummary}
           </p>
         </div>
       </div>
 
       {/* DEPARTMENT & LOCALITY SELECTOR BAR */}
-      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-xl backdrop-blur space-y-3">
+      <div className="rounded-lg bg-slate-900 border border-slate-800 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un département (ex: 75, 13, Rhône, Gironde, Tokyo...)"
-              className="w-full rounded-xl bg-slate-950 border border-slate-800 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+              placeholder="Rechercher un département (ex: 75, 13, Rhône...)"
+              className="w-full rounded-md bg-slate-950 border border-slate-800 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-cyan-600 focus:outline-none"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-bold text-slate-400 mr-1">Filtrer :</span>
+            <span className="text-[11px] font-semibold text-slate-400 mr-1">Filtrer :</span>
             {[
               { id: 'ALL', label: 'Tous (101 Dép. + Monde)' },
               { id: 'FRANCE', label: '🇫🇷 France Métropolitaine' },
@@ -234,9 +233,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
               <button
                 key={f.id}
                 onClick={() => setSelectedRegionFilter(f.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
                   selectedRegionFilter === f.id
-                    ? 'bg-cyan-600 text-white shadow'
+                    ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
                     : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
@@ -247,21 +246,21 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
         </div>
 
         {/* Horizontal Scrollable Department Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 border-t border-slate-800/80">
-          <span className="text-[11px] font-bold text-slate-400 shrink-0">Départements ({filteredDepartments.length}) :</span>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 border-t border-slate-800">
+          <span className="text-[11px] font-semibold text-slate-400 shrink-0">Départements ({filteredDepartments.length}) :</span>
           {filteredDepartments.map((dept) => {
             const isSelected = dept.code === selectedDeptCode;
             return (
               <button
                 key={dept.code}
                 onClick={() => loadBulletin(dept.code)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition cursor-pointer ${
                   isSelected
-                    ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/30 ring-2 ring-white/60'
+                    ? 'bg-cyan-950 text-cyan-200 font-bold border border-cyan-700'
                     : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
                 }`}
               >
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${isSelected ? 'bg-slate-900 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
+                <span className={`px-1 py-0.5 rounded text-[10px] font-semibold ${isSelected ? 'bg-cyan-900 text-cyan-200' : 'bg-slate-800 text-slate-400'}`}>
                   {dept.code}
                 </span>
                 <span>{dept.name}</span>
@@ -273,7 +272,7 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
       </div>
 
       {/* 7-DAY SELECTOR STRIP */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
         {bulletin.sevenDays.map((d) => {
           const isSelected = d.dayOffset === selectedDayOffset;
           const convBadge = getConvectiveBadge(d.convectiveRisk);
@@ -282,39 +281,39 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             <button
               key={d.dayOffset}
               onClick={() => setSelectedDayOffset(d.dayOffset)}
-              className={`rounded-2xl border p-3.5 text-left transition flex flex-col justify-between ${
+              className={`rounded-md border p-3 text-left transition flex flex-col justify-between cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-b from-cyan-950/80 to-slate-900 border-cyan-400 shadow-xl shadow-cyan-950/50 ring-1 ring-cyan-400'
-                  : 'bg-slate-900/90 border-slate-800 hover:bg-slate-850 hover:border-slate-700'
+                  ? 'bg-cyan-950/40 border-cyan-500 text-white'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-slate-300'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-[10px] font-black uppercase ${isSelected ? 'text-cyan-300' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-semibold uppercase ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`}>
                     J+{d.dayOffset} • {d.shortDate}
                   </span>
-                  <span className="text-xl">{d.afternoon.icon}</span>
+                  <span className="text-lg">{d.afternoon.icon}</span>
                 </div>
-                <div className="text-xs font-black text-white truncate">{d.dayOfWeek.split(' ')[0]}</div>
+                <div className="text-xs font-bold text-white truncate">{d.dayOfWeek.split(' ')[0]}</div>
               </div>
 
-              <div className="my-2 py-1.5 border-y border-slate-800/80 flex items-center justify-between">
-                <span className="px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-[11px] font-black text-cyan-300">
+              <div className="my-2 py-1 border-y border-slate-800 flex items-center justify-between">
+                <span className="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[11px] font-semibold text-cyan-300">
                   Tn {formatTemp(d.tempMinC)}
                 </span>
-                <span className="px-1.5 py-0.5 rounded bg-rose-950/80 border border-rose-500/40 text-[11px] font-black text-rose-300">
+                <span className="px-1.5 py-0.5 rounded bg-rose-950 border border-rose-800 text-[11px] font-semibold text-rose-300">
                   Tx {formatTemp(d.tempMaxC)}
                 </span>
               </div>
 
-              <div className="space-y-1 text-[10px]">
+              <div className="space-y-0.5 text-[10px]">
                 <div className="flex items-center justify-between text-slate-400">
                   <span>Ensol. :</span>
-                  <span className="text-amber-300 font-bold">{d.sunshineHoursEstimate}h</span>
+                  <span className="text-amber-300 font-semibold">{d.sunshineHoursEstimate}h</span>
                 </div>
                 <div className="flex items-center justify-between text-slate-400">
                   <span>Fiabilité :</span>
-                  <span className="text-emerald-400 font-bold">{d.confidenceScorePct}%</span>
+                  <span className="text-emerald-400 font-semibold">{d.confidenceScorePct}%</span>
                 </div>
               </div>
             </button>
@@ -326,83 +325,83 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab('daily')}
-          className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black transition ${
+          className={`flex items-center gap-2 rounded-md px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
             activeTab === 'daily'
-              ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
+              ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
           <Clock className="h-4 w-4" />
-          <span>1. Découpage Diurne Détaillé du {selectedDay.dayOfWeek} (Matin / Après-midi / Nuit)</span>
+          <span>1. Découpage Diurne ({selectedDay.dayOfWeek})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('microclimate')}
-          className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black transition ${
+          className={`flex items-center gap-2 rounded-md px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
             activeTab === 'microclimate'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+              ? 'bg-indigo-950 text-indigo-300 border border-indigo-800'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
           <Mountain className="h-4 w-4" />
-          <span>2. Microclimats & Reliefs du {bulletin.departmentName}</span>
+          <span>2. Microclimats & Reliefs ({bulletin.departmentName})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('activities')}
-          className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black transition ${
+          className={`flex items-center gap-2 rounded-md px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
             activeTab === 'activities'
-              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
           <Tractor className="h-4 w-4" />
-          <span>3. Indices Agricoles, BTP & Sécurité Routière</span>
+          <span>3. Indices Métiers (Agri, BTP, Route)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('models')}
-          className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black transition ${
+          className={`flex items-center gap-2 rounded-md px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
             activeTab === 'models'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+              ? 'bg-purple-950 text-purple-300 border border-purple-800'
               : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
           <Layers className="h-4 w-4" />
-          <span>4. Modèles Numériques Comparés (AROME, ARPEGE, IFS, GFS)</span>
+          <span>4. Modèles Comparés (AROME, ARPEGE, IFS)</span>
         </button>
       </div>
 
       {/* TAB 1: DIURNAL EVOLUTION (MORNING / AFTERNOON / EVENING-NIGHT) */}
       {activeTab === 'daily' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Day Overview Bar */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+          <div className="rounded-lg bg-slate-900 border border-slate-800 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-cyan-950 text-cyan-300 border border-cyan-800">
                   Échéance J+{selectedDay.dayOffset}
                 </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${getConvectiveBadge(selectedDay.convectiveRisk).color}`}>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getConvectiveBadge(selectedDay.convectiveRisk).color}`}>
                   {getConvectiveBadge(selectedDay.convectiveRisk).label}
                 </span>
               </div>
-              <h3 className="text-xl font-black text-white">
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 Chronologie détaillée du {selectedDay.dayOfWeek}
               </h3>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 {selectedDay.synopticSituationSummary}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-slate-950 border border-slate-800 p-3 text-center">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Indice UV Max</span>
-                <div className="text-base font-black text-amber-400 mt-0.5">UV {selectedDay.uvIndex} / 11</div>
+            <div className="flex items-center gap-2.5">
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                <span className="text-[10px] text-slate-400 uppercase font-medium block">Indice UV</span>
+                <div className="text-sm font-bold text-amber-400 mt-0.5">UV {selectedDay.uvIndex} / 11</div>
               </div>
-              <div className="rounded-xl bg-slate-950 border border-slate-800 p-3 text-center">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Écart à la Normale</span>
-                <div className={`text-base font-black mt-0.5 ${selectedDay.tempAnomalyC > 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                <span className="text-[10px] text-slate-400 uppercase font-medium block">Écart Normale</span>
+                <div className={`text-sm font-bold mt-0.5 ${selectedDay.tempAnomalyC > 0 ? 'text-rose-400' : 'text-blue-400'}`}>
                   {selectedDay.tempAnomalyC > 0 ? `+${selectedDay.tempAnomalyC}` : selectedDay.tempAnomalyC}°C
                 </div>
               </div>
@@ -410,34 +409,34 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
           </div>
 
           {/* 3 Diurnal Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 1. MATINÉE (06h - 12h) */}
-            <div className="rounded-3xl border border-cyan-500/30 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between space-y-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
                   <div className="flex items-center gap-2">
                     <Sun className="h-4 w-4 text-cyan-400" />
-                    <span className="text-xs font-black text-cyan-300 uppercase tracking-wider">Matinée (06h - 12h)</span>
+                    <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Matinée (06h - 12h)</span>
                   </div>
-                  <span className="text-2xl">{selectedDay.morning.icon}</span>
+                  <span className="text-xl">{selectedDay.morning.icon}</span>
                 </div>
 
-                <div className="mt-4 flex items-baseline justify-between">
+                <div className="mt-3 flex items-baseline justify-between">
                   <div>
-                    <span className="text-3xl font-black text-white">{formatTemp(selectedDay.morning.tempValue)}</span>
+                    <span className="text-2xl font-bold text-white">{formatTemp(selectedDay.morning.tempValue)}</span>
                     <span className="text-[10px] text-slate-400 block">Ressenti {formatTemp(selectedDay.morning.tempApparent)}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-cyan-400">Tn du jour</span>
+                    <span className="text-xs font-semibold text-cyan-400">Tn du jour</span>
                     <span className="text-[10px] text-slate-400 block">{formatTemp(selectedDay.tempMinC)}</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-200 font-medium mt-3 leading-relaxed">
+                <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">
                   {selectedDay.morning.skyCondition}
                 </p>
 
-                <div className="mt-3 rounded-xl bg-slate-950 p-3 space-y-2 text-xs border border-slate-800">
+                <div className="mt-3 rounded-md bg-slate-950 p-2.5 space-y-1.5 text-xs border border-slate-800">
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Vent & Rafales :</span>
                     <strong className="text-white">{selectedDay.morning.windSpeedKmh} km/h (raf. {selectedDay.morning.windGustKmh})</strong>
@@ -459,52 +458,50 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800/80 text-[11px] text-cyan-300 font-semibold flex items-center gap-1.5">
+              <div className="pt-2.5 border-t border-slate-800 text-[11px] text-cyan-300 font-medium flex items-center gap-1.5">
                 <Info className="h-3.5 w-3.5 shrink-0" />
                 <span>{selectedDay.morning.fogOrFrostRisk}</span>
               </div>
             </div>
 
             {/* 2. APRÈS-MIDI (12h - 18h) */}
-            <div className="rounded-3xl border border-rose-500/30 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between space-y-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
                   <div className="flex items-center gap-2">
                     <Sun className="h-4 w-4 text-rose-400" />
-                    <span className="text-xs font-black text-rose-300 uppercase tracking-wider">Après-midi (12h - 18h)</span>
+                    <span className="text-xs font-bold text-rose-300 uppercase tracking-wider">Après-midi (12h - 18h)</span>
                   </div>
-                  <span className="text-2xl">{selectedDay.afternoon.icon}</span>
+                  <span className="text-xl">{selectedDay.afternoon.icon}</span>
                 </div>
 
-                <div className="mt-4 flex items-baseline justify-between">
+                <div className="mt-3 flex items-baseline justify-between">
                   <div>
-                    <span className="text-3xl font-black text-rose-400">{formatTemp(selectedDay.afternoon.tempValue)}</span>
-                    <span className="text-[10px] text-slate-400 block">Ressenti / Humidex {formatTemp(selectedDay.afternoon.tempApparent)}</span>
+                    <span className="text-2xl font-bold text-rose-400">{formatTemp(selectedDay.afternoon.tempValue)}</span>
+                    <span className="text-[10px] text-slate-400 block">Ressenti {formatTemp(selectedDay.afternoon.tempApparent)}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-rose-400">Tx du jour</span>
+                    <span className="text-xs font-semibold text-rose-400">Tx du jour</span>
                     <span className="text-[10px] text-slate-400 block">{formatTemp(selectedDay.tempMaxC)}</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-200 font-medium mt-3 leading-relaxed">
+                <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">
                   {selectedDay.afternoon.skyCondition}
                 </p>
 
-                <div className="mt-3 rounded-xl bg-slate-950 p-3 space-y-2 text-xs border border-slate-800">
+                <div className="mt-3 rounded-md bg-slate-950 p-2.5 space-y-1.5 text-xs border border-slate-800">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span>Vent moyen :</span>
+                    <span>Vent & Rafales :</span>
                     <strong className="text-white">{selectedDay.afternoon.windSpeedKmh} km/h (raf. {selectedDay.afternoon.windGustKmh})</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
-                    <span>Orientation :</span>
-                    <strong className="text-amber-300">{selectedDay.afternoon.windDirection}</strong>
+                    <span>Convection / Orage :</span>
+                    <strong className="text-amber-400">{selectedDay.convectiveRisk}</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
-                    <span>Précipitations :</span>
-                    <strong className={selectedDay.afternoon.precipitationMm > 0 ? 'text-blue-400' : 'text-slate-300'}>
-                      {selectedDay.afternoon.precipitationType} ({selectedDay.afternoon.precipitationMm} mm)
-                    </strong>
+                    <span>Pluie estimée :</span>
+                    <strong className="text-slate-300">{selectedDay.afternoon.precipitationMm} mm</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Humidité relative :</span>
@@ -513,39 +510,39 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800/80 text-[11px] text-amber-300 font-semibold flex items-center gap-1.5">
+              <div className="pt-2.5 border-t border-slate-800 text-[11px] text-amber-300 font-medium flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>Pic thermique diurne et dynamique convective</span>
               </div>
             </div>
 
             {/* 3. SOIRÉE & NUIT (18h - 06h) */}
-            <div className="rounded-3xl border border-indigo-500/30 bg-slate-900/90 p-6 shadow-xl backdrop-blur flex flex-col justify-between space-y-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
                   <div className="flex items-center gap-2">
                     <Compass className="h-4 w-4 text-indigo-400" />
-                    <span className="text-xs font-black text-indigo-300 uppercase tracking-wider">Soirée & Nuit (18h - 06h)</span>
+                    <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider">Soirée & Nuit (18h - 06h)</span>
                   </div>
-                  <span className="text-2xl">{selectedDay.eveningNight.icon}</span>
+                  <span className="text-xl">{selectedDay.eveningNight.icon}</span>
                 </div>
 
-                <div className="mt-4 flex items-baseline justify-between">
+                <div className="mt-3 flex items-baseline justify-between">
                   <div>
-                    <span className="text-3xl font-black text-indigo-300">{formatTemp(selectedDay.eveningNight.tempValue)}</span>
+                    <span className="text-2xl font-bold text-indigo-300">{formatTemp(selectedDay.eveningNight.tempValue)}</span>
                     <span className="text-[10px] text-slate-400 block">Ambiance nocturne</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-indigo-400">Humidité</span>
+                    <span className="text-xs font-semibold text-indigo-400">Humidité</span>
                     <span className="text-[10px] text-slate-400 block">{selectedDay.eveningNight.humidityPct}%</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-200 font-medium mt-3 leading-relaxed">
+                <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">
                   {selectedDay.eveningNight.skyCondition}
                 </p>
 
-                <div className="mt-3 rounded-xl bg-slate-950 p-3 space-y-2 text-xs border border-slate-800">
+                <div className="mt-3 rounded-md bg-slate-950 p-2.5 space-y-1.5 text-xs border border-slate-800">
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Vent nocturne :</span>
                     <strong className="text-white">{selectedDay.eveningNight.windSpeedKmh} km/h (raf. {selectedDay.eveningNight.windGustKmh})</strong>
@@ -565,7 +562,7 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800/80 text-[11px] text-indigo-300 font-semibold flex items-center gap-1.5">
+              <div className="pt-2.5 border-t border-slate-800 text-[11px] text-indigo-300 font-medium flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 shrink-0" />
                 <span>{selectedDay.eveningNight.fogOrFrostRisk}</span>
               </div>
@@ -576,12 +573,12 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
 
       {/* TAB 2: MICROCLIMATE & RELIEF DIAGNOSTIC */}
       {activeTab === 'microclimate' && (
-        <div className="rounded-3xl border border-indigo-500/30 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-            <Mountain className="h-6 w-6 text-indigo-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <Mountain className="h-5 w-5 text-indigo-400" />
             <div>
-              <h3 className="text-xl font-black text-white">
-                Diagnostic Topographique & Microclimatique du Département : {bulletin.departmentName} ({bulletin.departmentCode})
+              <h3 className="text-base sm:text-lg font-bold text-white">
+                Diagnostic Topographique & Microclimatique : {bulletin.departmentName} ({bulletin.departmentCode})
               </h3>
               <p className="text-xs text-slate-400">
                 Effets d'altitude, cuvettes d'inversion, brises thermiques et circulation d'air locale
@@ -589,10 +586,10 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
-                <Mountain className="h-4 w-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
+                <Mountain className="h-3.5 w-3.5" />
                 <span>Reliefs, Vallées & Effets Orographiques :</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -600,9 +597,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
-                <Thermometer className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
+                <Thermometer className="h-3.5 w-3.5" />
                 <span>Inversions Thermiques Nocturnes :</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -610,9 +607,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
-                <Wind className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold uppercase tracking-wider">
+                <Wind className="h-3.5 w-3.5" />
                 <span>Régime de Vents Dominants & Locaux :</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -620,9 +617,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                <Droplet className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+                <Droplet className="h-3.5 w-3.5" />
                 <span>État Hydrique & Évapotranspiration :</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -635,11 +632,11 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
 
       {/* TAB 3: BIOCLIMATIC INDICES & PROFESSIONAL ACTIVITIES */}
       {activeTab === 'activities' && (
-        <div className="rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-            <Tractor className="h-6 w-6 text-emerald-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <Tractor className="h-5 w-5 text-emerald-400" />
             <div>
-              <h3 className="text-xl font-black text-white">
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 Indices Météo Professionnels & Activités Métier (7 Jours)
               </h3>
               <p className="text-xs text-slate-400">
@@ -648,15 +645,15 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Agriculture Spraying */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-3">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase">
-                  <Tractor className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase">
+                  <Tractor className="h-3.5 w-3.5" />
                   <span>Pulvérisation & Traitements Phytosanitaires</span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${getSafetyBadge(bulletin.bioclimaticIndices.agriculturalSprayingIndex).bg}`}>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getSafetyBadge(bulletin.bioclimaticIndices.agriculturalSprayingIndex).bg}`}>
                   {getSafetyBadge(bulletin.bioclimaticIndices.agriculturalSprayingIndex).label}
                 </span>
               </div>
@@ -666,13 +663,13 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
 
             {/* Hay & Harvesting */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-3">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase">
-                  <Sun className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold uppercase">
+                  <Sun className="h-3.5 w-3.5" />
                   <span>Fenaison, Récoltes & Andainage</span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${getSafetyBadge(bulletin.bioclimaticIndices.hayMakingAndHarvestingIndex).bg}`}>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getSafetyBadge(bulletin.bioclimaticIndices.hayMakingAndHarvestingIndex).bg}`}>
                   {getSafetyBadge(bulletin.bioclimaticIndices.hayMakingAndHarvestingIndex).label}
                 </span>
               </div>
@@ -682,9 +679,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
 
             {/* Construction BTP */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase">
-                <HardHat className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase">
+                <HardHat className="h-3.5 w-3.5" />
                 <span>BTP, Chantiers & Grues de Levage</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -693,9 +690,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
 
             {/* Road Transport */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase">
-                <Truck className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-purple-400 text-xs font-semibold uppercase">
+                <Truck className="h-3.5 w-3.5" />
                 <span>Transports Routiers & Sécurité Circulation</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -704,13 +701,13 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
 
             {/* Forest Fire FWI */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase">
-                  <Flame className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-rose-400 text-xs font-semibold uppercase">
+                  <Flame className="h-3.5 w-3.5" />
                   <span>Risque Feux de Forêt & Végétation (Indice FWI)</span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950 text-rose-300 border border-rose-800">
                   {bulletin.bioclimaticIndices.wildfireRiskFwi}
                 </span>
               </div>
@@ -720,9 +717,9 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
 
             {/* Air Quality & Pollen */}
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-              <div className="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase">
-                <Trees className="h-4 w-4" />
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold uppercase">
+                <Trees className="h-3.5 w-3.5" />
                 <span>Qualité de l'Air & Allergènes Polliniques</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
@@ -735,11 +732,11 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
 
       {/* TAB 4: NUMERICAL MODELS COMPARISON */}
       {activeTab === 'models' && (
-        <div className="rounded-3xl border border-purple-500/30 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-            <Layers className="h-6 w-6 text-purple-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <Layers className="h-5 w-5 text-purple-400" />
             <div>
-              <h3 className="text-xl font-black text-white">
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 Comparaison des Modèles Numériques pour le {selectedDay.dayOfWeek}
               </h3>
               <p className="text-xs text-slate-400">
@@ -748,53 +745,53 @@ export const GigaDepartmentalDailyBulletinCard: React.FC<GigaDepartmentalDailyBu
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4 text-center">
-              <span className="text-[10px] font-black uppercase text-cyan-400 block">AROME 1.3km</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-center">
+              <span className="text-[10px] font-semibold uppercase text-cyan-400 block">AROME 1.3km</span>
               <span className="text-[10px] text-slate-500 block">Météo-France Haute Réf.</span>
-              <div className="text-2xl font-black text-white mt-2">
+              <div className="text-xl font-bold text-white mt-1.5">
                 {formatTemp(selectedDay.modelsComparison.aromeTempMax)}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4 text-center">
-              <span className="text-[10px] font-black uppercase text-blue-400 block">ARPEGE 5km</span>
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-center">
+              <span className="text-[10px] font-semibold uppercase text-blue-400 block">ARPEGE 5km</span>
               <span className="text-[10px] text-slate-500 block">Météo-France Synoptique</span>
-              <div className="text-2xl font-black text-white mt-2">
+              <div className="text-xl font-bold text-white mt-1.5">
                 {formatTemp(selectedDay.modelsComparison.arpegeTempMax)}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-emerald-500/40 p-4 text-center shadow">
-              <span className="text-[10px] font-black uppercase text-emerald-400 block">ECMWF IFS 9km</span>
-              <span className="text-[10px] text-emerald-400/80 block font-bold">Centre Européen (Référence)</span>
-              <div className="text-2xl font-black text-emerald-300 mt-2">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-center">
+              <span className="text-[10px] font-semibold uppercase text-emerald-400 block">ECMWF IFS 9km</span>
+              <span className="text-[10px] text-emerald-400/80 block font-medium">Centre Européen</span>
+              <div className="text-xl font-bold text-emerald-300 mt-1.5">
                 {formatTemp(selectedDay.modelsComparison.ecmwfTempMax)}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4 text-center">
-              <span className="text-[10px] font-black uppercase text-amber-400 block">GFS 13km</span>
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-center">
+              <span className="text-[10px] font-semibold uppercase text-amber-400 block">GFS 13km</span>
               <span className="text-[10px] text-slate-500 block">NOAA / NCEP Américain</span>
-              <div className="text-2xl font-black text-white mt-2">
+              <div className="text-xl font-bold text-white mt-1.5">
                 {formatTemp(selectedDay.modelsComparison.gfsTempMax)}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-4 text-center">
-              <span className="text-[10px] font-black uppercase text-purple-400 block">ICON-EU 7km</span>
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-center">
+              <span className="text-[10px] font-semibold uppercase text-purple-400 block">ICON-EU 7km</span>
               <span className="text-[10px] text-slate-500 block">DWD Allemand</span>
-              <div className="text-2xl font-black text-white mt-2">
+              <div className="text-xl font-bold text-white mt-1.5">
                 {formatTemp(selectedDay.modelsComparison.iconTempMax)}
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 space-y-2">
-            <span className="text-xs font-bold text-purple-300 uppercase tracking-wider block">
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-1.5">
+            <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider block">
               Synthèse & Consensus des Ensembles :
             </span>
-            <p className="text-xs text-slate-200 leading-relaxed font-medium">
+            <p className="text-xs text-slate-200 leading-relaxed font-normal">
               {selectedDay.modelsComparison.dominantConsensus}
             </p>
             <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">

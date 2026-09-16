@@ -42,58 +42,58 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
   const defaultDeptCode = currentStation.department?.split(' ')[0] || '75';
 
   return (
-    <div id="giga-bulletin-hub-view" className="space-y-6">
+    <div id="giga-bulletin-hub-view" className="space-y-4">
       {/* Selector between Communal 4 Semaines, Départemental J+1 à J+7, and National 4 Semaines */}
-      <div className="rounded-[24px] sm:rounded-3xl border border-slate-800/90 bg-[#0c1424]/95 sm:bg-slate-900/90 p-3.5 sm:p-5 shadow-xl backdrop-blur flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-            <FileText className="h-5 w-5" />
+          <div className="h-9 w-9 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-[#0284C7]">
+            <FileText className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-white">
-              Espace Giga Bulletins Météorologiques &amp; Expertises Textuelles
+            <h2 className="text-base font-bold text-white">
+              Bulletins Météorologiques &amp; Synthèses Régionales
             </h2>
             <p className="text-xs text-slate-400">
-              Choisissez l'échelle : Bulletin 4 Semaines par Commune (36 000+ Communes), Bulletin J+1 à J+7 par Département (101 Dép. &amp; Monde), ou Synthèse Nationale 4 Semaines
+              Consultation des expertises : prévision communale 4 semaines, analyse départementale 7 jours ou synthèse nationale.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-[#080d19]/90 sm:bg-slate-950 rounded-[20px] sm:rounded-2xl border border-slate-800/80">
+        <div className="flex flex-wrap items-center gap-1 bg-slate-900 p-1 rounded-md border border-slate-800">
           <button
             onClick={() => setBulletinSubMode('communal-4w')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl text-xs font-black transition active:scale-95 ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
               bulletinSubMode === 'communal-4w'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30'
+                ? 'bg-[#0284C7] text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <MapPin className="h-4 w-4" />
-            <span>1. 🇫🇷 Bulletin 4 Semaines par Commune</span>
+            <MapPin className="h-3.5 w-3.5" />
+            <span>1. Bulletin Communal 4 Semaines</span>
           </button>
 
           <button
             onClick={() => setBulletinSubMode('departmental-7d')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl text-xs font-black transition active:scale-95 ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
               bulletinSubMode === 'departmental-7d'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                ? 'bg-[#0284C7] text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Flag className="h-4 w-4" />
-            <span>2. Bulletin J+1 à J+7 par Département</span>
+            <Flag className="h-3.5 w-3.5" />
+            <span>2. Bulletin Départemental 7 Jours</span>
           </button>
 
           <button
             onClick={() => setBulletinSubMode('national-4w')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl text-xs font-black transition active:scale-95 ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
               bulletinSubMode === 'national-4w'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                ? 'bg-[#0284C7] text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Globe className="h-4 w-4" />
-            <span>3. Bulletin National 4 Semaines</span>
+            <Globe className="h-3.5 w-3.5" />
+            <span>3. Synthèse Nationale</span>
           </button>
         </div>
       </div>

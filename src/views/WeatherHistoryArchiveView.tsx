@@ -303,52 +303,50 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
   return (
     <div id="weather-history-archive-page" className="space-y-6">
       {/* 1. Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-amber-600/10 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-black uppercase tracking-wider mb-2">
-              <History className="h-4 w-4 text-amber-400 animate-pulse" />
-              <span>Archives Climatologiques &amp; Journal Météorologique Personnel</span>
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-1">
+              <History className="h-4 w-4 text-amber-400" />
+              <span>Archives climatologiques et carnet d'observations</span>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-              Historique Météo &amp; Recherche par Date
+            <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
+              Historique météo et recherche par date
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Consultez les conditions météorologiques exactes survenues dans le passé (températures min/max, pluie, orage, vent, soleil) pour n'importe quelle date et enregistrez vos observations locales dans votre carnet météo.
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Consultez les conditions météorologiques enregistrées dans le passé (températures, précipitations, vent) pour n'importe quelle date et consignez vos observations.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {onBackToMain && (
               <button
                 onClick={onBackToMain}
-                className="flex items-center gap-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 text-xs shadow-md border border-slate-700 transition active:scale-95 cursor-pointer"
-                title="Retourner à la page principale (Météo en direct)"
+                className="flex items-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3 py-2 text-xs border border-slate-700 transition cursor-pointer"
+                title="Retourner à la météo en direct"
               >
-                <span>⬅️ Retour au direct</span>
+                <span>← Retour au direct</span>
               </button>
             )}
 
             {onOpenSearchModal && (
               <button
                 onClick={onOpenSearchModal}
-                className="flex items-center gap-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 text-xs shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold px-3 py-2 text-xs border border-sky-500 transition cursor-pointer"
               >
-                <MapPin className="h-4 w-4" />
-                <span>Changer de ville : {station.name}</span>
+                <MapPin className="h-3.5 w-3.5" />
+                <span>Changer de ville ({station.name})</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Date Selector Form */}
-        <div className="mt-6 pt-5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <label htmlFor="history-date-input" className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-amber-400" />
-              <span>Choisir une date du passé :</span>
+            <label htmlFor="history-date-input" className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-amber-400" />
+              <span>Date consultée :</span>
             </label>
             <input
               id="history-date-input"
@@ -357,16 +355,16 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
               max={defaultYesterday}
               min="1950-01-01"
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm font-bold text-white shadow-inner focus:border-amber-400 focus:outline-none"
+              className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-white focus:border-amber-400 focus:outline-none"
             />
           </div>
 
           {onBackToMain && (
             <button
               onClick={onBackToMain}
-              className="text-xs text-amber-400 hover:text-amber-300 font-bold underline transition cursor-pointer"
+              className="text-xs text-sky-400 hover:text-sky-300 font-medium transition cursor-pointer"
             >
-              ← Retourner à la météo en direct
+              ← Retourner au direct
             </button>
           )}
         </div>
@@ -374,15 +372,15 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
 
       {/* 2. Loading or Error State */}
       {isLoading && (
-        <div className="p-12 rounded-3xl border border-slate-800 bg-slate-950/80 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
-          <p className="text-sm font-bold text-slate-300">Extraction des archives météo en cours pour {station.name}...</p>
+        <div className="p-8 rounded-lg border border-slate-800 bg-slate-900 flex flex-col items-center justify-center gap-2">
+          <Loader2 className="h-6 w-6 text-amber-400 animate-spin" />
+          <p className="text-xs text-slate-300">Extraction des archives météo en cours pour {station.name}...</p>
         </div>
       )}
 
       {errorMessage && !isLoading && (
-        <div className="p-6 rounded-3xl border border-rose-800/80 bg-rose-950/40 text-rose-300 text-sm font-bold flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+        <div className="p-4 rounded-lg border border-rose-900 bg-rose-950/40 text-rose-300 text-xs font-medium flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -390,17 +388,17 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
       {/* 3. Detailed Weather Card for Selected Date */}
       {archiveResult && !isLoading && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-950/90 p-6 sm:p-8 shadow-2xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
               <div>
-                <span className="text-xs font-black uppercase tracking-wider text-amber-400">
-                  Bilan de la journée du {new Date(archiveResult.dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                <span className="text-xs font-semibold text-amber-400">
+                  Journée du {new Date(archiveResult.dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </span>
-                <h3 className="text-2xl font-black text-white mt-1">
+                <h3 className="text-xl font-bold text-white mt-0.5">
                   {station.name} ({station.department})
                 </h3>
-                <p className="text-sm text-slate-400 mt-0.5">
-                  Temps observé : <strong className="text-slate-200">{archiveResult.weatherDesc}</strong>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Temps observé : <span className="text-slate-200 font-medium">{archiveResult.weatherDesc}</span>
                 </p>
               </div>
 
@@ -408,15 +406,15 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Note personnelle (ex: Barbecue, tempête...)"
+                  placeholder="Note (ex: orage fort, fête...)"
                   value={userJournalNote}
                   onChange={(e) => setUserJournalNote(e.target.value)}
-                  className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-bold text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
                 />
                 <button
                   type="button"
                   onClick={handleSaveToLocalJournal}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition active:scale-95 cursor-pointer whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition cursor-pointer whitespace-nowrap"
                 >
                   <Bookmark className="h-3.5 w-3.5" />
                   <span>Enregistrer dans mon carnet</span>
@@ -425,55 +423,55 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
             </div>
 
             {/* Key Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mt-6">
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">🔥 Temp. Maximale</div>
-                <div className="text-2xl font-black text-rose-400 mt-1 tabular-nums">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-4">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Temp. maximale</div>
+                <div className="text-xl font-bold text-rose-400 mt-0.5 tabular-nums">
                   {formatTemp(archiveResult.tempMax)}
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">❄️ Temp. Minimale</div>
-                <div className="text-2xl font-black text-blue-400 mt-1 tabular-nums">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Temp. minimale</div>
+                <div className="text-xl font-bold text-blue-400 mt-0.5 tabular-nums">
                   {formatTemp(archiveResult.tempMin)}
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">🌡️ Temp. Moyenne</div>
-                <div className="text-2xl font-black text-amber-300 mt-1 tabular-nums">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Temp. moyenne</div>
+                <div className="text-xl font-bold text-slate-200 mt-0.5 tabular-nums">
                   {formatTemp(archiveResult.tempMean)}
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">🌧️ Précipitations</div>
-                <div className="text-2xl font-black text-cyan-300 mt-1 tabular-nums">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Précipitations</div>
+                <div className="text-xl font-bold text-cyan-300 mt-0.5 tabular-nums">
                   {archiveResult.precipitationMm} mm
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">💨 Rafale Maximale</div>
-                <div className="text-2xl font-black text-teal-300 mt-1 tabular-nums">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Rafale maximale</div>
+                <div className="text-xl font-bold text-teal-300 mt-0.5 tabular-nums">
                   {archiveResult.windGustsMaxKmH} km/h
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
-                <div className="text-[11px] font-bold text-slate-400">☀️ Rayonnement Solaire</div>
-                <div className="text-2xl font-black text-yellow-300 mt-1 tabular-nums">
+              <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <div className="text-[11px] text-slate-400">Rayonnement solaire</div>
+                <div className="text-xl font-bold text-amber-300 mt-0.5 tabular-nums">
                   {archiveResult.solarRadiationMj} MJ
                 </div>
               </div>
             </div>
 
-            {/* Weather Condition Diagnostic: Beau temps, Nuageux, Pluie, Soleil, Orage, Neige */}
-            <div className="mt-6 p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-950">
+            {/* Weather Condition Diagnostic */}
+            <div className="mt-4 p-4 rounded-md border border-slate-800 bg-slate-950">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl sm:text-4xl shrink-0 p-3 rounded-2xl bg-slate-900 border border-amber-500/40 shadow-xl">
+                  <div className="text-2xl shrink-0 p-2 rounded-md bg-slate-900 border border-slate-800">
                     {archiveResult.mainCondition === 'SOLEIL' && '☀️'}
                     {archiveResult.mainCondition === 'ECLAIRCIES' && '🌤️'}
                     {archiveResult.mainCondition === 'NUAGEUX' && '☁️'}
@@ -483,93 +481,93 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
                     {archiveResult.mainCondition === 'BROUILLARD' && '🌫️'}
                   </div>
                   <div>
-                    <div className="text-[11px] font-black uppercase tracking-wider text-amber-400">
-                      Diagnostic d'État du Ciel &amp; Météo de la Journée
+                    <div className="text-[11px] font-semibold text-amber-400">
+                      Diagnostic de la journée
                     </div>
-                    <h4 className="text-xl sm:text-2xl font-black text-white mt-0.5">
+                    <h4 className="text-lg font-bold text-white mt-0.5">
                       {archiveResult.mainConditionLabel}
                     </h4>
-                    <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
                       {archiveResult.mainConditionSummary}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`px-3 py-1.5 rounded-xl text-xs font-black border ${
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${
                     archiveResult.precipitationMm > 0 
-                      ? 'bg-cyan-950/80 border-cyan-500/50 text-cyan-300' 
-                      : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
+                      ? 'bg-cyan-950/80 border-cyan-800 text-cyan-300' 
+                      : 'bg-slate-900 border-slate-800 text-slate-300'
                   }`}>
-                    {archiveResult.precipitationMm > 0 ? `🌧️ ${archiveResult.precipitationMm} mm de pluie` : '💧 Temps sec (0 mm)'}
+                    {archiveResult.precipitationMm > 0 ? `${archiveResult.precipitationMm} mm de pluie` : 'Temps sec (0 mm)'}
                   </span>
-                  <span className="px-3 py-1.5 rounded-xl text-xs font-black border bg-amber-950/80 border-amber-500/50 text-amber-300">
-                    {archiveResult.tempMax >= 30 ? '🔥 Fortes chaleurs' : archiveResult.tempMin <= 0 ? '❄️ Gelée matinale' : '🌡️ Températures de saison'}
+                  <span className="px-2.5 py-1 rounded-md text-xs font-medium border bg-slate-900 border-slate-800 text-slate-300">
+                    {archiveResult.tempMax >= 30 ? 'Fortes chaleurs' : archiveResult.tempMin <= 0 ? 'Gelée matinale' : 'Températures de saison'}
                   </span>
                 </div>
               </div>
 
               {/* 4 Periods of Day Breakdown: Matin, Midi, Après-midi, Soirée */}
-              <div className="mt-5 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="mt-4 pt-3 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {/* Nuit / Matin */}
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Matinée (06h - 11h)</div>
-                  <div className="text-sm font-black text-white mt-1 flex items-center gap-1.5">
+                <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Matinée (06h - 11h)</div>
+                  <div className="text-xs font-semibold text-white mt-0.5 flex items-center gap-1">
                     <span>{archiveResult.hourly[8]?.precipitation > 0 ? '🌧️ Pluvieux' : archiveResult.hourly[8]?.weatherCode <= 1 ? '☀️ Ensoleillé' : '🌤️ Éclaircies'}</span>
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5 font-bold">
+                  <div className="text-[11px] text-slate-400 mt-0.5">
                     ~{archiveResult.hourly[8]?.temperature ?? archiveResult.tempMin}°C
                   </div>
                 </div>
 
                 {/* Après-midi */}
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Après-Midi (12h - 17h)</div>
-                  <div className="text-sm font-black text-white mt-1 flex items-center gap-1.5">
-                    <span>{archiveResult.hourly[15]?.precipitation > 0 ? '🌧️ Averses' : archiveResult.hourly[15]?.weatherCode <= 1 ? '☀️ Grand Soleil' : '⛅ Ciel variable'}</span>
+                <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Après-Midi (12h - 17h)</div>
+                  <div className="text-xs font-semibold text-white mt-0.5 flex items-center gap-1">
+                    <span>{archiveResult.hourly[15]?.precipitation > 0 ? '🌧️ Averses' : archiveResult.hourly[15]?.weatherCode <= 1 ? '☀️ Soleil' : '⛅ Ciel variable'}</span>
                   </div>
-                  <div className="text-xs text-rose-400 mt-0.5 font-bold">
-                    ~{archiveResult.hourly[15]?.temperature ?? archiveResult.tempMax}°C (Pic)
+                  <div className="text-[11px] text-rose-400 mt-0.5">
+                    ~{archiveResult.hourly[15]?.temperature ?? archiveResult.tempMax}°C
                   </div>
                 </div>
 
                 {/* Soirée */}
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Soirée (18h - 22h)</div>
-                  <div className="text-sm font-black text-white mt-1 flex items-center gap-1.5">
-                    <span>{archiveResult.hourly[20]?.precipitation > 0 ? '🌧️ Humide' : archiveResult.hourly[20]?.weatherCode <= 1 ? '✨ Ciel clair' : '☁️ Nuageux'}</span>
+                <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Soirée (18h - 22h)</div>
+                  <div className="text-xs font-semibold text-white mt-0.5 flex items-center gap-1">
+                    <span>{archiveResult.hourly[20]?.precipitation > 0 ? '🌧️ Humide' : archiveResult.hourly[20]?.weatherCode <= 1 ? 'Ciel clair' : '☁️ Nuageux'}</span>
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5 font-bold">
+                  <div className="text-[11px] text-slate-400 mt-0.5">
                     ~{archiveResult.hourly[20]?.temperature ?? 18}°C
                   </div>
                 </div>
 
                 {/* Nuit */}
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Nuit (23h - 05h)</div>
-                  <div className="text-sm font-black text-white mt-1 flex items-center gap-1.5">
-                    <span>{archiveResult.hourly[2]?.precipitation > 0 ? '🌧️ Pluvieux' : '🌙 Ciel dégagé'}</span>
+                <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Nuit (23h - 05h)</div>
+                  <div className="text-xs font-semibold text-white mt-0.5 flex items-center gap-1">
+                    <span>{archiveResult.hourly[2]?.precipitation > 0 ? '🌧️ Pluvieux' : 'Ciel dégagé'}</span>
                   </div>
-                  <div className="text-xs text-blue-400 mt-0.5 font-bold">
-                    ~{archiveResult.hourly[4]?.temperature ?? archiveResult.tempMin}°C (Min)
+                  <div className="text-[11px] text-blue-400 mt-0.5">
+                    ~{archiveResult.hourly[4]?.temperature ?? archiveResult.tempMin}°C
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Hourly Curve for Selected Day */}
-            <div className="mt-8 pt-6 border-t border-slate-800">
-              <h4 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-400" />
-                <span>Profil Horaire Détaillé de 00h à 23h ({archiveResult.dateStr})</span>
+            <div className="mt-5 pt-4 border-t border-slate-800">
+              <h4 className="text-xs font-semibold text-white mb-3 flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-amber-400" />
+                <span>Profil horaire de 00h à 23h ({archiveResult.dateStr})</span>
               </h4>
 
-              <div className="h-64 w-full">
+              <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={archiveResult.hourly}>
                     <defs>
                       <linearGradient id="archiveTempGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
@@ -577,14 +575,14 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
                     <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} />
                     <YAxis stroke="#94a3b8" fontSize={11} unit="°C" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                      contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '6px', color: '#fff' }}
                       formatter={(val: any) => [`${val}°C`, 'Température']}
                     />
                     <Area
                       type="monotone"
                       dataKey="temperature"
                       stroke="#f59e0b"
-                      strokeWidth={3}
+                      strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#archiveTempGrad)"
                     />
@@ -595,50 +593,50 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
           </div>
 
           {/* 4. Personal Stored Weather Journal List */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6 shadow-2xl backdrop-blur">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-amber-400" />
-                <h3 className="text-lg font-black text-white">Mon Carnet Météo Local ({savedLogs.length} dates sauvegardées)</h3>
+                <Bookmark className="h-4 w-4 text-amber-400" />
+                <h3 className="text-base font-bold text-white">Mon carnet météo ({savedLogs.length} date{savedLogs.length > 1 ? 's' : ''})</h3>
               </div>
             </div>
 
             {savedLogs.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">
-                Aucune journée enregistrée dans votre carnet pour l'instant. Recherchez une date ci-dessus et cliquez sur « Enregistrer dans mon carnet ».
+              <p className="text-xs text-slate-400 py-4 text-center">
+                Aucune journée enregistrée pour l'instant. Choisissez une date ci-dessus et cliquez sur « Enregistrer dans mon carnet ».
               </p>
             ) : (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {savedLogs.map((log) => (
-                  <div key={log.id} className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between">
+                  <div key={log.id} className="p-3 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-black text-amber-400">{log.dateStr}</span>
+                        <span className="font-semibold text-amber-400">{log.dateStr}</span>
                         <button
                           onClick={() => handleDeleteLog(log.id)}
-                          className="text-slate-500 hover:text-rose-400 p-1"
+                          className="text-slate-500 hover:text-rose-400 p-1 cursor-pointer"
                           title="Supprimer cette entrée"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
 
-                      <div className="text-sm font-bold text-white mt-1">
+                      <div className="text-xs font-semibold text-white mt-0.5">
                         {log.cityName} ({log.department})
                       </div>
 
-                      <div className="text-xs text-slate-400 mt-1">
+                      <div className="text-xs text-slate-400 mt-0.5">
                         {log.weatherDesc}
                       </div>
 
                       {log.userNotes && (
-                        <div className="mt-2 text-xs italic text-slate-300 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div className="mt-2 text-xs italic text-slate-300 bg-slate-900 p-2 rounded-md border border-slate-800">
                           « {log.userNotes} »
                         </div>
                       )}
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold">
+                    <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
                       <span className="text-rose-400">Max: {log.tempMax}°C</span>
                       <span className="text-blue-400">Min: {log.tempMin}°C</span>
                       <span className="text-cyan-300">{log.precipitationMm} mm</span>

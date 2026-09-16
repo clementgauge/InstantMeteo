@@ -497,20 +497,20 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
   const activeRegionObj = FRENCH_REGIONS.find(r => r.id === selectedRegion) || FRENCH_REGIONS[0];
 
   return (
-    <div id="france-map-interactive" className="space-y-4 sm:space-y-6">
+    <div id="france-map-interactive" className="space-y-4">
       {/* 1. Header Banner & Main Title */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-4 sm:p-7 shadow-2xl backdrop-blur relative overflow-hidden">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-1.5 text-blue-400 text-[11px] font-black uppercase tracking-wider mb-1">
-              <Globe2 className="h-3.5 w-3.5 text-cyan-400" />
+            <div className="flex items-center gap-1.5 text-[#0284C7] text-[11px] font-bold uppercase tracking-wider mb-1">
+              <Globe2 className="h-3.5 w-3.5" />
               <span>Cartographie OpenStreetMap Régions &amp; Relief</span>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-3xl'}`}>
+            <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
               Carte OpenStreetMap des Régions &amp; Sommets
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Explorez le réseau synoptique de France : zoomez par région, comparez plaines et sommets de montagne.
+            <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Explorez le réseau météo en France métropolitaine : zoomez par région, filtrez par altitude et examinez les stations.
             </p>
           </div>
 
@@ -518,18 +518,18 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
           {onOpenSearchModal && (
             <button
               onClick={onOpenSearchModal}
-              className="flex items-center gap-1.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-2 text-xs shadow-lg shadow-blue-600/30 transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold px-3 py-1.5 text-xs transition cursor-pointer"
             >
               <Search className="h-3.5 w-3.5" />
-              <span>35 000 communes</span>
+              <span>Rechercher une commune</span>
             </button>
           )}
         </div>
 
         {/* Region Fast Selector Strip - Horizontal Swipe */}
-        <div className="mt-3.5 pt-3 border-t border-slate-800/80">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 mb-1.5">
-            <Layers className="h-3 w-3 text-cyan-400" />
+        <div className="mt-3 pt-2.5 border-t border-slate-800">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-300 mb-1.5">
+            <Layers className="h-3 w-3 text-[#0284C7]" />
             <span>Sélection &amp; Zoom par Région :</span>
           </div>
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none flex-nowrap">
@@ -539,10 +539,10 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
                 <button
                   key={reg.id}
                   onClick={() => handleSelectRegion(reg.id)}
-                  className={`flex shrink-0 items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                  className={`flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-cyan-500 text-slate-950 font-black shadow-md ring-1 ring-white/60'
-                      : 'bg-slate-950/80 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-[#0284C7] text-white'
+                      : 'bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
                   <span>{reg.shortName}</span>
@@ -553,23 +553,23 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
         </div>
 
         {/* Filter Controls Row - Mobile Horizontal Carousel */}
-        <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-2.5 pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
           {/* Metric Selector */}
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-nowrap">
-            <span className="text-[11px] font-bold text-slate-400 mr-1 shrink-0">Grandeur :</span>
-            <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-0.5 border border-slate-800 shrink-0">
+            <span className="text-[11px] font-semibold text-slate-400 mr-1 shrink-0">Grandeur :</span>
+            <div className="flex items-center gap-1 rounded-md bg-slate-900 p-0.5 border border-slate-800 shrink-0">
               {[
-                { id: 'temp', label: 'Température', icon: <Thermometer className="h-3 w-3" />, color: 'bg-blue-600' },
-                { id: 'altitude', label: 'Altitude', icon: <Mountain className="h-3 w-3" />, color: 'bg-purple-600' },
+                { id: 'temp', label: 'Température', icon: <Thermometer className="h-3 w-3" />, color: 'bg-[#0284C7]' },
+                { id: 'altitude', label: 'Altitude', icon: <Mountain className="h-3 w-3" />, color: 'bg-indigo-600' },
                 { id: 'anomaly', label: 'Anomalies', icon: <TrendingUp className="h-3 w-3" />, color: 'bg-amber-600' },
-                { id: 'rain', label: 'Pluie', icon: <CloudRain className="h-3 w-3" />, color: 'bg-indigo-600' },
+                { id: 'rain', label: 'Pluie', icon: <CloudRain className="h-3 w-3" />, color: 'bg-blue-600' },
                 { id: 'wind', label: 'Vent', icon: <Wind className="h-3 w-3" />, color: 'bg-teal-600' }
               ].map(metric => (
                 <button
                   key={metric.id}
                   onClick={() => setMetricFilter(metric.id as MapMetricFilter)}
-                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold transition cursor-pointer shrink-0 ${
-                    metricFilter === metric.id ? `${metric.color} text-white shadow` : 'text-slate-400 hover:text-slate-200'
+                  className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold transition cursor-pointer shrink-0 ${
+                    metricFilter === metric.id ? `${metric.color} text-white` : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {metric.icon}
@@ -581,20 +581,20 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
           {/* Elevation Filter */}
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-nowrap">
-            <span className="text-[11px] font-bold text-slate-400 mr-1 shrink-0">Étage :</span>
-            <div className="flex items-center gap-0.5 rounded-xl bg-slate-950 p-0.5 border border-slate-800 shrink-0">
+            <span className="text-[11px] font-semibold text-slate-400 mr-1 shrink-0">Étage :</span>
+            <div className="flex items-center gap-0.5 rounded-md bg-slate-900 p-0.5 border border-slate-800 shrink-0">
               {[
                 { id: 'all', label: 'Tous' },
                 { id: 'plains', label: '< 400m' },
                 { id: 'mid', label: 'Moyenne' },
-                { id: 'summits', label: '⛰️ Sommets' }
+                { id: 'summits', label: 'Sommets' }
               ].map(item => (
                 <button
                   key={item.id}
                   onClick={() => setElevationFilter(item.id as ElevationFilter)}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer shrink-0 ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer shrink-0 ${
                     elevationFilter === item.id 
-                      ? 'bg-cyan-500 text-slate-950 font-black shadow' 
+                      ? 'bg-[#0284C7] text-white' 
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -606,8 +606,8 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
         </div>
 
         {/* Iconic Summits Fast Jump Bar */}
-        <div className="mt-3 pt-2.5 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto pb-1 flex-nowrap scrollbar-none">
-          <div className="flex items-center gap-1 text-[10px] font-bold text-amber-300 shrink-0">
+        <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto pb-1 flex-nowrap scrollbar-none">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-amber-300 shrink-0">
             <Mountain className="h-3 w-3" />
             <span>Sommets :</span>
           </div>
@@ -622,14 +622,14 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
                     mapInstanceRef.current.flyTo([summit.latitude, summit.longitude], 11, { duration: 1 });
                   }
                 }}
-                className={`flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold transition cursor-pointer whitespace-nowrap ${
+                className={`flex shrink-0 items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium transition cursor-pointer whitespace-nowrap ${
                   isSelected
-                    ? 'bg-amber-400 text-slate-950 font-black shadow-md ring-1 ring-white/60'
-                    : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-amber-400 text-slate-950 font-bold'
+                    : 'bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800'
                 }`}
               >
                 <span>{summit.name}</span>
-                <span className="font-mono text-[9px] text-amber-400 bg-amber-950/60 px-1 rounded">
+                <span className="font-mono text-[9px] text-amber-300 bg-slate-950 px-1 rounded">
                   {summit.altitude}m
                 </span>
               </button>
@@ -639,26 +639,26 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
       </div>
 
       {/* 2. Main Map Graphic and HUD Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left 3 Cols: Interactive OpenStreetMap Map */}
-        <div className={`lg:col-span-3 rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl relative overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen' : 'h-[460px] sm:h-[600px]'}`}>
+        <div className={`lg:col-span-3 rounded-lg border border-slate-800 bg-slate-950 relative overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen' : 'h-[460px] sm:h-[580px]'}`}>
           
           {/* Top Controls Overlay on Map */}
           <div className="absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 z-[400] flex items-center justify-between gap-1.5 pointer-events-none">
             {/* Left: Tile Layer Selector */}
-            <div className="flex items-center gap-0.5 rounded-2xl bg-slate-950/95 p-0.5 border border-slate-800/90 shadow-xl backdrop-blur pointer-events-auto overflow-x-auto scrollbar-none flex-nowrap">
+            <div className="flex items-center gap-0.5 rounded-md bg-slate-950/95 p-0.5 border border-slate-800 shadow-md backdrop-blur pointer-events-auto overflow-x-auto scrollbar-none flex-nowrap">
               {[
                 { id: 'osm', label: 'Standard' },
-                { id: 'topo', label: '⛰️ Relief' },
-                { id: 'dark', label: '🌙 Sombre' },
-                { id: 'satellite', label: '🛰️ Sat' }
+                { id: 'topo', label: 'Relief' },
+                { id: 'dark', label: 'Sombre' },
+                { id: 'satellite', label: 'Satellite' }
               ].map(tile => (
                 <button
                   key={tile.id}
                   onClick={() => setBaseLayer(tile.id as OsmBaseLayer)}
-                  className={`px-2 py-1 rounded-xl text-[10px] font-bold transition cursor-pointer whitespace-nowrap ${
+                  className={`px-2 py-1 rounded text-[10px] font-semibold transition cursor-pointer whitespace-nowrap ${
                     baseLayer === tile.id
-                      ? 'bg-blue-600 text-white shadow ring-1 ring-white/40'
+                      ? 'bg-[#0284C7] text-white'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -671,7 +671,7 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
             <div className="flex items-center gap-1 pointer-events-auto">
               <button
                 onClick={handleCenterOnStation}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950/95 border border-blue-500/40 text-blue-300 hover:bg-blue-600 hover:text-white font-bold text-[10px] shadow-xl backdrop-blur transition cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-950/95 border border-slate-700 text-sky-300 hover:bg-slate-800 hover:text-white font-semibold text-[10px] backdrop-blur transition cursor-pointer"
                 title={`Centrer sur ${currentStation.name}`}
               >
                 <MapPin className="h-3 w-3" />
@@ -680,15 +680,15 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
               <button
                 onClick={() => handleSelectRegion('france')}
-                className="px-2 py-1 rounded-xl bg-slate-950/95 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white font-bold text-[10px] shadow-xl backdrop-blur transition cursor-pointer"
+                className="px-2 py-1 rounded-md bg-slate-950/95 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-[10px] backdrop-blur transition cursor-pointer"
                 title="Recentrer sur la France"
               >
-                🇫🇷 France
+                France
               </button>
 
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-1.5 rounded-xl bg-slate-950/95 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white shadow-xl backdrop-blur transition cursor-pointer"
+                className="p-1.5 rounded-md bg-slate-950/95 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white backdrop-blur transition cursor-pointer"
                 title={isFullscreen ? 'Quitter' : 'Plein écran'}
               >
                 {isFullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
@@ -701,24 +701,24 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
           {/* Bottom Floating Info Pill on Map */}
           <div className="absolute bottom-2 left-2 z-[400] pointer-events-none">
-            <div className="rounded-xl border border-slate-800/90 bg-slate-950/95 px-2.5 py-1 shadow-xl backdrop-blur pointer-events-auto flex items-center gap-1.5 text-[10px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+            <div className="rounded-md border border-slate-800 bg-slate-950/95 px-2.5 py-1 backdrop-blur pointer-events-auto flex items-center gap-1.5 text-[10px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse" />
               <span className="text-slate-300">
-                <strong className="text-white">{displayedStations.length}</strong> stations • Touchez un point pour voir sa météo
+                <strong className="text-white">{displayedStations.length}</strong> stations • Cliquez sur un point pour sélectionner
               </span>
             </div>
           </div>
         </div>
 
         {/* Right 1 Col: Active Station & Regional Inspector HUD */}
-        <div className="space-y-3 sm:space-y-4 flex flex-col">
+        <div className="space-y-3 flex flex-col">
           {/* Active Region Focus Card */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-xl backdrop-blur">
-            <div className="flex items-center gap-1.5 text-[11px] font-black text-cyan-400 uppercase tracking-wider mb-1">
-              <Compass className="h-3.5 w-3.5 text-cyan-400" />
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#0284C7] uppercase tracking-wider mb-1">
+              <Compass className="h-3.5 w-3.5" />
               <span>Région Active</span>
             </div>
-            <h3 className="text-base sm:text-lg font-black text-white">{activeRegionObj.name}</h3>
+            <h3 className="text-base font-bold text-white">{activeRegionObj.name}</h3>
             <p className="text-xs text-slate-400 mt-1 leading-relaxed">{activeRegionObj.climate}</p>
             
             <div className="mt-2.5 pt-2.5 border-t border-slate-800 space-y-1 text-xs">
@@ -734,22 +734,22 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
           </div>
 
           {/* Active Station Card */}
-          <div className="rounded-3xl border-2 border-blue-500/40 bg-slate-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur flex-1 flex flex-col justify-between">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex-1 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-1.5 text-[11px] font-black text-blue-400 uppercase tracking-wider mb-1.5">
-                <MapPin className="h-3.5 w-3.5 text-blue-400 animate-bounce" />
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#0284C7] uppercase tracking-wider mb-1">
+                <MapPin className="h-3.5 w-3.5" />
                 <span>Station Sélectionnée</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-black text-white">{currentStation.name}</h3>
+              <h3 className="text-lg font-bold text-white">{currentStation.name}</h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 {currentStation.department} • Région {currentStation.region}
               </p>
 
               {/* Station Elevation & Topo Badge */}
-              <div className="mt-3 p-2.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+              <div className="mt-2.5 p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Altitude sol :</span>
-                  <strong className="text-cyan-300 font-mono">{currentStation.altitude} m</strong>
+                  <strong className="text-sky-300 font-mono">{currentStation.altitude} m</strong>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Zone climatique :</span>
@@ -757,21 +757,21 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Type de relief :</span>
-                  <span className="px-1.5 py-0.5 rounded bg-blue-950/80 text-blue-300 text-[10px] font-bold">
-                    {(currentStation.altitude ?? 0) >= 2000 ? '🏔️ Haute Montagne' : (currentStation.altitude ?? 0) >= 800 ? '⛰️ Montagne' : '🌲 Plaine / Vallée'}
+                  <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-medium border border-slate-700">
+                    {(currentStation.altitude ?? 0) >= 2000 ? 'Haute Montagne' : (currentStation.altitude ?? 0) >= 800 ? 'Montagne' : 'Plaine / Vallée'}
                   </span>
                 </div>
               </div>
 
               {/* Station Key Records */}
-              <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs">
-                <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800">
+              <div className="mt-2.5 grid grid-cols-2 gap-2 text-center text-xs">
+                <div className="p-2 rounded-md bg-slate-900 border border-slate-800">
                   <span className="text-[10px] text-slate-400 block">Record Chaleur</span>
-                  <strong className="text-rose-400 font-black">{currentStation.allTimeRecordMax ?? 40}°C</strong>
+                  <strong className="text-rose-400 font-bold">{currentStation.allTimeRecordMax ?? 40}°C</strong>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div className="p-2 rounded-md bg-slate-900 border border-slate-800">
                   <span className="text-[10px] text-slate-400 block">Record Froid</span>
-                  <strong className="text-sky-400 font-black">{currentStation.allTimeRecordMin ?? -20}°C</strong>
+                  <strong className="text-sky-400 font-bold">{currentStation.allTimeRecordMin ?? -20}°C</strong>
                 </div>
               </div>
             </div>
@@ -781,7 +781,7 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
               <div className="mt-3 pt-2.5 border-t border-slate-800">
                 <button
                   onClick={onOpenSearchModal}
-                  className="w-full py-2 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30"
+                  className="w-full py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>Changer de Station</span>

@@ -154,22 +154,20 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
   };
 
   return (
-    <div id="communal-four-week-bulletin-card" className="space-y-6">
+    <div id="communal-four-week-bulletin-card" className="space-y-5">
       {/* Search Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none"></div>
-
-        <div className="relative z-10 space-y-5">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6 shadow-md relative overflow-hidden">
+        <div className="relative z-10 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-1">
                 <MapPin className="h-4 w-4" />
-                <span>Bulletin Textuel à 4 Semaines • Disponible pour TOUTES les 36 000+ Communes de France</span>
+                <span>Bulletin Textuel à 4 Semaines • 36 000+ Communes</span>
               </div>
-              <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+              <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>
                 Bulletin Météorologique 4 Semaines : <span className="text-cyan-400">{selectedCommune.name}</span>
               </h2>
-              <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
                 Expertise météorologique rédigée à l'échelle communale (S+1 à S+4) • Diagnostic synoptique, températures attendues, cumuls de pluie, normales 1991-2020 et bilans agro-climatiques.
               </p>
             </div>
@@ -178,27 +176,27 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyBulletin}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 text-xs font-bold transition shadow"
+                className="flex items-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 text-xs font-medium transition cursor-pointer"
                 title="Copier l'intégralité du bulletin texte"
               >
-                {copiedSuccess ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4 text-cyan-400" />}
-                <span>{copiedSuccess ? 'Copié !' : 'Copier Texte'}</span>
+                {copiedSuccess ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-cyan-400" />}
+                <span>{copiedSuccess ? 'Copié !' : 'Copier'}</span>
               </button>
 
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 text-xs font-bold transition shadow hidden sm:flex"
+                className="flex items-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 text-xs font-medium transition cursor-pointer hidden sm:flex"
                 title="Imprimer ou enregistrer en PDF"
               >
-                <Printer className="h-4 w-4 text-indigo-400" />
+                <Printer className="h-3.5 w-3.5 text-indigo-400" />
                 <span>Imprimer / PDF</span>
               </button>
 
               <button
                 onClick={() => setBulletin(generateCommunalFourWeekBulletin(selectedCommune))}
-                className="flex items-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 px-3.5 py-2 text-xs font-bold transition shadow"
+                className="flex items-center gap-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-slate-950 px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer"
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-3.5 w-3.5" />
                 <span>Réactualiser</span>
               </button>
             </div>
@@ -207,7 +205,7 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
           {/* Search Commune Input */}
           <div className="relative max-w-2xl">
             <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-slate-400" />
+              <Search className="absolute left-3.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -215,11 +213,11 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
                 onFocus={() => {
                   if (searchResults.length > 0) setShowSearchDropdown(true);
                 }}
-                placeholder="Tapez le nom de n'importe quelle commune de France (ex: Annecy, Biarritz, Saint-Malo, Corte, Dinan...)"
-                className="w-full rounded-2xl bg-slate-950/90 border border-cyan-500/40 pl-12 pr-10 py-3 text-sm text-white placeholder-slate-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                placeholder="Tapez le nom d'une commune de France (ex: Annecy, Biarritz, Saint-Malo, Corte...)"
+                className="w-full rounded-md bg-slate-950 border border-slate-700 pl-10 pr-9 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
               />
               {isSearching && (
-                <div className="absolute right-4">
+                <div className="absolute right-3.5">
                   <RefreshCw className="h-4 w-4 text-cyan-400 animate-spin" />
                 </div>
               )}
@@ -227,18 +225,18 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
 
             {/* Search Dropdown */}
             {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute z-50 mt-2 w-full rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden max-h-72 overflow-y-auto">
-                <div className="p-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-950 border-b border-slate-800">
+              <div className="absolute z-50 mt-1.5 w-full rounded-md bg-slate-900 border border-slate-700 shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+                <div className="p-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-950 border-b border-slate-800">
                   Résultats de recherche ({searchResults.length} communes trouvées)
                 </div>
                 {searchResults.map((st) => (
                   <button
                     key={`${st.name}-${st.latitude}-${st.longitude}`}
                     onClick={() => handleSelectCommune(st)}
-                    className="w-full text-left px-4 py-3 hover:bg-slate-800 border-b border-slate-800/50 flex items-center justify-between transition"
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-800 border-b border-slate-800/50 flex items-center justify-between transition cursor-pointer"
                   >
                     <div>
-                      <span className="font-bold text-white text-sm block">{st.name}</span>
+                      <span className="font-semibold text-white text-sm block">{st.name}</span>
                       <span className="text-xs text-slate-400">
                         {st.department || st.region || 'France'} • Alt. {st.altitude || 100} m • {st.climateZone || 'Climat tempéré'}
                       </span>
@@ -251,45 +249,45 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
           </div>
 
           {/* Selected Commune Metadata Chips */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Département & Région</span>
-              <span className="text-xs font-bold text-white truncate block">{selectedCommune.department || selectedCommune.region || 'France'}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+              <span className="text-[10px] text-slate-400 uppercase font-medium block">Département & Région</span>
+              <span className="text-xs font-semibold text-white truncate block">{selectedCommune.department || selectedCommune.region || 'France'}</span>
             </div>
 
-            <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Altitude & Étage</span>
-              <span className="text-xs font-bold text-emerald-400">{selectedCommune.altitude || 100} m • {bulletin.climaticContext.elevationTier}</span>
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+              <span className="text-[10px] text-slate-400 uppercase font-medium block">Altitude & Étage</span>
+              <span className="text-xs font-semibold text-emerald-400">{selectedCommune.altitude || 100} m • {bulletin.climaticContext.elevationTier}</span>
             </div>
 
-            <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Radar Doppler ARAMIS</span>
-              <span className="text-xs font-bold text-cyan-400 truncate block">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+              <span className="text-[10px] text-slate-400 uppercase font-medium block">Radar Doppler ARAMIS</span>
+              <span className="text-xs font-semibold text-cyan-400 truncate block">
                 {bulletin.nearestRadar.name} ({bulletin.nearestRadar.distanceKm} km)
               </span>
             </div>
 
-            <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Normales Référence</span>
-              <span className="text-xs font-bold text-amber-300">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+              <span className="text-[10px] text-slate-400 uppercase font-medium block">Normales Référence</span>
+              <span className="text-xs font-semibold text-amber-300">
                 Moy. {bulletin.climaticContext.normalTempAnnualC}°C • {bulletin.climaticContext.normalPrecipAnnualMm} mm/mois
               </span>
             </div>
           </div>
 
           {/* Executive Synthesis Box */}
-          <div className="rounded-2xl bg-slate-950/90 border border-cyan-500/30 p-4 text-xs sm:text-sm text-slate-200 leading-relaxed space-y-1">
-            <div className="flex items-center gap-2 text-cyan-400 font-black uppercase tracking-wider text-xs">
-              <Sparkles className="h-4 w-4" />
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed space-y-1">
+            <div className="flex items-center gap-2 text-cyan-400 font-semibold uppercase tracking-wider text-xs">
+              <Sparkles className="h-3.5 w-3.5" />
               <span>Synthèse Climatologique Officielle à 4 Semaines pour {selectedCommune.name} :</span>
             </div>
-            <p>{bulletin.executiveSynthesisText}</p>
+            <p className="text-slate-300">{bulletin.executiveSynthesisText}</p>
           </div>
         </div>
       </div>
 
       {/* Week Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {bulletin.weeks.map((w) => {
           const isSelected = w.weekIndex === selectedWeekIndex;
           const isWarm = w.dominantScenario.temperatureAnomalyC > 0;
@@ -297,22 +295,22 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
             <button
               key={w.weekIndex}
               onClick={() => setSelectedWeekIndex(w.weekIndex)}
-              className={`rounded-2xl p-4 text-left border transition relative overflow-hidden ${
+              className={`rounded-lg p-3 text-left border transition relative cursor-pointer ${
                 isSelected
-                  ? 'bg-slate-900 border-cyan-400 shadow-xl shadow-cyan-500/10 ring-2 ring-cyan-400'
+                  ? 'bg-slate-900 border-cyan-500 shadow-sm ring-1 ring-cyan-500'
                   : 'bg-slate-900/60 border-slate-800 hover:bg-slate-800/80'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-black text-cyan-400">Semaine {w.weekIndex}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  isWarm ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                <span className="text-xs font-bold text-cyan-400">Semaine {w.weekIndex}</span>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                  isWarm ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-blue-950 text-blue-300 border border-blue-800'
                 }`}>
                   {formatTemp(w.dominantScenario.temperatureAnomalyC)} vs normale
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400 font-semibold block">{w.dateRangeFormatted}</span>
-              <div className="mt-2 flex items-center justify-between text-xs font-bold">
+              <span className="text-[11px] text-slate-400 font-medium block">{w.dateRangeFormatted}</span>
+              <div className="mt-2 flex items-center justify-between text-xs font-semibold">
                 <span className="text-white">{w.dominantScenario.tempMinExpectedC}° / {w.dominantScenario.tempMaxExpectedC}°C</span>
                 <span className="text-blue-400 flex items-center gap-1">
                   <CloudRain className="h-3 w-3" />
@@ -325,32 +323,32 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
       </div>
 
       {/* Selected Week Detailed Communal Analysis */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-black text-cyan-400 uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1">
               <Calendar className="h-4 w-4" />
               <span>{selectedWeek.weekLabel} • {selectedWeek.dateRangeFormatted}</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white">
+            <h3 className="text-lg sm:text-xl font-bold text-white">
               {selectedWeek.dominantScenario.title}
             </h3>
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-slate-400">
               Régime synoptique : <strong className="text-slate-200">{selectedWeek.dominantScenario.synopticRegime}</strong> • Indice de confiance : <strong className="text-emerald-400">{selectedWeek.dominantScenario.confidenceScorePercent}%</strong>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-3 text-center min-w-[100px]">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Min / Max Prévus</span>
-              <span className="text-base font-black text-white">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center min-w-[95px]">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold block">Min / Max</span>
+              <span className="text-sm font-bold text-white">
                 {selectedWeek.dominantScenario.tempMinExpectedC}° / {selectedWeek.dominantScenario.tempMaxExpectedC}°C
               </span>
             </div>
 
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-3 text-center min-w-[100px]">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Pluviométrie</span>
-              <span className="text-base font-black text-blue-400">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center min-w-[95px]">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold block">Pluviométrie</span>
+              <span className="text-sm font-bold text-blue-400">
                 {selectedWeek.dominantScenario.rainAccumulationEstimatedMm} mm
               </span>
             </div>
@@ -358,39 +356,39 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
         </div>
 
         {/* Textual Detailed Communal Forecast */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-2">
-            <FileText className="h-4 w-4 text-cyan-400" />
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold uppercase text-slate-400 tracking-wider flex items-center gap-2">
+            <FileText className="h-3.5 w-3.5 text-cyan-400" />
             <span>Texte du Bulletin Officiel pour {selectedCommune.name} :</span>
           </h4>
-          <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-5 text-sm sm:text-base text-slate-100 leading-relaxed font-sans shadow-inner">
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-4 text-xs sm:text-sm text-slate-100 leading-relaxed font-sans">
             {selectedWeek.dominantScenario.communeSpecificText}
           </div>
         </div>
 
         {/* Multi-Parameter Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           {/* Wind & Gusts */}
-          <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase">
-              <Wind className="h-4 w-4" />
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3.5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 uppercase">
+              <Wind className="h-3.5 w-3.5" />
               <span>Vent & Aérologie Locale</span>
             </div>
             <p className="text-xs text-slate-200 leading-relaxed">
               {selectedWeek.dominantScenario.dominantWind}
             </p>
-            <div className="text-[11px] text-slate-400">
-              Rafales maximales modélisées : <strong className="text-white">{selectedWeek.dominantScenario.gustMaxKmh} km/h</strong>
+            <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+              Rafales modélisées : <strong className="text-white">{selectedWeek.dominantScenario.gustMaxKmh} km/h</strong>
             </div>
           </div>
 
           {/* Agro-Climatic Impacts */}
-          <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase">
-              <Sparkles className="h-4 w-4" />
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3.5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase">
+              <Sparkles className="h-3.5 w-3.5" />
               <span>Impacts Agricoles & Espaces Verts</span>
             </div>
-            <ul className="space-y-1.5 text-xs text-slate-300">
+            <ul className="space-y-1 text-xs text-slate-300">
               {selectedWeek.dominantScenario.agroClimaticImpacts.map((imp, idx) => (
                 <li key={idx} className="flex items-start gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -401,12 +399,12 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
           </div>
 
           {/* Vigilances & Risks */}
-          <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase">
-              <ShieldAlert className="h-4 w-4" />
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3.5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 uppercase">
+              <ShieldAlert className="h-3.5 w-3.5" />
               <span>Surveillance des Risques</span>
             </div>
-            <ul className="space-y-1.5 text-xs text-slate-300">
+            <ul className="space-y-1 text-xs text-slate-300">
               {selectedWeek.dominantScenario.riskHighlights.map((r, idx) => (
                 <li key={idx} className="flex items-start gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
@@ -419,8 +417,8 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
 
         {/* Alternative Scenario */}
         {selectedWeek.alternativeScenario && (
-          <div className="rounded-2xl bg-slate-950/50 border border-slate-800/80 p-4 text-xs text-slate-300 space-y-1">
-            <div className="flex items-center justify-between text-slate-400 font-bold uppercase text-[11px]">
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-xs text-slate-300 space-y-1">
+            <div className="flex items-center justify-between text-slate-400 font-semibold uppercase text-[11px]">
               <span>Scénario Alternatif ({selectedWeek.alternativeScenario.probabilityPct}% de probabilité) :</span>
               <span className="text-cyan-400">{selectedWeek.alternativeScenario.title}</span>
             </div>
@@ -430,10 +428,10 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
       </div>
 
       {/* Agro-Hydrological & Senior Health Outlook */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase">
-            <Sun className="h-4 w-4" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 space-y-1.5">
+          <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase">
+            <Sun className="h-3.5 w-3.5" />
             <span>Bilan Agro-Hydrologique Global à 4 Semaines</span>
           </div>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -441,9 +439,9 @@ export const CommunalFourWeekBulletinCard: React.FC<CommunalFourWeekBulletinCard
           </p>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 space-y-2">
-          <div className="flex items-center gap-2 text-indigo-400 text-xs font-black uppercase">
-            <Info className="h-4 w-4" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 space-y-1.5">
+          <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase">
+            <Info className="h-3.5 w-3.5" />
             <span>Conseil Spécial Santé, Confort & Seniors</span>
           </div>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">

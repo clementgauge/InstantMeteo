@@ -235,12 +235,12 @@ const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
           }}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full rounded-2xl bg-slate-950/90 border border-slate-700/80 px-4 py-3 text-sm font-bold text-white placeholder-slate-500 shadow-inner transition focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 pr-10"
+          className="w-full rounded-md bg-slate-950 border border-slate-700/80 px-3 py-2 text-xs font-semibold text-white placeholder-slate-500 transition focus:border-teal-400 focus:outline-none pr-9"
         />
 
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-teal-400" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-teal-400" />
           ) : value ? (
             <button
               type="button"
@@ -253,14 +253,14 @@ const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
               ✕
             </button>
           ) : (
-            <Search className="h-4 w-4 text-slate-500" />
+            <Search className="h-3.5 w-3.5 text-slate-500" />
           )}
         </div>
       </div>
 
       {/* Selected Station Badge Info */}
       {selectedStation && (
-        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-400 px-1">
+        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-slate-400 px-0.5">
           <span className="text-teal-400 font-semibold truncate">{selectedStation.name}</span>
           <span>•</span>
           <span className="truncate">{selectedStation.department}</span>
@@ -279,8 +279,8 @@ const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
 
       {/* Autocomplete Dropdown List with Distance from Location */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900/98 p-1.5 shadow-2xl backdrop-blur-xl">
-          <div className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-teal-400 flex items-center justify-between border-b border-slate-800/80 mb-1">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-700 bg-slate-900 p-1 shadow-lg">
+          <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-teal-400 flex items-center justify-between border-b border-slate-800 mb-1">
             <span>Communes trouvées ({suggestions.length})</span>
             <span className="text-slate-400 lowercase">cliquez pour sélectionner</span>
           </div>
@@ -298,7 +298,7 @@ const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
                   onChangeText(item.name);
                   setIsOpen(false);
                 }}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition hover:bg-teal-950/60 hover:border hover:border-teal-500/30 group cursor-pointer"
+                className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left transition hover:bg-slate-800 group cursor-pointer"
               >
                 <div className="min-w-0 pr-2">
                   <div className="text-xs font-bold text-white group-hover:text-teal-200 truncate">
@@ -310,15 +310,15 @@ const CityAutocompleteInput: React.FC<CityAutocompleteInputProps> = ({
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {distFromUser !== null && (
-                    <span className="rounded-md bg-teal-950/90 border border-teal-600/50 px-1.5 py-0.5 text-[9px] font-black text-teal-300">
+                    <span className="rounded bg-teal-950 border border-teal-700 px-1 py-0.5 text-[9px] font-bold text-teal-300">
                       {distFromUser} km
                     </span>
                   )}
-                  <span className="rounded-md bg-slate-800/90 px-1.5 py-0.5 text-[9px] font-semibold text-slate-300">
+                  <span className="rounded bg-slate-800 px-1 py-0.5 text-[9px] text-slate-300">
                     Alt. {item.altitude} m
                   </span>
                   {item.isMountain && (
-                    <span className="rounded-md bg-emerald-950/80 border border-emerald-700/50 px-1 py-0.5 text-[8px] font-bold text-emerald-300">
+                    <span className="rounded bg-emerald-950/80 border border-emerald-700/50 px-1 py-0.5 text-[8px] font-bold text-emerald-300">
                       Montagne
                     </span>
                   )}
@@ -1015,36 +1015,36 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
   }, []);
 
   return (
-    <div id="route-weather-calculator-section" className="space-y-6">
+    <div id="route-weather-calculator-section" className="space-y-5">
       {/* Search & Calculation Setup Card */}
-      <div className="rounded-3xl border border-teal-500/30 bg-slate-900/95 p-5 sm:p-7 shadow-2xl backdrop-blur space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 shadow-md">
-              <Navigation className="h-5 w-5" />
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-md bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
+              <Navigation className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white">
-                Calculateur Météo d'Itinéraire &amp; Trajet Routier
+              <h3 className="text-sm sm:text-base font-bold text-white">
+                Calculateur météo d'itinéraire routier
               </h3>
               <p className="text-xs text-slate-400">
-                Recherchez vos communes de départ et d'arrivée pour obtenir les prévisions étape par étape.
+                Prévisions calculées le long du trajet à l'heure estimée de passage sur chaque jalon.
               </p>
             </div>
           </div>
 
           {/* Quick Presets Pills */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-bold text-slate-400 mr-1 flex items-center gap-1">
+            <span className="text-[10px] text-slate-400 mr-1 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-teal-400" />
-              Itinéraires types :
+              Trajets fréquents :
             </span>
             {POPULAR_ROUTES.map((p) => (
               <button
                 key={p.label}
                 type="button"
                 onClick={() => handleApplyPreset(p.from, p.to)}
-                className="px-2.5 py-1 rounded-xl bg-slate-950 hover:bg-teal-950/80 border border-slate-800 hover:border-teal-500/40 text-[10px] font-bold text-slate-300 hover:text-teal-200 transition cursor-pointer"
+                className="px-2 py-0.5 rounded-md bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] font-medium text-slate-300 transition cursor-pointer"
               >
                 {p.label}
               </button>
@@ -1075,14 +1075,14 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           </div>
 
           {/* Swap Button */}
-          <div className="lg:col-span-1 flex items-center justify-center pb-2">
+          <div className="lg:col-span-1 flex items-center justify-center pb-1">
             <button
               type="button"
               onClick={handleSwapCities}
               title="Inverser la ville de départ et d'arrivée"
-              className="h-10 w-10 rounded-2xl bg-slate-950 border border-slate-800 hover:border-teal-400 text-slate-400 hover:text-teal-300 flex items-center justify-center transition shadow-md cursor-pointer group"
+              className="h-8 w-8 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer group"
             >
-              <ArrowUpDown className="h-4 w-4 transition group-hover:rotate-180" />
+              <ArrowUpDown className="h-3.5 w-3.5 transition group-hover:rotate-180" />
             </button>
           </div>
 
@@ -1107,9 +1107,9 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           </div>
 
           {/* Departure Date & Time Offset */}
-          <div className="lg:col-span-3 space-y-2">
+          <div className="lg:col-span-3 space-y-1.5">
             <div>
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-slate-400 block mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5 text-teal-400" />
                   <span>Heure de départ</span>
@@ -1134,14 +1134,14 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                   value={customDepartureDate}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setCustomDepartureDate(e.target.value)}
-                  className="rounded-2xl bg-slate-950/90 border border-slate-700/80 px-2.5 py-2.5 text-xs font-bold text-white shadow-inner focus:border-teal-400 focus:outline-none"
+                  className="rounded-md bg-slate-950 border border-slate-700/80 px-2 py-1.5 text-xs text-white focus:border-teal-400 focus:outline-none"
                 />
                 <input
                   type="time"
                   value={customDepartureTime}
                   onChange={(e) => setCustomDepartureTime(e.target.value)}
                   placeholder="HH:MM"
-                  className="rounded-2xl bg-slate-950/90 border border-slate-700/80 px-2.5 py-2.5 text-xs font-bold text-white shadow-inner focus:border-teal-400 focus:outline-none"
+                  className="rounded-md bg-slate-950 border border-slate-700/80 px-2 py-1.5 text-xs text-white focus:border-teal-400 focus:outline-none"
                 />
               </div>
             </div>
@@ -1150,7 +1150,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               <select
                 value={departureOffsetHours}
                 onChange={(e) => setDepartureOffsetHours(Number(e.target.value))}
-                className="w-full rounded-2xl bg-slate-950/90 border border-slate-700/80 px-3 py-2 text-xs font-medium text-slate-300 shadow-inner focus:border-teal-400 focus:outline-none cursor-pointer"
+                className="w-full rounded-md bg-slate-950 border border-slate-700/80 px-2.5 py-1.5 text-xs text-slate-300 focus:border-teal-400 focus:outline-none cursor-pointer"
               >
                 <option value={0}>Maintenant (Immédiat)</option>
                 <option value={1}>Dans +1 heure</option>
@@ -1165,18 +1165,18 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
         </div>
 
         {/* Transport Mode Selection Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              Moyen de transport :
+            <span className="text-[10px] font-semibold text-slate-400">
+              Transport :
             </span>
-            <div className="inline-flex flex-wrap rounded-2xl bg-slate-950 p-1 border border-slate-800 gap-1">
+            <div className="inline-flex flex-wrap rounded-md bg-slate-950 p-0.5 border border-slate-800 gap-0.5">
               <button
                 type="button"
                 onClick={() => setTransportMode('car')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
                   transportMode === 'car'
-                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    ? 'bg-[#0284C7] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1186,9 +1186,9 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               <button
                 type="button"
                 onClick={() => setTransportMode('tgv')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
                   transportMode === 'tgv'
-                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    ? 'bg-[#0284C7] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1198,21 +1198,21 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               <button
                 type="button"
                 onClick={() => setTransportMode('rer')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
                   transportMode === 'rer'
-                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    ? 'bg-[#0284C7] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Train className="h-3.5 w-3.5" />
-                <span>RER / Banlieue</span>
+                <span>RER / Train</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTransportMode('bike')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
                   transportMode === 'bike'
-                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    ? 'bg-[#0284C7] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1222,9 +1222,9 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               <button
                 type="button"
                 onClick={() => setTransportMode('walk')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
                   transportMode === 'walk'
-                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    ? 'bg-[#0284C7] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -1236,11 +1236,11 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
         </div>
 
         {/* Calculate Action Button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
           <div className="text-xs text-slate-400 flex items-center gap-1.5">
-            <Info className="h-4 w-4 text-teal-400 shrink-0" />
+            <Info className="h-3.5 w-3.5 text-teal-400 shrink-0" />
             <span>
-              Interpole les coordonnées de parcours et calcule la météo exacte à l'heure estimée de passage sur chaque tronçon.
+              Interpole les coordonnées et calcule la météo exacte à l'heure de passage estimée.
             </span>
           </div>
 
@@ -1248,29 +1248,25 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
             type="button"
             onClick={calculateRouteWeather}
             disabled={isCalculating || !depText || !arrText}
-            className={`w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2.5 transition shadow-xl cursor-pointer ${
-              isCalculating
-                ? 'bg-teal-700 opacity-70 cursor-not-allowed'
-                : 'bg-gradient-to-r from-teal-500 via-teal-600 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 shadow-teal-600/30'
-            }`}
+            className="w-full sm:w-auto px-5 py-2 rounded-md font-bold text-xs text-white bg-[#0284C7] hover:bg-sky-600 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
           >
             {isCalculating ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Calcul de l'itinéraire en cours...</span>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Calcul de l'itinéraire...</span>
               </>
             ) : (
               <>
-                <Navigation className="h-4 w-4" />
-                <span>Calculer la météo de l'itinéraire</span>
-                <ArrowRight className="h-4 w-4" />
+                <Navigation className="h-3.5 w-3.5" />
+                <span>Calculer la météo du trajet</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </>
             )}
           </button>
         </div>
 
         {errorMessage && (
-          <div className="p-3.5 rounded-2xl bg-rose-950/80 border border-rose-600/50 text-rose-200 text-xs font-semibold flex items-center gap-2">
+          <div className="p-3 rounded-md bg-rose-950/80 border border-rose-800 text-rose-200 text-xs flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -1279,56 +1275,51 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
 
       {/* RESULTS DISPLAY */}
       {routeAnalysis && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Summary Route Banner */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-6 shadow-2xl backdrop-blur grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 grid grid-cols-1 md:grid-cols-4 gap-3">
             {/* Trip details */}
             <div className="md:col-span-2 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-teal-400 uppercase tracking-wider">
-                <Car className="h-4 w-4" />
-                <span>Synthèse du Trajet</span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-400">
+                <Car className="h-3.5 w-3.5" />
+                <span>Synthèse du trajet</span>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="text-lg sm:text-xl font-black text-white truncate">
+              <div className="flex items-center gap-2">
+                <div className="text-base sm:text-lg font-bold text-white truncate">
                   {routeAnalysis.departure.name}
                 </div>
-                <ArrowRight className="h-5 w-5 text-teal-400 shrink-0" />
-                <div className="text-lg sm:text-xl font-black text-white truncate">
+                <ArrowRight className="h-4 w-4 text-teal-400 shrink-0" />
+                <div className="text-base sm:text-lg font-bold text-white truncate">
                   {routeAnalysis.arrival.name}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 pt-1">
-                <span className="px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 font-bold">
-                  🛣️ <strong>{routeAnalysis.totalDistanceKm} km</strong>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300 pt-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 font-semibold">
+                  🛣️ {routeAnalysis.totalDistanceKm} km
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-slate-950 border border-teal-500/40 text-teal-300 font-bold flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-teal-400" />
-                  <span>Temps Maps : <strong>~{routeAnalysis.estimatedDurationText}</strong></span>
+                <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-teal-300 font-semibold flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-teal-400" />
+                  <span>~{routeAnalysis.estimatedDurationText}</span>
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-400">
+                <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-slate-400">
                   Départ {routeAnalysis.departureTime} ➔ Arrivée ~{routeAnalysis.arrivalTime}
                 </span>
-                {!simplifiedMode && routeAnalysis.isLiveMapsData && (
-                  <span className="px-2 py-0.5 rounded-lg bg-teal-950/80 border border-teal-500/30 text-[10px] font-bold text-teal-300">
-                    ✓ Calcul routier précis ({routeAnalysis.routingSource})
-                  </span>
-                )}
               </div>
 
-              {/* Navigation external links (Google Maps & Waze) */}
+              {/* Navigation external links */}
               {!simplifiedMode && (
-                <div className="flex flex-wrap items-center gap-2 pt-2">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a
                     href={getGoogleMapsUrl(routeAnalysis.departure, routeAnalysis.arrival)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                    className="px-2.5 py-1 rounded-md bg-slate-950 hover:bg-slate-850 border border-slate-800 text-blue-300 hover:text-blue-200 text-xs font-medium flex items-center gap-1.5 transition"
                     title="Ouvrir le trajet dans Google Maps"
                   >
-                    <MapIcon className="h-3.5 w-3.5" />
-                    <span>Ouvrir l'itinéraire Google Maps</span>
+                    <MapIcon className="h-3 w-3" />
+                    <span>Google Maps</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
 
@@ -1336,11 +1327,11 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                     href={getWazeUrl(routeAnalysis.arrival)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                    className="px-2.5 py-1 rounded-md bg-slate-950 hover:bg-slate-850 border border-slate-800 text-cyan-300 hover:text-cyan-200 text-xs font-medium flex items-center gap-1.5 transition"
                     title="Naviguer vers l'arrivée avec Waze"
                   >
-                    <Navigation className="h-3.5 w-3.5" />
-                    <span>Naviguer avec Waze</span>
+                    <Navigation className="h-3 w-3" />
+                    <span>Waze</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
@@ -1348,14 +1339,14 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
             </div>
 
             {/* Road Safety Score */}
-            <div className="rounded-2xl bg-slate-950/90 border border-slate-800 p-4 flex flex-col justify-between">
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Indice de Sérénité Routière
+                <span className="text-[10px] font-semibold text-slate-400">
+                  Indice de sérénité
                 </span>
-                <div className="mt-1 flex items-baseline gap-2">
+                <div className="mt-1 flex items-baseline gap-1.5">
                   <span
-                    className={`text-3xl font-black ${
+                    className={`text-2xl font-black ${
                       routeAnalysis.roadSafetyScore >= 8
                         ? 'text-emerald-400'
                         : routeAnalysis.roadSafetyScore >= 5.5
@@ -1365,11 +1356,11 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                   >
                     {routeAnalysis.roadSafetyScore}
                   </span>
-                  <span className="text-sm font-bold text-slate-400">/ 10</span>
+                  <span className="text-xs text-slate-400">/ 10</span>
                 </div>
               </div>
               <div
-                className={`text-xs font-bold mt-2 ${
+                className={`text-xs font-semibold mt-1 ${
                   routeAnalysis.roadSafetyScore >= 8
                     ? 'text-emerald-400'
                     : routeAnalysis.roadSafetyScore >= 5.5
@@ -1382,156 +1373,132 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
             </div>
 
             {/* Dominant weather */}
-            <div className="rounded-2xl bg-slate-950/90 border border-slate-800 p-4 flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                Profil Météo Global
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between">
+              <span className="text-[10px] font-semibold text-slate-400">
+                Profil météo
               </span>
-              <div className="text-xl font-black text-white mt-1">
+              <div className="text-base font-bold text-white mt-1">
                 {routeAnalysis.dominantCondition}
               </div>
-              <div className="text-[11px] text-teal-400 mt-2 font-medium">
-                {routeAnalysis.waypoints.length} stations &amp; jalons analysés
+              <div className="text-[10px] text-teal-400 mt-1">
+                {routeAnalysis.waypoints.length} étapes analysées
               </div>
             </div>
           </div>
 
-          {/* DEDICATED CAR TRAFFIC & VIGILANCE MODULE (Bison Futé • Sytadin • Vigilance Météo-France) */}
+          {/* CAR TRAFFIC & VIGILANCE MODULE */}
           {!simplifiedMode && transportMode === 'car' && routeAnalysis.carTrafficVigilance && (
             <div
               id="car-traffic-vigilance-card"
-              className={`rounded-3xl border ${routeAnalysis.carTrafficVigilance.badgeBorder} ${routeAnalysis.carTrafficVigilance.badgeBg} p-5 sm:p-6 shadow-2xl backdrop-blur space-y-4`}
+              className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 space-y-3"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-9 w-9 rounded-2xl bg-slate-950/80 border border-white/20 flex items-center justify-center text-white text-base shadow">
-                    🚗
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🚗</span>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-white">
-                        Vigilance &amp; Densité du Trafic Routier (Trajet Voiture)
+                      <span className="text-xs font-bold text-white">
+                        Vigilance trafic routier
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                         routeAnalysis.carTrafficVigilance.level === 'ROUGE'
-                          ? 'bg-rose-500 text-slate-950 border-rose-300'
+                          ? 'bg-rose-950 text-rose-300 border-rose-800'
                           : routeAnalysis.carTrafficVigilance.level === 'ORANGE'
-                          ? 'bg-orange-500 text-slate-950 border-orange-300'
+                          ? 'bg-orange-950 text-orange-300 border-orange-800'
                           : routeAnalysis.carTrafficVigilance.level === 'JAUNE'
-                          ? 'bg-amber-400 text-slate-950 border-amber-200'
-                          : 'bg-emerald-500 text-slate-950 border-emerald-300'
+                          ? 'bg-amber-950 text-amber-300 border-amber-800'
+                          : 'bg-emerald-950 text-emerald-300 border-emerald-800'
                       }`}>
                         Vigilance {routeAnalysis.carTrafficVigilance.level}
                       </span>
                     </div>
-                    <div className="text-xs font-semibold text-slate-200 mt-0.5">
+                    <div className="text-xs text-slate-300 mt-0.5">
                       {routeAnalysis.carTrafficVigilance.trafficStatus}
                     </div>
                   </div>
                 </div>
 
                 {/* Sources badge */}
-                <div className="text-[11px] font-bold px-3 py-1 rounded-xl bg-slate-950/90 border border-slate-700/80 text-slate-300">
-                  <span className="text-slate-400">Sources : </span>
-                  <strong className="text-teal-300">Bison Futé</strong> • <strong className="text-cyan-300">Sytadin</strong> • <strong className="text-amber-300">Vigilance Météo-France</strong>
+                <div className="text-[10px] text-slate-400">
+                  Sources : Bison Futé • Sytadin • Vigilance Météo-France
                 </div>
               </div>
 
               {/* Traffic Metrics Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {/* Bison Fute Status */}
-                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between">
+                  <div className="text-[10px] font-semibold text-slate-400">
                     Bison Futé (National)
                   </div>
-                  <div className="mt-2 text-sm font-black text-white flex items-center gap-2">
+                  <div className="mt-1 text-xs font-bold text-white flex items-center gap-2">
                     <span
-                      className="h-3 w-3 rounded-full shrink-0 shadow"
+                      className="h-2.5 w-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: routeAnalysis.carTrafficVigilance.bisonFuteColor }}
                     />
                     <span>{routeAnalysis.carTrafficVigilance.bisonFuteStatus}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Prévisions calendrier &amp; départs
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    Calendrier des départs
                   </div>
                 </div>
 
                 {/* Sytadin Congestion */}
-                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between">
+                  <div className="text-[10px] font-semibold text-slate-400">
                     Sytadin (Île-de-France &amp; Rocades)
                   </div>
-                  <div className="mt-2 text-sm font-black text-white">
+                  <div className="mt-1 text-xs font-bold text-white">
                     {routeAnalysis.carTrafficVigilance.sytadinStatus}
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Indice de congestion : <strong>{routeAnalysis.carTrafficVigilance.congestionIndex}%</strong>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    Congestion : {routeAnalysis.carTrafficVigilance.congestionIndex}%
                   </div>
                 </div>
 
                 {/* Delay & Météo-France Impact */}
-                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3.5 flex flex-col justify-between">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Impact &amp; Vigilance Météo-France
+                <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between">
+                  <div className="text-[10px] font-semibold text-slate-400">
+                    Météo-France &amp; Retard estimé
                   </div>
-                  <div className="mt-2 text-sm font-black text-white flex items-center justify-between">
+                  <div className="mt-1 text-xs font-bold text-white flex items-center justify-between">
                     <span>{routeAnalysis.carTrafficVigilance.meteoFranceVigilance}</span>
                     {routeAnalysis.carTrafficVigilance.estimatedDelayMinutes > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-lg bg-amber-950 border border-amber-500/50 text-amber-300 font-bold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 border border-amber-800 text-amber-300 font-bold">
                         +{routeAnalysis.carTrafficVigilance.estimatedDelayMinutes} min
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Adhérence chaussée &amp; visibilité
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    Adhérence et visibilité
                   </div>
                 </div>
               </div>
 
-              {/* Key Axe Alerts and Advice */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                {routeAnalysis.carTrafficVigilance.keyAxeAlerts.length > 0 && (
-                  <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3 text-xs space-y-1.5">
-                    <div className="font-bold text-slate-300 text-[11px]">Points clés de circulation :</div>
-                    <ul className="space-y-1 text-slate-300">
-                      {routeAnalysis.carTrafficVigilance.keyAxeAlerts.map((alt, i) => (
-                        <li key={i} className="flex items-start gap-1.5">
-                          <span className="text-teal-400 font-black">•</span>
-                          <span>{alt}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="rounded-2xl bg-slate-950/80 border border-white/10 p-3 text-xs flex flex-col justify-between">
-                  <div>
-                    <div className="font-bold text-slate-300 text-[11px]">Recommandation de Départ :</div>
-                    <p className="text-slate-200 mt-1 leading-relaxed">
-                      {routeAnalysis.carTrafficVigilance.departureAdvice}
-                    </p>
-                  </div>
-                  <div className="text-[10px] text-teal-300 font-semibold mt-2 pt-1.5 border-t border-slate-800">
-                    💡 Conseil : Vérifiez les applications GPS en temps réel au moment de prendre le volant.
-                  </div>
-                </div>
+              {/* Advice */}
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-xs">
+                <div className="font-semibold text-slate-300 text-[11px]">Recommandation :</div>
+                <p className="text-slate-200 mt-0.5 leading-relaxed">
+                  {routeAnalysis.carTrafficVigilance.departureAdvice}
+                </p>
               </div>
             </div>
           )}
 
           {/* Road Hazards & Recommendations */}
           {!simplifiedMode && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Hazards / Vigilances */}
-              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
+              <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                   <AlertTriangle className="h-4 w-4" />
-                  <span>Points de Vigilance Météo sur le Parcours</span>
+                  <span>Points de vigilance météo</span>
                 </div>
-                <ul className="space-y-2 text-xs">
+                <ul className="space-y-1.5 text-xs">
                   {routeAnalysis.majorHazards.map((h, i) => (
                     <li
                       key={i}
-                      className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
+                      className="p-2 rounded-md bg-slate-950 border border-slate-800 text-slate-200 flex items-start gap-2"
                     >
                       <span className="text-amber-400 font-bold">•</span>
                       <span>{h}</span>
@@ -1541,18 +1508,18 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
               </div>
 
               {/* Recommendations */}
-              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-400">
+              <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                   <ShieldCheck className="h-4 w-4" />
-                  <span>Conseils de Conduite &amp; Sécurité</span>
+                  <span>Conseils de conduite</span>
                 </div>
-                <ul className="space-y-2 text-xs">
+                <ul className="space-y-1.5 text-xs">
                   {routeAnalysis.recommendations.map((r, i) => (
                     <li
                       key={i}
-                      className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-200 flex items-start gap-2"
+                      className="p-2 rounded-md bg-slate-950 border border-slate-800 text-slate-200 flex items-start gap-2"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
                       <span>{r}</span>
                     </li>
                   ))}
@@ -1563,17 +1530,17 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
 
           {/* Chronological Step-by-Step Waypoints Cards */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <h4 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Compass className="h-4 w-4 text-teal-400" />
-                <span>Météo Étape par Étape le Long de Votre Trajet</span>
+            <div className="flex items-center justify-between px-0.5">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Compass className="h-3.5 w-3.5 text-teal-400" />
+                <span>Météo étape par étape</span>
               </h4>
-              <span className="text-xs text-slate-400">
-                Heure estimée et état de la route en temps réel
+              <span className="text-[11px] text-slate-400">
+                Heure estimée et état de la chaussée
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
               {routeAnalysis.waypoints.map((wp, index) => {
                 const isStart = index === 0;
                 const isEnd = index === routeAnalysis.waypoints.length - 1;
@@ -1581,17 +1548,17 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                 return (
                   <div
                     key={`${wp.name}-${index}`}
-                    className={`rounded-3xl border p-4 shadow-xl backdrop-blur flex flex-col justify-between transition-all ${
+                    className={`rounded-lg border p-3 flex flex-col justify-between transition ${
                       isStart
-                        ? 'border-teal-500/50 bg-teal-950/20'
+                        ? 'border-teal-800 bg-slate-900'
                         : isEnd
-                        ? 'border-cyan-500/50 bg-cyan-950/20'
-                        : 'border-slate-800 bg-slate-900/90'
+                        ? 'border-cyan-800 bg-slate-900'
+                        : 'border-slate-800 bg-slate-900'
                     }`}
                   >
                     <div>
                       {/* Top milestone label */}
-                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-2">
+                      <div className="flex items-center justify-between text-[10px] font-semibold mb-1.5">
                         <span
                           className={
                             isStart
@@ -1605,15 +1572,15 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                             ? '🚩 Départ'
                             : isEnd
                             ? '🏁 Arrivée'
-                            : `📍 Jalon ${index}`}
+                            : `📍 Étape ${index}`}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-slate-300 font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300 font-medium">
                           {wp.estimatedTimeArrival}
                         </span>
                       </div>
 
                       {/* City name & distance */}
-                      <div className="font-black text-white text-sm truncate" title={wp.name}>
+                      <div className="font-bold text-white text-xs truncate" title={wp.name}>
                         {wp.name}
                       </div>
                       <div className="text-[10px] text-slate-400 flex items-center justify-between mt-0.5">
@@ -1622,9 +1589,9 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                       </div>
 
                       {/* Weather Condition */}
-                      <div className="mt-3 p-2.5 rounded-2xl bg-slate-950/90 border border-slate-800/80 flex items-center justify-between">
+                      <div className="mt-2 p-2 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between">
                         <div>
-                          <div className="text-xl font-black text-white">
+                          <div className="text-base font-bold text-white">
                             {wp.temperature > 0 ? `+${wp.temperature}` : wp.temperature}°{tempUnit}
                           </div>
                           <div className="text-[10px] text-slate-400">
@@ -1632,23 +1599,23 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-2xl" title={wp.weatherDesc}>
+                          <span className="text-xl" title={wp.weatherDesc}>
                             {wp.weatherIcon}
                           </span>
-                          <div className="text-[10px] font-semibold text-slate-300 max-w-[90px] truncate">
+                          <div className="text-[10px] text-slate-300 max-w-[80px] truncate">
                             {wp.weatherDesc}
                           </div>
                         </div>
                       </div>
 
                       {/* Rain & Wind Metrics */}
-                      <div className="mt-2.5 space-y-1.5 text-[11px]">
+                      <div className="mt-2 space-y-1 text-[10px]">
                         <div className="flex items-center justify-between text-slate-300">
                           <span className="flex items-center gap-1 text-blue-400">
                             <Droplets className="h-3 w-3" />
                             Pluie :
                           </span>
-                          <span className="font-bold">
+                          <span className="font-semibold">
                             {wp.precipitationProbability}% ({wp.precipitationMm} mm)
                           </span>
                         </div>
@@ -1658,8 +1625,8 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                             <Wind className="h-3 w-3 text-cyan-400" />
                             Vent :
                           </span>
-                          <span className="font-bold">
-                            {wp.windSpeed} km/h (raf. {wp.windGusts})
+                          <span className="font-semibold">
+                            {wp.windSpeed} km/h ({wp.windGusts})
                           </span>
                         </div>
 
@@ -1668,31 +1635,31 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
                             <Eye className="h-3 w-3 text-amber-400" />
                             Visibilité :
                           </span>
-                          <span className="font-bold">{wp.visibilityKm} km</span>
+                          <span className="font-semibold">{wp.visibilityKm} km</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Road condition badge */}
-                    <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+                    <div className="mt-2.5 pt-2 border-t border-slate-800">
                       <div
-                        className={`text-center py-1 px-2 rounded-xl text-[10px] font-black border ${
+                        className={`text-center py-0.5 px-1.5 rounded text-[10px] font-semibold border ${
                           wp.roadCondition === 'SÈCHE'
-                            ? 'bg-emerald-950/60 border-emerald-700/50 text-emerald-300'
+                            ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
                             : wp.roadCondition === 'HUMIDE'
-                            ? 'bg-blue-950/60 border-blue-700/50 text-blue-300'
+                            ? 'bg-blue-950/60 border-blue-800 text-blue-300'
                             : wp.roadCondition === 'MOUILLÉE'
-                            ? 'bg-sky-950/60 border-sky-700/50 text-sky-300'
+                            ? 'bg-sky-950/60 border-sky-800 text-sky-300'
                             : wp.roadCondition === 'RISQUE AQUAPLANING'
-                            ? 'bg-amber-950/60 border-amber-600/60 text-amber-300'
-                            : 'bg-rose-950/80 border-rose-600/60 text-rose-300'
+                            ? 'bg-amber-950/60 border-amber-800 text-amber-300'
+                            : 'bg-rose-950/80 border-rose-800 text-rose-300'
                         }`}
                       >
                         Chaussée {wp.roadCondition}
                       </div>
 
                       {wp.hazardAlert && (
-                        <div className="mt-1.5 text-[9px] text-amber-300 font-bold bg-amber-950/40 p-1.5 rounded-lg border border-amber-600/30 leading-snug">
+                        <div className="mt-1 text-[9px] text-amber-300 bg-amber-950/40 p-1 rounded border border-amber-800 leading-snug">
                           {wp.hazardAlert}
                         </div>
                       )}

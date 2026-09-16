@@ -99,84 +99,82 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
   const currentDisplayPoint = hoveredIdx !== null ? points[hoveredIdx] : points.find(p => p.dayIndex === selectedDayIdx) || points[0];
 
   return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-6 shadow-2xl backdrop-blur space-y-5">
+    <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 space-y-4">
       {/* Header & Metric Selector */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-              <Activity className="h-4 w-4" />
-              <span>Transparence Scientifique & Cône de Probabilités Ensemblistes</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5" />
+              <span>Modélisation Ensembliste & Cône d'Incertitude</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              51 Scénarios CEPMMT + 31 GEFS
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-950 text-slate-400 border border-slate-800">
+              51 scénarios CEPMMT + 31 GEFS
             </span>
           </div>
-          <h3 className="text-xl font-black text-white">
-            Plume Thermique & Cône d'Incertitude à 14 Jours ({stationName})
+          <h3 className="text-lg font-bold text-white">
+            Plume Thermique à 14 Jours — {stationName}
           </h3>
-          <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-            Contrairement aux prévisions déterministes simplistes, ce graphique expose <strong>honnêtement l'élargissement de l'incertitude</strong> (effet papillon). Plus l'échéance s'éloigne, plus l'enveloppe des scénarios s'écarte.
+          <p className="text-xs text-slate-400 mt-0.5 max-w-2xl leading-relaxed">
+            Évolution de l'enveloppe prévisionnelle au fil de l'échéance : plus l'horizon s'éloigne, plus la divergence entre scénarios augmente naturellement.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950 border border-slate-800 p-1">
-            <button
-              onClick={() => setMetric('tmax')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                metric === 'tmax' 
-                  ? 'bg-rose-600 text-white shadow' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Flame className="h-3.5 w-3.5" />
-              <span>Maximales (Tx)</span>
-            </button>
-            <button
-              onClick={() => setMetric('tmin')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                metric === 'tmin' 
-                  ? 'bg-cyan-600 text-white shadow' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Snowflake className="h-3.5 w-3.5" />
-              <span>Minimales (Tn)</span>
-            </button>
-          </div>
+        <div className="flex items-center gap-1 rounded-md bg-slate-950 border border-slate-800 p-1">
+          <button
+            onClick={() => setMetric('tmax')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              metric === 'tmax' 
+                ? 'bg-rose-600 text-white' 
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Flame className="h-3.5 w-3.5" />
+            <span>Maximales (Tx)</span>
+          </button>
+          <button
+            onClick={() => setMetric('tmin')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              metric === 'tmin' 
+                ? 'bg-sky-600 text-white' 
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Snowflake className="h-3.5 w-3.5" />
+            <span>Minimales (Tn)</span>
+          </button>
         </div>
       </div>
 
       {/* Interactive Legend & Current Point Preview Bar */}
-      <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-3.5 flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div className="rounded-md bg-slate-950 border border-slate-800 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className={`h-3 w-3 rounded-full ${metric === 'tmax' ? 'bg-rose-400' : 'bg-cyan-400'}`}></span>
-            <span className="text-slate-200 font-bold">Scénario Médian / Dominant</span>
+            <span className={`h-2.5 w-2.5 rounded-full ${metric === 'tmax' ? 'bg-rose-400' : 'bg-sky-400'}`}></span>
+            <span className="text-slate-300 font-medium">Scénario Médian</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-8 rounded-sm bg-gradient-to-r from-indigo-500/40 via-purple-500/30 to-amber-500/40 border border-indigo-400/40"></span>
-            <span className="text-slate-300 font-medium">Cône d'Incertitude Réelle (Spread 80%)</span>
+            <span className="h-2.5 w-6 rounded-sm bg-sky-500/20 border border-sky-400/40"></span>
+            <span className="text-slate-300 font-medium">Cône d'Incertitude (80% des scénarios)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-0.5 w-6 bg-slate-500 border-b border-dashed border-slate-400"></span>
+            <span className="h-0.5 w-5 bg-slate-500 border-b border-dashed border-slate-400"></span>
             <span className="text-slate-400 font-medium">Normale 1991-2020</span>
           </div>
         </div>
 
         {currentDisplayPoint && (
-          <div className="flex items-center gap-3 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700/80">
-            <span className="font-bold text-white">
+          <div className="flex items-center gap-2.5 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800 text-xs">
+            <span className="font-semibold text-white">
               {currentDisplayPoint.dayLabel} ({currentDisplayPoint.dayIndex === 0 ? 'Auj.' : `J+${currentDisplayPoint.dayIndex}`}) :
             </span>
-            <span className={`font-black font-mono ${metric === 'tmax' ? 'text-rose-400' : 'text-cyan-400'}`}>
+            <span className={`font-mono font-bold ${metric === 'tmax' ? 'text-rose-400' : 'text-sky-400'}`}>
               Médiane {formatTemp(currentDisplayPoint.dominantVal)}
             </span>
             <span className="text-slate-400">
               Fourchette : <strong className="text-slate-200 font-mono">{formatTemp(currentDisplayPoint.lowerVal)} à {formatTemp(currentDisplayPoint.upperVal)}</strong>
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
               ±{currentDisplayPoint.uncertaintyMargin}°C
             </span>
           </div>
@@ -184,27 +182,11 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
       </div>
 
       {/* SVG Chart */}
-      <div className="relative w-full overflow-x-auto rounded-2xl bg-slate-950 border border-slate-800 p-2">
+      <div className="relative w-full overflow-x-auto rounded-md bg-slate-950 border border-slate-800 p-2">
         <svg 
           viewBox={`0 0 ${width} ${height}`} 
           className="w-full h-auto min-w-[700px] select-none"
         >
-          <defs>
-            {/* Cone Gradient */}
-            <linearGradient id="uncertaintyConeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
-              <stop offset="35%" stopColor="#3b82f6" stopOpacity="0.22" />
-              <stop offset="70%" stopColor="#8b5cf6" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.32" />
-            </linearGradient>
-
-            <linearGradient id="dominantLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={metric === 'tmax' ? '#fb7185' : '#38bdf8'} />
-              <stop offset="60%" stopColor={metric === 'tmax' ? '#f43f5e' : '#0ea5e9'} />
-              <stop offset="100%" stopColor={metric === 'tmax' ? '#e11d48' : '#0284c7'} />
-            </linearGradient>
-          </defs>
-
           {/* Horizontal grid lines */}
           {Array.from({ length: 7 }).map((_, i) => {
             const val = minVal + (i / 6) * valRange;
@@ -233,23 +215,23 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
           })}
 
           {/* 4 Horizon Zone Shading Markers */}
-          <rect x={padLeft} y={padTop} width={(chartW * 3) / 14} height={chartH} fill="#10b981" fillOpacity="0.04" />
-          <rect x={padLeft + (chartW * 3) / 14} y={padTop} width={(chartW * 4) / 14} height={chartH} fill="#3b82f6" fillOpacity="0.04" />
-          <rect x={padLeft + (chartW * 7) / 14} y={padTop} width={(chartW * 3) / 14} height={chartH} fill="#f59e0b" fillOpacity="0.04" />
-          <rect x={padLeft + (chartW * 10) / 14} y={padTop} width={(chartW * 4) / 14} height={chartH} fill="#a855f7" fillOpacity="0.04" />
+          <rect x={padLeft} y={padTop} width={(chartW * 3) / 14} height={chartH} fill="#10b981" fillOpacity="0.03" />
+          <rect x={padLeft + (chartW * 3) / 14} y={padTop} width={(chartW * 4) / 14} height={chartH} fill="#0284c7" fillOpacity="0.03" />
+          <rect x={padLeft + (chartW * 7) / 14} y={padTop} width={(chartW * 3) / 14} height={chartH} fill="#f59e0b" fillOpacity="0.03" />
+          <rect x={padLeft + (chartW * 10) / 14} y={padTop} width={(chartW * 4) / 14} height={chartH} fill="#64748b" fillOpacity="0.03" />
 
           {/* Horizon Labels at the top */}
-          <text x={padLeft + (chartW * 1.5) / 14} y={padTop - 12} textAnchor="middle" className="fill-emerald-400 font-black text-[9px] uppercase tracking-wider">
-            J+1-J+3 : Déterministe
+          <text x={padLeft + (chartW * 1.5) / 14} y={padTop - 12} textAnchor="middle" className="fill-emerald-400 font-semibold text-[9px] uppercase tracking-wider">
+            J+1 à J+3 : Déterministe
           </text>
-          <text x={padLeft + (chartW * 5) / 14} y={padTop - 12} textAnchor="middle" className="fill-blue-400 font-black text-[9px] uppercase tracking-wider">
-            J+4-J+7 : Tendance Probable
+          <text x={padLeft + (chartW * 5) / 14} y={padTop - 12} textAnchor="middle" className="fill-sky-400 font-semibold text-[9px] uppercase tracking-wider">
+            J+4 à J+7 : Tendance Probable
           </text>
-          <text x={padLeft + (chartW * 8.5) / 14} y={padTop - 12} textAnchor="middle" className="fill-amber-400 font-black text-[9px] uppercase tracking-wider">
-            J+8-J+10 : Bifurcation
+          <text x={padLeft + (chartW * 8.5) / 14} y={padTop - 12} textAnchor="middle" className="fill-amber-400 font-semibold text-[9px] uppercase tracking-wider">
+            J+8 à J+10 : Bifurcation
           </text>
-          <text x={padLeft + (chartW * 12) / 14} y={padTop - 12} textAnchor="middle" className="fill-purple-400 font-black text-[9px] uppercase tracking-wider">
-            J+11-J+14 : Faisceau Climatologique
+          <text x={padLeft + (chartW * 12) / 14} y={padTop - 12} textAnchor="middle" className="fill-slate-400 font-semibold text-[9px] uppercase tracking-wider">
+            J+11 à J+14 : Faisceau
           </text>
 
           {/* Normal climatologique line */}
@@ -259,24 +241,25 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
             stroke="#64748b" 
             strokeWidth="1.5" 
             strokeDasharray="4 4"
-            opacity="0.7"
+            opacity="0.6"
           />
 
           {/* Uncertainty Cone Polygon */}
           <polygon 
             points={conePolygonPath} 
-            fill="url(#uncertaintyConeGrad)" 
-            stroke="#6366f1"
+            fill="#0284C7"
+            fillOpacity="0.12"
+            stroke="#0284C7"
             strokeWidth="1"
-            strokeOpacity="0.4"
+            strokeOpacity="0.3"
           />
 
           {/* Dominant Line */}
           <path 
             d={dominantLinePath} 
             fill="none" 
-            stroke="url(#dominantLineGrad)" 
-            strokeWidth="3.5"
+            stroke={metric === 'tmax' ? '#f43f5e' : '#0284c7'} 
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -305,9 +288,9 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
                     y={padTop} 
                     width={28} 
                     height={chartH} 
-                    fill="#3b82f6" 
-                    fillOpacity={isSelected ? "0.15" : "0.08"}
-                    rx={6}
+                    fill="#0284c7" 
+                    fillOpacity={isSelected ? "0.12" : "0.06"}
+                    rx={4}
                   />
                 )}
 
@@ -318,20 +301,20 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
                   x2={x} 
                   y2={yLower} 
                   stroke={isSelected ? "#38bdf8" : "#475569"} 
-                  strokeWidth={isSelected ? "2" : "1.5"}
+                  strokeWidth={isSelected ? "2" : "1"}
                 />
 
                 {/* Upper cap */}
-                <line x1={x - 3} y1={yUpper} x2={x + 3} y2={yUpper} stroke="#818cf8" strokeWidth="2" />
+                <line x1={x - 3} y1={yUpper} x2={x + 3} y2={yUpper} stroke="#64748b" strokeWidth="1.5" />
                 {/* Lower cap */}
-                <line x1={x - 3} y1={yLower} x2={x + 3} y2={yLower} stroke="#818cf8" strokeWidth="2" />
+                <line x1={x - 3} y1={yLower} x2={x + 3} y2={yLower} stroke="#64748b" strokeWidth="1.5" />
 
                 {/* Dominant point node */}
                 <circle 
                   cx={x} 
                   cy={yDominant} 
-                  r={isSelected ? 6 : isHovered ? 5 : 4} 
-                  fill={isSelected ? "#ffffff" : metric === 'tmax' ? "#fb7185" : "#38bdf8"}
+                  r={isSelected ? 5 : isHovered ? 4.5 : 3.5} 
+                  fill={isSelected ? "#ffffff" : metric === 'tmax' ? "#f43f5e" : "#0284c7"}
                   stroke="#0f172a"
                   strokeWidth="2"
                 />
@@ -341,8 +324,8 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
                   x={x} 
                   y={height - padBottom + 16} 
                   textAnchor="middle" 
-                  className={`font-mono text-[9px] font-bold ${
-                    isSelected ? 'fill-cyan-400 font-black' : isHovered ? 'fill-white' : 'fill-slate-400'
+                  className={`font-mono text-[9px] font-semibold ${
+                    isSelected ? 'fill-sky-400 font-bold' : isHovered ? 'fill-white' : 'fill-slate-400'
                   }`}
                 >
                   {p.dayIndex === 0 ? "Auj." : `J+${p.dayIndex}`}
@@ -352,7 +335,7 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
                   y={height - padBottom + 28} 
                   textAnchor="middle" 
                   className={`text-[8px] ${
-                    isSelected ? 'fill-white font-bold' : 'fill-slate-500'
+                    isSelected ? 'fill-white font-semibold' : 'fill-slate-500'
                   }`}
                 >
                   {p.dayLabel.split(' ')[0]}
@@ -363,8 +346,8 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
                   x={x} 
                   y={height - padBottom + 40} 
                   textAnchor="middle" 
-                  className={`text-[8px] font-mono font-bold ${
-                    p.uncertaintyMargin <= 1.5 ? 'fill-emerald-400' : p.uncertaintyMargin <= 3 ? 'fill-blue-400' : p.uncertaintyMargin <= 4.5 ? 'fill-amber-400' : 'fill-purple-400'
+                  className={`text-[8px] font-mono font-medium ${
+                    p.uncertaintyMargin <= 1.5 ? 'fill-emerald-400' : p.uncertaintyMargin <= 3 ? 'fill-sky-400' : p.uncertaintyMargin <= 4.5 ? 'fill-amber-400' : 'fill-slate-400'
                   }`}
                 >
                   ±{p.uncertaintyMargin}°
@@ -376,34 +359,34 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
       </div>
 
       {/* Pedagogical Explanation Box on Uncertainty & Ensemble Modeling */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
           <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-            <ShieldCheck className="h-4 w-4" />
+            <ShieldCheck className="h-3.5 w-3.5" />
             <span>Pourquoi ce cône s'élargit-il ?</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            L'atmosphère est un système chaotique non linéaire. Une infime variation initiale (ex: 0.1°C de température de surface en Atlantique) amplifie exponentiellement les scénarios après 7 jours.
+            L'atmosphère est un système chaotique. Une infime variation initiale amplifie les écarts entre scénarios après 7 jours.
           </p>
         </div>
 
-        <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
+        <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
           <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-            <AlertTriangle className="h-4 w-4" />
-            <span>L'honnêteté contre la fausse précision</span>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span>Médiane plutôt que valeur unique</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Donner un chiffre fixe de pluie ou de température à J+12 est scientifiquement trompeur. Nous publions ici la <strong>médiane d'ensemble</strong> et les bornes réelles calculées par les 51 membres du CEPMMT.
+            À J+12, afficher un chiffre fixe est trompeur. La médiane d'ensemble et les bornes réelles des 51 membres du CEPMMT fournissent un repère fiable.
           </p>
         </div>
 
-        <div className="rounded-2xl bg-slate-950/70 border border-slate-800 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold">
-            <Sparkles className="h-4 w-4" />
-            <span>Comment utiliser cette information ?</span>
+        <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
+          <div className="flex items-center gap-2 text-sky-400 text-xs font-bold">
+            <Info className="h-3.5 w-3.5" />
+            <span>Utilisation pratique</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Pour planifier un événement à J+8 ou plus, fiez-vous au type de masse d'air (douce vs fraîche) et préparez-vous à la fourchette haute comme à la fourchette basse.
+            Au-delà de J+8, basez vos décisions sur le type de masse d'air (douce ou fraîche) et anticipez les fourchettes haute et basse.
           </p>
         </div>
       </div>

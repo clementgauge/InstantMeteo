@@ -745,22 +745,22 @@ function WeatherApp() {
         />
 
         {/* Atmosphere Context & Hub Filter Bar (Desktop only, mobile has it directly in the top header) */}
-        <div className="hidden sm:block mb-3 rounded-3xl bg-slate-950/80 border border-slate-800/80 backdrop-blur-xl shadow-xl p-3 sm:p-4">
+        <div className="hidden sm:block mb-3 rounded-lg bg-slate-950 border border-slate-800 p-2.5 sm:p-3">
           {/* Quick shortcuts — centered. Search is already available in the global header. */}
           <div className="flex flex-wrap items-center justify-center gap-1.5">
             <button
               onClick={() => setIsNotificationModalOpen(true)}
               title="Ouvrir le Centre d'Alertes et Notifications Météo en Temps Réel"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition active:scale-95 shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-xs font-semibold transition shrink-0 ${
                 activeAlertCount > 0
-                  ? 'border-amber-500/60 bg-amber-950/70 text-amber-300 ring-1 ring-amber-500/40 hover:bg-amber-900/80 animate-pulse'
-                  : 'border-indigo-500/40 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-900/60'
+                  ? 'border-amber-500/60 bg-amber-950/70 text-amber-300 hover:bg-amber-900/80'
+                  : 'border-slate-800 bg-slate-900 text-slate-300 hover:text-white'
               }`}
             >
               <BellRing className="h-3.5 w-3.5" />
               <span>Alertes &amp; Push</span>
               {activeAlertCount > 0 && (
-                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black text-slate-950">
+                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-slate-950">
                   {activeAlertCount}
                 </span>
               )}
@@ -768,22 +768,22 @@ function WeatherApp() {
 
             <button
               onClick={() => setActiveTab('vigilance')}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1 cursor-pointer ${
                 activeTab === 'vigilance'
-                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 border border-rose-400'
-                  : 'bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40'
               }`}
             >
               <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Vigilance 5j</span>
+              <span>Vigilance 15j</span>
             </button>
 
             <button
               onClick={() => setActiveTab('radar')}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1 cursor-pointer ${
                 activeTab === 'radar'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 border border-emerald-400'
-                  : 'bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-800/40'
               }`}
             >
               <CloudRain className="h-3.5 w-3.5" />

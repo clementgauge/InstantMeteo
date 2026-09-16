@@ -32,11 +32,31 @@
     <meta name="twitter:description" content="Prévisions météo instantanées en France : température temps réel, radar pluie HD, alertes Météo-France et webcams en direct." />
     <meta name="twitter:image" content="/icon-512.png" />
 
-    <!-- Schema.org JSON-LD Structured Data for Google Search Console -->
+    <!-- Schema.org JSON-LD Structured Data for Google Search Console & Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
+          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+          "name": "Instant Météo",
+          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Instant Météo France", "Météo France Instantanée"],
+          "description": "Portail et marque météo de précision pour la France : prévisions directes pour 35 000 communes, températures en temps réel, radar précipitations pluie/neige HD et vigilances Météo-France.",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://instantmeteo.instantmeteofr.workers.dev/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
         {
           "@type": "WebApplication",
           "@id": "https://instantmeteo.instantmeteofr.workers.dev/#app",
@@ -55,18 +75,14 @@
           }
         },
         {
-          "@type": "WebSite",
-          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
-          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+          "@type": "Organization",
+          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization",
           "name": "Instant Météo",
-          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Météo France Instantanée"],
-          "description": "Portail météo de précision pour la France : prévisions, températures en temps réel, radar pluie HD et vigilances Météo-France",
-          "inLanguage": "fr-FR",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://instantmeteo.instantmeteofr.workers.dev/?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
+          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+          "logo": "https://instantmeteo.instantmeteofr.workers.dev/icon-512.png",
+          "sameAs": [
+            "https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
+          ]
         }
       ]
     }

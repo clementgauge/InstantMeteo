@@ -159,30 +159,30 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
+    <div className="space-y-4 pb-12">
       
       {/* 1. Header Hub du Groupe de Discussion */}
-      <div id="discussion-header-hero" className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 p-5 sm:p-7 shadow-xl backdrop-blur-md">
+      <div id="discussion-header-hero" className="rounded-lg border border-slate-800 bg-[#0F172A] p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-600/30 shrink-0">
-              <MessageSquare className="h-6 w-6" />
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 shrink-0">
+              <MessageSquare className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-950 border border-blue-500/40 text-blue-300">
-                  Page 13 • Communauté Météo
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-950/60 border border-sky-500/30 text-sky-300">
+                  Communauté Météo
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-bold">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Salon Ouvert
+                <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Direct
                 </span>
               </div>
-              <h1 className="text-lg sm:text-2xl font-black text-white mt-1">
-                Groupe de Discussion &amp; Observatoire Citoyen
+              <h1 className="text-lg sm:text-xl font-bold text-white mt-1">
+                Observations &amp; Échanges Citoyens
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 mt-0.5 max-w-2xl">
-                Échangez en temps réel avec la communauté de passionnés, chasseurs d'orages et observateurs météo de votre région.
+              <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+                Signalements météo locaux et retours d'observation terrain en direct.
               </p>
             </div>
           </div>
@@ -192,16 +192,16 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
             <button
               type="button"
               onClick={onOpenPseudoModal}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700 cursor-pointer shadow"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-semibold transition border border-slate-800 cursor-pointer"
             >
               <User className="h-4 w-4 text-amber-400" />
-              <span>{profile?.pseudo || 'Mon Pseudo'}</span>
+              <span>{profile?.pseudo || 'Mon Profil'}</span>
               {profile?.isAdmin ? (
-                <span className="px-1.5 py-0.5 rounded bg-red-950 border border-red-500/50 text-red-300 text-[10px] font-black">
+                <span className="px-1.5 py-0.5 rounded bg-red-950 border border-red-500/50 text-red-300 text-[10px] font-bold">
                   Admin
                 </span>
               ) : (
-                <span className="text-[10px] text-slate-400">({profile?.totalPoints || 0} pts)</span>
+                <span className="text-[10px] text-slate-400 font-mono">({profile?.totalPoints || 0} pts)</span>
               )}
             </button>
 
@@ -209,10 +209,10 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
               <button
                 type="button"
                 onClick={onOpenAdminPanel}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black transition cursor-pointer shadow-lg shadow-red-600/30"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold transition cursor-pointer"
               >
                 <Crown className="h-4 w-4 text-amber-300" />
-                <span>Panel Admin</span>
+                <span>Modération</span>
               </button>
             )}
           </div>
@@ -221,7 +221,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* 2. Salons Thématiques (Channels) */}
       {isBlockVisible('discussionGroup', 'channels') && (
-        <div id="discussion-channels-bar" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div id="discussion-channels-bar" className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {CHAT_CHANNELS.map((ch) => {
             const isActive = activeChannelId === ch.id;
             return (
@@ -229,17 +229,17 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                 key={ch.id}
                 type="button"
                 onClick={() => setActiveChannelId(ch.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer shrink-0 border ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer shrink-0 border ${
                   isActive
-                    ? 'bg-blue-600 text-white border-blue-400/50 shadow-lg shadow-blue-600/25 ring-2 ring-blue-400/20'
-                    : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-[#0284C7] text-white border-sky-400'
+                    : 'bg-[#0F172A] text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <span className="text-sm">{ch.icon}</span>
+                <span>{ch.icon}</span>
                 <span>#{ch.name}</span>
                 {ch.badge && (
-                  <span className={`px-1.5 py-0.2 text-[9px] rounded-full uppercase font-black ${
-                    isActive ? 'bg-white text-blue-900' : 'bg-slate-800 text-slate-300'
+                  <span className={`px-1.5 py-0.2 text-[9px] rounded uppercase font-bold ${
+                    isActive ? 'bg-white text-slate-900' : 'bg-slate-800 text-slate-400'
                   }`}>
                     {ch.badge}
                   </span>
@@ -251,10 +251,10 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
       )}
 
       {/* Active Channel Banner */}
-      <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-300">
+      <div className="p-3 rounded-md bg-[#0F172A] border border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-300">
         <div className="flex items-center gap-2">
-          <span className="text-base">{activeChannel.icon}</span>
-          <span className="font-black text-white">#{activeChannel.name} :</span>
+          <span>{activeChannel.icon}</span>
+          <span className="font-bold text-white">#{activeChannel.name} :</span>
           <span className="text-slate-400">{activeChannel.topic}</span>
         </div>
         <span className="text-[11px] text-slate-400 font-mono">
@@ -264,34 +264,34 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* 3. Messages Feed */}
       {isBlockVisible('discussionGroup', 'messages_feed') && (
-        <div id="discussion-messages-feed" className="space-y-3">
+        <div id="discussion-messages-feed" className="space-y-2">
           {channelMessages.length === 0 ? (
-            <div className="p-8 rounded-3xl border border-slate-800 bg-slate-900/40 text-center space-y-2">
-              <MessageSquare className="h-8 w-8 text-slate-500 mx-auto" />
-              <p className="text-sm font-bold text-slate-300">Aucun message dans ce salon pour l'instant.</p>
-              <p className="text-xs text-slate-500">Soyez le premier à partager une observation météo ci-dessous !</p>
+            <div className="p-8 rounded-lg border border-slate-800 bg-[#0F172A] text-center space-y-1.5">
+              <MessageSquare className="h-6 w-6 text-slate-500 mx-auto" />
+              <p className="text-sm font-semibold text-slate-300">Aucun message dans ce canal pour l'instant.</p>
+              <p className="text-xs text-slate-500">Transmettez une observation météo ci-dessous.</p>
             </div>
           ) : (
             channelMessages.map((msg) => (
               <div 
                 key={msg.id}
-                className="relative p-4 sm:p-5 rounded-3xl border border-slate-800/90 bg-slate-900/80 shadow-md space-y-2.5 transition hover:border-slate-700"
+                className="p-3.5 sm:p-4 rounded-lg border border-slate-800 bg-[#0F172A] space-y-2"
               >
                 {/* Message Header */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-white text-sm">
+                    <span className="font-bold text-white text-xs sm:text-sm">
                       {msg.author}
                     </span>
 
                     {/* Badge */}
                     {msg.isAdmin ? (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-950 border border-red-500/50 text-red-300 text-[10px] font-black uppercase shadow">
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-950 border border-red-500/50 text-red-300 text-[10px] font-bold">
                         <Crown className="h-3 w-3 text-amber-400" />
                         Admin
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-300 text-[10px] font-bold">
+                      <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 text-[10px] font-medium">
                         {msg.authorBadge}
                       </span>
                     )}
@@ -304,14 +304,14 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   {/* Badges / Tags */}
                   <div className="flex items-center gap-1.5">
                     {msg.locationTag && (
-                      <span className="flex items-center gap-1 text-[11px] text-blue-300 bg-blue-950/60 border border-blue-500/30 px-2 py-0.5 rounded-full">
-                        <MapPin className="h-3 w-3 text-blue-400" />
+                      <span className="flex items-center gap-1 text-[11px] text-sky-300 bg-sky-950/60 border border-sky-500/30 px-2 py-0.5 rounded">
+                        <MapPin className="h-3 w-3 text-sky-400" />
                         {msg.locationTag}
                       </span>
                     )}
 
                     {msg.weatherTag && (
-                      <span className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
+                      <span className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded font-medium">
                         {msg.weatherTag}
                       </span>
                     )}
@@ -323,7 +323,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                           type="button"
                           onClick={() => setMessageToDelete(msg.id)}
                           title="Supprimer ce message (Admin)"
-                          className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                          className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -333,7 +333,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                             type="button"
                             onClick={() => setAuthorToBan(msg.author)}
                             title="Bannir cet auteur (Admin)"
-                            className="p-1 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+                            className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
                           >
                             <UserX className="h-3.5 w-3.5" />
                           </button>
@@ -344,16 +344,16 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                 </div>
 
                 {/* Message Content */}
-                <p className="text-sm text-slate-200 leading-relaxed break-words">
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed break-words">
                   {msg.content}
                 </p>
 
                 {/* Reactions Bar */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <div className="flex flex-wrap items-center gap-1 pt-0.5">
                   <button
                     type="button"
                     onClick={() => handleReaction(msg.id, 'thumbsUp')}
-                    className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 text-slate-300 text-xs transition cursor-pointer border border-slate-700/60"
                   >
                     <span>👍</span>
                     <span className="text-[11px] font-mono">{msg.reactions.thumbsUp || 0}</span>
@@ -362,7 +362,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleReaction(msg.id, 'storm')}
-                    className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 text-slate-300 text-xs transition cursor-pointer border border-slate-700/60"
                   >
                     <span>⚡</span>
                     <span className="text-[11px] font-mono">{msg.reactions.storm || 0}</span>
@@ -371,7 +371,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleReaction(msg.id, 'rain')}
-                    className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 text-slate-300 text-xs transition cursor-pointer border border-slate-700/60"
                   >
                     <span>🌧️</span>
                     <span className="text-[11px] font-mono">{msg.reactions.rain || 0}</span>
@@ -380,7 +380,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleReaction(msg.id, 'fire')}
-                    className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 text-slate-300 text-xs transition cursor-pointer border border-slate-700/60"
                   >
                     <span>🔥</span>
                     <span className="text-[11px] font-mono">{msg.reactions.fire || 0}</span>
@@ -389,7 +389,7 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleReaction(msg.id, 'snow')}
-                    className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 text-slate-300 text-xs transition cursor-pointer border border-slate-700/60"
                   >
                     <span>❄️</span>
                     <span className="text-[11px] font-mono">{msg.reactions.snow || 0}</span>
@@ -403,16 +403,16 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* 4. Composer (Zone d'Envoi) */}
       {isBlockVisible('discussionGroup', 'composer') && (
-        <form id="discussion-composer-section" onSubmit={handleSendMessage} className="p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl space-y-3">
-          <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-400">
+        <form id="discussion-composer-section" onSubmit={handleSendMessage} className="p-4 rounded-lg border border-slate-800 bg-[#0F172A] space-y-3">
+          <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
             <span>Poster un message dans #{activeChannel.name}</span>
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1 text-[11px] text-blue-300 cursor-pointer lowercase">
+              <label className="flex items-center gap-1 text-[11px] text-sky-300 cursor-pointer normal-case">
                 <input
                   type="checkbox"
                   checked={includeLocation}
                   onChange={(e) => setIncludeLocation(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-0"
+                  className="rounded text-sky-600 focus:ring-0"
                 />
                 <span>Ajouter ma commune ({station.name})</span>
               </label>
@@ -428,10 +428,10 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   key={tag}
                   type="button"
                   onClick={() => setSelectedWeatherTag(isSelected ? '' : tag)}
-                  className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                  className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition cursor-pointer border ${
                     isSelected
-                      ? 'bg-amber-500 text-slate-950 font-black shadow'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      ? 'bg-amber-500 text-slate-950 font-semibold border-amber-400'
+                      : 'bg-slate-850 text-slate-300 border-slate-700 hover:bg-slate-800'
                   }`}
                 >
                   {tag}
@@ -445,15 +445,15 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
               rows={3}
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
-              placeholder={`Écrivez votre observation pour #${activeChannel.name}...`}
-              className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 resize-none"
+              placeholder={`Observation pour #${activeChannel.name}...`}
+              className="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-[#0284C7] resize-none"
             />
 
-            <div className="absolute right-3 bottom-3 flex items-center gap-2">
+            <div className="absolute right-2.5 bottom-2.5 flex items-center gap-2">
               <button
                 type="submit"
                 disabled={!messageInput.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white font-black text-xs shadow-lg shadow-blue-600/30 transition cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 disabled:opacity-40 disabled:hover:bg-[#0284C7] text-white font-semibold text-xs transition cursor-pointer"
               >
                 <Send className="h-3.5 w-3.5" />
                 <span>Envoyer</span>
@@ -465,32 +465,32 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* Confirmation Dialog : Supprimer un message */}
       {messageToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-sm rounded-3xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm rounded-lg border border-rose-500/40 bg-[#0F172A] p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400">
-                <Trash2 className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-rose-400 border border-slate-700">
+                <Trash2 className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-sm font-black text-white">Supprimer ce message ?</h4>
+                <h4 className="text-sm font-bold text-white">Supprimer ce message ?</h4>
                 <p className="text-xs text-slate-400">Action immédiate dans le salon.</p>
               </div>
             </div>
             <p className="text-xs text-slate-300">
               Voulez-vous vraiment retirer définitivement ce message du salon de discussion ?
             </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setMessageToDelete(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={() => handleDeleteMessage(messageToDelete)}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition cursor-pointer"
               >
                 Supprimer
               </button>
@@ -501,34 +501,34 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* Confirmation Dialog : Bannir un utilisateur */}
       {authorToBan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-sm rounded-3xl border border-red-500/40 bg-slate-950 p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm rounded-lg border border-red-500/40 bg-[#0F172A] p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/20 text-red-400">
-                <UserX className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-red-400 border border-slate-700">
+                <UserX className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-sm font-black text-white">Bannir {authorToBan} ?</h4>
+                <h4 className="text-sm font-bold text-white">Bannir {authorToBan} ?</h4>
                 <p className="text-xs text-red-300 font-semibold">Exclusion temporaire de 24h</p>
               </div>
             </div>
             <p className="text-xs text-slate-300">
               L'utilisateur <strong>« {authorToBan} »</strong> sera exclu de l'accès au salon de discussion et aux concours pendant 24 heures.
             </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setAuthorToBan(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickBan(authorToBan)}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition cursor-pointer"
               >
-                Confirmer le ban
+                Confirmer l'exclusion
               </button>
             </div>
           </div>
@@ -537,9 +537,9 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-24 right-4 sm:right-8 z-50 animate-in slide-in-from-bottom duration-200">
-          <div className="px-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-xs font-bold shadow-2xl flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+        <div className="fixed bottom-20 right-4 sm:right-6 z-50">
+          <div className="px-3.5 py-2 rounded-md bg-[#0F172A] border border-slate-700 text-white text-xs font-semibold flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-sky-400" />
             <span>{toastMessage}</span>
           </div>
         </div>

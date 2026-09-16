@@ -235,77 +235,75 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
   };
 
   return (
-    <div id="historical-trends-and-realtime-page" className="space-y-6">
+    <div id="historical-trends-and-realtime-page" className="space-y-4">
       {/* 1. Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-indigo-400 text-xs font-black uppercase tracking-wider mb-2">
-              <History className="h-4 w-4 text-indigo-400 animate-pulse" />
-              <span>Évolution • Observatoire Climatologique &amp; Haute Fréquence</span>
+            <div className="flex items-center gap-1.5 text-sky-400 text-xs font-semibold mb-1">
+              <History className="h-4 w-4 text-sky-400" />
+              <span>Observatoire Climatologique &amp; Haute Fréquence</span>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+            <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg sm:text-xl'}`}>
               Évolution : Trajectoire depuis 2000 &amp; Temps Réel à la Minute
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Deux axes d'analyse physique : la trajectoire climatique annuelle depuis l'an <strong>2000 pile</strong> et la courbe haute précision <strong>1 minute par 1 minute</strong> depuis le début de la journée à la station de <strong>{station.name}</strong>.
+            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
+              Trajectoire climatique annuelle depuis l'an 2000 et suivi à la minute depuis 00h00 à la station de <strong>{station.name}</strong>.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {onOpenSearchModal && (
               <button
                 onClick={onOpenSearchModal}
-                className="flex items-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 text-xs shadow-lg shadow-indigo-600/30 transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-md bg-[#0284C7] hover:bg-sky-500 text-white font-semibold px-3 py-1.5 text-xs transition cursor-pointer"
               >
-                <MapPin className="h-4 w-4" />
+                <MapPin className="h-3.5 w-3.5" />
                 <span>Changer de station</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Big Switcher Tabs between 2000-2026 Evolution vs 1-min Realtime */}
-        <div className="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center gap-3">
+        {/* Switcher Tabs */}
+        <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTab('historical')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-xs transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
               activeTab === 'historical'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 ring-1 ring-white/50'
-                : 'bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
             }`}
           >
-            <History className="h-4 w-4" />
-            <span>Évolution Climatologique depuis 2000 (26 ans)</span>
+            <History className="h-3.5 w-3.5" />
+            <span>Évolution Climatologique depuis 2000</span>
           </button>
 
           <button
             onClick={() => setActiveTab('realtimeMinute')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-xs transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
               activeTab === 'realtimeMinute'
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/40 ring-1 ring-white/60'
-                : 'bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
             }`}
           >
-            <Activity className="h-4 w-4 animate-pulse" />
-            <span>Temps Réel à la Minute (1 min) • Aujourd'hui</span>
+            <Activity className="h-3.5 w-3.5" />
+            <span>Temps Réel à la Minute (Aujourd'hui)</span>
           </button>
         </div>
       </div>
 
-      {/* 2. TAB 1: CLIMATE EVOLUTION SINCE 2000 PILE */}
+      {/* 2. TAB 1: CLIMATE EVOLUTION SINCE 2000 */}
       {activeTab === 'historical' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Key Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur space-y-1">
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-4 space-y-1">
+              <div className="text-xs text-slate-400 font-semibold flex items-center justify-between">
                 <span>Réchauffement mesuré</span>
-                <TrendingUp className="h-4 w-4 text-rose-400" />
+                <TrendingUp className="h-3.5 w-3.5 text-rose-400" />
               </div>
-              <div className="text-2xl font-black text-rose-400 tabular-nums">
+              <div className="text-xl font-bold text-rose-400 tabular-nums">
                 +1.28°C
               </div>
               <p className="text-[11px] text-slate-400">
@@ -313,12 +311,12 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur space-y-1">
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-4 space-y-1">
+              <div className="text-xs text-slate-400 font-semibold flex items-center justify-between">
                 <span>Année Record</span>
-                <Sun className="h-4 w-4 text-amber-400" />
+                <Sun className="h-3.5 w-3.5 text-amber-400" />
               </div>
-              <div className="text-2xl font-black text-amber-400 tabular-nums">
+              <div className="text-xl font-bold text-amber-400 tabular-nums">
                 {hottestYear.year} ({hottestYear.meanTemp}°C)
               </div>
               <p className="text-[11px] text-slate-400">
@@ -326,26 +324,26 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur space-y-1">
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-4 space-y-1">
+              <div className="text-xs text-slate-400 font-semibold flex items-center justify-between">
                 <span>Moyenne 2000-2026</span>
-                <Sparkles className="h-4 w-4 text-cyan-400" />
+                <Sparkles className="h-3.5 w-3.5 text-sky-400" />
               </div>
-              <div className="text-2xl font-black text-white tabular-nums">
+              <div className="text-xl font-bold text-white tabular-nums">
                 {avgTemp2000_2026}°C
               </div>
               <p className="text-[11px] text-slate-400">
-                Normale OMM 1991-2020 : <strong>{(Number(avgTemp2000_2026) - 0.45).toFixed(2)}°C</strong>
+                Normale 1991-2020 : <strong>{(Number(avgTemp2000_2026) - 0.45).toFixed(2)}°C</strong>
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur space-y-1">
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-4 space-y-1">
+              <div className="text-xs text-slate-400 font-semibold flex items-center justify-between">
                 <span>Jours de Forte Chaleur</span>
-                <TrendingUp className="h-4 w-4 text-orange-400" />
+                <TrendingUp className="h-3.5 w-3.5 text-orange-400" />
               </div>
-              <div className="text-2xl font-black text-orange-400 tabular-nums">
-                +8.5 jours/an
+              <div className="text-xl font-bold text-orange-400 tabular-nums">
+                +8.5 j/an
               </div>
               <p className="text-[11px] text-slate-400">
                 Fréquence des journées &gt; 30°C vs années 2000
@@ -354,55 +352,55 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
           </div>
 
           {/* Chart Controls & Filter */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
               {/* Metric Switcher */}
-              <div className="flex items-center gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1.5 overflow-x-auto">
                 <button
                   onClick={() => setHistoricalMetric('temperature')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
                     historicalMetric === 'temperature'
-                      ? 'bg-rose-600 text-white shadow'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
                   }`}
                 >
-                  🌡️ Température Moyenne &amp; Anomalie
+                  Température Moyenne &amp; Anomalie
                 </button>
                 <button
                   onClick={() => setHistoricalMetric('rain')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
                     historicalMetric === 'rain'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
                   }`}
                 >
-                  🌧️ Cumul Pluviométrique Annuel (mm)
+                  Pluviométrie Annuelle (mm)
                 </button>
                 <button
                   onClick={() => setHistoricalMetric('extremes')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
                     historicalMetric === 'extremes'
-                      ? 'bg-amber-600 text-white shadow'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
                   }`}
                 >
-                  ❄️/🔥 Gelées vs Canicules (Jours)
+                  Gelées vs Canicules (Jours)
                 </button>
               </div>
 
               {/* Period Filter */}
-              <div className="flex items-center gap-1.5 text-xs font-bold">
+              <div className="flex items-center gap-1 text-xs font-semibold">
                 <span className="text-slate-400 mr-1 flex items-center gap-1">
-                  <Filter className="h-3.5 w-3.5 text-indigo-400" /> Période :
+                  <Filter className="h-3 w-3 text-sky-400" /> Période :
                 </span>
                 {(['all', '2000-2010', '2011-2020', '2021-2026'] as const).map(p => (
                   <button
                     key={p}
                     onClick={() => setPeriodFilter(p)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                    className={`px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer border ${
                       periodFilter === p
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                        ? 'bg-[#0284C7] text-white border-sky-400'
+                        : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'
                     }`}
                   >
                     {p === 'all' ? '2000 - 2026' : p}
@@ -412,21 +410,15 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
             </div>
 
             {/* Main Interactive Recharts Graph */}
-            <div className="h-[380px] w-full">
+            <div className="h-[340px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {historicalMetric === 'temperature' ? (
                   <AreaChart data={filteredHistoricalData}>
-                    <defs>
-                      <linearGradient id="tempAnomalyGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="year" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" domain={['dataMin - 0.5', 'dataMax + 0.5']} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any, name: any) => [
                         `${value}°C`,
                         name === 'meanTemp' ? 'Température Moyenne' : 'Normale Baseline'
@@ -434,48 +426,48 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
                     />
                     <Legend />
                     <ReferenceLine y={historicalData[0]?.baseline} stroke="#38bdf8" strokeDasharray="4 4" label={{ value: 'Normale Climat', fill: '#38bdf8', fontSize: 11 }} />
-                    <Area type="monotone" dataKey="meanTemp" name="Température Moyenne Annuelle (°C)" stroke="#f43f5e" strokeWidth={3} fill="url(#tempAnomalyGrad)" />
+                    <Area type="monotone" dataKey="meanTemp" name="Température Moyenne Annuelle (°C)" stroke="#f43f5e" strokeWidth={2} fill="#f43f5e" fillOpacity={0.15} />
                   </AreaChart>
                 ) : historicalMetric === 'rain' ? (
                   <BarChart data={filteredHistoricalData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="year" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any) => [`${value} mm`, 'Cumul Annuel']}
                     />
                     <Legend />
-                    <Bar dataKey="annualRainMm" name="Pluviométrie Annuelle (mm)" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="annualRainMm" name="Pluviométrie Annuelle (mm)" fill="#0284c7" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 ) : (
                   <LineChart data={filteredHistoricalData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="year" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="summerHeatDays" name="Jours de Forte Chaleur (>30°C)" stroke="#f97316" strokeWidth={2.5} dot />
-                    <Line type="monotone" dataKey="frostDays" name="Jours de Gel (<0°C)" stroke="#38bdf8" strokeWidth={2.5} dot />
+                    <Line type="monotone" dataKey="summerHeatDays" name="Jours de Forte Chaleur (>30°C)" stroke="#f97316" strokeWidth={2} dot={{ r: 2 }} />
+                    <Line type="monotone" dataKey="frostDays" name="Jours de Gel (<0°C)" stroke="#38bdf8" strokeWidth={2} dot={{ r: 2 }} />
                   </LineChart>
                 )}
               </ResponsiveContainer>
             </div>
 
             {/* Historical Milestones List */}
-            <div className="pt-4 border-t border-slate-800/80">
-              <h4 className="text-xs font-black text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Info className="h-4 w-4 text-indigo-400" />
-                Faits Marquants &amp; Événements Météorologiques Clés depuis 2000 :
+            <div className="pt-3 border-t border-slate-800">
+              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Info className="h-3.5 w-3.5 text-sky-400" />
+                Faits Marquants &amp; Événements Météorologiques Clés depuis 2000
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                 {historicalData.filter(d => d.eventLabel).map((d) => (
-                  <div key={d.year} className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs space-y-1">
+                  <div key={d.year} className="rounded-md border border-slate-800 bg-slate-900 p-3 text-xs space-y-1">
                     <div className="flex items-center justify-between">
-                      <strong className="text-indigo-300 font-mono font-black">{d.year}</strong>
-                      <span className="text-rose-400 font-bold">+{d.anomaly}°C</span>
+                      <strong className="text-sky-300 font-mono font-bold">{d.year}</strong>
+                      <span className="text-rose-400 font-semibold">+{d.anomaly}°C</span>
                     </div>
                     <p className="text-slate-300 font-medium">{d.eventLabel}</p>
                     <p className="text-[10px] text-slate-500">Max annuel : +{d.maxTempYear}°C • Pluie : {d.annualRainMm} mm</p>
@@ -489,52 +481,52 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
 
       {/* 3. TAB 2: REAL-TIME 1-MINUTE EVOLUTION TODAY */}
       {activeTab === 'realtimeMinute' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Live High-Frequency Metric Tiles */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Température Live</div>
-              <div className="text-xl font-black text-white tabular-nums">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Température Live</div>
+              <div className="text-lg font-bold text-white tabular-nums">
                 {currentMinutePoint.temperature > 0 ? `+${currentMinutePoint.temperature}` : currentMinutePoint.temperature}°C
               </div>
-              <div className="text-[10px] text-cyan-300">Ressenti : {currentMinutePoint.feelsLike}°C</div>
+              <div className="text-[10px] text-sky-300">Ressenti : {currentMinutePoint.feelsLike}°C</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Point de Rosée</div>
-              <div className="text-xl font-black text-cyan-300 tabular-nums">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Point de Rosée</div>
+              <div className="text-lg font-bold text-sky-300 tabular-nums">
                 +{currentMinutePoint.dewPoint}°C
               </div>
               <div className="text-[10px] text-slate-400">Td direct</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Humidité</div>
-              <div className="text-xl font-black text-blue-300 tabular-nums">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Humidité</div>
+              <div className="text-lg font-bold text-sky-200 tabular-nums">
                 {currentMinutePoint.humidity}%
               </div>
               <div className="text-[10px] text-slate-400">Capteur capacitif</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Vent &amp; Rafales</div>
-              <div className="text-xl font-black text-teal-300 tabular-nums">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Vent &amp; Rafales</div>
+              <div className="text-lg font-bold text-teal-300 tabular-nums">
                 {currentMinutePoint.windSpeed} <span className="text-xs font-normal">km/h</span>
               </div>
               <div className="text-[10px] text-teal-400">Max : {currentMinutePoint.windGusts} km/h</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Pression QNH</div>
-              <div className="text-xl font-black text-indigo-300 tabular-nums">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Pression QNH</div>
+              <div className="text-lg font-bold text-sky-300 tabular-nums">
                 {currentMinutePoint.pressure} <span className="text-xs font-normal">hPa</span>
               </div>
               <div className="text-[10px] text-slate-400">Tendance stable</div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Solaire Global</div>
-              <div className="text-xl font-black text-amber-300 tabular-nums">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase">Solaire Global</div>
+              <div className="text-lg font-bold text-amber-300 tabular-nums">
                 {currentMinutePoint.solarRadiation} <span className="text-xs font-normal">W/m²</span>
               </div>
               <div className="text-[10px] text-amber-400">Pyranomètre direct</div>
@@ -542,14 +534,14 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
           </div>
 
           {/* Minute by Minute High-Res Chart */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <span className="flex h-3 w-3 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
                 </span>
-                <span className="text-xs font-black text-white uppercase tracking-wider">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
                   Tracé Temps Réel (Résolution 1 minute) • Depuis 00h00
                 </span>
               </div>
@@ -558,112 +550,100 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   onClick={() => setRealtimeMetric('temp')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer border ${
                     realtimeMetric === 'temp'
-                      ? 'bg-rose-600 text-white'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'
                   }`}
                 >
-                  🌡️ Température &amp; Rosée
+                  Température &amp; Rosée
                 </button>
                 <button
                   onClick={() => setRealtimeMetric('wind')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer border ${
                     realtimeMetric === 'wind'
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'
                   }`}
                 >
-                  💨 Vent &amp; Rafales (km/h)
+                  Vent &amp; Rafales (km/h)
                 </button>
                 <button
                   onClick={() => setRealtimeMetric('pressure')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer border ${
                     realtimeMetric === 'pressure'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'
                   }`}
                 >
-                  ⏱️ Pression Barométrique
+                  Pression Barométrique
                 </button>
                 <button
                   onClick={() => setRealtimeMetric('solar')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer border ${
                     realtimeMetric === 'solar'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      ? 'bg-[#0284C7] text-white border-sky-400'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'
                   }`}
                 >
-                  ☀️ Rayonnement Solaire (W/m²)
+                  Rayonnement Solaire (W/m²)
                 </button>
               </div>
             </div>
 
             {/* Chart */}
-            <div className="h-[380px] w-full">
+            <div className="h-[340px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {realtimeMetric === 'temp' ? (
                   <LineChart data={minuteData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="time" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" domain={['dataMin - 1', 'dataMax + 1']} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any) => [`${value}°C`]}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="temperature" name="Température Réelle (°C)" stroke="#f43f5e" strokeWidth={2.5} dot={false} />
-                    <Line type="monotone" dataKey="feelsLike" name="Ressenti (°C)" stroke="#fb923c" strokeWidth={2} strokeDasharray="3 3" dot={false} />
-                    <Line type="monotone" dataKey="dewPoint" name="Point de Rosée Td (°C)" stroke="#38bdf8" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="temperature" name="Température Réelle (°C)" stroke="#f43f5e" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="feelsLike" name="Ressenti (°C)" stroke="#fb923c" strokeWidth={1.5} strokeDasharray="3 3" dot={false} />
+                    <Line type="monotone" dataKey="dewPoint" name="Point de Rosée Td (°C)" stroke="#38bdf8" strokeWidth={1.5} dot={false} />
                   </LineChart>
                 ) : realtimeMetric === 'wind' ? (
                   <AreaChart data={minuteData}>
-                    <defs>
-                      <linearGradient id="windGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="time" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any) => [`${value} km/h`]}
                     />
                     <Legend />
-                    <Area type="monotone" dataKey="windGusts" name="Pointes de Rafales (km/h)" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.15} />
-                    <Area type="monotone" dataKey="windSpeed" name="Vent Moyen (km/h)" stroke="#14b8a6" strokeWidth={2.5} fill="url(#windGrad)" />
+                    <Area type="monotone" dataKey="windGusts" name="Pointes de Rafales (km/h)" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.12} />
+                    <Area type="monotone" dataKey="windSpeed" name="Vent Moyen (km/h)" stroke="#14b8a6" strokeWidth={2} fill="#14b8a6" fillOpacity={0.15} />
                   </AreaChart>
                 ) : realtimeMetric === 'pressure' ? (
                   <LineChart data={minuteData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="time" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" domain={['dataMin - 0.5', 'dataMax + 0.5']} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any) => [`${value} hPa`]}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="pressure" name="Pression Atmosphérique QNH (hPa)" stroke="#818cf8" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="pressure" name="Pression Atmosphérique QNH (hPa)" stroke="#0284c7" strokeWidth={2} dot={false} />
                   </LineChart>
                 ) : (
                   <AreaChart data={minuteData}>
-                    <defs>
-                      <linearGradient id="solarGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="time" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px' }}
                       formatter={(value: any) => [`${value} W/m²`]}
                     />
                     <Legend />
-                    <Area type="monotone" dataKey="solarRadiation" name="Rayonnement Solaire (W/m²)" stroke="#f59e0b" strokeWidth={2.5} fill="url(#solarGrad)" />
+                    <Area type="monotone" dataKey="solarRadiation" name="Rayonnement Solaire (W/m²)" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.15} />
                   </AreaChart>
                 )}
               </ResponsiveContainer>

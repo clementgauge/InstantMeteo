@@ -146,20 +146,20 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
   }, [displayedHours]);
 
   return (
-    <div className="rounded-3xl border border-sky-500/30 bg-slate-950/85 p-4 sm:p-6 shadow-2xl backdrop-blur-xl text-slate-100 space-y-6">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6 shadow-md text-slate-100 space-y-5">
       
       {/* Header & Observatoire Badge */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
-            <Cloud className="h-6 w-6" />
+          <div className="h-10 w-10 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow">
+            <Cloud className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 Observatoire Néphologique &amp; Nuages 48h
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-950 text-sky-300 border border-sky-800">
                 Sondage Vertical 0-12 000m • OMM &amp; METAR
               </span>
             </div>
@@ -171,7 +171,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
 
         {/* 48h Key Metrics Quick Chips */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-2 text-xs">
+          <div className="px-3 py-1.5 rounded-md bg-slate-950 border border-slate-800 flex items-center gap-2 text-xs">
             <span className="text-slate-400">Nébulosité 48h :</span>
             <span className="font-black text-sky-300">{soundingData.averageCover48hPct}% ({Math.round(soundingData.averageCover48hPct / 12.5)}/8)</span>
           </div>
@@ -300,8 +300,8 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
         <div className="space-y-6 animate-fadeIn">
           
           {/* Active Selected Hour Drill-down Hero Card */}
-          <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-sky-950/40 border border-sky-500/30 shadow-xl space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{selectedHour.primaryWmoEmoji}</span>
                 <div>
@@ -546,7 +546,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
       {activeTab === 'VERTICAL_CROSS_SECTION' && (
         <div className="space-y-6 animate-fadeIn">
           
-          <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-base font-black text-white flex items-center gap-2">
@@ -650,7 +650,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
           </div>
 
           {/* Secondary Nebulosity & Direct Solar Transmission Curve */}
-          <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sun className="h-4 w-4 text-amber-400" />
@@ -805,7 +805,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
           </div>
 
           {/* Selected Genus Spotlight Card */}
-          <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{selectedGenus.iconEmoji}</span>
@@ -891,7 +891,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
           </div>
 
           {/* Species & Supplementary Features Encyclopedia */}
-          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
             <h4 className="text-sm font-bold text-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-amber-400" />
               Espèces Nuageuses &amp; Particularités Remarquables (Mammatus, Lenticularis, Arcus...)
@@ -899,7 +899,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
               {CLOUD_SPECIES_ATLAS.map((sp) => (
-                <div key={sp.nameLatin} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1.5">
+                <div key={sp.nameLatin} className="p-3 rounded-md bg-slate-900 border border-slate-800 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <strong className="text-sky-300 font-mono">{sp.nameLatin}</strong>
                     <span className="text-[10px] text-slate-400">{sp.nameFrench}</span>
@@ -920,7 +920,7 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
       {activeTab === 'OPTICAL_LUMINANCE' && (
         <div className="space-y-6 animate-fadeIn">
           
-          <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-slate-950 border border-slate-800 space-y-4">
             <h3 className="text-base font-black text-white flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-400" />
               Phénomènes Optiques &amp; Photométéores Détectés sur 48h
@@ -929,8 +929,8 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
               Prévisibilité des halos solaires de 22°, parhélies, arcs-en-ciel, spectres de Brocken et couchers de soleil flamboyants
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+              <div className="p-3.5 rounded-md bg-slate-900 border border-slate-800 space-y-1.5">
                 <span className="font-bold text-amber-300 flex items-center gap-2">
                   <Sun className="h-4 w-4" />
                   Halos Solaires &amp; Cristaux Cirrostratiques (22° &amp; 46°)

@@ -13,23 +13,20 @@ import {
   Search,
   ShieldCheck,
   Smartphone,
-  Sparkles,
   Sun,
   ThermometerSun,
   Wind
 } from 'lucide-react';
 import { AppLogo } from '../components/AppLogo';
-import { AffiliateStoreFooter } from '../components/AffiliateStoreFooter';
 
 interface HomePageProps {
   onEnterApp: () => void;
 }
 
 interface CarouselSlide {
-  eyebrow: string;
+  label: string;
   title: string;
   description: string;
-  accent: string;
   icon: React.ReactNode;
   stats: Array<{ label: string; value: string }>;
 }
@@ -38,55 +35,51 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
   const slides = useMemo<CarouselSlide[]>(
     () => [
       {
-        eyebrow: 'OBSERVATION EN DIRECT',
-        title: 'La météo actuelle, lisible en un coup d’œil.',
+        label: 'Relevés en direct',
+        title: 'Observations mesurées sur stations homologuées.',
         description:
-          'Température, ressenti, vent, pression, humidité et indicateurs météo détaillés autour de votre station.',
-        accent: 'from-blue-500/25 via-cyan-400/10 to-transparent',
-        icon: <ThermometerSun className="h-7 w-7" />,
+          'Température mesurée sous abri, pression atmosphérique au niveau de la mer, humidité relative et force des rafales de vent.',
+        icon: <ThermometerSun className="h-5 w-5 text-[#0284C7]" />,
         stats: [
-          { label: 'Température', value: '+24°C' },
-          { label: 'Ressenti', value: '+21°C' },
-          { label: 'Pression', value: '1021 hPa' }
+          { label: 'Température', value: '+18.4°C' },
+          { label: 'Pression', value: '1018 hPa' },
+          { label: 'Humidité', value: '62 %' }
         ]
       },
       {
-        eyebrow: 'PRÉVISIONS',
-        title: 'Anticipez les prochaines heures et les prochains jours.',
+        label: 'Échéances 1 à 14 jours',
+        title: 'Prévisions numériques haute résolution AROME & IFS.',
         description:
-          'Prévisions jour/semaine, tendances à 14 jours et vues longues pour préparer vos déplacements et vos activités.',
-        accent: 'from-violet-500/25 via-blue-500/10 to-transparent',
-        icon: <CalendarDays className="h-7 w-7" />,
+          'Modélisation déterministe horaire sur les premières 48 heures, relayée par l’ensemble européen pour anticiper le risque de précipitation.',
+        icon: <CalendarDays className="h-5 w-5 text-[#0284C7]" />,
         stats: [
-          { label: 'Aujourd’hui', value: '24° / 14°' },
-          { label: 'Demain', value: '23° / 13°' },
-          { label: 'Tendance', value: 'Stable' }
+          { label: 'Échéance', value: '48 heures' },
+          { label: 'Résolution', value: '1.3 km' },
+          { label: 'Modèle', value: 'AROME' }
         ]
       },
       {
-        eyebrow: 'RADAR & CARTES',
-        title: 'Suivez les précipitations et la situation météo sur la carte.',
+        label: 'Réseau radar ARAMIS',
+        title: 'Suivi des précipitations et des orages en temps réel.',
         description:
-          'Radar HD, cartes de France et repères géographiques pour visualiser rapidement ce qui arrive près de chez vous.',
-        accent: 'from-emerald-500/20 via-cyan-500/10 to-transparent',
-        icon: <Radar className="h-7 w-7" />,
+          'Échos radar actualisés toutes les 5 minutes sur la France métropolitaine, avec vitesse de déplacement et prévision immédiate à 60 minutes.',
+        icon: <Radar className="h-5 w-5 text-[#0284C7]" />,
         stats: [
-          { label: 'Radar', value: 'HD' },
-          { label: 'Carte', value: 'France' },
-          { label: 'Position', value: 'GPS' }
+          { label: 'Actualisation', value: '5 min' },
+          { label: 'Portée', value: 'France' },
+          { label: 'Nowcast', value: '+60 min' }
         ]
       },
       {
-        eyebrow: 'ALERTES & PRÉCISION',
-        title: 'Restez informé quand la météo devient importante.',
+        label: 'Vigilance officielle',
+        title: 'Tableaux des risques et alertes météorologiques.',
         description:
-          'Vigilances, alertes, comparaison et correction météo pour mieux comprendre les écarts et les phénomènes locaux.',
-        accent: 'from-amber-500/20 via-rose-500/10 to-transparent',
-        icon: <BellRing className="h-7 w-7" />,
+          'Cartographie des seuils de vigilance départementaux (vent, orages, pluie-inondation, grand froid) pour planifier vos activités en sécurité.',
+        icon: <BellRing className="h-5 w-5 text-[#0284C7]" />,
         stats: [
-          { label: 'Alertes', value: 'En direct' },
-          { label: 'Vigilance', value: '5 jours' },
-          { label: 'Précision', value: 'Locale' }
+          { label: 'Niveaux', value: 'Vert à Rouge' },
+          { label: 'Échéance', value: '5 jours' },
+          { label: 'Source', value: 'Météo-France' }
         ]
       }
     ],
@@ -100,7 +93,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
     if (paused) return;
     const timer = window.setInterval(() => {
       setActiveSlide((current) => (current + 1) % slides.length);
-    }, 5500);
+    }, 6000);
     return () => window.clearInterval(timer);
   }, [paused, slides.length]);
 
@@ -112,237 +105,246 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
 
   const features = [
     {
-      icon: <Navigation className="h-5 w-5" />,
-      title: 'Ma position GPS',
-      text: 'Trouvez rapidement la station météo adaptée à votre position.'
+      icon: <Navigation className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Localisation GPS',
+      text: 'Accès immédiat aux relevés de la station la plus proche.'
     },
     {
-      icon: <Sun className="h-5 w-5" />,
-      title: 'Temps réel',
-      text: 'Consultez les principales mesures météo et le ressenti actuel.'
+      icon: <Sun className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Relevés en direct',
+      text: 'Mesures officielles de température, vent, humidité et point de rosée.'
     },
     {
-      icon: <CalendarDays className="h-5 w-5" />,
-      title: 'Prévisions détaillées',
-      text: 'Explorez les heures, les jours et les tendances plus longues.'
+      icon: <CalendarDays className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Prévisions 14 jours & 8 mois',
+      text: 'Analyse synoptique horaire, hebdomadaire et tendances saisonnières.'
     },
     {
-      icon: <Radar className="h-5 w-5" />,
-      title: 'Radar & cartes',
-      text: 'Visualisez les précipitations et les phénomènes sur la France.'
+      icon: <Radar className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Radar de précipitations HD',
+      text: 'Cartographie Leaflet & ArcGIS avec animation des échos de pluie.'
     },
     {
-      icon: <BellRing className="h-5 w-5" />,
-      title: 'Alertes météo',
-      text: 'Repérez les vigilances et les situations qui demandent votre attention.'
+      icon: <BellRing className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Vigilances départementales',
+      text: 'Suivi des phénomènes météo dangereux sur l’ensemble du territoire.'
     },
     {
-      icon: <Gauge className="h-5 w-5" />,
-      title: 'Indicateurs de précision',
-      text: 'Comparez les données et comprenez mieux la fiabilité des prévisions.'
+      icon: <Gauge className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Comparateur multi-modèles',
+      text: 'Confrontation des modèles AROME, IFS, GFS, ICON et GraphCast.'
     },
     {
-      icon: <Search className="h-5 w-5" />,
-      title: 'Recherche de commune',
-      text: 'Passez rapidement d’une commune, d’un sommet ou d’une zone à une autre.'
+      icon: <Search className="h-4 w-4 text-[#0284C7]" />,
+      title: '35 000 communes référencées',
+      text: 'Recherche par nom, code postal, sommet alpin ou station balnéaire.'
     },
     {
-      icon: <Smartphone className="h-5 w-5" />,
-      title: 'Application mobile',
-      text: 'Retrouvez l’expérience Instant Météo sur votre appareil compatible.'
+      icon: <Smartphone className="h-4 w-4 text-[#0284C7]" />,
+      title: 'Installation PWA',
+      text: 'Application utilisable hors-ligne et installable sur smartphone.'
     }
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#050b1c] text-white">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-36 top-20 h-96 w-96 rounded-full bg-blue-600/15 blur-3xl" />
-        <div className="absolute right-[-8rem] top-72 h-[28rem] w-[28rem] rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute bottom-[-10rem] left-1/3 h-96 w-96 rounded-full bg-violet-600/10 blur-3xl" />
-      </div>
-
-      <header className="relative z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+    <div className="min-h-screen bg-[#0F172A] text-[#F8FAFC]">
+      {/* Header strict et sobre */}
+      <header className="border-b border-slate-800 bg-[#0F172A] sticky top-0 z-30">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <AppLogo size="md" />
           <button
             onClick={onEnterApp}
-            className="group inline-flex items-center gap-2 rounded-2xl border border-blue-400/30 bg-blue-500/10 px-4 py-2.5 text-sm font-black text-blue-100 transition hover:border-blue-300/60 hover:bg-blue-500/20"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369A1] px-4 py-2 text-xs font-bold text-white transition active:scale-95 cursor-pointer"
           >
-            Ouvrir la météo
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span>Accéder à la station</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </header>
 
-      <main className="relative z-10">
-        <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:pb-24 lg:pt-20">
-          <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-950/50 px-3.5 py-1.5 text-xs font-semibold text-sky-200">
-              <Sparkles className="h-3.5 w-3.5 text-sky-400" />
-              Météo, radar &amp; prévisions certifiées
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+        {/* Section Principale en 2 colonnes avec grille stricte */}
+        <section className="grid items-start gap-8 lg:grid-cols-12 pb-12 border-b border-slate-800">
+          {/* Colonne gauche : Titre & Actions */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 border border-slate-700 bg-slate-900/90 px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-[#0284C7]" />
+              <span>Service Météorologique &amp; Cartographique Français</span>
             </div>
-            <h1 className="max-w-3xl text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl text-white">
-              Comprendre la météo,
-              <span className="block text-sky-300">
-                avant qu’elle ne vous surprenne.
-              </span>
+
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl leading-tight">
+              Observations réelles, radar officiel et prévisions fiables.
             </h1>
-            <p className="mt-6 max-w-2xl text-base font-normal leading-relaxed text-slate-300 sm:text-lg">
-              Instant Météo réunit les observations de terrain en direct, les prévisions numériques haute résolution, le radar officiel, les cartes et les alertes de vigilance dans une interface claire, sobre et humaine.
+
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
+              Accédez aux relevés des stations météorologiques homologuées, à la détection des pluies en temps réel et aux modélisations numériques haute résolution sans artifices.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* Boutons d'action sobre */}
+            <div className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={onEnterApp}
-                className="group inline-flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/50 transition active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369a1] px-5 py-2.5 text-sm font-bold text-white transition active:scale-95 cursor-pointer"
               >
-                Accéder à la météo en direct
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <span>Ouvrir la météo en direct</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
               <a
-                href="#decouvrir"
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 px-6 py-3.5 text-sm font-semibold text-slate-200 transition cursor-pointer"
+                href="#modules"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 hover:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-300 transition"
               >
-                Découvrir les fonctionnalités
+                Consulter les rubriques
               </a>
             </div>
 
-            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400">
-              <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Données météo détaillées</span>
-              <span className="inline-flex items-center gap-2"><MapPinned className="h-4 w-4 text-cyan-400" /> France & localisation GPS</span>
-              <span className="inline-flex items-center gap-2"><CloudRain className="h-4 w-4 text-blue-400" /> Radar et précipitations</span>
+            {/* Métriques d'utilité météo séparées par de simples lignes */}
+            <div className="pt-6 border-t border-slate-800/80 grid grid-cols-3 gap-4 text-xs">
+              <div>
+                <div className="text-slate-400 font-medium">Fréquence</div>
+                <div className="mt-1 font-bold text-white text-sm">Toutes les 5 min</div>
+              </div>
+              <div className="border-l border-slate-800 pl-4">
+                <div className="text-slate-400 font-medium">Couverture</div>
+                <div className="mt-1 font-bold text-white text-sm">35 000 communes</div>
+              </div>
+              <div className="border-l border-slate-800 pl-4">
+                <div className="text-slate-400 font-medium">Modèles</div>
+                <div className="mt-1 font-bold text-white text-sm">AROME &bull; IFS &bull; GFS</div>
+              </div>
             </div>
           </div>
 
+          {/* Colonne droite : Aperçu interactif sobre (pas de gradients, bordures nettes) */}
           <div
-            className="relative"
+            className="lg:col-span-5 rounded-[10px] border border-slate-700 bg-slate-900 p-6 space-y-6"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
-            <div className="absolute -inset-4 rounded-[2.2rem] bg-gradient-to-r from-blue-500/10 via-cyan-400/5 to-violet-500/10 blur-xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/80 shadow-2xl shadow-black/30 backdrop-blur-xl">
-              <div className={`absolute inset-0 bg-gradient-to-br ${slide.accent}`} />
-
-              <div className="relative min-h-[420px] p-6 sm:p-8">
-                <div className="flex items-start justify-between gap-5">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-blue-200 shadow-inner">
-                    {slide.icon}
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">
-                    Aperçu {activeSlide + 1}/{slides.length}
-                  </div>
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-slate-800 border border-slate-700 text-[#0284C7]">
+                  {slide.icon}
                 </div>
-
-                <div className="mt-8">
-                  <div className="text-xs font-black uppercase tracking-[0.2em] text-blue-300">{slide.eyebrow}</div>
-                  <h2 className="mt-3 max-w-xl text-2xl font-black leading-tight sm:text-3xl">{slide.title}</h2>
-                  <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-slate-300 sm:text-base">{slide.description}</p>
-                </div>
-
-                <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
-                  {slide.stats.map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-3 sm:p-4">
-                      <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:text-xs">{stat.label}</div>
-                      <div className="mt-1 text-sm font-black text-white sm:text-lg">{stat.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-7 flex items-center justify-between">
-                  <div className="flex gap-2">
-                    {slides.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToSlide(index)}
-                        aria-label={`Afficher le panneau ${index + 1}`}
-                        className={`h-2.5 rounded-full transition-all ${index === activeSlide ? 'w-8 bg-blue-400' : 'w-2.5 bg-slate-600 hover:bg-slate-500'}`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => goToSlide(activeSlide - 1)}
-                      aria-label="Panneau précédent"
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-white/10"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => goToSlide(activeSlide + 1)}
-                      aria-label="Panneau suivant"
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-white/10"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0284C7]">
+                  {slide.label}
+                </span>
               </div>
+              <span className="text-[11px] font-mono text-slate-400">
+                {activeSlide + 1} / {slides.length}
+              </span>
             </div>
-          </div>
-        </section>
 
-        <section id="decouvrir" className="border-y border-white/10 bg-white/[0.025]">
-          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-            <div className="max-w-2xl">
-              <div className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Tout au même endroit</div>
-              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Ce que vous pouvez faire</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-slate-400">
-                Passez de l’observation immédiate à l’anticipation, sans changer d’outil.
+            <div className="space-y-2">
+              <h2 className="text-lg font-bold text-white leading-snug">
+                {slide.title}
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {slide.description}
               </p>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((feature) => (
-                <article
-                  key={feature.title}
-                  className="group rounded-3xl border border-white/10 bg-slate-900/55 p-5 transition hover:-translate-y-1 hover:border-blue-400/30 hover:bg-slate-900/80"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-300 ring-1 ring-blue-400/20 transition group-hover:bg-blue-500/20">
-                    {feature.icon}
-                  </div>
-                  <h3 className="mt-5 text-base font-black">{feature.title}</h3>
-                  <p className="mt-2 text-sm font-medium leading-6 text-slate-400">{feature.text}</p>
-                </article>
+            {/* Relevés clés sans rectangles arrondis excessifs */}
+            <div className="divide-y divide-slate-800 border-y border-slate-800 py-1">
+              {slide.stats.map((st) => (
+                <div key={st.label} className="flex items-center justify-between py-2 text-xs">
+                  <span className="text-slate-400">{st.label}</span>
+                  <span className="font-bold text-white font-mono">{st.value}</span>
+                </div>
               ))}
             </div>
+
+            {/* Contrôles carrousel */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex gap-1.5">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goToSlide(i)}
+                    aria-label={`Afficher panneau ${i + 1}`}
+                    className={`h-1.5 rounded-sm transition-all cursor-pointer ${
+                      i === activeSlide ? 'w-6 bg-[#0284C7]' : 'w-2 bg-slate-700'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToSlide(activeSlide - 1)}
+                  aria-label="Diapositive précédente"
+                  className="p-1.5 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => goToSlide(activeSlide + 1)}
+                  aria-label="Diapositive suivante"
+                  className="p-1.5 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-          <div className="grid overflow-hidden rounded-[2rem] border border-blue-400/20 bg-gradient-to-br from-blue-600/20 via-slate-900/80 to-cyan-500/10 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="p-7 sm:p-10 lg:p-12">
-              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-blue-300">
-                <Wind className="h-4 w-4" />
-                Prêt à commencer ?
-              </div>
-              <h2 className="mt-4 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">
-                Ouvrez l’application et consultez la météo de votre zone.
-              </h2>
-              <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-slate-300 sm:text-base">
-                La page météo actuelle reste exactement derrière ce bouton : vos cartes, prévisions, alertes et réglages sont accessibles immédiatement.
-              </p>
-            </div>
-            <div className="border-t border-white/10 p-7 lg:border-l lg:border-t-0 lg:p-12">
-              <button
-                onClick={onEnterApp}
-                className="group flex w-full items-center justify-center gap-3 whitespace-nowrap rounded-2xl bg-white px-6 py-4 text-sm font-black text-slate-950 shadow-xl transition hover:-translate-y-0.5 sm:text-base"
-              >
-                Entrer dans Instant Météo
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
+        {/* Section Rubriques & Modules : Grille stricte, bordures sobres, 0 fioritures */}
+        <section id="modules" className="py-10 space-y-6">
+          <div>
+            <span className="text-xs font-bold text-[#0284C7] uppercase tracking-wider">
+              Architecture des données
+            </span>
+            <h2 className="text-2xl font-bold text-white mt-1">
+              Modules météorologiques disponibles
+            </h2>
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((feat) => (
+              <div
+                key={feat.title}
+                className="rounded-lg border border-slate-800 bg-slate-900/70 p-4 space-y-2 hover:border-slate-700 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-slate-800 text-[#0284C7]">
+                    {feat.icon}
+                  </div>
+                  <h3 className="text-sm font-bold text-white">{feat.title}</h3>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {feat.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Bannière finale simple */}
+        <section className="mt-8 rounded-[10px] border border-slate-700 bg-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-white">
+              Prêt à consulter votre station ?
+            </h3>
+            <p className="text-xs text-slate-300">
+              Accédez aux observations de surface, aux cartes et à la vigilance départementale.
+            </p>
+          </div>
+          <button
+            onClick={onEnterApp}
+            className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369a1] px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 cursor-pointer"
+          >
+            <span>Consulter les relevés</span>
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-white/10 bg-slate-950/70 py-6">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-4">
-          <div className="flex flex-col gap-4 text-xs font-medium text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <div>Instant Météo — Radar, observations et prévisions météorologiques.</div>
-            <button onClick={onEnterApp} className="text-left font-black text-blue-300 transition hover:text-blue-200">
-              Accéder à l’application →
-            </button>
-          </div>
+      {/* Footer sobre et structuré */}
+      <footer className="border-t border-slate-800 bg-[#0F172A] py-6 px-4 sm:px-6 text-xs text-slate-500">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>Instant Météo — Données d'observation et de prévision synoptique.</div>
+          <button onClick={onEnterApp} className="text-[#0284C7] hover:underline font-semibold cursor-pointer">
+            Accéder à l'application →
+          </button>
         </div>
       </footer>
     </div>

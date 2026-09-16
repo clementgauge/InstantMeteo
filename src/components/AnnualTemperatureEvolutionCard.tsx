@@ -311,53 +311,53 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
   );
 
   return (
-    <div id="annual-temperature-evolution-card" className="space-y-6">
+    <div id="annual-temperature-evolution-card" className="space-y-4">
       {/* Main Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 p-6 shadow-2xl backdrop-blur sm:p-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg shadow-amber-500/10">
-              <TrendingUp className="h-7 w-7" />
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-800 text-amber-400 border border-slate-700">
+              <TrendingUp className="h-5 w-5" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                  Observatoire du Réchauffement Climatique • 1950 - 2100
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Observatoire Climatique • 1950 - 2100
                 </span>
-                <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300 font-medium">
-                  Modèles DRIAS / Météo-France / GIEC AR6
+                <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-medium border border-slate-700">
+                  DRIAS / Météo-France / GIEC AR6
                 </span>
               </div>
-              <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+              <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg sm:text-xl'}`}>
                 Évolution Historique & Projections par Ville
               </h2>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-2.5">
-              <span className="text-xs text-slate-400 block">Réchauffement mesuré (1950 → 2026) :</span>
-              <span className="text-lg font-black text-rose-400">+{selectedCityData.warmingTrendVs1950}°C</span>
+            <div className="rounded-md border border-slate-800 bg-slate-950 px-3 py-1.5">
+              <span className="text-[11px] text-slate-400 block">Réchauffement mesuré (1950 → 2026) :</span>
+              <span className="text-base font-bold text-rose-400">+{selectedCityData.warmingTrendVs1950}°C</span>
             </div>
           </div>
         </div>
 
         {/* City Filter & Search Bar */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <div className="mt-4 flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Rechercher une ville en France ou dans le monde (Paris, Lyon, Marseille, Chamonix, Nice, Genève, Madrid, Tokyo...)..."
+              placeholder="Rechercher une ville (Paris, Lyon, Marseille, Chamonix, Nice, Genève, Madrid, Tokyo...)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/90 pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:border-[#0284C7] focus:outline-none"
             />
           </div>
         </div>
 
         {/* City Quick Pills */}
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-2 pt-1">
+        <div className="mt-2.5 flex gap-1.5 overflow-x-auto pb-1 pt-1">
           {filteredCities.slice(0, 14).map((city) => {
             const isSelected = city.id === selectedCityId;
             return (
@@ -365,14 +365,14 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
                 key={city.id}
                 id={`city-pill-${city.id}`}
                 onClick={() => setSelectedCityId(city.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   isSelected
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black ring-1 ring-white/20'
-                    : 'border border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 hover:bg-slate-800'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800'
                 }`}
               >
                 <span>{city.name}</span>
-                <span className={`text-[10px] ${isSelected ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>
+                <span className={`text-[10px] ${isSelected ? 'text-sky-100' : 'text-slate-500'}`}>
                   ({city.altitude}m)
                 </span>
               </button>
@@ -382,63 +382,63 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
       </div>
 
       {/* Selected City Climate Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
-            <Thermometer className="h-4 w-4 text-amber-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold">
+            <Thermometer className="h-3.5 w-3.5 text-amber-400" />
             <span>Moyenne Annuelle</span>
           </div>
-          <div className="mt-2 text-2xl font-black text-white">
+          <div className="mt-1.5 text-xl font-bold text-white">
             {selectedCityData.annualTMean > 0 ? `+${selectedCityData.annualTMean}` : selectedCityData.annualTMean}°C
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Normale officielle 1991-2020</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Normale 1991-2020</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
-            <Droplets className="h-4 w-4 text-cyan-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold">
+            <Droplets className="h-3.5 w-3.5 text-cyan-400" />
             <span>Précipitations Annuelles</span>
           </div>
-          <div className="mt-2 text-2xl font-black text-cyan-300">
-            {selectedCityData.annualPrecipitation} <span className="text-sm font-normal text-slate-400">mm</span>
+          <div className="mt-1.5 text-xl font-bold text-cyan-300">
+            {selectedCityData.annualPrecipitation} <span className="text-xs font-normal text-slate-400">mm</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Cumul moyen annuel</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Cumul moyen annuel</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
-            <Sun className="h-4 w-4 text-amber-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold">
+            <Sun className="h-3.5 w-3.5 text-amber-400" />
             <span>Jours de Forte Chaleur</span>
           </div>
-          <div className="mt-2 text-2xl font-black text-amber-300">
-            {selectedCityData.heatDays} <span className="text-sm font-normal text-slate-400">j / an</span>
+          <div className="mt-1.5 text-xl font-bold text-amber-300">
+            {selectedCityData.heatDays} <span className="text-xs font-normal text-slate-400">j / an</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Jours avec Tmax {'>'} 25°C</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Tmax &gt; 25°C</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
-            <Snowflake className="h-4 w-4 text-blue-400" />
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold">
+            <Snowflake className="h-3.5 w-3.5 text-blue-400" />
             <span>Jours de Gelée</span>
           </div>
-          <div className="mt-2 text-2xl font-black text-blue-300">
-            {selectedCityData.frostDays} <span className="text-sm font-normal text-slate-400">j / an</span>
+          <div className="mt-1.5 text-xl font-bold text-blue-300">
+            {selectedCityData.frostDays} <span className="text-xs font-normal text-slate-400">j / an</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Jours avec Tmin ≤ 0°C</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Tmin ≤ 0°C</p>
         </div>
       </div>
 
       {/* Historical Annual Temperatures Chart 1950 - 2026 */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase text-amber-400">Relevés Historiques & Évolution</span>
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300 font-bold">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Relevés Historiques</span>
+              <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300 font-semibold border border-slate-700">
                 {selectedCityData.name}
               </span>
             </div>
-            <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+            <h3 className={`font-bold text-white ${seniorMode ? 'text-xl' : 'text-base sm:text-lg'}`}>
               Températures Moyennes Annuelles Observées (1950 - 2026)
             </h3>
           </div>
@@ -447,7 +447,7 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
           </div>
         </div>
 
-        <div className="h-80 w-full">
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={historySeries} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
               <defs>
@@ -501,57 +501,57 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
       </div>
 
       {/* GIEC AR6 Future Scenarios Projections 2020 - 2100 */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase text-indigo-400">Projections GIEC / DRIAS</span>
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300 font-bold">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Projections GIEC / DRIAS</span>
+              <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300 font-semibold border border-slate-700">
                 {selectedCityData.name}
               </span>
             </div>
-            <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+            <h3 className={`font-bold text-white ${seniorMode ? 'text-xl' : 'text-base sm:text-lg'}`}>
               Scénarios Climatiques jusqu'en 2100 (SSP1-2.6 / SSP2-4.5 / SSP5-8.5)
             </h3>
           </div>
 
           {/* Scenario Picker */}
-          <div className="flex gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+          <div className="flex gap-1.5 bg-slate-950 p-1 rounded-md border border-slate-800">
             <button
               onClick={() => setActiveScenario('SSP1_26')}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                activeScenario === 'SSP1_26' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                activeScenario === 'SSP1_26' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
-              Accord Paris (SSP1-2.6)
+              SSP1-2.6 (Accord Paris)
             </button>
             <button
               onClick={() => setActiveScenario('SSP2_45')}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                activeScenario === 'SSP2_45' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                activeScenario === 'SSP2_45' ? 'bg-[#0284C7] text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
-              Médian (SSP2-4.5)
+              SSP2-4.5 (Médian)
             </button>
             <button
               onClick={() => setActiveScenario('SSP5_85')}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                activeScenario === 'SSP5_85' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+                activeScenario === 'SSP5_85' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
-              Tendanciel Haut (SSP5-8.5)
+              SSP5-8.5 (Haut)
             </button>
           </div>
         </div>
 
-        <div className="h-80 w-full">
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={projectionsData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="year" stroke="#94a3b8" fontSize={11} />
               <YAxis stroke="#94a3b8" fontSize={11} domain={['auto', 'auto']} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff' }}
                 formatter={(val: any, name: string) => [
                   `${val}°C`, 
                   name === 'ssp126' ? 'SSP1-2.6 (Transition Forte)' :
@@ -562,42 +562,42 @@ export const AnnualTemperatureEvolutionCard: React.FC<AnnualTemperatureEvolution
               />
               <Legend />
               <Line type="monotone" name="baseline" dataKey="baseline" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth={2} dot={false} />
-              <Line type="monotone" name="ssp126" dataKey="ssp126" stroke="#10b981" strokeWidth={activeScenario === 'SSP1_26' ? 4 : 2} dot={{ r: 4 }} />
-              <Line type="monotone" name="ssp245" dataKey="ssp245" stroke="#3b82f6" strokeWidth={activeScenario === 'SSP2_45' ? 4 : 2} dot={{ r: 4 }} />
-              <Line type="monotone" name="ssp585" dataKey="ssp585" stroke="#ef4444" strokeWidth={activeScenario === 'SSP5_85' ? 4 : 2} dot={{ r: 4 }} />
+              <Line type="monotone" name="ssp126" dataKey="ssp126" stroke="#10b981" strokeWidth={activeScenario === 'SSP1_26' ? 3 : 1.5} dot={{ r: 3 }} />
+              <Line type="monotone" name="ssp245" dataKey="ssp245" stroke="#0284c7" strokeWidth={activeScenario === 'SSP2_45' ? 3 : 1.5} dot={{ r: 3 }} />
+              <Line type="monotone" name="ssp585" dataKey="ssp585" stroke="#ef4444" strokeWidth={activeScenario === 'SSP5_85' ? 3 : 1.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {/* Impacts comparison grid for horizon 2050 */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-800 pt-5 text-xs text-slate-300">
-          <div className="rounded-2xl bg-emerald-950/30 border border-emerald-800/40 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-emerald-400 uppercase text-[11px]">Scénario Vert (SSP1-2.6)</span>
-              <span className="text-xs font-black text-emerald-300">+0.9°C à 2050</span>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 border-t border-slate-800 pt-4 text-xs text-slate-300">
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1.5">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+              <span className="font-semibold text-emerald-400 uppercase text-[10px]">Scénario Vert (SSP1-2.6)</span>
+              <span className="text-xs font-bold text-emerald-300">+0.9°C à 2050</span>
             </div>
-            <p className="text-slate-300 leading-relaxed">
+            <p className="text-slate-400 leading-relaxed text-[11px]">
               Stabilisation des températures après 2050. Augmentation limitée des canicules (+10 jours/an à {selectedCityData.name}).
             </p>
           </div>
 
-          <div className="rounded-2xl bg-blue-950/30 border border-blue-800/40 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-blue-400 uppercase text-[11px]">Scénario Médian (SSP2-4.5)</span>
-              <span className="text-xs font-black text-blue-300">+1.9°C à 2050</span>
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1.5">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+              <span className="font-semibold text-sky-400 uppercase text-[10px]">Scénario Médian (SSP2-4.5)</span>
+              <span className="text-xs font-bold text-sky-300">+1.9°C à 2050</span>
             </div>
-            <p className="text-slate-300 leading-relaxed">
+            <p className="text-slate-400 leading-relaxed text-[11px]">
               Poursuite modérée du réchauffement. Doublement des vagues de chaleur estivales et réduction de 45% du manteau neigeux moyen.
             </p>
           </div>
 
-          <div className="rounded-2xl bg-rose-950/30 border border-rose-800/40 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-rose-400 uppercase text-[11px]">Scénario Haut (SSP5-8.5)</span>
-              <span className="text-xs font-black text-rose-300">+2.9°C à 2050 (+6.8°C à 2100)</span>
+          <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1.5">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+              <span className="font-semibold text-rose-400 uppercase text-[10px]">Scénario Haut (SSP5-8.5)</span>
+              <span className="text-xs font-bold text-rose-300">+2.9°C à 2050 (+6.8°C à 2100)</span>
             </div>
-            <p className="text-slate-300 leading-relaxed">
-              Extrêmes caniculaires récurrents ({'>'}45°C en plaine), quasi-disparition des gelées d'hiver et stress hydrique sévère des sols.
+            <p className="text-slate-400 leading-relaxed text-[11px]">
+              Extrêmes caniculaires récurrents (&gt;45°C en plaine), quasi-disparition des gelées d'hiver et stress hydrique sévère des sols.
             </p>
           </div>
         </div>

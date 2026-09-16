@@ -188,41 +188,41 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 1. Header Hero Banner: Altitude Observatory */}
-      <div className="rounded-3xl border border-indigo-500/40 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/50 p-6 shadow-2xl backdrop-blur-md">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/40 bg-indigo-950/60 text-indigo-300 shadow-inner">
-              <Mountain className="h-7 w-7" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-[#0284C7]">
+              <Mountain className="h-5 w-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
                   Profil Thermique & Observatoire d'Altitude
                 </h2>
-                <span className="rounded-xl border border-indigo-500/40 bg-indigo-900/40 px-3 py-0.5 text-xs font-black text-indigo-300">
+                <span className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
                   0 à 4 000 m
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1">
-                Visualisez la déclinaison exacte de la température, du vent, du ressenti et de la pression à chaque palier altimétrique pour <strong>{station.name}</strong> (Altitude station : {stationAlt} m).
+              <p className="text-xs text-slate-300 mt-1">
+                Déclinaison de la température, du vent, du ressenti et de la pression par palier pour <strong>{station.name}</strong> (Altitude station : {stationAlt} m).
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/40 px-4 py-2 text-left">
-              <span className="text-[11px] font-bold uppercase text-cyan-300">Isotherme 0°C</span>
-              <div className="text-xl font-black text-white">
-                {altMetrics.isotherm0Altitude.toLocaleString('fr-FR')} <span className="text-xs font-normal text-slate-300">m</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-left">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Isotherme 0°C</span>
+              <div className="text-base font-bold text-white">
+                {altMetrics.isotherm0Altitude.toLocaleString('fr-FR')} <span className="text-xs font-normal text-slate-400">m</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-blue-500/30 bg-blue-950/40 px-4 py-2 text-left">
-              <span className="text-[11px] font-bold uppercase text-blue-300">Limite Pluie/Neige</span>
-              <div className="text-xl font-black text-white">
-                {altMetrics.snowRainLimitAltitude.toLocaleString('fr-FR')} <span className="text-xs font-normal text-slate-300">m</span>
+            <div className="rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-left">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Limite Pluie/Neige</span>
+              <div className="text-base font-bold text-white">
+                {altMetrics.snowRainLimitAltitude.toLocaleString('fr-FR')} <span className="text-xs font-normal text-slate-400">m</span>
               </div>
             </div>
           </div>
@@ -230,18 +230,18 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
       </div>
 
       {/* 2. Interactive Custom Altitude Explorer (Slider from 0 to 4000m) */}
-      <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-xl space-y-5">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-              <Sliders className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-[#0284C7] border border-slate-700">
+              <Sliders className="h-4 w-4" />
             </div>
             <div>
-              <h3 className={`font-black text-white ${seniorMode ? 'text-xl' : 'text-lg'}`}>
-                Simulateur Altimétrique Interactif au Mètre Près
+              <h3 className={`font-bold text-white ${seniorMode ? 'text-lg' : 'text-base'}`}>
+                Simulateur Altimétrique
               </h3>
               <p className="text-xs text-slate-400">
-                Glissez le curseur pour simuler instantanément les conditions à l'altitude de votre choix (sommet, col, station, randonnée).
+                Ajustez l'altitude pour observer les conditions physiques correspondantes.
               </p>
             </div>
           </div>
@@ -249,13 +249,13 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCustomAltitude(stationAlt)}
-              className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-700 hover:text-white transition"
+              className="rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition cursor-pointer"
             >
-              Altitude Station ({stationAlt} m)
+              Station ({stationAlt} m)
             </button>
             <button
               onClick={() => setCustomAltitude(altMetrics.isotherm0Altitude)}
-              className="rounded-xl border border-cyan-800 bg-cyan-950/60 px-3 py-1.5 text-xs font-bold text-cyan-300 hover:bg-cyan-900 transition"
+              className="rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-sky-400 hover:bg-slate-700 transition cursor-pointer"
             >
               Isotherme 0°C ({altMetrics.isotherm0Altitude} m)
             </button>
@@ -263,13 +263,13 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
         </div>
 
         {/* Altitude Range Slider */}
-        <div className="space-y-2 pt-2">
-          <div className="flex justify-between items-center text-xs font-bold text-slate-300">
-            <span>0 m (Plaine)</span>
-            <span className="text-base sm:text-lg font-black text-cyan-400 bg-cyan-950/80 px-4 py-1 rounded-xl border border-cyan-800 shadow-inner">
-              Altitude simulée : {customAltitude.toLocaleString('fr-FR')} mètres
+        <div className="space-y-2 pt-1">
+          <div className="flex justify-between items-center text-xs font-medium text-slate-300">
+            <span>0 m</span>
+            <span className="text-sm font-bold text-sky-400 bg-slate-900 px-3 py-1 rounded-md border border-slate-800">
+              Altitude simulée : {customAltitude.toLocaleString('fr-FR')} m
             </span>
-            <span>4 000 m (Haute Cime)</span>
+            <span>4 000 m</span>
           </div>
 
           <input
@@ -279,7 +279,7 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
             step="25"
             value={customAltitude}
             onChange={(e) => setCustomAltitude(Number(e.target.value))}
-            className="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+            className="w-full h-2 bg-slate-800 rounded appearance-none cursor-pointer accent-[#0284C7]"
           />
 
           {/* Quick preset altitude badges */}
@@ -288,10 +288,10 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
               <button
                 key={presetAlt}
                 onClick={() => setCustomAltitude(presetAlt)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                className={`rounded px-2 py-0.5 text-[11px] font-medium transition cursor-pointer ${
                   customAltitude === presetAlt
-                    ? 'bg-cyan-500 text-slate-950 shadow'
-                    : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
                 }`}
               >
                 {presetAlt} m
@@ -301,65 +301,65 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
         </div>
 
         {/* Computed Live Simulation Output Cards */}
-        <div className={`rounded-2xl border border-slate-800 bg-gradient-to-r ${customMetrics.tempBgClass} p-5 shadow-inner`}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
             {/* Température */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3">
-              <span className="text-[11px] font-bold uppercase text-slate-400">Température</span>
-              <div className={`text-2xl sm:text-3xl font-black mt-1 ${customMetrics.tempColorClass}`}>
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Température</span>
+              <div className={`text-xl font-bold mt-0.5 ${customMetrics.tempColorClass}`}>
                 {formatTemp(customMetrics.temperature)}
               </div>
               <span className="text-[10px] text-slate-400">Sous abri</span>
             </div>
 
             {/* Ressenti Windchill */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3">
-              <span className="text-[11px] font-bold uppercase text-slate-400">Ressenti (Windchill)</span>
-              <div className="text-2xl sm:text-3xl font-black text-cyan-200 mt-1">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Ressenti éolien</span>
+              <div className="text-xl font-bold text-sky-200 mt-0.5">
                 {formatTemp(customMetrics.feelsLike)}
               </div>
-              <span className="text-[10px] text-slate-400">Effet éolien</span>
+              <span className="text-[10px] text-slate-400">Windchill</span>
             </div>
 
             {/* Vent Estimé */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3">
-              <span className="text-[11px] font-bold uppercase text-slate-400">Vent Estimé</span>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Vent estimé</span>
+              <div className="text-xl font-bold text-white mt-0.5">
                 {customMetrics.windSpeed} <span className="text-xs font-normal text-slate-400">km/h</span>
               </div>
               <span className="text-[10px] text-slate-400">+18%/1000m</span>
             </div>
 
             {/* Pression QFE */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3">
-              <span className="text-[11px] font-bold uppercase text-slate-400">Pression QFE</span>
-              <div className="text-2xl sm:text-3xl font-black text-indigo-300 mt-1">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Pression QFE</span>
+              <div className="text-xl font-bold text-slate-200 mt-0.5">
                 {customMetrics.pressureQfe} <span className="text-xs font-normal text-slate-400">hPa</span>
               </div>
-              <span className="text-[10px] text-slate-400">Densité : {customMetrics.airDensity} kg/m³</span>
+              <span className="text-[10px] text-slate-400">{customMetrics.airDensity} kg/m³</span>
             </div>
 
             {/* Indice UV */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3">
-              <span className="text-[11px] font-bold uppercase text-slate-400">Indice UV</span>
-              <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Indice UV</span>
+              <div className="text-xl font-bold text-amber-400 mt-0.5">
                 UV {customMetrics.uvIndex}
               </div>
               <span className="text-[10px] text-slate-400">+12%/1000m</span>
             </div>
 
             {/* Précipitations */}
-            <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 p-3 flex flex-col justify-center">
-              <span className="text-[11px] font-bold uppercase text-slate-400">État Précipitations</span>
+            <div className="rounded-md border border-slate-800 bg-[#0F172A] p-2.5 flex flex-col justify-center">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">Phase précipitations</span>
               <div className="mt-1">
-                <span className={`inline-block rounded-lg px-2 py-1 text-xs font-black border ${customMetrics.precipBadge}`}>
+                <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold border ${customMetrics.precipBadge}`}>
                   {customMetrics.precipState}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 mt-1">
+              <span className="text-[10px] text-slate-400 mt-0.5">
                 {customAltitude >= altMetrics.isotherm0Altitude
                   ? `+${customAltitude - altMetrics.isotherm0Altitude} m au-dessus du 0°C`
-                  : `${altMetrics.isotherm0Altitude - customAltitude} m sous l'isotherme 0°C`}
+                  : `${altMetrics.isotherm0Altitude - customAltitude} m sous le 0°C`}
               </span>
             </div>
           </div>
@@ -367,24 +367,24 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
       </div>
 
       {/* 3. Comprehensive Altitude Multi-Tier Table (0m to 4000m) */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
-              <Layers className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-[#0284C7] border border-slate-700">
+              <Layers className="h-4 w-4" />
             </div>
             <div>
-              <h3 className={`font-black text-white ${seniorMode ? 'text-xl' : 'text-lg'}`}>
-                Tableau Exhaustif des Températures par Paliers d'Altitude (0 - 4 000 m)
+              <h3 className={`font-bold text-white ${seniorMode ? 'text-lg' : 'text-base'}`}>
+                Paliers d'Altitude (0 - 4 000 m)
               </h3>
               <p className="text-xs text-slate-400">
-                Paliers réguliers de 250m à 500m avec étagement bioclimatique et écarts à l'isotherme zéro degré.
+                Paliers réguliers avec étagement bioclimatique et écarts à l'isotherme zéro degré.
               </p>
             </div>
           </div>
 
-          <div className="text-xs text-slate-400 font-bold bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
-            Gradient moyen : <strong className="text-cyan-300">-0,65°C / 100m</strong>
+          <div className="text-xs text-slate-400 font-medium bg-slate-900 px-3 py-1 rounded-md border border-slate-800">
+            Gradient thermique moyen : <strong className="text-sky-300">-0,65°C / 100m</strong>
           </div>
         </div>
 
@@ -392,16 +392,16 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400">
-                <th className="py-3 px-3 font-bold">Étage & Altitude</th>
-                <th className="py-3 px-3 font-bold">Température Réelle</th>
-                <th className="py-3 px-3 font-bold">Ressenti Éolien</th>
-                <th className="py-3 px-3 font-bold">Vent Estimé</th>
-                <th className="py-3 px-3 font-bold">Pression Barométrique</th>
-                <th className="py-3 px-3 font-bold">Phase Précipitations</th>
-                <th className="py-3 px-3 font-bold">Position / 0°C</th>
+                <th className="py-2.5 px-3 font-semibold">Étage &amp; Altitude</th>
+                <th className="py-2.5 px-3 font-semibold">Température</th>
+                <th className="py-2.5 px-3 font-semibold">Ressenti</th>
+                <th className="py-2.5 px-3 font-semibold">Vent estimé</th>
+                <th className="py-2.5 px-3 font-semibold">Pression</th>
+                <th className="py-2.5 px-3 font-semibold">Précipitations</th>
+                <th className="py-2.5 px-3 font-semibold">Position / 0°C</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-800">
               {fullAltitudeSlices.map((tier) => {
                 const isCurrentStationTier = Math.abs(tier.alt - stationAlt) < 150;
                 const m = tier.metrics;
@@ -410,18 +410,18 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
                     key={tier.alt} 
                     className={`transition ${
                       isCurrentStationTier 
-                        ? 'bg-blue-950/50 font-bold text-white ring-1 ring-blue-500/40' 
-                        : 'hover:bg-slate-800/50 text-slate-200'
+                        ? 'bg-slate-800/80 font-semibold text-white' 
+                        : 'hover:bg-slate-900/60 text-slate-300'
                     }`}
                   >
-                    <td className="py-3 px-3">
+                    <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{tier.icon}</span>
+                        <span className="text-sm">{tier.icon}</span>
                         <div>
-                          <div className="font-black text-white flex items-center gap-1.5">
+                          <div className="font-semibold text-white flex items-center gap-1.5">
                             <span>{tier.alt} m</span>
                             {isCurrentStationTier && (
-                              <span className="rounded bg-blue-600 px-1.5 py-0.2 text-[10px] text-white">
+                              <span className="rounded bg-[#0284C7] px-1.5 py-0.2 text-[10px] text-white">
                                 Votre Station
                               </span>
                             )}
@@ -431,38 +431,38 @@ export const AltitudeView: React.FC<AltitudeViewProps> = ({
                       </div>
                     </td>
 
-                    <td className="py-3 px-3">
-                      <span className={`text-base font-black ${m.tempColorClass}`}>
+                    <td className="py-2.5 px-3">
+                      <span className={`text-sm font-bold ${m.tempColorClass}`}>
                         {formatTemp(m.temperature)}
                       </span>
                     </td>
 
-                    <td className="py-3 px-3 text-slate-300 font-bold">
+                    <td className="py-2.5 px-3 text-slate-300 font-medium">
                       {formatTemp(m.feelsLike)}
                     </td>
 
-                    <td className="py-3 px-3 text-slate-400">
+                    <td className="py-2.5 px-3 text-slate-400">
                       {m.windSpeed} km/h
                     </td>
 
-                    <td className="py-3 px-3 text-slate-400 font-mono">
+                    <td className="py-2.5 px-3 text-slate-400 font-mono">
                       {m.pressureQfe} hPa
                     </td>
 
-                    <td className="py-3 px-3">
-                      <span className={`inline-block rounded-lg px-2 py-0.5 text-xs font-bold border ${m.precipBadge}`}>
+                    <td className="py-2.5 px-3">
+                      <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${m.precipBadge}`}>
                         {m.precipState}
                       </span>
                     </td>
 
-                    <td className="py-3 px-3">
+                    <td className="py-2.5 px-3">
                       {tier.alt >= altMetrics.isotherm0Altitude ? (
-                        <span className="text-xs font-bold text-blue-300">
-                          +{tier.alt - altMetrics.isotherm0Altitude} m (Gel continu)
+                        <span className="text-xs font-semibold text-sky-400">
+                          +{tier.alt - altMetrics.isotherm0Altitude} m (Gel)
                         </span>
                       ) : (
-                        <span className="text-xs font-bold text-emerald-400">
-                          {altMetrics.isotherm0Altitude - tier.alt} m sous l'isotherme (Hors gel)
+                        <span className="text-xs font-semibold text-emerald-400">
+                          {altMetrics.isotherm0Altitude - tier.alt} m sous le 0°C
                         </span>
                       )}
                     </td>

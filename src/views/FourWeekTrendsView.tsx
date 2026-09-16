@@ -48,90 +48,90 @@ export const FourWeekTrendsView: React.FC<FourWeekTrendsViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'14DAYS' | 'BULLETIN4W' | '30DAYS' | '8MONTHS' | 'SNOW' | 'FROST'>(initialSubTab);
 
   return (
-    <div id="extended-trends-and-bulletins-view" className="space-y-6">
+    <div id="extended-trends-and-bulletins-view" className="space-y-4">
       {/* Horizon Switcher Navigation Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-900/90 p-2 border border-slate-800 shadow-xl backdrop-blur">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-lg bg-[#0F172A] p-2.5 border border-slate-800">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setActiveSubTab('14DAYS')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === '14DAYS'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <Split className="h-4 w-4" />
+            <Split className="h-3.5 w-3.5" />
             <span>Tendances 14 Jours (Divergences & N-1)</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('BULLETIN4W')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === 'BULLETIN4W'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <Globe className="h-4 w-4" />
-            <span>Giga Bulletin National 4 Semaines (France)</span>
+            <Globe className="h-3.5 w-3.5" />
+            <span>Bulletin National 4 Semaines (France)</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('30DAYS')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === '30DAYS'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <Calendar className="h-4 w-4" />
-            <span>Prévisions 30 Jours (1x/h)</span>
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Prévisions 30 Jours</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('8MONTHS')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === '8MONTHS'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <Globe className="h-4 w-4" />
-            <span>Tendances 8 Mois (Département / Région / Pays)</span>
+            <Globe className="h-3.5 w-3.5" />
+            <span>Tendances 8 Mois</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('SNOW')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === 'SNOW'
-                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
-                : 'text-slate-400 hover:text-cyan-300'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <Mountain className="h-4 w-4" />
+            <Mountain className="h-3.5 w-3.5" />
             <span>Enneigement & Nivologie</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('FROST')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition ${
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition cursor-pointer border ${
               activeSubTab === 'FROST'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
-                : 'text-slate-400 hover:text-rose-300'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-850 hover:text-white'
             }`}
           >
-            <ThermometerSnowflake className="h-4 w-4" />
-            <span>Analyseur des Gelées</span>
+            <ThermometerSnowflake className="h-3.5 w-3.5" />
+            <span>Gelées & Vagues de Froid</span>
           </button>
         </div>
 
-        <span className="text-xs text-slate-400 font-medium px-2">
-          {activeSubTab === '14DAYS' && '🎯 Scénarios ensemblistes, divergences jour par jour & comparatif 2025'}
-          {activeSubTab === 'BULLETIN4W' && '🇫🇷 S1 à S4 : Scénarios probabilistes, 6 régions et bilans hydriques'}
-          {activeSubTab === '30DAYS' && '⏱️ Reactualisé toutes les heures • J+1 à J+30'}
-          {activeSubTab === '8MONTHS' && '🌍 24 Décades spatialisées par Département (101), Région (13) et France'}
-          {activeSubTab === 'SNOW' && '🏔️ Couches d\'altitude & Historique 1950-2026'}
-          {activeSubTab === 'FROST' && '❄️ 5 Paliers d\'intensité & Grandes vagues de froid'}
+        <span className="text-xs text-slate-400 font-medium px-1">
+          {activeSubTab === '14DAYS' && 'Scénarios ensemblistes, divergences jour par jour & comparatif N-1'}
+          {activeSubTab === 'BULLETIN4W' && 'S1 à S4 : Scénarios probabilistes, 6 régions et bilans hydriques'}
+          {activeSubTab === '30DAYS' && 'Mise à jour horaire • Horizon J+1 à J+30'}
+          {activeSubTab === '8MONTHS' && '24 Décades spatialisées par Département, Région et France'}
+          {activeSubTab === 'SNOW' && 'Massifs alpins, pyrénéens, centraux et vosgiens'}
+          {activeSubTab === 'FROST' && 'Paliers de gel et climatologie des hivers'}
         </span>
       </div>
 

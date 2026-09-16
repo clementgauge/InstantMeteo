@@ -465,34 +465,34 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       {/* 1. Header & Navigation des 6 Cartes Thématiques */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div className="flex items-center gap-3">
             {onClose && (
               <button
                 onClick={onClose}
                 title="Retour au radar principal"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition active:scale-95 cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
               </button>
             )}
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-950 text-blue-300 border border-blue-800">
                   OpenStreetMap & Copernicus
                 </span>
                 <span className="text-xs text-slate-400">Temps Réel & Prévisions</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2 mt-1">
-                <ActiveIcon className="h-5 w-5 text-blue-400" />
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2 mt-0.5">
+                <ActiveIcon className="h-4 w-4 text-blue-400" />
                 <span>{cfg.title}</span>
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
-            <Info className="h-4 w-4 text-blue-400 shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">
+            <Info className="h-3.5 w-3.5 text-blue-400 shrink-0" />
             <span className="truncate max-w-[280px] sm:max-w-none">Source : {cfg.source}</span>
           </div>
         </div>
@@ -508,14 +508,14 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
               <button
                 key={key}
                 onClick={() => setActiveType(key)}
-                className={`flex flex-col items-center justify-center text-center p-2.5 sm:p-3 rounded-2xl border transition cursor-pointer active:scale-95 ${
+                className={`flex flex-col items-center justify-center text-center p-2 sm:p-2.5 rounded-md border transition cursor-pointer ${
                   isCurrent
-                    ? 'bg-blue-600 text-white border-blue-400 shadow-lg shadow-blue-600/30 ring-2 ring-blue-400/40'
-                    : 'bg-slate-950/60 hover:bg-slate-800/80 text-slate-300 hover:text-white border-slate-800'
+                    ? 'bg-blue-950 text-white border-blue-600'
+                    : 'bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800'
                 }`}
               >
-                <IconComponent className={`h-4 w-4 mb-1.5 ${isCurrent ? 'text-white' : 'text-blue-400'}`} />
-                <span className="text-[11px] font-bold leading-tight line-clamp-2">
+                <IconComponent className={`h-4 w-4 mb-1 ${isCurrent ? 'text-blue-300' : 'text-blue-400'}`} />
+                <span className="text-[11px] font-semibold leading-tight line-clamp-2">
                   {item.title.split('(')[0].replace('&', '')}
                 </span>
               </button>
@@ -527,19 +527,19 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
       {/* 2. Vue Carte OpenStreetMap Interactive & Inspector Régional */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Carte OpenStreetMap */}
-        <div className="lg:col-span-2 rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl relative min-h-[460px] sm:min-h-[520px]">
+        <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-slate-950 overflow-hidden relative min-h-[460px] sm:min-h-[520px]">
           <div ref={mapContainerRef} className="w-full h-full min-h-[460px] sm:min-h-[520px] z-0" />
 
           {/* Badge d'échelle / légende superposée */}
-          <div className="absolute top-3 right-3 z-[400] max-w-[220px] bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-slate-800 shadow-xl text-xs">
-            <div className="font-bold text-white mb-2 flex items-center gap-1.5">
+          <div className="absolute top-3 right-3 z-[400] max-w-[220px] bg-slate-900/95 p-2.5 rounded-md border border-slate-800 shadow-md text-xs">
+            <div className="font-bold text-white mb-1.5 flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-blue-400" />
               <span>Légende {cfg.title.split(' ')[0]}</span>
             </div>
             <div className="space-y-1">
               {cfg.scale.map((s, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-[10px] text-slate-300">
-                  <span className="w-3 h-3 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: s.color }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
                   <span className="truncate">{s.label}</span>
                 </div>
               ))}
@@ -547,75 +547,75 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
           </div>
 
           {loading && (
-            <div className="absolute inset-0 z-[500] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xs font-bold shadow-xl">
+            <div className="absolute inset-0 z-[500] bg-slate-950/70 flex items-center justify-center">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-white text-xs font-semibold">
                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
-                <span>Chargement des données réelles...</span>
+                <span>Chargement des données...</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Détails du point sélectionné & Recommandations de protection */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: selectedStation?.color || '#3b82f6' }} />
-                <h3 className="font-black text-white text-base">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: selectedStation?.color || '#3b82f6' }} />
+                <h3 className="font-bold text-white text-sm">
                   {selectedStation?.name || 'Sélectionnez une station'}
                 </h3>
               </div>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                 {selectedStation?.region}
               </span>
             </div>
 
             {selectedStation ? (
-              <div className="mt-4 space-y-4">
-                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between">
+              <div className="mt-3 space-y-3">
+                <div className="p-3 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Statut Global</span>
-                    <div className="text-lg font-black" style={{ color: selectedStation.color }}>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Statut</span>
+                    <div className="text-base font-bold" style={{ color: selectedStation.color }}>
                       {selectedStation.label}
                     </div>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] uppercase font-bold text-slate-400">Valeur</span>
-                    <div className="text-xl font-black text-white">
+                    <div className="text-lg font-bold text-white">
                       {selectedStation.val}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                    Détails des mesures certifiées
+                <div className="space-y-1.5">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Détails des mesures
                   </div>
-                  <div className="divide-y divide-slate-800/60 rounded-2xl bg-slate-950/40 border border-slate-800 p-3 text-xs">
+                  <div className="divide-y divide-slate-800 rounded-md bg-slate-950 border border-slate-800 p-2.5 text-xs">
                     {Object.entries(selectedStation.details || {}).map(([key, val]) => (
-                      <div key={key} className="py-2 flex items-center justify-between first:pt-0 last:pb-0">
+                      <div key={key} className="py-1.5 flex items-center justify-between first:pt-0 last:pb-0">
                         <span className="text-slate-400">{key}</span>
-                        <span className="font-bold text-white">{val}</span>
+                        <span className="font-semibold text-white">{val}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-slate-400">
-                Cliquez sur une pastille de la carte pour inspecter les données en temps réel.
+              <div className="py-10 text-center text-xs text-slate-400">
+                Cliquez sur un point de la carte pour inspecter les données en temps réel.
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800">
-            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-200">
+          <div className="mt-4 pt-3 border-t border-slate-800">
+            <div className="p-2.5 rounded-md bg-slate-950 border border-slate-800 text-xs">
               <div className="font-bold text-blue-300 flex items-center gap-1.5 mb-1">
                 <Sparkles className="h-3.5 w-3.5 text-blue-400" />
-                <span>Conseil &amp; Recommandation</span>
+                <span>Conseil & Recommandation</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-slate-300">
+              <p className="text-[11px] leading-relaxed text-slate-400">
                 {activeType === 'airQuality' && 'En cas d\'indice ATMO dégradé ou mauvais, limitez les activités physiques intenses en plein air.'}
                 {activeType === 'uvIndex' && 'L\'indice UV maximal est mesuré entre 12h et 16h solaire. Appliquez une crème solaire adaptée et portez chapeau et lunettes.'}
                 {activeType === 'fireRisk' && 'Ne jetez aucun mégot, ne réalisez aucun feu de camp ou barbecue aux abords des massifs forestiers.'}

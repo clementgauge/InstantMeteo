@@ -263,21 +263,21 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher une information, pays, séisme, feu..."
-              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xl"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
             />
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-          <div className="relative z-10">
+        <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-5 sm:p-6 relative overflow-hidden">
+          <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex flex-wrap items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider">
-                <Globe2 className="h-4 w-4 text-cyan-400 animate-spin" style={{ animationDuration: '16s' }} />
+              <div className="flex flex-wrap items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+                <Globe2 className="h-4 w-4 text-cyan-400" />
                 <span>Observatoire Mondial Certifié &amp; Télédétection Directe</span>
                 <span>•</span>
-                <span className="text-emerald-400 flex items-center gap-1 font-black">
+                <span className="text-emerald-400 flex items-center gap-1 font-bold">
                   <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  Données 100% Authentiques (NASA • USGS • Open-Meteo • OMM)
+                  Données certifiées (NASA • USGS • Open-Meteo • OMM)
                 </span>
               </div>
 
@@ -285,15 +285,15 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                 {/* Focus Highlights Button */}
                 <button
                   onClick={() => setFocusHighlights(prev => !prev)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-black transition shadow cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-bold transition cursor-pointer ${
                     focusHighlights
                       ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 hover:bg-amber-500/30'
                       : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
                   }`}
-                  title="Garder uniquement les informations les plus entendues et les plus intéressantes"
+                  title="Garder uniquement les informations les plus suivies"
                 >
-                  <Sparkles className={`h-3.5 w-3.5 ${focusHighlights ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
-                  <span>{focusHighlights ? '⭐ Les + entendues & intéressantes' : 'Afficher Tout le Catalogue'}</span>
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  <span>{focusHighlights ? 'Informations principales' : 'Tout afficher'}</span>
                 </button>
 
                 {/* Live Refresh Button */}
@@ -303,86 +303,78 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                     loadCitiesWeather();
                   }}
                   disabled={isLoadingLive || isLoadingCities}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-bold transition cursor-pointer disabled:opacity-50"
                   title="Actualiser les données satellites NASA, sismomètres USGS et stations météo mondiales"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${(isLoadingLive || isLoadingCities) ? 'animate-spin text-cyan-400' : ''}`} />
-                  <span>{(isLoadingLive || isLoadingCities) ? 'Synchronisation...' : 'Actualiser'}</span>
+                  <span>{(isLoadingLive || isLoadingCities) ? 'Actualisation...' : 'Actualiser'}</span>
                 </button>
               </div>
             </div>
 
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-              Météo du Monde, Phénomènes en Temps Réel &amp; Catastrophes Naturelles
+            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-xl sm:text-2xl'}`}>
+              Météo mondiale, direct satellitaire et catastrophes
             </h2>
             
-            <p className="text-sm text-slate-300 mt-2 max-w-4xl leading-relaxed">
-              Chaque événement répertorié provient directement des <strong>flux de télédétection et réseaux de capteurs certifiés</strong> :
-              <br />
-              1. <strong>Télédétection satellitaire en direct</strong> : NASA EONET (feux VIIRS 375 m / MODIS, tempêtes, éruptions volcaniques).
-              <br />
-              2. <strong>Réseau sismologique &amp; tsunami mondial</strong> : USGS Earthquake Hazards Program &amp; Centre d'alerte tsunami NOAA.
-              <br />
-              3. <strong>Observations synoptiques des métropoles</strong> : Relevés en temps réel Open-Meteo pour plus de 40 villes mondiales.
-              <br />
-              4. <strong>Archives historiques homologuées</strong> : Records absolus certifiés par l'Organisation Météorologique Mondiale (OMM / WMO).
+            <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-4xl leading-relaxed">
+              Données directes : télédétection satellitaire NASA EONET (feux VIIRS, tempêtes), réseau sismologique mondial USGS, relevés météo Open-Meteo de 40+ villes et archives homologuées par l'Organisation Météorologique Mondiale (OMM).
             </p>
 
             {/* Primary View Switcher (4 Navigation Tabs) */}
-            <div className="mt-6 flex flex-wrap items-center gap-2.5 p-1.5 rounded-2xl bg-slate-950/90 border border-slate-800 w-full sm:w-fit">
+            <div className="mt-5 flex flex-wrap items-center gap-2 p-1 rounded-lg bg-slate-950 border border-slate-800 w-full sm:w-fit">
               <button
                 onClick={() => setActiveMode('live_disasters')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
                   activeMode === 'live_disasters'
-                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                <Radio className="h-4 w-4 text-cyan-300 animate-pulse" />
-                <span>🛰️ Direct Satellites &amp; Séismes</span>
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-300 text-xs font-bold border border-cyan-500/30">
+                <Radio className="h-4 w-4 text-cyan-300" />
+                <span>Direct Satellites &amp; Séismes</span>
+                <span className="ml-1 px-1.5 py-0.2 rounded bg-slate-900 text-cyan-300 text-xs font-bold border border-cyan-500/30">
                   {realLiveTotal}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveMode('global_cities')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
                   activeMode === 'global_cities'
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 ring-1 ring-white/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Building2 className="h-4 w-4 text-indigo-300" />
-                <span>🌍 40+ Métropoles en Direct</span>
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-indigo-300 text-xs font-bold border border-indigo-500/30">
+                <span>40+ Métropoles en Direct</span>
+                <span className="ml-1 px-1.5 py-0.2 rounded bg-slate-900 text-indigo-300 text-xs font-bold border border-indigo-500/30">
                   {globalCities.length || 40}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveMode('world_search')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
                   activeMode === 'world_search'
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 ring-1 ring-white/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Search className="h-4 w-4 text-emerald-300" />
-                <span>🔍 Recherche Ville Mondiale</span>
+                <span>Recherche Monde</span>
               </button>
 
               <button
                 onClick={() => setActiveMode('historical_records')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
                   activeMode === 'historical_records'
-                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/40 ring-1 ring-white/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                    ? 'bg-[#0284C7] text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <BookOpen className="h-4 w-4 text-amber-300" />
-                <span>🏛️ Records Homologués OMM</span>
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900 text-amber-300 text-xs font-bold border border-amber-500/30">
+                <span>Records OMM</span>
+                <span className="ml-1 px-1.5 py-0.2 rounded bg-slate-900 text-amber-300 text-xs font-bold border border-amber-500/30">
                   {CERTIFIED_HISTORICAL_DISASTERS.length}
                 </span>
               </button>
@@ -390,34 +382,34 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
             {/* Sub-Filters for Tab 1 (Live Disasters) */}
             {activeMode === 'live_disasters' && (
-              <div className="mt-5 space-y-4">
+              <div className="mt-4 space-y-3">
                 <div className="max-w-md relative">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filtrer par mot-clé (Feu, Séisme, NASA, Japon, Océan...)"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                    placeholder="Filtrer (feu, séisme, cyclone, pays...)"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {[
-                    { id: 'all', label: `Tous les événements (${disasters.length})` },
-                    { id: 'recent_24h', label: `⚡ Direct & < 24h (${realLiveTotal})` },
-                    { id: 'fire', label: `🔥 Feux NASA VIIRS (${fireEventsCount})` },
-                    { id: 'tsunami', label: `🌊 Séismes & Tsunamis USGS (${quakeEventsCount})` },
-                    { id: 'cyclone', label: `🌀 Cyclones & Tempêtes (${stormEventsCount})` },
-                    { id: 'cold_snow', label: `❄️ Froid & Banquise` },
-                    { id: 'flood', label: `🌧️ Inondations & Crues` }
+                    { id: 'all', label: `Tous (${disasters.length})` },
+                    { id: 'recent_24h', label: `Direct & < 24h (${realLiveTotal})` },
+                    { id: 'fire', label: `Feux NASA (${fireEventsCount})` },
+                    { id: 'tsunami', label: `Séismes USGS (${quakeEventsCount})` },
+                    { id: 'cyclone', label: `Cyclones (${stormEventsCount})` },
+                    { id: 'cold_snow', label: `Froid & Banquise` },
+                    { id: 'flood', label: `Inondations` }
                   ].map(f => (
                     <button
                       key={f.id}
                       onClick={() => setFilterType(f.id as any)}
-                      className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
                         filterType === f.id
-                          ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/40 ring-1 ring-white/50'
+                          ? 'bg-[#0284C7] text-white'
                           : 'bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
                       }`}
                     >
@@ -435,50 +427,50 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       {/* MODE 1 : DIRECT SATELLITAIRE & SÉISMES EN TEMPS RÉEL (NASA / USGS) */}
       {/* ========================================================================= */}
       {activeMode === 'live_disasters' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Summary Stat Cards */}
           {!simplifiedMode && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-2xl border border-orange-500/30 bg-slate-900/80 p-4 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs text-orange-400 font-bold uppercase">
+              <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-3 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-orange-400 font-bold">
                   <Flame className="h-4 w-4" />
                   <span>Feux Satellites NASA</span>
                 </div>
-                <div className="text-xl font-black text-white">{fireEventsCount} Détections NRT</div>
+                <div className="text-lg font-black text-white">{fireEventsCount} Détections NRT</div>
                 <p className="text-[11px] text-slate-400">Satellites VIIRS 375 m / MODIS</p>
               </div>
 
-              <div className="rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-4 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold uppercase">
+              <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-3 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold">
                   <Activity className="h-4 w-4" />
                   <span>Séismes &amp; Tsunamis USGS</span>
                 </div>
-                <div className="text-xl font-black text-white">{quakeEventsCount} Secousses &gt; M4.5</div>
-                <p className="text-[11px] text-slate-400">Réseau sismologique mondial GSN</p>
+                <div className="text-lg font-black text-white">{quakeEventsCount} Secousses &gt; M4.5</div>
+                <p className="text-[11px] text-slate-400">Réseau mondial GSN</p>
               </div>
 
-              <div className="rounded-2xl border border-rose-500/30 bg-slate-900/80 p-4 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs text-rose-400 font-bold uppercase">
+              <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-3 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-rose-400 font-bold">
                   <Wind className="h-4 w-4" />
                   <span>Tempêtes &amp; Cyclones</span>
                 </div>
-                <div className="text-xl font-black text-white">{stormEventsCount} Phénomènes</div>
+                <div className="text-lg font-black text-white">{stormEventsCount} Phénomènes</div>
                 <p className="text-[11px] text-slate-400">Suivi RSMC Tokyo / NHC Miami</p>
               </div>
 
-              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold uppercase">
+              <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-3 space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold">
                   <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  <span>Statut Flux Direct</span>
+                  <span>Statut flux</span>
                 </div>
-                <div className="text-xl font-black text-emerald-400">{isLiveConnected ? 'Connecté Direct' : 'Mode Fiabilisé'}</div>
-                <p className="text-[11px] text-emerald-300/80">Synchronisé à {lastSyncTime}</p>
+                <div className="text-lg font-black text-emerald-400">{isLiveConnected ? 'Connecté Direct' : 'Mode Fiabilisé'}</div>
+                <p className="text-[11px] text-slate-400">Synchronisé : {lastSyncTime}</p>
               </div>
             </div>
           )}
 
           {/* Event Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredDisasters.map((item) => {
               const isFire = item.type === 'fire';
               const isQuake = item.type === 'tsunami';
@@ -489,34 +481,34 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-lg backdrop-blur flex flex-col justify-between gap-3 hover:border-cyan-500/40 transition"
+                    className="rounded-lg border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between gap-3 transition"
                   >
                     <div>
-                      <h3 className="text-base font-black text-white leading-snug">
+                      <h3 className="text-sm font-bold text-white leading-snug">
                         {item.title}
                       </h3>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5 text-slate-400">
                         <Clock className="h-3.5 w-3.5 text-cyan-400" />
-                        <span className="font-semibold text-slate-300">{item.updated}</span>
+                        <span className="text-slate-300">{item.updated}</span>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase">Source:</span>
+                        <span className="text-[10px] text-slate-500 font-bold">Source:</span>
                         {item.sourceUrl ? (
                           <a
                             href={item.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1"
+                            className="text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
                           >
                             <span>{item.officialMeteoCentres[0] || 'Officielle'}</span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
-                          <span className="text-cyan-300 font-bold">{item.officialMeteoCentres[0] || 'Officielle'}</span>
+                          <span className="text-cyan-300 font-semibold">{item.officialMeteoCentres[0] || 'Officielle'}</span>
                         )}
                       </div>
                     </div>
@@ -527,67 +519,51 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`rounded-3xl border p-6 shadow-xl backdrop-blur flex flex-col justify-between transition group ${
-                    isFire 
-                      ? 'border-orange-500/30 bg-slate-900/90 hover:border-orange-400/60' 
-                      : isQuake
-                      ? 'border-cyan-500/30 bg-slate-900/90 hover:border-cyan-400/60'
-                      : isCold
-                      ? 'border-blue-500/30 bg-slate-900/90 hover:border-blue-400/60'
-                      : 'border-slate-800 bg-slate-900/90 hover:border-rose-500/50'
-                  }`}
+                  className="rounded-lg border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between transition"
                 >
                   <div>
                     {/* Top header badge */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
-                        <div className={`flex items-center gap-1.5 text-xs font-bold mb-1 ${
+                        <div className={`flex items-center gap-1 text-xs font-semibold mb-1 ${
                           isFire ? 'text-orange-400' : isQuake ? 'text-cyan-400' : isCold ? 'text-blue-300' : 'text-rose-400'
                         }`}>
                           <MapPin className="h-3.5 w-3.5 shrink-0" />
                           <span className="line-clamp-1">{item.region}</span>
                         </div>
-                        <h3 className="text-base sm:text-lg font-black text-white group-hover:text-cyan-200 transition line-clamp-2">
+                        <h3 className="text-sm font-bold text-white line-clamp-2">
                           {item.title}
                         </h3>
                       </div>
                       
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase shrink-0 border ${
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border shrink-0 ${
                         item.severity === 'Extrême' || item.severity === 'Critique'
-                          ? 'bg-rose-950 border-rose-500/50 text-rose-300'
-                          : 'bg-amber-950 border-amber-500/50 text-amber-300'
+                          ? 'bg-rose-950 border-rose-800 text-rose-300'
+                          : 'bg-amber-950 border-amber-800 text-amber-300'
                       }`}>
                         {item.severity}
                       </span>
                     </div>
 
                     {/* Metric pill */}
-                    <div className={`rounded-2xl p-3.5 border my-3 shadow-inner ${
-                      isFire 
-                        ? 'bg-orange-950/40 border-orange-500/30 text-orange-200'
-                        : isQuake
-                        ? 'bg-cyan-950/40 border-cyan-500/30 text-cyan-200'
-                        : isCold
-                        ? 'bg-blue-950/40 border-blue-500/30 text-blue-200'
-                        : 'bg-slate-950 border-slate-800/80 text-amber-300'
-                    }`}>
-                      <div className="text-xs font-mono font-black">
+                    <div className="rounded-md p-2.5 border border-slate-800 bg-slate-950 my-2.5">
+                      <div className="text-xs font-mono font-bold text-slate-200">
                         {item.metric}
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-300 leading-relaxed mt-2">
+                    <p className="text-xs text-slate-300 leading-relaxed">
                       {item.desc}
                     </p>
 
                     {/* Multi-source mini tags */}
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+                    <div className="mt-3 pt-2.5 border-t border-slate-800 space-y-1.5">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
                           <Newspaper className="h-3 w-3 text-cyan-400" />
-                          Sources &amp; Organismes :
+                          Sources :
                         </span>
-                        <span className={`text-[10px] font-bold flex items-center gap-1 ${item.verifiedWithin24h ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        <span className={`text-[10px] font-semibold flex items-center gap-1 ${item.verifiedWithin24h ? 'text-emerald-400' : 'text-amber-400'}`}>
                           <Clock className="h-3 w-3" />
                           {item.updated}
                         </span>
@@ -595,45 +571,45 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
                       <div className="flex flex-wrap gap-1">
                         {item.officialMeteoCentres.slice(0, 2).map((centre, idx) => (
-                          <span key={idx} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-950 text-cyan-300 border border-cyan-500/30">
+                          <span key={idx} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800">
                             {centre}
                           </span>
                         ))}
                         {item.verifiedMedia.slice(0, 2).map((media, idx) => (
-                          <span key={idx} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-800">
+                          <span key={idx} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800">
                             {media}
                           </span>
                         ))}
                       </div>
 
                       {/* Direct Link to Source Page */}
-                      <div className="pt-2">
+                      <div className="pt-1">
                         <a
                           href={item.sourceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 hover:text-white border border-cyan-500/40 text-[11px] font-bold transition shadow-sm"
-                          title={`Consulter la dépêche ou télémesure officielle`}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-[11px] font-semibold transition"
+                          title="Consulter la dépêche ou télémesure officielle"
                         >
-                          <ExternalLink className="h-3.5 w-3.5 text-cyan-400" />
-                          <span>Consulter la source officielle</span>
+                          <ExternalLink className="h-3 w-3 text-cyan-400" />
+                          <span>Source officielle</span>
                         </a>
                       </div>
                     </div>
 
                     {/* Expandable Verification Certificate */}
                     {isCertExpanded && (
-                      <div className="mt-3 p-3.5 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-2.5 text-xs animate-in fade-in">
-                        <div className="flex items-center gap-1.5 text-[11px] font-black text-emerald-400 uppercase">
+                      <div className="mt-2.5 p-3 rounded-md bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
                           <ShieldCheck className="h-3.5 w-3.5" />
-                          <span>Certificat de Validation Scientifique</span>
+                          <span>Validation scientifique</span>
                         </div>
 
                         <div>
-                          <span className="text-[10px] font-bold text-slate-400 block">🏛️ Centres Météorologiques / Géophysiques :</span>
+                          <span className="text-[10px] font-semibold text-slate-400 block">Centres météorologiques :</span>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {item.officialMeteoCentres.map((centre, idx) => (
-                              <span key={idx} className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900 text-cyan-300 border border-cyan-500/30">
+                              <span key={idx} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-800">
                                 {centre}
                               </span>
                             ))}
@@ -641,36 +617,36 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                         </div>
 
                         <div>
-                          <span className="text-[10px] font-bold text-slate-400 block">📡 Capteurs &amp; Télédétection :</span>
+                          <span className="text-[10px] font-semibold text-slate-400 block">Capteurs &amp; télédétection :</span>
                           <p className="text-[11px] text-slate-300 mt-0.5 font-mono">{item.dataVerification}</p>
                         </div>
 
                         <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
-                          <span>Horodatage : <strong>{item.timestampUtc}</strong></span>
-                          <span className="text-emerald-400 font-bold">100% Authentique</span>
+                          <span>Horodatage : {item.timestampUtc}</span>
+                          <span className="text-emerald-400 font-semibold">Certifié</span>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Verified Source Footer Button */}
-                  <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+                  <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px]">
                     <button
                       onClick={() => toggleCert(item.id)}
-                      className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-bold transition cursor-pointer text-xs"
+                      className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold transition cursor-pointer text-xs"
                     >
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                      <span>{isCertExpanded ? 'Masquer' : 'Détail des sources & capteurs'}</span>
+                      <span>{isCertExpanded ? 'Masquer' : 'Détail capteurs'}</span>
                       {isCertExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                     </button>
 
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 flex items-center gap-1 ${
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border shrink-0 flex items-center gap-1 ${
                       item.verifiedWithin24h 
                         ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/40' 
                         : 'text-amber-400 bg-amber-950/60 border-amber-800/40'
                     }`}>
                       <CheckCircle2 className="h-3 w-3" />
-                      {item.verifiedWithin24h ? 'En Direct' : 'Historique'}
+                      {item.verifiedWithin24h ? 'En direct' : 'Historique'}
                     </span>
                   </div>
                 </div>
@@ -679,10 +655,10 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
           </div>
 
           {filteredDisasters.length === 0 && (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400 space-y-3">
-              <Globe2 className="h-10 w-10 mx-auto text-slate-600 animate-spin" />
-              <p className="text-base font-bold text-white">Aucun événement ne correspond à votre filtre</p>
-              <p className="text-xs text-slate-400">Essayez de modifier votre mot-clé ou sélectionnez « Tous les événements ».</p>
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-8 text-center text-slate-400 space-y-2">
+              <Globe2 className="h-8 w-8 mx-auto text-slate-600" />
+              <p className="text-sm font-bold text-white">Aucun événement ne correspond à votre filtre</p>
+              <p className="text-xs text-slate-400">Essayez de modifier votre mot-clé ou sélectionnez « Tous ».</p>
             </div>
           )}
         </div>
@@ -692,61 +668,61 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       {/* MODE 2 : 40+ GRANDES MÉTROPOLES MONDIALES EN TEMPS RÉEL (OPEN-METEO API) */}
       {/* ========================================================================= */}
       {activeMode === 'global_cities' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Continent Filter and Search Header */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-indigo-400" />
-                  <span>Météo Officielle en Direct des Grandes Villes du Monde</span>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-indigo-400" />
+                  <span>Relevés météo des grandes métropoles mondiales</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Relevés réels et prévisions directes via les modèles mondiaux Open-Meteo (températures, ressenti, vent, humidité, pression, anomalies).
+                  Relevés réels et prévisions via les modèles mondiaux Open-Meteo.
                 </p>
               </div>
 
               <button
                 onClick={loadCitiesWeather}
                 disabled={isLoadingCities}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/40 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isLoadingCities ? 'animate-spin text-indigo-400' : ''}`} />
-                <span>{isLoadingCities ? 'Actualisation...' : 'Actualiser les 40 Villes'}</span>
+                <span>{isLoadingCities ? 'Actualisation...' : 'Actualiser'}</span>
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               {/* City search input */}
-              <div className="w-full sm:w-72 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <div className="w-full sm:w-64 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={citySearchQuery}
                   onChange={(e) => setCitySearchQuery(e.target.value)}
-                  placeholder="Rechercher une métropole (Paris, Tokyo, New York...)"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  placeholder="Rechercher une métropole..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-md bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               {/* Continent buttons */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1">
                 {[
                   { id: 'ALL', label: 'Toutes (40)' },
-                  { id: 'Europe', label: '🇪🇺 Europe' },
-                  { id: 'Amérique du Nord', label: '🇺🇸 Amérique N.' },
-                  { id: 'Asie', label: '🇯🇵 Asie & Orient' },
-                  { id: 'Amérique du Sud', label: '🇧🇷 Amérique S.' },
-                  { id: 'Afrique', label: '🇿🇦 Afrique' },
-                  { id: 'Océanie', label: '🇦🇺 Océanie' },
-                  { id: 'Pôles', label: '🧊 Pôles & Extrêmes' }
+                  { id: 'Europe', label: 'Europe' },
+                  { id: 'Amérique du Nord', label: 'Amérique N.' },
+                  { id: 'Asie', label: 'Asie' },
+                  { id: 'Amérique du Sud', label: 'Amérique S.' },
+                  { id: 'Afrique', label: 'Afrique' },
+                  { id: 'Océanie', label: 'Océanie' },
+                  { id: 'Pôles', label: 'Pôles' }
                 ].map(c => (
                   <button
                     key={c.id}
                     onClick={() => setSelectedContinent(c.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
                       selectedContinent === c.id
-                        ? 'bg-indigo-600 text-white shadow-md'
+                        ? 'bg-[#0284C7] text-white'
                         : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
@@ -758,7 +734,7 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
           </div>
 
           {/* Global Cities Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredCities.map((city) => {
               const isHot = city.currentTempC >= 35;
               const isCold = city.currentTempC <= 0;
@@ -766,72 +742,72 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
               return (
                 <div
                   key={city.cityId}
-                  className={`rounded-3xl border p-4 shadow-lg backdrop-blur flex flex-col justify-between transition group hover:scale-[1.01] ${
+                  className={`rounded-lg border p-3.5 flex flex-col justify-between transition ${
                     isHot
-                      ? 'border-rose-500/40 bg-gradient-to-b from-rose-950/20 to-slate-900/90'
+                      ? 'border-rose-800/60 bg-slate-900'
                       : isCold
-                      ? 'border-cyan-500/40 bg-gradient-to-b from-cyan-950/20 to-slate-900/90'
-                      : 'border-slate-800 bg-slate-900/90 hover:border-indigo-500/40'
+                      ? 'border-cyan-800/60 bg-slate-900'
+                      : 'border-slate-800 bg-slate-900 hover:border-slate-700'
                   }`}
                 >
                   <div>
                     {/* Top Row: City & Country */}
-                    <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div>
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="text-[10px] font-semibold text-slate-400">
                           {city.country} • {city.continent}
                         </div>
-                        <h4 className="text-base font-black text-white group-hover:text-cyan-300 transition">
+                        <h4 className="text-sm font-bold text-white">
                           {city.cityName}
                         </h4>
                       </div>
 
-                      <span className="text-2xl" title={city.weatherDescription}>
+                      <span className="text-xl" title={city.weatherDescription}>
                         {city.weatherIcon}
                       </span>
                     </div>
 
                     {/* Temperature display */}
-                    <div className="flex items-baseline gap-2 my-2">
-                      <span className={`text-2xl sm:text-3xl font-black ${
+                    <div className="flex items-baseline gap-2 my-1.5">
+                      <span className={`text-xl sm:text-2xl font-black ${
                         city.currentTempC >= 30 ? 'text-rose-400' :
                         city.currentTempC <= 5 ? 'text-cyan-300' : 'text-white'
                       }`}>
                         {formatTemp(city.currentTempC)}
                       </span>
-                      <span className="text-xs text-slate-400 font-semibold">
+                      <span className="text-xs text-slate-400">
                         Ressenti {formatTemp(city.apparentTempC)}
                       </span>
                     </div>
 
                     {/* Weather description */}
-                    <p className="text-xs text-slate-300 line-clamp-1 mb-3">
+                    <p className="text-xs text-slate-300 line-clamp-1 mb-2.5">
                       {city.weatherDescription}
                     </p>
 
                     {/* Metrics Grid */}
-                    <div className="grid grid-cols-2 gap-1.5 p-2 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-[11px]">
+                    <div className="grid grid-cols-2 gap-1.5 p-2 rounded-md bg-slate-950 border border-slate-800 text-[11px]">
                       <div>
                         <span className="text-slate-500 block text-[10px]">Min / Max :</span>
-                        <span className="font-bold text-slate-200">
+                        <span className="font-semibold text-slate-200">
                           {formatTemp(city.tempMinC)} / {formatTemp(city.tempMaxC)}
                         </span>
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px]">Vent (Rafales) :</span>
-                        <span className="font-bold text-slate-200">
+                        <span className="font-semibold text-slate-200">
                           {city.windSpeedKmh} km/h ({city.windGustKmh})
                         </span>
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px]">Humidité / Pression :</span>
-                        <span className="font-bold text-slate-200">
+                        <span className="font-semibold text-slate-200">
                           {city.humidityPct}% • {city.pressureHpa} hPa
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px]">Anomalie Climat :</span>
-                        <span className={`font-bold ${
+                        <span className="text-slate-500 block text-[10px]">Anomalie :</span>
+                        <span className={`font-semibold ${
                           city.climateAnomalyC > 0 ? 'text-rose-400' : 'text-blue-300'
                         }`}>
                           {city.climateAnomalyC > 0 ? `+${city.climateAnomalyC}` : city.climateAnomalyC} °C
@@ -842,7 +818,7 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
                   {/* Alert Headline if active */}
                   {city.alertHeadline && (
-                    <div className="mt-3 p-2 rounded-xl bg-rose-950/60 border border-rose-500/40 text-[10px] font-bold text-rose-300 flex items-center gap-1.5">
+                    <div className="mt-2.5 p-1.5 rounded-md bg-rose-950/60 border border-rose-800 text-[10px] font-semibold text-rose-300 flex items-center gap-1.5">
                       <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-400" />
                       <span className="line-clamp-1">{city.alertHeadline}</span>
                     </div>
@@ -858,32 +834,32 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       {/* MODE 3 : RECHERCHE MÉTÉO N'IMPORTE OÙ DANS LE MONDE (GÉOCODAGE DIRECT) */}
       {/* ========================================================================= */}
       {activeMode === 'world_search' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
-            <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <Search className="h-5 w-5 text-emerald-400" />
-              <span>Rechercher n’importe quelle ville ou région dans le Monde</span>
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5 space-y-3">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Search className="h-4 w-4 text-emerald-400" />
+              <span>Rechercher une localité dans le monde</span>
             </h3>
             <p className="text-xs text-slate-300">
-              Tapez le nom d’une localité (ex. : <em>Kyoto, Tromsø, Miami, Vancouver, Papeete, Dakar, Honolulu, Ushuaïa, Reykjavik</em>) pour afficher instantanément ses relevés officiels et prévisions météorologiques en direct.
+              Tapez le nom d'une ville (ex. : <em>Kyoto, Tromsø, Miami, Vancouver, Papeete, Dakar, Reykjavik</em>) pour afficher ses relevés officiels et prévisions.
             </p>
 
             <form onSubmit={handleExecuteWorldSearch} className="flex flex-wrap items-center gap-2 max-w-xl">
-              <div className="relative flex-1 min-w-[240px]">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <div className="relative flex-1 min-w-[220px]">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={worldSearchQuery}
                   onChange={(e) => setWorldSearchQuery(e.target.value)}
                   placeholder="Ex : Reykjavik, Kyoto, Miami, Dakar..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSearchingWorld || worldSearchQuery.trim().length < 2}
-                className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50"
               >
                 {isSearchingWorld ? 'Recherche...' : 'Rechercher'}
               </button>
@@ -891,16 +867,16 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
             {/* Search Results List */}
             {worldSearchResults.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-slate-800">
-                <span className="text-xs font-bold text-slate-400 block mb-2">
+              <div className="mt-3 pt-3 border-t border-slate-800">
+                <span className="text-xs font-semibold text-slate-400 block mb-2">
                   Résultats trouvés ({worldSearchResults.length}) :
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {worldSearchResults.map((res, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSelectWorldLocality(res)}
-                      className="px-3.5 py-2 rounded-2xl bg-slate-950 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/50 text-xs font-bold text-slate-200 hover:text-emerald-300 transition text-left cursor-pointer flex items-center gap-2"
+                      className="px-3 py-1.5 rounded-md bg-slate-950 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-200 transition text-left cursor-pointer flex items-center gap-1.5"
                     >
                       <MapPin className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                       <span>{res.name} ({res.region || res.department || res.country || 'Monde'})</span>
@@ -913,21 +889,21 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
           {/* Selected City Weather Card */}
           {isLoadingSelectedCity && (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-400 space-y-2">
-              <RefreshCw className="h-8 w-8 mx-auto text-emerald-400 animate-spin" />
-              <p className="text-sm font-bold text-white">Récupération des données météorologiques officielles...</p>
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-6 text-center text-slate-400 space-y-2">
+              <RefreshCw className="h-6 w-6 mx-auto text-emerald-400 animate-spin" />
+              <p className="text-xs font-semibold text-white">Récupération des données météorologiques...</p>
             </div>
           )}
 
           {selectedWorldCityWeather && !isLoadingSelectedCity && (
-            <div className="rounded-3xl border border-emerald-500/40 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-8 shadow-2xl space-y-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-5 space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase">
-                    <MapPin className="h-4 w-4" />
+                  <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
+                    <MapPin className="h-3.5 w-3.5" />
                     <span>{selectedWorldCityWeather.location.country || 'Monde'} • {selectedWorldCityWeather.location.region || selectedWorldCityWeather.location.department || ''}</span>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
+                  <h3 className="text-xl sm:text-2xl font-black text-white mt-1">
                     {selectedWorldCityWeather.location.name}
                   </h3>
                   <p className="text-xs text-slate-400">
@@ -936,41 +912,41 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                 </div>
 
                 <div className="text-right">
-                  <div className="text-3xl sm:text-4xl font-black text-white">
+                  <div className="text-2xl sm:text-3xl font-black text-white">
                     {formatTemp(selectedWorldCityWeather.data.current?.temperature_2m || 0)}
                   </div>
-                  <div className="text-xs text-slate-400 font-bold">
+                  <div className="text-xs text-slate-400 font-semibold">
                     Ressenti {formatTemp(selectedWorldCityWeather.data.current?.apparent_temperature || 0)}
                   </div>
                 </div>
               </div>
 
               {/* Instant Weather Attributes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Humidité Relative</span>
-                  <div className="text-lg font-black text-white mt-0.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Humidité Relative</span>
+                  <div className="text-base font-bold text-white mt-0.5">
                     {selectedWorldCityWeather.data.current?.relative_humidity_2m || 50}%
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Vent Moyen</span>
-                  <div className="text-lg font-black text-white mt-0.5">
+                <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Vent Moyen</span>
+                  <div className="text-base font-bold text-white mt-0.5">
                     {selectedWorldCityWeather.data.current?.wind_speed_10m || 0} km/h
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Pression au Sol</span>
-                  <div className="text-lg font-black text-white mt-0.5">
+                <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Pression au Sol</span>
+                  <div className="text-base font-bold text-white mt-0.5">
                     {selectedWorldCityWeather.data.current?.surface_pressure || 1013} hPa
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Indice UV Max</span>
-                  <div className="text-lg font-black text-white mt-0.5">
+                <div className="p-3 rounded-md bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Indice UV Max</span>
+                  <div className="text-base font-bold text-white mt-0.5">
                     {selectedWorldCityWeather.data.daily?.uv_index_max?.[0] ?? 5} / 12
                   </div>
                 </div>
@@ -978,9 +954,9 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
               {/* 7-Day Forecast Mini Cards */}
               {selectedWorldCityWeather.data.daily && selectedWorldCityWeather.data.daily.time && (
-                <div className="pt-4 border-t border-slate-800">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                    Prévisions à 7 Jours Certifiées :
+                <div className="pt-3 border-t border-slate-800">
+                  <h4 className="text-xs font-semibold text-slate-400 mb-2">
+                    Prévisions à 7 Jours :
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
                     {selectedWorldCityWeather.data.daily.time.slice(0, 7).map((dStr: string, idx: number) => {
@@ -990,9 +966,9 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                       const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
 
                       return (
-                        <div key={idx} className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
-                          <span className="text-[10px] font-bold text-slate-400 block capitalize">{dayName}</span>
-                          <div className="text-xs font-black text-white mt-1">
+                        <div key={idx} className="p-2 rounded-md bg-slate-950 border border-slate-800 text-center">
+                          <span className="text-[10px] font-medium text-slate-400 block capitalize">{dayName}</span>
+                          <div className="text-xs font-bold text-white mt-0.5">
                             {formatTemp(tMax)}
                           </div>
                           <div className="text-[10px] text-slate-400">
@@ -1013,36 +989,36 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       {/* MODE 4 : RECORDS & CATASTROPHES HISTORIQUES HOMOLOGUÉS OMM / NOAA */}
       {/* ========================================================================= */}
       {activeMode === 'historical_records' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-amber-500/30 bg-slate-900/90 p-5 shadow-xl">
-            <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-amber-400" />
-              <span>Archives Officielles des Records Climatiques &amp; Catastrophes Homologuées (OMM / WMO)</span>
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-amber-400" />
+              <span>Archives des records climatiques homologués (OMM / WMO)</span>
             </h3>
             <p className="text-xs text-slate-300 mt-1 max-w-4xl">
-              Toutes les données de cette section ont fait l’objet d’une validation scientifique formelle par le <em>Comité d’experts de l’Organisation Météorologique Mondiale (OMM)</em>, de Météo-France ou de l'USGS. Chaque record comporte sa <strong>date historique exacte</strong> et ses <strong>conditions d’étalonnage physique</strong>.
+              Données validées par le Comité d’experts de l’Organisation Météorologique Mondiale (OMM), Météo-France ou l'USGS, avec dates et conditions de mesure.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {CERTIFIED_HISTORICAL_DISASTERS.map((rec) => {
               if (simplifiedMode) {
                 return (
                   <div
                     key={rec.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-lg space-y-3 hover:border-amber-500/40 transition"
+                    className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-2.5 transition"
                   >
-                    <h4 className="text-base font-black text-white leading-snug">
+                    <h4 className="text-sm font-bold text-white leading-snug">
                       {rec.title}
                     </h4>
-                    <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs text-slate-300">
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-300">
                       <div className="flex items-center gap-1.5 text-slate-400">
                         <Clock className="h-3.5 w-3.5 text-amber-400" />
-                        <span className="font-semibold text-slate-300">{rec.updated}</span>
+                        <span className="text-slate-300">{rec.updated}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase">Source:</span>
-                        <span className="text-cyan-300 font-bold">{rec.officialMeteoCentres[0] || 'OMM'}</span>
+                        <span className="text-[10px] text-slate-500 font-bold">Source:</span>
+                        <span className="text-cyan-300 font-semibold">{rec.officialMeteoCentres[0] || 'OMM'}</span>
                       </div>
                     </div>
                   </div>
@@ -1052,28 +1028,28 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
               return (
                 <div
                   key={rec.id}
-                  className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-amber-500/40 transition"
+                  className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-3 transition"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-semibold text-amber-400 block">
                         {rec.categoryLabel}
                       </span>
-                      <h4 className="text-base font-black text-white mt-0.5">
+                      <h4 className="text-sm font-bold text-white mt-0.5">
                         {rec.title}
                       </h4>
-                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                         <MapPin className="h-3 w-3 text-slate-500" />
                         <span>{rec.region}</span>
                       </p>
                     </div>
 
-                    <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 shrink-0">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-950/80 border border-amber-800 text-amber-300 shrink-0">
                       Homologué OMM
                     </span>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-amber-200 font-mono font-black text-xs">
+                  <div className="p-2.5 rounded-md bg-slate-950 border border-slate-800 text-amber-200 font-mono font-bold text-xs">
                     {rec.metric}
                   </div>
 
@@ -1081,10 +1057,10 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                     {rec.desc}
                   </p>
 
-                  <div className="pt-3 border-t border-slate-800 space-y-1.5 text-[11px]">
+                  <div className="pt-2.5 border-t border-slate-800 space-y-1 text-[11px]">
                     <div className="flex items-center justify-between text-slate-400">
-                      <span>Organisme de certification :</span>
-                      <span className="font-bold text-cyan-300">{rec.officialMeteoCentres[0]}</span>
+                      <span>Organisme :</span>
+                      <span className="font-semibold text-cyan-300">{rec.officialMeteoCentres[0]}</span>
                     </div>
                     <div className="flex items-center justify-between text-slate-400">
                       <span>Télémétrie :</span>
@@ -1092,7 +1068,7 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
                     </div>
                     <div className="flex items-center justify-between text-slate-400">
                       <span>Date certifiée :</span>
-                      <span className="font-bold text-emerald-400">{rec.updated}</span>
+                      <span className="font-semibold text-emerald-400">{rec.updated}</span>
                     </div>
                   </div>
                 </div>

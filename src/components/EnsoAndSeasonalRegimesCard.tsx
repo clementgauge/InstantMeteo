@@ -80,35 +80,34 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
   const selectedRegime = data.europeanRegimes.find(r => r.regimeId === selectedRegimeId) || data.europeanRegimes[0];
 
   return (
-    <div id="enso-regimes-observatory" className="space-y-6">
+    <div id="enso-regimes-observatory" className="space-y-4">
       {/* Hero Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">
               <Globe2 className="h-4 w-4" />
-              <span>Observatoire ENSO & Régimes Synoptiques Européens (Court, Moyen & Long Terme jusqu'à 6 Mois)</span>
+              <span>Observatoire ENSO & Régimes Synoptiques Européens</span>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
+            <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
               Évolution El Niño / La Niña & Grands Régimes Météo
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
               Diagnostic dynamique couplé Pacifique-Atlantique pour <strong>{station.name}</strong> ({station.altitude} m) • Réactualisé quotidiennement • Suivi des 4 zones Niño, SOI, IOD, MJO, QBO, NAO, AO & Projections 8 mois.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <span className="text-[10px] text-slate-400 block font-semibold">Mise à jour quotidienne automatique</span>
+              <span className="text-[10px] text-slate-400 block font-medium">Mise à jour automatique</span>
               <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 justify-end">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
                 {lastRefreshedTime || data.dailyParamsUpdateTimestamp || data.generatedAt}
               </span>
             </div>
             <button
               onClick={() => refreshObservatory(forcedIntensity)}
-              className="flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 text-xs font-bold transition shadow"
+              className="flex items-center gap-1.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-1.5 text-xs font-semibold transition cursor-pointer"
               title="Forcer la réactualisation"
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -118,187 +117,187 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+        <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap gap-1.5">
           <button
             onClick={() => setActiveSubTab('enso')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
               activeSubTab === 'enso'
-                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Waves className="h-3.5 w-3.5" />
-            <span>1. Diagnostic Océanique Global</span>
+            <span>Diagnostic Océanique</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('daily_tracking')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
               activeSubTab === 'daily_tracking'
-                ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 ring-1 ring-amber-400'
-                : 'bg-slate-950/70 border border-amber-500/30 text-amber-300 hover:text-white hover:bg-slate-800'
+                ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Clock className="h-3.5 w-3.5" />
-            <span>📅 2. Suivi Quotidien & Évolution d'El Niño (J-60 à J+180)</span>
+            <span>Suivi Quotidien d'El Niño</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('regimes')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
               activeSubTab === 'regimes'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-blue-950 text-blue-300 border border-blue-800'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Compass className="h-3.5 w-3.5" />
-            <span>3. Régimes Météo Européens (Court, Moyen, 6M)</span>
+            <span>Régimes Météo Européens</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('teleconnections')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
               activeSubTab === 'teleconnections'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-purple-950 text-purple-300 border border-purple-800'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Activity className="h-3.5 w-3.5" />
-            <span>4. Matrice des Téléconnexions Majeures</span>
+            <span>Téléconnexions Majeures</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('synthesis6m')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
               activeSubTab === 'synthesis6m'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Calendar className="h-3.5 w-3.5" />
-            <span>5. Synthèse Synoptique Semestrielle</span>
+            <span>Synthèse Semestrielle</span>
           </button>
         </div>
       </div>
 
       {/* SECTION 1: ENSO REAL-TIME & 6-MONTH EVOLUTION */}
       {activeSubTab === 'enso' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Current Pacific Teleconnection Status Card */}
-          <div className="rounded-3xl border border-cyan-500/30 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Diagnostic Océan-Atmosphère Pacifique en Temps Réel</span>
-                <h3 className="text-xl font-bold text-white mt-0.5">{currentEnso.phaseLabel}</h3>
+                <h3 className="text-lg font-bold text-white mt-0.5">{currentEnso.phaseLabel}</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
                   Indice ONI : {currentEnso.oniIndex > 0 ? `+${currentEnso.oniIndex}` : currentEnso.oniIndex} °C
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
                   SOI : +{currentEnso.soiSouthernOscillationIndex} σ
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-3">
                 <span className="text-[11px] font-bold text-slate-400 block">Indice Océanique Niño 3.4 (ONI)</span>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-black text-cyan-400">{currentEnso.oniIndex} °C</span>
-                  <span className="text-xs font-semibold text-cyan-300">Anomalie SST</span>
+                  <span className="text-xl font-bold text-cyan-400">{currentEnso.oniIndex} °C</span>
+                  <span className="text-xs font-medium text-cyan-300">Anomalie SST</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">Seuil La Niña : ≤ -0.5°C sur 3 mois consécutifs.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Seuil La Niña : ≤ -0.5°C sur 3 mois consécutifs.</p>
               </div>
 
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-3">
                 <span className="text-[11px] font-bold text-slate-400 block">Oscillation Australe (SOI)</span>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-black text-emerald-400">+{currentEnso.soiSouthernOscillationIndex}</span>
-                  <span className="text-xs font-semibold text-emerald-300">Pression Tahiti - Darwin</span>
+                  <span className="text-xl font-bold text-emerald-400">+{currentEnso.soiSouthernOscillationIndex}</span>
+                  <span className="text-xs font-medium text-emerald-300">Tahiti - Darwin</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">Couplage atmosphérique actif favorable à La Niña.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Couplage atmosphérique actif favorable à La Niña.</p>
               </div>
 
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-3">
                 <span className="text-[11px] font-bold text-slate-400 block">Régime des Vents Alizés</span>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-lg font-black text-blue-400">{currentEnso.tradeWindsStrength}</span>
+                  <span className="text-base font-bold text-blue-400">{currentEnso.tradeWindsStrength}</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">Upwelling d'eaux profondes froides le long de l'Équateur.</p>
+                <p className="text-[10px] text-slate-400 mt-1">Upwelling d'eaux profondes froides le long de l'Équateur.</p>
               </div>
 
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+              <div className="rounded-md bg-slate-950 border border-slate-800 p-3">
                 <span className="text-[11px] font-bold text-slate-400 block">Années Analogues Historiques</span>
-                <div className="space-y-1 mt-1">
+                <div className="space-y-0.5 mt-1">
                   {currentEnso.historicalAnalogs.slice(0, 2).map((a, i) => (
-                    <span key={i} className="text-xs font-semibold text-amber-300 block">• {a}</span>
+                    <span key={i} className="text-xs font-medium text-amber-300 block">• {a}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-cyan-950/30 border border-cyan-800/40 p-4 text-xs text-cyan-100 leading-relaxed">
-              <p className="font-semibold">{currentEnso.diagnosticSummary}</p>
+            <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-xs text-slate-300 leading-relaxed">
+              <p className="font-normal">{currentEnso.diagnosticSummary}</p>
             </div>
           </div>
 
           {/* 6-Month Trajectory Table & Probability Bars */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="h-5 w-5 text-blue-400" />
-              <h3 className="text-lg font-bold text-white">Trajectoire & Probabilités ENSO à Échéance 6 Mois (M+1 à M+6)</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-4 w-4 text-blue-400" />
+              <h3 className="text-base font-bold text-white">Trajectoire & Probabilités ENSO à Échéance 6 Mois (M+1 à M+6)</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {data.sixMonthEnsoProjections.map((proj) => (
                 <div 
                   key={proj.monthIndex} 
-                  className={`rounded-2xl border p-4 transition ${
+                  className={`rounded-md border p-3 transition ${
                     proj.phase === 'LA_NINA'
-                      ? 'bg-slate-950/90 border-cyan-500/30 hover:border-cyan-500/60'
-                      : 'bg-slate-950/90 border-slate-800 hover:border-slate-700'
+                      ? 'bg-slate-950 border-cyan-500/40'
+                      : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800">
-                    <span className="text-sm font-black text-white">Mois M+{proj.monthIndex} : {proj.monthName}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
-                      proj.phase === 'LA_NINA' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-slate-800 text-slate-300'
+                    <span className="text-sm font-bold text-white">M+{proj.monthIndex} : {proj.monthName}</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      proj.phase === 'LA_NINA' ? 'bg-cyan-950 text-cyan-300 border border-cyan-800' : 'bg-slate-800 text-slate-300'
                     }`}>
                       {proj.oniSstAnomalyC > 0 ? `+${proj.oniSstAnomalyC}` : proj.oniSstAnomalyC}°C
                     </span>
                   </div>
 
-                  <div className="text-xs font-bold text-cyan-300 mb-2">{proj.phaseLabel}</div>
+                  <div className="text-xs font-semibold text-cyan-300 mb-2">{proj.phaseLabel}</div>
 
                   {/* Probabilities Triple Bar */}
-                  <div className="space-y-1.5 mb-3">
+                  <div className="space-y-1 mb-2.5">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-cyan-400 font-semibold">La Niña</span>
+                      <span className="text-cyan-400 font-medium">La Niña</span>
                       <span className="font-bold text-white">{proj.probLaNina}%</span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden flex">
+                    <div className="h-1.5 w-full rounded bg-slate-800 overflow-hidden flex">
                       <div style={{ width: `${proj.probLaNina}%` }} className="bg-cyan-400 h-full"></div>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-400 font-semibold">Neutre</span>
+                      <span className="text-slate-400 font-medium">Neutre</span>
                       <span className="font-bold text-white">{proj.probNeutral}%</span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden flex">
+                    <div className="h-1.5 w-full rounded bg-slate-800 overflow-hidden flex">
                       <div style={{ width: `${proj.probNeutral}%` }} className="bg-slate-400 h-full"></div>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-amber-400 font-semibold">El Niño</span>
+                      <span className="text-amber-400 font-medium">El Niño</span>
                       <span className="font-bold text-white">{proj.probElNino}%</span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden flex">
+                    <div className="h-1.5 w-full rounded bg-slate-800 overflow-hidden flex">
                       <div style={{ width: `${proj.probElNino}%` }} className="bg-amber-400 h-full"></div>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-300 space-y-1">
+                  <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-300 space-y-0.5">
                     <p><strong className="text-blue-300">Impact Jet-Stream :</strong> {proj.jetStreamPosition}</p>
                     <p><strong className="text-emerald-300">Effet France/Europe :</strong> {proj.teleconnectionEuropeEffect}</p>
                   </div>
@@ -311,27 +310,27 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
 
       {/* SECTION 2: DAILY ENSO & TELECONNECTIONS TRACKING (J-60 to J+180) */}
       {activeSubTab === 'daily_tracking' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header & Simulator Control */}
-          <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-amber-950/20 to-slate-900 p-6 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
               <div>
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                  <Radio className="h-4 w-4 animate-pulse text-amber-400" />
+                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                  <Radio className="h-3.5 w-3.5 text-amber-400" />
                   <span>Surveillance Quotidienne Continue & Évolution Multi-Paramètres</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-white">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Évolution Journalière des Indices Pacifique & Téléconnexions Mondiales
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 mt-1">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Mise à jour quotidienne automatique des anomalies de température océanique (SST), pression atmosphérique tropicale (SOI) et forçages planétaires.
                 </p>
               </div>
 
               {/* Real-time Scenario Simulator Toggle */}
-              <div className="bg-slate-950/90 border border-slate-800 rounded-2xl p-3">
-                <span className="text-[11px] font-bold text-slate-400 block mb-2">Simulateur d'Intensité ENSO :</span>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="bg-slate-950 border border-slate-800 rounded-md p-2.5">
+                <span className="text-[11px] font-bold text-slate-400 block mb-1.5">Simulateur d'Intensité ENSO :</span>
+                <div className="flex flex-wrap gap-1">
                   {(['SUPER_EL_NINO', 'STRONG_EL_NINO', 'MODERATE_EL_NINO', 'NEUTRAL', 'LA_NINA'] as EnsoCustomIntensity[]).map((mode) => {
                     const isCur = forcedIntensity === mode;
                     const label = mode === 'SUPER_EL_NINO' ? 'Super El Niño (+2.4°)' :
@@ -345,9 +344,9 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
                           setForcedIntensity(mode);
                           refreshObservatory(mode);
                         }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                        className={`px-2 py-0.5 rounded-md text-xs font-medium transition cursor-pointer ${
                           isCur
-                            ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                            ? 'bg-amber-500 text-slate-950 font-bold'
                             : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
                         }`}
                       >
@@ -360,76 +359,76 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
             </div>
 
             {/* Real-time 4-Region Niño Live Breakdown */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t border-slate-800">
               {Object.entries(data.ninoRegionsSummary).map(([key, reg]) => (
-                <div key={key} className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+                <div key={key} className="rounded-md bg-slate-950 border border-slate-800 p-3">
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-bold text-slate-400">{reg.label.split('(')[0]}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
                       {reg.trend7d}
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2 my-1">
-                    <span className="text-2xl font-black text-white font-mono">
+                    <span className="text-xl font-bold text-white font-mono">
                       {reg.current > 0 ? `+${reg.current}` : reg.current}°C
                     </span>
-                    <span className="text-[11px] text-slate-400 font-semibold">anomalie SST</span>
+                    <span className="text-[10px] text-slate-400 font-medium">anomalie SST</span>
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-tight mt-1 font-medium">{reg.status}</p>
+                  <p className="text-[11px] text-slate-400 leading-tight mt-1">{reg.status}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Interactive Daily Time Series Chart (J-60 à J+180) */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Courbes d'Évolution Quotidienne (240 Jours)</span>
-                <h4 className="text-lg font-bold text-white mt-0.5">Chronologie Journalière : Passé Observé & Projections Futures</h4>
+                <h4 className="text-base font-bold text-white mt-0.5">Chronologie Journalière : Passé Observé & Projections Futures</h4>
               </div>
 
               {/* Metric Selector Tabs */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setSelectedDailyMetric('nino34')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    selectedDailyMetric === 'nino34' ? 'bg-amber-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                    selectedDailyMetric === 'nino34' ? 'bg-amber-950 text-amber-300 border border-amber-800' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
-                  🌡️ Niño 3.4 & 1+2 (°C)
+                  Niño 3.4 & 1+2 (°C)
                 </button>
                 <button
                   onClick={() => setSelectedDailyMetric('soi')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    selectedDailyMetric === 'soi' ? 'bg-blue-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                    selectedDailyMetric === 'soi' ? 'bg-blue-950 text-blue-300 border border-blue-800' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
-                  ⚖️ Indice SOI (Tahiti-Darwin)
+                  Indice SOI (Tahiti-Darwin)
                 </button>
                 <button
                   onClick={() => setSelectedDailyMetric('iod')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    selectedDailyMetric === 'iod' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                    selectedDailyMetric === 'iod' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
-                  🌊 Dipôle Indien (IOD)
+                  Dipôle Indien (IOD)
                 </button>
                 <button
                   onClick={() => setSelectedDailyMetric('mjo')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    selectedDailyMetric === 'mjo' ? 'bg-purple-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                    selectedDailyMetric === 'mjo' ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
-                  🌀 MJO (Phase & Amplitude)
+                  MJO (Phase & Amplitude)
                 </button>
                 <button
                   onClick={() => setSelectedDailyMetric('nao_ao')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    selectedDailyMetric === 'nao_ao' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                    selectedDailyMetric === 'nao_ao' ? 'bg-cyan-950 text-cyan-300 border border-cyan-800' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
-                  🇪🇺 Indices NAO & AO
+                  Indices NAO & AO
                 </button>
               </div>
             </div>
@@ -601,108 +600,108 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
 
       {/* SECTION 3: 5 EUROPEAN WEATHER REGIMES EXPLORER */}
       {activeSubTab === 'regimes' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="mb-4">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Classification Synoptique Multiscalaire (Court, Moyen & Long Terme)</span>
-              <h3 className="text-xl font-bold text-white mt-0.5">Les 5 Grands Régimes Météorologiques Européens</h3>
-              <p className="text-xs text-slate-300 mt-1">Sélectionnez un régime pour inspecter son mécanisme physique et son impact attendu sur la France :</p>
+              <h3 className="text-lg font-bold text-white mt-0.5">Les 5 Grands Régimes Météorologiques Européens</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Sélectionnez un régime pour inspecter son mécanisme physique et son impact attendu sur la France :</p>
             </div>
 
             {/* Regime Selector Pills */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 mb-4">
               {data.europeanRegimes.map((reg) => {
                 const isSel = reg.regimeId === selectedRegimeId;
                 return (
                   <button
                     key={reg.regimeId}
                     onClick={() => setSelectedRegimeId(reg.regimeId)}
-                    className={`rounded-2xl border p-4 text-left transition flex flex-col justify-between ${
+                    className={`rounded-md border p-2.5 text-left transition flex flex-col justify-between cursor-pointer ${
                       isSel
-                        ? 'bg-blue-600/20 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-400'
-                        : 'bg-slate-950/70 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
+                        ? 'bg-blue-950 text-white border-blue-600'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xl">{reg.icon}</span>
-                        <span className="px-2 py-0.5 rounded text-[11px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-lg">{reg.icon}</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">
                           {reg.currentProbabilityPct}%
                         </span>
                       </div>
-                      <h4 className="font-bold text-white text-xs leading-snug">{reg.shortName}</h4>
+                      <h4 className="font-bold text-xs leading-snug">{reg.shortName}</h4>
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-2 block">Cliquez pour le détail</span>
+                    <span className="text-[10px] text-slate-400 mt-1.5 block">Détails synoptiques</span>
                   </button>
                 );
               })}
             </div>
 
             {/* Selected Regime Deep Detail View */}
-            <div className="rounded-2xl border border-blue-500/30 bg-slate-950/90 p-6 space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{selectedRegime.icon}</span>
+            <div className="rounded-md border border-slate-800 bg-slate-950 p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl">{selectedRegime.icon}</span>
                   <div>
-                    <h4 className="text-lg font-black text-white">{selectedRegime.name}</h4>
-                    <span className="text-xs text-blue-400 font-semibold">{selectedRegime.typicalSeasonality}</span>
+                    <h4 className="text-base font-bold text-white">{selectedRegime.name}</h4>
+                    <span className="text-xs text-blue-400 font-medium">{selectedRegime.typicalSeasonality}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Probabilité d'occurrence actuelle :</span>
-                  <span className="text-lg font-black text-blue-400 px-3 py-1 rounded-xl bg-blue-500/20 border border-blue-500/40">
+                  <span className="text-xs text-slate-400">Probabilité actuelle :</span>
+                  <span className="text-sm font-bold text-blue-300 px-2.5 py-0.5 rounded-md bg-blue-950 border border-blue-800">
                     {selectedRegime.currentProbabilityPct} %
                   </span>
                 </div>
               </div>
 
               {/* Time Scales Grid: Short, Medium, Long-Term (6 Months) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 mb-1">
-                    <Clock className="h-4 w-4" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
+                    <Clock className="h-3.5 w-3.5" />
                     <span>Court Terme (1 à 7 Jours)</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-semibold">{selectedRegime.shortTermTrend}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">{selectedRegime.shortTermTrend}</p>
                 </div>
 
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-400 mb-1">
-                    <Calendar className="h-4 w-4" />
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-1">
+                    <Calendar className="h-3.5 w-3.5" />
                     <span>Moyen Terme (1 à 4 Semaines)</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-semibold">{selectedRegime.mediumTermTrend}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">{selectedRegime.mediumTermTrend}</p>
                 </div>
 
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 mb-1">
-                    <Globe2 className="h-4 w-4" />
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 mb-1">
+                    <Globe2 className="h-3.5 w-3.5" />
                     <span>Long Terme (1 à 6 Mois)</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-semibold">{selectedRegime.longTermTrend6M}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">{selectedRegime.longTermTrend6M}</p>
                 </div>
               </div>
 
               {/* Physical mechanism & Impacts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4 space-y-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3 space-y-1">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Mécanisme Physique Aérologique</span>
                   <p className="text-xs text-slate-300 leading-relaxed">{selectedRegime.synopticMechanism}</p>
                 </div>
 
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4 space-y-3">
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3 space-y-2">
                   <div>
                     <span className="text-[11px] font-bold text-amber-300 block flex items-center gap-1">
                       <Thermometer className="h-3.5 w-3.5" /> Impact Températures France :
                     </span>
-                    <p className="text-xs text-slate-200 mt-0.5">{selectedRegime.impactFranceTemperature}</p>
+                    <p className="text-xs text-slate-300 mt-0.5">{selectedRegime.impactFranceTemperature}</p>
                   </div>
                   <div className="pt-2 border-t border-slate-800">
                     <span className="text-[11px] font-bold text-blue-300 block flex items-center gap-1">
                       <CloudRain className="h-3.5 w-3.5" /> Impact Précipitations & Neige France :
                     </span>
-                    <p className="text-xs text-slate-200 mt-0.5">{selectedRegime.impactFrancePrecipitation}</p>
+                    <p className="text-xs text-slate-300 mt-0.5">{selectedRegime.impactFrancePrecipitation}</p>
                   </div>
                 </div>
               </div>
@@ -711,40 +710,40 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
         </div>
       )}
 
-      {/* SECTION 3: MAJOR TELECONNECTIONS MATRIX */}
+      {/* SECTION 4: MAJOR TELECONNECTIONS MATRIX */}
       {activeSubTab === 'teleconnections' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="mb-4">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400">Moteurs Téléconnectifs Globaux</span>
-              <h3 className="text-xl font-bold text-white mt-0.5">Matrice des 6 Indices Climatologiques Majeurs</h3>
-              <p className="text-xs text-slate-300 mt-1">Surveillance des oscillations atmosphériques et stratosphériques guidant le temps en France :</p>
+              <h3 className="text-lg font-bold text-white mt-0.5">Matrice des 6 Indices Climatologiques Majeurs</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Surveillance des oscillations atmosphériques et stratosphériques guidant le temps en France :</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {data.majorTeleconnections.map((item) => (
-                <div key={item.code} className="rounded-2xl bg-slate-950/80 border border-slate-800 p-5 flex flex-col justify-between">
+                <div key={item.code} className="rounded-md bg-slate-950 border border-slate-800 p-3.5 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800">
-                      <span className="text-xs font-black text-purple-400">{item.code}</span>
-                      <span className="text-xs font-bold text-white">{item.phaseLabel}</span>
+                      <span className="text-xs font-bold text-purple-400">{item.code}</span>
+                      <span className="text-xs font-medium text-white">{item.phaseLabel}</span>
                     </div>
 
-                    <h4 className="font-bold text-white text-sm mb-1">{item.name}</h4>
-                    <div className="text-xs font-black text-cyan-300 mb-3">{item.currentValueFormatted}</div>
+                    <h4 className="font-bold text-white text-xs mb-1">{item.name}</h4>
+                    <div className="text-xs font-bold text-cyan-300 mb-2">{item.currentValueFormatted}</div>
 
-                    <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                    <p className="text-xs text-slate-300 leading-relaxed mb-2">
                       {item.trendDescription}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800/80 space-y-1.5 text-[11px]">
-                    <div className="rounded bg-slate-900 p-2 border border-slate-800">
+                  <div className="pt-2 border-t border-slate-800/80 space-y-1 text-[11px]">
+                    <div className="rounded bg-slate-900 p-1.5 border border-slate-800">
                       <span className="font-bold text-emerald-300 block">Perspective 6 Mois :</span>
                       <span className="text-slate-300">{item.sixMonthProjection}</span>
                     </div>
-                    <div className="rounded bg-slate-900 p-2 border border-slate-800">
-                      <span className="font-bold text-blue-300 block">Impact direct France :</span>
+                    <div className="rounded bg-slate-900 p-1.5 border border-slate-800">
+                      <span className="font-bold text-blue-300 block">Impact France :</span>
                       <span className="text-slate-300">{item.impactFranceSummary}</span>
                     </div>
                   </div>
@@ -755,26 +754,26 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
         </div>
       )}
 
-      {/* SECTION 4: 6-MONTH SYNOPTIC SYNTHESIS (M+1 to M+6) */}
+      {/* SECTION 5: 6-MONTH SYNOPTIC SYNTHESIS (M+1 to M+6) */}
       {activeSubTab === 'synthesis6m' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Modélisation Saisonnière Multi-Systèmes (ECMWF, UKMO, Météo-France)</span>
-                <h3 className="text-xl font-bold text-white mt-0.5">Synthèse Synoptique Mois par Mois (M+1 à M+6)</h3>
-                <p className="text-xs text-slate-300 mt-1">Scénarios météorologiques détaillés pour {station.name} ({station.altitude} m) :</p>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Modélisation Saisonnière Multi-Systèmes</span>
+                <h3 className="text-lg font-bold text-white mt-0.5">Synthèse Synoptique Mois par Mois (M+1 à M+6)</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Scénarios météorologiques détaillés pour {station.name} ({station.altitude} m) :</p>
               </div>
 
               {/* Month Selector Buttons */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1">
                 {data.sixMonthSyntheses.map((s) => (
                   <button
                     key={s.monthOffset}
                     onClick={() => setSelectedMonthOffset(s.monthOffset)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition shrink-0 cursor-pointer ${
                       selectedMonthOffset === s.monthOffset
-                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
                         : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
                     }`}
                   >
@@ -785,60 +784,60 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
             </div>
 
             {/* Selected Month Detailed Card */}
-            <div className="rounded-2xl border border-emerald-500/30 bg-slate-950/90 p-6 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+            <div className="rounded-md border border-slate-800 bg-slate-950 p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
                 <div>
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                     {selectedSynthesis.season} • Échéance M+{selectedSynthesis.monthOffset}
                   </span>
-                  <h4 className="text-2xl font-black text-white mt-0.5">{selectedSynthesis.monthName}</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Régime dominant projeté : <strong className="text-blue-300">{selectedSynthesis.dominantRegime}</strong>
+                  <h4 className="text-xl font-bold text-white mt-0.5">{selectedSynthesis.monthName}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Régime dominant : <strong className="text-blue-300">{selectedSynthesis.dominantRegime}</strong>
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="rounded-2xl bg-slate-900 border border-slate-800 px-4 py-2 text-center">
-                    <span className="text-[10px] text-slate-400 block font-semibold">Anomalie T°C</span>
-                    <span className={`text-lg font-black ${
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="rounded-md bg-slate-900 border border-slate-800 px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 block font-medium">Anomalie T°C</span>
+                    <span className={`text-base font-bold ${
                       selectedSynthesis.tempAnomalyForecastC > 0 ? 'text-rose-400' : 'text-cyan-400'
                     }`}>
                       {selectedSynthesis.tempAnomalyForecastC > 0 ? `+${selectedSynthesis.tempAnomalyForecastC}` : selectedSynthesis.tempAnomalyForecastC}°C
                     </span>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-900 border border-slate-800 px-4 py-2 text-center">
-                    <span className="text-[10px] text-slate-400 block font-semibold">Précipitations</span>
-                    <span className={`text-lg font-black ${
+                  <div className="rounded-md bg-slate-900 border border-slate-800 px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 block font-medium">Précipitations</span>
+                    <span className={`text-base font-bold ${
                       selectedSynthesis.precipAnomalyForecastPct > 0 ? 'text-blue-400' : 'text-amber-400'
                     }`}>
                       {selectedSynthesis.precipAnomalyForecastPct > 0 ? `+${selectedSynthesis.precipAnomalyForecastPct}` : selectedSynthesis.precipAnomalyForecastPct}%
                     </span>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-900 border border-slate-800 px-4 py-2 text-center">
-                    <span className="text-[10px] text-slate-400 block font-semibold">Indice de Confiance</span>
-                    <span className="text-lg font-black text-emerald-400">{selectedSynthesis.confidenceScorePct}%</span>
+                  <div className="rounded-md bg-slate-900 border border-slate-800 px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 block font-medium">Confiance</span>
+                    <span className="text-base font-bold text-emerald-400">{selectedSynthesis.confidenceScorePct}%</span>
                   </div>
                 </div>
               </div>
 
               {/* Scenario Description */}
-              <div className="space-y-4">
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4">
+              <div className="space-y-3">
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3">
                   <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider block mb-1">
                     Scénario Météorologique & Synoptique Global
                   </span>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">
                     {selectedSynthesis.synopticScenario}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-900 border border-slate-800 p-4">
+                <div className="rounded bg-slate-900 border border-slate-800/80 p-3">
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
                     Impact Hydrologique, Agricole & Montagne ({station.name} - {station.altitude} m)
                   </span>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">
                     {selectedSynthesis.agriculturalAndHydricOutlook}
                   </p>
                 </div>
@@ -846,24 +845,24 @@ export const EnsoAndSeasonalRegimesCard: React.FC<EnsoAndSeasonalRegimesCardProp
             </div>
 
             {/* Complete 6-Month Comparison Matrix Grid */}
-            <div className="mt-6 pt-6 border-t border-slate-800">
-              <h4 className="text-sm font-bold text-slate-300 mb-3">Vue d'ensemble du semestre à venir :</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="mt-4 pt-4 border-t border-slate-800">
+              <h4 className="text-xs font-bold text-slate-300 mb-2">Vue d'ensemble du semestre à venir :</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {data.sixMonthSyntheses.map((s) => {
                   const isCurrentSel = s.monthOffset === selectedMonthOffset;
                   return (
                     <button
                       key={s.monthOffset}
                       onClick={() => setSelectedMonthOffset(s.monthOffset)}
-                      className={`rounded-xl border p-3 text-left transition ${
+                      className={`rounded-md border p-2 text-left transition cursor-pointer ${
                         isCurrentSel
-                          ? 'bg-emerald-600/20 border-emerald-500 shadow-md ring-1 ring-emerald-400'
-                          : 'bg-slate-950 border-slate-800 hover:bg-slate-800'
+                          ? 'bg-emerald-950 text-white border-emerald-700'
+                          : 'bg-slate-950 border-slate-800 hover:bg-slate-800 text-slate-300'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-400 font-semibold block">M+{s.monthOffset}</span>
+                      <span className="text-[10px] text-slate-400 font-medium block">M+{s.monthOffset}</span>
                       <span className="text-xs font-bold text-white block truncate">{s.monthName.split(' ')[0]}</span>
-                      <div className="flex items-center justify-between mt-2 text-[11px] font-bold">
+                      <div className="flex items-center justify-between mt-1 text-[11px] font-bold">
                         <span className={s.tempAnomalyForecastC > 0 ? 'text-rose-400' : 'text-cyan-400'}>
                           {s.tempAnomalyForecastC > 0 ? `+${s.tempAnomalyForecastC}` : s.tempAnomalyForecastC}°
                         </span>

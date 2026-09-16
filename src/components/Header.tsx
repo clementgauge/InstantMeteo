@@ -487,15 +487,8 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[11px] font-medium text-slate-300">Premium</span>
           </button>
 
-          {/* 4. Pays (France) */}
-          <button
-            onClick={onOpenSearchModal}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#0c1424] border border-slate-800 text-xs text-slate-200 font-medium active:scale-95 transition shadow-sm"
-          >
-            <span className="text-base leading-none">🇫🇷</span>
-            <span>France</span>
-            <ChevronDown className="h-3 w-3 text-slate-400" />
-          </button>
+          {/* 4. Choix de la langue (Traduction Google Translate) */}
+          <GoogleTranslateWidget variant="mobile-action" dropdownAlign="right" />
 
           {/* 5. Paramètres */}
           <button

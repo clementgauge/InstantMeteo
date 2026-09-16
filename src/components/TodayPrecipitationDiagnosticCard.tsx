@@ -186,54 +186,54 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
   }
 
   return (
-    <div id="today-precipitation-diagnostic-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur sm:p-8 space-y-6">
+    <div id="today-precipitation-diagnostic-card" className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-6 space-y-5">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-5">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/10">
-            <CloudRain className="h-6 w-6" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-950 text-cyan-400 border border-slate-800">
+            <CloudRain className="h-5 w-5" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                Diagnostic Hydrologique & Pluviométrie Fine du Jour
+                Diagnostic Hydrologique & Pluviométrie
               </span>
-              <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300 font-bold">
+              <span className="rounded bg-slate-950 border border-slate-800 px-2 py-0.5 text-xs text-slate-300 font-semibold">
                 {station.name} ({station.altitude ?? 0}m)
               </span>
             </div>
-            <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+            <h3 className={`font-bold text-white ${seniorMode ? 'text-xl' : 'text-lg'}`}>
               Précipitations Précises du Jour (00h00 à 23h59)
             </h3>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-xl px-3 py-1.5 text-xs font-black uppercase border ${microphysicsBadge}`}>
+          <span className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase border ${microphysicsBadge}`}>
             {totalExpected24hMm > 0 ? `${totalExpected24hMm} mm prévus (${totalExpected24hMm} L/m²)` : "Temps Sec"}
           </span>
-          <span className="rounded-xl px-3 py-1.5 text-xs font-black uppercase border border-cyan-500/40 bg-cyan-950/60 text-cyan-300">
+          <span className="rounded-md px-2.5 py-1 text-xs font-bold uppercase border border-cyan-800 bg-cyan-950 text-cyan-300">
             Risque max : {maxProbaToday}%
           </span>
         </div>
       </div>
 
       {/* Precipitation Diagnostic Banner & Exact Estimated Duration Timing Box */}
-      <div className="rounded-2xl border border-cyan-500/40 bg-cyan-950/30 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-500/30 pb-2">
-          <div className="flex items-center gap-2 text-cyan-300 font-black text-sm uppercase tracking-wider">
-            <Sparkles className="h-4 w-4 text-cyan-400" />
+      <div className="rounded-md border border-slate-800 bg-slate-950 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+          <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+            <Sparkles className="h-4 w-4" />
             <span>Synthèse du Risque de Pluie & Quantités Prévues</span>
           </div>
-          <div className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-950 border border-cyan-500/60 text-cyan-200">
-            ⏱️ Durée Totale Estimée : <strong className="text-white">{todayDaily.precipitationHours ?? rainingHours.length} Heures</strong>
+          <div className="px-2.5 py-1 rounded text-xs font-mono font-semibold bg-slate-900 border border-slate-800 text-cyan-200">
+            Durée Totale Estimée : <strong className="text-white">{todayDaily.precipitationHours ?? rainingHours.length} Heures</strong>
           </div>
         </div>
 
         {/* High-Precision Estimated Duration & Timing Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">⏱️ Fenêtre Horaire Précise</span>
+          <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">Fenêtre Horaire Précise</span>
             <div className="text-xs font-mono font-bold text-white">
               {rainingHours.length > 0 ? (
                 <>Début : <span className="text-cyan-300">{rainingHours[0].hourLabel}</span> ➔ Fin : <span className="text-cyan-300">{rainingHours[rainingHours.length - 1].hourLabel}</span></>
@@ -242,12 +242,12 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
               )}
             </div>
             <p className="text-[10px] text-slate-400">
-              {rainingHours.length > 0 ? `Durée active de passage pluvieux : ${rainingHours.length}h` : 'Condition sèche stable'}
+              {rainingHours.length > 0 ? `Durée active : ${rainingHours.length}h` : 'Condition sèche stable'}
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">⚡ Pic Maximal d'Intensité</span>
+          <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">Pic d'Intensité</span>
             <div className="text-xs font-mono font-bold text-amber-300">
               {todayHourlyList.reduce((max, h) => (h.rainMm || 0) > (max.rainMm || 0) ? h : max, todayHourlyList[0])?.rainMm ?? 0} mm/h 
               <span className="text-slate-300"> à {todayHourlyList.reduce((max, h) => (h.rainMm || 0) > (max.rainMm || 0) ? h : max, todayHourlyList[0])?.hourLabel ?? '12h00'}</span>
@@ -257,13 +257,13 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">❄️ Estimation Neige & Isotherme 0°C</span>
+          <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">Neige & Isotherme 0°C</span>
             <div className="text-xs font-mono font-bold text-blue-300">
               {todayHourlyList.filter(h => h.temperature <= 2 && (h.rainMm || 0) > 0).length > 0 ? (
                 <>Neige prévue : <span className="text-white">{todayHourlyList.filter(h => h.temperature <= 2 && (h.rainMm || 0) > 0).length}h</span></>
               ) : (
-                <span className="text-slate-400">Pas de chute de neige (LMN {station.altitude ? station.altitude + 1200 : 1800}m)</span>
+                <span className="text-slate-400">Pas de chute de neige</span>
               )}
             </div>
             <p className="text-[10px] text-slate-400">
@@ -274,19 +274,19 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
 
         {/* Real Dynamic Diagnostic Text */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-          <div className="rounded-xl bg-slate-950/80 p-3 border border-slate-800 space-y-1">
+          <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
             <span className="text-[11px] uppercase font-bold text-slate-400">Diagnostic Combiné Probabilité & Volume</span>
             <p className="text-xs font-semibold text-white leading-relaxed">
               {rainRiskModel.combinedExplanation}
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-950/80 p-3 border border-slate-800 space-y-1">
-            <span className="text-[11px] uppercase font-bold text-slate-400">Conseil Pratique de Sortie</span>
+          <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
+            <span className="text-[11px] uppercase font-bold text-slate-400">Conseil Pratique</span>
             <p className="text-xs text-slate-300 leading-relaxed">
-              🕒 <strong className="text-cyan-300">{rainTimingLabel}</strong>
+              <strong className="text-cyan-300">{rainTimingLabel}</strong>
             </p>
-            <p className="text-[11px] text-slate-400 italic">
+            <p className="text-[11px] text-slate-400">
               {rainRiskModel.dailyAdvice}
             </p>
           </div>
@@ -296,52 +296,52 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
       {/* 4 Core Quantitative Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Déjà tombé */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-950 p-3.5">
           <span className="text-xs text-slate-400 font-medium">Déjà tombé depuis 00h00</span>
-          <div className="mt-1.5 text-2xl sm:text-3xl font-black text-cyan-400">
+          <div className="mt-1 text-2xl sm:text-3xl font-bold text-cyan-400">
             {fallenSoFarMm} <span className="text-sm font-normal text-slate-400">mm</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
+          <p className="text-[11px] text-slate-400 mt-0.5">
             {fallenSoFarMm > 0 ? `${fallenSoFarMm} L/m² mesurés` : 'Aucune pluie mesurée'}
           </p>
         </div>
 
         {/* Restant prévu */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-950 p-3.5">
           <span className="text-xs text-slate-400 font-medium">Restant prévu d'ici 23h59</span>
-          <div className="mt-1.5 text-2xl sm:text-3xl font-black text-blue-300">
+          <div className="mt-1 text-2xl sm:text-3xl font-bold text-blue-300">
             {remainingExpectedMm} <span className="text-sm font-normal text-slate-400">mm</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
+          <p className="text-[11px] text-slate-400 mt-0.5">
             {remainingExpectedMm > 0 ? `${remainingExpectedMm} L/m² à venir` : 'Fin des précipitations'}
           </p>
         </div>
 
         {/* Cumul 24h & Écart Normale */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-950 p-3.5">
           <span className="text-xs text-slate-400 font-medium">Cumul Total Prévu 24h</span>
-          <div className="mt-1.5 text-2xl sm:text-3xl font-black text-white">
+          <div className="mt-1 text-2xl sm:text-3xl font-bold text-white">
             {totalExpected24hMm} <span className="text-sm font-normal text-slate-400">mm</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Normale jour : <strong className="text-slate-300">{normalDailyRainMm} mm</strong> ({rainfallAnomalyPercent >= 0 ? `+${rainfallAnomalyPercent}%` : `${rainfallAnomalyPercent}%`})
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Normale : <strong className="text-slate-300">{normalDailyRainMm} mm</strong> ({rainfallAnomalyPercent >= 0 ? `+${rainfallAnomalyPercent}%` : `${rainfallAnomalyPercent}%`})
           </p>
         </div>
 
         {/* Bilan Hydrique (Pluie - ETP) */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-950 p-3.5">
           <span className="text-xs text-slate-400 font-medium">Bilan Hydrique (Pluie - ETP)</span>
-          <div className={`mt-1.5 text-2xl sm:text-3xl font-black ${waterBalance >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+          <div className={`mt-1 text-2xl sm:text-3xl font-bold ${waterBalance >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
             {waterBalance >= 0 ? `+${waterBalance}` : waterBalance} <span className="text-sm font-normal text-slate-400">mm</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
+          <p className="text-[11px] text-slate-400 mt-0.5">
             {waterBalance >= 0 ? "Recharge hydrique des sols" : "Évapotranspiration dominante"}
           </p>
         </div>
       </div>
 
       {/* Microphysics Classification Banner */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="rounded-md border border-slate-800 bg-slate-950 p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">
             Régime Microphysique des Précipitations
@@ -350,7 +350,7 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
           <p className="text-xs text-slate-300 mt-0.5">{microphysicsDesc}</p>
         </div>
 
-        <div className="text-xs text-slate-400 bg-slate-900 p-3 rounded-xl border border-slate-800 shrink-0">
+        <div className="text-xs text-slate-400 bg-slate-900 p-2.5 rounded-md border border-slate-800 shrink-0">
           <div>Probabilité max du jour : <strong className="text-cyan-300">{maxProbaToday}%</strong></div>
           <div>Heures de pluie estimées : <strong className="text-white">{todayDaily.precipitationHours ?? rainingHours.length} heures</strong></div>
         </div>
@@ -358,7 +358,7 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
 
       {/* 8 Sub-slots 3-Hour Breakdown (00h-03h -> 21h-24h) calculated from REAL 24h data */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-cyan-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -374,18 +374,18 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
             return (
               <div 
                 key={idx}
-                className={`rounded-2xl border p-3 text-center transition ${
+                className={`rounded-md border p-2.5 text-center transition ${
                   hasRain 
-                    ? 'border-cyan-500/50 bg-cyan-950/40 shadow-sm' 
-                    : 'border-slate-800/80 bg-slate-950/60'
+                    ? 'border-cyan-800 bg-cyan-950/50' 
+                    : 'border-slate-800 bg-slate-950'
                 }`}
               >
                 <span className="text-[11px] font-bold text-slate-300 block">{slot.slot}</span>
-                <span className="my-1 text-lg block">{slot.icon}</span>
-                <div className="text-base font-black text-white">
+                <span className="my-1 text-base block">{slot.icon}</span>
+                <div className="text-sm font-bold text-white">
                   {slot.rain} <span className="text-[10px] font-normal text-slate-400">mm</span>
                 </div>
-                <span className={`text-[10px] font-black block mt-0.5 ${slot.proba >= 50 ? 'text-cyan-300' : 'text-slate-400'}`}>
+                <span className={`text-[10px] font-bold block mt-0.5 ${slot.proba >= 50 ? 'text-cyan-300' : 'text-slate-400'}`}>
                   {slot.proba}%
                 </span>
                 <span className="text-[9px] text-slate-400 block truncate mt-0.5">{slot.type}</span>
@@ -396,7 +396,7 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
       </div>
 
       {/* Hourly Rainfall Chart for Today (00h to 23h) */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+      <div className="rounded-md border border-slate-800 bg-slate-950 p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <Activity className="h-4 w-4 text-cyan-400" />
@@ -412,14 +412,14 @@ export const TodayPrecipitationDiagnosticCard: React.FC<TodayPrecipitationDiagno
               <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
               <YAxis stroke="#94a3b8" fontSize={10} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', color: '#fff' }}
                 formatter={(val: any, name: any) => [
                   name === 'rainMm' ? `${val} mm (${val} L/m²)` : `${val}%`,
                   name === 'rainMm' ? 'Volume Pluie' : 'Probabilité'
                 ]}
                 labelFormatter={(label) => `Heure ${label}`}
               />
-              <Bar dataKey="rainMm" fill="#38bdf8" radius={[4, 4, 0, 0]} name="rainMm" />
+              <Bar dataKey="rainMm" fill="#0284c7" radius={[2, 2, 0, 0]} name="rainMm" />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -139,58 +139,56 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
   ];
 
   return (
-    <div id="page-sportsActivities" className="space-y-8">
+    <div id="page-sportsActivities" className="space-y-6">
       {/* Header Banner */}
       {!simplifiedMode && (
-        <div className="rounded-3xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-teal-400 text-xs font-black uppercase tracking-wider mb-2">
-              <Activity className="h-4 w-4 text-teal-400" />
-              <span>Page 15 • Observatoire Activités, Sports &amp; Trajets</span>
-            </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl sm:text-3xl'}`}>
-              Météo Sportive &amp; Calculateur d'Itinéraire Routier
-            </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Index biométéorologique « Ça vaut le coup de sortir ? », analyse des créneaux horaires favorables pour le sport et calcul météo étape par étape sur vos trajets routiers.
-            </p>
+        <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+          <div className="flex items-center gap-2 text-teal-400 text-xs font-semibold mb-1">
+            <Activity className="h-4 w-4 text-teal-400" />
+            <span>Observatoire des activités, sports et déplacements</span>
           </div>
+          <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
+            Météo des activités &amp; calculateur d'itinéraire routier
+          </h2>
+          <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+            Index biométéorologique pour les sorties extérieures, créneaux favorables pour la pratique sportive et relevés prévisionnels étape par étape le long de vos trajets.
+          </p>
         </div>
       )}
 
       {/* Main Outdoor Score Card */}
-      <div id="sports-score-section" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl backdrop-blur flex flex-col justify-between">
+      <div id="sports-score-section" className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 flex flex-col justify-between">
           <div>
-            <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
-              Index Global de Sortie ({activeStation?.name})
+            <span className="text-xs font-semibold text-teal-400">
+              Index global de sortie ({activeStation?.name})
             </span>
-            <div className="mt-3 flex items-baseline gap-3">
-              <span className="text-5xl font-black text-white">{outdoorScore}</span>
-              <span className="text-xl text-slate-400 font-bold">/ 10</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-4xl font-black text-white">{outdoorScore}</span>
+              <span className="text-lg text-slate-400 font-bold">/ 10</span>
             </div>
-            <div className="mt-2 text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+            <div className="mt-1.5 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4" />
-              <span>{outdoorScore >= 7.5 ? 'Conditions Très Favorables' : outdoorScore >= 5 ? 'Conditions Correctes' : 'Conditions Délicates'}</span>
+              <span>{outdoorScore >= 7.5 ? 'Conditions très favorables' : outdoorScore >= 5 ? 'Conditions correctes' : 'Conditions délicates'}</span>
             </div>
-            <p className="text-xs text-slate-300 mt-3 leading-relaxed">
+            <p className="text-xs text-slate-300 mt-2 leading-relaxed">
               Basé sur la température ({weather.temperature}°{tempUnit}), le ressenti ({weather.feelsLike}°{tempUnit}), les précipitations ({weather.precipitation} mm) et le vent ({weather.windSpeed} km/h).
             </p>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
-            <div className="text-xs font-bold text-slate-300">Recommandations Vestimentaires :</div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">
+          <div className="mt-4 pt-3 border-t border-slate-800 space-y-2">
+            <div className="text-xs font-semibold text-slate-300">Recommandations vestimentaires :</div>
+            <div className="flex flex-wrap gap-1.5 text-xs">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-200">
                 <Shirt className="h-3.5 w-3.5 text-teal-400" />
                 {weather.temperature < 15 ? 'Veste respirante' : 'T-shirt technique'}
               </span>
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-200">
                 <Glasses className="h-3.5 w-3.5 text-amber-400" />
                 Protection UV
               </span>
               {weather.precipitation > 0 && (
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">
+                <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-200">
                   <Umbrella className="h-3.5 w-3.5 text-blue-400" />
                   Imperméable
                 </span>
@@ -200,28 +198,28 @@ export const SportsAndRouteView: React.FC<SportsAndRouteViewProps> = ({
         </div>
 
         {/* Specific Sports Breakdown */}
-        <div id="sports-disciplines-section" className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div id="sports-disciplines-section" className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {activities.map((act) => {
             const Icon = act.icon;
             return (
-              <div key={act.name} className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur flex flex-col justify-between">
+              <div key={act.name} className="rounded-lg border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+                      <div className="h-7 w-7 rounded-md bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
                         <Icon className="h-4 w-4" />
                       </div>
                       <span className="font-bold text-white text-sm">{act.name}</span>
                     </div>
                   </div>
-                  <div className={`text-xs font-black mb-2 ${act.color}`}>
+                  <div className={`text-xs font-bold mb-1.5 ${act.color}`}>
                     {act.score}
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
                     {act.tips}
                   </p>
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 text-[11px] text-teal-300 flex items-center gap-1">
+                <div className="mt-3 pt-2 border-t border-slate-800 text-[11px] text-teal-300 flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   <span>Meilleur créneau : <strong>{act.slot}</strong></span>
                 </div>

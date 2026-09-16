@@ -86,20 +86,20 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Banner */}
-      <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/30 to-slate-900 p-6 shadow-xl backdrop-blur sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/40">
-              <Sparkles className="h-6 w-6" />
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-sky-400 border border-slate-700">
+              <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                Synthèse Climatologique &amp; Expertises
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Bulletin d'évaluation météorologique
               </span>
-              <h2 className={`font-black text-white ${seniorMode ? 'text-3xl' : 'text-2xl'}`}>
-                Diagnostic Expert &amp; Santé ({station.name})
+              <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
+                Diagnostic &amp; Recommandations ({station.name})
               </h2>
             </div>
           </div>
@@ -107,43 +107,43 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           <button
             onClick={onRefreshDiagnostic}
             disabled={isLoadingDiagnostic}
-            className="flex items-center gap-2 rounded-2xl border border-sky-500/40 bg-sky-600/20 px-4 py-2 text-xs font-bold text-sky-300 hover:bg-sky-600 hover:text-white transition disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${isLoadingDiagnostic ? 'animate-spin' : ''}`} />
-            <span>Actualiser le diagnostic</span>
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoadingDiagnostic ? 'animate-spin' : ''}`} />
+            <span>Actualiser</span>
           </button>
         </div>
 
         {diagnostic ? (
-          <div className="mt-6 rounded-2xl bg-slate-950/70 p-5 border border-slate-800">
-            <p className={`text-slate-200 leading-relaxed font-medium ${seniorMode ? 'text-xl' : 'text-base'}`}>
-              « {diagnostic.summary} »
+          <div className="mt-4 rounded-md bg-slate-950 p-3.5 border border-slate-800">
+            <p className={`text-slate-200 leading-relaxed font-normal ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+              {diagnostic.summary}
             </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-sky-300">
-              <Clock className="h-3.5 w-3.5" />
-              <span>Synthèse établie à {diagnostic.generatedAt || diagnostic.generationDate || 'Temps réel'} pour les conditions de {station.name}</span>
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
+              <Clock className="h-3 w-3 text-slate-500" />
+              <span>Synthèse établie à {diagnostic.generatedAt || diagnostic.generationDate || 'Temps réel'} pour la station de {station.name}</span>
             </div>
           </div>
         ) : (
-          <div className="mt-6 flex items-center justify-center py-6">
-            <RefreshCw className="h-6 w-6 animate-spin text-sky-400" />
-            <span className="ml-3 text-sm text-slate-400">Analyse des observations et prévisions en cours...</span>
+          <div className="mt-4 flex items-center justify-center py-4">
+            <RefreshCw className="h-5 w-5 animate-spin text-sky-400" />
+            <span className="ml-2.5 text-xs text-slate-400">Analyse des observations et prévisions en cours...</span>
           </div>
         )}
       </div>
 
       {/* 3 Practical Advice Cards */}
       {diagnostic && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Health & Seniors */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold mb-4">
-              <HeartHandshake className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Conseils Santé &amp; Confort</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold mb-2.5 pb-2 border-b border-slate-800">
+              <HeartHandshake className="h-4 w-4" />
+              <h3 className={`font-semibold ${seniorMode ? 'text-lg' : 'text-xs'}`}>Santé &amp; Confort</h3>
             </div>
-            <ul className="space-y-3 text-xs text-slate-300">
-              {(diagnostic.healthAdvice || [diagnostic.healthAdviceSenior || "Restez bien hydraté."]).map((adv: string, i: number) => (
-                <li key={i} className={`flex items-start gap-2 ${seniorMode ? 'text-base leading-relaxed' : ''}`}>
+            <ul className="space-y-2 text-xs text-slate-300">
+              {(diagnostic.healthAdvice || [diagnostic.healthAdviceSenior || "Hydratation régulière recommandée."]).map((adv: string, i: number) => (
+                <li key={i} className={`flex items-start gap-1.5 ${seniorMode ? 'text-base leading-relaxed' : ''}`}>
                   <span className="text-emerald-400 font-bold">•</span>
                   <span>{adv}</span>
                 </li>
@@ -152,10 +152,10 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           </div>
 
           {/* Agriculture & Nature */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-            <div className="flex items-center gap-2 text-lime-400 font-bold mb-4">
-              <Sprout className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Jardin &amp; Végétation</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+            <div className="flex items-center gap-2 text-lime-400 font-bold mb-2.5 pb-2 border-b border-slate-800">
+              <Sprout className="h-4 w-4" />
+              <h3 className={`font-semibold ${seniorMode ? 'text-lg' : 'text-xs'}`}>Jardin &amp; Végétation</h3>
             </div>
             <p className={`text-slate-300 leading-relaxed ${seniorMode ? 'text-base' : 'text-xs'}`}>
               {diagnostic.agricultureImpact}
@@ -163,10 +163,10 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
           </div>
 
           {/* Energy & Housing */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-            <div className="flex items-center gap-2 text-amber-400 font-bold mb-4">
-              <Zap className="h-5 w-5" />
-              <h3 className={seniorMode ? 'text-xl' : 'text-base'}>Énergie &amp; Logement</h3>
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+            <div className="flex items-center gap-2 text-amber-400 font-bold mb-2.5 pb-2 border-b border-slate-800">
+              <Zap className="h-4 w-4" />
+              <h3 className={`font-semibold ${seniorMode ? 'text-lg' : 'text-xs'}`}>Énergie &amp; Logement</h3>
             </div>
             <p className={`text-slate-300 leading-relaxed ${seniorMode ? 'text-base' : 'text-xs'}`}>
               {diagnostic.energyImpact || diagnostic.waterResourceStatus || "Consommation normale."}
@@ -176,32 +176,32 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
       )}
 
       {/* Interactive Question Box with Climatologist */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
-        <div className="flex items-center gap-2 mb-4">
-          <MessageSquare className="h-5 w-5 text-sky-400" />
-          <h3 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
-            Poser une question à l'Expert Météo
+      <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <MessageSquare className="h-4 w-4 text-sky-400" />
+          <h3 className={`font-bold text-white ${seniorMode ? 'text-xl' : 'text-sm'}`}>
+            Questions météorologiques locales
           </h3>
         </div>
 
         {/* Chat History */}
         {chatLog.length > 0 && (
-          <div className="mb-4 max-h-60 overflow-y-auto space-y-3 rounded-2xl bg-slate-950 p-4 border border-slate-800">
+          <div className="mb-3 max-h-60 overflow-y-auto space-y-2 rounded-md bg-slate-950 p-3 border border-slate-800">
             {chatLog.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'ai' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white">
-                    <Bot className="h-4 w-4" />
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-slate-800 text-sky-400 border border-slate-700">
+                    <Bot className="h-3.5 w-3.5" />
                   </div>
                 )}
                 <div
-                  className={`rounded-2xl px-4 py-2.5 max-w-lg text-xs leading-relaxed ${
+                  className={`rounded-md px-3 py-2 max-w-lg text-xs leading-relaxed ${
                     msg.sender === 'user'
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'bg-slate-800 text-slate-200 border border-slate-700'
+                      ? 'bg-[#0284C7] text-white font-medium'
+                      : 'bg-slate-900 text-slate-200 border border-slate-800'
                   } ${seniorMode ? 'text-sm' : ''}`}
                 >
                   {msg.text}
@@ -209,9 +209,9 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
               </div>
             ))}
             {isAsking && (
-              <div className="flex gap-2 text-xs text-sky-400 items-center">
-                <Bot className="h-4 w-4 animate-bounce" />
-                <span>L'expert formule ses recommandations...</span>
+              <div className="flex gap-1.5 text-xs text-slate-400 items-center">
+                <Bot className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
+                <span>Recherche des données de la station...</span>
               </div>
             )}
           </div>
@@ -222,17 +222,17 @@ export const AiDiagnosticView: React.FC<AiDiagnosticViewProps> = ({
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ex : Dois-je arroser mon jardin ce soir ? Quel est le meilleur moment pour sortir ?"
-            className={`flex-1 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-200 placeholder-slate-500 focus:border-sky-500 focus:outline-none ${
-              seniorMode ? 'text-base' : 'text-sm'
+            placeholder="Ex : Faut-il aérer ce soir ? Quand la pluie est-elle prévue ?"
+            className={`flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 placeholder-slate-500 focus:border-[#0284C7] focus:outline-none ${
+              seniorMode ? 'text-base' : 'text-xs'
             }`}
           />
           <button
             type="submit"
             disabled={isAsking || !question.trim()}
-            className="flex items-center justify-center rounded-2xl bg-sky-600 px-5 font-bold text-white shadow-lg shadow-sky-600/30 hover:bg-sky-500 transition disabled:opacity-40"
+            className="flex items-center justify-center rounded-md bg-[#0284C7] hover:bg-sky-600 px-4 font-semibold text-white transition disabled:opacity-40"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-3.5 w-3.5" />
           </button>
         </form>
       </div>

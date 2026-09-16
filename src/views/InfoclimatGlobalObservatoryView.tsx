@@ -431,60 +431,57 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
   return (
     <div id="infoclimat-global-observatory-view" className="space-y-6">
-      {/* Top Header Luxury Banner */}
-      <div className="rounded-3xl border border-purple-500/30 bg-gradient-to-br from-slate-950 via-purple-950/40 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-80 w-80 rounded-full bg-purple-500/10 blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 -mb-10 h-60 w-60 rounded-full bg-rose-500/10 blur-3xl pointer-events-none"></div>
-        
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between relative z-10">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600/30 to-rose-600/30 text-purple-300 border border-purple-500/40 shadow-xl">
-              <Radio className="h-8 w-8 animate-pulse text-purple-300" />
+      {/* Top Header Banner */}
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-800 text-sky-400 border border-slate-700">
+              <Radio className="h-5 w-5 text-sky-400" />
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-900/90 text-purple-200 border border-purple-500/50 flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-purple-400" /> 100% Stations Officielles d'État (OMM &amp; Météo-France)
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3 text-sky-400" /> Stations officielles d'État (OMM &amp; Météo-France)
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-500/50 flex items-center gap-1">
-                  <Trophy className="h-3 w-3 text-rose-400" /> Suivi Automatique des Records par Pays
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-rose-300 border border-slate-700 flex items-center gap-1">
+                  <Trophy className="h-3 w-3 text-rose-400" /> Suivi des records par pays
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Télémesures Vérifiées Temps Réel
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-emerald-300 border border-slate-700 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Télémesures vérifiées
                 </span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Observatoire Mondial des Stations Officielles &amp; Records par Pays
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Observatoire mondial des stations officielles et records par pays
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-3xl mt-1 leading-relaxed">
-                Supervision certifiée de <strong className="text-white">{observatoryData.totalObservedStationsCount} stations 100% officielles</strong> dans <strong className="text-purple-300">{countries.length} pays</strong> (Météo-France SYNOP &amp; RADOME, NOAA USA, AEMET Espagne, DWD Allemagne, UK Met Office, BoM Australie, OMM SYNOP Mondial). Télémétrie complète, point de rosée, rayonnement solaire et détection en direct des <strong className="text-rose-400">records battus et approchés</strong> calculés sur les normales officielles 1991-2020.
+              <p className="text-xs text-slate-300 max-w-3xl mt-1 leading-relaxed">
+                Supervision de <strong className="text-white">{observatoryData.totalObservedStationsCount} stations officielles</strong> dans <strong className="text-sky-300">{countries.length} pays</strong> (Météo-France SYNOP &amp; RADOME, NOAA, AEMET, DWD, Met Office, BoM, OMM). Télémétrie complète et suivi des écarts aux normales 1991-2020.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-2 shrink-0">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSyncLive}
                 disabled={isSyncingLive}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 border border-purple-400 transition cursor-pointer active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold text-xs border border-sky-500 transition cursor-pointer disabled:opacity-50"
               >
-                <RefreshCw className={`h-4 w-4 ${isSyncingLive ? 'animate-spin' : ''}`} />
-                <span>{isSyncingLive ? 'Actualisation API Mondiale...' : '🔄 Actualiser Relevés Réels Open-Meteo'}</span>
+                <RefreshCw className={`h-3.5 w-3.5 ${isSyncingLive ? 'animate-spin' : ''}`} />
+                <span>{isSyncingLive ? 'Actualisation...' : 'Actualiser données réelles'}</span>
               </button>
 
               <button
                 onClick={handleExportCSV}
                 title="Exporter toutes les stations filtrées en CSV"
-                className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold transition cursor-pointer shadow"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition cursor-pointer"
               >
-                <Download className="h-4 w-4 text-purple-400" />
+                <Download className="h-3.5 w-3.5 text-slate-400" />
                 <span className="hidden sm:inline">Export CSV</span>
               </button>
             </div>
 
             {liveSyncStatus && (
-              <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/90 px-3 py-1.5 rounded-xl border border-emerald-500/40 shadow">
+              <span className="text-[11px] font-mono text-emerald-400 bg-slate-900 px-2.5 py-1 rounded border border-emerald-900">
                 {liveSyncStatus}
               </span>
             )}
@@ -492,25 +489,25 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
         </div>
 
         {/* 📊 SUMMARY TILES (RECORDS BATTUS + ANOMALIES) */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-800/80 pt-5">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 border-t border-slate-800 pt-4">
           {/* Tile 1: Broken Records Highlight */}
           <button
             onClick={() => setActiveTab('records_hall_of_fame')}
-            className="p-3.5 rounded-2xl border bg-gradient-to-br from-rose-950/90 via-slate-900 to-slate-950 border-rose-500/80 hover:border-rose-400 transition text-left cursor-pointer group shadow-lg shadow-rose-950/40"
+            className="p-3 rounded-md border bg-slate-900 border-slate-800 hover:border-rose-500/60 transition text-left cursor-pointer"
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-black text-rose-300 flex items-center gap-1.5">
-                <Trophy className="h-4 w-4 text-rose-400 animate-bounce" /> Records Battus
+              <span className="text-xs font-semibold text-rose-300 flex items-center gap-1">
+                <Trophy className="h-3.5 w-3.5 text-rose-400" /> Records battus
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-mono font-bold text-rose-200 border border-rose-500">
-                {countriesWithRecords.length} pays touchés
+              <span className="px-1.5 py-0.5 rounded bg-rose-950 text-[10px] font-mono text-rose-300 border border-rose-800">
+                {countriesWithRecords.length} pays
               </span>
             </div>
-            <div className="text-2xl font-black text-white">
-              {observatoryData.totalBrokenRecordsCount} <span className="text-xs font-normal text-rose-300">stations en record</span>
+            <div className="text-xl font-black text-white tabular-nums">
+              {observatoryData.totalBrokenRecordsCount} <span className="text-xs font-normal text-rose-300">station{observatoryData.totalBrokenRecordsCount > 1 ? 's' : ''}</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 group-hover:text-rose-300 transition">
-              <span>Voir le palmarès par pays</span>
+            <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+              <span>Voir le palmarès</span>
               <ChevronRight className="h-3 w-3" />
             </div>
           </button>
@@ -521,25 +518,25 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
               setSelectedAnomalyFilter(selectedAnomalyFilter === 'ABOVE_NORMAL' ? 'ALL' : 'ABOVE_NORMAL');
               setActiveTab('stations');
             }}
-            className={`p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+            className={`p-3 rounded-md border transition text-left cursor-pointer ${
               selectedAnomalyFilter === 'ABOVE_NORMAL'
-                ? 'bg-amber-950/90 border-amber-500 ring-2 ring-amber-500/50'
-                : 'bg-slate-900/80 border-slate-800 hover:border-amber-500/50'
+                ? 'bg-amber-950/40 border-amber-500 ring-1 ring-amber-500'
+                : 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                <Flame className="h-4 w-4 text-amber-400" /> Surchauffe / Au-dessus
+              <span className="text-xs font-semibold text-amber-300 flex items-center gap-1">
+                <Flame className="h-3.5 w-3.5 text-amber-400" /> Au-dessus
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-amber-950 text-[10px] font-mono font-bold text-amber-200 border border-amber-800">
+              <span className="px-1.5 py-0.5 rounded bg-amber-950 text-[10px] font-mono text-amber-300 border border-amber-800">
                 {observatoryData.pctAboveNormals}%
               </span>
             </div>
-            <div className="text-2xl font-black text-white">
+            <div className="text-xl font-black text-white tabular-nums">
               {observatoryData.totalAboveNormalsCount} <span className="text-xs font-normal text-slate-400">stations (&ge; +0.5°C)</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-1">
-              Écart moyen élevé vs 1991-2020
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Écart chaud vs 1991-2020
             </div>
           </button>
 
@@ -549,25 +546,25 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
               setSelectedAnomalyFilter(selectedAnomalyFilter === 'IN_NORMAL' ? 'ALL' : 'IN_NORMAL');
               setActiveTab('stations');
             }}
-            className={`p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+            className={`p-3 rounded-md border transition text-left cursor-pointer ${
               selectedAnomalyFilter === 'IN_NORMAL'
-                ? 'bg-emerald-950/90 border-emerald-500 ring-2 ring-emerald-500/50'
-                : 'bg-slate-900/80 border-slate-800 hover:border-emerald-500/50'
+                ? 'bg-emerald-950/40 border-emerald-500 ring-1 ring-emerald-500'
+                : 'bg-slate-900 border-slate-800 hover:border-emerald-500/50'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Dans les Normales
+              <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Normales
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-[10px] font-mono font-bold text-emerald-200 border border-emerald-800">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-[10px] font-mono text-emerald-300 border border-emerald-800">
                 {observatoryData.pctNormal}%
               </span>
             </div>
-            <div className="text-2xl font-black text-white">
+            <div className="text-xl font-black text-white tabular-nums">
               {observatoryData.totalNormalCount} <span className="text-xs font-normal text-slate-400">stations (&plusmn;0.5°C)</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-1">
-              Conformes aux climatologies
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Conformes aux normales
             </div>
           </button>
 
@@ -577,82 +574,77 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
               setSelectedAnomalyFilter(selectedAnomalyFilter === 'BELOW_NORMAL' ? 'ALL' : 'BELOW_NORMAL');
               setActiveTab('stations');
             }}
-            className={`p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+            className={`p-3 rounded-md border transition text-left cursor-pointer ${
               selectedAnomalyFilter === 'BELOW_NORMAL'
-                ? 'bg-blue-950/90 border-blue-500 ring-2 ring-blue-500/50'
-                : 'bg-slate-900/80 border-slate-800 hover:border-blue-500/50'
+                ? 'bg-blue-950/40 border-blue-500 ring-1 ring-blue-500'
+                : 'bg-slate-900 border-slate-800 hover:border-blue-500/50'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
-                <Snowflake className="h-4 w-4 text-blue-400" /> Sous les Normales
+              <span className="text-xs font-semibold text-blue-300 flex items-center gap-1">
+                <Snowflake className="h-3.5 w-3.5 text-blue-400" /> En-dessous
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-blue-950 text-[10px] font-mono font-bold text-blue-200 border border-blue-800">
+              <span className="px-1.5 py-0.5 rounded bg-blue-950 text-[10px] font-mono text-blue-300 border border-blue-800">
                 {observatoryData.pctBelowNormals}%
               </span>
             </div>
-            <div className="text-2xl font-black text-white">
+            <div className="text-xl font-black text-white tabular-nums">
               {observatoryData.totalBelowNormalsCount} <span className="text-xs font-normal text-slate-400">stations (&le; -0.5°C)</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-1">
+            <div className="text-[10px] text-slate-400 mt-0.5">
               Fraîcheur ou froid marqué
             </div>
           </button>
         </div>
 
         {/* View Navigation Tabs */}
-        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-slate-800/80 pt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-slate-800 pt-3">
           <button
             onClick={() => setActiveTab('stations')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer border ${
               activeTab === 'stations'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-500'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Radio className="h-4 w-4" />
-            <span>1. Relevés Stations &amp; Mesures Directes ({filteredAndSortedStations.length})</span>
+            <Radio className="h-3.5 w-3.5" />
+            <span>1. Relevés direct ({filteredAndSortedStations.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('records_hall_of_fame')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer border ${
               activeTab === 'records_hall_of_fame'
-                ? 'bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg shadow-rose-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-rose-700 text-white border-rose-600'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Trophy className="h-4 w-4 text-amber-300" />
-            <span>2. 🏆 Palmarès des Records Battus par Pays ({observatoryData.totalBrokenRecordsCount})</span>
-            {observatoryData.totalBrokenRecordsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-white text-rose-700 text-[10px] font-black">
-                {observatoryData.totalBrokenRecordsCount}
-              </span>
-            )}
+            <Trophy className="h-3.5 w-3.5 text-amber-300" />
+            <span>2. Records battus par pays ({observatoryData.totalBrokenRecordsCount})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('top_rankings')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer border ${
               activeTab === 'top_rankings'
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-amber-600 text-white border-amber-500'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Award className="h-4 w-4 text-amber-300" />
-            <span>3. 🥇 Top 10 Réseau (Chaleur, Froid, Anomalies, Vent, Pluie)</span>
+            <Award className="h-3.5 w-3.5 text-amber-300" />
+            <span>3. Top 10 réseau</span>
           </button>
 
           <button
             onClick={() => setActiveTab('country_index')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer border ${
               activeTab === 'country_index'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-[#0284C7] text-white border-sky-500'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Globe2 className="h-4 w-4" />
-            <span>4. Synthèse Synoptique &amp; Densité par Pays ({observatoryData.countryIndices.length} pays)</span>
+            <Globe2 className="h-3.5 w-3.5" />
+            <span>4. Synthèse par pays ({observatoryData.countryIndices.length})</span>
           </button>
         </div>
       </div>
@@ -661,17 +653,17 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
       {activeTab === 'stations' && (
         <div className="space-y-5">
           {/* Filter & Control Bar */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-lg backdrop-blur space-y-3">
-            <div className="flex flex-col md:flex-row items-center gap-3">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-3.5 space-y-3">
+            <div className="flex flex-col md:flex-row items-center gap-2.5">
               {/* Search Bar */}
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher une station (ex: Vérargues, Mont Aigoual, Jacobabad, StatIC, Davis, Chamonix)..."
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 py-2.5 pl-10 pr-4 text-xs font-medium text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  placeholder="Rechercher une station (ex: Vérargues, Mont Aigoual, Jacobabad, Chamonix)..."
+                  className="w-full rounded-md bg-slate-950 border border-slate-800 py-2 pl-9 pr-3 text-xs font-medium text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -680,9 +672,9 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                 <select
                   value={selectedCountry}
                   onChange={(e) => setSelectedCountry(e.target.value)}
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 py-2.5 px-3 text-xs font-medium text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-md bg-slate-950 border border-slate-800 py-2 px-2.5 text-xs font-medium text-white focus:border-sky-500 focus:outline-none"
                 >
-                  <option value="ALL">🌐 Tous les Pays ({countries.length} pays - {observatoryData.totalObservedStationsCount} st.)</option>
+                  <option value="ALL">🌐 Tous les pays ({countries.length} pays - {observatoryData.totalObservedStationsCount} st.)</option>
                   {countries.map(c => {
                     const count = countryCounts.get(c) || 0;
                     const flag = COUNTRY_FLAGS[observatoryData.countryIndices.find(ci => ci.countryName === c)?.countryCode || ''] || '🌐';
@@ -700,94 +692,94 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                 <select
                   value={selectedNetworkFilter}
                   onChange={(e) => setSelectedNetworkFilter(e.target.value)}
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 py-2.5 px-3 text-xs font-medium text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-md bg-slate-950 border border-slate-800 py-2 px-2.5 text-xs font-medium text-white focus:border-sky-500 focus:outline-none"
                 >
-                  <option value="ALL">📡 Tous Réseaux Officiels (Météo-France &amp; OMM)</option>
-                  <option value="METEOFRANCE_ALL">🇫🇷 Météo-France (Tous Réseaux Officiels)</option>
-                  <option value="METEOFRANCE_SYNOP">🏛️ Météo-France SYNOP (Réseau OMM)</option>
-                  <option value="METEOFRANCE_RADOME">📡 Météo-France RADOME (Réseau d'État)</option>
-                  <option value="WMO_WORLD">🌎 Réseaux Nationaux Mondiaux (NOAA, DWD, AEMET...)</option>
+                  <option value="ALL">Réseaux officiels (Météo-France &amp; OMM)</option>
+                  <option value="METEOFRANCE_ALL">🇫🇷 Météo-France (Tous réseaux)</option>
+                  <option value="METEOFRANCE_SYNOP">🏛️ Météo-France SYNOP (OMM)</option>
+                  <option value="METEOFRANCE_RADOME">📡 Météo-France RADOME</option>
+                  <option value="WMO_WORLD">🌎 Réseaux nationaux mondiaux</option>
                 </select>
               </div>
 
               {/* Sort By Selector */}
-              <div className="w-full md:w-52 shrink-0">
+              <div className="w-full md:w-48 shrink-0">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="w-full rounded-xl bg-slate-950 border border-purple-500/40 py-2.5 px-3 text-xs font-bold text-purple-300 focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-md bg-slate-950 border border-slate-800 py-2 px-2.5 text-xs font-medium text-slate-200 focus:border-sky-500 focus:outline-none"
                 >
-                  <option value="anomaly_desc">📈 Tri : Plus forte anomalie (+°C)</option>
-                  <option value="temp_desc">🌡️ Tri : Température actuelle max</option>
-                  <option value="temp_asc">❄️ Tri : Température actuelle min</option>
-                  <option value="tmax_desc">🔥 Tri : Tx Max du jour</option>
-                  <option value="tmin_asc">🧊 Tri : Tn Min du jour</option>
-                  <option value="wind_desc">💨 Tri : Rafales de vent max</option>
-                  <option value="rain_desc">🌧️ Tri : Pluie 24h max</option>
-                  <option value="altitude_desc">🏔️ Tri : Altitude</option>
-                  <option value="name_asc">🔤 Tri : Nom A-Z</option>
+                  <option value="anomaly_desc">Tri : Forte anomalie (+°C)</option>
+                  <option value="temp_desc">Tri : Température max</option>
+                  <option value="temp_asc">Tri : Température min</option>
+                  <option value="tmax_desc">Tri : Tx max du jour</option>
+                  <option value="tmin_asc">Tri : Tn min du jour</option>
+                  <option value="wind_desc">Tri : Rafales de vent</option>
+                  <option value="rain_desc">Tri : Pluie 24h</option>
+                  <option value="altitude_desc">Tri : Altitude</option>
+                  <option value="name_asc">Tri : Nom A-Z</option>
                 </select>
               </div>
 
               {/* Layout Toggle Button */}
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
+              <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-md border border-slate-800 shrink-0">
                 <button
                   onClick={() => setViewLayout('grid')}
-                  title="Affichage en grille de cartes"
-                  className={`p-1.5 rounded-lg transition cursor-pointer ${
-                    viewLayout === 'grid' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
+                  title="Affichage en grille"
+                  className={`p-1.5 rounded transition cursor-pointer ${
+                    viewLayout === 'grid' ? 'bg-[#0284C7] text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => setViewLayout('table')}
-                  title="Affichage en tableau haute densité"
-                  className={`p-1.5 rounded-lg transition cursor-pointer ${
-                    viewLayout === 'table' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
+                  title="Affichage en tableau"
+                  className={`p-1.5 rounded transition cursor-pointer ${
+                    viewLayout === 'table' ? 'bg-[#0284C7] text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Table className="h-4 w-4" />
+                  <Table className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Fast Toggle Pills */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/60">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
               <button
                 onClick={() => setOnlyBrokenRecords(!onlyBrokenRecords)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
                   onlyBrokenRecords 
-                    ? 'bg-rose-600 text-white border-rose-400 shadow-md shadow-rose-600/30' 
-                    : 'bg-slate-950 text-rose-300 border-rose-500/40 hover:bg-rose-950/40'
+                    ? 'bg-rose-700 text-white border-rose-600' 
+                    : 'bg-slate-950 text-rose-300 border-rose-900 hover:bg-rose-950/40'
                 }`}
               >
                 <Trophy className="h-3.5 w-3.5" />
-                <span>🏆 Records Battus Uniquement ({observatoryData.totalBrokenRecordsCount})</span>
+                <span>Records battus ({observatoryData.totalBrokenRecordsCount})</span>
               </button>
 
               <button
                 onClick={() => setSelectedNetworkFilter(selectedNetworkFilter === 'METEOFRANCE_ALL' ? 'ALL' : 'METEOFRANCE_ALL')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
                   selectedNetworkFilter === 'METEOFRANCE_ALL' 
-                    ? 'bg-blue-600 text-white border-blue-400' 
-                    : 'bg-slate-950 text-blue-300 border-blue-500/40 hover:bg-blue-950/40'
+                    ? 'bg-sky-700 text-white border-sky-600' 
+                    : 'bg-slate-950 text-sky-300 border-sky-900 hover:bg-sky-950/40'
                 }`}
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>🇫🇷 Météo-France Réseau Officiel ({observatoryData.verifiedStations.filter(s => s.countryCode === 'FR').length})</span>
+                <span>Météo-France ({observatoryData.verifiedStations.filter(s => s.countryCode === 'FR').length})</span>
               </button>
 
               <button
                 onClick={() => setSelectedNetworkFilter(selectedNetworkFilter === 'WMO_WORLD' ? 'ALL' : 'WMO_WORLD')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
                   selectedNetworkFilter === 'WMO_WORLD' 
-                    ? 'bg-cyan-600 text-white border-cyan-400' 
-                    : 'bg-slate-950 text-cyan-300 border-cyan-500/40 hover:bg-cyan-950/40'
+                    ? 'bg-cyan-700 text-white border-cyan-600' 
+                    : 'bg-slate-950 text-cyan-300 border-cyan-900 hover:bg-cyan-950/40'
                 }`}
               >
                 <Radio className="h-3.5 w-3.5" />
-                <span>🌎 Réseaux Mondiaux OMM ({observatoryData.verifiedStations.filter(s => s.countryCode !== 'FR').length})</span>
+                <span>Mondiaux OMM ({observatoryData.verifiedStations.filter(s => s.countryCode !== 'FR').length})</span>
               </button>
 
               {(selectedCountry !== 'ALL' || selectedNetworkFilter !== 'ALL' || selectedPhenomenonFilter !== 'ALL' || selectedAnomalyFilter !== 'ALL' || onlyBrokenRecords || searchQuery) && (
@@ -800,9 +792,9 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                     setOnlyBrokenRecords(false);
                     setSearchQuery('');
                   }}
-                  className="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition ml-auto cursor-pointer"
+                  className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition ml-auto cursor-pointer"
                 >
-                  Réinitialiser les filtres
+                  Réinitialiser
                 </button>
               )}
             </div>
@@ -810,22 +802,22 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
           {/* VIEW MODE 1: GRID VIEW */}
           {viewLayout === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredAndSortedStations.map((st) => (
                 <div 
                   key={st.stationId}
-                  className={`rounded-2xl border bg-slate-900/90 p-5 shadow-xl backdrop-blur flex flex-col justify-between space-y-4 hover:border-purple-500/50 transition duration-200 group ${
-                    st.isRecordBroken ? 'border-rose-500/80 ring-1 ring-rose-500/30' : 'border-slate-800'
+                  className={`rounded-lg border bg-slate-900 p-3.5 flex flex-col justify-between space-y-3 hover:border-slate-700 transition ${
+                    st.isRecordBroken ? 'border-rose-500/80 ring-1 ring-rose-500/40' : 'border-slate-800'
                   }`}
                 >
                   {/* Station Top Info */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st.networkBadgeColor}`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${st.networkBadgeColor}`}>
                         {st.networkLabel}
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
-                        ⏱️ {st.verificationTimestamp}
+                        {st.verificationTimestamp}
                       </span>
                     </div>
 
@@ -835,40 +827,40 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                           <span className="text-base">{COUNTRY_FLAGS[st.countryCode] || '🌐'}</span>
                           <h4 
                             onClick={() => setSelectedStationModal(st)}
-                            className="font-black text-white text-base group-hover:text-purple-300 transition cursor-pointer"
+                            className="font-bold text-white text-sm hover:text-sky-300 transition cursor-pointer"
                           >
                             {st.stationName}
                           </h4>
                         </div>
                         <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                          <MapPin className="h-3 w-3 text-purple-400 shrink-0" />
+                          <MapPin className="h-3 w-3 text-sky-400 shrink-0" />
                           <span>{st.departmentOrRegion}, <strong className="text-slate-300">{st.country}</strong> ({st.altitude}m)</span>
                         </p>
                       </div>
 
                       {/* Temp & Anomaly Display */}
                       <div className="text-right shrink-0">
-                        <div className="flex items-baseline gap-1.5 justify-end">
+                        <div className="flex items-baseline gap-1 justify-end">
                           <span className="text-xs font-mono text-slate-400">Direct :</span>
-                          <span className="text-2xl font-black text-white tracking-tight">{st.currentTemp}°C</span>
+                          <span className="text-xl font-black text-white tabular-nums">{st.currentTemp}°C</span>
                         </div>
-                        <div className="text-[11px] font-mono text-amber-300 font-bold">
+                        <div className="text-[11px] font-mono text-amber-300 font-semibold">
                           Tx : {st.tMaxToday ?? st.currentTemp}°C <span className="text-[10px] text-slate-400 font-normal">(Tn : {st.tMinToday ?? '--'}°C)</span>
                         </div>
                         <div className="text-[10px] font-mono text-slate-400">
-                          Normale : <strong className="text-slate-200">{st.normalTemp1991_2020}°C</strong>
+                          Normale : <strong className="text-slate-300">{st.normalTemp1991_2020}°C</strong>
                         </div>
                       </div>
                     </div>
 
                     {/* Broken Record Badge if Applicable */}
                     {st.isRecordBroken && st.brokenRecordInfo && (
-                      <div className={`p-2.5 rounded-xl border text-xs font-bold space-y-1 ${st.brokenRecordInfo.badgeStyle}`}>
+                      <div className={`p-2 rounded-md border text-xs font-semibold space-y-0.5 ${st.brokenRecordInfo.badgeStyle}`}>
                         <div className="flex items-center justify-between">
-                          <span className="font-black flex items-center gap-1.5 text-[11px]">
-                            <Trophy className="h-4 w-4" /> {st.brokenRecordInfo.recordLabel}
+                          <span className="font-bold flex items-center gap-1.5 text-[11px]">
+                            <Trophy className="h-3.5 w-3.5" /> {st.brokenRecordInfo.recordLabel}
                           </span>
-                          <span className="font-mono font-black text-sm">
+                          <span className="font-mono font-bold text-xs">
                             {st.tMaxToday}°C
                           </span>
                         </div>
@@ -879,35 +871,35 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                     )}
 
                     {/* Explicit Anomaly Status Banner */}
-                    <div className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-between ${
+                    <div className={`p-2 rounded-md border text-xs font-semibold flex items-center justify-between ${
                       st.tempAnomalyC >= 0.5 
-                        ? 'bg-rose-950/90 border-rose-500/80 text-rose-100' 
-                        : (st.tempAnomalyC <= -0.5 ? 'bg-blue-950/90 border-blue-500/80 text-blue-100' : 'bg-emerald-950/90 border-emerald-500/80 text-emerald-100')
+                        ? 'bg-rose-950/70 border-rose-800 text-rose-100' 
+                        : (st.tempAnomalyC <= -0.5 ? 'bg-blue-950/70 border-blue-800 text-blue-100' : 'bg-emerald-950/70 border-emerald-800 text-emerald-100')
                     }`}>
-                      <span className="flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider">
+                      <span className="flex items-center gap-1.5 font-bold uppercase text-[10px] tracking-wide">
                         {st.tempAnomalyC >= 0.5 ? (
-                          <><Flame className="h-4 w-4 text-rose-400" /> Écart Chaud (Tx vs Normale)</>
+                          <><Flame className="h-3.5 w-3.5 text-rose-400" /> Écart chaud (Tx vs Normale)</>
                         ) : (st.tempAnomalyC <= -0.5 ? (
-                          <><Snowflake className="h-4 w-4 text-blue-400" /> Écart Frais (Tx vs Normale)</>
+                          <><Snowflake className="h-3.5 w-3.5 text-blue-400" /> Écart frais (Tx vs Normale)</>
                         ) : (
-                          <><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Conforme aux Normales</>
+                          <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Conforme aux normales</>
                         ))}
                       </span>
-                      <span className="font-mono font-black text-sm px-2 py-0.5 rounded bg-black/50 border border-white/10">
+                      <span className="font-mono font-bold text-xs px-1.5 py-0.5 rounded bg-black/40 border border-white/10">
                         {st.tempAnomalyC >= 0 ? `+${st.tempAnomalyC}` : st.tempAnomalyC}°C
                       </span>
                     </div>
                   </div>
 
                   {/* Telemetry Metrics Row: Dew Point, Wind with Direction, Pressure, Rain */}
-                  <div className="grid grid-cols-4 gap-1.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-center text-xs">
+                  <div className="grid grid-cols-4 gap-1 bg-slate-950 p-2 rounded-md border border-slate-800 text-center text-xs">
                     <div>
                       <span className="text-[9px] text-slate-500 block uppercase font-bold">Pt Rosée</span>
                       <span className="font-mono font-bold text-sky-300">{st.dewPointC ?? calculateDewPoint(st.currentTemp, st.humidityPct)}°C</span>
                     </div>
                     <div>
                       <span className="text-[9px] text-slate-500 block uppercase font-bold">Humidité</span>
-                      <span className="font-mono font-bold text-indigo-300">{st.humidityPct}%</span>
+                      <span className="font-mono font-bold text-slate-300">{st.humidityPct}%</span>
                     </div>
                     <div>
                       <span className="text-[9px] text-slate-500 block uppercase font-bold">Rafale</span>
@@ -920,23 +912,23 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                   </div>
 
                   {/* Observed Phenomenon Note */}
-                  <div className="rounded-xl bg-purple-950/30 p-2.5 border border-purple-500/30 text-xs text-purple-200 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">
-                      Diagnostic &amp; Remarque
+                  <div className="rounded-md bg-slate-950 p-2 border border-slate-800 text-xs text-slate-300 space-y-0.5">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Diagnostic
                     </span>
-                    <p className="font-semibold leading-tight text-slate-300">
+                    <p className="font-medium text-xs leading-snug text-slate-300">
                       {st.observedPhenomenon}
                     </p>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
                     <button
                       onClick={() => setSelectedStationModal(st)}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 text-xs font-bold transition cursor-pointer border border-slate-700"
+                      className="flex items-center justify-center gap-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 text-xs font-semibold transition cursor-pointer border border-slate-700"
                     >
-                      <Gauge className="h-3.5 w-3.5 text-purple-400" />
-                      <span>Fiche &amp; Télémétrie</span>
+                      <Gauge className="h-3 w-3 text-sky-400" />
+                      <span>Fiche télémétrie</span>
                     </button>
 
                     <button
@@ -954,10 +946,10 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         allTimeRecordRain24h: st.rainMm24h + 40,
                         isFrench: st.countryCode === 'FR'
                       })}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 py-2 text-xs font-bold transition cursor-pointer"
+                      className="flex items-center justify-center gap-1 rounded-md bg-slate-800 hover:bg-[#0284C7] text-slate-200 hover:text-white border border-slate-700 hover:border-sky-500 py-1.5 text-xs font-semibold transition cursor-pointer"
                     >
-                      <span>Activer Station</span>
-                      <ArrowUpRight className="h-3.5 w-3.5" />
+                      <span>Activer</span>
+                      <ArrowUpRight className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
@@ -967,7 +959,7 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
           {/* VIEW MODE 2: TABLE VIEW (HIGH DENSITY COMPARISON) */}
           {viewLayout === 'table' && (
-            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+            <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider font-bold">
                   <tr>
@@ -1054,25 +1046,25 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
       {/* TAB 2: PALMARÈS DES RECORDS BATTUS & GRAND REGISTRE HISTORIQUE AUTHENTIQUE */}
       {activeTab === 'records_hall_of_fame' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header Banner */}
-          <div className="rounded-3xl border border-rose-500/40 bg-gradient-to-br from-rose-950/80 via-slate-900 to-slate-950 p-6 shadow-2xl backdrop-blur">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40">
-                  <Trophy className="h-6 w-6 text-rose-400" />
+                <div className="p-2 rounded-md bg-slate-800 text-rose-400 border border-slate-700">
+                  <Trophy className="h-5 w-5 text-rose-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white">
-                    🏆 Registre Officiel &amp; Palmarès des Records Météorologiques
+                  <h3 className="text-lg font-black text-white">
+                    Registre officiel des records météorologiques
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-300">
-                    Source Infoclimat, Météo-France, OMM / WMO et Réseau StatIC. Données homologuées avec dates, stations et contextes synoptiques réels.
+                  <p className="text-xs text-slate-300">
+                    Source Infoclimat, Météo-France, OMM / WMO. Données homologuées avec dates, stations et contextes synoptiques.
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-xl bg-rose-950 text-rose-300 border border-rose-600 text-xs font-mono font-black">
+                <span className="px-2.5 py-1 rounded-md bg-slate-900 text-rose-300 border border-slate-800 text-xs font-mono font-semibold">
                   {AUTHENTIC_HISTORICAL_RECORDS_CATALOG.length} records officiels archivés
                 </span>
               </div>
@@ -1080,11 +1072,11 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
           </div>
 
           {/* Section 1: Live Record-Breaking Stations (if any) */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-base font-black text-white flex items-center gap-2">
-                <Flame className="h-5 w-5 text-rose-500" />
-                <span>1. Stations Dépassant un Record Actuellement ({countriesWithRecords.length} pays touchés)</span>
+              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                <Flame className="h-4 w-4 text-rose-500" />
+                <span>1. Stations dépassant un record actuellement ({countriesWithRecords.length} pays touchés)</span>
               </h4>
               <span className="text-xs text-slate-400">
                 {observatoryData.totalBrokenRecordsCount} station(s) en dépassement
@@ -1092,29 +1084,29 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
             </div>
 
             {countriesWithRecords.length === 0 ? (
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 text-center text-slate-400 space-y-1">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto" />
-                <h5 className="text-sm font-bold text-white">Aucun dépassement de record historique en cours</h5>
+              <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 text-center text-slate-400 space-y-1">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 mx-auto" />
+                <h5 className="text-xs font-bold text-white">Aucun dépassement de record historique en cours</h5>
                 <p className="text-xs text-slate-400">
                   Les températures directes et Tx relevées sur le réseau restent sous les valeurs de records absolus homologués.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {countriesWithRecords.map((countryIndex) => (
                   <div 
                     key={countryIndex.countryCode}
-                    className="rounded-3xl border border-rose-500/40 bg-slate-900/95 p-5 shadow-2xl space-y-3"
+                    className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-3"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-3xl">{countryIndex.flagEmoji}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{countryIndex.flagEmoji}</span>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h5 className="text-lg font-black text-white">
+                            <h5 className="text-sm font-bold text-white">
                               {countryIndex.countryName}
                             </h5>
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-black bg-rose-950 text-rose-300 border border-rose-500">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-950 text-rose-300 border border-rose-800">
                               {countryIndex.recordsBrokenCount} station{countryIndex.recordsBrokenCount > 1 ? 's' : ''} en record battu
                             </span>
                           </div>
@@ -1123,26 +1115,26 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <span className="text-xs text-slate-400">Anomalie pays :</span>
-                        <span className="px-2.5 py-0.5 rounded-lg bg-rose-950 border border-rose-500 font-mono font-bold text-rose-300 text-xs">
+                        <span className="px-2 py-0.5 rounded bg-rose-950 border border-rose-800 font-mono font-bold text-rose-300 text-xs">
                           +{countryIndex.meanTemperatureAnomalyC}°C
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                       {countryIndex.brokenRecordStations.map((bStation) => (
                         <div 
                           key={bStation.stationId}
-                          className="rounded-2xl border border-rose-500/50 bg-rose-950/20 p-3.5 space-y-2.5 hover:bg-rose-950/40 transition"
+                          className="rounded-md border border-rose-900/60 bg-rose-950/20 p-3 space-y-2"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <span className="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-200 border border-rose-500 block w-max mb-1">
+                              <span className="px-1.5 py-0.5 rounded bg-rose-900 text-[10px] font-semibold text-rose-200 border border-rose-700 block w-max mb-1">
                                 {bStation.recordLabel}
                               </span>
-                              <h6 className="font-black text-white text-sm">
+                              <h6 className="font-bold text-white text-xs">
                                 {bStation.stationName}
                               </h6>
                               <p className="text-[11px] text-slate-400">
@@ -1150,7 +1142,7 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className="text-xl font-black text-rose-400 font-mono">
+                              <span className="text-lg font-black text-rose-400 font-mono tabular-nums">
                                 {bStation.currentTx}°C
                               </span>
                               <span className="text-[10px] font-mono text-slate-400 block">
@@ -1159,9 +1151,9 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between text-xs bg-slate-950/60 p-2 rounded-xl border border-rose-500/20">
+                          <div className="flex items-center justify-between text-xs bg-slate-950 p-1.5 rounded border border-slate-800">
                             <span className="text-slate-400 text-[11px]">Écart au record :</span>
-                            <strong className="text-rose-300 font-mono font-black text-xs">
+                            <strong className="text-rose-300 font-mono font-bold text-xs">
                               +{bStation.difference}°C
                             </strong>
                           </div>
@@ -1173,10 +1165,10 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                                 setSelectedStationModal(fullStation);
                               }
                             }}
-                            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 text-xs font-bold transition cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition cursor-pointer"
                           >
-                            <Gauge className="h-3.5 w-3.5" />
-                            <span>Consulter la télémétrie complète</span>
+                            <Gauge className="h-3 w-3 text-sky-400" />
+                            <span>Télémétrie complète</span>
                           </button>
                         </div>
                       ))}
@@ -1188,113 +1180,111 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
           </div>
 
           {/* Section 2: Grand Registre Authentique des Records Historiques */}
-          <div className="space-y-4 pt-4 border-t border-slate-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h4 className="text-base font-black text-white flex items-center gap-2">
-                  <Award className="h-5 w-5 text-amber-400" />
-                  <span>2. Grand Registre Climatologique des Records Homologués (Infoclimat / Météo-France / OMM)</span>
-                </h4>
-                <p className="text-xs text-slate-400">
-                  Base de référence infaillible des extrêmes climatiques authentiques vérifiés par les organismes météorologiques officiels.
-                </p>
-              </div>
+          <div className="space-y-3 pt-3 border-t border-slate-800">
+            <div>
+              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                <Award className="h-4 w-4 text-amber-400" />
+                <span>2. Grand registre climatologique des records homologués</span>
+              </h4>
+              <p className="text-xs text-slate-400">
+                Base de référence des extrêmes climatiques vérifiés par les organismes météorologiques officiels.
+              </p>
             </div>
 
             {/* Category Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 onClick={() => setHistoricalCategoryFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer ${
                   historicalCategoryFilter === 'ALL'
-                    ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-600/30'
+                    ? 'bg-[#0284C7] text-white border-sky-500'
                     : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
                 }`}
               >
-                🌐 Tous les Records ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.length})
+                Tous ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.length})
               </button>
 
               <button
                 onClick={() => setHistoricalCategoryFilter('CHALEUR_FRANCE')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   historicalCategoryFilter === 'CHALEUR_FRANCE'
-                    ? 'bg-rose-600 text-white border-rose-400 shadow-md shadow-rose-600/30'
-                    : 'bg-slate-900 text-rose-300 border-rose-500/40 hover:bg-rose-950/40'
+                    ? 'bg-rose-700 text-white border-rose-600'
+                    : 'bg-slate-900 text-rose-300 border-rose-900 hover:bg-rose-950/40'
                 }`}
               >
-                <Flame className="h-3.5 w-3.5" />
-                <span>🔥 Chaleur France ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'CHALEUR_FRANCE').length})</span>
+                <Flame className="h-3 w-3" />
+                <span>Chaleur France ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'CHALEUR_FRANCE').length})</span>
               </button>
 
               <button
                 onClick={() => setHistoricalCategoryFilter('FROID_FRANCE')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   historicalCategoryFilter === 'FROID_FRANCE'
-                    ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30'
-                    : 'bg-slate-900 text-blue-300 border-blue-500/40 hover:bg-blue-950/40'
+                    ? 'bg-blue-700 text-white border-blue-600'
+                    : 'bg-slate-900 text-blue-300 border-blue-900 hover:bg-blue-950/40'
                 }`}
               >
-                <Snowflake className="h-3.5 w-3.5" />
-                <span>❄️ Froid France ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'FROID_FRANCE').length})</span>
+                <Snowflake className="h-3 w-3" />
+                <span>Froid France ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'FROID_FRANCE').length})</span>
               </button>
 
               <button
                 onClick={() => setHistoricalCategoryFilter('CHALEUR_MONDE')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   historicalCategoryFilter === 'CHALEUR_MONDE'
-                    ? 'bg-amber-600 text-white border-amber-400 shadow-md shadow-amber-600/30'
-                    : 'bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-amber-950/40'
+                    ? 'bg-amber-700 text-white border-amber-600'
+                    : 'bg-slate-900 text-amber-300 border-amber-900 hover:bg-amber-950/40'
                 }`}
               >
-                <Flame className="h-3.5 w-3.5" />
-                <span>🌍 Chaleur Monde ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'CHALEUR_MONDE').length})</span>
+                <Flame className="h-3 w-3" />
+                <span>Chaleur Monde ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'CHALEUR_MONDE').length})</span>
               </button>
 
               <button
                 onClick={() => setHistoricalCategoryFilter('FROID_MONDE')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   historicalCategoryFilter === 'FROID_MONDE'
-                    ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30'
-                    : 'bg-slate-900 text-indigo-300 border-indigo-500/40 hover:bg-indigo-950/40'
+                    ? 'bg-indigo-700 text-white border-indigo-600'
+                    : 'bg-slate-900 text-indigo-300 border-indigo-900 hover:bg-indigo-950/40'
                 }`}
               >
-                <Snowflake className="h-3.5 w-3.5" />
-                <span>🧊 Froid Monde ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'FROID_MONDE').length})</span>
+                <Snowflake className="h-3 w-3" />
+                <span>Froid Monde ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'FROID_MONDE').length})</span>
               </button>
 
               <button
                 onClick={() => setHistoricalCategoryFilter('PLUIE_EXTREME')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   historicalCategoryFilter === 'PLUIE_EXTREME'
-                    ? 'bg-cyan-600 text-white border-cyan-400 shadow-md shadow-cyan-600/30'
-                    : 'bg-slate-900 text-cyan-300 border-cyan-500/40 hover:bg-cyan-950/40'
+                    ? 'bg-cyan-700 text-white border-cyan-600'
+                    : 'bg-slate-900 text-cyan-300 border-cyan-900 hover:bg-cyan-950/40'
                 }`}
               >
-                <CloudRain className="h-3.5 w-3.5" />
-                <span>🌧️ Pluies Extrêmes ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'PLUIE_EXTREME').length})</span>
+                <CloudRain className="h-3 w-3" />
+                <span>Pluies ({AUTHENTIC_HISTORICAL_RECORDS_CATALOG.filter(r => r.recordCategory === 'PLUIE_EXTREME').length})</span>
               </button>
             </div>
 
             {/* Historical Records Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredHistoricalRecords.map((rec) => (
                 <div
                   key={rec.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 space-y-3 hover:border-purple-500/50 transition shadow-lg flex flex-col justify-between"
+                  className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-2.5 hover:border-slate-700 transition flex flex-col justify-between"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                        rec.recordCategory.includes('CHALEUR') ? 'bg-rose-950 text-rose-300 border-rose-600' :
-                        (rec.recordCategory.includes('FROID') ? 'bg-blue-950 text-blue-300 border-blue-600' : 'bg-cyan-950 text-cyan-300 border-cyan-600')
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                        rec.recordCategory.includes('CHALEUR') ? 'bg-rose-950 text-rose-300 border-rose-800' :
+                        (rec.recordCategory.includes('FROID') ? 'bg-blue-950 text-blue-300 border-blue-800' : 'bg-cyan-950 text-cyan-300 border-cyan-800')
                       }`}>
-                        {rec.recordCategory === 'CHALEUR_FRANCE' ? '🔥 Record Chaleur France' : 
-                         rec.recordCategory === 'CHALEUR_MONDE' ? '🔥 Record Chaleur Monde' :
-                         rec.recordCategory === 'FROID_FRANCE' ? '❄️ Record Froid France' :
-                         rec.recordCategory === 'FROID_MONDE' ? '❄️ Record Froid Monde' : '🌧️ Record Pluviométrique'}
+                        {rec.recordCategory === 'CHALEUR_FRANCE' ? 'Chaleur France' : 
+                         rec.recordCategory === 'CHALEUR_MONDE' ? 'Chaleur Monde' :
+                         rec.recordCategory === 'FROID_FRANCE' ? 'Froid France' :
+                         rec.recordCategory === 'FROID_MONDE' ? 'Froid Monde' : 'Pluviométrie'}
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
-                        📅 {rec.dateExacte}
+                        {rec.dateExacte}
                       </span>
                     </div>
 
@@ -1302,7 +1292,7 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                       <div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-base">{rec.flagEmoji}</span>
-                          <h5 className="font-black text-white text-base">
+                          <h5 className="font-bold text-white text-sm">
                             {rec.stationName}
                           </h5>
                         </div>
@@ -1311,7 +1301,7 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className={`text-2xl font-black font-mono ${
+                        <span className={`text-xl font-black font-mono tabular-nums ${
                           rec.recordCategory.includes('CHALEUR') ? 'text-rose-400' :
                           (rec.recordCategory.includes('FROID') ? 'text-blue-400' : 'text-cyan-400')
                         }`}>
@@ -1320,32 +1310,32 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                       </div>
                     </div>
 
-                    <div className="rounded-xl bg-slate-950 p-2.5 border border-slate-800 text-xs space-y-1">
-                      <span className="text-[10px] font-bold uppercase text-purple-400 block">
-                        Contexte &amp; Événement Historique
+                    <div className="rounded-md bg-slate-950 p-2 border border-slate-800 text-xs space-y-0.5">
+                      <span className="text-[9px] font-bold uppercase text-slate-400 block">
+                        Contexte
                       </span>
-                      <p className="text-slate-300 leading-relaxed text-[11px]">
+                      <p className="text-slate-300 text-xs leading-snug">
                         {rec.contexteClimatologique}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 gap-2 flex-wrap">
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 gap-2 flex-wrap">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                      <ShieldCheck className="h-3 w-3 text-emerald-400" />
                       <span>{rec.organismeCertification}</span>
                     </span>
                     <a
                       href={rec.officialUrl || `https://wmo.asu.edu/content/world-meteorological-organization-global-weather-climate-extremes-archive`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-950/80 hover:bg-sky-900 border border-sky-600/40 text-sky-300 text-[10px] font-bold transition cursor-pointer"
-                      title="Ouvrir la page officielle de l'événement et de l'homologation"
+                      className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px] font-semibold transition"
+                      title="Ouvrir la page officielle"
                     >
-                      <span>Fiche Événement Officiel</span>
-                      <ExternalLink className="h-3 w-3" />
+                      <span>Fiche officielle</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
                     </a>
-                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                    <span className="text-[10px] font-mono text-emerald-400 font-semibold">
                       {rec.statutHomologation.replace(/_/g, ' ')}
                     </span>
                   </div>
@@ -1358,79 +1348,44 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
       {/* TAB 3: TOP 10 RANKINGS (HEAT, COLD, ANOMALIES, GUSTS, RAIN) */}
       {activeTab === 'top_rankings' && (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-950 p-6 shadow-2xl backdrop-blur">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
-                <Award className="h-6 w-6 text-amber-400" />
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-slate-800 text-amber-400 border border-slate-700">
+                <Award className="h-5 w-5 text-amber-400" />
               </div>
               <div>
-                <h3 className="text-xl sm:text-2xl font-black text-white">
-                  🥇 Palmarès des Top 10 Réseau en Direct
+                <h3 className="text-lg font-black text-white">
+                  Palmarès des Top 10 réseau en direct
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300">
-                  Classement instantané des plus fortes chaleurs, du froid le plus intense, des anomalies majeures, rafales et cumuls pluviométriques.
+                <p className="text-xs text-slate-300">
+                  Classement instantané des extrêmes thermiques, anomalies, rafales et cumuls pluviométriques.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {/* Top 10 Chaleur (Tx) */}
-            <div className="rounded-3xl border border-rose-500/40 bg-slate-900/90 p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 className="font-black text-white text-base flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-rose-500" />
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <Flame className="h-4 w-4 text-rose-500" />
                   <span>Top 10 Tx Chaleur Réseau</span>
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-900">
                   Direct
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {top10Hot.map((st, idx) => (
                   <div 
                     key={st.stationId} 
                     onClick={() => setSelectedStationModal(st)}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 transition cursor-pointer border border-slate-800/60"
+                    className="flex items-center justify-between p-2 rounded bg-slate-950 hover:bg-slate-800 transition cursor-pointer border border-slate-800"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
-                        idx === 0 ? 'bg-amber-500 text-slate-950 font-black' : (idx === 1 ? 'bg-slate-300 text-slate-950' : (idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'))
-                      }`}>
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="font-bold text-white text-xs">{st.stationName}</div>
-                        <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} {st.departmentOrRegion}</div>
-                      </div>
-                    </div>
-                    <span className="font-mono font-black text-rose-400 text-sm">{st.tMaxToday}°C</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Top 10 Anomalies (+°C vs Normale) */}
-            <div className="rounded-3xl border border-amber-500/40 bg-slate-900/90 p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 className="font-black text-white text-base flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-amber-500" />
-                  <span>Top 10 Anomalies Thermiques</span>
-                </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-                  vs 1991-2020
-                </span>
-              </div>
-              <div className="space-y-2">
-                {top10Anomalies.map((st, idx) => (
-                  <div 
-                    key={st.stationId} 
-                    onClick={() => setSelectedStationModal(st)}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 transition cursor-pointer border border-slate-800/60"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
                         idx === 0 ? 'bg-amber-500 text-slate-950' : (idx === 1 ? 'bg-slate-300 text-slate-950' : (idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'))
                       }`}>
                         {idx + 1}
@@ -1440,32 +1395,67 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} {st.departmentOrRegion}</div>
                       </div>
                     </div>
-                    <span className="font-mono font-black text-amber-400 text-sm">+{st.tempAnomalyC}°C</span>
+                    <span className="font-mono font-bold text-rose-400 text-xs tabular-nums">{st.tMaxToday}°C</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Top 10 Anomalies (+°C vs Normale) */}
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-amber-500" />
+                  <span>Top 10 Anomalies Thermiques</span>
+                </h4>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-900">
+                  vs 1991-2020
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {top10Anomalies.map((st, idx) => (
+                  <div 
+                    key={st.stationId} 
+                    onClick={() => setSelectedStationModal(st)}
+                    className="flex items-center justify-between p-2 rounded bg-slate-950 hover:bg-slate-800 transition cursor-pointer border border-slate-800"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
+                        idx === 0 ? 'bg-amber-500 text-slate-950' : (idx === 1 ? 'bg-slate-300 text-slate-950' : (idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'))
+                      }`}>
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-bold text-white text-xs">{st.stationName}</div>
+                        <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} {st.departmentOrRegion}</div>
+                      </div>
+                    </div>
+                    <span className="font-mono font-bold text-amber-400 text-xs tabular-nums">+{st.tempAnomalyC}°C</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Top 10 Froid (Tn) */}
-            <div className="rounded-3xl border border-blue-500/40 bg-slate-900/90 p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 className="font-black text-white text-base flex items-center gap-2">
-                  <Snowflake className="h-5 w-5 text-blue-500" />
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <Snowflake className="h-4 w-4 text-blue-400" />
                   <span>Top 10 Tn Froid Réseau</span>
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-900">
                   Minimale
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {top10Cold.map((st, idx) => (
                   <div 
                     key={st.stationId} 
                     onClick={() => setSelectedStationModal(st)}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 transition cursor-pointer border border-slate-800/60"
+                    className="flex items-center justify-between p-2 rounded bg-slate-950 hover:bg-slate-800 transition cursor-pointer border border-slate-800"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
                         idx === 0 ? 'bg-blue-400 text-slate-950' : (idx === 1 ? 'bg-slate-300 text-slate-950' : (idx === 2 ? 'bg-blue-800 text-white' : 'bg-slate-800 text-slate-400'))
                       }`}>
                         {idx + 1}
@@ -1475,32 +1465,32 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} ({st.altitude}m)</div>
                       </div>
                     </div>
-                    <span className="font-mono font-black text-blue-400 text-sm">{st.tMinToday}°C</span>
+                    <span className="font-mono font-bold text-blue-400 text-xs tabular-nums">{st.tMinToday}°C</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Top 10 Rafales de Vent */}
-            <div className="rounded-3xl border border-amber-500/40 bg-slate-900/90 p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 className="font-black text-white text-base flex items-center gap-2">
-                  <Wind className="h-5 w-5 text-amber-400" />
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <Wind className="h-4 w-4 text-amber-400" />
                   <span>Top 10 Rafales de Vent Max</span>
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-900">
                   km/h
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {top10Wind.map((st, idx) => (
                   <div 
                     key={st.stationId} 
                     onClick={() => setSelectedStationModal(st)}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 transition cursor-pointer border border-slate-800/60"
+                    className="flex items-center justify-between p-2 rounded bg-slate-950 hover:bg-slate-800 transition cursor-pointer border border-slate-800"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
                         idx === 0 ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'
                       }`}>
                         {idx + 1}
@@ -1510,32 +1500,32 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} {st.departmentOrRegion}</div>
                       </div>
                     </div>
-                    <span className="font-mono font-black text-amber-300 text-sm">{st.windGustKmh} km/h</span>
+                    <span className="font-mono font-bold text-amber-300 text-xs tabular-nums">{st.windGustKmh} km/h</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Top 10 Précipitations 24h */}
-            <div className="rounded-3xl border border-cyan-500/40 bg-slate-900/90 p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 className="font-black text-white text-base flex items-center gap-2">
-                  <CloudRain className="h-5 w-5 text-cyan-400" />
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <CloudRain className="h-4 w-4 text-cyan-400" />
                   <span>Top 10 Cumuls Pluviométriques</span>
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-900">
                   24h (mm)
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {top10Rain.map((st, idx) => (
                   <div 
                     key={st.stationId} 
                     onClick={() => setSelectedStationModal(st)}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 transition cursor-pointer border border-slate-800/60"
+                    className="flex items-center justify-between p-2 rounded bg-slate-950 hover:bg-slate-800 transition cursor-pointer border border-slate-800"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
                         idx === 0 ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'
                       }`}>
                         {idx + 1}
@@ -1545,7 +1535,7 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                         <div className="text-[10px] text-slate-400">{COUNTRY_FLAGS[st.countryCode]} {st.departmentOrRegion}</div>
                       </div>
                     </div>
-                    <span className="font-mono font-black text-cyan-300 text-sm">{st.rainMm24h} mm</span>
+                    <span className="font-mono font-bold text-cyan-300 text-xs tabular-nums">{st.rainMm24h} mm</span>
                   </div>
                 ))}
               </div>
@@ -1556,85 +1546,85 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
 
       {/* TAB 4: COUNTRY CLIMATE & SYNOPTIC INDEX & TRI MONDIALE */}
       {activeTab === 'country_index' && (
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-black text-white mb-1">
-                🌐 Classement Mondial &amp; Synthèse Synoptique par Pays ({observatoryData.countryIndices.length} pays surveillés)
+              <h3 className="text-base font-bold text-white mb-0.5">
+                Classement et synthèse par pays ({observatoryData.countryIndices.length} pays surveillés)
               </h3>
               <p className="text-xs text-slate-400">
-                Décompte exact du nombre de stations télémesurées, moyenne des écarts thermiques aux normales 1991-2020 et détail nominatif des records par pays.
+                Décompte des stations, écarts thermiques aux normales 1991-2020 et relevé des records par pays.
               </p>
             </div>
 
             {/* Country Sorting Control */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-slate-400 font-bold">Trier les pays par :</span>
+              <span className="text-xs text-slate-400 font-semibold">Trier par :</span>
               <select
                 value={countrySortBy}
                 onChange={(e) => setCountrySortBy(e.target.value as any)}
-                className="rounded-xl bg-slate-950 border border-purple-500/50 py-2 px-3 text-xs font-bold text-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="rounded-md bg-slate-950 border border-slate-700 py-1.5 px-2.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-[#0284C7]"
               >
-                <option value="records_desc">🏆 Nombre de Records Battus</option>
-                <option value="anomaly_desc">📈 Anomalie Thermique Moyenne (+°C)</option>
-                <option value="tmax_desc">🔥 Température Max (Tx)</option>
-                <option value="stations_desc">📡 Nombre de Stations</option>
-                <option value="name_asc">🔤 Nom de Pays (A-Z)</option>
+                <option value="records_desc">Nombre de records battus</option>
+                <option value="anomaly_desc">Anomalie thermique moyenne (+°C)</option>
+                <option value="tmax_desc">Température max (Tx)</option>
+                <option value="stations_desc">Nombre de stations</option>
+                <option value="name_asc">Nom du pays (A-Z)</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {sortedCountryIndices.map((ci) => (
               <div 
                 key={ci.countryCode}
-                className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl backdrop-blur space-y-4 hover:border-purple-500/50 transition"
+                className="rounded-lg border border-slate-800 bg-slate-900 p-3.5 space-y-3 hover:border-slate-700 transition"
               >
                 {/* Header with Flag & Station Counts */}
-                <div className="flex items-start justify-between border-b border-slate-800 pb-3 gap-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{ci.flagEmoji}</span>
+                <div className="flex items-start justify-between border-b border-slate-800 pb-2.5 gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">{ci.flagEmoji}</span>
                     <div>
-                      <h4 className="font-black text-white text-lg">
+                      <h4 className="font-bold text-white text-sm">
                         {ci.countryName}
                       </h4>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                        <span className="font-bold text-purple-300">{ci.activeStationCount} stations</span>
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                        <span className="font-semibold text-slate-300">{ci.activeStationCount} stations</span>
                         <span>•</span>
                         <span>{ci.continent}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className={`px-2.5 py-1 rounded-xl text-xs font-black border ${ci.indexColorClass}`}>
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold border ${ci.indexColorClass}`}>
                     Score {ci.countryClimateIndexScore}/5
                   </div>
                 </div>
 
-                {/* Density Details (Météo-France / Réseau National vs OMM SYNOP) */}
-                <div className="grid grid-cols-2 gap-2 bg-slate-950 p-2.5 rounded-2xl border border-slate-800 text-xs">
+                {/* Density Details */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-950 p-2 rounded border border-slate-800 text-xs">
                   <div>
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Réseau d'État / SYNOP</span>
-                    <span className="font-mono font-bold text-blue-300">{ci.synopStationCount} stations</span>
+                    <span className="text-[10px] text-slate-500 block uppercase font-semibold">SYNOP / État</span>
+                    <span className="font-mono font-bold text-slate-300">{ci.synopStationCount} stations</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Certification</span>
-                    <span className="font-mono font-bold text-emerald-300">100% Officiel</span>
+                    <span className="text-[10px] text-slate-500 block uppercase font-semibold">Certification</span>
+                    <span className="font-mono font-bold text-emerald-400">Homologué</span>
                   </div>
                 </div>
 
                 {/* Records Count & Broken Stations Names */}
-                <div className={`p-3 rounded-2xl border text-xs space-y-2 ${
+                <div className={`p-2.5 rounded border text-xs space-y-1.5 ${
                   ci.recordsBrokenCount > 0 
-                    ? 'bg-rose-950/40 border-rose-500/60 text-rose-200' 
-                    : 'bg-slate-950/60 border-slate-800/80 text-slate-400'
+                    ? 'bg-rose-950/30 border-rose-800 text-rose-200' 
+                    : 'bg-slate-950 border-slate-800 text-slate-400'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold flex items-center gap-1.5">
-                      <Trophy className={`h-4 w-4 ${ci.recordsBrokenCount > 0 ? 'text-rose-400' : 'text-slate-500'}`} />
-                      <span>Records Battus :</span>
+                    <span className="font-semibold flex items-center gap-1">
+                      <Trophy className={`h-3.5 w-3.5 ${ci.recordsBrokenCount > 0 ? 'text-rose-400' : 'text-slate-500'}`} />
+                      <span>Records battus :</span>
                     </span>
-                    <span className={`font-mono font-black text-sm px-2 py-0.5 rounded ${
+                    <span className={`font-mono font-bold text-xs px-1.5 py-0.5 rounded ${
                       ci.recordsBrokenCount > 0 ? 'bg-rose-900 text-white' : 'bg-slate-800 text-slate-400'
                     }`}>
                       {ci.recordsBrokenCount} station{ci.recordsBrokenCount > 1 ? 's' : ''}
@@ -1642,14 +1632,14 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                   </div>
 
                   {ci.brokenRecordStations.length > 0 ? (
-                    <div className="space-y-1 pt-1 border-t border-rose-500/20">
-                      <span className="text-[10px] font-bold uppercase text-rose-400 block">
-                        Noms des stations en record :
+                    <div className="space-y-1 pt-1 border-t border-rose-900/40">
+                      <span className="text-[9px] font-bold uppercase text-rose-400 block">
+                        Stations en record :
                       </span>
-                      <ul className="text-[11px] space-y-1">
+                      <ul className="text-[11px] space-y-0.5">
                         {ci.brokenRecordStations.map(st => (
                           <li key={st.stationId} className="flex items-center justify-between">
-                            <span className="text-white font-medium">• {st.stationName} ({st.departmentOrRegion})</span>
+                            <span className="text-white">• {st.stationName} ({st.departmentOrRegion})</span>
                             <span className="font-mono font-bold text-rose-300">{st.currentTx}°C</span>
                           </li>
                         ))}
@@ -1657,28 +1647,28 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                     </div>
                   ) : (
                     <p className="text-[11px] text-slate-500">
-                      Aucun record battu actuellement dans ce pays.
+                      Aucun record battu actuellement.
                     </p>
                   )}
                 </div>
 
                 {/* Country Climate & Synoptic Metrics */}
-                <div className="space-y-2 text-xs">
+                <div className="space-y-1.5 text-xs">
                   <div className="flex items-center justify-between text-slate-300">
-                    <span>Anomalie Thermique Moyenne :</span>
-                    <strong className={`font-mono text-sm ${ci.meanTemperatureAnomalyC >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
-                      {ci.meanTemperatureAnomalyC >= 0 ? `+${ci.meanTemperatureAnomalyC}` : ci.meanTemperatureAnomalyC}°C vs Normale
+                    <span>Anomalie moyenne :</span>
+                    <strong className={`font-mono ${ci.meanTemperatureAnomalyC >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+                      {ci.meanTemperatureAnomalyC >= 0 ? `+${ci.meanTemperatureAnomalyC}` : ci.meanTemperatureAnomalyC}°C
                     </strong>
                   </div>
 
                   <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>Station la plus chaude (Tx) :</span>
+                    <span>Tx la plus chaude :</span>
                     <strong className="text-amber-300 font-mono">{ci.highestStationTx.stationName} ({ci.highestStationTx.temp}°C)</strong>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-950 p-3 border border-slate-800 space-y-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Régime Synoptique Majeur</span>
-                    <p className="text-slate-300 leading-tight text-xs">
+                  <div className="rounded bg-slate-950 p-2 border border-slate-800 space-y-0.5">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Régime synoptique</span>
+                    <p className="text-slate-300 text-xs">
                       {ci.dominantSynopticPattern}
                     </p>
                   </div>
@@ -1690,10 +1680,10 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                     setSelectedCountry(ci.countryName);
                     setActiveTab('stations');
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-purple-600 text-slate-200 hover:text-white text-xs font-bold transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-slate-800 hover:bg-[#0284C7] text-slate-200 hover:text-white text-xs font-semibold transition cursor-pointer border border-slate-700"
                 >
-                  <span>Afficher les {ci.activeStationCount} stations de ce pays</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <span>Afficher les {ci.activeStationCount} stations</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             ))}
@@ -1704,150 +1694,150 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
       {/* MODAL: FULL STATION DOSSIER & COMPLETE TELEMETRY GAUGES */}
       {selectedStationModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
           onClick={() => setSelectedStationModal(null)}
         >
           <div 
-            className="w-full max-w-2xl rounded-3xl border border-purple-500/50 bg-slate-950 p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl rounded-lg border border-slate-700 bg-slate-950 p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${selectedStationModal.networkBadgeColor}`}>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${selectedStationModal.networkBadgeColor}`}>
                     {selectedStationModal.networkLabel}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">
                     ID : {selectedStationModal.stationId}
                   </span>
                 </div>
-                <h3 className="text-2xl font-black text-white flex items-center gap-2">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <span>{COUNTRY_FLAGS[selectedStationModal.countryCode] || '🌐'}</span>
                   <span>{selectedStationModal.stationName}</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {selectedStationModal.departmentOrRegion}, <strong className="text-slate-200">{selectedStationModal.country}</strong> • Altitude : <strong className="text-purple-300">{selectedStationModal.altitude} m</strong> (Lat: {selectedStationModal.latitude.toFixed(4)}, Lon: {selectedStationModal.longitude.toFixed(4)})
+                  {selectedStationModal.departmentOrRegion}, <strong className="text-slate-200">{selectedStationModal.country}</strong> • Altitude : <strong className="text-slate-300">{selectedStationModal.altitude} m</strong> (Lat: {selectedStationModal.latitude.toFixed(4)}, Lon: {selectedStationModal.longitude.toFixed(4)})
                 </p>
               </div>
 
               <button
                 onClick={() => setSelectedStationModal(null)}
-                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer border border-slate-800"
+                className="p-1.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer border border-slate-800"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Hardware & Certified Shelter */}
-            <div className="rounded-2xl bg-purple-950/30 p-3.5 border border-purple-500/30 flex items-start gap-3">
-              <ShieldCheck className="h-5 w-5 text-purple-400 shrink-0 mt-0.5" />
+            <div className="rounded-md bg-slate-900 p-2.5 border border-slate-800 flex items-start gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-sky-400 shrink-0 mt-0.5" />
               <div className="text-xs space-y-0.5">
-                <span className="font-bold text-purple-300 block uppercase text-[10px]">
-                  Équipement &amp; Conformité Métrologique
+                <span className="font-bold text-slate-300 block uppercase text-[10px]">
+                  Équipement métrologique
                 </span>
-                <p className="text-slate-200">
+                <p className="text-slate-400">
                   {selectedStationModal.stationHardware || 'Station météo automatique professionnelle aux normes OMM'}
                 </p>
               </div>
             </div>
 
             {/* Primary Telemetry Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {/* Tile 1: Temp Instantanée */}
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Température Actuelle</span>
-                <div className="text-2xl font-black text-white font-mono">{selectedStationModal.currentTemp}°C</div>
-                <span className="text-[10px] text-slate-400 block">Ressenti : {selectedStationModal.feelsLikeC ?? selectedStationModal.currentTemp}°C</span>
+              <div className="p-3 rounded-md bg-slate-900 border border-slate-800 text-center space-y-0.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Actuelle</span>
+                <div className="text-xl font-black text-white font-mono tabular-nums">{selectedStationModal.currentTemp}°C</div>
+                <span className="text-[10px] text-slate-400 block">Ressenti {selectedStationModal.feelsLikeC ?? selectedStationModal.currentTemp}°C</span>
               </div>
 
               {/* Tile 2: Tx Max Jour */}
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-amber-500/40 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-amber-400 block">Tx Maximale Jour</span>
-                <div className="text-2xl font-black text-amber-300 font-mono">{selectedStationModal.tMaxToday}°C</div>
-                <span className="text-[10px] text-slate-400 block">Normale : {selectedStationModal.normalTemp1991_2020}°C</span>
+              <div className="p-3 rounded-md bg-slate-900 border border-amber-900/60 text-center space-y-0.5">
+                <span className="text-[10px] uppercase font-bold text-amber-400 block">Tx Jour</span>
+                <div className="text-xl font-black text-amber-300 font-mono tabular-nums">{selectedStationModal.tMaxToday}°C</div>
+                <span className="text-[10px] text-slate-400 block">Normale {selectedStationModal.normalTemp1991_2020}°C</span>
               </div>
 
               {/* Tile 3: Tn Min Jour */}
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-cyan-500/40 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-cyan-400 block">Tn Minimale Jour</span>
-                <div className="text-2xl font-black text-cyan-300 font-mono">{selectedStationModal.tMinToday}°C</div>
-                <span className="text-[10px] text-slate-400 block">Normale : {selectedStationModal.normalTmin1991_2020}°C</span>
+              <div className="p-3 rounded-md bg-slate-900 border border-cyan-900/60 text-center space-y-0.5">
+                <span className="text-[10px] uppercase font-bold text-cyan-400 block">Tn Jour</span>
+                <div className="text-xl font-black text-cyan-300 font-mono tabular-nums">{selectedStationModal.tMinToday}°C</div>
+                <span className="text-[10px] text-slate-400 block">Normale {selectedStationModal.normalTmin1991_2020}°C</span>
               </div>
 
               {/* Tile 4: Thermal Anomaly */}
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-purple-500/40 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-purple-300 block">Écart à la Normale</span>
-                <div className={`text-2xl font-black font-mono ${selectedStationModal.tempAnomalyC >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+              <div className="p-3 rounded-md bg-slate-900 border border-slate-800 text-center space-y-0.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Écart Normale</span>
+                <div className={`text-xl font-black font-mono tabular-nums ${selectedStationModal.tempAnomalyC >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
                   {selectedStationModal.tempAnomalyC >= 0 ? `+${selectedStationModal.tempAnomalyC}` : selectedStationModal.tempAnomalyC}°C
                 </div>
-                <span className="text-[10px] text-slate-400 block">Ref 1991-2020</span>
+                <span className="text-[10px] text-slate-400 block">1991-2020</span>
               </div>
             </div>
 
             {/* Detailed Secondary Telemetry Rows */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Point de Rosée &amp; Humidité</span>
-                <div className="font-mono font-bold text-sky-300 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Point de rosée</span>
+                <div className="font-mono font-bold text-sky-300 text-xs">
                   {selectedStationModal.dewPointC ?? calculateDewPoint(selectedStationModal.currentTemp, selectedStationModal.humidityPct)}°C ({selectedStationModal.humidityPct}%)
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Vent Moyen &amp; Rafales</span>
-                <div className="font-mono font-bold text-amber-300 text-sm">
-                  {selectedStationModal.windSpeedKmh || 15} km/h (Rafales : {selectedStationModal.windGustKmh} km/h - {selectedStationModal.windDirectionLabel || 'Variable'})
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Vent &amp; Rafales</span>
+                <div className="font-mono font-bold text-amber-300 text-xs">
+                  {selectedStationModal.windSpeedKmh || 15} km/h (Rafales : {selectedStationModal.windGustKmh} km/h)
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Précipitations 24h</span>
-                <div className="font-mono font-bold text-cyan-300 text-sm">
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Pluie 24h</span>
+                <div className="font-mono font-bold text-cyan-300 text-xs">
                   {selectedStationModal.rainMm24h} mm
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Pression Atmosphérique</span>
-                <div className="font-mono font-bold text-slate-200 text-sm">
-                  {selectedStationModal.pressureHpa} hPa (Mer QNH : {selectedStationModal.pressureQnhHpa || 1016} hPa)
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Pression</span>
+                <div className="font-mono font-bold text-slate-200 text-xs">
+                  {selectedStationModal.pressureHpa} hPa
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Indice UV &amp; Rayonnement</span>
-                <div className="font-mono font-bold text-amber-400 text-sm">
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Indice UV</span>
+                <div className="font-mono font-bold text-amber-400 text-xs">
                   UV {selectedStationModal.uvIndex || 5.0} • {selectedStationModal.solarRadiationWm2 || 450} W/m²
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Records Historiques</span>
+              <div className="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-0.5">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Records absolus</span>
                 <div className="font-mono font-bold text-rose-400 text-xs">
-                  Max : {selectedStationModal.allTimeRecordMax}°C | Min : {selectedStationModal.allTimeRecordMin}°C
+                  Max {selectedStationModal.allTimeRecordMax}°C | Min {selectedStationModal.allTimeRecordMin}°C
                 </div>
               </div>
             </div>
 
             {/* Diagnostic Note */}
-            <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 space-y-1.5">
+            <div className="rounded-md bg-slate-900 p-3 border border-slate-800 space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Synthèse Synoptique &amp; Diagnostic d'Observation
+                Synthèse d'observation
               </span>
-              <p className="text-slate-200 text-xs leading-relaxed">
+              <p className="text-slate-300 text-xs leading-relaxed">
                 {selectedStationModal.observedPhenomenon}
               </p>
             </div>
 
             {/* Modal Bottom Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-800">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 border-t border-slate-800">
               <button
                 onClick={() => handleCopyStationReport(selectedStationModal)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition cursor-pointer border border-slate-700"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer border border-slate-700"
               >
-                <Copy className="h-4 w-4 text-purple-400" />
-                <span>{copySuccess ? '✓ Rapport copié dans le presse-papiers !' : 'Copier le rapport complet'}</span>
+                <Copy className="h-3.5 w-3.5 text-sky-400" />
+                <span>{copySuccess ? '✓ Rapport copié !' : 'Copier le rapport'}</span>
               </button>
 
               <button
@@ -1868,10 +1858,10 @@ Source : ClimaFrance & Réseaux Officiels Météo-France, OMM, NOAA, DWD, AEMET`
                   });
                   setSelectedStationModal(null);
                 }}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold text-xs transition cursor-pointer"
               >
-                <span>Activer dans toute l'application ClimaFrance</span>
-                <ArrowUpRight className="h-4 w-4" />
+                <span>Sélectionner cette station</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
