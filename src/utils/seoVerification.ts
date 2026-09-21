@@ -57,14 +57,15 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
   }
 
   // Déterminer le chemin cible
-  let targetPath = pathOrTabId.startsWith('/') ? pathOrTabId : getPathForTabId(pathOrTabId);
+  const currentWindowPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  let targetPath = pathOrTabId.startsWith('/') ? pathOrTabId : getPathForTabId(pathOrTabId, currentWindowPath);
   const pageSeo = getSeoDataForPath(targetPath);
 
   try {
     // 1. Title
     document.title = pageSeo.title;
 
-    // 2. Balise canonique auto-référentielle
+    // 2. Balise canonique auto-référentielle propre à l'URL de la page
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -130,7 +131,22 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     }
     jsonLdScript.textContent = generatePageJsonLd(pageSeo);
 
-    // 8. Synchronisation URL dans la barre d'adresse
+    // 8. Vérification stricte anti-noindex : aucune balise noindex ne doit subsister
+    const robotsMetas = document.querySelectorAll<HTMLMetaElement>('meta[name="robots"], meta[name="googlebot"]');
+    robotsMetas.forEach(meta => {
+      if (meta.content && meta.content.includes('noindex')) {
+        meta.content = meta.content.replace(/noindex/gi, 'index');
+      }
+    });
+    let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robotsTag) {
+      robotsTag = document.createElement('meta');
+      robotsTag.name = 'robots';
+      robotsTag.content = 'index, follow, max-image-preview:large, noai, noimageai';
+      document.head.appendChild(robotsTag);
+    }
+
+    // 9. Synchronisation URL dans la barre d'adresse
     if (syncHistory && typeof window.history !== 'undefined') {
       const currentPath = window.location.pathname;
       if (currentPath !== pageSeo.path && !(pageSeo.path === '/direct' && currentPath === '/')) {

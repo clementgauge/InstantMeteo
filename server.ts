@@ -1765,6 +1765,23 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
 }
 
 // -------------------------------------------------------------
+// ROBOTS.TXT & SITEMAP.XML
+// -------------------------------------------------------------
+app.get('/robots.txt', (req, res) => {
+  const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(robotsPath);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(sitemapPath);
+});
+
+// -------------------------------------------------------------
 // REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées)
 // -------------------------------------------------------------
 app.get(['/webcams', '/webcam'], (req, res) => {

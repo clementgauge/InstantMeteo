@@ -959,13 +959,58 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
   };
 
   const targetPath = ALIASES[clean] || clean;
-  return SEO_PAGES_MAP[targetPath] || SEO_PAGES_MAP['/'];
+  if (SEO_PAGES_MAP[targetPath]) {
+    return SEO_PAGES_MAP[targetPath];
+  }
+
+  // Si le chemin n'est pas répertorié statiquement, générer dynamiquement son objet SEO
+  // avec sa PROPRE URL canonique (et JAMAIS celle de la page d'accueil '/')
+  const cleanTitle = targetPath
+    .replace(/^\//, '')
+    .replace(/[-_/]/g, ' ')
+    .trim();
+  const formattedTitle = cleanTitle ? cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1) : 'Page Météo';
+
+  return {
+    slug: targetPath.replace(/^\//, '').replace(/[/_]/g, '-') || 'page',
+    path: targetPath,
+    canonicalUrl: `${BASE_SITE_URL}${targetPath}`,
+    title: `${formattedTitle} - Instant Météo France`,
+    description: `Consultez ${cleanTitle || 'la météo'} en direct sur Instant Météo : prévisions de précision, température temps réel et radar précipitations HD.`,
+    keywords: `instant météo, instantmeteo, ${cleanTitle}, météo france, prévisions en direct, température temps réel, radar pluie`,
+    h1: `Instant Météo - ${formattedTitle}`,
+    h2s: [
+      'Données Atmosphériques & Conditions Météo en Direct',
+      'Radar Précipitations Doppler Haute Définition',
+      'Vigilances Météo-France & Bulletins Experts'
+    ],
+    intro: `Bienvenue sur l'observatoire Instant Météo dédié à ${cleanTitle || 'la météo en France'}. Retrouvez l'ensemble des mesures en temps réel et des analyses prévisionnelles.`,
+    sections: [
+      {
+        title: 'Précision hyper-locale',
+        content: 'Instant Météo agrège les observations directes des stations synoptiques, le réseau radar ARAMIS et les sorties des modèles numériques haute résolution.'
+      }
+    ],
+    faq: [
+      {
+        question: 'Comment consulter la météo de ma commune ?',
+        answer: 'Utilisez la barre de recherche ou activez la géolocalisation pour afficher immédiatement les prévisions de votre secteur.'
+      }
+    ],
+    tabId: 'realtime'
+  };
 }
 
 /**
  * Mappe un identifiant d'onglet React (NavTabId) vers son chemin d'URL canonique
  */
-export function getPathForTabId(tabId: string): string {
+export function getPathForTabId(tabId: string, currentPath?: string): string {
+  if (tabId === 'realtime') {
+    const p = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
+    if (p === '/') return '/';
+    return '/direct';
+  }
+
   const MAP: Record<string, string> = {
     realtime: '/direct',
     cloudNephology: '/nuages',

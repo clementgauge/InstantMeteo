@@ -82,6 +82,7 @@ import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
+import { SeoHead } from './components/SeoHead';
 import { updateDocumentSeo } from './utils/seoVerification';
 import { getTabIdForPath } from './seo/pagesSeoData';
 
@@ -731,6 +732,9 @@ function WeatherApp() {
     <div 
       className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
     >
+      {/* Dynamic Canonical URL & Head SEO Synchronization */}
+      <SeoHead activeTab={activeTab} />
+
       {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
       <AtmosphereBackground 
         theme={currentTheme} 
