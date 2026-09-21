@@ -48,6 +48,29 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
     const particles: Particle[] = [];
 
     const getParticleColor = () => {
+      if (isLightMode) {
+        switch (theme.particleType) {
+          case 'stars':
+          case 'frost':
+            return Math.random() > 0.4 ? '#38bdf8' : '#818cf8';
+          case 'sunflare':
+            return Math.random() > 0.4 ? '#f59e0b' : '#fb923c';
+          case 'embers':
+            return Math.random() > 0.5 ? '#ea580c' : '#dc2626';
+          case 'petals':
+            return Math.random() > 0.5 ? '#f472b6' : '#34d399';
+          case 'snowflakes':
+            return Math.random() > 0.3 ? '#60a5fa' : '#93c5fd';
+          case 'rain':
+            return Math.random() > 0.3 ? 'rgba(2, 132, 199, 0.6)' : 'rgba(14, 165, 233, 0.5)';
+          case 'thunder':
+            return Math.random() > 0.4 ? 'rgba(147, 51, 234, 0.6)' : 'rgba(37, 99, 235, 0.6)';
+          case 'mist':
+          default:
+            return '#94a3b8';
+        }
+      }
+
       switch (theme.particleType) {
         case 'stars':
           return Math.random() > 0.3 ? '#ffffff' : '#93c5fd';
@@ -197,6 +220,45 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
     };
   }, [theme, seniorMode]);
 
+  // Light mode dynamic sky palette
+  const getLightModeBg = () => {
+    if (theme.timeOfDay === 'DAWN') {
+      return 'linear-gradient(180deg, #fee2e2 0%, #ffedd5 30%, #fefce8 65%, #f8fafc 100%)';
+    }
+    if (theme.timeOfDay === 'DUSK') {
+      return 'linear-gradient(180deg, #fce7f3 0%, #ede9fe 35%, #f1f5f9 70%, #f8fafc 100%)';
+    }
+    if (theme.season === 'WINTER' || theme.particleType === 'frost' || theme.particleType === 'snowflakes') {
+      return 'linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 40%, #f1f5f9 75%, #f8fafc 100%)';
+    }
+    if (theme.season === 'AUTUMN' || theme.particleType === 'embers') {
+      return 'linear-gradient(180deg, #fef3c7 0%, #fff7ed 35%, #f8fafc 100%)';
+    }
+    if (theme.particleType === 'rain' || theme.particleType === 'thunder' || theme.particleType === 'mist') {
+      return 'linear-gradient(180deg, #e2e8f0 0%, #edf2f7 40%, #f8fafc 100%)';
+    }
+    // Default crisp daylight azure
+    return 'linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 35%, #f6f9fc 70%, #f8fafc 100%)';
+  };
+
+  const getLightModeGlowPrimary = () => {
+    if (theme.timeOfDay === 'DAWN') return 'rgba(253, 186, 116, 0.45)';
+    if (theme.timeOfDay === 'DUSK') return 'rgba(244, 114, 182, 0.35)';
+    if (theme.season === 'WINTER') return 'rgba(186, 230, 254, 0.55)';
+    if (theme.season === 'AUTUMN') return 'rgba(252, 211, 77, 0.45)';
+    if (theme.particleType === 'rain') return 'rgba(148, 163, 184, 0.35)';
+    return 'rgba(186, 230, 254, 0.55)';
+  };
+
+  const getLightModeGlowSecondary = () => {
+    if (theme.timeOfDay === 'DAWN') return 'rgba(254, 205, 211, 0.35)';
+    if (theme.timeOfDay === 'DUSK') return 'rgba(216, 180, 254, 0.3)';
+    if (theme.season === 'WINTER') return 'rgba(224, 242, 254, 0.45)';
+    if (theme.season === 'AUTUMN') return 'rgba(254, 215, 170, 0.35)';
+    if (theme.particleType === 'rain') return 'rgba(203, 213, 225, 0.35)';
+    return 'rgba(254, 240, 138, 0.3)';
+  };
+
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden transition-all duration-1000 ease-in-out">
       {/* 1. Deep Base Ambient Mesh Gradient */}
@@ -204,7 +266,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
         className="absolute inset-0 transition-all duration-1000 ease-in-out"
         style={{
           background: isLightMode 
-            ? '#ffffff' 
+            ? getLightModeBg() 
             : theme.bgGradient,
         }}
       />
@@ -213,7 +275,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full blur-[120px] transition-all duration-1000 ease-in-out pointer-events-none"
         style={{
-          backgroundColor: isLightMode ? 'transparent' : theme.meshGlowPrimary,
+          backgroundColor: isLightMode ? getLightModeGlowPrimary() : theme.meshGlowPrimary,
           transform: `translate(-50%, 0) scale(${1 + theme.lightingIntensity * 0.2})`,
         }}
       />
@@ -222,7 +284,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute top-1/3 -right-20 w-[600px] h-[600px] rounded-full blur-[140px] transition-all duration-1000 ease-in-out pointer-events-none"
         style={{
-          backgroundColor: isLightMode ? 'transparent' : theme.meshGlowSecondary,
+          backgroundColor: isLightMode ? getLightModeGlowSecondary() : theme.meshGlowSecondary,
         }}
       />
 
@@ -230,18 +292,18 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ them
       <div 
         className="absolute -bottom-40 -left-20 w-[700px] h-[500px] rounded-full blur-[130px] transition-all duration-1000 ease-in-out pointer-events-none opacity-50"
         style={{
-          backgroundColor: isLightMode ? 'transparent' : theme.glowAccentColor,
+          backgroundColor: isLightMode ? 'rgba(224, 242, 254, 0.3)' : theme.glowAccentColor,
         }}
       />
 
       {/* 5. Delicate Atmospheric Micro-Particles Canvas */}
       <canvas 
         ref={canvasRef} 
-        className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${isLightMode ? 'opacity-0 pointer-events-none' : 'opacity-40'}`}
+        className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${isLightMode ? 'opacity-25' : 'opacity-40'}`}
       />
 
       {/* 6. Subtle Noise / Texture Overlay for High-End Glassmorphism */}
-      <div className={`absolute inset-0 [background-size:24px_24px] ${isLightMode ? 'bg-[radial-gradient(#00000005_1px,transparent_1px)] opacity-10' : 'bg-[radial-gradient(#ffffff08_1px,transparent_1px)] opacity-40'}`} />
+      <div className={`absolute inset-0 [background-size:24px_24px] ${isLightMode ? 'bg-[radial-gradient(#0f172a08_1px,transparent_1px)] opacity-25' : 'bg-[radial-gradient(#ffffff08_1px,transparent_1px)] opacity-40'}`} />
     </div>
   );
 };

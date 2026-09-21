@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
+import { getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from './src/seo/pagesSeoData';
 
 const app = express();
 const PORT = 3000;
@@ -1664,6 +1665,85 @@ app.get('/googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html', (req, res) =>
   res.type('text/html').send('google-site-verification: googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html');
 });
 
+function escapeHtmlText(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeHtmlAttr(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): string {
+  const pageSeo = getSeoDataForPath(reqPath);
+  let html = rawHtml;
+
+  // 1. Google Verification Tags si robot Google ou requête dédiée
+  if (isGoogle) {
+    html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
+  }
+
+  // 2. Remplacer ou injecter le title unique et spécifique
+  if (/<title>[^<]*<\/title>/i.test(html)) {
+    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
+  } else {
+    html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
+  }
+
+  // 3. Remplacer ou injecter la balise canonique (self-canonical propre à chaque page)
+  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${pageSeo.canonicalUrl}" />`);
+  } else {
+    html = html.replace('</head>', `    <link rel="canonical" href="${pageSeo.canonicalUrl}" />\n  </head>`);
+  }
+
+  // 4. Remplacer ou injecter la meta description
+  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  } else {
+    html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
+  }
+
+  // 5. Remplacer ou injecter les mots-clés
+  if (/<meta[^>]*name=["']keywords["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="keywords" content="${escapeHtmlAttr(pageSeo.keywords)}" />`);
+  }
+
+  // 6. OpenGraph tags
+  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${pageSeo.canonicalUrl}" />`);
+
+  // 7. Twitter Card tags
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+
+  // 8. Remplacer ou injecter le Schema.org JSON-LD spécifique (FAQPage, BreadcrumbList, WebPage)
+  const jsonLd = generatePageJsonLd(pageSeo);
+  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
+  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
+    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i, jsonLdTag);
+  } else {
+    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
+  }
+
+  // 9. Contenu statique substantiel (H1, H2, explications méthodologiques, FAQ et liens internes)
+  const staticContent = generateStaticHtmlContent(pageSeo);
+  const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n      <div id="seo-crawler-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: normal; border: 0;">\n${staticContent}\n      </div>\n    </div>`;
+
+  if (html.includes('<div id="root">')) {
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<script/i, `${rootReplacement}\n    <script`);
+  }
+
+  return html;
+}
+
 function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Response, filePath: string) {
   try {
     let content = fs.readFileSync(filePath, 'utf-8');
@@ -1676,9 +1756,7 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
       ua.includes('mediapartners-google') ||
       req.query['google-site-verification'] !== undefined;
 
-    if (isGoogle) {
-      content = content.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
-    }
+    content = renderPageHtml(content, req.path, isGoogle);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(content);
   } catch (err) {
@@ -1696,10 +1774,10 @@ async function startServer() {
       appType: 'spa',
     });
 
-    // Intercepter spécifiquement les requêtes des robots Google pour injecter les balises sans les exposer aux utilisateurs
+    // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
     app.use(async (req, res, next) => {
-      // Uniquement pour les requêtes de document racine ou HTML
-      if (req.method === 'GET' && (req.path === '/' || req.path === '/index.html' || !req.path.includes('.'))) {
+      // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
+      if (req.method === 'GET' && !req.path.startsWith('/api/') && (req.path === '/' || !req.path.includes('.'))) {
         const ua = (req.headers['user-agent'] || '').toLowerCase();
         const isGoogle =
           ua.includes('google') ||
@@ -1709,16 +1787,14 @@ async function startServer() {
           ua.includes('mediapartners-google') ||
           req.query['google-site-verification'] !== undefined;
 
-        if (isGoogle) {
-          try {
-            let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
-            html = await vite.transformIndexHtml(req.originalUrl, html);
-            html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            return res.send(html);
-          } catch (e) {
-            return next(e);
-          }
+        try {
+          let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
+          html = await vite.transformIndexHtml(req.originalUrl, html);
+          html = renderPageHtml(html, req.path, isGoogle);
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.send(html);
+        } catch (e) {
+          return next(e);
         }
       }
       next();
@@ -1730,6 +1806,9 @@ async function startServer() {
     const distIndexPath = path.join(distPath, 'index.html');
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Endpoint not found' });
+      }
       sendHtmlWithConditionalGoogleTags(req, res, distIndexPath);
     });
   }

@@ -77,7 +77,6 @@ import { ImouWeatherSecurityBanner } from '../components/ImouWeatherSecurityBann
 import { AgricultureWeatherCard } from '../components/AgricultureWeatherCard';
 import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
-import { LiveMiniRadarMapCard } from '../components/LiveMiniRadarMapCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
@@ -290,7 +289,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* ========================================================================= */}
       <div className="block sm:hidden space-y-3.5 mb-4">
         {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
-        <div className="relative overflow-hidden rounded-[28px] border border-slate-700/60 shadow-2xl text-white bg-slate-950">
+        <div className="scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/60 shadow-2xl text-white bg-slate-950">
           {/* Photographic Background Asset */}
           <img 
             src={cityPhotoUrl}
@@ -478,20 +477,11 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
         </div>
 
-        {/* 2. Two Live Interactive Preview Cards (Radar Pluie HD Direct & Vigilance Météo-France) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {/* Card 1: Radar Pluie HD Direct (avec vue France / Local) */}
-          <LiveMiniRadarMapCard
-            station={station}
-            onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-          />
-
-          {/* Card 2: Vigilance Météo Officielle Météo-France */}
-          <LiveMeteoFranceVigilanceCard
-            station={station}
-            onClick={() => onNavigateTab ? onNavigateTab('vigilance') : null}
-          />
-        </div>
+        {/* 2. Aperçu Vigilance Officielle Météo-France */}
+        <LiveMeteoFranceVigilanceCard
+          station={station}
+          onClick={() => onNavigateTab ? onNavigateTab('vigilance') : null}
+        />
 
         {/* Widget Pluie dans l'heure & Comparaison aux Normales de Saison (Météo-France) */}
         <MeteoFrancePluieEtNormalesWidget

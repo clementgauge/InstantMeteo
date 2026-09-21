@@ -56,7 +56,7 @@ import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration, a
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio } from 'lucide-react';
+import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio, Flame, Droplets, Waves } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
@@ -66,6 +66,10 @@ import { WorldDisastersView } from './views/WorldDisastersView';
 import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
 import { CompetitiveGamingView } from './views/CompetitiveGamingView';
 import { DiscussionGroupView } from './views/DiscussionGroupView';
+import { MountainWeatherView } from './views/MountainWeatherView';
+import { BeachWeatherView } from './views/BeachWeatherView';
+import { DroughtAndFireView } from './views/DroughtAndFireView';
+import { WatercoursesView } from './views/WatercoursesView';
 import { PseudoModal } from './components/PseudoModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
@@ -77,6 +81,9 @@ import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffili
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
+import { SeoPageGuideCard } from './components/SeoPageGuideCard';
+import { updateDocumentSeo } from './utils/seoVerification';
+import { getTabIdForPath } from './seo/pagesSeoData';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -118,7 +125,32 @@ function WeatherApp() {
   }, [currentStation]);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<NavTabId>('realtime');
+  const [activeTab, setActiveTab] = useState<NavTabId>(() => {
+    if (typeof window !== 'undefined') {
+      const tabFromPath = getTabIdForPath(window.location.pathname) as NavTabId;
+      if (tabFromPath) return tabFromPath;
+    }
+    return 'realtime';
+  });
+
+  // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page
+  useEffect(() => {
+    updateDocumentSeo(activeTab, true);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const tabFromPath = getTabIdForPath(window.location.pathname) as NavTabId;
+        if (tabFromPath) {
+          setActiveTab(tabFromPath);
+          updateDocumentSeo(tabFromPath, false);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const [seniorMode, setSeniorMode] = useState<boolean>(false);
   const [simplifiedMode, setSimplifiedMode] = useState<boolean>(false);
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
@@ -145,7 +177,7 @@ function WeatherApp() {
       document.documentElement.classList.add('theme-light');
       document.documentElement.classList.remove('dark');
       document.body.classList.add('theme-light');
-      document.body.style.backgroundColor = '#ffffff';
+      document.body.style.backgroundColor = 'transparent';
       document.body.style.color = '#0f172a';
     } else {
       document.documentElement.classList.remove('theme-light');
@@ -504,6 +536,10 @@ function WeatherApp() {
     { id: 'bulletin', category: 'MEDIUM', label: '11. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
     { id: 'competitive', category: 'DIRECT', label: '12. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
     { id: 'discussionGroup', category: 'DIRECT', label: '13. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
+    { id: 'mountain', category: 'MAPS', label: '14. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
+    { id: 'beaches', category: 'MAPS', label: '15. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
+    { id: 'droughtFire', category: 'DIRECT', label: '16. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
+    { id: 'watercourses', category: 'DIRECT', label: '17. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
   const genericPageSection = (label: string, icon: any): SidebarSectionItem[] => [
@@ -561,7 +597,15 @@ function WeatherApp() {
                                 { id: 'discussion-messages-feed', label: 'Fil de Discussion en Direct', icon: MessageSquare },
                                 { id: 'discussion-composer-section', label: 'Poster une Observation', icon: Send },
                               ]
-                            : genericPageSection('Stations & Sommets de France', Map);
+                            : activeTab === 'mountain'
+                              ? genericPageSection('Météo Montagne & Nivologie (BERA)', Mountain)
+                              : activeTab === 'beaches'
+                                ? genericPageSection('Météo des Plages & Littoral (SHOM)', Waves)
+                                : activeTab === 'droughtFire'
+                                  ? genericPageSection('Vigi Sécheresse & Incendie (VigiEau / Météo des Forêts)', Flame)
+                                  : activeTab === 'watercourses'
+                                    ? genericPageSection('Vigie Cours d\'Eau & Vigicrues', Droplets)
+                                    : genericPageSection('Stations & Sommets de France', Map);
 
   // Quick navigation helper
   const currentNavIndex = navItems.findIndex(item => item.id === activeTab);
@@ -975,6 +1019,38 @@ function WeatherApp() {
               />
             )}
 
+            {activeTab === 'mountain' && (
+              <MountainWeatherView
+                station={currentStation}
+                weather={weather}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
+
+            {activeTab === 'beaches' && (
+              <BeachWeatherView
+                station={currentStation}
+                weather={weather}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
+
+            {activeTab === 'droughtFire' && (
+              <DroughtAndFireView
+                station={currentStation}
+                weather={weather}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
+
+            {activeTab === 'watercourses' && (
+              <WatercoursesView
+                station={currentStation}
+                weather={weather}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
+
             {activeTab === 'communityReports' && (
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
@@ -1002,6 +1078,9 @@ function WeatherApp() {
                 />
               </div>
             )}
+
+            {/* Guide & FAQ Météo - Données Officielles & Méthodologie (Indexation SEO & Confort Utilisateur) */}
+            <SeoPageGuideCard activeTab={activeTab} isLightMode={themeMode === 'light'} />
           </div>
         )}
         </section>
@@ -1077,6 +1156,7 @@ function WeatherApp() {
         onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
         currentTheme={currentTheme}
         seniorMode={seniorMode}
+        isLightMode={themeMode === 'light'}
       />
 
       {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}

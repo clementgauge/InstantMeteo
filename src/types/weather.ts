@@ -930,6 +930,12 @@ export interface CurrentWeather {
   recalibrationOffset?: number;
   isUserRecalibrated?: boolean;
   recalibrationSource?: string;
+
+  // Radar Precipitation Live Reconciliation & Nowcasting Override
+  isRadarReconciled?: boolean;
+  radarReconciliationNotice?: string;
+  radarDetectedPrecipRateMmH?: number;
+  lastRadarSyncTimestamp?: number;
 }
 
 export interface ThermalTierDefinition {

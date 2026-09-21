@@ -144,7 +144,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* ========================================================================= */}
       {/* 1. TOP HERO CARD (Exact 1:1 match with Reference Image)                   */}
       {/* ========================================================================= */}
-      <div className="relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl">
+      <div className="scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl">
         {/* Photographic Panorama of Selected City / Landscape with no-referrer to prevent hotlinking blocks */}
         <img
           key={cityPhotoUrl}

@@ -24,8 +24,9 @@ export const DirectAlertBanner: React.FC<DirectAlertBannerProps> = ({
   const isThunderstorm = (weather.weatherCode >= 95 && weather.weatherCode <= 99) || (weather.capeJkg && weather.capeJkg > 900);
   const isHeavyRain = weather.precipitation >= 12 || (weather.weatherCode >= 65 && weather.weatherCode <= 67);
   const isSevereFrost = weather.temperature <= -4;
+  const isRadarReconciledPrecip = Boolean(weather.isRadarReconciled || ((weather.radarDetectedPrecipRateMmH || 0) > 0));
 
-  const hasAnyAlert = isHighWind || isThunderstorm || isHeavyRain || isSevereFrost;
+  const hasAnyAlert = isHighWind || isThunderstorm || isHeavyRain || isSevereFrost || isRadarReconciledPrecip;
 
   if (!hasAnyAlert) return null;
 
@@ -56,6 +57,12 @@ export const DirectAlertBanner: React.FC<DirectAlertBannerProps> = ({
     alertDesc = `Gel marqué au sol et sur les chaussées à ${station.name} (${station.altitude} m).`;
     alertLevel = weather.temperature <= -7 ? 'orange' : 'yellow';
     Icon = Snowflake;
+  } else if (isRadarReconciledPrecip) {
+    const rate = weather.radarDetectedPrecipRateMmH || weather.precipitation || 0.5;
+    alertTitle = `🌧️ Écho Radar Doppler ARAMIS : Précipitations Actives (${rate} mm/h)`;
+    alertDesc = weather.radarReconciliationNotice || `Écho radar en temps réel sur ${station.name} : précipitations confirmées remplaçant le temps sec. Prévisions actualisées.`;
+    alertLevel = 'yellow';
+    Icon = CloudRain;
   }
 
   const borderClass = alertLevel === 'orange' ? 'border-amber-500 bg-amber-950/90 text-amber-100' : 'border-yellow-500 bg-yellow-950/90 text-yellow-100';

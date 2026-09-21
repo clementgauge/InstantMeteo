@@ -1,3 +1,5 @@
+import { getSeoDataForPath, getPathForTabId, generatePageJsonLd, PageSeoItem } from '../seo/pagesSeoData';
+
 /**
  * Vérification SEO Google dynamique et sécurisée
  * Les codes de vérification ne sont pas visibles en clair dans le code source HTML classique
@@ -38,3 +40,107 @@ export function initDynamicGoogleVerification(): void {
     // Silencieux
   }
 }
+
+/**
+ * Met à jour dynamiquement toutes les balises SEO dans le DOM client :
+ * - document.title (spécifique et descriptif par page)
+ * - link rel="canonical" (auto-référentiel vers sa propre URL)
+ * - meta description et keywords
+ * - OpenGraph (og:title, og:description, og:url)
+ * - Twitter Cards
+ * - Script JSON-LD enrichi (FAQPage, WebPage, BreadcrumbList)
+ * - Synchronisation pushState de l'URL du navigateur
+ */
+export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): PageSeoItem {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return getSeoDataForPath('/');
+  }
+
+  // Déterminer le chemin cible
+  let targetPath = pathOrTabId.startsWith('/') ? pathOrTabId : getPathForTabId(pathOrTabId);
+  const pageSeo = getSeoDataForPath(targetPath);
+
+  try {
+    // 1. Title
+    document.title = pageSeo.title;
+
+    // 2. Balise canonique auto-référentielle
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = pageSeo.canonicalUrl;
+
+    // 3. Meta Description
+    let descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!descMeta) {
+      descMeta = document.createElement('meta');
+      descMeta.name = 'description';
+      document.head.appendChild(descMeta);
+    }
+    descMeta.content = pageSeo.description;
+
+    // 4. Meta Keywords
+    let keywordsMeta = document.querySelector<HTMLMetaElement>('meta[name="keywords"]');
+    if (!keywordsMeta) {
+      keywordsMeta = document.createElement('meta');
+      keywordsMeta.name = 'keywords';
+      document.head.appendChild(keywordsMeta);
+    }
+    keywordsMeta.content = pageSeo.keywords;
+
+    // 5. OpenGraph Tags
+    const setOgTag = (property: string, content: string) => {
+      let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    setOgTag('og:title', pageSeo.title);
+    setOgTag('og:description', pageSeo.description);
+    setOgTag('og:url', pageSeo.canonicalUrl);
+
+    // 6. Twitter Card Tags
+    const setTwitterTag = (name: string, content: string) => {
+      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = name;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    setTwitterTag('twitter:title', pageSeo.title);
+    setTwitterTag('twitter:description', pageSeo.description);
+
+    // 7. Schema.org JSON-LD dynamique
+    let jsonLdScript = document.getElementById('seo-page-jsonld');
+    if (!jsonLdScript) {
+      jsonLdScript = document.createElement('script');
+      jsonLdScript.id = 'seo-page-jsonld';
+      jsonLdScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(jsonLdScript);
+    }
+    jsonLdScript.textContent = generatePageJsonLd(pageSeo);
+
+    // 8. Synchronisation URL dans la barre d'adresse
+    if (syncHistory && typeof window.history !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (currentPath !== pageSeo.path && !(pageSeo.path === '/direct' && currentPath === '/')) {
+        window.history.pushState({ tabId: pageSeo.tabId, path: pageSeo.path }, '', pageSeo.path);
+      }
+    }
+  } catch (err) {
+    console.error('Erreur mise à jour SEO DOM:', err);
+  }
+
+  return pageSeo;
+}
+

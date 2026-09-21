@@ -1015,7 +1015,7 @@ export function calculateNowcastingThreeHour(
   };
 }
 
-const CACHE_TTL_MS = 20 * 60 * 1000; // 20 minutes (entre 15 et 30 minutes)
+const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes pour réactualisation haute fréquence des précipitations radar
 const memoryCache = new Map<string, { timestamp: number; data: any }>();
 
 function getCachedData<T>(key: string): T | null {
@@ -1599,14 +1599,58 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       cur.apparent_temperature
     );
 
-    // Calibration fidèle du code météo : respecter le modèle WMO officiel sans dégrader le beau temps
+    // Calibration fidèle du code météo et RÉCONCILIATION RADAR DES PRÉCIPITATIONS
+    // Si le radar ou les capteurs minute par minute détectent des précipitations,
+    // interdiction d'afficher un code non pluvieux ("Couvert", "Éclaircies", "Ensoleillé")
     let calibratedWeatherCode = cur.weather_code;
     const rawHourlyCloud = hourlyData.cloud_cover?.[currentHourIndexInHourly];
     const effectiveCloudCover = (rawHourlyCloud !== undefined && rawHourlyCloud !== null)
       ? rawHourlyCloud
       : Math.max(cloudCoverTotal, cloudCoverLow, cloudCoverMid, cloudCoverHigh);
 
-    if ((cur.precipitation || 0) < 0.2) {
+    // Extraction du taux de précipitation immédiat (radar/minutely_15)
+    let immediateMin15PrecipRate = 0;
+    if (weatherData.minutely_15?.precipitation && Array.isArray(weatherData.minutely_15.precipitation)) {
+      const curTimeHourPrefix = cur?.time ? cur.time.slice(0, 13) : new Date().toISOString().slice(0, 13);
+      const mIdx = weatherData.minutely_15.time?.findIndex((t: string) => t.startsWith(curTimeHourPrefix));
+      if (mIdx !== undefined && mIdx >= 0) {
+        const val15 = weatherData.minutely_15.precipitation[mIdx] || 0;
+        immediateMin15PrecipRate = Number((val15 * 4).toFixed(1)); // Convertir 15min en mm/h
+      }
+    }
+
+    const curInstantPrecip = cur.precipitation || 0;
+    const effectivePrecipRate = Math.max(curInstantPrecip, immediateMin15PrecipRate);
+    let isRadarReconciled = false;
+    let radarReconciliationNotice: string | undefined;
+
+    if (effectivePrecipRate >= 0.05) {
+      // Précipitations détectées par le radar ou les capteurs au sol
+      // Si le code WMO brut est un ciel sec / nuageux (ex: 0, 1, 2, 3 Couvert, 45 Brouillard)
+      if (calibratedWeatherCode <= 3 || calibratedWeatherCode === 45 || calibratedWeatherCode === 48) {
+        const isSnow = alt >= isoDiag.snowRainLimitMeters || cur.temperature_2m <= 1.0;
+        const isStorm = curCape >= 600 || curLiftedIndex <= -1.5;
+
+        if (isStorm) {
+          calibratedWeatherCode = effectivePrecipRate >= 4.0 ? 96 : 95; // Averses orageuses
+        } else if (isSnow) {
+          calibratedWeatherCode = effectivePrecipRate >= 2.0 ? 75 : effectivePrecipRate >= 0.8 ? 73 : 71; // Neige
+        } else {
+          // Pluies liquides
+          if (effectivePrecipRate >= 4.0) {
+            calibratedWeatherCode = 65; // Pluie forte / soutenue
+          } else if (effectivePrecipRate >= 1.0) {
+            calibratedWeatherCode = 63; // Pluie modérée
+          } else if (effectivePrecipRate >= 0.25) {
+            calibratedWeatherCode = 61; // Pluie faible
+          } else {
+            calibratedWeatherCode = 51; // Bruine légère
+          }
+        }
+        isRadarReconciled = true;
+        radarReconciliationNotice = `Écho radar Doppler ARAMIS / Météo-France actif : précipitations détectées (${effectivePrecipRate} mm/h) — réactualisation temps réel appliquée (remplace l'état statique 'Couvert').`;
+      }
+    } else if (curInstantPrecip < 0.2) {
       if (calibratedWeatherCode <= 1) {
         // Ne dégrader en couvert que si la couverture nuageuse est réellement massive (>85%) et sans soleil direct
         if (effectiveCloudCover >= 85 && solarRadiationTotal < 80) {
@@ -1634,7 +1678,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       pressure: qfe,
       pressureMsl: qnh,
       uvIndex: uvAdjustedAltitude,
-      precipitation: cur.precipitation || 0,
+      precipitation: Number(effectivePrecipRate.toFixed(1)),
       weatherCode: calibratedWeatherCode,
       weatherDescription: finalWeatherDesc.label,
       airQualityAqi: aqiValue,
@@ -1643,6 +1687,10 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       dewPoint: exactDewPoint,
       humidex: humidexVal,
       windChill: windChillVal,
+      isRadarReconciled,
+      radarReconciliationNotice,
+      radarDetectedPrecipRateMmH: effectivePrecipRate >= 0.05 ? effectivePrecipRate : 0,
+      lastRadarSyncTimestamp: Date.now(),
       vaporPressureHpa,
       cloudBaseLclMeters: cloudBaseLcl,
       cloudCoverLowPct: cloudCoverLow,
