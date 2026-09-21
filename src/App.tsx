@@ -879,7 +879,7 @@ function WeatherApp() {
               seniorMode={seniorMode}
             />
 
-            {activeTab === 'realtime' && (
+            {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
               <RealtimeView
                 station={currentStation}
                 weather={weather}

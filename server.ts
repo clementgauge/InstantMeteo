@@ -1765,6 +1765,17 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
 }
 
 // -------------------------------------------------------------
+// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées)
+// -------------------------------------------------------------
+app.get(['/webcams', '/webcam'], (req, res) => {
+  res.redirect(301, '/direct');
+});
+
+app.get(['/modeles', '/modele', '/modeles-meteo'], (req, res) => {
+  res.redirect(301, '/nuages');
+});
+
+// -------------------------------------------------------------
 // DÉMARRAGE DU SERVEUR EXPRESS & MIDDLEWARE VITE
 // -------------------------------------------------------------
 async function startServer() {
@@ -1776,6 +1787,13 @@ async function startServer() {
 
     // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
     app.use(async (req, res, next) => {
+      if (req.path === '/webcams' || req.path === '/webcam') {
+        return res.redirect(301, '/direct');
+      }
+      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo') {
+        return res.redirect(301, '/nuages');
+      }
+
       // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
       if (req.method === 'GET' && !req.path.startsWith('/api/') && (req.path === '/' || !req.path.includes('.'))) {
         const ua = (req.headers['user-agent'] || '').toLowerCase();
@@ -1806,6 +1824,12 @@ async function startServer() {
     const distIndexPath = path.join(distPath, 'index.html');
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
+      if (req.path === '/webcams' || req.path === '/webcam') {
+        return res.redirect(301, '/direct');
+      }
+      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo') {
+        return res.redirect(301, '/nuages');
+      }
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'Endpoint not found' });
       }

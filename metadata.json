@@ -1,6 +1,6 @@
 {
   "name": "Instant Météo",
-  "description": "Instant Météo (InstantMétéo) : Prévisions météo en direct pour toute la France et 35 000 communes. Consultez la température en temps réel, le radar pluie HD haute précision, les vigilances Météo-France, les webcams en direct et les modèles AROME.",
+  "description": "Instant Météo (InstantMétéo) : Prévisions météo en direct pour toute la France et 35 000 communes. Consultez la température en temps réel, le radar pluie HD haute précision, les vigilances Météo-France et les sondages de nuages.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

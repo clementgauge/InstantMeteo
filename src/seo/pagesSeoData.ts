@@ -31,7 +31,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
     title: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
-    description: 'Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar pluie HD, vigilances et webcams.',
+    description: 'Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar pluie HD, vigilances et néphologie.',
     keywords: 'instant météo, instantmeteo, météo france, température temps réel, radar pluie direct, météo 35000 communes, prévisions directes',
     h1: 'Instant Météo France - Portail Météorologique de Précision en Temps Réel',
     h2s: [
@@ -907,104 +907,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
       }
     ],
     tabId: 'competitive'
-  },
-  '/webcams': {
-    slug: 'webcams',
-    path: '/webcams',
-    canonicalUrl: `${BASE_SITE_URL}/webcams`,
-    title: 'Webcams Météo en Direct HD & Caméras Villes de France - Instant Météo',
-    description: 'Vérifiez le temps en direct grâce à nos webcams météo panoramiques HD : caméras de villes, sommets alpins, littoraux côtiers et plages de France.',
-    keywords: 'webcams météo, webcam direct france, caméras météo hd, webcam montagne direct, webcam plage live, webcam ville paris marseille',
-    h1: 'Webcams Météo en Direct HD, Caméras Côtières, Montagne & Villes',
-    h2s: [
-      'Flux Vidéo et Panoramas Haute Définition en Temps Réel',
-      'Vérification Visuelle Immédiate de la Nébulosité et de la Visibilité',
-      'Webcams des Massifs Alpins, Stations de Ski et Crêtes Pyrénéennes',
-      'Caméras des Plages, Ports et Façades Maritimes Françaises'
-    ],
-    intro: 'Rien ne remplace le coup d\'œil direct sur l\'horizon. Le réseau de webcams météo HD d\'Instant Météo vous permet de contempler en direct le ciel au-dessus des plus beaux sites de France : grandes métropoles urbaines, stations balnéaires de l\'Atlantique et de la Méditerranée, cols et sommets mythiques des Alpes et des Pyrénées.',
-    sections: [
-      {
-        title: 'Contrôle visuel en direct de l\'état du ciel',
-        content: 'Vérifiez d\'un coup d\'œil si la mer de nuages est en dessous ou au-dessus de votre station, si le brouillard s\'est levé dans la vallée ou si les averses orageuses grondent sur le littoral.'
-      },
-      {
-        title: 'Couverture géographique diversifiée',
-        content: 'De la Baie de Saint-Malo aux falaises d\'Étretat, de la Tour Eiffel au Vieux-Port de Marseille, du Pic du Midi aux sommets de Chamonix-Mont-Blanc, explorez la France comme si vous y étiez.'
-      },
-      {
-        title: 'Qualité vidéo haute définition et mise à jour continue',
-        content: 'Les flux intègrent des balayages panoramiques motorisés à 180° et 360°, des archivages en time-lapse des dernières 24 heures et l\'affichage superposé des relevés de température et vent du site.'
-      }
-    ],
-    faq: [
-      {
-        question: 'Les flux vidéo des webcams sont-ils réellement en direct ?',
-        answer: 'Oui, nos caméras et webcams partenaires diffusent des flux directs ou des instantanés haute résolution actualisés toutes les 1 à 10 minutes selon les débits réseaux locaux.'
-      },
-      {
-        question: 'Comment trouver une webcam près de chez moi ?',
-        answer: 'Dans le module Webcams, saisissez le nom de votre commune ou de votre département pour afficher les caméras les plus proches par ordre de distance kilométrique.'
-      },
-      {
-        question: 'Pourquoi certaines webcams sont-elles parfois indisponibles ?',
-        answer: 'Les caméras situées en haute altitude ou sur les côtes peuvent subir des coupures électriques ou de réseau temporaires lors de violentes tempêtes ou de tempêtes de neige.'
-      },
-      {
-        question: 'Puis-je proposer une webcam publique pour qu\'elle soit ajoutée ?',
-        answer: 'Tout à fait. Les offices de tourisme et gestionnaires de webcams peuvent nous soumettre l\'URL de leur flux pour intégration dans notre annuaire national.'
-      }
-    ],
-    tabId: 'realtime'
-  },
-  '/modeles': {
-    slug: 'modeles',
-    path: '/modeles',
-    canonicalUrl: `${BASE_SITE_URL}/modeles`,
-    title: 'Modèles Météo Numériques AROME, ARPEGE, GFS & ECMWF - Instant Météo',
-    description: 'Consultez les cartes brutes des modèles météo numériques : AROME (1,3 km), ARPEGE, ECMWF IFS et GFS. Géopotentiel, précipitations et température 850 hPa.',
-    keywords: 'modèles météo, arome météo france, arpege, ecmwf ifs, gfs noaa, cartes brutes modèles, géopotentiel 500 hpa, température 850 hpa',
-    h1: 'Modèles Météorologiques Numériques Haute Résolution (AROME, ECMWF, GFS)',
-    h2s: [
-      'Le Modèle Convectif Maille Fine AROME de Météo-France (1,3 km)',
-      'Le Modèle Global Européen ECMWF IFS (Référence Mondiale)',
-      'Paramètres Physiques : Géopotentiel 500 hPa, Température à 850 hPa, CAPE',
-      'Comparaison Synoptique des Sorties de Runs (00z, 06z, 12z, 18z)'
-    ],
-    intro: 'Pour les passionnés de météorologie et les météorologues avertis, Instant Météo propose un accès direct aux champs bruts issus des supercalculateurs mondiaux. Comparez les simulations de la maille kilométrique AROME avec les modèles synoptiques mondiaux ARPEGE, ECMWF IFS, NOAA GFS et DWD ICON.',
-    sections: [
-      {
-        title: 'AROME : la référence française pour les phénomènes intenses',
-        content: 'Développé par Météo-France, AROME fonctionne avec un maillage horizontal de 1,3 km et 90 niveaux verticaux. Capable de modéliser explicitement la convection profonde sans paramétrisation, il excelle dans la prévision des orages violents, des précipitations orographiques et des brises thermiques côtières.'
-      },
-      {
-        title: 'ECMWF IFS : le modèle déterministe le plus performant au monde',
-        content: 'Géré par le Centre Européen pour les Prévisions Météorologiques à Moyen Terme (CEPMMT / ECMWF), le modèle IFS est unanimement reconnu pour sa supériorité statistique dans le positionnement des dépressions et des masses d\'air à moyenne échéance (J+3 à J+10).'
-      },
-      {
-        title: 'Lecture des cartes techniques d\'altitude',
-        content: 'Explorez la topographie de la surface isobare 500 hPa (dynamique de moyenne troposphère), la température de la masse d\'air à 850 hPa (isolée du cycle diurne de surface), les profils d\'instabilité convective (MUCAPE / Lifted Index) et les cumuls de pluie modélisés.'
-      }
-    ],
-    faq: [
-      {
-        question: 'Quelle est la différence fondamentale entre AROME et ARPEGE ?',
-        answer: 'ARPEGE est un modèle global couvrant la Terre entière avec une maille variable (environ 5 km sur la France). AROME est un modèle régional à aire limitée centré sur la France avec une maille ultra-fine de 1,3 km qui résout explicitement les cellules orageuses.'
-      },
-      {
-        question: 'À quelle heure sortent les nouveaux runs des modèles ?',
-        answer: 'Les quatre grands runs de la journée (00 UTC, 06 UTC, 12 UTC, 18 UTC) sont injectés sur notre plateforme dès la fin de calcul des supercalculateurs (vers 04h, 10h, 16h et 22h).'
-      },
-      {
-        question: 'Pourquoi la température à 850 hPa est-elle si importante ?',
-        answer: 'L\'altitude de 850 hPa se situe vers 1 500 mètres. À cette hauteur, l\'air n\'est pas perturbé par le réchauffement du sol en journée ou le rayonnement nocturne : sa température permet d\'identifier la vraie nature de la masse d\'air (polaire, subtropicale, maritime).'
-      },
-      {
-        question: 'Qu\'est-ce que l\'indice CAPE en météorologie ?',
-        answer: 'La CAPE (Convective Available Potential Energy) mesure en Joules par kilogramme (J/kg) l\'énergie de flottabilité disponible pour une particule d\'air qui s\'élève. Une valeur supérieure à 1 000 J/kg signale une forte instabilité propice aux orages violents.'
-      }
-    ],
-    tabId: 'realtime'
   }
 };
 
@@ -1018,7 +920,7 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
   }
   if (!clean) clean = '/';
 
-  // Alias courants
+  // Alias courants et redirections d'anciennes pages supprimées vers les pages actives équivalentes
   const ALIASES: Record<string, string> = {
     '/previsions': '/14-jours',
     '/previsions-14-jours': '/14-jours',
@@ -1047,7 +949,13 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
     '/forum': '/communaute',
     '/discussion': '/communaute',
     '/salon': '/communaute',
-    '/ligue': '/competition'
+    '/ligue': '/competition',
+    // Redirection des anciennes pages supprimées
+    '/webcams': '/direct',
+    '/webcam': '/direct',
+    '/modeles': '/nuages',
+    '/modele': '/nuages',
+    '/modeles-meteo': '/nuages'
   };
 
   const targetPath = ALIASES[clean] || clean;
@@ -1230,8 +1138,7 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
     .join('\n');
 
   const internalLinks = Object.entries(SEO_PAGES_MAP)
-    .filter(([path]) => path !== page.path)
-    .slice(0, 10)
+    .filter(([path]) => path !== page.path && path !== '/')
     .map(
       ([path, item]) => `
         <li style="display: inline-block; margin: 4px 8px 4px 0;">
