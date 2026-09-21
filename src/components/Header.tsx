@@ -692,34 +692,34 @@ export const Header: React.FC<HeaderProps> = ({
             <Instagram className="h-4 w-4 shrink-0" />
           </a>
 
-          {/* YouTube Official Channel Link - Just logo on all formats */}
+          {/* YouTube Official Channel Link - Bouton secondaire discret pour ne pas simuler une alerte rouge */}
           <a
             id="header-youtube-link"
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-2xl border border-red-500/40 bg-gradient-to-r from-red-950/50 via-red-900/40 to-slate-900 p-2 text-red-500 hover:text-white hover:border-red-400 hover:bg-red-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center justify-center rounded-2xl border border-slate-700/80 bg-slate-900/80 p-2 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
             aria-label="Chaîne YouTube officielle Instant Météo"
           >
             <Youtube className="h-4 w-4 shrink-0" />
           </a>
 
-          {/* Mode Simplifié Toggle (Between YouTube & Settings) */}
+          {/* Mode Simplifié Toggle (Mode par défaut pour les nouveaux visiteurs) */}
           {onToggleSimplifiedMode && (
             <button
               id="header-simplified-mode-btn"
               onClick={onToggleSimplifiedMode}
-              title={simplifiedMode ? "Désactiver le Mode Simplifié (afficher tous les blocs experts)" : "Activer le Mode Simplifié (vue épurée essentielle)"}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              title={simplifiedMode ? "Mode Simplifié activé (vue épurée essentielle) — Cliquez pour passer en Mode Complet (Expert)" : "Mode Complet Expert actif (tous les modules affichés) — Cliquez pour revenir au Mode Simplifié"}
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-1.5 text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
                 simplifiedMode
-                  ? 'border-emerald-400 bg-emerald-600 text-white shadow-emerald-900/50 shadow-md'
-                  : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+                  ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/40 hover:border-emerald-400'
+                  : 'border-slate-700 bg-slate-900/90 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <SlidersHorizontal className={`h-4 w-4 shrink-0 ${simplifiedMode ? 'text-white' : 'text-emerald-400'}`} />
-              <span className="hidden sm:inline">{simplifiedMode ? 'Mode Simplifié Activé' : 'Mode Simplifié'}</span>
-              <span className="sm:hidden">{simplifiedMode ? 'Épuré' : 'Normal'}</span>
+              <SlidersHorizontal className={`h-3.5 w-3.5 shrink-0 ${simplifiedMode ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="hidden sm:inline">{simplifiedMode ? 'Mode Simplifié' : 'Mode Complet (Expert)'}</span>
+              <span className="sm:hidden">{simplifiedMode ? 'Épuré' : 'Expert'}</span>
             </button>
           )}
 

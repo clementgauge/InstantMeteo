@@ -198,10 +198,11 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 {onLocateGps && (
                   <button
                     onClick={onLocateGps}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/50 text-emerald-200 text-xs font-bold transition active:scale-95 shadow-sm"
+                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/15 text-slate-300 hover:text-emerald-300 text-[11px] font-medium transition active:scale-95"
+                    title="Se localiser via le GPS"
                   >
-                    <Navigation className="h-3.5 w-3.5 text-emerald-300 fill-emerald-300/30" />
-                    <span>Ma Position GPS</span>
+                    <Navigation className="h-3 w-3 text-emerald-400 fill-emerald-400/20" />
+                    <span>GPS</span>
                   </button>
                 )}
               </div>
@@ -218,26 +219,27 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 Climat : {station.climateZone || 'Océanique dégradé / Îlot de chaleur urbain'}
               </div>
 
-              {/* Changer de station and Contredire buttons */}
-              <div className="pt-1 flex items-center gap-2 flex-wrap">
+              {/* Changer de station and Contredire buttons - Boutons secondaires allégés */}
+              <div className="pt-1 flex items-center gap-1.5 flex-wrap">
                 {onOpenSearchModal && (
                   <button
                     onClick={onOpenSearchModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/35 hover:bg-black/55 border border-white/15 text-[11px] font-medium text-slate-300 hover:text-white transition active:scale-95 cursor-pointer backdrop-blur-sm"
+                    title="Rechercher une autre commune ou station"
                   >
-                    <Search className="h-3.5 w-3.5 text-sky-400" />
-                    <span>Changer de station</span>
+                    <Search className="h-3 w-3 text-sky-400" />
+                    <span>Changer de commune</span>
                   </button>
                 )}
 
                 {onOpenContradictionModal && (
                   <button
                     onClick={onOpenContradictionModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs font-bold text-amber-300 transition active:scale-95 cursor-pointer shadow-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/35 hover:bg-black/55 border border-white/15 text-[11px] font-medium text-slate-300 hover:text-amber-200 transition active:scale-95 cursor-pointer backdrop-blur-sm"
                     title="Signaler un écart avec la météo observée et affiner les données avec votre observation de terrain"
                   >
-                    <Zap className="h-3.5 w-3.5 text-amber-400" />
-                    <span>Ajuster le direct (Observation de terrain)</span>
+                    <Zap className="h-3 w-3 text-amber-400" />
+                    <span>Ajuster le direct</span>
                   </button>
                 )}
               </div>
@@ -251,12 +253,13 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               <div className="text-4xl sm:text-5xl font-black text-white tracking-tight font-mono">
                 {currentTime || '17:42'}
               </div>
+              {/* Palette fonctionnelle stricte : Vert = statut positif / flux en direct sain */}
               <div className="flex items-center justify-end gap-1.5 pt-0.5">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-[11px] font-black uppercase tracking-wider text-rose-400">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
                   EN DIRECT
                 </span>
               </div>
@@ -315,27 +318,27 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
             </div>
           </div>
 
-          {/* Bottom Row: 3 Metrics Pills (Ressenti / Min / Max) centered */}
+          {/* Bottom Row: 3 Metrics Pills (Ressenti / Min / Max) centered - Palette stricte : Rouge réservé aux alertes/dangers */}
           <div className="pt-2 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
-            {/* Ressenti */}
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-rose-500/40 text-xs shadow-sm">
-              <Thermometer className="h-4 w-4 text-rose-400" />
-              <span className="text-slate-300">Ressenti</span>
-              <span className="font-black text-rose-300">{formatTemp(weather.feelsLike)}</span>
+            {/* Ressenti - Neutre / Info */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/70 text-xs shadow-sm">
+              <Thermometer className="h-3.5 w-3.5 text-slate-400" />
+              <span className="text-slate-400">Ressenti</span>
+              <span className="font-bold text-slate-200">{formatTemp(weather.feelsLike)}</span>
             </div>
 
-            {/* Min */}
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-sky-500/40 text-xs shadow-sm">
-              <Droplets className="h-4 w-4 text-sky-400" />
+            {/* Min - Froid / Bleu */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-sky-500/40 text-xs shadow-sm">
+              <Droplets className="h-3.5 w-3.5 text-sky-400" />
               <span className="text-slate-300">Min</span>
-              <span className="font-black text-sky-300">{formatTemp(todayMin)}</span>
+              <span className="font-bold text-sky-300">{formatTemp(todayMin)}</span>
             </div>
 
-            {/* Max */}
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/40 text-xs shadow-sm">
-              <Flame className="h-4 w-4 text-amber-400" />
+            {/* Max - Chaud / Ambre */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/40 text-xs shadow-sm">
+              <Flame className="h-3.5 w-3.5 text-amber-400" />
               <span className="text-slate-300">Max</span>
-              <span className="font-black text-amber-300">{formatTemp(todayMax)}</span>
+              <span className="font-bold text-amber-300">{formatTemp(todayMax)}</span>
             </div>
           </div>
         </div>

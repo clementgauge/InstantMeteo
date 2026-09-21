@@ -152,7 +152,28 @@ function WeatherApp() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
   const [seniorMode, setSeniorMode] = useState<boolean>(false);
-  const [simplifiedMode, setSimplifiedMode] = useState<boolean>(false);
+  // Mode Simplifié par défaut pour les nouveaux visiteurs (vue épurée essentielle)
+  // avec option de passer en Mode Complet (Expert) mémorisée localement
+  const [simplifiedMode, setSimplifiedMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('instant_meteo_simplified_mode');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+    } catch (_) {}
+    return true; // Défaut pour nouveaux visiteurs : mode simplifié épuré
+  });
+
+  const handleToggleSimplifiedMode = () => {
+    setSimplifiedMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('instant_meteo_simplified_mode', String(next));
+      } catch (_) {}
+      return next;
+    });
+  };
+
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
     try {
@@ -725,7 +746,7 @@ function WeatherApp() {
           seniorMode={seniorMode}
           onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
           simplifiedMode={simplifiedMode}
-          onToggleSimplifiedMode={() => setSimplifiedMode(prev => !prev)}
+          onToggleSimplifiedMode={handleToggleSimplifiedMode}
           themeMode={themeMode}
           onToggleThemeMode={handleToggleThemeMode}
           onOpenAndroidModal={() => setIsInstallModalOpen(true)}
