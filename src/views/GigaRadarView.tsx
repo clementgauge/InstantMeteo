@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
-import { PrecisionRadarMap } from '../components/PrecisionRadarMap';
+import { GigaRadarMap } from '../components/GigaRadarMap';
 import { FireProximityRadarCard } from '../components/FireProximityRadarCard';
 import { ThunderstormConvectiveDetailsCard } from '../components/ThunderstormConvectiveDetailsCard';
 import { calculateThunderstormAnalysis } from '../services/thunderstormService';
@@ -203,13 +203,11 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         </div>
       )}
 
-      {/* 1. Main Interactive Precision Radar Map Component */}
-      <PrecisionRadarMap
+      {/* 1. Main Interactive High-Performance Radar Map Component */}
+      <GigaRadarMap
         currentStation={currentStation}
-        weather={weather}
         onSelectStation={onSelectStation}
         seniorMode={seniorMode}
-        simplifiedMode={simplifiedMode}
         onOpenSearchModal={onOpenSearchModal}
       />
 

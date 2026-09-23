@@ -16,6 +16,21 @@
     <meta name="keywords" content="instantmétéo, instant météo, instantmeteo, météo, meteo, météo france, meteofrance, instant, température, temperature, radar, radar pluie, radar météo, france, prévisions météo, météo en direct, vigilance météo france, météo temps réel, météo direct, météo 14 jours" />
     <meta name="author" content="Instant Météo" />
     <link rel="canonical" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <script>
+      (function() {
+        try {
+          var p = window.location.pathname;
+          var link = document.querySelector('link[rel="canonical"]');
+          if (link) {
+            if (p === '/direct') {
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/direct';
+            } else if (p && p !== '/') {
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev' + p.replace(/\/$/, '');
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:site_name" content="Instant Météo" />

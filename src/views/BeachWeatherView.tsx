@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Waves, 
   Thermometer, 
@@ -15,9 +15,17 @@ import {
   Layers,
   ArrowUpRight,
   ArrowDownRight,
-  Anchor
+  Anchor,
+  Navigation,
+  LifeBuoy
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
+import { 
+  FRENCH_BEACH_SPOTS, 
+  BeachSpotData, 
+  findNearestBeach, 
+  calculateAstronomicalTides 
+} from '../services/beachWeatherService';
 
 interface BeachWeatherViewProps {
   station: LocationPoint;
@@ -25,523 +33,401 @@ interface BeachWeatherViewProps {
   isLightMode?: boolean;
 }
 
-interface BeachSpotData {
-  id: string;
-  name: string;
-  facade: string;
-  department: string;
-  waterTempC: number;
-  airTempC: number;
-  tideHighTime: string;
-  tideLowTime: string;
-  tideCoefficient: number; // 20 à 120
-  tideStatus: 'Marée Montante (Flot)' | 'Marée Descendante (Jusant)' | 'Pleine Mer' | 'Basse Mer';
-  tideType: 'Vives-Eaux' | 'Mortes-Eaux' | 'Moyennes';
-  seaStateDouglas: '0 - Mer d\'huile' | '1 - Mer ridée' | '2 - Belle' | '3 - Peu agitée' | '4 - Agitée' | '5 - Forte';
-  waveHeightM: number;
-  wavePeriodSec: number;
-  flagColor: 'VERT' | 'JAUNE' | 'ROUGE' | 'VIOLET';
-  flagMeaning: string;
-  windSpeedKnots: number;
-  windGustKnots: number;
-  windDirectionCompass: string;
-  windThermalBreeze: 'Brise de mer active (on-shore)' | 'Brise de terre (off-shore)' | 'Régime général synoptique';
-  beachUvIndex: number;
-  bathingComfortScore: number; // 0-10
-  waterQuality: 'Excellente (Pavillon Bleu)' | 'Bonne' | 'Surveillance temporaire';
-  description: string;
-}
-
-const BEACH_SPOTS_DATABASE: BeachSpotData[] = [
-  {
-    id: 'biarritz',
-    name: 'Biarritz - Grande Plage & Côte des Basques',
-    facade: 'Côte Basque & Atlantique Sud',
-    department: 'Pyrénées-Atlantiques (64)',
-    waterTempC: 17.5,
-    airTempC: 22.0,
-    tideHighTime: '16h45',
-    tideLowTime: '10h30',
-    tideCoefficient: 88,
-    tideStatus: 'Marée Montante (Flot)',
-    tideType: 'Vives-Eaux',
-    seaStateDouglas: '4 - Agitée',
-    waveHeightM: 1.8,
-    wavePeriodSec: 12,
-    flagColor: 'JAUNE',
-    flagMeaning: 'Baignade surveillée avec danger limité : courants de baïne actifs à marée montante et shorebreak marqué.',
-    windSpeedKnots: 12,
-    windGustKnots: 18,
-    windDirectionCompass: 'ONO',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 6.5,
-    bathingComfortScore: 7.8,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Hauts rouleaux atlantiques célèbres pour le surf. Prudence impérative lors de la montée du flot dans les zones de baïnes.'
-  },
-  {
-    id: 'marseille-prado',
-    name: 'Marseille - Plages du Prado & Calanques',
-    facade: 'Méditerranée Occidentale',
-    department: 'Bouches-du-Rhône (13)',
-    waterTempC: 21.5,
-    airTempC: 26.5,
-    tideHighTime: '14h20',
-    tideLowTime: '08h15',
-    tideCoefficient: 42,
-    tideStatus: 'Pleine Mer',
-    tideType: 'Mortes-Eaux',
-    seaStateDouglas: '2 - Belle',
-    waveHeightM: 0.4,
-    wavePeriodSec: 5,
-    flagColor: 'VERT',
-    flagMeaning: 'Baignade surveillée sans danger particulier. Eau limpide et vent thermique modéré.',
-    windSpeedKnots: 8,
-    windGustKnots: 12,
-    windDirectionCompass: 'SO',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 7.2,
-    bathingComfortScore: 9.2,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Conditions idéales de baignade estivale. Mer peu agitée, courant quasi nul typique du bassin méditerranéen.'
-  },
-  {
-    id: 'saint-malo',
-    name: 'Saint-Malo - Plage du Sillon',
-    facade: 'Manche & Mer de Bretagne',
-    department: 'Ille-et-Vilaine (35)',
-    waterTempC: 15.2,
-    airTempC: 19.5,
-    tideHighTime: '18h10',
-    tideLowTime: '11h50',
-    tideCoefficient: 95,
-    tideStatus: 'Marée Montante (Flot)',
-    tideType: 'Vives-Eaux',
-    seaStateDouglas: '3 - Peu agitée',
-    waveHeightM: 0.9,
-    wavePeriodSec: 8,
-    flagColor: 'JAUNE',
-    flagMeaning: 'Marée de vive-eau spectaculaire : vitesse de submersion rapide de l\'estran. Ne pas se laisser isoler sur les bancs de sable.',
-    windSpeedKnots: 15,
-    windGustKnots: 22,
-    windDirectionCompass: 'O',
-    windThermalBreeze: 'Régime général synoptique',
-    beachUvIndex: 5.5,
-    bathingComfortScore: 6.8,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Plus fortes marées d\'Europe avec marnage supérieur à 11 mètres. Spectacle magistral des vagues sur la digue du Sillon.'
-  },
-  {
-    id: 'arcachon',
-    name: 'Arcachon - Dune du Pilat & Pereire',
-    facade: 'Côte d\'Argent & Atlantique',
-    department: 'Gironde (33)',
-    waterTempC: 19.0,
-    airTempC: 23.5,
-    tideHighTime: '17h05',
-    tideLowTime: '10h55',
-    tideCoefficient: 84,
-    tideStatus: 'Marée Montante (Flot)',
-    tideType: 'Vives-Eaux',
-    seaStateDouglas: '2 - Belle',
-    waveHeightM: 0.6,
-    wavePeriodSec: 7,
-    flagColor: 'VERT',
-    flagMeaning: 'Baignade surveillée dans le bassin d\'Arcachon. Bassin abrité de la grosse houle océanique.',
-    windSpeedKnots: 9,
-    windGustKnots: 14,
-    windDirectionCompass: 'NO',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 6.8,
-    bathingComfortScore: 8.9,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Eaux plus calmes et plus chaudes à l\'intérieur du bassin que sur le littoral océanique ouvert.'
-  },
-  {
-    id: 'nice-promenade',
-    name: 'Nice - Baie des Anges (Promenade)',
-    facade: 'Côte d\'Azur & Riviera',
-    department: 'Alpes-Maritimes (06)',
-    waterTempC: 22.8,
-    airTempC: 27.0,
-    tideHighTime: '15h00',
-    tideLowTime: '09h00',
-    tideCoefficient: 38,
-    tideStatus: 'Basse Mer',
-    tideType: 'Mortes-Eaux',
-    seaStateDouglas: '1 - Mer ridée',
-    waveHeightM: 0.3,
-    wavePeriodSec: 4,
-    flagColor: 'VERT',
-    flagMeaning: 'Baignade sans risque. Forte déclivité immédiate des fonds de galets (forte pente à 3 mètres du rivage).',
-    windSpeedKnots: 6,
-    windGustKnots: 10,
-    windDirectionCompass: 'S',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 7.6,
-    bathingComfortScore: 9.4,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Eau turquoise cristalline de la baie des Anges. Vigilance pour les jeunes enfants en raison du tombant abrupt de galets.'
-  },
-  {
-    id: 'la-rochelle',
-    name: 'La Rochelle - Île de Ré & Minimes',
-    facade: 'Côte Charentaise & Pertuis',
-    department: 'Charente-Maritime (17)',
-    waterTempC: 18.2,
-    airTempC: 21.5,
-    tideHighTime: '17h30',
-    tideLowTime: '11h20',
-    tideCoefficient: 82,
-    tideStatus: 'Marée Montante (Flot)',
-    tideType: 'Vives-Eaux',
-    seaStateDouglas: '2 - Belle',
-    waveHeightM: 0.7,
-    wavePeriodSec: 7,
-    flagColor: 'VERT',
-    flagMeaning: 'Baignade surveillée sans danger. Pertuis d\'Antioche protégeant le plan d\'eau de la houle du large.',
-    windSpeedKnots: 11,
-    windGustKnots: 16,
-    windDirectionCompass: 'O',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 6.2,
-    bathingComfortScore: 8.2,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Parfait équilibre entre baignade familiale et sports nautiques (voile, paddle, kite-surf).'
-  },
-  {
-    id: 'le-touquet',
-    name: 'Le Touquet-Paris-Plage',
-    facade: 'Côte d\'Opale & Manche Est',
-    department: 'Pas-de-Calais (62)',
-    waterTempC: 14.8,
-    airTempC: 18.5,
-    tideHighTime: '13h40',
-    tideLowTime: '20h15',
-    tideCoefficient: 76,
-    tideStatus: 'Marée Descendante (Jusant)',
-    tideType: 'Moyennes',
-    seaStateDouglas: '3 - Peu agitée',
-    waveHeightM: 0.8,
-    wavePeriodSec: 6,
-    flagColor: 'VERT',
-    flagMeaning: 'Baignade surveillée. Immense estran de sable fin se découvrant à perte de vue à marée basse.',
-    windSpeedKnots: 14,
-    windGustKnots: 20,
-    windDirectionCompass: 'SO',
-    windThermalBreeze: 'Régime général synoptique',
-    beachUvIndex: 5.0,
-    bathingComfortScore: 6.5,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Paradis du char à voile et des grandes promenades iodées le long des dunes côtières.'
-  },
-  {
-    id: 'porto-vecchio',
-    name: 'Porto-Vecchio - Palombaggia & Santa Giulia',
-    facade: 'Corse du Sud',
-    department: 'Corse-du-Sud (2A)',
-    waterTempC: 23.5,
-    airTempC: 28.2,
-    tideHighTime: '14h45',
-    tideLowTime: '08h30',
-    tideCoefficient: 35,
-    tideStatus: 'Pleine Mer',
-    tideType: 'Mortes-Eaux',
-    seaStateDouglas: '0 - Mer d\'huile',
-    waveHeightM: 0.2,
-    wavePeriodSec: 3,
-    flagColor: 'VERT',
-    flagMeaning: 'Conditions paradisiaques : eau chaude transparente, lagon peu profond et vent nul.',
-    windSpeedKnots: 5,
-    windGustKnots: 8,
-    windDirectionCompass: 'E',
-    windThermalBreeze: 'Brise de mer active (on-shore)',
-    beachUvIndex: 8.0,
-    bathingComfortScore: 9.8,
-    waterQuality: 'Excellente (Pavillon Bleu)',
-    description: 'Sable blanc corallien, pins parasols et rochers de granit rouge. Température de l\'eau digne d\'un lagon tropical.'
-  }
-];
-
 export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   station,
   weather,
   isLightMode = false
 }) => {
-  const [selectedSpotId, setSelectedSpotId] = useState<string>('biarritz');
-  const selectedSpot = BEACH_SPOTS_DATABASE.find(b => b.id === selectedSpotId) || BEACH_SPOTS_DATABASE[0];
+  const defaultBeach = useMemo(() => findNearestBeach(station), [station]);
+  const [selectedBeachId, setSelectedBeachId] = useState<string>(defaultBeach.id);
+  const [selectedFacadeFilter, setSelectedFacadeFilter] = useState<string>('all');
 
-  const getFlagBadge = (color: BeachSpotData['flagColor']) => {
-    switch (color) {
+  const selectedBeach = useMemo(() => {
+    return FRENCH_BEACH_SPOTS.find(b => b.id === selectedBeachId) || defaultBeach;
+  }, [selectedBeachId, defaultBeach]);
+
+  // Re-sync when station changes
+  React.useEffect(() => {
+    const nearest = findNearestBeach(station);
+    setSelectedBeachId(nearest.id);
+  }, [station]);
+
+  // Calculate astronomical tide for current date and time
+  const liveTides = useMemo(() => {
+    const isMed = selectedBeach.facade === 'mediterranee' || selectedBeach.facade === 'cote-azur';
+    return calculateAstronomicalTides(new Date(), isMed);
+  }, [selectedBeach]);
+
+  const filteredBeaches = useMemo(() => {
+    if (selectedFacadeFilter === 'all') return FRENCH_BEACH_SPOTS;
+    return FRENCH_BEACH_SPOTS.filter(b => b.facade === selectedFacadeFilter);
+  }, [selectedFacadeFilter]);
+
+  // Bathing flag styling
+  const getFlagStyle = (flag: 'VERT' | 'JAUNE' | 'ROUGE' | 'VIOLET') => {
+    switch (flag) {
       case 'VERT':
-        return { label: 'Drapeau Vert (Baignade sans danger)', bg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/30' };
+        return {
+          bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          label: 'Drapeau Vert - Baignade Surveillée Sans Danger',
+          dot: 'bg-emerald-400'
+        };
       case 'JAUNE':
-        return { label: 'Drapeau Jaune (Baignade dangereuse mais surveillée)', bg: 'bg-yellow-500', text: 'text-yellow-400', border: 'border-yellow-500/30' };
+        return {
+          bg: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',
+          label: 'Drapeau Jaune - Baignade Dangereuse mais Surveillée',
+          dot: 'bg-yellow-400'
+        };
       case 'ROUGE':
-        return { label: 'Drapeau Rouge (Baignade strictement interdite)', bg: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/30' };
+        return {
+          bg: 'bg-red-500/20 text-red-300 border-red-500/40',
+          label: 'Drapeau Rouge - Baignade Interdite',
+          dot: 'bg-red-400'
+        };
       case 'VIOLET':
-        return { label: 'Drapeau Violet (Pollution ou méduses)', bg: 'bg-purple-500', text: 'text-purple-400', border: 'border-purple-500/30' };
+        return {
+          bg: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+          label: 'Drapeau Violet - Pollution ou Méduses',
+          dot: 'bg-purple-400'
+        };
     }
   };
 
-  const flagInfo = getFlagBadge(selectedSpot.flagColor);
+  const flagStyle = getFlagStyle(selectedBeach.flagColor);
 
   return (
-    <div className={`min-h-screen px-4 py-6 md:px-8 space-y-8 animate-fadeIn ${
+    <div className={`min-h-screen px-3 sm:px-6 py-6 space-y-6 animate-fadeIn ${
       isLightMode ? 'text-slate-900' : 'text-slate-100'
     }`}>
-      {/* Top Banner Header */}
-      <div className={`p-6 rounded-3xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
+      {/* Top Maritime Banner */}
+      <div className={`p-5 sm:p-7 rounded-3xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
         isLightMode 
           ? 'bg-gradient-to-br from-cyan-50 via-white to-blue-50/50 border-cyan-200' 
           : 'bg-gradient-to-br from-slate-900 via-slate-900/90 to-cyan-950/40 border-slate-800'
       }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-              <Waves className="w-8 h-8" />
+            <div className="w-13 h-13 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <Waves className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                  SHOM & Copernicus Marine
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  SHOM • Météo-France Maritime • Copernicus SST
                 </span>
                 <span className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Température Mer Satellite en Direct
+                  Marées Astronomiques SHOM en Temps Réel
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">
-                Météo des Plages & Littoral
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
+                Météo des Plages, Marées & Conditions Maritimes
               </h1>
-              <p className={`text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
-                Température de l'eau, coefficients & horaires des marées SHOM, état de la mer, houle et drapeaux de baignade officiels.
+              <p className={`text-xs sm:text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
+                Température de l'eau (SST), coefficients et horaires de marée SHOM, houle Douglas, sécurité baïnes et drapeaux officiels.
               </p>
             </div>
           </div>
 
-          {/* Quick Tide & Sea Summary */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-slate-950/30 p-2.5 rounded-2xl border border-slate-700/50">
-            <div className="px-3 py-1.5 rounded-xl text-center">
-              <div className="text-[11px] uppercase tracking-wider text-slate-400">Eau de Mer</div>
-              <div className="text-lg font-black text-cyan-400">+{selectedSpot.waterTempC}°C</div>
+          {/* Quick Metrics Bar */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-slate-950/40 p-2.5 rounded-2xl border border-slate-800/80">
+            <div className="px-3 py-1 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400">Eau de Mer</div>
+              <div className="text-base sm:text-lg font-black text-cyan-400">{selectedBeach.waterTempC} °C</div>
             </div>
-            <div className="w-px h-8 bg-slate-700/60" />
-            <div className="px-3 py-1.5 rounded-xl text-center">
-              <div className="text-[11px] uppercase tracking-wider text-slate-400">Marée SHOM</div>
-              <div className="text-lg font-black text-indigo-400">Coef. {selectedSpot.tideCoefficient}</div>
+            <div className="h-7 w-[1px] bg-slate-800" />
+            <div className="px-3 py-1 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400">Coeff. Marée</div>
+              <div className="text-base sm:text-lg font-black text-blue-400">{liveTides.tideCoefficient}</div>
             </div>
-            <div className="w-px h-8 bg-slate-700/60" />
-            <div className="px-3 py-1.5 rounded-xl text-center">
-              <div className="text-[11px] uppercase tracking-wider text-slate-400">Houle (Hs)</div>
-              <div className="text-lg font-black text-emerald-400">{selectedSpot.waveHeightM} m</div>
+            <div className="h-7 w-[1px] bg-slate-800" />
+            <div className="px-3 py-1 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400">Plage Active</div>
+              <div className="text-xs font-bold text-emerald-400 max-w-[130px] truncate">{selectedBeach.name.split(' - ')[0]}</div>
             </div>
-          </div>
-        </div>
-
-        {/* Coastal Beach Spot Selector Pills */}
-        <div className="mt-6 pt-5 border-t border-slate-700/40">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-cyan-400" />
-            Sélectionner une station balnéaire / plage officielle :
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {BEACH_SPOTS_DATABASE.map(b => (
-              <button
-                key={b.id}
-                onClick={() => setSelectedSpotId(b.id)}
-                className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 border ${
-                  selectedSpotId === b.id
-                    ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/25'
-                    : isLightMode
-                      ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800'
-                }`}
-              >
-                <span>{b.name.split(' - ')[0]}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md font-extrabold bg-cyan-600/30 text-cyan-200">
-                  {b.waterTempC}°C
-                </span>
-              </button>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* Grid: Spot Detailed Overview & Nautical Conditions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Card 1: Selected Beach Spot Details (2 cols) */}
-        <div className={`lg:col-span-2 p-6 rounded-3xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
-          isLightMode ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800'
-        }`}>
-          <div>
-            <div className="flex items-center justify-between gap-4 pb-4 border-b border-slate-700/40">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  {selectedSpot.facade} • {selectedSpot.department}
-                </span>
-                <h2 className="text-2xl font-black tracking-tight mt-0.5">
-                  {selectedSpot.name}
-                </h2>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-400 block font-medium">Confort Baignade</span>
-                <span className="text-2xl font-black text-emerald-400">{selectedSpot.bathingComfortScore}/10</span>
-              </div>
-            </div>
-
-            {/* Official Bathing Flag Alert */}
-            <div className={`mt-5 p-4 rounded-2xl border flex items-start gap-3.5 bg-slate-950/40 ${flagInfo.border}`}>
-              <div className={`w-4 h-4 rounded-full mt-1 shrink-0 ${flagInfo.bg} animate-pulse`} />
-              <div>
-                <div className={`text-xs font-black uppercase tracking-wider ${flagInfo.text}`}>
-                  {flagInfo.label}
-                </div>
-                <p className="text-sm text-slate-300 mt-1 leading-relaxed">
-                  {selectedSpot.flagMeaning}
-                </p>
-              </div>
-            </div>
-
-            {/* Narrative Spot Description */}
-            <p className={`text-sm mt-4 leading-relaxed ${isLightMode ? 'text-slate-600' : 'text-slate-300'}`}>
-              {selectedSpot.description}
-            </p>
-
-            {/* 4 Essential Oceanic Metrics */}
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">Température Eau</span>
-                <span className="text-2xl font-black text-cyan-400 mt-1 block">+{selectedSpot.waterTempC}°C</span>
-                <span className="text-[10px] text-slate-500">Air : +{selectedSpot.airTempC}°C</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">Hauteur Houle</span>
-                <span className="text-2xl font-black text-indigo-400 mt-1 block">{selectedSpot.waveHeightM} m</span>
-                <span className="text-[10px] text-slate-500">Période : {selectedSpot.wavePeriodSec}s</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">Vent Marin</span>
-                <span className="text-2xl font-black text-amber-400 mt-1 block">{selectedSpot.windSpeedKnots} kts</span>
-                <span className="text-[10px] text-slate-500">Raf. {selectedSpot.windGustKnots} kts ({selectedSpot.windDirectionCompass})</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">Indice UV Plage</span>
-                <span className="text-2xl font-black text-yellow-400 mt-1 block">{selectedSpot.beachUvIndex}</span>
-                <span className="text-[10px] text-slate-500">Protection +50 requise</span>
-              </div>
-            </div>
+      {/* Beach Selector Bar */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Sélectionnez un Spot Côtier Français ({FRENCH_BEACH_SPOTS.length} spots répertoriés)</span>
           </div>
 
-          {/* Bottom Quality and Thermal Breeze Footer */}
-          <div className="mt-6 pt-4 border-t border-slate-700/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Qualité des eaux de baignade (ARS / Ministère de la Santé) : <strong className="text-slate-200">{selectedSpot.waterQuality}</strong>
-            </span>
-            <span className="text-cyan-400 font-bold">
-              {selectedSpot.windThermalBreeze}
-            </span>
+          {/* Facade Filter Buttons */}
+          <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto text-xs">
+            {[
+              { id: 'all', label: 'Toutes les côtes' },
+              { id: 'atlantique-sud', label: 'Atlantique Sud' },
+              { id: 'atlantique-nord', label: 'Atlantique Nord' },
+              { id: 'mediterranee', label: 'Méditerranée' },
+              { id: 'cote-azur', label: 'Côte d\'Azur' },
+              { id: 'manche', label: 'Manche' },
+              { id: 'corse', label: 'Corse' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setSelectedFacadeFilter(f.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  selectedFacadeFilter === f.id
+                    ? 'bg-cyan-600 text-white shadow-sm'
+                    : 'bg-slate-800/60 hover:bg-slate-700 text-slate-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Card 2: Marées SHOM & Horaires Officiels (1 col) */}
-        <div className={`p-6 rounded-3xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
-          isLightMode ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800'
-        }`}>
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700/40">
+        {/* Horizontal scroll of beaches */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+          {filteredBeaches.map(b => {
+            const isSelected = b.id === selectedBeach.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => setSelectedBeachId(b.id)}
+                className={`flex flex-col text-left px-3.5 py-2.5 rounded-xl border transition shrink-0 min-w-[210px] cursor-pointer ${
+                  isSelected
+                    ? 'bg-cyan-500/15 border-cyan-500/50 shadow-md ring-1 ring-cyan-500/30'
+                    : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wide">{b.facadeName.split(' & ')[0]}</span>
+                  <span className="text-[11px] font-black text-cyan-300">{b.waterTempC}°C eau</span>
+                </div>
+                <div className="font-bold text-sm text-white mt-1 truncate">{b.name}</div>
+                <div className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
+                  <span>Houle : {b.waveHeightM}m ({b.wavePeriodSec}s)</span>
+                  <span className="text-slate-500">{b.department.split(' ')[0]}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Grid: Tidal & Beach Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Tides & Water Metrics (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Main Beach Card */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#0F172A] border border-slate-800 shadow-lg space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+                  <LifeBuoy className="w-4 h-4" />
+                  <span>{selectedBeach.facadeName}</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white mt-1">
+                  {selectedBeach.name}
+                </h3>
+              </div>
+              <div className={`px-3 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider flex items-center gap-2 ${flagStyle.bg}`}>
+                <span className={`w-2.5 h-2.5 rounded-full ${flagStyle.dot}`} />
+                <span>{flagStyle.label}</span>
+              </div>
+            </div>
+
+            {/* Description & Flag Meaning */}
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Réglementation Baignade & État du Plan d'Eau</span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                {selectedBeach.flagMeaning}
+              </p>
+              <p className="text-xs text-slate-400 leading-relaxed italic border-t border-slate-800/80 pt-2">
+                {selectedBeach.description}
+              </p>
+            </div>
+
+            {/* Baïne Danger Alert Banner */}
+            {selectedBeach.baineWarning && (
+              <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs space-y-1.5">
+                <div className="flex items-center gap-2 font-black uppercase tracking-wider text-amber-400">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Alerte Courants d'Arrachement de Baïnes (Océan Atlantique)</span>
+                </div>
+                <p className="leading-relaxed text-slate-300">
+                  Sur le littoral atlantique (Landes, Gironde, Pyrénées-Atlantiques), les baïnes créent de violents courants aspirant vers le large, particulièrement entre la mi-marée et la marée basse. En cas d'entraînement, <strong>ne luttez jamais à contre-courant</strong> : laissez-vous porter et nagez parallèlement à la plage pour regagner le banc de sable.
+                </p>
+              </div>
+            )}
+
+            {/* Astronomical SHOM Tides Card */}
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-400">
+                  <Anchor className="w-4 h-4" />
+                  <span>Annuaire des Marées SHOM (Calcul Réel Aujourd'hui)</span>
+                </div>
+                <span className="text-[11px] font-bold text-slate-400 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+                  Régime semi-diurne
+                </span>
+              </div>
+
+              {liveTides.isMicroTide ? (
+                <div className="p-3 rounded-lg bg-slate-950/50 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                  Bassin Méditerranéen : <strong>Micro-marée négligeable (&lt; 25 cm de marnage)</strong>. Les courants de marée sont quasi nuls. La hauteur d'eau dépend principalement des vents synoptiques et de la pression atmosphérique.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
+                      <ArrowUpRight className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Pleine Mer (PM)</span>
+                    </div>
+                    <div className="text-lg font-black text-blue-400 mt-1">{liveTides.tideHighTime}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Haute mer</div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
+                      <ArrowDownRight className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Basse Mer (BM)</span>
+                    </div>
+                    <div className="text-lg font-black text-indigo-400 mt-1">{liveTides.tideLowTime}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Basse mer</div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-400">Coeff. Marée</div>
+                    <div className="text-lg font-black text-cyan-400 mt-1">{liveTides.tideCoefficient}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">{liveTides.tideType}</div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-400">État Actuel</div>
+                    <div className="text-xs font-black text-emerald-400 mt-2 truncate">{liveTides.tideStatus.split(' (')[0]}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Marnage ~{liveTides.rangeMeters} m</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Water Quality & Pavillon Bleu */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-2 border-t border-slate-800 text-slate-400">
               <div className="flex items-center gap-2">
-                <Anchor className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-black tracking-tight">Annuaire des Marées SHOM</h3>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Qualité des Eaux de Baignade (ARS) :</span>
+                <strong className="text-slate-200">{selectedBeach.waterQuality}</strong>
               </div>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                Certifié SHOM
-              </span>
-            </div>
-
-            <p className={`text-xs mt-3 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
-              Calcul astronomique du Service Hydrographique et Océanographique de la Marine (SHOM) pour la station de référence.
-            </p>
-
-            {/* Coefficient Gauge Display */}
-            <div className="mt-5 p-4 rounded-2xl bg-slate-950/40 border border-slate-800 text-center">
-              <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block">
-                Coefficient de Marée du Jour
-              </span>
-              <div className="text-4xl font-black text-cyan-400 mt-1">
-                {selectedSpot.tideCoefficient}
-              </div>
-              <div className="text-xs font-bold text-slate-300 mt-1">
-                Régime : <span className="text-indigo-300">{selectedSpot.tideType}</span> (Échelle 20 - 120)
-              </div>
-
-              {/* Visual Progress Bar */}
-              <div className="w-full bg-slate-800 h-2.5 rounded-full mt-3 overflow-hidden p-0.5">
-                <div 
-                  className={`h-full rounded-full transition-all ${
-                    selectedSpot.tideCoefficient >= 90 ? 'bg-red-500' : selectedSpot.tideCoefficient >= 70 ? 'bg-cyan-500' : 'bg-emerald-500'
-                  }`}
-                  style={{ width: `${Math.min(100, Math.max(10, (selectedSpot.tideCoefficient / 120) * 100))}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[10px] text-slate-500 font-bold mt-1">
-                <span>Mortes-Eaux (20)</span>
-                <span>Moyenne (70)</span>
-                <span>Grandes Marées (120)</span>
-              </div>
-            </div>
-
-            {/* Tide Times Today */}
-            <div className="mt-4 space-y-2.5">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/30 border border-slate-800">
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <ArrowUpRight className="w-4 h-4 text-cyan-400" />
-                  Pleine Mer (Haute Mer)
-                </span>
-                <span className="text-base font-black text-cyan-400">
-                  {selectedSpot.tideHighTime}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/30 border border-slate-800">
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <ArrowDownRight className="w-4 h-4 text-indigo-400" />
-                  Basse Mer (Étal)
-                </span>
-                <span className="text-base font-black text-indigo-400">
-                  {selectedSpot.tideLowTime}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/30 border border-slate-800">
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-emerald-400" />
-                  Phase en cours
-                </span>
-                <span className="text-xs font-bold text-emerald-400">
-                  {selectedSpot.tideStatus}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/30 border border-slate-800">
-                <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <Waves className="w-4 h-4 text-purple-400" />
-                  État de la Mer (Douglas)
-                </span>
-                <span className="text-xs font-bold text-slate-200">
-                  {selectedSpot.seaStateDouglas}
-                </span>
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Régime : <strong className="text-slate-200">{selectedBeach.windThermalBreeze}</strong></span>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="mt-5 p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-center gap-2">
-            <Info className="w-4 h-4 shrink-0 text-cyan-400" />
-            <span>Surveillance des courants de jusant et de déferlement recommandée lors des coefficients &gt; 80.</span>
+        {/* Right Column: Physical Marine Variables (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#0F172A] border border-slate-800 shadow-lg space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+                <Waves className="w-4 h-4" />
+                <span>Conditions Nautiques & Baignade</span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                Score {selectedBeach.bathingComfortScore}/10
+              </span>
+            </div>
+
+            {/* Variables List */}
+            <div className="space-y-2.5">
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Thermometer className="w-5 h-5 text-cyan-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">Température de l'Eau (SST)</div>
+                    <div className="text-[10px] text-slate-500">Capteurs bouées côtières Météo-France</div>
+                  </div>
+                </div>
+                <div className="text-lg font-black text-cyan-400">
+                  {selectedBeach.waterTempC} °C
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Sun className="w-5 h-5 text-amber-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">Température de l'Air Littoral</div>
+                    <div className="text-[10px] text-slate-500">Ambiance thermique sous abri</div>
+                  </div>
+                </div>
+                <div className="text-lg font-black text-amber-300">
+                  {selectedBeach.airTempC} °C
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Waves className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">Hauteur & Période de Houle</div>
+                    <div className="text-[10px] text-slate-500">Modèle vagues MFWAM</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-base font-black text-white">{selectedBeach.waveHeightM} m</span>
+                  <span className="text-xs text-slate-400 ml-1.5">(période {selectedBeach.wavePeriodSec}s)</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Wind className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">Vent Côtier & Rafales</div>
+                    <div className="text-[10px] text-slate-500">Secteur {selectedBeach.windDirectionCompass}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-base font-black text-white">{selectedBeach.windSpeedKnots} kts</span>
+                  <span className="text-xs text-slate-400 ml-1.5">({Math.round(selectedBeach.windSpeedKnots * 1.852)} km/h)</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Layers className="w-5 h-5 text-slate-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">État de la Mer (Échelle Douglas)</div>
+                    <div className="text-[10px] text-slate-500">Agitation de surface</div>
+                  </div>
+                </div>
+                <div className="text-xs font-black text-slate-200">
+                  {selectedBeach.seaStateDouglas}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Sun className="w-5 h-5 text-amber-500" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">Rayonnement UV Plage</div>
+                    <div className="text-[10px] text-slate-500">Réverbération sable et eau</div>
+                  </div>
+                </div>
+                <div className="text-base font-black text-amber-400">
+                  Indice UV {selectedBeach.beachUvIndex}
+                </div>
+              </div>
+            </div>
+
+            {/* Bathing Advice Box */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+              <strong className="text-white">Conseil Baignade : </strong>
+              Écart eau-air de <strong>{Math.abs(Number((selectedBeach.airTempC - selectedBeach.waterTempC).toFixed(1)))}°C</strong>. Mouillez-vous la nuque et le torse avant immersion pour prévenir l'hydrocution. Appliquez une protection solaire SPF 50+ toutes les deux heures.
+            </div>
           </div>
         </div>
       </div>

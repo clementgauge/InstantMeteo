@@ -1006,7 +1006,8 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
  */
 export function getPathForTabId(tabId: string, currentPath?: string): string {
   if (tabId === 'realtime') {
-    const p = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
+    const p = currentPath !== undefined ? currentPath : (typeof window !== 'undefined' ? window.location.pathname : '');
+    if (p === '/direct') return '/direct';
     if (p === '/') return '/';
     return '/direct';
   }
