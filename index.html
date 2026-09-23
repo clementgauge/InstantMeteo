@@ -19,13 +19,14 @@
     <script>
       (function() {
         try {
-          var p = window.location.pathname;
+          var p = window.location.pathname || '/';
           var link = document.querySelector('link[rel="canonical"]');
           if (link) {
-            if (p === '/direct') {
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/direct';
-            } else if (p && p !== '/') {
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev' + p.replace(/\/$/, '');
+            if (p === '/') {
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/';
+            } else {
+              var clean = p.replace(/^\/+|\/+$/g, '');
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/' + clean + '/';
             }
           }
         } catch (e) {}
@@ -164,23 +165,7 @@
      crossorigin="anonymous"></script>
   </head>
   <body class="bg-slate-100 text-slate-900 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">
-    <div id="root">
-      <noscript>
-        <header style="padding: 24px; font-family: sans-serif; background: #0f172a; color: #f8fafc;">
-          <h1>Instant Météo France - Prévisions Météo Direct, Température &amp; Radar Pluie</h1>
-          <p>Bienvenue sur <strong>Instant Météo</strong> (InstantMétéo) : votre portail météo instantané pour toute la <strong>France</strong> et ses 35 000 communes.</p>
-          <p>Consultez la <strong>température</strong> en direct, les cartes du <strong>radar</strong> de précipitations en temps réel, les vigilances officielles de <strong>Météo-France</strong>, les cartes thématiques environnementales (qualité de l'air, UV, feux, houle, SST, crues) et les prévisions haute précision à 14 jours.</p>
-          <nav>
-            <ul>
-              <li><a href="/direct" style="color: #38bdf8;">Météo en direct et température</a></li>
-              <li><a href="/radar" style="color: #38bdf8;">Radar des précipitations pluie et neige HD</a></li>
-              <li><a href="/vigilances" style="color: #38bdf8;">Carte de vigilance Météo-France</a></li>
-              <li><a href="/cartes-thematiques" style="color: #38bdf8;">Cartes thématiques environnementales (Air, UV, Feux, Houle, SST, Cours d'eau)</a></li>
-            </ul>
-          </nav>
-        </header>
-      </noscript>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

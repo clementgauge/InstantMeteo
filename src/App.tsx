@@ -134,15 +134,24 @@ function WeatherApp() {
     return 'realtime';
   });
 
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    return typeof window !== 'undefined' ? window.location.pathname : '/';
+  });
+
   // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page
   useEffect(() => {
     updateDocumentSeo(activeTab, true);
+    if (typeof window !== 'undefined') {
+      setCurrentPath(window.location.pathname);
+    }
   }, [activeTab]);
 
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window !== 'undefined') {
-        const tabFromPath = getTabIdForPath(window.location.pathname) as NavTabId;
+        const p = window.location.pathname;
+        setCurrentPath(p);
+        const tabFromPath = getTabIdForPath(p) as NavTabId;
         if (tabFromPath) {
           setActiveTab(tabFromPath);
           updateDocumentSeo(tabFromPath, false);
@@ -884,34 +893,90 @@ function WeatherApp() {
             />
 
             {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
-              <RealtimeView
-                station={currentStation}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                anomaly={anomaly}
-                seniorMode={seniorMode}
-                simplifiedMode={simplifiedMode}
-                tempUnit={tempUnit}
-                onSelectStation={(st) => setCurrentStation(st)}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onOpenGigaRadar={() => setActiveTab('radar')}
-                onNavigateTab={(tab) => setActiveTab(tab as any)}
-                onLocateGps={handleLocateGps}
-                onOpenInstallModal={() => setIsInstallModalOpen(true)}
-                onToggleFullscreen={handleToggleFullscreen}
-                isFullscreen={isFullscreen}
-                onRecalibrate={handleApplyDirectOffset}
-                onResetRecalibration={handleClearRecalibration}
-                showFloatingBubble={showFloatingBubble}
-                onToggleFloatingBubble={handleToggleFloatingBubble}
-                onWeatherRectified={() => {
-                  if (rawWeatherRef.current && currentStation) {
-                    const { weather: rectified } = applyCorrectionToWeather(currentStation.id, rawWeatherRef.current);
-                    setWeather(rectified);
-                  }
-                }}
-              />
+              <div className="space-y-4">
+                {(currentPath === '/' || currentPath === '') && (
+                  <div className="bg-gradient-to-r from-slate-900 via-sky-950/70 to-slate-900 border border-sky-900/50 rounded-2xl p-4 sm:p-6 shadow-xl backdrop-blur-md">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
+                          <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse" />
+                          <span>Portail National Instant Météo France</span>
+                        </div>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight mt-1.5">
+                          Instant Météo France - Portail Météorologique de Précision en Temps Réel
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-3xl leading-relaxed">
+                          Instant Météo est la plateforme météorologique indépendante dédiée au suivi hyper-local et temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Infrastructure combinant les modèles AROME, ARPEGE, ECMWF IFS, le radar Doppler ARAMIS et les flux hydrométriques officiels pour 35 000 communes.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('realtime');
+                            updateDocumentSeo('/direct/', true);
+                            setCurrentPath('/direct/');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-md cursor-pointer"
+                        >
+                          Météo Directe Station &rarr;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('radar');
+                            updateDocumentSeo('/radar/', true);
+                            setCurrentPath('/radar/');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
+                        >
+                          Radar Pluie HD
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('vigilance');
+                            updateDocumentSeo('/vigilances/', true);
+                            setCurrentPath('/vigilances/');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
+                        >
+                          Vigilance 12 Risques
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <RealtimeView
+                  station={currentStation}
+                  weather={weather}
+                  hourly={hourly}
+                  daily={daily}
+                  anomaly={anomaly}
+                  seniorMode={seniorMode}
+                  simplifiedMode={simplifiedMode}
+                  tempUnit={tempUnit}
+                  onSelectStation={(st) => setCurrentStation(st)}
+                  onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                  onOpenGigaRadar={() => setActiveTab('radar')}
+                  onNavigateTab={(tab) => setActiveTab(tab as any)}
+                  onLocateGps={handleLocateGps}
+                  onOpenInstallModal={() => setIsInstallModalOpen(true)}
+                  onToggleFullscreen={handleToggleFullscreen}
+                  isFullscreen={isFullscreen}
+                  onRecalibrate={handleApplyDirectOffset}
+                  onResetRecalibration={handleClearRecalibration}
+                  showFloatingBubble={showFloatingBubble}
+                  onToggleFloatingBubble={handleToggleFloatingBubble}
+                  onWeatherRectified={() => {
+                    if (rawWeatherRef.current && currentStation) {
+                      const { weather: rectified } = applyCorrectionToWeather(currentStation.id, rawWeatherRef.current);
+                      setWeather(rectified);
+                    }
+                  }}
+                />
+              </div>
             )}
 
             {activeTab === 'cloudNephology' && (
@@ -929,6 +994,29 @@ function WeatherApp() {
 
             {activeTab === 'vigilance' && (
               <div className="space-y-6">
+                {/* EN-TÊTE H1 SÉMANTIQUE : CARTE OFFICIELLE DE VIGILANCE */}
+                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg backdrop-blur-md">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Dispositif National de Sécurité Civile &bull; Actualisation 24h/24</span>
+                      </div>
+                      <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+                        Carte Officielle de Vigilance Météorologique Météo-France en Direct
+                      </h1>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                        Suivi en direct des 12 risques météo sur les 101 départements français : orages violents, crues, canicule, grand froid, neige-verglas et vent violent pour <strong>{currentStation.name}</strong> ({currentStation.department}).
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+                      <span className="px-3 py-1 rounded-xl bg-amber-950/80 border border-amber-800 text-xs font-bold text-amber-200">
+                        12 Phénomènes Officiels
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <MultiDayVigilanceMatrixCard
                   station={currentStation}
                   currentWeather={weather}

@@ -1738,7 +1738,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n      <div id="seo-crawler-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: normal; border: 0;">\n${staticContent}\n      </div>\n    </div>`;
 
   if (html.includes('<div id="root">')) {
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<script/i, `${rootReplacement}\n    <script`);
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
   }
 
   return html;
@@ -1782,14 +1782,14 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées)
+// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées & normalisation canonical)
 // -------------------------------------------------------------
-app.get(['/webcams', '/webcam'], (req, res) => {
-  res.redirect(301, '/direct');
+app.get(['/webcams', '/webcam', '/webcams/', '/webcam/'], (req, res) => {
+  res.redirect(301, '/direct/');
 });
 
-app.get(['/modeles', '/modele', '/modeles-meteo'], (req, res) => {
-  res.redirect(301, '/nuages');
+app.get(['/modeles', '/modele', '/modeles-meteo', '/modeles/', '/modele/', '/modeles-meteo/'], (req, res) => {
+  res.redirect(301, '/nuages/');
 });
 
 // -------------------------------------------------------------
@@ -1804,11 +1804,17 @@ async function startServer() {
 
     // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
     app.use(async (req, res, next) => {
-      if (req.path === '/webcams' || req.path === '/webcam') {
-        return res.redirect(301, '/direct');
+      if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
+        return res.redirect(301, '/direct/');
       }
-      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo') {
-        return res.redirect(301, '/nuages');
+      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
+        return res.redirect(301, '/nuages/');
+      }
+
+      // Normalisation 301 vers le trailing slash final pour toute page sans slash
+      if (req.method === 'GET' && req.path !== '/' && !req.path.startsWith('/api/') && !req.path.includes('.') && !req.path.endsWith('/')) {
+        const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
+        return res.redirect(301, `${req.path}/${query}`);
       }
 
       // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
@@ -1841,15 +1847,22 @@ async function startServer() {
     const distIndexPath = path.join(distPath, 'index.html');
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
-      if (req.path === '/webcams' || req.path === '/webcam') {
-        return res.redirect(301, '/direct');
+      if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
+        return res.redirect(301, '/direct/');
       }
-      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo') {
-        return res.redirect(301, '/nuages');
+      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
+        return res.redirect(301, '/nuages/');
       }
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'Endpoint not found' });
       }
+
+      // Normalisation 301 vers le trailing slash final pour toute page sans slash
+      if (req.path !== '/' && !req.path.includes('.') && !req.path.endsWith('/')) {
+        const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
+        return res.redirect(301, `${req.path}/${query}`);
+      }
+
       sendHtmlWithConditionalGoogleTags(req, res, distIndexPath);
     });
   }

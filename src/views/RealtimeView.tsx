@@ -285,6 +285,31 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       />
 
       {/* ========================================================================= */}
+      {/* EN-TÊTE H1 SÉMANTIQUE & IDENTIFIANT DÉDIÉ : MÉTÉO EN DIRECT TEMPS RÉEL    */}
+      {/* ========================================================================= */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg backdrop-blur-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Observation Hyper-Locale &amp; Précision Temps Réel</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+              Météo en Direct &amp; Température en Temps Réel : {station.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Relevés thermo-hygrométriques instantanés, pression barométrique de surface, vitesse du vent, ressenti thermique et dynamique de pluie à la minute pour <strong>{station.name}</strong> ({station.department}, {station.altitude} m) et 35 000 communes françaises.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <span className="px-3 py-1 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-slate-200">
+              Station {station.name} ({station.postalCode || station.department})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HERO & FORECAST (Exact 1:1 match with user reference)    */}
       {/* ========================================================================= */}
       <div className="block sm:hidden space-y-3.5 mb-4">

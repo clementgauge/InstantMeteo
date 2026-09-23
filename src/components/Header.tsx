@@ -315,10 +315,10 @@ export const Header: React.FC<HeaderProps> = ({
               </svg>
             </div>
             <div>
-              <h1 className="text-base font-black tracking-tight leading-none text-white flex items-center gap-1">
+              <div className="text-base font-black tracking-tight leading-none text-white flex items-center gap-1">
                 <span>INSTANT</span>
                 <span className="text-sky-400 font-black">MÉTÉO</span>
-              </h1>
+              </div>
               <p className="text-[10px] text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
                 Radar Doppler HD &amp; Prévisions Temps Réel
               </p>

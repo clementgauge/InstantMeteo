@@ -2,74 +2,74 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/</loc>
-    <lastmod>2026-09-21</lastmod>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/direct</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/direct/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/radar</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/radar/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/vigilances</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/vigilances/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/nuages</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/nuages/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/14-jours</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/14-jours/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/montagne</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/montagne/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/plages</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/plages/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/sports</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/sports/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/bulletins</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/bulletins/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/archives</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/archives/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/climat</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/climat/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/communaute</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/communaute/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/competition</loc>
-    <lastmod>2026-09-21</lastmod>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/competition/</loc>
+    <lastmod>2026-09-23</lastmod>
   </url>
 </urlset>

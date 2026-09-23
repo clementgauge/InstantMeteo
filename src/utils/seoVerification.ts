@@ -149,8 +149,9 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     // 9. Synchronisation URL dans la barre d'adresse
     if (syncHistory && typeof window.history !== 'undefined') {
       const currentPath = window.location.pathname;
-      if (currentPath !== pageSeo.path && !(pageSeo.path === '/direct' && currentPath === '/')) {
-        window.history.pushState({ tabId: pageSeo.tabId, path: pageSeo.path }, '', pageSeo.path);
+      const canonicalPath = pageSeo.path === '/' ? '/' : (pageSeo.path.endsWith('/') ? pageSeo.path : `${pageSeo.path}/`);
+      if (currentPath !== canonicalPath && !(canonicalPath === '/direct/' && currentPath === '/')) {
+        window.history.pushState({ tabId: pageSeo.tabId, path: canonicalPath }, '', canonicalPath);
       }
     }
   } catch (err) {

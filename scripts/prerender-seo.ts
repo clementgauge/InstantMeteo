@@ -62,7 +62,7 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
   const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n      <div id="seo-crawler-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: normal; border: 0;">\n${staticContent}\n      </div>\n    </div>`;
 
   if (html.includes('<div id="root">')) {
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<script/i, `${rootReplacement}\n    <script`);
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
   }
 
   return html;
@@ -95,7 +95,8 @@ function prerenderSeoPages() {
       }
       const targetFilePath = path.join(targetDir, 'index.html');
       fs.writeFileSync(targetFilePath, rendered, 'utf-8');
-      console.log(`  ✓ Prerendered ${routePath} -> dist/${cleanPath}/index.html (canonical: ${pageSeo.canonicalUrl})`);
+      fs.writeFileSync(path.join(distDir, `${cleanPath}.html`), rendered, 'utf-8');
+      console.log(`  ✓ Prerendered ${routePath} -> dist/${cleanPath}/index.html & dist/${cleanPath}.html (canonical: ${pageSeo.canonicalUrl})`);
     }
   }
 

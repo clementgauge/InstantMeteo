@@ -78,7 +78,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/direct': {
     slug: 'direct',
     path: '/direct',
-    canonicalUrl: `${BASE_SITE_URL}/direct`,
+    canonicalUrl: `${BASE_SITE_URL}/direct/`,
     title: 'Météo en Direct & Température Temps Réel France - Instant Météo',
     description: 'Météo en direct pour 35 000 communes de France : température temps réel, humidité, pression barométrique, vent et ressenti thermique calculés à la minute.',
     keywords: 'météo direct, météo en direct, température temps réel, météo direct france, ressenti vent, humidité en direct, pression atmosphérique',
@@ -127,7 +127,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/radar': {
     slug: 'radar',
     path: '/radar',
-    canonicalUrl: `${BASE_SITE_URL}/radar`,
+    canonicalUrl: `${BASE_SITE_URL}/radar/`,
     title: 'Radar Pluie HD en Direct & Précipitations ARAMIS - Instant Météo',
     description: 'Radar de pluie en direct haute définition sur la France : suivi des averses, orages et chutes de neige en temps réel. Échos Doppler ARAMIS toutes les 5 minutes.',
     keywords: 'radar pluie, radar pluie hd, radar météo direct, radar précipitations france, suivi orages direct, radar aramis, carte pluie temps réel',
@@ -176,7 +176,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/vigilances': {
     slug: 'vigilances',
     path: '/vigilances',
-    canonicalUrl: `${BASE_SITE_URL}/vigilances`,
+    canonicalUrl: `${BASE_SITE_URL}/vigilances/`,
     title: 'Vigilance Météo France en Direct & Alertes 12 Risques - Instant Météo',
     description: 'Carte officielle de vigilance météorologique Météo-France actualisée en direct. Suivez les alertes sur les 12 phénomènes : orages, vent violent, crues, neige.',
     keywords: 'vigilance météo, vigilance météo france, alerte météo direct, carte vigilance, vigilance orange, vigilance rouge, orages, vent violent, inondation',
@@ -225,7 +225,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
-    canonicalUrl: `${BASE_SITE_URL}/nuages`,
+    canonicalUrl: `${BASE_SITE_URL}/nuages/`,
     title: 'Observatoire des Nuages 48h & Néphologie Verticale - Instant Météo',
     description: 'Sondage atmosphérique vertical de 0 à 12 000 m, classification OMM des nuages, base et sommet des couches, risque de givrage et nébulosité 48h.',
     keywords: 'nuages météo, néphologie, sondage atmosphérique, base des nuages, plafond nuageux, cirrus, stratus, cumulonimbus, givrage aviation',
@@ -274,7 +274,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/14-jours': {
     slug: '14-jours',
     path: '/14-jours',
-    canonicalUrl: `${BASE_SITE_URL}/14-jours`,
+    canonicalUrl: `${BASE_SITE_URL}/14-jours/`,
     title: 'Prévisions Météo à 14 Jours & Scénarios Probabilistes - Instant Météo',
     description: 'Prévisions météo fiables à 14 jours sur la France : scénarios d\'ensemble multi-modèles (ECMWF, GFS, ICON), probabilités de pluie et indices de confiance.',
     keywords: 'météo 14 jours, prévisions météo 14 jours, tendance 15 jours, modèles météo ensemble, ecmwf 14 jours, probabilité pluie 14 jours',
@@ -323,7 +323,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/montagne': {
     slug: 'montagne',
     path: '/montagne',
-    canonicalUrl: `${BASE_SITE_URL}/montagne`,
+    canonicalUrl: `${BASE_SITE_URL}/montagne/`,
     title: 'Météo Montagne & Nivologie (Bulletins BERA) - Instant Météo',
     description: 'Météo des massifs de montagne en direct : risque d\'avalanche BERA de 1 à 5, relevés des balises Nivôse, isotherme 0°C et limite pluie-neige.',
     keywords: 'météo montagne, bera météo france, risque avalanche, nivologie, balise nivose, isotherme 0, alpes, pyrenees, limite pluie neige',
@@ -372,7 +372,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/plages': {
     slug: 'plages',
     path: '/plages',
-    canonicalUrl: `${BASE_SITE_URL}/plages`,
+    canonicalUrl: `${BASE_SITE_URL}/plages/`,
     title: 'Météo des Plages, Marées SHOM & Température de Mer - Instant Météo',
     description: 'Météo du littoral et des plages de France : horaires et coefficients des marées SHOM, température de l\'eau en direct, hauteur de houle et pavillons.',
     keywords: 'météo des plages, marées shom, température mer, météo mer littoral, coefficient marée, hauteur houle, drapeau baignade, baines',
@@ -421,7 +421,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/secheresse-incendie': {
     slug: 'secheresse-incendie',
     path: '/secheresse-incendie',
-    canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
+    canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie/`,
     title: 'Vigilance Sécheresse VigiEau & Météo des Forêts - Instant Météo',
     description: 'Suivi officiel de la sécheresse et du risque incendie : arrêtés préfectoraux de restriction d\'eau VigiEau, Indice Forêt Météo (IFM) et feux NASA FIRMS.',
     keywords: 'vigilance sécheresse, vigieau, restriction eau, météo des forêts, risque incendie forêt, indice forêt météo, ifm météo france, feux nasa firms',
@@ -470,7 +470,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/cours-d-eau': {
     slug: 'cours-d-eau',
     path: '/cours-d-eau',
-    canonicalUrl: `${BASE_SITE_URL}/cours-d-eau`,
+    canonicalUrl: `${BASE_SITE_URL}/cours-d-eau/`,
     title: 'Vigie Cours d\'Eau, Hauteurs & Crues Vigicrues - Instant Météo',
     description: 'Surveillance hydrologique des rivières et fleuves de France en direct : débits instantanés (m³/s), hauteurs d\'eau Vigicrues, niveaux de crue et crues historiques.',
     keywords: 'vigie cours d eau, vigicrues, hauteur eau riviere, debit m3s, crue inondation, schapi, station hydrometrique, crues historiques',
@@ -519,7 +519,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/cartes-thematiques': {
     slug: 'cartes-thematiques',
     path: '/cartes-thematiques',
-    canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques`,
+    canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques/`,
     title: 'Cartes Météo Thématiques & Environnementales - Instant Météo',
     description: 'Cartes météo thématiques haute résolution : qualité de l\'air AQI, indice UV, températures marines SST, anomalies climatiques et modélisation des vents.',
     keywords: 'cartes météo thématiques, carte qualité air, carte uv france, carte sst température mer, carte vent france, anomalies thermiques',
@@ -568,7 +568,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/sports': {
     slug: 'sports',
     path: '/sports',
-    canonicalUrl: `${BASE_SITE_URL}/sports`,
+    canonicalUrl: `${BASE_SITE_URL}/sports/`,
     title: 'Météo Sportive & Calculateur d\'Itinéraire Trajet - Instant Météo',
     description: 'Indices de confort météo pour vos activités sportives (running, vélo, rando, nautisme) et calculateur météo étape par étape le long de vos trajets.',
     keywords: 'météo sportive, météo vélo, météo running, météo randonnée, météo trajet itinéraire, indice confort sport, vent vélo',
@@ -617,7 +617,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/bulletins': {
     slug: 'bulletins',
     path: '/bulletins',
-    canonicalUrl: `${BASE_SITE_URL}/bulletins`,
+    canonicalUrl: `${BASE_SITE_URL}/bulletins/`,
     title: 'Bulletins Prévisions Rédigés J+1 à J+7 & 4 Semaines - Instant Météo',
     description: 'Bulletins météorologiques complets rédigés par nos experts pour votre commune, département et échelle nationale. Analyses synoptiques de J+1 à 4 semaines.',
     keywords: 'bulletin météo rédigé, prévisions écrites météo, analyse synoptique, bulletin départemental, tendance 4 semaines, situation générale france',
@@ -666,7 +666,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/archives': {
     slug: 'archives',
     path: '/archives',
-    canonicalUrl: `${BASE_SITE_URL}/archives`,
+    canonicalUrl: `${BASE_SITE_URL}/archives/`,
     title: 'Archives Météo Journalières & Historique depuis 2000 - Instant Météo',
     description: 'Consultez l\'historique météo complet pour toute date passée depuis 2000 : températures relevées, précipitations, ensoleillement et records climatiques.',
     keywords: 'archives météo, historique météo france, météo date passée, météo hier, archives température, records météo historiques, climatologie passée',
@@ -715,7 +715,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/monde-catastrophes': {
     slug: 'monde-catastrophes',
     path: '/monde-catastrophes',
-    canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
+    canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes/`,
     title: 'Météo Monde, Tornades & Catastrophes Naturelles 24h - Instant Météo',
     description: 'Suivi mondial des phénomènes météo extrêmes en direct : cyclones, typhons, tornades, inondations historiques et canicules record dans le monde entier.',
     keywords: 'météo monde, cyclones en direct, suivi tornades usa, catastrophes naturelles météo, canicule mondiale, typhons direct, noaa spc',
@@ -764,7 +764,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/climat': {
     slug: 'climat',
     path: '/climat',
-    canonicalUrl: `${BASE_SITE_URL}/climat`,
+    canonicalUrl: `${BASE_SITE_URL}/climat/`,
     title: 'Évolution du Climat & Tendances Saisonnières 8 Mois - Instant Météo',
     description: 'Comprendre le changement climatique local et les tendances saisonnières à 8 mois en France. Analyse des anomalies, cycles ENSO et réchauffement.',
     keywords: 'évolution climat, changement climatique france, tendances saisonnières 8 mois, el nino la nina, réchauffement climatique local, normales 1991-2020',
@@ -813,7 +813,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/communaute': {
     slug: 'communaute',
     path: '/communaute',
-    canonicalUrl: `${BASE_SITE_URL}/communaute`,
+    canonicalUrl: `${BASE_SITE_URL}/communaute/`,
     title: 'Salon Météo & Observatoire Citoyen Collaboratif - Instant Météo',
     description: 'Partagez vos relevés du ciel en direct avec la communauté Instant Météo : signalements météo géolocalisés, échanges entre passionnés et photos météo.',
     keywords: 'communauté météo, salon météo, forum météo france, signalements citoyens météo, observatoire météo collaboratif, passionnés météo',
@@ -862,7 +862,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/competition': {
     slug: 'competition',
     path: '/competition',
-    canonicalUrl: `${BASE_SITE_URL}/competition`,
+    canonicalUrl: `${BASE_SITE_URL}/competition/`,
     title: 'Ligue Météo & Défi des Prévisionnistes - Instant Météo',
     description: 'Participez à la Ligue Météo Instant Météo : gagnez des points d\'observation, accumulez les séries de flammes (streaks) et grimpez dans le classement.',
     keywords: 'jeu météo, ligue météo, points prévision, classement météo, badges météo, quiz météo france, défi météo',
@@ -970,11 +970,12 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
     .replace(/[-_/]/g, ' ')
     .trim();
   const formattedTitle = cleanTitle ? cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1) : 'Page Météo';
+  const finalCanonicalPath = targetPath.endsWith('/') ? targetPath : `${targetPath}/`;
 
   return {
     slug: targetPath.replace(/^\//, '').replace(/[/_]/g, '-') || 'page',
     path: targetPath,
-    canonicalUrl: `${BASE_SITE_URL}${targetPath}`,
+    canonicalUrl: `${BASE_SITE_URL}${finalCanonicalPath}`,
     title: `${formattedTitle} - Instant Météo France`,
     description: `Consultez ${cleanTitle || 'la météo'} en direct sur Instant Météo : prévisions de précision, température temps réel et radar précipitations HD.`,
     keywords: `instant météo, instantmeteo, ${cleanTitle}, météo france, prévisions en direct, température temps réel, radar pluie`,
@@ -1007,33 +1008,33 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
 export function getPathForTabId(tabId: string, currentPath?: string): string {
   if (tabId === 'realtime') {
     const p = currentPath !== undefined ? currentPath : (typeof window !== 'undefined' ? window.location.pathname : '');
-    if (p === '/direct') return '/direct';
+    if (p === '/direct' || p === '/direct/') return '/direct/';
     if (p === '/') return '/';
-    return '/direct';
+    return '/direct/';
   }
 
   const MAP: Record<string, string> = {
-    realtime: '/direct',
-    cloudNephology: '/nuages',
-    vigilance: '/vigilances',
-    scenarios14d: '/14-jours',
-    radar: '/radar',
-    mountain: '/montagne',
-    beaches: '/plages',
-    droughtFire: '/secheresse-incendie',
-    watercourses: '/cours-d-eau',
-    eightMonths: '/climat',
-    historicalTrends: '/climat',
-    sportsActivities: '/sports',
-    worldDisasters: '/monde-catastrophes',
-    weatherArchive: '/archives',
-    bulletin: '/bulletins',
-    competitive: '/competition',
-    discussionGroup: '/communaute',
-    communityReports: '/communaute'
+    realtime: '/direct/',
+    cloudNephology: '/nuages/',
+    vigilance: '/vigilances/',
+    scenarios14d: '/14-jours/',
+    radar: '/radar/',
+    mountain: '/montagne/',
+    beaches: '/plages/',
+    droughtFire: '/secheresse-incendie/',
+    watercourses: '/cours-d-eau/',
+    eightMonths: '/climat/',
+    historicalTrends: '/climat/',
+    sportsActivities: '/sports/',
+    worldDisasters: '/monde-catastrophes/',
+    weatherArchive: '/archives/',
+    bulletin: '/bulletins/',
+    competitive: '/competition/',
+    discussionGroup: '/communaute/',
+    communityReports: '/communaute/'
   };
 
-  return MAP[tabId] || '/direct';
+  return MAP[tabId] || '/direct/';
 }
 
 /**
@@ -1186,10 +1187,13 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
   const internalLinks = Object.entries(SEO_PAGES_MAP)
     .filter(([path]) => path !== page.path && path !== '/')
     .map(
-      ([path, item]) => `
+      ([path, item]) => {
+        const canonicalPath = path.endsWith('/') ? path : `${path}/`;
+        return `
         <li style="display: inline-block; margin: 4px 8px 4px 0;">
-          <a href="${path}" style="color: #38bdf8; text-decoration: underline; font-size: 0.9rem;">${escapeHtml(item.h1.split(' - ')[0])}</a>
-        </li>`
+          <a href="${canonicalPath}" style="color: #38bdf8; text-decoration: underline; font-size: 0.9rem;">${escapeHtml(item.h1.split(' - ')[0])}</a>
+        </li>`;
+      }
     )
     .join('\n');
 

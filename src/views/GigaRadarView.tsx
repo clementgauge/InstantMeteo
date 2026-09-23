@@ -73,6 +73,31 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 
   return (
     <div id="giga-radar-view" className="space-y-4">
+      {/* ========================================================================= */}
+      {/* EN-TÊTE H1 SÉMANTIQUE : RADAR PLUIE HD & PRÉCIPITATIONS TEMPS RÉEL        */}
+      {/* ========================================================================= */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg backdrop-blur-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span>Mosaïque Nationale Doppler ARAMIS &bull; Rafraîchissement 5 min</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+              Radar Pluie HD &amp; Carte des Précipitations en Direct sur la France
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Suivi haute résolution des fronts pluvieux, orages de grêle, averses et chutes de neige en temps réel. Visualisation interactive de la réflectivité en dBZ et intensités en mm/h sur l'ensemble de la métropole.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <span className="px-3 py-1 rounded-xl bg-sky-950/80 border border-sky-800 text-xs font-bold text-sky-200">
+              Échos Radar Live
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Top Map Mode Switcher */}
       <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-[#0F172A] border border-slate-800 overflow-x-auto no-scrollbar">
         <button
