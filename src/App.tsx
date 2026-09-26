@@ -1196,6 +1196,49 @@ function WeatherApp() {
 
             {/* Guide & FAQ Météo - Données Officielles & Méthodologie (Indexation SEO & Confort Utilisateur) */}
             <SeoPageGuideCard activeTab={activeTab} isLightMode={themeMode === 'light'} />
+
+            {/* Recommandation de site partenaire - Cin-Scope (Films & Cinéma) - Placé directement après le bloc Guide & FAQ */}
+            <div className={`mt-6 rounded-2xl border p-5 sm:p-6 transition-all shadow-lg ${
+              themeMode === 'light'
+                ? 'bg-gradient-to-r from-amber-50 via-orange-50/70 to-rose-50 border-amber-300 text-slate-800'
+                : 'bg-gradient-to-r from-slate-900/95 via-slate-850 to-amber-950/40 border-amber-500/40 text-slate-100'
+            }`}>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-5">
+                <div className="flex items-center gap-4 text-left w-full md:w-auto">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400/50">
+                    <Film className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-black tracking-tight">
+                        Cin-Scope — Découvrez notre autre site
+                      </h3>
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
+                        🎬 Cinéma &amp; Films
+                      </span>
+                    </div>
+                    <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${
+                      themeMode === 'light' ? 'text-slate-600' : 'text-slate-300'
+                    }`}>
+                      Vous pouvez également aller voir notre autre site dédié au cinéma et aux films : découvrez <strong>Cin-Scope</strong> pour explorer des fiches complètes, critiques, bandes-annonces et actualités cinématographiques.
+                    </p>
+                    <div className="mt-2 text-xs font-mono font-medium text-amber-500 dark:text-amber-400">
+                      Lien direct : <a href="https://cin-scope.ai.studio" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">https://cin-scope.ai.studio</a>
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href="https://cin-scope.ai.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-500/30 transition transform hover:-translate-y-0.5 active:scale-95 cursor-pointer w-full md:w-auto text-center"
+                >
+                  <Film className="h-4 w-4" />
+                  <span>Visiter Cin-Scope</span>
+                  <span className="text-base font-bold">→</span>
+                </a>
+              </div>
+            </div>
           </div>
         )}
         </section>
