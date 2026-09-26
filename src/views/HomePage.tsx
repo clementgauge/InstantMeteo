@@ -15,7 +15,8 @@ import {
   Smartphone,
   Sun,
   ThermometerSun,
-  Wind
+  Wind,
+  Film
 } from 'lucide-react';
 import { AppLogo } from '../components/AppLogo';
 
@@ -335,6 +336,36 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
             <span>Consulter les relevés</span>
             <ArrowRight className="h-4 w-4" />
           </button>
+        </section>
+
+        {/* Découverte de notre autre site - Cin-Scope (Films & Cinéma) */}
+        <section className="mt-4 rounded-[10px] border border-slate-700/80 bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3.5 text-left">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500/20 via-rose-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+              <Film className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">Cin-Scope — Univers Cinéma</h3>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded">
+                  Autre site
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Vous pouvez également aller voir notre autre site dédié au cinéma et aux films : 
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://cin-scope.ai.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 px-4 py-2 text-xs font-bold text-white shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
+          >
+            <Film className="h-4 w-4" />
+            <span>Visiter Cin-Scope</span>
+            <span className="text-xs">→</span>
+          </a>
         </section>
       </main>
 

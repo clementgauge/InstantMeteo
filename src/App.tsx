@@ -21,7 +21,8 @@ import {
   Trophy,
   MessageSquare,
   Send,
-  Hash
+  Hash,
+  Film
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
@@ -1381,6 +1382,36 @@ function WeatherApp() {
                 Arène Compétitive
               </a>
             </nav>
+          </div>
+
+          {/* Recommandation de site partenaire / Découverte Cin-Scope */}
+          <div className="pt-4 border-t border-slate-800/70 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 rounded-2xl p-4 border border-slate-700/50 shadow-sm">
+            <div className="flex items-center gap-3 text-left">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500/20 via-red-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <Film className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
+                  <span>Envie d'une pause cinéma ?</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                    Partenaire
+                  </span>
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-400">
+                  Découvrez et explorez également notre autre site dédié au 7ème art, films &amp; critiques :
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://cin-scope.ai.studio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
+            >
+              <Film className="h-4 w-4" />
+              <span>Visiter Cin-Scope</span>
+              <span className="text-xs">→</span>
+            </a>
           </div>
         </div>
       </footer>
