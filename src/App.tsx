@@ -1197,47 +1197,46 @@ function WeatherApp() {
             {/* Guide & FAQ Météo - Données Officielles & Méthodologie (Indexation SEO & Confort Utilisateur) */}
             <SeoPageGuideCard activeTab={activeTab} isLightMode={themeMode === 'light'} />
 
-            {/* Recommandation de site partenaire - Cin-Scope (Films & Cinéma) - Placé directement après le bloc Guide & FAQ */}
-            <div className={`mt-6 rounded-2xl border p-5 sm:p-6 transition-all shadow-lg ${
+            {/* Recommandation de site partenaire - Cin-Scope (Films & Cinéma) - Placé après le bloc Guide & FAQ */}
+            <div className={`mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
               themeMode === 'light'
-                ? 'bg-gradient-to-r from-amber-50 via-orange-50/70 to-rose-50 border-amber-300 text-slate-800'
-                : 'bg-gradient-to-r from-slate-900/95 via-slate-850 to-amber-950/40 border-amber-500/40 text-slate-100'
+                ? 'bg-amber-50/90 border-amber-200 text-slate-800'
+                : 'bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 border-slate-700/50 text-slate-100'
             }`}>
-              <div className="flex flex-col md:flex-row items-center justify-between gap-5">
-                <div className="flex items-center gap-4 text-left w-full md:w-auto">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400/50">
-                    <Film className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base sm:text-lg font-black tracking-tight">
-                        Cin-Scope — Découvrez notre autre site
-                      </h3>
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
-                        🎬 Cinéma &amp; Films
-                      </span>
-                    </div>
-                    <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${
-                      themeMode === 'light' ? 'text-slate-600' : 'text-slate-300'
-                    }`}>
-                      Vous pouvez également aller voir notre autre site dédié au cinéma et aux films : découvrez <strong>Cin-Scope</strong> pour explorer des fiches complètes, critiques, bandes-annonces et actualités cinématographiques.
-                    </p>
-                    <div className="mt-2 text-xs font-mono font-medium text-amber-500 dark:text-amber-400">
-                      Lien direct : <a href="https://cin-scope.ai.studio" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">https://cin-scope.ai.studio</a>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-3 text-left">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500/20 via-red-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-inner">
+                  <Film className="h-5 w-5" />
                 </div>
-                <a
-                  href="https://cin-scope.ai.studio"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-500/30 transition transform hover:-translate-y-0.5 active:scale-95 cursor-pointer w-full md:w-auto text-center"
-                >
-                  <Film className="h-4 w-4" />
-                  <span>Visiter Cin-Scope</span>
-                  <span className="text-base font-bold">→</span>
-                </a>
+                <div>
+                  <p className="text-xs sm:text-sm font-bold flex items-center gap-2">
+                    <span>Envie d'une pause cinéma ?</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                      Partenaire
+                    </span>
+                  </p>
+                  <p className={`text-[11px] sm:text-xs ${themeMode === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                    Découvrez et explorez également notre autre site dédié au cinéma et aux films :{' '}
+                    <a
+                      href="https://cin-scope.ai.studio"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-600 dark:text-amber-400 hover:underline font-mono font-medium"
+                    >
+                      https://cin-scope.ai.studio
+                    </a>
+                  </p>
+                </div>
               </div>
+              <a
+                href="https://cin-scope.ai.studio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
+              >
+                <Film className="h-4 w-4" />
+                <span>Visiter Cin-Scope</span>
+                <span className="text-xs">→</span>
+              </a>
             </div>
           </div>
         )}
@@ -1245,7 +1244,7 @@ function WeatherApp() {
       </main>
 
       {/* Footer avec maillage interne complet et URLs canoniques strictes pour Google Search Console */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-28">
         <div className="mx-auto max-w-7xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
             <p className="text-left font-medium">
@@ -1425,36 +1424,6 @@ function WeatherApp() {
                 Arène Compétitive
               </a>
             </nav>
-          </div>
-
-          {/* Recommandation de site partenaire / Découverte Cin-Scope */}
-          <div className="pt-4 border-t border-slate-800/70 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 rounded-2xl p-4 border border-slate-700/50 shadow-sm">
-            <div className="flex items-center gap-3 text-left">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500/20 via-red-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
-                <Film className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
-                  <span>Envie d'une pause cinéma ?</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">
-                    Partenaire
-                  </span>
-                </p>
-                <p className="text-[11px] sm:text-xs text-slate-400">
-                  Découvrez et explorez également notre autre site dédié au 7ème art, films &amp; critiques :
-                </p>
-              </div>
-            </div>
-            <a
-              href="https://cin-scope.ai.studio"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
-            >
-              <Film className="h-4 w-4" />
-              <span>Visiter Cin-Scope</span>
-              <span className="text-xs">→</span>
-            </a>
           </div>
         </div>
       </footer>
