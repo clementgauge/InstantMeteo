@@ -31,7 +31,8 @@ import {
   Flame,
   CheckCircle2,
   Thermometer,
-  Users
+  Users,
+  Map
 } from 'lucide-react';
 import { WorldAverageTemperatureMap } from '../components/WorldAverageTemperatureMap';
 import { CommunityWeatherMap } from '../components/CommunityWeatherMap';
@@ -145,13 +146,29 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
             setThematicType('airQuality');
           }}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'thematic'
+            activeMapMode === 'thematic' && thematicType !== 'openStreetMap'
               ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
           <Layers className="h-4 w-4" />
           <span>Cartes Thématiques (OSM)</span>
+        </button>
+
+        <button
+          id="radar-tab-osm-embed"
+          onClick={() => {
+            setActiveMapMode('thematic');
+            setThematicType('openStreetMap');
+          }}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+            activeMapMode === 'thematic' && thematicType === 'openStreetMap'
+              ? 'bg-[#0284C7] text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Map className="h-4 w-4" />
+          <span>Carte OpenStreetMap</span>
         </button>
       </div>
 

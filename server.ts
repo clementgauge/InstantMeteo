@@ -76,7 +76,7 @@ const blacklistedIps = new Set<string>();
 app.use((req, res, next) => {
   // En-têtes de sécurité renforcés : Autoriser expressément Google et les moteurs légitimes tout en protégeant contre le scraping IA non autorisé
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, noai, noimageai');
+  res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(), microphone=()');
 
@@ -1684,8 +1684,8 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   const pageSeo = getSeoDataForPath(reqPath);
   let html = rawHtml;
 
-  // 1. Google Verification Tags si robot Google ou requête dédiée
-  if (isGoogle) {
+  // 1. Google Verification Tags (toujours présents pour Search Console)
+  if (!html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
     html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
   }
 

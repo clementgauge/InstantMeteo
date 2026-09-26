@@ -371,7 +371,7 @@ html.theme-light #root,
 
 .theme-light th {
   background-color: #f8fafc !important;
-  color: #475569 !important;
+  color: #334155 !important;
   border-color: #e2e8f0 !important;
 }
 
@@ -386,10 +386,73 @@ html.theme-light #root,
 
 /* 16. Charts & SVG Visualizers in Light Mode */
 .theme-light svg text {
-  fill: #475569 !important;
+  fill: #334155 !important;
+}
+.theme-light svg line[class*="stroke-slate-800"],
+.theme-light svg line[class*="stroke-slate-700"] {
+  stroke: #e2e8f0 !important;
 }
 
-/* 17. Mobile Header Row 3 Quick Action Circles */
+/* 17. High-Contrast Status Badges in Light Mode */
+.theme-light [class*="bg-emerald-950"] [class*="text-white"],
+.theme-light [class*="bg-emerald-950"] .text-white {
+  color: #065f46 !important;
+}
+.theme-light [class*="bg-emerald-950"] [class*="text-slate-400"],
+.theme-light [class*="bg-emerald-950"] .text-slate-400 {
+  color: #047857 !important;
+}
+
+.theme-light [class*="bg-amber-950"] [class*="text-white"],
+.theme-light [class*="bg-amber-950"] .text-white {
+  color: #92400e !important;
+}
+.theme-light [class*="bg-amber-950"] [class*="text-slate-400"],
+.theme-light [class*="bg-amber-950"] .text-slate-400 {
+  color: #b45309 !important;
+}
+
+.theme-light [class*="bg-rose-950"] [class*="text-white"],
+.theme-light [class*="bg-rose-950"] .text-white {
+  color: #9f1239 !important;
+}
+.theme-light [class*="bg-rose-950"] [class*="text-slate-400"],
+.theme-light [class*="bg-rose-950"] .text-slate-400 {
+  color: #be123c !important;
+}
+
+.theme-light [class*="bg-teal-950"] [class*="text-white"],
+.theme-light [class*="bg-teal-950"] .text-white {
+  color: #115e59 !important;
+}
+.theme-light [class*="bg-teal-950"] [class*="text-slate-400"],
+.theme-light [class*="bg-teal-950"] .text-slate-400 {
+  color: #0f766e !important;
+}
+
+/* 18. Modals, Search Dialog & Category Tabs in Light Mode */
+.theme-light [role="dialog"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2) !important;
+}
+
+.theme-light [role="dialog"] [class*="bg-slate-900"],
+.theme-light [role="dialog"] [class*="bg-slate-950"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light [role="dialog"] button:not([class*="bg-blue-600"]):not([class*="from-blue-600"]) {
+  color: #1e293b !important;
+}
+
+.theme-light [role="dialog"] button:not([class*="bg-blue-600"]):not([class*="from-blue-600"]):hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 19. Mobile Header Quick Actions & Trigger Buttons */
 .theme-light #header-action-radar,
 .theme-light #header-action-videos,
 .theme-light #header-action-premium,
@@ -398,7 +461,6 @@ html.theme-light #root,
   color: #334155 !important;
 }
 
-/* 18. Sidebar Mobile Trigger Button */
 .theme-light button[aria-label="Ouvrir la barre latérale mobile"] {
   background-color: #ffffff !important;
   color: #0f172a !important;
@@ -406,7 +468,7 @@ html.theme-light #root,
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
 }
 
-/* 19. Scrollbars in Light Mode */
+/* 20. Scrollbars in Light Mode */
 .theme-light ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }

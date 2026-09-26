@@ -63,7 +63,6 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
-  const [mapZoom, setMapZoom] = useState(1);
   const initialGeoBackdrop = getClientGeographicBackdrop(
     station.name,
     station.region,
@@ -345,111 +344,17 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. MIDDLE ROW: 24H FORECAST (Left ~65%) & RADAR HD (Right ~35%)           */}
+      {/* 2. MIDDLE ROW: 24H / 48H FORECAST (Full width)                             */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-12 gap-4 items-stretch">
-        {/* Left: 48h Unified Hourly Forecast Card */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col">
-          <UnifiedHourly48hTrend
-            station={station}
-            currentWeather={weather}
-            hourly={hourly}
-            tempUnit={tempUnit}
-            onNavigateTab={onNavigateTab}
-          />
-        </div>
-
-        {/* Right: Radar HD Card */}
-        <div className="col-span-12 lg:col-span-4 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
-          {/* Card Header */}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400">
-                <Radio className="h-4 w-4" />
-              </div>
-              <h3 className="text-sm font-black text-white tracking-wide truncate">
-                Radar HD — {regionLabel}
-              </h3>
-            </div>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[10px] font-black text-emerald-400 uppercase tracking-wider shrink-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>EN DIRECT</span>
-            </div>
-          </div>
-
-          {/* Interactive Radar Map Preview with Rain Echoes */}
-          <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-inner group">
-            {/* Base Satellite / Terrain texture */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0c192e] via-[#08111f] to-[#040810]" />
-
-            {/* Geographical outline hints (Versailles, Paris, Meaux) */}
-            <div className="absolute inset-0 opacity-60">
-              {/* Rivers / borders vector paths */}
-              <svg viewBox="0 0 300 180" className="w-full h-full stroke-sky-500/30 fill-none stroke-[1.2]">
-                {/* Seine curve */}
-                <path d="M 0 110 Q 80 130 140 90 T 220 70 T 300 60" />
-                <path d="M 130 90 Q 150 40 200 30" />
-              </svg>
-            </div>
-
-            {/* Simulated Radar Rain Echoes */}
-            <div className="absolute top-6 left-6 w-28 h-28 rounded-full bg-emerald-500/25 blur-xl pointer-events-none" />
-            <div className="absolute top-10 left-12 w-16 h-16 rounded-full bg-amber-500/30 blur-lg pointer-events-none" />
-            <div className="absolute bottom-4 right-10 w-24 h-24 rounded-full bg-blue-500/20 blur-xl pointer-events-none" />
-
-            {/* City Markers */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white shadow-lg animate-pulse" />
-              <span className="text-xs font-black text-white drop-shadow-md">Paris</span>
-            </div>
-            <div className="absolute top-[60%] left-[20%] text-[10px] font-bold text-slate-300 drop-shadow">
-              Versailles
-            </div>
-            <div className="absolute top-[35%] right-[15%] text-[10px] font-bold text-slate-300 drop-shadow">
-              Meaux
-            </div>
-
-            {/* Map Controls (+, -, target) */}
-            <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
-              <button
-                onClick={() => setMapZoom(prev => Math.min(prev + 0.2, 2))}
-                className="w-6 h-6 rounded bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center text-xs font-bold transition shadow"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setMapZoom(prev => Math.max(prev - 0.2, 0.8))}
-                className="w-6 h-6 rounded bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center text-xs font-bold transition shadow"
-              >
-                -
-              </button>
-              <button
-                onClick={onLocateGps}
-                title="Centrer sur ma position"
-                className="w-6 h-6 rounded bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center text-xs font-bold transition shadow"
-              >
-                <Crosshair className="h-3 w-3 text-sky-400" />
-              </button>
-            </div>
-          </div>
-
-          {/* Color Scale Bar & Link */}
-          <div className="mt-3 flex items-center justify-between gap-3 text-[10px]">
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400">Faible</span>
-              <div className="w-24 h-2 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 via-amber-400 to-rose-600 shadow-inner" />
-              <span className="text-slate-400">Intense</span>
-            </div>
-
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-              className="font-bold text-sky-400 hover:text-sky-300 transition flex items-center gap-1"
-            >
-              <span>Voir le radar complet</span>
-              <span>→</span>
-            </button>
-          </div>
-        </div>
+      <div className="w-full">
+        {/* Unified 48h Hourly Forecast Card - Full Width */}
+        <UnifiedHourly48hTrend
+          station={station}
+          currentWeather={weather}
+          hourly={hourly}
+          tempUnit={tempUnit}
+          onNavigateTab={onNavigateTab}
+        />
       </div>
 
       {/* ========================================================================= */}

@@ -63,6 +63,7 @@ interface PageSectionSidebarProps {
   onOpenNotifications?: () => void;
   onOpenAtmosphere?: () => void;
   activeAlertCount?: number;
+  isLightMode?: boolean;
 }
 
 const fallbackIcons: LucideIcon[] = [
@@ -106,6 +107,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
   onOpenNotifications,
   onOpenAtmosphere,
   activeAlertCount = 0,
+  isLightMode = false,
 }) => {
   const [, setDisplayTick] = useState(0);
   useEffect(() => {
@@ -255,12 +257,16 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           onClick={() => setIsMobileOpen(true)}
           title="Ouvrir le sommaire et les rubriques"
           aria-label="Ouvrir la barre latérale mobile"
-          className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#070d18]/95 border border-slate-700/80 text-white shadow-xl backdrop-blur-2xl ring-1 ring-white/10 hover:bg-slate-900 active:scale-95 transition-all cursor-pointer font-bold text-xs"
+          className={`group relative flex items-center gap-2 px-3.5 py-2 rounded-full shadow-2xl backdrop-blur-2xl active:scale-95 transition-all cursor-pointer font-bold text-xs ${
+            isLightMode
+              ? 'bg-white/95 border border-slate-200 text-slate-800 shadow-slate-300/50 hover:bg-slate-50'
+              : 'bg-[#091122]/95 border border-slate-700/80 text-white shadow-black/60 hover:bg-slate-900 ring-1 ring-white/10'
+          }`}
         >
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sm">
             <ChevronRight className="h-3.5 w-3.5 text-white" />
           </div>
-          <span className="text-[11px] font-black text-white">Sommaire</span>
+          <span className="text-[11px] font-black tracking-wide">Sommaire</span>
 
           {/* Active alert indicator pill */}
           {activeAlertCount > 0 && (
@@ -272,44 +278,55 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* MOBILE SIDEBAR DRAWER (Exactement dans le style de la photo Rlexandra)    */}
+      {/* MOBILE SIDEBAR DRAWER (Design moderne & contrasté téléphone)             */}
       {/* ========================================================================= */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm transition-opacity duration-300"
+          className={`lg:hidden fixed inset-0 z-50 backdrop-blur-sm transition-opacity duration-300 ${
+            isLightMode ? 'bg-slate-900/40' : 'bg-slate-950/80'
+          }`}
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[295px] max-w-[85vw] bg-gradient-to-b from-[#2b4bf4] via-[#243edd] to-[#15249f] text-white shadow-2xl flex flex-col justify-between rounded-r-[36px] border-r border-blue-300/30 overflow-hidden transform transition-transform duration-300 ease-out ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[305px] max-w-[86vw] shadow-2xl flex flex-col justify-between rounded-r-[32px] overflow-hidden transform transition-transform duration-300 ease-out ${
+          isLightMode
+            ? 'bg-gradient-to-b from-[#ffffff] via-[#f8fafc] to-[#f1f5f9] text-slate-900 border-r border-slate-200/90 shadow-slate-400/20'
+            : 'bg-gradient-to-b from-[#0a1122] via-[#0d172e] to-[#070c18] text-slate-100 border-r border-slate-800/90 shadow-black/80'
+        } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
         role="dialog"
         aria-modal="true"
         aria-label="Menu latéral Météo"
       >
-        {/* TOP PROFILE / STATION HEADER (Style avatar + nom + sous-titre + flèche incurvée) */}
-        <div className="relative p-5 pb-4 border-b border-blue-400/25 bg-blue-600/15">
+        {/* TOP PROFILE / STATION HEADER */}
+        <div
+          className={`relative p-5 pb-4 border-b ${
+            isLightMode
+              ? 'bg-slate-50/90 border-slate-200/80'
+              : 'bg-[#0e1933]/70 border-slate-800/80 backdrop-blur-md'
+          }`}
+        >
           {/* Curved Back Chevron Tab Button on the right edge */}
           <button
             type="button"
             onClick={() => setIsMobileOpen(false)}
             title="Fermer le menu latéral"
             aria-label="Fermer le menu"
-            className="absolute -right-3.5 top-6 h-9 w-9 rounded-full bg-gradient-to-br from-[#2a4bf4] to-[#1c30bf] border-2 border-white/50 shadow-xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition cursor-pointer"
+            className={`absolute -right-3.5 top-6 h-9 w-9 rounded-full shadow-xl flex items-center justify-center transition hover:scale-110 active:scale-95 cursor-pointer border-2 ${
+              isLightMode
+                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 text-slate-200 hover:text-white hover:border-sky-400'
+            }`}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
           {/* Profile row */}
           <div className="flex items-center gap-3 pr-6">
-            {/* Avatar with circular white ring */}
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 via-indigo-200 to-white text-blue-900 shadow-md ring-2 ring-white/70 overflow-hidden">
-              <span className="text-sm font-black tracking-tight text-blue-900">
-                {currentStation ? currentStation.name.slice(0, 2).toUpperCase() : 'IM'}
-              </span>
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 text-white shadow-md ring-2 ring-sky-400/30 overflow-hidden font-black text-sm">
+              <span>{currentStation ? currentStation.name.slice(0, 2).toUpperCase() : 'IM'}</span>
               {isChristmasActive && (
                 <span className="absolute -top-0.5 -right-0.5 text-[11px]" title="Noël actif">
                   ❄️
@@ -318,10 +335,10 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
             </div>
 
             <div className="min-w-0 flex-1">
-              <h2 className="text-base font-black text-white truncate leading-tight tracking-tight">
+              <h2 className={`text-base font-black truncate leading-tight tracking-tight ${isLightMode ? 'text-slate-900' : 'text-white'}`}>
                 {currentStation?.name || 'Instant Météo'}
               </h2>
-              <p className="text-[11px] text-blue-200 truncate mt-0.5 font-medium">
+              <p className={`text-[11px] truncate mt-0.5 font-medium ${isLightMode ? 'text-slate-500' : 'text-sky-300/80'}`}>
                 {currentStation
                   ? `${currentStation.department} • ${currentStation.altitude} m`
                   : 'Observatoire National France'}
@@ -330,14 +347,18 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           </div>
 
           {/* Mode Switcher Tabs (Rubriques de la page VS Toutes les Pages) */}
-          <div className="mt-4 flex rounded-xl bg-blue-950/40 p-1 border border-blue-400/20">
+          <div className={`mt-4 flex rounded-xl p-1 border ${
+            isLightMode
+              ? 'bg-slate-200/70 border-slate-300/60'
+              : 'bg-slate-950/70 border-slate-800/90'
+          }`}>
             <button
               type="button"
               onClick={() => setMobileViewMode('sections')}
               className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-black transition cursor-pointer ${
                 mobileViewMode === 'sections'
-                  ? 'bg-white text-blue-900 shadow-sm'
-                  : 'text-blue-200 hover:text-white'
+                  ? (isLightMode ? 'bg-white text-sky-800 shadow-sm' : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md')
+                  : (isLightMode ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200')
               }`}
             >
               Rubriques ({sections.length})
@@ -347,8 +368,8 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
               onClick={() => setMobileViewMode('pages')}
               className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-black transition cursor-pointer ${
                 mobileViewMode === 'pages'
-                  ? 'bg-white text-blue-900 shadow-sm'
-                  : 'text-blue-200 hover:text-white'
+                  ? (isLightMode ? 'bg-white text-sky-800 shadow-sm' : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md')
+                  : (isLightMode ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200')
               }`}
             >
               {visiblePages.length} Pages
@@ -356,14 +377,16 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           </div>
         </div>
 
-        {/* MIDDLE SCROLLABLE MENU (Style navigation fluide avec icônes nettes) */}
+        {/* MIDDLE SCROLLABLE MENU */}
         <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-1.5 scrollbar-none">
           {mobileViewMode === 'sections' ? (
             /* SECTIONS DU SOMMAIRE DE LA PAGE ACTIVE */
             <div className="space-y-1">
-              <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-200 flex items-center justify-between">
+              <div className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider flex items-center justify-between ${
+                isLightMode ? 'text-slate-500' : 'text-slate-400'
+              }`}>
                 <span>Sur cette page : {title}</span>
-                <span className="text-[9px] text-blue-300 lowercase font-normal">clic pour défiler</span>
+                <span className={`text-[9px] lowercase font-normal ${isLightMode ? 'text-sky-600' : 'text-sky-400'}`}>clic pour défiler</span>
               </div>
 
               {sections.map((section, index) => {
@@ -377,15 +400,21 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                     onClick={() => goToSection(section.id)}
                     className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-all duration-200 cursor-pointer ${
                       active
-                        ? 'bg-white text-blue-950 font-black shadow-lg shadow-black/20'
-                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        ? (isLightMode
+                            ? 'bg-sky-50 text-sky-950 font-black border border-sky-200 shadow-sm'
+                            : 'bg-gradient-to-r from-sky-500/20 to-blue-600/10 text-white font-black border border-sky-500/40 shadow-md shadow-sky-950/40')
+                        : (isLightMode
+                            ? 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white')
                     }`}
                   >
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition ${
                         active
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-blue-800/40 text-blue-200 group-hover:bg-blue-700/50'
+                          ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sm'
+                          : (isLightMode
+                              ? 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
+                              : 'bg-slate-800/80 text-slate-400')
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -400,7 +429,9 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           ) : (
             /* LISTE COMPLÈTE DES PAGES & MODULES VISIBLES */
             <div className="space-y-1">
-              <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-200">
+              <div className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider ${
+                isLightMode ? 'text-slate-500' : 'text-slate-400'
+              }`}>
                 Changer de page météo
               </div>
               {visiblePages.map((page) => {
@@ -414,13 +445,19 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                     onClick={() => handleSelectPage(page.id)}
                     className={`flex w-full items-center gap-3 px-3 py-2 rounded-2xl text-left transition-all duration-200 cursor-pointer ${
                       active
-                        ? 'bg-white text-blue-950 font-black shadow-md'
-                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        ? (isLightMode
+                            ? 'bg-sky-50 text-sky-950 font-black border border-sky-200 shadow-sm'
+                            : 'bg-gradient-to-r from-sky-500/20 to-blue-600/10 text-white font-black border border-sky-500/40 shadow-sm')
+                        : (isLightMode
+                            ? 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white')
                     }`}
                   >
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
-                        active ? 'bg-blue-600 text-white' : 'bg-blue-800/40 text-blue-200'
+                        active
+                          ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white'
+                          : (isLightMode ? 'bg-slate-100 text-slate-500' : 'bg-slate-800/80 text-slate-400')
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -435,8 +472,12 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           )}
 
           {/* Quick Action Buttons Grid (Search, Notifications, Atmosphere) */}
-          <div className="pt-3 border-t border-blue-400/20 space-y-1.5">
-            <div className="px-2 text-[10px] font-black uppercase tracking-wider text-blue-200">
+          <div className={`pt-3 border-t space-y-1.5 ${
+            isLightMode ? 'border-slate-200' : 'border-slate-800/80'
+          }`}>
+            <div className={`px-2 text-[10px] font-black uppercase tracking-wider ${
+              isLightMode ? 'text-slate-500' : 'text-slate-400'
+            }`}>
               Raccourcis Directs
             </div>
 
@@ -447,9 +488,15 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                   onOpenSearch();
                   setIsMobileOpen(false);
                 }}
-                className="flex w-full items-center gap-3 px-3 py-2 rounded-2xl text-left text-blue-100 hover:bg-white/10 transition cursor-pointer"
+                className={`flex w-full items-center gap-3 px-3 py-2 rounded-2xl text-left transition cursor-pointer ${
+                  isLightMode
+                    ? 'text-slate-700 hover:bg-slate-100'
+                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-800/40 text-blue-200">
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
+                  isLightMode ? 'bg-slate-100 text-slate-600' : 'bg-slate-800/80 text-sky-400'
+                }`}>
                   <Search className="h-3.5 w-3.5" />
                 </span>
                 <span className="text-xs font-semibold">Rechercher une ville</span>
@@ -463,10 +510,16 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                   onOpenNotifications();
                   setIsMobileOpen(false);
                 }}
-                className="flex w-full items-center justify-between px-3 py-2 rounded-2xl text-left text-blue-100 hover:bg-white/10 transition cursor-pointer"
+                className={`flex w-full items-center justify-between px-3 py-2 rounded-2xl text-left transition cursor-pointer ${
+                  isLightMode
+                    ? 'text-slate-700 hover:bg-slate-100'
+                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-800/40 text-blue-200">
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
+                    isLightMode ? 'bg-slate-100 text-slate-600' : 'bg-slate-800/80 text-sky-400'
+                  }`}>
                     <Bell className="h-3.5 w-3.5" />
                   </span>
                   <span className="text-xs font-semibold">Alertes &amp; Notifications</span>
@@ -486,9 +539,15 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                   onOpenAtmosphere();
                   setIsMobileOpen(false);
                 }}
-                className="flex w-full items-center gap-3 px-3 py-2 rounded-2xl text-left text-blue-100 hover:bg-white/10 transition cursor-pointer"
+                className={`flex w-full items-center gap-3 px-3 py-2 rounded-2xl text-left transition cursor-pointer ${
+                  isLightMode
+                    ? 'text-slate-700 hover:bg-slate-100'
+                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-800/40 text-blue-200">
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
+                  isLightMode ? 'bg-slate-100 text-slate-600' : 'bg-slate-800/80 text-sky-400'
+                }`}>
                   <Sparkles className="h-3.5 w-3.5" />
                 </span>
                 <span className="text-xs font-semibold">Atmosphère &amp; Thème</span>
@@ -497,8 +556,12 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
           </div>
         </div>
 
-        {/* BOTTOM ACTION BAR (Style Log Out / Position GPS comme sur la photo) */}
-        <div className="p-4 border-t border-blue-400/25 bg-blue-950/40 flex items-center justify-between gap-2">
+        {/* BOTTOM ACTION BAR */}
+        <div className={`p-4 border-t flex items-center justify-between gap-2 ${
+          isLightMode
+            ? 'bg-slate-50/90 border-slate-200/80'
+            : 'bg-[#080e1c]/80 border-slate-800/80'
+        }`}>
           {onLocateGps ? (
             <button
               type="button"
@@ -506,9 +569,9 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
                 onLocateGps();
                 setIsMobileOpen(false);
               }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-black transition cursor-pointer active:scale-95"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white text-xs font-black transition cursor-pointer active:scale-95 shadow-md shadow-sky-950/30"
             >
-              <Navigation className="h-4 w-4 text-cyan-300" />
+              <Navigation className="h-4 w-4 text-cyan-200" />
               <span>Ma Position GPS</span>
             </button>
           ) : (
@@ -519,7 +582,11 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
             type="button"
             onClick={() => setIsMobileOpen(false)}
             title="Fermer la barre latérale"
-            className="flex items-center gap-1.5 py-2.5 px-3 rounded-2xl bg-blue-900/60 hover:bg-blue-800 border border-blue-400/30 text-blue-200 hover:text-white text-xs font-bold transition cursor-pointer"
+            className={`flex items-center gap-1.5 py-2.5 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer ${
+              isLightMode
+                ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white'
+            }`}
           >
             <LogOut className="h-4 w-4" />
             <span>Fermer</span>
