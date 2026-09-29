@@ -1068,11 +1068,7 @@ export function generatePageJsonLd(page: PageSeoItem): string {
           '@type': 'Organization',
           name: 'Instant Météo',
           url: `${BASE_SITE_URL}/`,
-          logo: `${BASE_SITE_URL}/icon-512.png`,
-          sameAs: [
-            'https://www.youtube.com/@InstantM%C3%A9t%C3%A9o',
-            'https://cin-scope.ai.studio'
-          ]
+          logo: `${BASE_SITE_URL}/icon-512.png`
         }
       }
     },
@@ -1225,9 +1221,6 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
         <ul style="list-style: none; padding: 0; margin: 0;">
           ${internalLinks}
         </ul>
-        <p style="margin-top: 16px; font-size: 0.85rem; color: #94a3b8;">
-          Site partenaire : <a href="https://cin-scope.ai.studio" target="_blank" rel="noopener" style="color: #38bdf8;">Cin-Scope (Guide Cinéma &amp; Séries)</a>
-        </p>
       </footer>
     </header>
   `.trim();

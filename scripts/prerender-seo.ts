@@ -59,7 +59,7 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
 
   // 8. Static fallback content for search crawlers
   const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
+  const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n      <div id="seo-crawler-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: normal; border: 0;">\n${staticContent}\n      </div>\n    </div>`;
 
   if (html.includes('<div id="root">')) {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);

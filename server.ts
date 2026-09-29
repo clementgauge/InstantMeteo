@@ -1735,7 +1735,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
 
   // 9. Contenu statique substantiel (H1, H2, explications méthodologiques, FAQ et liens internes)
   const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
+  const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n      <div id="seo-crawler-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: normal; border: 0;">\n${staticContent}\n      </div>\n    </div>`;
 
   if (html.includes('<div id="root">')) {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
