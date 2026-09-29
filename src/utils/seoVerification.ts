@@ -142,15 +142,15 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     if (!robotsTag) {
       robotsTag = document.createElement('meta');
       robotsTag.name = 'robots';
-      robotsTag.content = 'index, follow, max-image-preview:large, noai, noimageai';
+      robotsTag.content = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
       document.head.appendChild(robotsTag);
     }
 
-    // 9. Synchronisation URL dans la barre d'adresse
+    // 9. Synchronisation URL dans la barre d'adresse (URL unique sans slash final)
     if (syncHistory && typeof window.history !== 'undefined') {
       const currentPath = window.location.pathname;
-      const canonicalPath = pageSeo.path === '/' ? '/' : (pageSeo.path.endsWith('/') ? pageSeo.path : `${pageSeo.path}/`);
-      if (currentPath !== canonicalPath && !(canonicalPath === '/direct/' && currentPath === '/')) {
+      const canonicalPath = pageSeo.path === '/' ? '/' : (pageSeo.path.endsWith('/') ? pageSeo.path.slice(0, -1) : pageSeo.path);
+      if (currentPath !== canonicalPath && !(canonicalPath === '/direct' && currentPath === '/')) {
         window.history.pushState({ tabId: pageSeo.tabId, path: canonicalPath }, '', canonicalPath);
       }
     }

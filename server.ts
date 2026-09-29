@@ -171,6 +171,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// -------------------------------------------------------------
+// NORMALISATION 301 GLOBALE DES URLS : FORME UNIQUE SANS SLASH FINAL
+// Ex: /radar/ -> /radar, /vigilances/ -> /vigilances, /direct/ -> /direct
+// -------------------------------------------------------------
+app.use((req, res, next) => {
+  if ((req.method === 'GET' || req.method === 'HEAD') && req.path !== '/' && !req.path.startsWith('/api/') && !req.path.includes('.') && req.path.endsWith('/')) {
+    const cleanPath = req.path.replace(/\/+$/, '');
+    const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
+    return res.redirect(301, `${cleanPath}${query}`);
+  }
+  next();
+});
+
 // Initialisation & Persistance de la Base de Données
 interface DatabaseSchema {
   databaseId: string;
@@ -1689,6 +1702,11 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
   }
 
+  // 1b. Configuration et Clé Carte Météo Direct
+  if (!html.includes('carte-meteo-key')) {
+    html = html.replace('</head>', `    <meta name="carte-meteo-key" content="instant-meteo-map-key-2026-direct" id="carte-meteo-api-key" />\n  </head>`);
+  }
+
   // 2. Remplacer ou injecter le title unique et spécifique
   if (/<title>[^<]*<\/title>/i.test(html)) {
     html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
@@ -1782,14 +1800,31 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées & normalisation canonical)
+// ENDPOINTS CLÉ & CONFIGURATION CARTE MÉTÉO DIRECT
+// -------------------------------------------------------------
+app.get(['/api/carte-meteo/key', '/api/carte-meteo/config', '/api/map-key'], (req, res) => {
+  const mapKey = process.env.MAPS_API_KEY || process.env.WEATHER_API_KEY || 'instant-meteo-map-key-2026-direct';
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({
+    status: 'ok',
+    success: true,
+    key: mapKey,
+    apiKey: mapKey,
+    carteMeteoKey: mapKey,
+    provider: 'instant-meteo-carte-direct',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// -------------------------------------------------------------
+// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées & normalisation canonical sans slash)
 // -------------------------------------------------------------
 app.get(['/webcams', '/webcam', '/webcams/', '/webcam/'], (req, res) => {
-  res.redirect(301, '/direct/');
+  res.redirect(301, '/direct');
 });
 
 app.get(['/modeles', '/modele', '/modeles-meteo', '/modeles/', '/modele/', '/modeles-meteo/'], (req, res) => {
-  res.redirect(301, '/nuages/');
+  res.redirect(301, '/nuages');
 });
 
 // -------------------------------------------------------------
@@ -1805,16 +1840,17 @@ async function startServer() {
     // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
     app.use(async (req, res, next) => {
       if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
-        return res.redirect(301, '/direct/');
+        return res.redirect(301, '/direct');
       }
       if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
-        return res.redirect(301, '/nuages/');
+        return res.redirect(301, '/nuages');
       }
 
-      // Normalisation 301 vers le trailing slash final pour toute page sans slash
-      if (req.method === 'GET' && req.path !== '/' && !req.path.startsWith('/api/') && !req.path.includes('.') && !req.path.endsWith('/')) {
+      // Normalisation 301 stricte : redirection de toute page avec slash final vers sa forme sans slash (ex: /radar/ -> /radar)
+      if (req.method === 'GET' && req.path !== '/' && !req.path.startsWith('/api/') && !req.path.includes('.') && req.path.endsWith('/')) {
+        const cleanPath = req.path.replace(/\/+$/, '');
         const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
-        return res.redirect(301, `${req.path}/${query}`);
+        return res.redirect(301, `${cleanPath}${query}`);
       }
 
       // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
@@ -1848,19 +1884,20 @@ async function startServer() {
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
       if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
-        return res.redirect(301, '/direct/');
+        return res.redirect(301, '/direct');
       }
       if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
-        return res.redirect(301, '/nuages/');
+        return res.redirect(301, '/nuages');
       }
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'Endpoint not found' });
       }
 
-      // Normalisation 301 vers le trailing slash final pour toute page sans slash
-      if (req.path !== '/' && !req.path.includes('.') && !req.path.endsWith('/')) {
+      // Normalisation 301 stricte : redirection de toute page avec slash final vers sa forme sans slash (ex: /radar/ -> /radar)
+      if (req.path !== '/' && !req.path.includes('.') && req.path.endsWith('/')) {
+        const cleanPath = req.path.replace(/\/+$/, '');
         const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
-        return res.redirect(301, `${req.path}/${query}`);
+        return res.redirect(301, `${cleanPath}${query}`);
       }
 
       sendHtmlWithConditionalGoogleTags(req, res, distIndexPath);

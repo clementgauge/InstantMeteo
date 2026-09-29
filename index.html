@@ -16,22 +16,34 @@
     <meta name="description" content="Instant Météo (InstantMétéo) : Prévisions météo en direct pour toute la France et 35 000 communes. Consultez la température en temps réel, le radar pluie HD haute précision, les vigilances Météo-France et les sondages de nuages." />
     <meta name="keywords" content="instantmétéo, instant météo, instantmeteo, météo, meteo, météo france, meteofrance, instant, température, temperature, radar, radar pluie, radar météo, france, prévisions météo, météo en direct, vigilance météo france, météo temps réel, météo direct, météo 14 jours" />
     <meta name="author" content="Instant Météo" />
-    <link rel="canonical" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="canonical" href="https://instantmeteo.instantmeteofr.workers.dev" />
     <script>
       (function() {
         try {
           var p = window.location.pathname || '/';
           var link = document.querySelector('link[rel="canonical"]');
           if (link) {
-            if (p === '/') {
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/';
+            if (p === '/' || p === '') {
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev';
             } else {
               var clean = p.replace(/^\/+|\/+$/g, '');
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/' + clean + '/';
+              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/' + clean;
             }
           }
         } catch (e) {}
       })();
+    </script>
+
+    <!-- Configuration & Clé API Carte Météo Direct -->
+    <meta name="carte-meteo-key" content="instant-meteo-map-key-2026-direct" id="carte-meteo-api-key" />
+    <script id="carte-meteo-config">
+      window.__CARTE_METEO_KEY__ = "instant-meteo-map-key-2026-direct";
+      window.__CARTE_METEO_CONFIG__ = {
+        key: "instant-meteo-map-key-2026-direct",
+        status: "ok",
+        provider: "carto-voyager",
+        workerUrl: "https://instantmeteo.instantmeteofr.workers.dev"
+      };
     </script>
 
     <!-- Open Graph / Facebook / LinkedIn -->

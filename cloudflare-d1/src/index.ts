@@ -43,6 +43,19 @@ export default {
         });
       }
 
+      // 1b. Clé API & Configuration Carte Météo Direct
+      if (path === '/api/carte-meteo/key' || path === '/api/carte-meteo/config' || path === '/api/map-key') {
+        return jsonResponse({
+          status: 'ok',
+          success: true,
+          key: 'instant-meteo-map-key-2026-direct',
+          apiKey: 'instant-meteo-map-key-2026-direct',
+          carteMeteoKey: 'instant-meteo-map-key-2026-direct',
+          provider: 'instant-meteo-carte-direct',
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       // 2. Classement Mondial TOP 100 des Joueurs
       if (path === '/api/leaderboard' && request.method === 'GET') {
         const { results } = await env.DB.prepare(

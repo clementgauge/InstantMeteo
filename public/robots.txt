@@ -18,4 +18,3 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://instantmeteo.instantmeteofr.workers.dev/sitemap.xml
-

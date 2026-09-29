@@ -896,60 +896,6 @@ function WeatherApp() {
 
             {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
               <div className="space-y-4">
-                {(currentPath === '/' || currentPath === '') && (
-                  <div className="bg-gradient-to-r from-slate-900 via-sky-950/70 to-slate-900 border border-sky-900/50 rounded-2xl p-4 sm:p-6 shadow-xl backdrop-blur-md">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
-                          <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse" />
-                          <span>Portail National Instant Météo France</span>
-                        </div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight mt-1.5">
-                          Instant Météo France - Portail Météorologique de Précision en Temps Réel
-                        </h1>
-                        <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-3xl leading-relaxed">
-                          Instant Météo est la plateforme météorologique indépendante dédiée au suivi hyper-local et temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Infrastructure combinant les modèles AROME, ARPEGE, ECMWF IFS, le radar Doppler ARAMIS et les flux hydrométriques officiels pour 35 000 communes.
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab('realtime');
-                            updateDocumentSeo('/direct/', true);
-                            setCurrentPath('/direct/');
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-md cursor-pointer"
-                        >
-                          Météo Directe Station &rarr;
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab('radar');
-                            updateDocumentSeo('/radar/', true);
-                            setCurrentPath('/radar/');
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
-                        >
-                          Radar Pluie HD
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab('vigilance');
-                            updateDocumentSeo('/vigilances/', true);
-                            setCurrentPath('/vigilances/');
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
-                        >
-                          Vigilance 12 Risques
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 <RealtimeView
                   station={currentStation}
                   weather={weather}
@@ -1289,136 +1235,136 @@ function WeatherApp() {
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/direct/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('realtime'); window.history.pushState(null, '', '/direct/'); }}
+                href="/direct"
+                onClick={(e) => { e.preventDefault(); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); }}
                 className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
               >
                 Météo en Direct
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/radar/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/radar/'); }}
+                href="/radar"
+                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); }}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Radar Précipitations HD
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/vigilances/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances/'); }}
+                href="/vigilances"
+                onClick={(e) => { e.preventDefault(); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); }}
                 className="text-rose-400 hover:text-rose-300 hover:underline font-medium"
               >
                 Vigilances Météo-France
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/nuages/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages/'); }}
+                href="/nuages"
+                onClick={(e) => { e.preventDefault(); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Nuages &amp; Néphologie
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/14-jours/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours/'); }}
+                href="/14-jours"
+                onClick={(e) => { e.preventDefault(); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Tendances 14 Jours
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/cartes-thematiques/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques/'); }}
+                href="/cartes-thematiques"
+                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); }}
                 className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
               >
                 Cartes Thématiques (OSM)
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/climat/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('eightMonths'); window.history.pushState(null, '', '/climat/'); }}
+                href="/climat"
+                onClick={(e) => { e.preventDefault(); setActiveTab('eightMonths'); window.history.pushState(null, '', '/climat'); }}
                 className="text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
               >
                 Tendances 8 Mois &amp; Climat
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/montagne/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('mountain'); window.history.pushState(null, '', '/montagne/'); }}
+                href="/montagne"
+                onClick={(e) => { e.preventDefault(); setActiveTab('mountain'); window.history.pushState(null, '', '/montagne'); }}
                 className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
               >
                 Météo Montagne &amp; BERA
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/plages/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('beaches'); window.history.pushState(null, '', '/plages/'); }}
+                href="/plages"
+                onClick={(e) => { e.preventDefault(); setActiveTab('beaches'); window.history.pushState(null, '', '/plages'); }}
                 className="text-teal-400 hover:text-teal-300 hover:underline font-medium"
               >
                 Météo Plages &amp; SHOM
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/secheresse-incendie/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('droughtFire'); window.history.pushState(null, '', '/secheresse-incendie/'); }}
+                href="/secheresse-incendie"
+                onClick={(e) => { e.preventDefault(); setActiveTab('droughtFire'); window.history.pushState(null, '', '/secheresse-incendie'); }}
                 className="text-orange-400 hover:text-orange-300 hover:underline font-medium"
               >
                 Sécheresse &amp; Feux
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/cours-d-eau/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('watercourses'); window.history.pushState(null, '', '/cours-d-eau/'); }}
+                href="/cours-d-eau"
+                onClick={(e) => { e.preventDefault(); setActiveTab('watercourses'); window.history.pushState(null, '', '/cours-d-eau'); }}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Cours d'Eau &amp; Crues
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/sports/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('sportsActivities'); window.history.pushState(null, '', '/sports/'); }}
+                href="/sports"
+                onClick={(e) => { e.preventDefault(); setActiveTab('sportsActivities'); window.history.pushState(null, '', '/sports'); }}
                 className="text-lime-400 hover:text-lime-300 hover:underline font-medium"
               >
                 Météo Sport &amp; Itinéraire
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/bulletins/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('bulletin'); window.history.pushState(null, '', '/bulletins/'); }}
+                href="/bulletins"
+                onClick={(e) => { e.preventDefault(); setActiveTab('bulletin'); window.history.pushState(null, '', '/bulletins'); }}
                 className="text-violet-400 hover:text-violet-300 hover:underline font-medium"
               >
                 Bulletins &amp; 4 Semaines
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/archives/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('weatherArchive'); window.history.pushState(null, '', '/archives/'); }}
+                href="/archives"
+                onClick={(e) => { e.preventDefault(); setActiveTab('weatherArchive'); window.history.pushState(null, '', '/archives'); }}
                 className="text-amber-300 hover:text-amber-200 hover:underline font-medium"
               >
                 Archives Journalières
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/monde-catastrophes/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('worldDisasters'); window.history.pushState(null, '', '/monde-catastrophes/'); }}
+                href="/monde-catastrophes"
+                onClick={(e) => { e.preventDefault(); setActiveTab('worldDisasters'); window.history.pushState(null, '', '/monde-catastrophes'); }}
                 className="text-red-400 hover:text-red-300 hover:underline font-medium"
               >
                 Catastrophes Monde
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/communaute/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('discussionGroup'); window.history.pushState(null, '', '/communaute/'); }}
+                href="/communaute"
+                onClick={(e) => { e.preventDefault(); setActiveTab('discussionGroup'); window.history.pushState(null, '', '/communaute'); }}
                 className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
               >
                 Salon Météo
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/competition/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('competitive'); window.history.pushState(null, '', '/competition/'); }}
+                href="/competition"
+                onClick={(e) => { e.preventDefault(); setActiveTab('competitive'); window.history.pushState(null, '', '/competition'); }}
                 className="text-yellow-400 hover:text-yellow-300 hover:underline font-medium"
               >
                 Arène Compétitive

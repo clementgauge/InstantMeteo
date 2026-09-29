@@ -66,6 +66,63 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const [isExpandedPc, setIsExpandedPc] = useState<boolean>(false);
   const [mapScope, setMapScope] = useState<'city' | 'france' | 'world'>('city');
 
+  // Vérification de la clé API pour la Carte Météo Direct (HTML & Worker)
+  const [carteMeteoKey, setCarteMeteoKey] = useState<string>(() => {
+    if (typeof document !== 'undefined') {
+      const metaKey = document.querySelector('meta[name="carte-meteo-key"]')?.getAttribute('content');
+      if (metaKey) return metaKey;
+      const winKey = (window as any).__CARTE_METEO_KEY__ || (window as any).__CARTE_METEO_CONFIG__?.key;
+      if (winKey) return winKey;
+    }
+    return '';
+  });
+
+  useEffect(() => {
+    let key = carteMeteoKey;
+    if (typeof document !== 'undefined') {
+      const meta = document.querySelector('meta[name="carte-meteo-key"]');
+      if (meta && meta.getAttribute('content')) {
+        key = meta.getAttribute('content') || '';
+      }
+      if (!key && (window as any).__CARTE_METEO_KEY__) {
+        key = (window as any).__CARTE_METEO_KEY__;
+      }
+    }
+
+    const fetchWorkerKey = async () => {
+      try {
+        const endpoints = ['/api/carte-meteo/key', '/api/carte-meteo/config', '/api/sync/status'];
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep);
+            if (res.ok) {
+              const data = await res.json();
+              const retrieved = data.key || data.apiKey || data.carteMeteoKey;
+              if (retrieved) {
+                key = retrieved;
+                setCarteMeteoKey(retrieved);
+                if (typeof window !== 'undefined') {
+                  (window as any).__CARTE_METEO_KEY__ = retrieved;
+                }
+                break;
+              }
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
+
+      if (key) {
+        setCarteMeteoKey(key);
+      }
+    };
+
+    if (!key) {
+      fetchWorkerKey();
+    } else {
+      setCarteMeteoKey(key);
+    }
+  }, []);
+
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
