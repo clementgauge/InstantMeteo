@@ -52,13 +52,12 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
       touchZoom: isInteractive
     });
 
-    // Même API que Radar HD (PrecisionRadarMap) : Esri ArcGIS World Topo
+    // Fond de carte officiel OpenStreetMap
     const baseLayer = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
         maxZoom: 19,
-        maxNativeZoom: 18,
-        attribution: 'Esri ArcGIS'
+        attribution: '© OpenStreetMap contributors'
       }
     ).addTo(map);
     baseLayerRef.current = baseLayer;
@@ -159,13 +158,13 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
     }
 
     const tileUrl = mapEngine === 'satellite'
-      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-      : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+      ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      : 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
 
     const newBaseLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      maxNativeZoom: 18,
-      attribution: 'Esri ArcGIS'
+      maxNativeZoom: mapEngine === 'satellite' ? 19 : 17,
+      attribution: '© OpenStreetMap contributors, OpenTopoMap'
     }).addTo(map);
 
     baseLayerRef.current = newBaseLayer;

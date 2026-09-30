@@ -33,6 +33,14 @@ interface RegionWeather {
   tomorrowTemp: number;
 }
 
+// Configuration des icônes Leaflet pour éviter toute tentative de résolution d'URL relative
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
 // The 13 Metropolitan Regions of France with representative centroid coordinates
 const FRANCE_REGIONS: RegionWeather[] = [
   { id: 'hdf', name: 'Hauts-de-France', capitalStationId: 'lille-lesquin', lat: 50.15, lon: 2.80, currentCode: 1, afternoonCode: 2, tomorrowCode: 1, currentTemp: 17, afternoonTemp: 19, tomorrowTemp: 18 },
@@ -231,14 +239,15 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         touchZoom: true
       });
 
-      // High-Quality Crisp Retina Map Tiles (CartoDB Voyager HD)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      // Tuiles cartographiques OpenStreetMap officielles
+      const baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        subdomains: 'abcd',
-        // @ts-ignore
-        detectRetina: true,
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-      }).addTo(map);
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      });
+      baseTileLayer.on('tileerror', () => {
+        // Tolérance aux pannes réseau
+      });
+      baseTileLayer.addTo(map);
 
       // Markers Layer Group
       const markersGroup = L.layerGroup().addTo(map);
@@ -254,7 +263,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
       }
     }
 
-    const timer = setTimeout(() => {
+    const refreshMapLayout = () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
         if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
@@ -265,10 +274,14 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2);
         }
       }
-    }, 150);
+    };
+
+    const timer1 = setTimeout(refreshMapLayout, 100);
+    const timer2 = setTimeout(refreshMapLayout, 400);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
     };
   }, []);
 

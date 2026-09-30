@@ -391,13 +391,10 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
         scrollWheelZoom: true
       });
 
-      // Fond OpenStreetMap Retina haute définition
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18,
-        subdomains: 'abcd',
-        // @ts-ignore
-        detectRetina: true,
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+      // Fond OpenStreetMap officiel
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
       const markersGroup = L.layerGroup().addTo(map);

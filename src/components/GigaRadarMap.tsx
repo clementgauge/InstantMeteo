@@ -519,28 +519,28 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
     const baseMapConfigs = {
       dark: {
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         maxNativeZoom: 19,
         maxZoom: 19,
-        subdomains: 'abcd'
+        subdomains: 'abc'
       },
       satellite: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        maxNativeZoom: 18,
-        maxZoom: 19,
-        subdomains: 'abcd'
-      },
-      topo: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-        maxNativeZoom: 18,
-        maxZoom: 19,
-        subdomains: 'abcd'
-      },
-      hybrid: {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         maxNativeZoom: 19,
         maxZoom: 19,
-        subdomains: 'abcd'
+        subdomains: 'abc'
+      },
+      topo: {
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        maxNativeZoom: 17,
+        maxZoom: 19,
+        subdomains: 'abc'
+      },
+      hybrid: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        maxNativeZoom: 19,
+        maxZoom: 19,
+        subdomains: 'abc'
       }
     };
 
@@ -548,24 +548,14 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     tileLayerRef.current = L.tileLayer(currentConfig.url, {
       maxNativeZoom: currentConfig.maxNativeZoom,
       maxZoom: currentConfig.maxZoom,
-      subdomains: currentConfig.subdomains as any
+      subdomains: currentConfig.subdomains as any,
+      attribution: '© OpenStreetMap contributors, OpenTopoMap'
     }).addTo(map);
-
-    // In satellite mode, overlay reference town and road borders so names remain legible under radar
-    if (baseMap === 'satellite') {
-      labelsLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-        maxNativeZoom: 19,
-        maxZoom: 19,
-        subdomains: 'abcd',
-        zIndex: 15,
-        opacity: 0.95
-      }).addTo(map);
-    }
 
     // Ensure radar overlays remain on top
     if (satelliteOverlayRef.current) satelliteOverlayRef.current.bringToFront();
     if (radarOverlayRef.current) radarOverlayRef.current.bringToFront();
-    if (labelsLayerRef.current) labelsLayerRef.current.bringToFront();
+    if (labelsLayerRef.current) (labelsLayerRef.current as L.TileLayer).bringToFront();
   }, [baseMap]);
 
   // 5. Update Radar and Satellite Overlays with maxNativeZoom to enable infinite smooth zoom

@@ -620,27 +620,22 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       baseTileLayerRef.current = null;
     }
 
-    let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
-    let maxNativeZoom = 18;
+    // Uniquement les fonds de carte OpenStreetMap officiels
+    let tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    let maxNativeZoom = 19;
 
     switch (baseEngine) {
+      case 'topo':
+      case 'esri_topo':
+        tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+        maxNativeZoom = 17;
+        break;
       case 'osm':
+      case 'dark':
+      case 'satellite':
+      default:
         tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
         maxNativeZoom = 19;
-        break;
-      case 'dark':
-        tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
-        maxNativeZoom = 19;
-        break;
-      case 'satellite':
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        maxNativeZoom = 18;
-        break;
-      case 'esri_topo':
-      case 'topo':
-      default:
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
-        maxNativeZoom = 18;
         break;
     }
 
