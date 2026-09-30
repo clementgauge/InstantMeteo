@@ -1,23 +1,29 @@
 /**
- * API Cloudflare Worker avec Base de Données Cloudflare D1
- * Pour Instant Météo : Classement Compétitif & Carte Collaborative en Temps Réel
+ * API Cloudflare Worker avec Base de Données Cloudflare D1 & Support Assets Frontend
+ * Pour Instant Météo : Rend le site 100% identique (design, formulaires, cartes OpenStreetMap, Tailwind)
+ * sur https://instantmeteo.instantmeteofr.workers.dev/ et https://instantmeteo-fr.ai.studio/
  */
 
 export interface Env {
   DB: D1Database;
+  ASSETS?: {
+    fetch: (request: Request | string) => Promise<Response>;
+  };
 }
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Content-Type': 'application/json; charset=utf-8',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With',
 };
 
 function jsonResponse(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json; charset=utf-8',
+    },
   });
 }
 
@@ -32,7 +38,35 @@ export default {
     const path = url.pathname;
 
     try {
-      // 1. Health check & Ping
+      // =========================================================================
+      // 0. SERVICE DU FRONTEND REACT (Design, CSS Tailwind, Cartes, Chunks JS, SPA)
+      // =========================================================================
+      if (!path.startsWith('/api/')) {
+        if (env.ASSETS) {
+          try {
+            const assetRes = await env.ASSETS.fetch(request);
+            if (assetRes.status !== 404) {
+              return assetRes;
+            }
+            // Mode Single Page Application (SPA) :
+            // Pour toute route de page (/radar, /vigilances, /direct, /nuages, etc.), servir index.html
+            if (request.method === 'GET' && !path.includes('.')) {
+              const spaRequest = new Request(new URL('/', request.url).toString(), request);
+              const spaRes = await env.ASSETS.fetch(spaRequest);
+              if (spaRes.status !== 404) {
+                return spaRes;
+              }
+            }
+            return assetRes;
+          } catch (assetErr) {
+            console.warn('Erreur résolution ASSETS:', assetErr);
+          }
+        }
+      }
+
+      // =========================================================================
+      // 1. HEALTH CHECK & STATUT BASE DE DONNÉES
+      // =========================================================================
       if (path === '/api/health' || path === '/health') {
         const check = await env.DB.prepare('SELECT 1 as alive').first();
         return jsonResponse({
@@ -43,7 +77,9 @@ export default {
         });
       }
 
-      // 1b. Clé API & Configuration Carte Météo Direct
+      // =========================================================================
+      // 1b. CLÉ API & CONFIGURATION CARTE MÉTÉO DIRECT
+      // =========================================================================
       if (path === '/api/carte-meteo/key' || path === '/api/carte-meteo/config' || path === '/api/map-key') {
         return jsonResponse({
           status: 'ok',
@@ -56,7 +92,9 @@ export default {
         });
       }
 
-      // 2. Classement Mondial TOP 100 des Joueurs
+      // =========================================================================
+      // 2. CLASSEMENT MONDIAL TOP 100 DES JOUEURS
+      // =========================================================================
       if (path === '/api/leaderboard' && request.method === 'GET') {
         const { results } = await env.DB.prepare(
           `SELECT 
@@ -87,7 +125,9 @@ export default {
         });
       }
 
-      // 3. Synchronisation du Profil Joueur (Upsert dans D1)
+      // =========================================================================
+      // 3. SYNCHRONISATION DU PROFIL JOUEUR (UPSERT D1)
+      // =========================================================================
       if (path === '/api/player/sync' && request.method === 'POST') {
         const body: any = await request.json();
         const {
@@ -107,7 +147,6 @@ export default {
           return jsonResponse({ error: 'Champs obligatoires manquants (id, pseudo)' }, 400);
         }
 
-        // Upsert dans SQLite Cloudflare D1
         await env.DB.prepare(
           `INSERT INTO players (
             id, pseudo, total_points, streak_days, multiplier, 
@@ -138,7 +177,6 @@ export default {
           JSON.stringify(unlockedBadges)
         ).run();
 
-        // Calcul du rang mondial
         const rankRow = await env.DB.prepare(
           'SELECT COUNT(*) + 1 as rank FROM players WHERE total_points > ?1'
         ).bind(totalPoints).first<{ rank: number }>();
@@ -155,7 +193,53 @@ export default {
         });
       }
 
-      // 3b. Réinitialiser les points d'un joueur
+      // =========================================================================
+      // 3b. OBTENIR UN PROFIL JOUEUR PAR PSEUDO OU ID
+      // =========================================================================
+      const playerMatch = path.match(/^\/api\/player\/([^/]+)$/);
+      if (playerMatch && request.method === 'GET') {
+        const cleanPseudo = decodeURIComponent(playerMatch[1]).trim().toLowerCase();
+        const player = await env.DB.prepare(
+          `SELECT 
+            id, pseudo, total_points as totalPoints, streak_days as streakDays, 
+            multiplier, locations_count as locationsCount, badges_count as badgesCount, 
+            badge_title as badgeTitle, minutes_spent as minutesSpent, 
+            unlocked_badges_json as unlockedBadgesJson, last_active as lastActive
+          FROM players 
+          WHERE LOWER(pseudo) = ?1 OR id = ?2
+          LIMIT 1`
+        ).bind(cleanPseudo, 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_')).first<any>();
+
+        if (!player) {
+          return jsonResponse({ success: false, error: 'Joueur introuvable' }, 404);
+        }
+
+        let unlockedBadges: string[] = [];
+        try {
+          unlockedBadges = JSON.parse(player.unlockedBadgesJson || '[]');
+        } catch {}
+
+        return jsonResponse({
+          success: true,
+          player: {
+            id: player.id,
+            pseudo: player.pseudo,
+            totalPoints: player.totalPoints,
+            streakDays: player.streakDays,
+            multiplier: player.multiplier,
+            locationsCount: player.locationsCount,
+            badgesCount: player.badgesCount,
+            badgeTitle: player.badgeTitle,
+            minutesSpent: player.minutesSpent,
+            unlockedBadges,
+            lastActive: player.lastActive
+          }
+        });
+      }
+
+      // =========================================================================
+      // 3c. RÉINITIALISER LES POINTS D'UN JOUEUR
+      // =========================================================================
       if (path === '/api/player/reset' && request.method === 'POST') {
         const body: any = await request.json();
         const { pseudo, id } = body;
@@ -177,7 +261,9 @@ export default {
         return jsonResponse({ success: true, message: 'Points réinitialisés sur Cloudflare D1' });
       }
 
-      // 3c. Supprimer un compte joueur (joueur ou administrateur)
+      // =========================================================================
+      // 3d. SUPPRIMER UN COMPTE JOUEUR
+      // =========================================================================
       if ((path === '/api/player/delete' || path === '/api/admin/delete-user' || path === '/api/admin/delete-player') && (request.method === 'POST' || request.method === 'DELETE')) {
         const body: any = await request.json();
         const { pseudo, id } = body || {};
@@ -191,7 +277,9 @@ export default {
         return jsonResponse({ success: true, message: 'Compte joueur supprimé de Cloudflare D1 avec succès' });
       }
 
-      // 4. Liste des Signalements Météo Citoyens du Jour (Réinitialisation quotidienne automatique)
+      // =========================================================================
+      // 4. LISTE DES SIGNALEMENTS MÉTÉO DU JOUR
+      // =========================================================================
       if (path === '/api/reports' && request.method === 'GET') {
         const { results } = await env.DB.prepare(
           `SELECT 
@@ -221,7 +309,9 @@ export default {
         });
       }
 
-      // 5. Publier un Signalement Citoyen en Direct
+      // =========================================================================
+      // 5. PUBLIER UN SIGNALEMENT CITOYEN EN DIRECT
+      // =========================================================================
       if (path === '/api/reports' && request.method === 'POST') {
         const body: any = await request.json();
         const {
@@ -271,7 +361,9 @@ export default {
         });
       }
 
-      // 6. Confirmer / Valider un Signalement
+      // =========================================================================
+      // 6. CONFIRMER UN SIGNALEMENT
+      // =========================================================================
       const confirmMatch = path.match(/^\/api\/reports\/([^/]+)\/confirm$/);
       if (confirmMatch && request.method === 'POST') {
         const reportId = confirmMatch[1];
@@ -280,6 +372,35 @@ export default {
         ).bind(reportId).run();
 
         return jsonResponse({ success: true, message: 'Confirmation enregistrée' });
+      }
+
+      // =========================================================================
+      // 7. PROXY TRANSLUCIDE VERS BACKEND AI STUDIO (Photos de ville, Webcams, etc.)
+      // =========================================================================
+      if (
+        path === '/api/city-photo' ||
+        path === '/api/webcams' ||
+        path === '/api/vigilance-meteofrance' ||
+        path.startsWith('/api/weather-contradiction')
+      ) {
+        const targetUrl = `https://instantmeteo-fr.ai.studio${path}${url.search}`;
+        try {
+          const backendRes = await fetch(targetUrl, {
+            method: request.method,
+            headers: {
+              'Accept': request.headers.get('Accept') || 'application/json',
+              'User-Agent': 'InstantMeteo-Cloudflare-Worker/1.0',
+            }
+          });
+          const headers = new Headers(backendRes.headers);
+          headers.set('Access-Control-Allow-Origin', '*');
+          return new Response(backendRes.body, {
+            status: backendRes.status,
+            headers
+          });
+        } catch (e: any) {
+          return jsonResponse({ error: 'Backend distant temporairement indisponible' }, 502);
+        }
       }
 
       return jsonResponse({ error: 'Route non trouvée sur le Worker D1', path }, 404);

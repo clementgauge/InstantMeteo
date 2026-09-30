@@ -1,9 +1,11 @@
-# Configuration Cloudflare Workers & Base de données D1 pour Instant Météo
+# Configuration Cloudflare Workers & Static Assets pour Instant Météo
+# Déploie l'application complète (Frontend React, Tailwind CSS, OpenStreetMap, SPA)
+# et synchronise la base de données SQL Cloudflare D1
 name = "instantmeteo"
-main = "src/index.ts"
+main = "cloudflare-d1/src/index.ts"
 compatibility_date = "2024-09-01"
 
-# Définition de la liaison vers la base de données SQL Cloudflare D1
+# Base de données SQL Cloudflare D1
 [[d1_databases]]
 binding = "DB"
 database_name = "meteo-competitive-db"
@@ -11,6 +13,6 @@ database_id = "8c0f3a17-c78d-4dad-9301-90f7138d1e9c"
 
 # Hébergement du Frontend Statique (identique à AI Studio : design, mise en page, cartes, styles)
 [assets]
-directory = "../dist"
+directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
