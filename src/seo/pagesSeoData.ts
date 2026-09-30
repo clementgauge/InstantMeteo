@@ -33,7 +33,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     title: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
     description: 'Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar pluie HD, vigilances et néphologie.',
     keywords: 'instant météo, instantmeteo, météo france, température temps réel, radar pluie direct, météo 35000 communes, prévisions directes',
-    h1: 'Instant Météo France - Portail Météorologique de Précision en Temps Réel',
+    h1: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
     h2s: [
       'Température en Direct & Données Thermo-Hygrométriques de Précision',
       'Radar Pluie & Précipitations Haute Définition ARAMIS',
