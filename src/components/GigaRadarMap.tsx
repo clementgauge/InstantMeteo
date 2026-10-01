@@ -1269,143 +1269,29 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       {/* 2. MAIN LEAFLET MAP CONTAINER */}
       <div ref={mapContainerRef} className="flex-1 w-full h-full z-0" />
 
-      {/* 3. FLOATING LEFT ZOOM PRESETS & HUD BAR */}
-      <div className="absolute left-4 top-20 z-20 pointer-events-none flex flex-col gap-2.5 max-w-xs">
-        
-        {/* Active Station & Target Info Box */}
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-950/95 p-3 shadow-2xl backdrop-blur pointer-events-auto space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
-                <MapPin className="h-4 w-4" />
-              </div>
-              <div>
-                <div className="font-extrabold text-white text-xs leading-tight">{currentStation.name}</div>
-                <div className="text-[10px] text-slate-400">
-                  {currentStation.department} • Alt: <strong className="text-blue-300">{currentStation.altitude}m</strong>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                if (mapInstanceRef.current) {
-                  mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], 12, { duration: 1 });
-                }
-              }}
-              className="rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 px-2 py-1 text-[10px] font-bold transition"
-              title="Centrer le radar sur la commune active"
-            >
-              Centrer
-            </button>
+      {/* Click Probe Details (only when user clicks to measure distance on map) */}
+      {measuredTarget && (
+        <div className="absolute left-4 top-20 z-20 pointer-events-auto max-w-xs rounded-2xl border border-cyan-500/40 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur text-xs text-cyan-200 space-y-1 animate-in fade-in">
+          <div className="flex items-center justify-between">
+            <span className="font-black text-white flex items-center gap-1">
+              <Ruler className="h-3.5 w-3.5 text-cyan-400" />
+              {measuredTarget.distanceKm} km
+            </span>
+            <span className="text-[10px] font-mono text-cyan-300 font-bold">
+              {measuredTarget.bearingDeg}° ({measuredTarget.bearingCompass})
+            </span>
           </div>
-
-          {/* Interactive Click Probe details */}
-          {measuredTarget ? (
-            <div className="rounded-xl bg-cyan-950/40 border border-cyan-500/40 p-2.5 text-xs text-cyan-200 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-black text-white flex items-center gap-1">
-                  <Ruler className="h-3.5 w-3.5 text-cyan-400" />
-                  {measuredTarget.distanceKm} km
-                </span>
-                <span className="text-[10px] font-mono text-cyan-300 font-bold">
-                  {measuredTarget.bearingDeg}° ({measuredTarget.bearingCompass})
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-200 font-semibold truncate">
-                Cible : {measuredTarget.localityName}
-              </div>
-              <div className="pt-1 border-t border-cyan-800/50 flex items-center justify-between text-[10px]">
-                <span className="text-slate-400">Écho radar estimé :</span>
-                <span className="font-black text-amber-300">
-                  {measuredTarget.estimatedDbz} dBZ (~{measuredTarget.estimatedRainRate} mm/h)
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-[10px] text-slate-400 border-t border-slate-800/80 pt-1.5 flex items-center gap-1.5">
-              <Navigation className="h-3 w-3 text-cyan-400 shrink-0" />
-              <span>Cliquez sur n'importe quel point pour mesurer la distance et la pluie</span>
-            </div>
-          )}
-        </div>
-
-        {/* Free Zoom Levels Shortcut Toolbar */}
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-950/95 p-2 shadow-2xl backdrop-blur pointer-events-auto space-y-1.5">
-          <div className="flex items-center justify-between px-1 text-[10px] font-black uppercase text-slate-400">
-            <span>Échelle de Zoom</span>
-            <span className="text-cyan-300 font-mono">Zoom {currentZoomLevel}x</span>
+          <div className="text-[11px] text-slate-200 font-semibold truncate">
+            Cible : {measuredTarget.localityName}
           </div>
-
-          <div className="grid grid-cols-2 gap-1 text-[11px] font-bold">
-            <button
-              onClick={() => handleSetPresetZoom(6)}
-              className={`rounded-xl px-2 py-1 transition flex items-center justify-between ${
-                currentZoomLevel <= 6.5 ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🇫🇷 France</span>
-              <span className="text-[9px] opacity-70">Z:6</span>
-            </button>
-            <button
-              onClick={() => handleSetPresetZoom(8.5)}
-              className={`rounded-xl px-2 py-1 transition flex items-center justify-between ${
-                currentZoomLevel > 6.5 && currentZoomLevel <= 9.5 ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🗺️ Région</span>
-              <span className="text-[9px] opacity-70">Z:8.5</span>
-            </button>
-            <button
-              onClick={() => handleSetPresetZoom(11)}
-              className={`rounded-xl px-2 py-1 transition flex items-center justify-between ${
-                currentZoomLevel > 9.5 && currentZoomLevel <= 12.5 ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>📍 Bassin</span>
-              <span className="text-[9px] opacity-70">Z:11</span>
-            </button>
-            <button
-              onClick={() => handleSetPresetZoom(13.5)}
-              className={`rounded-xl px-2 py-1 transition flex items-center justify-between ${
-                currentZoomLevel > 12.5 && currentZoomLevel <= 15 ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🏘️ Commune</span>
-              <span className="text-[9px] opacity-70">Z:13.5</span>
-            </button>
-            <button
-              onClick={() => handleSetPresetZoom(16)}
-              className={`col-span-2 rounded-xl px-2 py-1 transition flex items-center justify-between ${
-                currentZoomLevel > 15 ? 'bg-cyan-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🔍 Ultra-Local 500m (Rue / Sommet)</span>
-              <span className="text-[9px] opacity-70">Z:16</span>
-            </button>
-          </div>
-
-          {/* Continuous Zoom In/Out Buttons */}
-          <div className="flex items-center gap-1 pt-1 border-t border-slate-800/80">
-            <button
-              onClick={handleZoomIn}
-              className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 py-1.5 text-xs font-bold transition"
-              title="Zoom avant (+)"
-            >
-              <ZoomIn className="h-3.5 w-3.5 text-blue-400" />
-              <span>Zoom +</span>
-            </button>
-            <button
-              onClick={handleZoomOut}
-              className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 py-1.5 text-xs font-bold transition"
-              title="Zoom arrière (-)"
-            >
-              <ZoomOut className="h-3.5 w-3.5 text-blue-400" />
-              <span>Zoom -</span>
-            </button>
+          <div className="pt-1 border-t border-cyan-800/50 flex items-center justify-between text-[10px]">
+            <span className="text-slate-400">Écho radar estimé :</span>
+            <span className="font-black text-amber-300">
+              {measuredTarget.estimatedDbz} dBZ (~{measuredTarget.estimatedRainRate} mm/h)
+            </span>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 4. FLOATING RIGHT RADAR LEGEND & PALETTE CONTROLLER */}
       <div className="absolute top-20 right-4 z-20 pointer-events-none hidden sm:block max-w-xs">

@@ -564,13 +564,6 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
             <circle cx="12" cy="12" r="2.2" fill="#ea4335"/>
           </svg>
         </div>
-        <!-- City name label badge positioned above the pin -->
-        <div style="position: absolute; left: 0px; bottom: 45px; transform: translateX(-50%); white-space: nowrap; pointer-events: auto;">
-          <div style="background: rgba(15, 23, 42, 0.95); color: #ffffff; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 900; border: 1px solid rgba(239, 68, 68, 0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px;">
-            <span style="color: #ef4444;">📍</span>
-            <span>${currentStation.name}</span>
-          </div>
-        </div>
         <!-- Target ground precision spot -->
         <div style="position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #ea4335; border: 1.5px solid #ffffff; box-shadow: 0 0 6px #ea4335; pointer-events: none;"></div>
       </div>
@@ -1647,16 +1640,14 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           ))}
         </div>
 
-        {/* Source Badge & Live Station Info */}
+        {/* Source Badge */}
         <div className="flex flex-wrap items-center gap-2 px-3 py-1 rounded-xl bg-slate-950/85 border border-slate-800/80 text-[10px] text-slate-300 backdrop-blur-md self-start shadow-md">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="font-semibold text-white">{currentStation.name}</span>
-          <span className="text-slate-500">•</span>
           <span>
             {activeLayer === 'firms_fire' && 'NASA FIRMS Satellites VIIRS 375m Direct'}
             {activeLayer === 'openmeteo_wind' && 'Open-Meteo Haute Résolution API'}
             {activeLayer === 'keraunos_storms' && 'Keraunos Réseau Français Convection'}
-            {activeLayer === 'radar' && 'Radar Doppler légal RainViewer'}
+            {activeLayer === 'radar' && 'Radar Doppler RainViewer'}
             {activeLayer === 'temp' && `Synchronisé : ${weather?.temperature ?? 22.4}°C (Ressenti ${weather?.feelsLike ?? 22.1}°C)`}
           </span>
           {isFullscreen && (
