@@ -365,7 +365,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       aria-modal="true"
       aria-labelledby="admin-panel-title"
     >
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-red-500/40 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-slate-100 ring-2 ring-red-500/20">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-red-500/40 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-slate-100 ring-2 ring-red-500/20">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">

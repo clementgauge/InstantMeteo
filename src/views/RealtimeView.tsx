@@ -289,7 +289,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* ========================================================================= */}
       <div className="block sm:hidden space-y-3.5 mb-4">
         {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
-        <div className="scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/60 shadow-2xl text-white bg-slate-950">
+        <div className="scenic-hero-card relative overflow-hidden rounded-xl border border-slate-700/60 shadow-xl text-white bg-slate-950">
           {/* Photographic Background Asset */}
           <img 
             src={cityPhotoUrl}

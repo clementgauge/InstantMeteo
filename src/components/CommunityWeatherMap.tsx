@@ -95,15 +95,16 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
       attributionControl: false
     });
 
-    // Pure OpenStreetMap Basemap Layer
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // High-definition clean CartoDB Voyager Basemap Layer
+    const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
+      subdomains: 'abcd',
+      attribution: '© CartoDB, Open-Meteo'
     });
 
     // Suppress any tile error spam
-    osmLayer.on('tileerror', () => {});
-    osmLayer.addTo(map);
+    baseLayer.on('tileerror', () => {});
+    baseLayer.addTo(map);
 
     const markersGroup = L.layerGroup();
     markersGroup.addTo(map);
@@ -288,7 +289,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-slate-900 via-blue-950/70 to-slate-900 p-5 sm:p-6 shadow-xl backdrop-blur-md">
+      <div className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-slate-900 via-blue-950/70 to-slate-900 p-5 sm:p-6 shadow-xl backdrop-blur-md">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/30 border border-blue-400/40 text-blue-300 shadow-inner">
@@ -376,7 +377,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
       )}
 
       {/* Main Map Container */}
-      <div className="relative rounded-3xl border border-slate-800 overflow-hidden shadow-2xl bg-slate-950">
+      <div className="relative rounded-xl border border-slate-800 overflow-hidden shadow-2xl bg-slate-950">
         <div 
           ref={mapContainerRef} 
           className="w-full h-[540px] sm:h-[620px] z-0"
@@ -416,7 +417,7 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
       {/* Modal / Slide-over Form to Submit a Report */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsFormOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"

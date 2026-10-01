@@ -121,7 +121,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isClear && isDay && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-amber-400/30 blur-2xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-transparent border border-amber-300/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-transparent border border-amber-300/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <Sun className="w-12 h-12 text-amber-300 drop-shadow-[0_0_20px_rgba(251,191,36,0.7)]" />
           </div>
         </div>
@@ -131,7 +131,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isClear && !isDay && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-indigo-500/25 blur-2xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-transparent border border-indigo-300/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-transparent border border-indigo-300/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <Moon className="w-11 h-11 text-indigo-200 drop-shadow-[0_0_18px_rgba(129,140,248,0.6)]" />
           </div>
         </div>
@@ -141,7 +141,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isPartlyCloudy && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-amber-400/20 blur-2xl" />
-          <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-900/70 via-slate-900/50 to-amber-950/20 border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-gradient-to-br from-slate-900/70 via-slate-900/50 to-amber-950/20 border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-center">
             {isDay ? (
               <CloudSun className="w-12 h-12 text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.6)]" />
             ) : (
@@ -158,7 +158,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isOvercast && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-slate-400/15 blur-xl" />
-          <div className="relative w-20 h-20 rounded-3xl bg-slate-900/70 border border-slate-500/30 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-slate-900/70 border border-slate-500/30 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <Cloud className="w-12 h-12 text-slate-200 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]" />
           </div>
         </div>
@@ -168,7 +168,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isDrizzle && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-sky-400/20 blur-xl" />
-          <div className="relative w-20 h-20 rounded-3xl bg-slate-900/70 border border-sky-400/35 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-slate-900/70 border border-sky-400/35 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <CloudDrizzle className="w-12 h-12 text-sky-300 drop-shadow-[0_0_16px_rgba(56,189,248,0.5)]" />
           </div>
         </div>
@@ -178,7 +178,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isRain && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-sky-500/25 blur-2xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-3xl bg-slate-900/75 border border-sky-400/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-slate-900/75 border border-sky-400/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <CloudRain className="w-12 h-12 text-sky-300 drop-shadow-[0_0_18px_rgba(56,189,248,0.6)]" />
           </div>
         </div>
@@ -188,7 +188,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isSnow && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-cyan-300/25 blur-2xl" />
-          <div className="relative w-20 h-20 rounded-3xl bg-slate-900/75 border border-cyan-200/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-slate-900/75 border border-cyan-200/40 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <CloudSnow className="w-12 h-12 text-cyan-200 drop-shadow-[0_0_18px_rgba(103,232,249,0.6)]" />
           </div>
         </div>
@@ -198,7 +198,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isStorm && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-amber-500/25 blur-2xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-3xl bg-purple-950/60 border border-amber-400/45 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-purple-950/60 border border-amber-400/45 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <CloudLightning className="w-12 h-12 text-amber-300 drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" />
           </div>
         </div>
@@ -208,7 +208,7 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       {isFog && (
         <div className="relative flex items-center justify-center">
           <div className="absolute w-24 h-24 rounded-full bg-slate-400/20 blur-xl" />
-          <div className="relative w-20 h-20 rounded-3xl bg-slate-900/70 border border-slate-400/30 backdrop-blur-md shadow-2xl flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-xl bg-slate-900/70 border border-slate-400/30 backdrop-blur-md shadow-2xl flex items-center justify-center">
             <CloudFog className="w-12 h-12 text-slate-300 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]" />
           </div>
         </div>

@@ -172,7 +172,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 sm:p-4 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden"
+        className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -336,7 +336,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
           {activeSubTab === 'LIVE_DIAGNOSTIC' && liveEvaluation && (
             <div className="space-y-6">
               {/* Threat Score Header Card */}
-              <div className="rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 shadow-xl space-y-4">
+              <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 p-5 sm:p-6 shadow-xl space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -394,7 +394,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
               </div>
 
               {/* Mobile Notification Preview (Ultra Realistic Lock-screen mockup) */}
-              <div className="rounded-3xl border border-indigo-500/40 bg-gradient-to-b from-indigo-950/30 to-slate-950 p-5 sm:p-6 space-y-4">
+              <div className="rounded-xl border border-indigo-500/40 bg-gradient-to-b from-indigo-950/30 to-slate-950 p-5 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Smartphone className="h-4 w-4 text-indigo-400" />
@@ -607,7 +607,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
                 return (
                   <div className="space-y-6">
                     {/* GPS Location & Radius Control Bar */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl bg-slate-950/80 border border-cyan-500/30">
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-slate-950/80 border border-cyan-500/30">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
                           <Compass className="h-5 w-5 animate-pulse" />
@@ -698,7 +698,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
                     {/* Threat Highlight Cards (Storm & Rain) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Storm Cell Proximity Highlight */}
-                      <div className="p-5 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-950 space-y-4 shadow-xl">
+                      <div className="p-5 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-950 space-y-4 shadow-xl">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="h-9 w-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
@@ -763,7 +763,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
                       </div>
 
                       {/* Rain Echo Proximity Highlight */}
-                      <div className="p-5 rounded-3xl border border-blue-500/40 bg-gradient-to-br from-blue-950/30 via-slate-900 to-slate-950 space-y-4 shadow-xl">
+                      <div className="p-5 rounded-xl border border-blue-500/40 bg-gradient-to-br from-blue-950/30 via-slate-900 to-slate-950 space-y-4 shadow-xl">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="h-9 w-9 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
@@ -1097,7 +1097,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
           {activeSubTab === 'HISTORY_TEST' && (
             <div className="space-y-6">
               {/* Test Dispatcher Card */}
-              <div className="rounded-3xl border border-indigo-500/40 bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 p-5 sm:p-6 shadow-xl space-y-4">
+              <div className="rounded-xl border border-indigo-500/40 bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 p-5 sm:p-6 shadow-xl space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h4 className="text-base font-black text-white flex items-center gap-2">

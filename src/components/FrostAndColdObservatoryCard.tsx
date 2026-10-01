@@ -79,7 +79,7 @@ export const FrostAndColdObservatoryCard: React.FC<FrostAndColdObservatoryCardPr
   }));
 
   return (
-    <div id="frost-cold-observatory-card" className="rounded-3xl border border-indigo-900/50 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
+    <div id="frost-cold-observatory-card" className="rounded-xl border border-indigo-900/50 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3">

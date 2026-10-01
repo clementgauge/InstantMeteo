@@ -146,29 +146,13 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
             setThematicType('airQuality');
           }}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'thematic' && thematicType !== 'openStreetMap'
+            activeMapMode === 'thematic'
               ? 'bg-[#0284C7] text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`}
         >
           <Layers className="h-4 w-4" />
-          <span>Cartes Thématiques (OSM)</span>
-        </button>
-
-        <button
-          id="radar-tab-osm-embed"
-          onClick={() => {
-            setActiveMapMode('thematic');
-            setThematicType('openStreetMap');
-          }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'thematic' && thematicType === 'openStreetMap'
-              ? 'bg-[#0284C7] text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Map className="h-4 w-4" />
-          <span>Carte OpenStreetMap</span>
+          <span>Cartes Thématiques</span>
         </button>
       </div>
 
@@ -221,7 +205,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
               <div>
                 <div className="flex items-center gap-2 text-[#0284C7] text-xs font-bold uppercase tracking-wider mb-1">
                   <Radio className="h-3.5 w-3.5 text-[#0284C7]" />
-                  <span>Réseau ARAMIS &amp; Cartographie OpenStreetMap</span>
+                  <span>Réseau ARAMIS &amp; Imagerie Satellite HD</span>
                 </div>
                 <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
                   Radar Météorologique &amp; Détection des Précipitations

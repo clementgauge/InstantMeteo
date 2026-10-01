@@ -142,8 +142,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const probeMarkerRef = useRef<L.Marker | null>(null);
 
   // States
-  const [baseMap, setBaseMap] = useState<'dark' | 'satellite' | 'topo' | 'hybrid'>('dark');
-  const [activeLayerMode, setActiveLayerMode] = useState<'multi' | 'radar' | 'satellite' | 'lightning'>('multi');
+  const [baseMap, setBaseMap] = useState<'satellite' | 'topo' | 'hybrid'>('satellite');
+  const [activeLayerMode, setActiveLayerMode] = useState<'radar' | 'satellite' | 'temperatures' | 'lightning' | 'multi'>('radar');
   
   // Layer visibility toggles in Multi-Spectre mode
   const [showRadar, setShowRadar] = useState<boolean>(true);
@@ -154,13 +154,13 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   // Palette & Opacities
   const [radarColor, setRadarColor] = useState<number>(2); // 2 = Universal Blue, 1 = Titan, 4 = Rainbow, 6 = Snow/Winter
   const [radarOpacity, setRadarOpacity] = useState<number>(0.85);
-  const [satelliteOpacity, setSatelliteOpacity] = useState<number>(0.45);
+  const [satelliteOpacity, setSatelliteOpacity] = useState<number>(0.85);
   const [smoothRadarTiles, setSmoothRadarTiles] = useState<boolean>(true);
   const [soundAlerts, setSoundAlerts] = useState<boolean>(false);
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [showStations, setShowStations] = useState<boolean>(true);
-  const [showDistanceRings, setShowDistanceRings] = useState<boolean>(true);
+  const [showStations, setShowStations] = useState<boolean>(false);
+  const [showDistanceRings, setShowDistanceRings] = useState<boolean>(false);
   const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(7);
 
   // Target probe & distance measurement
@@ -518,38 +518,32 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     }
 
     const baseMapConfigs = {
-      dark: {
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        maxNativeZoom: 19,
-        maxZoom: 19,
-        subdomains: 'abc'
-      },
       satellite: {
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        maxNativeZoom: 19,
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        maxNativeZoom: 18,
         maxZoom: 19,
         subdomains: 'abc'
       },
       topo: {
-        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-        maxNativeZoom: 17,
-        maxZoom: 19,
-        subdomains: 'abc'
-      },
-      hybrid: {
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         maxNativeZoom: 19,
         maxZoom: 19,
-        subdomains: 'abc'
+        subdomains: 'abcd'
+      },
+      hybrid: {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        maxNativeZoom: 19,
+        maxZoom: 19,
+        subdomains: 'abcd'
       }
     };
 
-    const currentConfig = baseMapConfigs[baseMap];
+    const currentConfig = baseMapConfigs[baseMap] || baseMapConfigs.satellite;
     tileLayerRef.current = L.tileLayer(currentConfig.url, {
       maxNativeZoom: currentConfig.maxNativeZoom,
       maxZoom: currentConfig.maxZoom,
       subdomains: currentConfig.subdomains as any,
-      attribution: '© OpenStreetMap contributors, OpenTopoMap'
+      attribution: '© Esri, CartoDB, Open-Meteo'
     }).addTo(map);
 
     // Ensure radar overlays remain on top
@@ -576,36 +570,49 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
     const isSatActive = activeLayerMode === 'multi' ? showSatellite : activeLayerMode === 'satellite';
 
-    if (frames.length === 0 || !frames[currentFrameIndex]) return;
-
-    const frame = frames[currentFrameIndex];
     const host = rvData?.host || 'https://tilecache.rainviewer.com';
 
-    // A. Satellite Infrared Layer
-    if (isSatActive && rvData?.satellite?.infrared) {
-      const satFrames = rvData.satellite.infrared;
-      const satFrame = satFrames[Math.min(currentFrameIndex, satFrames.length - 1)] || satFrames[0];
-      if (satFrame) {
-        const satUrl = `${host}${satFrame.path}/256/{z}/{x}/{y}/0/0_0.png`;
+    // A. Satellite Cloud Layer - Haute Définition Imagerie Nuages Satellite
+    if (isSatActive) {
+      if (rvData?.satellite?.infrared && rvData.satellite.infrared.length > 0) {
+        const satFrames = rvData.satellite.infrared;
+        const satFrame = satFrames[Math.min(currentFrameIndex, satFrames.length - 1)] || satFrames[0];
+        if (satFrame) {
+          const satUrl = `${host}${satFrame.path}/256/{z}/{x}/{y}/0/0_0.png`;
+          satelliteOverlayRef.current = L.tileLayer(satUrl, {
+            opacity: satelliteOpacity,
+            zIndex: 8,
+            tileSize: 256,
+            maxNativeZoom: 8,
+            maxZoom: 19,
+            className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
+          }).addTo(map);
+        }
+      } else {
+        // Flux satellite mondial direct NASA GIBS VIIRS / MODIS TrueColor & Masses Nuageuses
+        // Toujours actif avec CORS '*' et couverture nuageuse réelle et continue
+        const satUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
         satelliteOverlayRef.current = L.tileLayer(satUrl, {
           opacity: satelliteOpacity,
           zIndex: 8,
           tileSize: 256,
-          maxNativeZoom: 8, // Satellite imagery stops at zoom 8, Leaflet auto-scales smoothly beyond
+          maxNativeZoom: 9,
           maxZoom: 19,
-          className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
+          className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp',
+          attribution: '© NASA GIBS / VIIRS Imagerie Nuages & Satellite'
         }).addTo(map);
       }
     }
 
     // B. Doppler Rain Radar Layer (with maxNativeZoom: 12 and maxZoom: 19 so zooming into street level works perfectly!)
-    if (isRadarActive && frame) {
+    if (isRadarActive && frames.length > 0 && frames[currentFrameIndex]) {
+      const frame = frames[currentFrameIndex];
       const radarUrl = `${host}${frame.path}/256/{z}/{x}/{y}/${radarColor}/1_1.png`;
       radarOverlayRef.current = L.tileLayer(radarUrl, {
         opacity: radarOpacity,
         zIndex: 12,
         tileSize: 256,
-        maxNativeZoom: 12, // Native resolution is level 12, upscale smoothly up to level 19
+        maxNativeZoom: 12,
         maxZoom: 19,
         className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
       }).addTo(map);
@@ -639,7 +646,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     if (!rangeRingsGroupRef.current) return;
     rangeRingsGroupRef.current.clearLayers();
 
-    if (!showDistanceRings || !currentStation) return;
+    const isRingsVisible = showDistanceRings && (activeLayerMode === 'radar' || activeLayerMode === 'multi');
+    if (!isRingsVisible || !currentStation) return;
 
     const rings = [
       { radiusMeters: 10000, label: "10 km (Local)", color: "#38bdf8", weight: 1.5, dash: "4, 4" },
@@ -685,7 +693,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       const tagMarker = L.marker([tagLat, currentStation.longitude], { icon: tagIcon, interactive: false });
       rangeRingsGroupRef.current?.addLayer(tagMarker);
     });
-  }, [currentStation, showDistanceRings]);
+  }, [currentStation, showDistanceRings, activeLayerMode]);
 
   // 8. Update Measurement Line if a target is probed
   useEffect(() => {
@@ -710,7 +718,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
     const infoIcon = L.divIcon({
       html: `
-        <div class="rounded-2xl bg-slate-950/95 border-2 border-cyan-400 px-3 py-1.5 text-xs font-black text-cyan-300 shadow-2xl whitespace-nowrap flex items-center gap-1.5">
+        <div class="rounded-lg bg-slate-950/95 border-2 border-cyan-400 px-3 py-1.5 text-xs font-black text-cyan-300 shadow-2xl whitespace-nowrap flex items-center gap-1.5">
           <span>📍 ${measuredTarget.distanceKm} km</span>
           <span class="text-slate-400">•</span>
           <span>${measuredTarget.bearingDeg}° (${measuredTarget.bearingCompass})</span>
@@ -727,12 +735,13 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     measurementLineGroupRef.current.addLayer(infoMarker);
   }, [measuredTarget, currentStation]);
 
-  // 9. Update Weather Station Pins & Temperatures across all countries
+  // 9. Update Weather Station Pins & Temperatures across all countries (ONLY active in temperatures mode or multi)
   useEffect(() => {
     if (!markerGroupRef.current) return;
     markerGroupRef.current.clearLayers();
 
-    if (!showStations) return;
+    const isTempActive = activeLayerMode === 'temperatures' || (activeLayerMode === 'multi' && showStations);
+    if (!isTempActive) return;
 
     // Helper to calculate realistic temperature for any world station
     const getStationTemp = (st: LocationPoint) => {
@@ -762,7 +771,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         <div class="cursor-pointer transition-all duration-300 transform hover:scale-125 ${isSelected ? 'scale-110 z-30' : 'z-10'}">
           <div class="relative flex items-center justify-center">
             ${isSelected ? '<span class="absolute -inset-2 rounded-full bg-blue-500/50 animate-ping"></span>' : ''}
-            <div class="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 shadow-xl border text-[11px] font-black backdrop-blur ${
+            <div class="flex items-center gap-1.5 rounded-md px-2 py-0.5 shadow-xl border text-[11px] font-black backdrop-blur ${
               isSelected
                 ? 'bg-blue-600 border-white text-white shadow-blue-500/60 ring-2 ring-blue-400'
                 : isMountain
@@ -799,16 +808,18 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
       markerGroupRef.current?.addLayer(marker);
     });
-  }, [currentStation, showStations]);
+  }, [currentStation, showStations, activeLayerMode]);
 
-  // 10. Update Lightning Strikes and Convective Storm Cells across all countries
+  // 10. Update Lightning Strikes and Convective Storm Cells across all countries (ONLY active in lightning mode or multi)
   useEffect(() => {
     if (!lightningGroupRef.current || !stormCellsGroupRef.current) return;
     lightningGroupRef.current.clearLayers();
     stormCellsGroupRef.current.clearLayers();
 
-    const isLightActive = activeLayerMode === 'multi' ? showLightning : activeLayerMode === 'lightning';
-    const isStormsActive = activeLayerMode === 'multi' ? showStormCells : activeLayerMode === 'lightning';
+    const isLightActive = activeLayerMode === 'lightning' || (activeLayerMode === 'multi' && showLightning);
+    const isStormsActive = activeLayerMode === 'lightning' || (activeLayerMode === 'multi' && showStormCells);
+
+    if (!isLightActive && !isStormsActive) return;
 
     if (isLightActive) {
       const strikePoints = [
@@ -1036,7 +1047,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   return (
     <div
       id="giga-radar-map"
-      className={`relative rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl overflow-hidden transition-all duration-300 flex flex-col ${
+      className={`relative rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen' : 'h-[720px] sm:h-[800px]'
       }`}
     >
@@ -1045,63 +1056,79 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         
         {/* Left: Mode Selection & Multi-Spectre Tabs */}
         <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          <div className="flex items-center gap-1 rounded-2xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-2xl backdrop-blur">
-            <button
-              onClick={() => setActiveLayerMode('multi')}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition ${
-                activeLayerMode === 'multi'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/40 ring-1 ring-white/40'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Vue combinée Pluie + Nuages + Orages en temps réel"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>Multi-Spectre 3-en-1</span>
-            </button>
-
+          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur">
             <button
               onClick={() => setActiveLayerMode('radar')}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                 activeLayerMode === 'radar'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
+              title="Afficher uniquement les précipitations radar HD"
             >
               <CloudRain className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Radar Pluie HD</span>
+              <span>Pluie</span>
             </button>
 
             <button
               onClick={() => setActiveLayerMode('satellite')}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                 activeLayerMode === 'satellite'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
+              title="Afficher uniquement la couverture nuageuse satellite en temps réel"
             >
               <Globe2 className="h-3.5 w-3.5 text-indigo-300" />
-              <span>Nuages Satellite</span>
+              <span>Nuages</span>
+            </button>
+
+            <button
+              onClick={() => setActiveLayerMode('temperatures')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                activeLayerMode === 'temperatures'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+              title="Afficher uniquement les températures des stations"
+            >
+              <Sun className="h-3.5 w-3.5 text-amber-400" />
+              <span>Températures</span>
             </button>
 
             <button
               onClick={() => setActiveLayerMode('lightning')}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                 activeLayerMode === 'lightning'
-                  ? 'bg-yellow-500 text-slate-950 shadow-lg shadow-yellow-500/40'
+                  ? 'bg-yellow-500 text-slate-950 font-black shadow-md shadow-yellow-500/40'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
+              title="Afficher uniquement les orages et impacts de foudre"
             >
               <Zap className="h-3.5 w-3.5 text-yellow-400" />
-              <span>Orages & Foudre ({lightningCount})</span>
+              <span>Orages ({lightningCount})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveLayerMode('multi')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                activeLayerMode === 'multi'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/40 ring-1 ring-white/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+              title="Vue combinée Pluie + Nuages + Orages"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              <span>Multi-Spectre</span>
             </button>
           </div>
 
           {/* If Multi-Spectre is active, show quick layer check pills */}
           {activeLayerMode === 'multi' && (
-            <div className="hidden lg:flex items-center gap-1.5 rounded-2xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur text-[11px] font-bold">
+            <div className="hidden lg:flex items-center gap-1.5 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur text-[11px] font-bold">
               <button
                 onClick={() => setShowRadar(!showRadar)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                   showRadar ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -1111,7 +1138,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
               <button
                 onClick={() => setShowSatellite(!showSatellite)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                   showSatellite ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -1121,7 +1148,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
               <button
                 onClick={() => setShowLightning(!showLightning)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                   showLightning ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -1131,7 +1158,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
               <button
                 onClick={() => setShowStormCells(!showStormCells)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                   showStormCells ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -1151,7 +1178,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
               placeholder="Zoomer sur une commune ou sommet..."
               value={mapSearchQuery}
               onChange={(e) => handleMapSearch(e.target.value)}
-              className="w-full rounded-2xl border border-slate-700 bg-slate-950/95 pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-400 shadow-2xl backdrop-blur focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-700 bg-slate-950/95 pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-400 shadow-xl backdrop-blur focus:border-blue-500 focus:outline-none"
             />
             {mapSearchQuery && (
               <button
@@ -1165,12 +1192,12 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
           {/* Search Dropdown */}
           {mapSearchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl border border-slate-700 bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur z-30 max-h-56 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-slate-700 bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur z-30 max-h-56 overflow-y-auto">
               {mapSearchResults.map((st) => (
                 <button
                   key={st.id}
                   onClick={() => handleSelectSearchResult(st)}
-                  className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-800 transition"
+                  className="w-full flex items-center justify-between rounded-md px-3 py-2 text-left text-xs hover:bg-slate-800 transition"
                 >
                   <div className="flex items-center gap-2">
                     <MapPin className="h-3 w-3 text-blue-400 shrink-0" />
@@ -1188,20 +1215,11 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
         {/* Right: Base Map, GPS, Presets & Fullscreen */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Base Map Switcher */}
-          <div className="flex items-center gap-1 rounded-2xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur">
-            <button
-              onClick={() => setBaseMap('dark')}
-              className={`rounded-xl px-2.5 py-1 text-xs font-bold transition ${
-                baseMap === 'dark' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-              title="Carte Sombre Météorologique Pro"
-            >
-              Sombre
-            </button>
+          {/* Base Map Switcher without "Sombre" */}
+          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur">
             <button
               onClick={() => setBaseMap('satellite')}
-              className={`rounded-xl px-2.5 py-1 text-xs font-bold transition ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
                 baseMap === 'satellite' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
               }`}
               title="Vue Satellite Réelle HD + Noms de Communes"
@@ -1210,7 +1228,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             </button>
             <button
               onClick={() => setBaseMap('topo')}
-              className={`rounded-xl px-2.5 py-1 text-xs font-bold transition ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
                 baseMap === 'topo' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
               }`}
               title="Relief & Courbes de Niveau Topographiques"
@@ -1219,7 +1237,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             </button>
             <button
               onClick={() => setBaseMap('hybrid')}
-              className={`rounded-xl px-2.5 py-1 text-xs font-bold transition ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
                 baseMap === 'hybrid' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
               }`}
               title="Réseau Routier & Villes Claires"
@@ -1232,7 +1250,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           <button
             onClick={handleLocateUser}
             disabled={isLocatingUser}
-            className={`rounded-2xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition active:scale-95 ${
+            className={`rounded-xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition active:scale-95 cursor-pointer ${
               isLocatingUser 
                 ? 'bg-blue-600 text-white animate-pulse border-blue-400' 
                 : 'bg-slate-950/95 border-slate-800 text-cyan-400 hover:bg-slate-800 hover:text-white'
@@ -1245,7 +1263,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           {/* Distance Rings Toggle */}
           <button
             onClick={() => setShowDistanceRings(!showDistanceRings)}
-            className={`rounded-2xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition ${
+            className={`rounded-xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition cursor-pointer ${
               showDistanceRings
                 ? 'bg-cyan-600/30 border-cyan-500/50 text-cyan-300'
                 : 'bg-slate-950/95 border-slate-800 text-slate-400'
@@ -1258,7 +1276,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           {/* Fullscreen Button */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="rounded-2xl bg-slate-950/95 p-2 text-slate-300 border border-slate-800/90 shadow-xl backdrop-blur hover:bg-slate-800 hover:text-white transition"
+            className="rounded-xl bg-slate-950/95 p-2 text-slate-300 border border-slate-800/90 shadow-xl backdrop-blur hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title={isFullscreen ? 'Quitter le mode Plein Écran' : 'Passer en Plein Écran'}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -1389,27 +1407,29 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
       {/* 5. BOTTOM TIMELINE PLAYER & SCRUBBER */}
       <div className="absolute bottom-3 left-3 right-3 z-20 pointer-events-none">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-800/90 bg-slate-950/95 p-3.5 sm:p-4 shadow-2xl backdrop-blur pointer-events-auto flex flex-col gap-3">
+        <div className="mx-auto max-w-3xl rounded-xl border border-slate-800/90 bg-slate-950/95 p-3 sm:p-3.5 shadow-xl backdrop-blur pointer-events-auto flex flex-col gap-2.5">
           
           {/* Top of player: Live status & Opacity Sliders */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <span className="font-black text-white">
+              <span className="font-bold text-white text-xs">
                 {activeLayerMode === 'multi' 
-                  ? 'Radar Pluie + Nuages + Orages en Direct' 
+                  ? 'Multi-Spectre : Pluie + Nuages + Orages' 
                   : activeLayerMode === 'radar' 
                     ? 'Radar Précipitations Doppler HD' 
                     : activeLayerMode === 'satellite' 
-                      ? 'Satellite Infrarouge & Masses Nuageuses' 
-                      : 'Suivi Cellules Orageuses & Foudre'}
+                      ? 'Couverture Nuageuse Satellite Temps Réel' 
+                      : activeLayerMode === 'temperatures'
+                        ? 'Températures des Stations'
+                        : 'Cellules Orageuses & Réseau Foudre'}
               </span>
 
               {currentTimestamp && (
-                <span className={`rounded-xl px-2.5 py-0.5 font-mono text-xs font-black shadow ${
+                <span className={`rounded-md px-2 py-0.5 font-mono text-[11px] font-bold shadow ${
                   isNowcast 
                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' 
                     : 'bg-blue-600 text-white shadow-blue-500/30'
@@ -1427,7 +1447,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                     setCurrentFrameIndex(Math.max(0, rvData.radar.past.length - 1));
                   }
                 }}
-                className="flex items-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 text-[11px] font-black shadow-lg shadow-emerald-600/30 transition active:scale-95"
+                className="flex items-center gap-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 text-[10px] font-bold shadow transition active:scale-95 cursor-pointer"
                 title="Sauter directement à l'observation la plus récente"
               >
                 <RefreshCw className="h-3 w-3" />
@@ -1445,21 +1465,21 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   step="0.05"
                   value={radarOpacity}
                   onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
-                  className="w-16 accent-blue-500 h-1.5 rounded-lg bg-slate-800 cursor-pointer"
+                  className="w-16 accent-blue-500 h-1.5 rounded bg-slate-800 cursor-pointer"
                 />
               </div>
             </div>
           </div>
 
           {/* Timeline slider and Play/Pause controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Play/Pause Button */}
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/40 hover:from-blue-500 hover:to-indigo-500 transition active:scale-95"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow hover:bg-blue-500 transition active:scale-95 cursor-pointer"
               title={isPlaying ? 'Mettre en pause' : 'Lancer l\'animation radar'}
             >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+              {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 ml-0.5" />}
             </button>
 
             {/* Timeline track with past vs nowcast divider */}

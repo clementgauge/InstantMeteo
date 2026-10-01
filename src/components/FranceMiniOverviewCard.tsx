@@ -224,7 +224,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     return 'Ensoleillé';
   };
 
-  // Initialize Leaflet Map with OpenStreetMap
+  // Initialize Leaflet Map with High-Definition Clean Cartography (No raw OpenStreetMap)
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -239,10 +239,11 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         touchZoom: true
       });
 
-      // Tuiles cartographiques OpenStreetMap officielles
-      const baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Tuiles cartographiques propres et élégantes CartoDB Voyager
+      const baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB, Open-Meteo'
       });
       baseTileLayer.on('tileerror', () => {
         // Tolérance aux pannes réseau
@@ -363,23 +364,33 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     });
 
     // 2. Active Pulse Marker for the selected station anywhere in France or on Earth
+    // When zoomed to France or World, the city marker size is strongly reduced to a tiny discrete micro-point so it does not clutter the regional view
     if (currentStation && currentStation.latitude && currentStation.longitude) {
-      const currentStationHtml = `
-        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer group">
-          <span class="absolute inline-flex h-10 w-10 animate-ping rounded-full bg-blue-500 opacity-60"></span>
-          <div class="relative flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-white shadow-xl border-2 border-white ring-2 ring-blue-400 font-bold text-xs whitespace-nowrap">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>${currentStation.name}</span>
-            <span class="text-[10px] text-blue-200">(${currentStation.altitude}m)</span>
+      const isMacroScope = mapScope === 'france' || mapScope === 'world';
+
+      const currentStationHtml = isMacroScope
+        ? `
+          <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer group" title="${currentStation.name} (${currentStation.altitude}m)">
+            <span class="absolute inline-flex h-3 w-3 animate-ping rounded-full bg-blue-500 opacity-75"></span>
+            <div class="relative h-2.5 w-2.5 rounded-full bg-blue-600 border border-white shadow-sm ring-1 ring-blue-400"></div>
           </div>
-        </div>
-      `;
+        `
+        : `
+          <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer group">
+            <span class="absolute inline-flex h-7 w-7 animate-ping rounded-full bg-blue-500 opacity-50"></span>
+            <div class="relative flex items-center gap-1.5 rounded-md bg-blue-600 px-2 py-0.5 text-white shadow-lg border border-white ring-1 ring-blue-400 font-bold text-xs whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>${currentStation.name}</span>
+              <span class="text-[10px] text-blue-200">(${currentStation.altitude}m)</span>
+            </div>
+          </div>
+        `;
 
       const currentIcon = L.divIcon({
         className: 'current-station-marker',
         html: currentStationHtml,
-        iconSize: [120, 36],
-        iconAnchor: [60, 18]
+        iconSize: isMacroScope ? [12, 12] : [100, 28],
+        iconAnchor: isMacroScope ? [6, 6] : [50, 14]
       });
 
       const currentMarker = L.marker([currentStation.latitude, currentStation.longitude], {
@@ -389,13 +400,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
       currentMarker.bindTooltip(`<strong>${currentStation.name}</strong><br/>Altitude: ${currentStation.altitude}m<br/>${currentStation.department || currentStation.country || ''}`, {
         direction: 'top',
-        offset: [0, -14],
+        offset: [0, isMacroScope ? -6 : -14],
         opacity: 0.95
       });
 
       currentMarker.addTo(markersGroup);
     }
-  }, [regionsData, selectedSlot, currentStation]);
+  }, [regionsData, selectedSlot, currentStation, mapScope]);
 
   const handleRegionClick = (reg: RegionWeather) => {
     if (!onSelectStation) return;
@@ -446,7 +457,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const isFrenchLocation = !currentStation.country || currentStation.country === 'France';
 
   return (
-    <div className={`rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
+    <div className={`rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
       isExpandedPc ? 'ring-2 ring-blue-500/50 shadow-xl' : ''
     }`}>
       {/* Sleek Compact Header */}
@@ -457,10 +468,22 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           </div>
           <div className="truncate">
             <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none truncate">
-              {isFrenchLocation ? `Carte Météo Direct • ${currentStation.name}` : `Carte Météo Globale • ${currentStation.name}`}
+              {mapScope === 'france' 
+                ? 'Carte Météo Direct • France' 
+                : mapScope === 'world' 
+                ? 'Carte Météo Direct • Monde' 
+                : isFrenchLocation 
+                ? `Carte Météo Direct • ${currentStation.name}` 
+                : `Carte Météo Globale • ${currentStation.name}`}
             </h3>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              {currentStation.country ? `${currentStation.name} (${currentStation.country}) • ${currentStation.altitude}m` : `${currentStation.name} (${currentStation.altitude}m)`}
+              {mapScope === 'france'
+                ? 'Synthèse météo des régions françaises'
+                : mapScope === 'world'
+                ? 'Vue atmosphérique globale'
+                : currentStation.country 
+                ? `${currentStation.name} (${currentStation.country}) • ${currentStation.altitude}m` 
+                : `${currentStation.name} (${currentStation.altitude}m)`}
             </span>
           </div>
         </div>
@@ -588,11 +611,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           className="w-full h-full z-0"
         />
 
-        {/* Floating PC Zoom Overlay Badge */}
-        <div className="absolute bottom-2 left-2 z-[400] flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-slate-300 border border-slate-700/60 pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Carte Mondiale Active • {currentStation.name}</span>
-        </div>
+        {/* Floating Zoom Overlay Badge (only in city mode, discreet) */}
+        {mapScope === 'city' && (
+          <div className="absolute bottom-2 left-2 z-[400] flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded-md text-[10px] text-slate-300 border border-slate-700/60 pointer-events-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>{currentStation.name}</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -114,7 +114,7 @@ export const PageBlockCustomizerModal: React.FC<PageBlockCustomizerModalProps> =
       aria-modal="true"
       aria-labelledby="page-customizer-title"
     >
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-slate-100 ring-1 ring-white/10">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-slate-100 ring-1 ring-white/10">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 sticky top-0 bg-slate-900/98 z-10">

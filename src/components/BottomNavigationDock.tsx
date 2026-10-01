@@ -226,7 +226,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
         <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md animate-fadeIn ${
           isLightMode ? 'bg-slate-900/40' : 'bg-slate-950/80'
         }`}>
-          <div className={`relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border p-5 sm:p-6 shadow-2xl pb-24 sm:pb-6 ${
+          <div className={`relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-xl border p-5 sm:p-6 shadow-2xl pb-24 sm:pb-6 ${
             isLightMode 
               ? 'bg-white text-slate-900 border-slate-200' 
               : 'bg-slate-900/98 text-slate-100 border-slate-700'

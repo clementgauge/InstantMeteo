@@ -232,7 +232,7 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
       isLightMode ? 'text-slate-900' : 'text-slate-100'
     }`}>
       {/* Top Banner Header */}
-      <div className={`p-6 rounded-3xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
+      <div className={`p-6 rounded-xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
         isLightMode 
           ? 'bg-gradient-to-br from-blue-50 via-white to-cyan-50/50 border-blue-200' 
           : 'bg-gradient-to-br from-slate-900 via-slate-900/90 to-blue-950/40 border-slate-800'
@@ -316,7 +316,7 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
       {/* Grid: Station Hydraulic Overview & Flood Thresholds */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Card 1: Selected River Station Dashboard (2 cols) */}
-        <div className={`lg:col-span-2 p-6 rounded-3xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
+        <div className={`lg:col-span-2 p-6 rounded-xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
           isLightMode ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800'
         }`}>
           <div>
@@ -416,7 +416,7 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
         </div>
 
         {/* Card 2: Vigicrues Official Direct Feed (1 col) */}
-        <div className={`p-6 rounded-3xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
+        <div className={`p-6 rounded-xl border shadow-xl backdrop-blur-md flex flex-col justify-between ${
           isLightMode ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-800'
         }`}>
           <div>

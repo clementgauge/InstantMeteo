@@ -110,7 +110,7 @@ export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProp
   ];
 
   return (
-    <div id="certified-precision-meteo-hub" className="rounded-3xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-md p-5 sm:p-7 shadow-xl space-y-6">
+    <div id="certified-precision-meteo-hub" className="rounded-xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-md p-5 sm:p-7 shadow-xl space-y-6">
       {/* Header section with light and airy styling */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
         <div>

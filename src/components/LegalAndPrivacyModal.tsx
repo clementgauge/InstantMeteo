@@ -41,7 +41,7 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
       aria-labelledby="legal-modal-title"
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl text-slate-100 overflow-hidden"
+        className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-xl border border-slate-700 bg-slate-900 shadow-2xl text-slate-100 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

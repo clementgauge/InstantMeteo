@@ -59,7 +59,7 @@ export const UpdateNotificationPrompt: React.FC<UpdateNotificationPromptProps> =
   return (
     <aside
       aria-label="Information de mise à jour du site"
-      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2rem)] rounded-3xl border border-cyan-500/50 bg-slate-950/95 p-4 sm:p-5 shadow-2xl shadow-cyan-500/20 backdrop-blur-2xl animate-in slide-in-from-bottom-5 duration-300"
+      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2rem)] rounded-xl border border-cyan-500/50 bg-slate-950/95 p-4 sm:p-5 shadow-2xl shadow-cyan-500/20 backdrop-blur-2xl animate-in slide-in-from-bottom-5 duration-300"
     >
       <div className="flex items-start gap-3.5">
         <div className="rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 p-2.5 text-white font-black shadow-lg shadow-cyan-500/30 shrink-0">

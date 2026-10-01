@@ -486,7 +486,7 @@ export const FloatingWeatherBubble: React.FC<FloatingWeatherBubbleProps> = ({
       >
         <div
           id="floating-weather-bubble-card"
-          className="group relative flex flex-col rounded-3xl bg-[#0c1424]/95 border-2 border-sky-400/80 shadow-2xl shadow-sky-500/35 backdrop-blur-2xl transition-all"
+          className="group relative flex flex-col rounded-xl bg-[#0c1424]/95 border-2 border-sky-400/80 shadow-2xl shadow-sky-500/35 backdrop-blur-2xl transition-all"
         >
           {/* Main Bubble Pill Bar */}
           <div 
@@ -496,7 +496,7 @@ export const FloatingWeatherBubble: React.FC<FloatingWeatherBubbleProps> = ({
             className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer"
           >
             {/* Pulsing Aura */}
-            <div className="absolute inset-0 rounded-3xl bg-sky-400/15 blur-md -z-10" />
+            <div className="absolute inset-0 rounded-xl bg-sky-400/15 blur-md -z-10" />
 
             {/* Weather Emoji / Orb */}
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-200 border border-yellow-200/70 flex items-center justify-center text-lg shadow-md shrink-0">
@@ -682,7 +682,7 @@ export const FloatingWeatherBubble: React.FC<FloatingWeatherBubbleProps> = ({
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-3xl bg-[#0c1424] border-2 border-sky-400/80 p-6 shadow-2xl space-y-5 text-white"
+            className="w-full max-w-md rounded-xl bg-[#0c1424] border-2 border-sky-400/80 p-6 shadow-2xl space-y-5 text-white"
           >
             {/* Title Bar */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">

@@ -130,7 +130,7 @@ Source : Modélisation Météo-France Normales 1991-2020 & ClimaFrance Haute Pr�
   return (
     <div id="seasonal-normals-master-card" className="space-y-6">
       {/* 1. Main Seasonal Normals Hub Container */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl backdrop-blur sm:p-8">
         
         {/* Hub Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-800 pb-6">
@@ -667,7 +667,7 @@ Source : Modélisation Météo-France Normales 1991-2020 & ClimaFrance Haute Pr�
       </div>
 
       {/* 2. Real-Time Seasonal Deviation & Official Meteorological Diagnostic Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur sm:p-8">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur sm:p-8">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
             <TrendingUp className="h-6 w-6" />

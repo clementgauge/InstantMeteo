@@ -249,7 +249,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-3xl rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Modal Header */}
         <div className="border-b border-slate-800 bg-gradient-to-r from-blue-950/80 via-slate-900 to-indigo-950/80 p-5 sm:p-6 flex items-center justify-between">
@@ -818,7 +818,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
           )}
 
           {/* QR Code & Direct Phone Sharing Section */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-5 space-y-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">

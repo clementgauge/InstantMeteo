@@ -133,7 +133,7 @@ export const WeatherContradictionModal: React.FC<WeatherContradictionModalProps>
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto">
       <div 
-        className="relative w-full max-w-xl rounded-3xl bg-[#0c1427] border border-amber-500/40 shadow-2xl p-5 sm:p-7 text-white overflow-hidden transition-all duration-300 my-auto"
+        className="relative w-full max-w-xl rounded-xl bg-[#0c1427] border border-amber-500/40 shadow-2xl p-5 sm:p-7 text-white overflow-hidden transition-all duration-300 my-auto"
         role="dialog"
         aria-modal="true"
       >

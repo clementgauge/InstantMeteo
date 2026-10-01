@@ -80,7 +80,7 @@ export const AltitudeMeteorologyCard: React.FC<AltitudeMeteorologyCardProps> = (
   return (
     <div className="space-y-4">
       {/* Top Banner: Altitude & Bioclimatic Stage */}
-      <div className="rounded-3xl border border-slate-700/80 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 p-5 shadow-xl">
+      <div className="rounded-xl border border-slate-700/80 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 p-5 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
@@ -185,7 +185,7 @@ export const AltitudeMeteorologyCard: React.FC<AltitudeMeteorologyCardProps> = (
 
       {/* Topographic Microclimate & Valley/Mountain Inversions Section */}
       {topo && (
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 space-y-4 shadow-xl">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-5 space-y-4 shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="rounded-xl bg-purple-500/20 p-2 text-purple-400 border border-purple-500/30">
@@ -334,7 +334,7 @@ export const AltitudeMeteorologyCard: React.FC<AltitudeMeteorologyCardProps> = (
       {/* Grid: Air Quality Breakdown & Bioclimatic Parameters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Air Quality Pollutants */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Activity className="h-5 w-5 text-emerald-400" />
@@ -368,7 +368,7 @@ export const AltitudeMeteorologyCard: React.FC<AltitudeMeteorologyCardProps> = (
         </div>
 
         {/* Agro-Climatic & Energy Indicators */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
           <div className="flex items-center gap-2.5">
             <Leaf className="h-5 w-5 text-green-400" />
             <h4 className={`font-bold text-white ${seniorMode ? 'text-lg' : 'text-base'}`}>

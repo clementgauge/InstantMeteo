@@ -102,7 +102,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
   const hydricBalance = Number((totalExpected24hMm - et0).toFixed(1));
 
   return (
-    <div id="giga-precipitation-nowcasting-card" className="rounded-3xl border border-cyan-500/40 bg-slate-900/95 p-6 shadow-2xl backdrop-blur sm:p-8 space-y-6">
+    <div id="giga-precipitation-nowcasting-card" className="rounded-xl border border-cyan-500/40 bg-slate-900/95 p-6 shadow-2xl backdrop-blur sm:p-8 space-y-6">
       {/* Header & Mode Tabs */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3.5">

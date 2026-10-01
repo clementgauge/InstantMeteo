@@ -39,7 +39,7 @@ export const ImouWeatherSecurityBanner: React.FC<ImouWeatherSecurityBannerProps>
   return (
     <div 
       id="imou-security-affiliate-banner"
-      className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/30 p-5 sm:p-6 shadow-2xl backdrop-blur-xl transition group my-4"
+      className="relative overflow-hidden rounded-xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/30 p-5 sm:p-6 shadow-2xl backdrop-blur-xl transition group my-4"
     >
       {/* Background glow */}
       <div className="absolute top-0 right-0 -mt-8 -mr-8 h-44 w-44 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />

@@ -144,7 +144,7 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
       aria-modal="true"
       aria-labelledby="pseudo-modal-title"
     >
-      <div className="relative w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900/98 p-6 shadow-2xl text-slate-100 ring-1 ring-white/10">
+      <div className="relative w-full max-w-md rounded-xl border border-slate-700 bg-slate-900/98 p-6 shadow-2xl text-slate-100 ring-1 ring-white/10">
         
         {/* Close Button */}
         <button

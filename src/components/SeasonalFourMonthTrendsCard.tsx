@@ -112,7 +112,7 @@ export const SeasonalFourMonthTrendsCard: React.FC<SeasonalFourMonthTrendsCardPr
   }));
 
   return (
-    <div id="seasonal-four-month-trends-card" className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
+    <div id="seasonal-four-month-trends-card" className="rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3">

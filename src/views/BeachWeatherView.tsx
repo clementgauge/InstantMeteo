@@ -100,7 +100,7 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
       isLightMode ? 'text-slate-900' : 'text-slate-100'
     }`}>
       {/* Top Maritime Banner */}
-      <div className={`p-5 sm:p-7 rounded-3xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
+      <div className={`p-5 sm:p-7 rounded-xl border shadow-xl relative overflow-hidden backdrop-blur-xl ${
         isLightMode 
           ? 'bg-gradient-to-br from-cyan-50 via-white to-blue-50/50 border-cyan-200' 
           : 'bg-gradient-to-br from-slate-900 via-slate-900/90 to-cyan-950/40 border-slate-800'

@@ -115,14 +115,15 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
       attributionControl: false
     });
 
-    // PURE OpenStreetMap Basemap Layer (as requested)
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // High-Definition CartoDB Voyager Basemap Layer
+    const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
+      subdomains: 'abcd',
+      attribution: '© CartoDB, Open-Meteo'
     });
 
-    osm.on('tileerror', () => {});
-    osm.addTo(map);
+    baseLayer.on('tileerror', () => {});
+    baseLayer.addTo(map);
 
     const markersGroup = L.layerGroup();
     markersGroup.addTo(map);
@@ -230,7 +231,7 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
   return (
     <div className="space-y-4">
       {/* Navigation Header */}
-      <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-slate-900 via-blue-950/70 to-slate-900 p-5 shadow-xl backdrop-blur-md">
+      <div className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-slate-900 via-blue-950/70 to-slate-900 p-5 shadow-xl backdrop-blur-md">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {onBackToRadar && (
@@ -293,7 +294,7 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
       </div>
 
       {/* Map Display */}
-      <div className="relative rounded-3xl border border-slate-800 overflow-hidden shadow-2xl bg-slate-950">
+      <div className="relative rounded-xl border border-slate-800 overflow-hidden shadow-2xl bg-slate-950">
         <div 
           ref={mapContainerRef} 
           className="w-full h-[520px] sm:h-[600px] z-0"

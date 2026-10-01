@@ -613,21 +613,24 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       baseTileLayerRef.current = null;
     }
 
-    // Uniquement les fonds de carte OpenStreetMap officiels
-    let tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    // Fonds cartographiques haute définition
+    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
     let maxNativeZoom = 19;
 
     switch (baseEngine) {
+      case 'satellite':
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        maxNativeZoom = 18;
+        break;
+      case 'dark':
+        tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        maxNativeZoom = 19;
+        break;
       case 'topo':
       case 'esri_topo':
-        tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-        maxNativeZoom = 17;
-        break;
       case 'osm':
-      case 'dark':
-      case 'satellite':
       default:
-        tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
         maxNativeZoom = 19;
         break;
     }
@@ -635,7 +638,8 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     const baseLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
       maxNativeZoom,
-      attribution: '© OpenStreetMap contributors, OpenTopoMap, NASA FIRMS, Keraunos, Open-Meteo'
+      subdomains: baseEngine === 'satellite' ? 'abc' : 'abcd',
+      attribution: '© CartoDB, Esri, Open-Meteo'
     });
 
     baseLayer.addTo(map);
@@ -697,7 +701,6 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       }
     } else if (activeLayer === 'firms_fire') {
       // NASA GIBS / FIRMS VIIRS Active Fire Thermal Anomaly layer
-      // Set maxNativeZoom: 8 so Leaflet auto-scales smoothly at zoom 9+ without triggering NASA's "Zoom level not supported" tile error
       const firmsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png';
       const layer = L.tileLayer(firmsUrl, {
         opacity: 0.85,
@@ -707,6 +710,18 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       });
       layer.addTo(map);
       firmsTileLayerRef.current = layer;
+    } else if (activeLayer === 'satellite' || activeLayer === 'clouds') {
+      // NASA GIBS VIIRS TrueColor & Masses Nuageuses Satellite HD
+      const cloudsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
+      const layer = L.tileLayer(cloudsUrl, {
+        opacity: 0.9,
+        zIndex: 10,
+        maxNativeZoom: 9,
+        maxZoom: 19,
+        attribution: '© NASA GIBS / VIIRS Masses Nuageuses'
+      });
+      layer.addTo(map);
+      radarTileLayerRef.current = layer;
     }
   }, [activeLayer, radarFrames, currentFrameIndex, radarHost, radarOpacity, radarColorScheme, radarSmooth, radarSnow, minPrecipThresholdMm]);
 
@@ -1425,7 +1440,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       className={`relative w-full overflow-hidden transition-all duration-300 ${
         isFullscreen 
           ? 'fixed inset-0 z-[9999] w-screen h-screen bg-slate-950' 
-          : 'rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl h-[650px] sm:h-[720px]'
+          : 'rounded-xl border border-slate-800 bg-slate-950 shadow-2xl h-[650px] sm:h-[720px]'
       }`}
     >
       {/* 1. Leaflet Map Element */}

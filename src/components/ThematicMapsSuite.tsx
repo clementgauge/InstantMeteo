@@ -27,8 +27,7 @@ export type ThematicMapType =
   | 'fireRisk'
   | 'stormsLightning'
   | 'pressureIsobars'
-  | 'seaTemperature'
-  | 'openStreetMap';
+  | 'seaTemperature';
 
 interface ThematicMapsSuiteProps {
   initialType?: ThematicMapType;
@@ -152,18 +151,6 @@ export const THEMATIC_MAPS_CONFIG = {
       { color: '#06b6d4', label: 'Eau tempérée (14°C - 17°C)' },
       { color: '#10b981', label: 'Eau douce (18°C - 21°C)' },
       { color: '#f59e0b', label: 'Eau chaude (22°C - 25°C+)' }
-    ]
-  },
-  openStreetMap: {
-    title: 'Carte OpenStreetMap Europe & France',
-    subtitle: 'Cartographie libre OpenStreetMap (OSM Mapnik) haute précision',
-    icon: Map,
-    color: 'sky',
-    source: 'OpenStreetMap & Contributeurs (ODbL) - Rendu officiel Mapnik',
-    scale: [
-      { color: '#0284c7', label: 'Hydrographie & Littoraux' },
-      { color: '#16a34a', label: 'Reliefs & Végétation' },
-      { color: '#f59e0b', label: 'Réseau Routier & Communes' }
     ]
   }
 };
@@ -391,10 +378,11 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
         scrollWheelZoom: true
       });
 
-      // Fond OpenStreetMap officiel
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Fond cartographique propre et moderne CartoDB Voyager
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB, Open-Meteo'
       }).addTo(map);
 
       const markersGroup = L.layerGroup().addTo(map);
@@ -535,40 +523,13 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
         </div>
       </div>
 
-      {/* 2. Vue Carte OpenStreetMap Interactive & Inspector Régional */}
+      {/* 2. Vue Carte Interactive & Inspector Régional */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Carte OpenStreetMap */}
+        {/* Carte Haute Définition */}
         <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-slate-950 overflow-hidden relative min-h-[460px] sm:min-h-[520px]">
-          {activeType === 'openStreetMap' ? (
-            <div className="w-full h-full min-h-[460px] sm:min-h-[520px] p-3 flex flex-col justify-between bg-slate-950">
-              <div className="flex-1 w-full min-h-[400px] sm:min-h-[460px] rounded-xl overflow-hidden border border-slate-800 shadow-inner bg-slate-900">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src="https://www.openstreetmap.org/export/embed?bbox=-22.104492187500004%2C39.23314825897298%2C30.190429687500004%2C58.654685793151046&amp;layer=mapnik"
-                  style={{ border: '1px solid black', width: '100%', height: '100%', minHeight: '440px' }}
-                  title="Carte OpenStreetMap Europe et France"
-                />
-              </div>
-              <div className="pt-2 px-1 text-center">
-                <small>
-                  <a
-                    href="https://www.openstreetmap.org/#map=5/49.91/4.04"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sky-400 hover:text-sky-300 font-bold hover:underline text-xs inline-flex items-center gap-1"
-                  >
-                    <span>Afficher une carte plus grande</span>
-                    <span>↗</span>
-                  </a>
-                </small>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div ref={mapContainerRef} className="w-full h-full min-h-[460px] sm:min-h-[520px] z-0" />
+          <div ref={mapContainerRef} className="w-full h-full min-h-[460px] sm:min-h-[520px] z-0" />
 
-              {/* Badge d'échelle / légende superposée */}
+          {/* Badge d'échelle / légende superposée */}
               <div className="absolute top-3 right-3 z-[400] max-w-[220px] bg-slate-900/95 p-2.5 rounded-md border border-slate-800 shadow-md text-xs">
                 <div className="font-bold text-white mb-1.5 flex items-center gap-1.5">
                   <Layers className="h-3.5 w-3.5 text-blue-400" />
@@ -592,8 +553,6 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
                   </div>
                 </div>
               )}
-            </>
-          )}
         </div>
 
         {/* Détails du point sélectionné & Recommandations de protection */}
@@ -611,48 +570,7 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
               </span>
             </div>
 
-            {activeType === 'openStreetMap' ? (
-              <div className="mt-3 space-y-3">
-                <div className="p-3 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Cartographie</span>
-                    <div className="text-base font-bold text-sky-400">
-                      OpenStreetMap
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Rendu</span>
-                    <div className="text-lg font-bold text-white">
-                      Mapnik HD
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Paramètres du calque
-                  </div>
-                  <div className="divide-y divide-slate-800 rounded-md bg-slate-950 border border-slate-800 p-2.5 text-xs">
-                    <div className="py-1.5 flex items-center justify-between">
-                      <span className="text-slate-400">Couverture</span>
-                      <span className="font-semibold text-white">France &amp; Europe</span>
-                    </div>
-                    <div className="py-1.5 flex items-center justify-between">
-                      <span className="text-slate-400">Coordonnées centrales</span>
-                      <span className="font-semibold text-white">49.91°N, 4.04°E</span>
-                    </div>
-                    <div className="py-1.5 flex items-center justify-between">
-                      <span className="text-slate-400">Niveau de zoom</span>
-                      <span className="font-semibold text-white">Niveau 5 (Synoptique)</span>
-                    </div>
-                    <div className="py-1.5 flex items-center justify-between">
-                      <span className="text-slate-400">Licence des données</span>
-                      <span className="font-semibold text-white">Open Database (ODbL)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : selectedStation ? (
+            {selectedStation ? (
               <div className="mt-3 space-y-3">
                 <div className="p-3 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between">
                   <div>
@@ -703,7 +621,6 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
                 {activeType === 'stormsLightning' && 'En cas d\'orage subit, ne restez pas sous un arbre isolé et éloignez-vous des cours d\'eau.'}
                 {activeType === 'pressureIsobars' && 'Une baisse barométrique rapide de plus de 3 hPa en 3h annonce souvent l\'arrivée d\'un front actif ou d\'un coup de vent.'}
                 {activeType === 'seaTemperature' && 'Vérifiez les drapeaux de baignade des postes de secours et faites attention au choc thermique en cas d\'eau fraîche.'}
-                {activeType === 'openStreetMap' && 'La cartographie OpenStreetMap (OSM) est maintenue par une communauté mondiale et offre une précision géodésique remarquable pour l\'observation des territoires.'}
               </p>
             </div>
           </div>

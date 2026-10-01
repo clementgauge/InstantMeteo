@@ -163,7 +163,7 @@ export const InteractiveTutorialModal: React.FC<InteractiveTutorialModalProps> =
     >
       {/* Celebration Completed Screen */}
       {isCompleted ? (
-        <div className="relative w-full max-w-lg rounded-3xl border-2 border-emerald-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-8 text-center shadow-2xl space-y-5 animate-scaleUp">
+        <div className="relative w-full max-w-lg rounded-xl border-2 border-emerald-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-8 text-center shadow-2xl space-y-5 animate-scaleUp">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-lg shadow-emerald-500/20">
             <Check className="h-8 w-8 stroke-[3]" />
           </div>
@@ -191,7 +191,7 @@ export const InteractiveTutorialModal: React.FC<InteractiveTutorialModalProps> =
         </div>
       ) : (
         /* Active Interactive Step Card */
-        <div className="relative w-full max-w-xl rounded-3xl border border-amber-500/30 bg-slate-900/98 p-5 sm:p-7 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
+        <div className="relative w-full max-w-xl rounded-xl border border-amber-500/30 bg-slate-900/98 p-5 sm:p-7 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
           {/* Close Button */}
           <button
             onClick={handleFinish}

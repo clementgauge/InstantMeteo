@@ -122,7 +122,7 @@ export const ProfessionalMeteoCard: React.FC<ProfessionalMeteoCardProps> = ({
   return (
     <div id="professional-meteo-card" className="space-y-6">
       {/* Header Banner Mode Professionnel */}
-      <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+      <div className="rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
@@ -163,7 +163,7 @@ export const ProfessionalMeteoCard: React.FC<ProfessionalMeteoCardProps> = ({
       {/* Grid 1 : Thermodynamique Convective (CAPE, CIN, LI, Updraft Wmax) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Module Instabilité Convective */}
-        <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="lg:col-span-7 rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
@@ -253,7 +253,7 @@ export const ProfessionalMeteoCard: React.FC<ProfessionalMeteoCardProps> = ({
         </div>
 
         {/* Module Cisaillement & Potentiel Supercellulaire */}
-        <div className="lg:col-span-5 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export const ProfessionalMeteoCard: React.FC<ProfessionalMeteoCardProps> = ({
       {/* Grid 2 : Microphysique de Surface Haute Précision & Barométrie */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Variables d'état physiques */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <div className="h-9 w-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
               <Layers className="h-5 w-5" />
@@ -379,7 +379,7 @@ export const ProfessionalMeteoCard: React.FC<ProfessionalMeteoCardProps> = ({
         </div>
 
         {/* Comparateur Multi-Modèles Numériques */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">

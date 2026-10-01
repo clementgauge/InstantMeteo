@@ -179,7 +179,7 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-3xl border border-sky-300/40 bg-white p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-slate-900">
+      <div className="relative w-full max-w-2xl rounded-xl border border-sky-300/40 bg-white p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-slate-900">
         {/* Close Button */}
         <button
           onClick={onClose}

@@ -37,7 +37,7 @@ export const ThermalTiersGuideCard: React.FC<ThermalTiersGuideCardProps> = ({
   });
 
   return (
-    <div id="thermal-tiers-guide-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur-xl space-y-6">
+    <div id="thermal-tiers-guide-card" className="rounded-xl border border-slate-800 bg-slate-900/90 p-5 sm:p-7 shadow-2xl backdrop-blur-xl space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3.5">

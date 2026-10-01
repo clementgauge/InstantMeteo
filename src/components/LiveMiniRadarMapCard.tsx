@@ -52,12 +52,13 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
       touchZoom: isInteractive
     });
 
-    // Fond de carte officiel OpenStreetMap
+    // Fond de carte propre CartoDB Voyager
     const baseLayer = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
       {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        subdomains: 'abcd',
+        attribution: '© CartoDB, Open-Meteo'
       }
     ).addTo(map);
     baseLayerRef.current = baseLayer;
@@ -158,13 +159,14 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
     }
 
     const tileUrl = mapEngine === 'satellite'
-      ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      : 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     const newBaseLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      maxNativeZoom: mapEngine === 'satellite' ? 19 : 17,
-      attribution: '© OpenStreetMap contributors, OpenTopoMap'
+      maxNativeZoom: mapEngine === 'satellite' ? 18 : 19,
+      subdomains: mapEngine === 'satellite' ? 'abc' : 'abcd',
+      attribution: '© Esri, CartoDB, Open-Meteo'
     }).addTo(map);
 
     baseLayerRef.current = newBaseLayer;

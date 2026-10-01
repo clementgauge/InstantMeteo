@@ -58,7 +58,7 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
   return (
     <div id="giga-national-four-week-bulletin" className="space-y-6">
       {/* Hero Header Banner */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+      <div className="rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -191,7 +191,7 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
       {/* SUB-TAB 1: 3 PROBABILISTIC SCENARIOS COMPARISON */}
       {activeSubTab === 'scenarios' && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-xl backdrop-blur space-y-6">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-xl backdrop-blur space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
@@ -336,7 +336,7 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
       {/* SUB-TAB 2: REGIONAL BREAKDOWN (6 GEOGRAPHIC ZONES) */}
       {activeSubTab === 'regions' && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
             <div className="mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Découpage Géographique National</span>
               <h3 className="text-xl font-bold text-white mt-0.5">Impacts Météorologiques par Grande Région Française</h3>
@@ -432,7 +432,7 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
       {/* SUB-TAB 3: RISKS, HYDROLOGY & ENERGY */}
       {activeSubTab === 'impacts' && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur space-y-5">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400">Analyses Sectorielles Clés</span>
               <h3 className="text-xl font-bold text-white mt-0.5">Bilan Hydrique, Agricole & Énergétique National</h3>

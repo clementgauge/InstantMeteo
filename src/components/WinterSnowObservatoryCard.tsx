@@ -136,7 +136,7 @@ export const WinterSnowObservatoryCard: React.FC<WinterSnowObservatoryCardProps>
   }));
 
   return (
-    <div id="winter-snow-observatory-card" className="rounded-3xl border border-blue-900/50 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
+    <div id="winter-snow-observatory-card" className="rounded-xl border border-blue-900/50 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 shadow-2xl backdrop-blur space-y-6">
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div className="flex items-center gap-3">
@@ -345,7 +345,7 @@ export const WinterSnowObservatoryCard: React.FC<WinterSnowObservatoryCardProps>
       {subTab === 'LPN_PROFILER' && (
         <div className="space-y-5">
           {/* Main Interactive Control Hero */}
-          <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 border border-cyan-500/40 shadow-xl space-y-5">
+          <div className="rounded-xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 border border-cyan-500/40 shadow-xl space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">

@@ -34,7 +34,7 @@ export const OutdoorIndicesCard: React.FC<OutdoorIndicesCardProps> = ({
   if (!indices) return null;
 
   return (
-    <div id="outdoor-indices-card" className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
+    <div id="outdoor-indices-card" className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
       {/* Header & Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5">
         <div className="flex items-center gap-3">
