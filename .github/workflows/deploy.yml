@@ -7,6 +7,9 @@ on:
       - master
   workflow_dispatch:
 
+env:
+  ACTIONS_RUNNER_FORCED_NODE_VERSION: node24
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Build frontend application (Vite, Tailwind, Prerender SEO)
         run: npm run build
