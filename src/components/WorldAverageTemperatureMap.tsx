@@ -115,11 +115,12 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
       attributionControl: false
     });
 
-    // High-Definition CartoDB Voyager Basemap Layer
-    const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    // Fond cartographique Satellite HD identique à Radar Précipitations & Vents HD
+    const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxNativeZoom: 18,
       maxZoom: 19,
-      subdomains: 'abcd',
-      attribution: '© CartoDB, Open-Meteo'
+      subdomains: 'abc',
+      attribution: '© Esri, Maxar, Earthstar Geographics'
     });
 
     baseLayer.on('tileerror', () => {});

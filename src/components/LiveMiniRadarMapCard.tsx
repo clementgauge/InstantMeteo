@@ -52,13 +52,14 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
       touchZoom: isInteractive
     });
 
-    // Fond de carte propre CartoDB Voyager
+    // Fond cartographique Satellite HD identique à Radar Précipitations & Vents HD
     const baseLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
+        maxNativeZoom: 18,
         maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '© CartoDB, Open-Meteo'
+        subdomains: 'abc',
+        attribution: '© Esri, Maxar, Earthstar Geographics'
       }
     ).addTo(map);
     baseLayerRef.current = baseLayer;

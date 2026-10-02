@@ -172,7 +172,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
   // States
   const [activeLayer, setActiveLayer] = useState<WeatherPublicLayer>('radar');
-  const [baseEngine, setBaseEngine] = useState<MapTileEngine>('topo');
+  const [baseEngine, setBaseEngine] = useState<MapTileEngine>('satellite');
   const [zoomLevel, setZoomLevel] = useState<number>(13);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showLegend, setShowLegend] = useState<boolean>(true);
@@ -613,15 +613,11 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       baseTileLayerRef.current = null;
     }
 
-    // Fonds cartographiques haute définition
-    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    let maxNativeZoom = 19;
+    // Fonds cartographiques haute définition (identique à Radar Précipitations & Vents HD)
+    let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    let maxNativeZoom = 18;
 
     switch (baseEngine) {
-      case 'satellite':
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        maxNativeZoom = 18;
-        break;
       case 'dark':
         tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
         maxNativeZoom = 19;
@@ -629,9 +625,13 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       case 'topo':
       case 'esri_topo':
       case 'osm':
-      default:
         tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
         maxNativeZoom = 19;
+        break;
+      case 'satellite':
+      default:
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        maxNativeZoom = 18;
         break;
     }
 

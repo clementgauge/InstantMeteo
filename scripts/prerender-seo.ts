@@ -20,11 +20,12 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 2. Canonical self-referential URL
+  // 2. Canonical self-referential URL (sans slash final)
+  const canonicalUrl = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${pageSeo.canonicalUrl}" />`);
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
   } else {
-    html = html.replace('</head>', `    <link rel="canonical" href="${pageSeo.canonicalUrl}" />\n  </head>`);
+    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
   }
 
   // 3. Meta Description
@@ -34,15 +35,22 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
     html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
   }
 
-  // 4. Keywords
-  if (/<meta[^>]*name=["']keywords["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="keywords" content="${escapeHtmlAttr(pageSeo.keywords)}" />`);
-  }
-
-  // 5. OpenGraph Tags
+  // 4. OpenGraph Tags
   html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
   html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${pageSeo.canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+
+  // 5. Harmonisation des balises robots : index, follow, sans noai ni noimageai
+  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  }
+
+  // 5b. Suppression des meta keywords
+  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
+
+  // 5c. Suppression des balises de clé
+  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
 
   // 6. Twitter Card Tags
   html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);

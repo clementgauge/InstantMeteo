@@ -1702,11 +1702,6 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
   }
 
-  // 1b. Configuration et Clé Carte Météo Direct
-  if (!html.includes('carte-meteo-key')) {
-    html = html.replace('</head>', `    <meta name="carte-meteo-key" content="instant-meteo-map-key-2026-direct" id="carte-meteo-api-key" />\n  </head>`);
-  }
-
   // 2. Remplacer ou injecter le title unique et spécifique
   if (/<title>[^<]*<\/title>/i.test(html)) {
     html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
@@ -1714,11 +1709,12 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 3. Remplacer ou injecter la balise canonique (self-canonical propre à chaque page)
+  // 3. Remplacer ou injecter la balise canonique (self-canonical propre à chaque page sans slash final)
+  const canonicalUrl = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${pageSeo.canonicalUrl}" />`);
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
   } else {
-    html = html.replace('</head>', `    <link rel="canonical" href="${pageSeo.canonicalUrl}" />\n  </head>`);
+    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
   }
 
   // 4. Remplacer ou injecter la meta description
@@ -1728,15 +1724,22 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
   }
 
-  // 5. Remplacer ou injecter les mots-clés
-  if (/<meta[^>]*name=["']keywords["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="keywords" content="${escapeHtmlAttr(pageSeo.keywords)}" />`);
-  }
-
-  // 6. OpenGraph tags
+  // 5. OpenGraph tags
   html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
   html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${pageSeo.canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+
+  // 6. Harmonisation des balises robots (index, follow, sans noai ni noimageai)
+  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  }
+
+  // 6b. Suppression des meta keywords
+  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
+
+  // 6c. Suppression de toute balise de clé exposée
+  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
 
   // 7. Twitter Card tags
   html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
@@ -1751,9 +1754,9 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 9. Contenu statique pour les moteurs de recherche et navigateurs sans JS (sans duplication)
+  // 9. Contenu statique initial pour les moteurs de recherche et pré-chargement (H1, intro, sources, fréquence, FAQ)
   const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n      <noscript>\n${staticContent}\n      </noscript>\n    </div>`;
+  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
 
   if (html.includes('<div id="root">')) {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
@@ -1797,23 +1800,6 @@ app.get('/sitemap.xml', (req, res) => {
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.sendFile(sitemapPath);
-});
-
-// -------------------------------------------------------------
-// ENDPOINTS CLÉ & CONFIGURATION CARTE MÉTÉO DIRECT
-// -------------------------------------------------------------
-app.get(['/api/carte-meteo/key', '/api/carte-meteo/config', '/api/map-key'], (req, res) => {
-  const mapKey = process.env.MAPS_API_KEY || process.env.WEATHER_API_KEY || 'instant-meteo-map-key-2026-direct';
-  res.setHeader('Cache-Control', 'public, max-age=300');
-  res.json({
-    status: 'ok',
-    success: true,
-    key: mapKey,
-    apiKey: mapKey,
-    carteMeteoKey: mapKey,
-    provider: 'instant-meteo-carte-direct',
-    timestamp: new Date().toISOString()
-  });
 });
 
 // -------------------------------------------------------------

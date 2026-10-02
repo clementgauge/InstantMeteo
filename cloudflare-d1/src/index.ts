@@ -4,6 +4,8 @@
  * sur https://instantmeteo.instantmeteofr.workers.dev/ et https://instantmeteo-fr.ai.studio/
  */
 
+import { getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from '../../src/seo/pagesSeoData';
+
 export interface Env {
   DB: D1Database;
   ASSETS?: {
@@ -27,6 +29,80 @@ function jsonResponse(data: any, status = 200): Response {
   });
 }
 
+function escapeHtmlAttr(str: string): string {
+  return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeHtmlText(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
+  const pageSeo = getSeoDataForPath(reqPath);
+  let html = rawHtml;
+
+  // 1. Title spécifique et descriptif
+  if (/<title>[^<]*<\/title>/i.test(html)) {
+    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
+  } else {
+    html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
+  }
+
+  // 2. Balise canonique propre à la page (self-canonical sans slash final)
+  const canonicalUrl = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
+  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+  } else {
+    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
+  }
+
+  // 3. Meta Description unique par page
+  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  } else {
+    html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
+  }
+
+  // 4. OpenGraph tags
+  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+
+  // 5. Harmonisation stricte robots : index, follow, sans noai ni noimageai
+  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
+    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  }
+
+  // 6. Suppression totale des meta keywords
+  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
+
+  // 7. Suppression de toute clé API exposée
+  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
+
+  // 8. Twitter Card tags
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+
+  // 9. Schema.org JSON-LD
+  const jsonLd = generatePageJsonLd(pageSeo);
+  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
+  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
+    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i, jsonLdTag);
+  } else {
+    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
+  }
+
+  // 10. Injection du contenu HTML initial réel dans <div id="root"> (H1, paragraphes, sources, fréquence, FAQ)
+  const staticContent = generateStaticHtmlContent(pageSeo);
+  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
+  if (html.includes('<div id="root">')) {
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
+  }
+
+  return html;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     // Gestion des requêtes préliminaires CORS (preflight)
@@ -37,29 +113,77 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // Normalisation 301 stricte : redirection des URL avec slash final vers leur forme sans slash
+    if (request.method === 'GET' && path !== '/' && path.endsWith('/') && !path.includes('.')) {
+      const cleanPath = path.replace(/\/+$/, '');
+      return Response.redirect(`${url.origin}${cleanPath}${url.search}`, 301);
+    }
+
+    // Redirections 301 d'anciennes URL
+    if (path === '/webcams' || path === '/webcam' || path === '/webcams/' || path === '/webcam/') {
+      return Response.redirect(`${url.origin}/direct`, 301);
+    }
+    if (path === '/modeles' || path === '/modele' || path === '/modeles-meteo' || path === '/modeles/' || path === '/modele/' || path === '/modeles-meteo/') {
+      return Response.redirect(`${url.origin}/nuages`, 301);
+    }
+
     try {
       // =========================================================================
-      // 0. SERVICE DU FRONTEND REACT (Design, CSS Tailwind, Cartes, Chunks JS, SPA)
+      // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE
       // =========================================================================
       if (!path.startsWith('/api/')) {
-        if (env.ASSETS) {
+        // Fichiers d'assets statiques (js, css, images, favicons, fonts, manifest)
+        const isStaticAsset = path.includes('.') && !path.endsWith('.html');
+        if (isStaticAsset && env.ASSETS) {
           try {
             const assetRes = await env.ASSETS.fetch(request);
             if (assetRes.status !== 404) {
               return assetRes;
             }
-            // Mode Single Page Application (SPA) :
-            // Pour toute route de page (/radar, /vigilances, /direct, /nuages, etc.), servir index.html
-            if (request.method === 'GET' && !path.includes('.')) {
-              const spaRequest = new Request(new URL('/', request.url).toString(), request);
-              const spaRes = await env.ASSETS.fetch(spaRequest);
-              if (spaRes.status !== 404) {
-                return spaRes;
-              }
-            }
-            return assetRes;
           } catch (assetErr) {
             console.warn('Erreur résolution ASSETS:', assetErr);
+          }
+        }
+
+        // Pages HTML : /radar, /direct, /vigilances, /nuages, /, etc.
+        if (request.method === 'GET' && env.ASSETS) {
+          try {
+            let baseRes: Response | null = null;
+
+            // Tenter de charger le fichier pré-rendu
+            try {
+              const directRes = await env.ASSETS.fetch(request);
+              if (directRes.status !== 404 && directRes.headers.get('content-type')?.includes('text/html')) {
+                baseRes = directRes;
+              }
+            } catch (_) {}
+
+            // Fallback SPA sur index.html
+            if (!baseRes) {
+              try {
+                const spaRequest = new Request(new URL('/', request.url).toString(), request);
+                const spaRes = await env.ASSETS.fetch(spaRequest);
+                if (spaRes.status !== 404) {
+                  baseRes = spaRes;
+                }
+              } catch (_) {}
+            }
+
+            if (baseRes) {
+              const rawHtml = await baseRes.text();
+              const transformedHtml = transformHtmlForWorker(rawHtml, path);
+              return new Response(transformedHtml, {
+                status: 200,
+                headers: {
+                  'Content-Type': 'text/html; charset=utf-8',
+                  'Cache-Control': 'public, max-age=120, s-maxage=600',
+                  'X-Content-Type-Options': 'nosniff',
+                  'Referrer-Policy': 'strict-origin-when-cross-origin',
+                },
+              });
+            }
+          } catch (renderErr) {
+            console.error('Erreur transformation HTML SEO Worker:', renderErr);
           }
         }
       }
@@ -73,21 +197,6 @@ export default {
           status: 'ok',
           database: 'Cloudflare D1 connecté',
           alive: check?.alive === 1,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      // =========================================================================
-      // 1b. CLÉ API & CONFIGURATION CARTE MÉTÉO DIRECT
-      // =========================================================================
-      if (path === '/api/carte-meteo/key' || path === '/api/carte-meteo/config' || path === '/api/map-key') {
-        return jsonResponse({
-          status: 'ok',
-          success: true,
-          key: 'instant-meteo-map-key-2026-direct',
-          apiKey: 'instant-meteo-map-key-2026-direct',
-          carteMeteoKey: 'instant-meteo-map-key-2026-direct',
-          provider: 'instant-meteo-carte-direct',
           timestamp: new Date().toISOString(),
         });
       }

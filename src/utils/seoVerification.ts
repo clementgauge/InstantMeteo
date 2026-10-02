@@ -65,14 +65,15 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     // 1. Title
     document.title = pageSeo.title;
 
-    // 2. Balise canonique auto-référentielle propre à l'URL de la page
+    // 2. Balise canonique auto-référentielle propre à l'URL de la page (sans slash final)
+    const cleanCanonical = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.rel = 'canonical';
       document.head.appendChild(canonical);
     }
-    canonical.href = pageSeo.canonicalUrl;
+    canonical.href = cleanCanonical;
 
     // 3. Meta Description
     let descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -83,16 +84,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     }
     descMeta.content = pageSeo.description;
 
-    // 4. Meta Keywords
-    let keywordsMeta = document.querySelector<HTMLMetaElement>('meta[name="keywords"]');
-    if (!keywordsMeta) {
-      keywordsMeta = document.createElement('meta');
-      keywordsMeta.name = 'keywords';
-      document.head.appendChild(keywordsMeta);
-    }
-    keywordsMeta.content = pageSeo.keywords;
-
-    // 5. OpenGraph Tags
+    // 4. OpenGraph Tags
     const setOgTag = (property: string, content: string) => {
       let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
       if (!meta) {
@@ -105,7 +97,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
 
     setOgTag('og:title', pageSeo.title);
     setOgTag('og:description', pageSeo.description);
-    setOgTag('og:url', pageSeo.canonicalUrl);
+    setOgTag('og:url', cleanCanonical);
 
     // 6. Twitter Card Tags
     const setTwitterTag = (name: string, content: string) => {
@@ -131,11 +123,16 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     }
     jsonLdScript.textContent = generatePageJsonLd(pageSeo);
 
-    // 8. Vérification stricte anti-noindex : aucune balise noindex ne doit subsister
+    // 8. Vérification stricte anti-noindex et nettoyage noai/noimageai
     const robotsMetas = document.querySelectorAll<HTMLMetaElement>('meta[name="robots"], meta[name="googlebot"]');
     robotsMetas.forEach(meta => {
-      if (meta.content && meta.content.includes('noindex')) {
-        meta.content = meta.content.replace(/noindex/gi, 'index');
+      if (meta.content) {
+        meta.content = meta.content
+          .replace(/noai/gi, '')
+          .replace(/noimageai/gi, '')
+          .replace(/noindex/gi, 'index')
+          .replace(/,\s*,/g, ',')
+          .trim();
       }
     });
     let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
@@ -145,6 +142,10 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
       robotsTag.content = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
       document.head.appendChild(robotsTag);
     }
+
+    // 8b. Suppression des meta keywords et des clés exposées
+    document.querySelectorAll('meta[name="keywords"]').forEach(el => el.remove());
+    document.querySelectorAll('meta[name="meta-carte-meteo-key"], meta[name="carte-meteo-key"]').forEach(el => el.remove());
 
     // 9. Synchronisation URL dans la barre d'adresse (URL unique sans slash final)
     if (syncHistory && typeof window.history !== 'undefined') {

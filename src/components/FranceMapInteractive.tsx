@@ -296,21 +296,25 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
     return { temp: baseT, anomaly, rain, wind, altitude: st.altitude };
   };
 
-  // Base tile layer URLs (uniquement OpenStreetMap)
+  // Base tile layer URLs (Fond Satellite HD identique à Radar Précipitations & Vents HD)
   const getTileLayerConfig = (layer: OsmBaseLayer) => {
     switch (layer) {
       case 'topo':
         return {
           url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-          attribution: '© OpenTopoMap, © OpenStreetMap contributors'
+          attribution: '© OpenTopoMap'
         };
       case 'dark':
+        return {
+          url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          attribution: '© CartoDB'
+        };
       case 'satellite':
       case 'osm':
       default:
         return {
-          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          attribution: '© OpenStreetMap contributors'
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          attribution: '© Esri, Maxar, Earthstar Geographics'
         };
     }
   };

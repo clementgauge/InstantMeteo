@@ -31,46 +31,46 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}`,
     title: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
-    description: 'Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar pluie HD, vigilances et néphologie.',
-    keywords: 'instant météo, instantmeteo, météo france, température temps réel, radar pluie direct, météo 35000 communes, prévisions directes',
+    description: 'Instant Météo : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar précipitations HD, vigilances et modélisations atmosphériques.',
+    keywords: '',
     h1: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
     h2s: [
       'Température en Direct & Données Thermo-Hygrométriques de Précision',
       'Radar Pluie & Précipitations Haute Définition ARAMIS',
-      'Vigilance Météo-France Officielle sur 12 Risques Majeurs',
+      'Vigilance Météo-France Départementale & Risques Météorologiques Majeurs',
       'Observatoires Thématiques : Montagne, Littoral, Sécheresse & Crues'
     ],
-    intro: 'Instant Météo est la plateforme météorologique indépendante dédiée au suivi hyper-local et temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Conçue pour offrir aux citoyens, agriculteurs, randonneurs et professionnels une information météo certifiée sans délai, notre infrastructure combine les modèles haute résolution AROME et ARPEGE de Météo-France, le modèle européen ECMWF IFS, le réseau radar Doppler national ARAMIS et les flux hydrométriques officiels.',
+    intro: 'Instant Météo est un portail d\'information météorologique dédié au suivi hyper-local et en temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Notre infrastructure s\'appuie sur les données publiques ouvertes produites par Météo-France (modèles AROME 1,3 km et ARPEGE sous Licence Ouverte Etalab v2.0), le Centre Européen pour les Prévisions Météorologiques à Moyen Terme (ECMWF Open Data Licence), le réseau de radars Doppler polarimétriques ARAMIS, le SCHAPI (Vigicrues, Licence Ouverte) et les observations satellitaires de la NASA.',
     sections: [
       {
-        title: 'Précision hyper-locale pour 35 000 communes françaises',
+        title: 'Précision hyper-locale pour 35 000 communes françaises (référentiel Insee)',
         content: 'Chaque commune de France bénéficie d\'une fiche d\'observation complète intégrant température sous abri à 2 m, ressenti au vent (wind chill), indice humidex, hygrométrie relative, point de rosée, vitesse et rafales de vent à 10 m, pression atmosphérique ramenée au niveau de la mer et ensoleillement horaire. Les comparaisons aux normales climatiques de référence 1991-2020 permettent de visualiser immédiatement les anomalies thermiques locales.'
       },
       {
-        title: 'Technologie de réconciliation radar et recalibrage instantané',
-        content: 'Contrairement aux bulletins statiques traditionnels, Instant Météo utilise un moteur algorithmique de réconciliation continue : dès qu\'un écho de précipitation est repéré par les radars Doppler, le statut météorologique est actualisé instantanément pour éviter tout décalage entre la réalité perçue et les prévisions numériques.'
+        title: 'Technologie de réconciliation radar et recalibrage en continu',
+        content: 'Contrairement aux bulletins statiques, Instant Météo analyse en temps réel les signaux radar : dès qu\'un écho de précipitation est repéré par les radars Doppler ARAMIS, le statut météorologique est actualisé pour refléter fidèlement l\'état du ciel et des précipitations en cours.'
       },
       {
-        title: 'Modules spécialisés et sécurité civile',
-        content: 'Retrouvez nos onglets thématiques dédiés : nivologie et bulletins BERA pour la montagne, marées SHOM et SST pour le littoral, météo des forêts et restrictions d\'eau VigiEau pour la sécheresse, ainsi que les jauges de débit Vigicrues et les cartes de néphologie verticale de 0 à 12 000 mètres.'
+        title: 'Observatoires thématiques et suivi des risques',
+        content: 'Retrouvez nos observatoires thématiques : nivologie et bulletins BERA pour la montagne, marées SHOM et température de surface marine pour le littoral, météo des forêts et restrictions d\'eau VigiEau pour la sécheresse, ainsi que les jauges de débit Vigicrues et les cartes de néphologie verticale de 0 à 12 000 mètres.'
       }
     ],
     faq: [
       {
-        question: 'Qu\'est-ce qui distingue Instant Météo des autres applications météo ?',
-        answer: 'Instant Météo combine en direct les données ouvertes de Météo-France (AROME à 1,3 km de maille), le modèle mondial ECMWF, les radars Doppler ARAMIS et les stations de référence du réseau national. Les données sont actualisées à haute fréquence (toutes les 1 à 3 minutes pour le radar) avec réconciliation continue pour éviter les fausses annonces de ciel couvert en cas d\'averse active.'
+        question: 'Quelles sont les sources de données utilisées par Instant Météo ?',
+        answer: 'Instant Météo agrège les données ouvertes officielles de Météo-France (modèle haute résolution AROME 1,3 km, modèle ARPEGE, réseau radar ARAMIS sous Licence Ouverte Etalab v2.0), les sorties du modèle mondial ECMWF (IFS, licence Open Data), les hauteurs et débits d\'eau du SCHAPI (Vigicrues, Licence Ouverte) ainsi que les détections thermiques satellitaires VIIRS/MODIS de la NASA.'
       },
       {
         question: 'Comment sont calculées les températures ressenties ?',
         answer: 'Nous calculons l\'indice de refroidissement éolien (Wind Chill de Steadman) pour les températures inférieures ou égales à 10°C exposées au vent, et l\'indice Humidex canadien combinant chaleur et pression de vapeur d\'eau pour les températures chaudes supérieures à 20°C.'
       },
       {
-        question: 'Les alertes et vigilances sont-elles officielles ?',
-        answer: 'Oui, notre matrice départementale de vigilance est branchée en temps réel sur les flux officiels de Météo-France et du SCHAPI (Vigicrues). Elle surveille les 12 phénomènes réglementaires avec mise à jour automatisée 24h/24.'
+        question: 'Comment fonctionne le suivi de vigilance ?',
+        answer: 'Notre matrice départementale de vigilance exploite en temps réel les flux ouverts de Météo-France et du SCHAPI (Vigicrues). Elle surveille les phénomènes majeurs de vigilance météorologique et hydrologique avec actualisation continue.'
       },
       {
         question: 'Puis-je consulter la météo de n\'importe quelle commune de France ?',
-        answer: 'Absolument. Notre moteur de géocodage couvre les 34 965 communes de métropole et des départements d\'outre-mer avec prise en compte du relief altimétrique et des microclimats locaux.'
+        answer: 'Oui. Notre moteur de recherche couvre l\'ensemble des 35 000 communes de métropole et des départements d\'outre-mer (référentiel officiel Insee) avec prise en compte du relief altimétrique et des microclimats locaux.'
       }
     ],
     tabId: 'realtime'
@@ -177,21 +177,21 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     slug: 'vigilances',
     path: '/vigilances',
     canonicalUrl: `${BASE_SITE_URL}/vigilances`,
-    title: 'Vigilance Météo France en Direct & Alertes 12 Risques - Instant Météo',
-    description: 'Carte officielle de vigilance météorologique Météo-France actualisée en direct. Suivez les alertes sur les 12 phénomènes : orages, vent violent, crues, neige.',
-    keywords: 'vigilance météo, vigilance météo france, alerte météo direct, carte vigilance, vigilance orange, vigilance rouge, orages, vent violent, inondation',
-    h1: 'Carte Officielle de Vigilance Météorologique Météo-France en Direct',
+    title: 'Vigilance Météo France en Direct & Alertes Phénomènes Majeurs - Instant Météo',
+    description: 'Carte de vigilance météorologique Météo-France actualisée en direct. Suivez les alertes de vigilance : orages, vent violent, crues Vigicrues, neige et canicule.',
+    keywords: '',
+    h1: 'Carte de Vigilance Météorologique & Risques Météo-France en Direct',
     h2s: [
       'Matrice Nationale des 101 Départements Métropolitains et Outre-Mer',
-      'Surveillance des 12 Phénomènes Réglementaires de Sécurité Civile',
+      'Surveillance des Phénomènes Majeurs de Sécurité Civile',
       'Signification des Niveaux de Vigilance : Vert, Jaune, Orange et Rouge',
       'Consignes Officielles de Sécurité et Prévention des Risques'
     ],
-    intro: 'La carte de vigilance météorologique d\'Instant Météo restitue le dispositif officiel créé par Météo-France en partenariat avec la Direction Générale de la Sécurité Civile et de la Gestion des Crises (DGSCGC). Destinée à avertir les populations et les services de secours de l\'imminence d\'un phénomène dangereux, elle est réactualisée au minimum deux fois par jour (à 6h et 16h) et en continu lors d\'épisodes critiques.',
+    intro: 'La carte de vigilance météorologique d\'Instant Météo restitue le dispositif de vigilance de Météo-France et de la Sécurité Civile (DGSCGC) ainsi que les cours d\'eau Vigicrues. Destinée à informer les citoyens de l\'imminence d\'un phénomène météorologique ou hydrologique dangereux, elle est réactualisée au minimum deux fois par jour (à 6h et 16h) et en continu lors d\'épisodes critiques.',
     sections: [
       {
-        title: 'Les 12 phénomènes météorologiques sous surveillance réglementaire',
-        content: 'Le système surveille exhaustivement : vent violent, pluie-inondation, orages, inondations (crues des cours d\'eau pilotées par le SCHAPI), neige-verglas, canicule, grand froid, vagues-submersion, avalanches en montagne, feux de forêts, cyclone en outre-mer et sécheresse hydrologique.'
+        title: 'Les phénomènes météorologiques et hydrologiques sous surveillance',
+        content: 'Le dispositif surveille l\'ensemble des risques : vent violent, pluie-inondation, orages, inondations (crues des cours d\'eau pilotées par le SCHAPI / Vigicrues), neige-verglas, canicule, grand froid, vagues-submersion, avalanches en montagne et feux de forêts.'
       },
       {
         title: 'Grille d\'interprétation des 4 niveaux de couleur',

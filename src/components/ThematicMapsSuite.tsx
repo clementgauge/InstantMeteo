@@ -378,11 +378,12 @@ export const ThematicMapsSuite: React.FC<ThematicMapsSuiteProps> = ({
         scrollWheelZoom: true
       });
 
-      // Fond cartographique propre et moderne CartoDB Voyager
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      // Fond cartographique Satellite HD identique à Radar Précipitations & Vents HD
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxNativeZoom: 18,
         maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '&copy; CartoDB, Open-Meteo'
+        subdomains: 'abc',
+        attribution: '© Esri, Maxar, Earthstar Geographics'
       }).addTo(map);
 
       const markersGroup = L.layerGroup().addTo(map);
