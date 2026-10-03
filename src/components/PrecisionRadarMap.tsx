@@ -721,34 +721,13 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       const cloudsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
       const satLayer = L.tileLayer(cloudsUrl, {
         opacity: 0.85,
-        zIndex: 8,
+        zIndex: 10,
         maxNativeZoom: 9,
         maxZoom: 19,
         attribution: '© NASA GIBS / VIIRS Masses Nuageuses'
       });
       satLayer.addTo(map);
       satelliteTileLayerRef.current = satLayer;
-
-      // Ajout de la pluie sur les nuages comme demandé
-      if (radarFrames.length > 0) {
-        const frame = radarFrames[currentFrameIndex] || radarFrames[radarFrames.length - 1];
-        if (frame && frame.path) {
-          const smoothFlag = radarSmooth ? 1 : 0;
-          const snowFlag = radarSnow ? 1 : 0;
-          const radarUrl = `${radarHost}${frame.path}/512/{z}/{x}/{y}/${radarColorScheme}/${smoothFlag}_${snowFlag}.png`;
-          const rainLayer = L.tileLayer(radarUrl, {
-            opacity: radarOpacity,
-            zIndex: 12,
-            tileSize: 512,
-            zoomOffset: -1,
-            maxNativeZoom: 12,
-            maxZoom: 19,
-            className: 'rainviewer-radar-layer'
-          });
-          rainLayer.addTo(map);
-          radarTileLayerRef.current = rainLayer;
-        }
-      }
     }
   }, [activeLayer, radarFrames, currentFrameIndex, radarHost, radarOpacity, radarColorScheme, radarSmooth, radarSnow, minPrecipThresholdMm]);
 

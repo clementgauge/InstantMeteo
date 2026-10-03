@@ -40,7 +40,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
       'Vigilance Météo-France Départementale & Risques Météorologiques Majeurs',
       'Observatoires Thématiques : Montagne, Littoral, Sécheresse & Crues'
     ],
-    intro: 'Instant Météo est un portail d\'information météorologique dédié au suivi hyper-local et en temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Notre infrastructure s\'appuie sur les données publiques ouvertes produites par Météo-France (modèles AROME 1,3 km et ARPEGE sous Licence Ouverte Etalab v2.0), le Centre Européen pour les Prévisions Météorologiques à Moyen Terme (ECMWF Open Data Licence), le réseau de radars Doppler polarimétriques ARAMIS, le SCHAPI (Vigicrues, Licence Ouverte) et les observations satellitaires de la NASA.',
+    intro: 'Instant Météo est un observatoire en temps réel dédié au suivi météorologique hyper-local de 34 965 communes en France métropolitaine et outre-mer, combinant modélisation haute résolution et actualisation continue.',
     sections: [
       {
         title: 'Précision hyper-locale pour les 34 965 communes françaises (référentiel Insee)',
@@ -58,7 +58,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     faq: [
       {
         question: 'Quelles sont les sources de données utilisées par Instant Météo ?',
-        answer: 'Instant Météo agrège les données ouvertes officielles de Météo-France (modèle haute résolution AROME 1,3 km, modèle ARPEGE, réseau radar ARAMIS sous Licence Ouverte Etalab v2.0), les sorties du modèle mondial ECMWF (IFS, licence Open Data), les hauteurs et débits d\'eau du SCHAPI (Vigicrues, Licence Ouverte) ainsi que les détections thermiques satellitaires VIIRS/MODIS de la NASA.'
+        answer: 'Nos prévisions reposent sur les modèles AROME (1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF, le réseau radar Doppler ARAMIS et les stations au sol officielles du réseau mondial OMM.'
       },
       {
         question: 'Comment sont calculées les températures ressenties ?',
@@ -1209,7 +1209,7 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
       <section aria-labelledby="sections-explicatives" style="margin-bottom: 36px;">
         <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Méthodologie Scientifique &amp; Données Publiques de Référence</h2>
         <p style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 20px;">
-          L'ensemble des modélisations, cartographies et indicateurs météorologiques présentés sur Instant Météo sont calculés à partir des données publiques ouvertes produites par les grands centres météorologiques et environnementaux : modèles numériques de prévision haute résolution AROME (1,3 km) et ARPEGE de Météo-France sous Licence Ouverte Etalab v2.0, sorties du modèle mondial IFS du CEPMMT (ECMWF Open Data Licence), réseau de radars Doppler polarimétriques ARAMIS, stations hydrométriques en temps réel du SCHAPI (Vigicrues) et télédétection satellitaire de la NOAA et de la NASA.
+          L'ensemble des modélisations, cartographies et indicateurs présentés sur cette plateforme exploitent les données publiques ouvertes produites sous licences officielles (Etalab v2.0 et Open Data) : maillage atmosphérique fin, flux hydrométriques Vigicrues, réseau radar national et télédétection satellitaire de surface.
         </p>
         ${sectionsHtml}
       </section>

@@ -711,7 +711,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       satelliteOverlayRef.current = null;
     }
 
-    const isRadarActive = activeLayerMode === 'multi' ? showRadar : (activeLayerMode === 'radar' || activeLayerMode === 'satellite');
+    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
     const isSatActive = activeLayerMode === 'multi' ? showSatellite : activeLayerMode === 'satellite';
 
     const host = rvData?.host || 'https://tilecache.rainviewer.com';
@@ -1283,10 +1283,10 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
-              title="Afficher la couverture nuageuse satellite avec superposition des pluies en temps réel"
+              title="Afficher la couverture nuageuse satellite en temps réel"
             >
               <Globe2 className="h-3.5 w-3.5 text-indigo-300" />
-              <span>Nuages + Pluie</span>
+              <span>Nuages</span>
             </button>
 
             <button
@@ -1608,7 +1608,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   : activeLayerMode === 'radar' 
                     ? 'Radar Précipitations Doppler HD' 
                     : activeLayerMode === 'satellite' 
-                      ? 'Couverture Nuageuse Satellite & Précipitations Temps Réel' 
+                      ? 'Couverture Nuageuse Satellite Temps Réel' 
                       : activeLayerMode === 'temperatures'
                         ? 'Températures des Stations'
                         : 'Cellules Orageuses & Réseau Foudre'}

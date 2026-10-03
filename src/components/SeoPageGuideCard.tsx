@@ -73,14 +73,19 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
       {isOpen && (
         <div className={`p-4 sm:p-6 border-t ${isLightMode ? 'border-slate-100' : 'border-slate-800/80'} space-y-6`}>
           {/* Introduction & Méthodologie */}
-          <div className={`p-4 rounded-xl text-sm leading-relaxed ${
+          <div className={`p-4 rounded-xl text-sm leading-relaxed space-y-3 ${
             isLightMode ? 'bg-slate-50 text-slate-700' : 'bg-slate-800/40 text-slate-300'
           }`}>
-            <h3 className="text-sm font-bold text-sky-400 mb-2 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-sky-400" />
-              <span>Méthodologie Scientifique &amp; Données Publiques de Référence</span>
-            </h3>
-            <p>{pageSeo.intro}</p>
+            <p className="font-medium">{pageSeo.intro}</p>
+            <div className={`pt-2.5 border-t ${isLightMode ? 'border-slate-200' : 'border-slate-700/60'}`}>
+              <h3 className="text-xs font-bold text-sky-400 mb-1 flex items-center gap-1.5 uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-sky-400" />
+                <span>Méthodologie Scientifique &amp; Données Publiques de Référence</span>
+              </h3>
+              <p className="text-xs opacity-90 leading-relaxed">
+                Les modélisations et indicateurs présentés sur cette plateforme exploitent les flux ouverts officiels sous licence Etalab v2.0 et Open Data (Météo-France, CEPMMT, réseau radar et télédétection satellitaire).
+              </p>
+            </div>
           </div>
 
           {/* Sections explicatives */}

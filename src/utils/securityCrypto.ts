@@ -1,6 +1,6 @@
 // Module de Chiffrement & Sécurisation des Données Locales (Web Crypto API & Fallback Salé)
 
-const CIPHER_SALT = 'InstantMeteo_SecKey_2026_x78_AlphaSecure';
+const CIPHER_SALT = 'InstantMeteo_SecKey_2026_v92_RotatedSecureCrypto_7kQ8mP';
 const STORAGE_PREFIX = 'sec_enc_v1:';
 
 /**

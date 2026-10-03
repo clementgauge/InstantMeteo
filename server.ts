@@ -26,7 +26,7 @@ const DB_BACKUP_FILE = path.join(process.cwd(), 'data', 'meteo_database_backup.j
 const DB_COMMITTED_FILE = path.join(process.cwd(), 'src', 'data', 'meteo_database_committed.json');
 const DB_PUBLIC_FILE = path.join(process.cwd(), 'public', 'data', 'meteo_database_committed.json');
 const DB_TMP_FILE = path.join('/tmp', 'meteo_database_persistent.json');
-const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
+const DATABASE_ID = 'e9f42b10-d81c-4e8a-bf92-7103a4c81b5e';
 
 // Middlewares généraux
 app.use(express.json({ limit: '10mb' }));
