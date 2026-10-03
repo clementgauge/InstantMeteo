@@ -1,1251 +1,1245 @@
-export interface SeoFaqItem {
+export const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
+
+/**
+ * Règle Meta Robots unique et uniforme sur les 18 pages du site
+ * (Autorise l'indexation complète Google sans directives contradictoires)
+ */
+export const UNIFIED_ROBOTS_DIRECTIVE = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
+/**
+ * Langues et variantes régionales prises en charge par l'application
+ * Signalées à Google via les balises <link rel="alternate" hreflang="..."> et le Sitemap XML
+ */
+export const SUPPORTED_HREFLANG_LOCALES = [
+  { hreflang: 'fr', param: '' },
+  { hreflang: 'fr-FR', param: '' },
+  { hreflang: 'fr-BE', param: '' },
+  { hreflang: 'fr-CH', param: '' },
+  { hreflang: 'fr-CA', param: '' },
+  { hreflang: 'en', param: '?hl=en' },
+  { hreflang: 'de', param: '?hl=de' },
+  { hreflang: 'es', param: '?hl=es' },
+  { hreflang: 'it', param: '?hl=it' },
+  { hreflang: 'pt', param: '?hl=pt' },
+  { hreflang: 'nl', param: '?hl=nl' },
+  { hreflang: 'ar', param: '?hl=ar' },
+  { hreflang: 'zh-CN', param: '?hl=zh-CN' },
+  { hreflang: 'ja', param: '?hl=ja' },
+  { hreflang: 'ru', param: '?hl=ru' },
+  { hreflang: 'uk', param: '?hl=uk' },
+] as const;
+
+export interface PageSeoSection {
+  heading: string;
+  body: string;
+}
+
+export interface PageSeoFaq {
   question: string;
   answer: string;
 }
 
-export interface SeoSectionItem {
-  title: string;
-  content: string;
-}
-
-export interface PageSeoItem {
+export interface PageSeoMetadata {
   slug: string;
   path: string;
   canonicalUrl: string;
   title: string;
   description: string;
-  keywords: string;
   h1: string;
-  h2s: string[];
-  intro: string;
-  sections: SeoSectionItem[];
-  faq: SeoFaqItem[];
+  sectionTitle: string;
+  breadcrumbName: string;
   tabId: string;
+  introParagraph: string;
+  sections: PageSeoSection[];
+  faq: PageSeoFaq[];
+  changefreq: 'always' | 'hourly' | 'daily' | 'weekly';
+  priority: string;
 }
 
-export const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
+export type PageSeoItem = PageSeoMetadata;
 
-export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
+export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
   '/': {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
-    description: 'Instant Météo : Prévisions météo en direct pour la France et 34 965 communes. Température temps réel, radar précipitations HD, vigilances et modélisations atmosphériques.',
-    keywords: '',
-    h1: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
-    h2s: [
-      'Température en Direct & Données Thermo-Hygrométriques de Précision',
-      'Radar Pluie & Précipitations Haute Définition ARAMIS',
-      'Vigilance Météo-France Départementale & Risques Météorologiques Majeurs',
-      'Observatoires Thématiques : Montagne, Littoral, Sécheresse & Crues'
-    ],
-    intro: 'Instant Météo est un observatoire en temps réel dédié au suivi météorologique hyper-local de 34 965 communes en France métropolitaine et outre-mer, combinant modélisation haute résolution et actualisation continue.',
+    title: 'Instant Météo France — Prévisions locales et suivi en temps réel',
+    description:
+      'Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département.',
+    h1: 'Prévisions météo en France et suivi en temps réel',
+    sectionTitle: 'Sources météorologiques et fonctionnement du portail',
+    breadcrumbName: 'Accueil Météo France',
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '1.0',
+    introParagraph:
+      'Instant Météo France regroupe sur une interface claire les observations actuelles et les prévisions locales pour les 34 965 communes de France métropolitaine et d’Outre-mer. Recherchez votre ville ou utilisez la géolocalisation pour afficher immédiatement la température, le ressenti au vent, l’évolution heure par heure et la tendance des prochains jours.',
     sections: [
       {
-        title: 'Précision hyper-locale pour les 34 965 communes françaises (référentiel Insee)',
-        content: 'Chaque commune de France bénéficie d\'une fiche d\'observation complète intégrant température sous abri à 2 m, ressenti au vent (wind chill), indice humidex, hygrométrie relative, point de rosée, vitesse et rafales de vent à 10 m, pression atmosphérique ramenée au niveau de la mer et ensoleillement horaire. Les comparaisons aux normales climatiques de référence 1991-2020 permettent de visualiser immédiatement les anomalies thermiques locales.'
+        heading: 'D’où proviennent les données affichées sur le site ?',
+        body: 'Cette page centrale réunit en un seul point les principales bases publiques : les modèles numériques AROME (maille fine 1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF (IFS 9 km), l’imagerie radar RainViewer, les relevés hydrologiques Vigicrues (SCHAPI), les prédictions de marées du SHOM, le suivi des nappes du BRGM, les données satellitaires NASA FIRMS / GIBS et les réanalyses climatiques Copernicus ERA5.',
       },
       {
-        title: 'Technologie de réconciliation radar et recalibrage en continu',
-        content: 'Contrairement aux bulletins statiques, Instant Météo analyse en temps réel les signaux radar : dès qu\'un écho de précipitation est repéré par les radars Doppler ARAMIS, le statut météorologique est actualisé pour refléter fidèlement l\'état du ciel et des précipitations en cours.'
+        heading: 'Adaptation automatique au relief et à l’altitude de chaque commune',
+        body: 'Contrairement à une prévision générale par grande agglomération, chaque fiche communale prend en compte l’altitude réelle de la mairie ou du sommet sélectionné. Le gradient thermique vertical et l’exposition aux vents dominants sont ainsi intégrés pour restituer un ressenti fidèle au terrain.',
       },
       {
-        title: 'Observatoires thématiques et suivi des risques',
-        content: 'Retrouvez nos observatoires thématiques : nivologie et bulletins BERA pour la montagne, marées SHOM et température de surface marine pour le littoral, météo des forêts et restrictions d\'eau VigiEau pour la sécheresse, ainsi que les jauges de débit Vigicrues et les cartes de néphologie verticale de 0 à 12 000 mètres.'
-      }
+        heading: 'Navigation rapide entre les outils spécialisés',
+        body: 'Depuis l’accueil, vous pouvez basculer vers le radar interactif des précipitations, la carte des vigilances départementales, l’observatoire de la couverture nuageuse ou les bulletins spécialisés pour la montagne, le littoral et les cours d’eau.',
+      },
     ],
     faq: [
       {
-        question: 'Quelles sont les sources de données utilisées par Instant Météo ?',
-        answer: 'Nos prévisions reposent sur les modèles AROME (1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF, le réseau radar Doppler ARAMIS et les stations au sol officielles du réseau mondial OMM.'
+        question: 'Comment rechercher les prévisions météo de mon village ou de mon quartier ?',
+        answer:
+          'Utilisez la barre de recherche en haut de page en saisissant le nom de votre commune ou son code postal à 5 chiffres. Les 34 965 communes françaises ainsi que les principaux sommets et plages sont accessibles instantanément.',
       },
       {
-        question: 'Comment sont calculées les températures ressenties ?',
-        answer: 'Nous calculons l\'indice de refroidissement éolien (Wind Chill de Steadman) pour les températures inférieures ou égales à 10°C exposées au vent, et l\'indice Humidex canadien combinant chaleur et pression de vapeur d\'eau pour les températures chaudes supérieures à 20°C.'
+        question: 'À quel rythme les observations sont-elles rafraîchies ?',
+        answer:
+          'Les relevés de température, de vent et de pression sont actualisés toutes les 10 à 15 minutes, tandis que l’imagerie radar suit le déplacement des averses par pas de 5 minutes.',
       },
       {
-        question: 'Comment fonctionne le suivi de vigilance ?',
-        answer: 'Notre matrice départementale de vigilance exploite en temps réel les flux ouverts de Météo-France et du SCHAPI (Vigicrues). Elle surveille les phénomènes majeurs de vigilance météorologique et hydrologique avec actualisation continue.'
+        question: 'L’accès aux cartes et aux prévisions nécessite-t-il un compte ?',
+        answer:
+          'Non, l’ensemble des cartes, des bulletins communaux et des outils de suivi est consultable librement et gratuitement, sans création de compte ni abonnement.',
       },
-      {
-        question: 'Puis-je consulter la météo de n\'importe quelle commune de France ?',
-        answer: 'Oui. Notre moteur de recherche couvre l\'ensemble des 34 965 communes de métropole et des départements d\'outre-mer (référentiel officiel Insee) avec prise en compte du relief altimétrique et des microclimats locaux.'
-      }
     ],
-    tabId: 'realtime'
   },
+
   '/direct': {
     slug: 'direct',
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Météo en Direct & Température Temps Réel France - Instant Météo',
-    description: 'Météo en direct pour les 34 965 communes de France : température temps réel, humidité, pression barométrique, vent et ressenti thermique calculés à la minute.',
-    keywords: '',
-    h1: 'Météo en Direct & Température en Temps Réel sur toute la France',
-    h2s: [
-      'Relevés Thermo-Hygrométriques et Barométriques Instantanés',
-      'Comparaison aux Normales Climatiques Officielles (1991-2020)',
-      'Trajectoire du Soleil, Ensoleillement et Éphéméride du Jour',
-      'Diagnostics Climatiques et Microclimatiques par Commune'
-    ],
-    intro: 'La page Météo en Direct d\'Instant Météo offre une radiographie complète et immédiate de l\'atmosphère locale. À partir des capteurs météorologiques de surface et des réanalyses numériques, chaque mesure physique est restituée avec exactitude : température sous abri normalisé OMM, vitesse moyenne du vent et rafales maximales, hygrométrie, point de rosée et pression barométrique.',
+    title: 'Météo en direct par commune — Observations actuelles | Instant Météo',
+    description:
+      'Relevés météo en direct dans votre commune : température sous abri, température ressentie, rafales de vent, humidité, pression et risque d’averse dans l’heure.',
+    h1: 'Observations météo en direct par commune',
+    sectionTitle: 'Lecture des relevés actuels et du diagnostic heure par heure',
+    breadcrumbName: 'Météo en Direct',
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph:
+      'La page Météo en Direct présente l’état immédiat de l’atmosphère au-dessus de votre commune. Elle met l’accent sur les paramètres mesurés à l’instant présent et sur l’évolution prévue au cours des 60 prochaines minutes, afin de vous aider à organiser vos déplacements ou vos activités extérieures.',
     sections: [
       {
-        title: 'Analyse thermique et anomalies par rapport aux normales',
-        content: 'Chaque relevé thermique est confronté en temps réel aux moyennes de saison établies sur la période trentenaire de référence 1991-2020 par Météo-France. L\'écart thermique calculé (anomalie positive ou négative) informe immédiatement sur le caractère exceptionnellement chaud, frais ou conforme de la journée en cours.'
+        heading: 'Différence entre température sous abri et température ressentie',
+        body: 'La température affichée correspond à une mesure standardisée à 2 mètres du sol sous abri ventilé. L’indice de ressenti combine cette valeur avec la vitesse du vent (refroidissement éolien en hiver) et le taux d’humidité relative (indice de chaleur lourde en été) pour refléter la sensation réelle sur le corps humain.',
       },
       {
-        title: 'Suivi de la pluie dans l\'heure et dynamique atmosphérique',
-        content: 'Le bloc de pluie dans l\'heure découpe les 60 prochaines minutes par pas de 5 minutes. Ce service de nowcasting basé sur les échos radar Doppler permet d\'anticiper le début, l\'intensité maximale et la fin exacte d\'une averse ou d\'un orage passager.'
+        heading: 'Suivi de la pluie dans l’heure et évolution sur 48 heures',
+        body: 'Le chronogramme horaire détaille minute par minute le passage éventuel d’une averse, la baisse du plafond nuageux, la rotation du vent et la variation de la pression atmosphérique au niveau de la mer (exprimée en hectopascals).',
       },
       {
-        title: 'Éphéméride astronomique et rayonnement',
-        content: 'Consultez les heures exactes de lever, culmination et coucher du soleil, la durée du jour, le rayonnement global en W/m² et l\'indice UV calculé selon l\'épaisseur de la couche d\'ozone et la couverture nuageuse instantanée.'
-      }
+        heading: 'Indices pratiques du quotidien : UV, point de rosée et visibilité',
+        body: 'En complément du thermomètre, consultez le point de rosée pour anticiper la formation de brouillard matinal ou de gelée blanche, la distance de visibilité horizontale pour la conduite, ainsi que l’indice UV maximal de la journée.',
+      },
     ],
     faq: [
       {
-        question: 'À quelle fréquence les données en direct sont-elles rafraîchies ?',
-        answer: 'Les données d\'observation et de modélisation sont interrogées et recalculées toutes les 3 minutes. En cas de passage pluvieux détecté au radar, une régénération haute intensité est déclenchée pour garantir un statut temps réel ultra-fidèle.'
+        question: 'Que signifie une baisse rapide de la pression atmosphérique en direct ?',
+        answer:
+          'Une chute de pression supérieure à 3 hPa en trois heures signale généralement l’approche d’un front perturbé, accompagnée d’un renforcement du vent et d’un risque accru de précipitations.',
       },
       {
-        question: 'Pourquoi la température ressentie diffère-t-elle de la température sous abri ?',
-        answer: 'La température sous abri mesure la chaleur réelle de l\'air à 2 mètres du sol sans rayonnement direct du soleil. La température ressentie simule la perte ou l\'accumulation thermique du corps humain sous l\'effet combiné de la vitesse du vent (wind chill) ou de l\'humidité relative (humidex).'
+        question: 'Comment savoir s’il va pleuvoir dans l’heure sur ma position ?',
+        answer:
+          'Le bandeau de prévision immédiate analyse le déplacement des cellules pluvieuses en amont de votre commune et indique l’heure estimée du début et de la fin des gouttes.',
       },
       {
-        question: 'Comment est mesurée la qualité de l\'air affichée ?',
-        answer: 'L\'indice AQI affiché synthétise les concentrations de particules fines (PM2.5, PM10), de dioxyde d\'azote (NO2) et d\'ozone (O3) issues du programme européen Copernicus Atmosphere Monitoring Service (CAMS).'
+        question: 'Pourquoi la température varie-t-elle entre le centre-ville et la périphérie ?',
+        answer:
+          'L’effet d’îlot de chaleur urbain retient la chaleur dans les zones densément bâties la nuit, tandis que les vallées rurales ou les secteurs boisés se refroidissent beaucoup plus rapidement par rayonnement nocturne.',
       },
-      {
-        question: 'Que signifie l\'anomalie thermique en degrés ?',
-        answer: 'L\'anomalie représente l\'écart entre la température actuelle observée et la moyenne statistique trentenaire (1991-2020) calculée pour ce même jour et cette même heure sur la station météo de référence la plus proche.'
-      }
     ],
-    tabId: 'realtime'
   },
+
   '/radar': {
     slug: 'radar',
     path: '/radar',
     canonicalUrl: `${BASE_SITE_URL}/radar`,
-    title: 'Radar Pluie HD en Direct & Précipitations ARAMIS - Instant Météo',
-    description: 'Radar de pluie en direct haute définition sur la France : suivi des averses, orages et chutes de neige en temps réel. Échos Doppler ARAMIS toutes les 5 minutes.',
-    keywords: '',
-    h1: 'Radar Pluie HD & Carte des Précipitations en Direct sur la France',
-    h2s: [
-      'Réseau Radar Doppler ARAMIS et Télédétection des Précipitations',
-      'Échelle d\'Intensité Pluviométrique en mm/h et Réflectivité dBZ',
-      'Différenciation Pluie, Neige, Grésil et Grêle',
-      'Historique Récent et Projection d\'Averses à Court Terme'
-    ],
-    intro: 'Le radar des précipitations d\'Instant Météo diffuse la mosaïque nationale haute résolution du réseau ARAMIS (Application Radar à la Météorologie Infra-Synoptique) de Météo-France. Composé de plus de 33 radars Doppler et polarimétriques répartis sur le territoire métropolitain, ce système permet d\'observer chaque cellule pluvieuse, ligne de grains ou système orageux avec une précision kilométrique.',
+    title: 'Radar des pluies en direct en France | Instant Météo',
+    description:
+      'Carte radar interactive des précipitations en direct : suivez le déplacement de la pluie, de la neige, des orages et des nuages en plein écran.',
+    h1: 'Radar des précipitations en direct',
+    sectionTitle: 'Fonctionnement du radar et lecture des échos de pluie',
+    breadcrumbName: 'Radar Pluie en Direct',
+    tabId: 'radar',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph:
+      'Le radar interactif permet de visualiser sur une carte plein écran la position exacte des averses, des fronts pluvieux, des chutes de neige et des foyers orageux. Grâce au curseur temporel, vous pouvez observer la trajectoire passée des précipitations et leur déplacement prévu à court terme.',
     sections: [
       {
-        title: 'Fonctionnement physique du radar météorologique Doppler',
-        content: 'Les radars émettent des micro-ondes électromagnétiques qui sont rétrodiffusées par les hydrométéores (gouttes de pluie, flocons de neige, grêlons). La puissance du signal réfléchi, mesurée en réflectivité logarithmique (dBZ), est convertie en intensité de précipitation instantanée (mm/h) grâce aux relations de Marshall-Palmer.'
+        heading: 'Code couleur de la réflectivité et intensité des pluies',
+        body: 'L’échelle chromatique traduit la densité des gouttes d’eau ou des cristaux de glace dans l’atmosphère (exprimée en dBZ). Les teintes bleues et vertes indiquent des bruines ou des pluies faibles (1 à 3 mm/h), le jaune et l’orange correspondent à des averses soutenues (5 à 20 mm/h), tandis que le rouge et le violet signalent de fortes averses orageuses parfois mêlées de grêle.',
       },
       {
-        title: 'Double polarisation et identification des types de précipitations',
-        content: 'Grâce à l\'émission d\'ondes selon deux polarisations orthogonales (horizontale et verticale), nos radars identifient la forme géométrique des particules en suspension, permettant de distinguer avec certitude la pluie liquide, la neige humide, le grésil et les grêlons au sein des cumulonimbus.'
+        heading: 'Sélection des calques : Pluie, Nuages, Températures et Orages',
+        body: 'Le bandeau supérieur du radar vous permet d’afficher séparément les échos de pluie, la couverture nuageuse sans aucune zone noire, les températures des stations ou l’activité électrique des cellules orageuses.',
       },
       {
-        title: 'Animation fluide et suivi des trajectoires pluvieuses',
-        content: 'L\'interface cartographique interactive permet de remonter l\'historique des 2 dernières heures et de projeter la cinématique d\'advection des nuages pluvieux pour savoir avec précision quand une zone d\'averses touchera votre position géographique.'
-      }
+        heading: 'Mode grand écran verrouillé pour le suivi continu',
+        body: 'Le bouton Grand Écran verrouille l’affichage exclusivement sur la carte radar afin d’offrir une navigation fluide au doigt ou à la souris, du niveau européen jusqu’à l’échelle de votre quartier.',
+      },
     ],
     faq: [
       {
-        question: 'Comment interpréter les couleurs sur le radar de pluie ?',
-        answer: 'Les teintes bleues correspondent aux pluies très faibles à fines bruines (0,1 à 1 mm/h). Le vert et jaune indiquent une pluie modérée continue (2 à 10 mm/h). L\'orange et le rouge signalent de fortes averses (10 à 30 mm/h). Le pourpre et le blanc marquent des précipitations torrentielles ou orages de grêle intenses (> 50 mm/h).'
+        question: 'Comment utiliser l’animation du radar pour anticiper une averse ?',
+        answer:
+          'Appuyez sur le bouton Lecture en bas de la carte : la barre de défilement fait avancer les images par pas de 5 à 10 minutes et révèle la vitesse ainsi que l’axe de déplacement du front pluvieux vers votre commune.',
       },
       {
-        question: 'Pourquoi le radar montre-t-il parfois de la pluie alors qu\'il ne pleut pas au sol ?',
-        answer: 'Ce phénomène naturel s\'appelle la "virga". Il se produit lorsque les gouttes de pluie détectées en altitude par le faisceau radar s\'évaporent dans une couche d\'air sec sous-jacente avant d\'atteindre la surface du sol.'
+        question: 'Quelle est la différence entre l’onglet Pluie et l’onglet Nuages sur le radar ?',
+        answer:
+          'L’onglet Pluie affiche uniquement les nuages qui produisent effectivement des précipitations détectées par écho radar, tandis que l’onglet Nuages montre l’ensemble du voile nuageux même lorsqu’il ne donne aucune goutte au sol.',
       },
       {
-        question: 'À quelle fréquence les images radar sont-elles renouvelées ?',
-        answer: 'La mosaïque radar nationale est régénérée toutes les 5 minutes, assurant un suivi quasi instantané des perturbations et des lignes orageuses en déplacement.'
+        question: 'Comment quitter le mode grand écran du radar ?',
+        answer:
+          'Cliquez sur le bouton Réduire en haut à droite de la carte ou appuyez simplement sur la touche Échap (Escape) de votre clavier.',
       },
-      {
-        question: 'Le radar détecte-t-il les chutes de neige en plaine et en montagne ?',
-        answer: 'Oui, la réflectivité de la neige est détectée et représentée avec une palette colorimétrique spécifique, prenant en compte le masque orographique en zone de montagne.'
-      }
     ],
-    tabId: 'radar'
   },
+
   '/vigilances': {
     slug: 'vigilances',
     path: '/vigilances',
     canonicalUrl: `${BASE_SITE_URL}/vigilances`,
-    title: 'Vigilance Météo France en Direct & Alertes Phénomènes Majeurs - Instant Météo',
-    description: 'Carte de vigilance météorologique Météo-France actualisée en direct. Suivez les alertes de vigilance : orages, vent violent, crues Vigicrues, neige et canicule.',
-    keywords: '',
-    h1: 'Carte de Vigilance Météorologique & Risques Météo-France en Direct',
-    h2s: [
-      'Matrice Nationale des 101 Départements Métropolitains et Outre-Mer',
-      'Surveillance des Phénomènes Majeurs de Sécurité Civile',
-      'Signification des Niveaux de Vigilance : Vert, Jaune, Orange et Rouge',
-      'Consignes Officielles de Sécurité et Prévention des Risques'
-    ],
-    intro: 'La carte de vigilance météorologique d\'Instant Météo restitue le dispositif de vigilance de Météo-France et de la Sécurité Civile (DGSCGC) ainsi que les cours d\'eau Vigicrues. Destinée à informer les citoyens de l\'imminence d\'un phénomène météorologique ou hydrologique dangereux, elle est réactualisée au minimum deux fois par jour (à 6h et 16h) et en continu lors d\'épisodes critiques.',
+    title: 'Vigilance météo par département en France | Instant Météo',
+    description:
+      'Carte des vigilances météo par département en France : suivi des niveaux vert, jaune, orange et rouge pour le vent, les orages, la pluie, la neige et la canicule.',
+    h1: 'Carte de vigilance météo par département',
+    sectionTitle: 'Comprendre les quatre niveaux de vigilance et les conseils de prudence',
+    breadcrumbName: 'Vigilances Météo',
+    tabId: 'vigilance',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph:
+      'La page Vigilances Météo dresse l’état complet des risques météorologiques sur les 96 départements de France métropolitaine et en Outre-mer. Elle permet d’identifier d’un coup d’œil les départements placés sous surveillance particulière aujourd’hui et au cours des prochains jours.',
     sections: [
       {
-        title: 'Les phénomènes météorologiques et hydrologiques sous surveillance',
-        content: 'Le dispositif surveille l\'ensemble des risques : vent violent, pluie-inondation, orages, inondations (crues des cours d\'eau pilotées par le SCHAPI / Vigicrues), neige-verglas, canicule, grand froid, vagues-submersion, avalanches en montagne et feux de forêts.'
+        heading: 'Signification des couleurs Vert, Jaune, Orange et Rouge',
+        body: 'Le niveau Vert indique l’absence de danger particulier. Le niveau Jaune invite à rester attentif lors d’activités exposées (randonnée, navigation, travaux extérieurs). Le niveau Orange signale des phénomènes dangereux nécessitant une grande prudence et la limitation des déplacements non essentiels. Le niveau Rouge correspond à un événement d’intensité exceptionnelle exigeant le respect absolu des consignes de sécurité.',
       },
       {
-        title: 'Grille d\'interprétation des 4 niveaux de couleur',
-        content: 'Vert : pas de vigilance particulière requise. Jaune : soyez attentif lors d\'activités exposées ou en bord de cours d\'eau. Orange : soyez très vigilant, des phénomènes dangereux sont prévus avec impacts significatifs sur les transports et réseaux. Rouge : vigilance absolue, phénomènes d\'une intensité exceptionnelle menaçant la sécurité des personnes.'
+        heading: 'Les neuf aléas météorologiques surveillés',
+        body: 'Chaque fiche départementale détaille séparément le risque lié au vent violent, aux orages, aux fortes pluies et inondations, aux crues des rivières, à la neige ou au verglas, aux vagues-submersion sur le littoral, aux avalanches en montagne, ainsi qu’aux épisodes de canicule ou de grand froid.',
       },
       {
-        title: 'Détail par département et heure d\'échéance',
-        content: 'Chaque fiche départementale détaille les heures exactes de début et fin prévues pour chaque phénomène, le pic d\'intensité modélisé (rafales maximales, hauteurs d\'eau cumulées, épaisseur de neige) et les bulletins de suivi commentés par les prévisionnistes nationaux.'
-      }
+        heading: 'Matrice prévisionnelle des risques sur plusieurs jours',
+        body: 'En plus de la carte du jour, un tableau chronologique permet de repérer à l’avance les dégradations attendues sur votre département afin d’adapter vos trajets ou vos événements en extérieur.',
+      },
     ],
     faq: [
       {
-        question: 'Qui décide du passage d\'un département en vigilance Orange ou Rouge ?',
-        answer: 'La décision est prise collégialement par les prévisionnistes du Centre National de Prévision de Météo-France, en étroite concertation avec les préfets de zone et le Centre Opérationnel de Gestion Interministérielle des Crises (COGIC).'
+        question: 'Quels comportements adopter lorsque mon département passe en niveau orange ?',
+        answer:
+          'Mettez à l’abri les objets sensibles au vent, évitez les promenades en forêt ou près des cours d’eau, débranchez les appareils électriques sensibles en cas d’orage violent et reportez les déplacements routiers non indispensables.',
       },
       {
-        question: 'Quelle est la différence entre une alerte et une vigilance ?',
-        answer: 'La vigilance informe 24h à 48h à l\'avance du risque potentiel pour permettre l\'anticipation des secours et des mairies. L\'alerte (ou plan ORSEC) est la phase opérationnelle déclenchée par les autorités préfectorales lorsque le phénomène se concrétise.'
+        question: 'Pourquoi un département voisin est-il en alerte et pas le mien ?',
+        answer:
+          'Les seuils de déclenchement tiennent compte de la topographie locale, de la saturation préalable des sols et de l’exposition aux vents dominants propres à chaque territoire départemental.',
       },
       {
-        question: 'Où consulter les consignes de sécurité en cas de vigilance Orange ?',
-        answer: 'Directement dans notre interface : limitez vos déplacements, ne vous engagez pas sur une voie immergée, abritez les objets sensibles au vent et tenez-vous informé des évolutions via nos bulletins temps réel.'
+        question: 'À quelle fréquence la carte de vigilance est-elle réévaluée ?',
+        answer:
+          'La carte est actualisée au minimum deux fois par jour (à 6 h et à 16 h), et à tout moment de la journée ou de la nuit dès qu’un phénomène évolue rapidement.',
       },
-      {
-        question: 'À quelle heure la carte de vigilance est-elle mise à jour ?',
-        answer: 'Elle est mise à jour systématiquement à 06h00 et 16h00, et immédiatement en cours de journée si l\'aggravation d\'une situation météorologique l\'exige.'
-      }
     ],
-    tabId: 'vigilance'
   },
+
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
-    title: 'Observatoire des Nuages 48h & Néphologie Verticale - Instant Météo',
-    description: 'Sondage atmosphérique vertical de 0 à 12 000 m, classification OMM des nuages, base et sommet des couches, risque de givrage et nébulosité 48h.',
-    keywords: '',
-    h1: 'Observatoire des Nuages & Coupe Verticale de l\'Atmosphère sur 48h',
-    h2s: [
-      'Sondage Atmosphérique Numérique de 0 à 12 000 Mètres d\'Altitude',
-      'Classification Internationale des 10 Genres de Nuages (OMM)',
-      'Couche Limite, Plafond Nuageux et Base des Couches Réelles',
-      'Indices Aéronautiques : Givrage, Turbulences et Visibilité Verticale'
-    ],
-    intro: 'L\'Observatoire de Néphologie d\'Instant Météo propose une exploration verticale tridimensionnelle de la colonne d\'air au-dessus de votre position géographique. Utilisant les champs de pression, température, humidité spécifique et vitesse verticale du vent issus des modèles haute précision, ce module reconstitue fidèlement la structure nuageuse étage par étage.',
+    title: 'Couverture nuageuse et animation satellite | Instant Météo',
+    description:
+      'Suivez la couverture nuageuse en France : étages de nuages bas, moyens et élevés, hauteur du plafond nuageux, éclaircies prévues et visibilité sur 48 heures.',
+    h1: 'Couverture nuageuse et imagerie satellite',
+    sectionTitle: 'Lecture des étages nuageux et prévision des éclaircies',
+    breadcrumbName: 'Carte des Nuages',
+    tabId: 'cloudNephology',
+    changefreq: 'always',
+    priority: '0.90',
+    introParagraph:
+      'L’observatoire des nuages détaille la structure verticale de la couverture nuageuse au-dessus de votre commune. Plutôt qu’un simple pourcentage global, cette page distingue les nuages bas, moyens et élevés pour vous indiquer si le ciel sera réellement lumineux ou complètement bouché.',
     sections: [
       {
-        title: 'Les trois étages de la troposphère et leurs hydrométéores',
-        content: 'L\'atmosphère est segmentée en trois étages fondamentaux : l\'étage inférieur (0 à 2 000 m) abritant stratus, stratocumulus et brouillards ; l\'étage moyen (2 000 à 7 000 m) avec altocumulus et altostratus ; et l\'étage supérieur (au-delà de 7 000 m) composé de cristaux de glace formant cirrus, cirrostratus et cirrocumulus.'
+        heading: 'Distinction entre nuages bas, moyens et élevés',
+        body: 'Les nuages bas (stratus, stratocumulus et brouillards, situés sous 2 000 mètres) bloquent fortement le rayonnement solaire et donnent une impression de temps gris. Les nuages de l’étage moyen (altocumulus, altostratus entre 2 000 et 6 000 mètres) annoncent souvent un changement de temps, tandis que les nuages élevés (cirrus de glace au-dessus de 6 000 mètres) laissent largement passer la lumière du soleil.',
       },
       {
-        title: 'Nuages à extension verticale et orages',
-        content: 'Le modèle surveille l\'indice CAPE (Énergie Potentielle de Convection Disponible) et le soulèvement adiabatique pour quantifier le développement vertical des cumulus congestus et cumulonimbus capables d\'engendrer foudre, rafales descendantes et précipitations diluviennes.'
+        heading: 'Plafond nuageux et visibilité pour l’aviation légère et la montagne',
+        body: 'Le profil vertical indique l’altitude estimée de la base des nuages en mètres. Cette information est essentielle pour savoir si un sommet de randonnée est pris dans le brouillard ou pour préparer un vol à vue (VFR) et une session de parapente.',
       },
       {
-        title: 'Indicateurs de sécurité aéronautique et outdoor',
-        content: 'Visualisez instantanément la base réelle des nuages (cloud base LCL), le niveau de condensation par ascendance, la hauteur du plafond nuageux (BKN/OVC) et les strates critiques sujettes au givrage d\'aéronefs ou aux bancs de brouillard givrant.'
-      }
+        heading: 'Fenêtres d’éclaircies et observation du ciel nocturne',
+        body: 'Le graphique sur 48 heures met en évidence les créneaux de ciel dégagé en journée pour profiter du soleil, ainsi que les nuits claires favorables à l’astronomie amateur et à l’astrophotographie.',
+      },
     ],
     faq: [
       {
-        question: 'Comment est calculée la base des nuages (plafond nuageux) ?',
-        answer: 'La hauteur de la base des nuages est déterminée par le niveau de condensation par ascendance (LCL), calculé à partir de la température et de l\'humidité au sol via la formule empirique d\'Espy et les équations thermo-dynamiques de Clausius-Clapeyron.'
+        question: 'Pourquoi fait-il beau malgré un taux de nuages affiché à 70 % ?',
+        answer:
+          'Lorsqu’il s’agit uniquement de nuages élevés de type cirrus (au-dessus de 6 000 mètres), leur faible épaisseur optique laisse passer l’essentiel de l’ensoleillement, contrairement à une couche de stratus bas.',
       },
       {
-        question: 'Quels sont les 10 genres principaux de nuages surveillés ?',
-        answer: 'Cirrus (Ci), Cirrocumulus (Cc), Cirrostratus (Cs), Altocumulus (Ac), Altostratus (As), Nimbostratus (Ns), Stratocumulus (Sc), Stratus (St), Cumulus (Cu) et Cumulonimbus (Cb).'
+        question: 'Comment savoir si les nuages bas matinaux vont se dissiper ?',
+        answer:
+          'Consultez la courbe de l’étage bas heure par heure : si son pourcentage chute entre 10 h et 13 h avec la hausse de la température au sol, la grisaille matinale laissera place à de belles éclaircies.',
       },
       {
-        question: 'Qu\'est-ce que le risque de givrage en altitude ?',
-        answer: 'Le givrage survient lorsque de l\'eau liquide surfondue (maintenue liquide à température négative entre 0°C et -20°C) entre en contact avec une surface solide comme l\'aile d\'un avion ou le sommet d\'une crête de montagne, formant instantanément du givre dur.'
+        question: 'Quelle couverture nuageuse faut-il pour observer les étoiles ?',
+        answer:
+          'Pour une observation astronomique optimale, privilégiez les créneaux nocturnes où les trois étages nuageux (bas, moyen et haut) sont simultanément inférieurs à 15 %.',
       },
-      {
-        question: 'À qui s\'adresse l\'observatoire de néphologie ?',
-        answer: 'Ce module est indispensable pour les pilotes d\'avion et d\'ULM, les parapentistes, les guides de haute montagne, les photographes du ciel et les astronomes cherchant des créneaux de ciel dégagé.'
-      }
     ],
-    tabId: 'cloudNephology'
   },
+
   '/14-jours': {
     slug: '14-jours',
     path: '/14-jours',
     canonicalUrl: `${BASE_SITE_URL}/14-jours`,
-    title: 'Prévisions Météo à 14 Jours & Scénarios Probabilistes - Instant Météo',
-    description: 'Prévisions météo fiables à 14 jours sur la France : scénarios d\'ensemble multi-modèles (ECMWF, GFS, ICON), probabilités de pluie et indices de confiance.',
-    keywords: '',
-    h1: 'Prévisions Météo à 14 Jours & Analyse d\'Ensemble Multi-Modèles',
-    h2s: [
-      'Méthode des Ensembles Probabilistes (EPS / GEFS / ICON-EPS)',
-      'Indices de Confiance Météorologique de J+1 à J+14',
-      'Scénarios Thermiques : Médiane, Percentiles 10/90 et Écarts Types',
-      'Probabilités de Précipitations, Régimes de Temps et Blocages'
-    ],
-    intro: 'Au-delà de l\'échéance déterministe de 5 à 7 jours, l\'état de l\'atmosphère devient sensible aux conditions initiales (théorie du chaos). Instant Météo déploie une approche probabiliste d\'ensemble comparant plus de 50 scénarios numériques issus des supercalculateurs européens (ECMWF) et américains (NOAA GFS) pour dégager des tendances robustes jusqu\'à 14 jours.',
+    title: 'Prévisions météo à 14 jours en France | Instant Météo',
+    description:
+      'Tendances météo à 14 jours pour votre commune : évolution des températures minimales et maximales, probabilités de pluie et indice de confiance jour par jour.',
+    h1: 'Tendances météo à 14 jours',
+    sectionTitle: 'Comment interpréter une prévision météo à deux semaines',
+    breadcrumbName: 'Prévisions 14 Jours',
+    tabId: 'scenarios14d',
+    changefreq: 'hourly',
+    priority: '0.90',
+    introParagraph:
+      'Cette page présente l’évolution météorologique attendue sur deux semaines complètes dans votre commune. Au-delà du cinquième jour, l’atmosphère devient plus sensible aux petites variations : c’est pourquoi nos graphiques affichent à la fois le scénario médian et la fourchette des températures possibles.',
     sections: [
       {
-        title: 'Pourquoi privilégier les prévisions d\'ensemble à 14 jours ?',
-        content: 'Une prévision déterministe unique au-delà de 7 jours donne une fausse impression de précision. L\'analyse d\'ensemble exécute des dizaines de simulations avec de légères variations initiales : lorsque les courbes convergent, l\'indice de confiance est maximal ; lorsqu\'elles divergent, les scénarios alternatifs sont clairement exposés.'
+        heading: 'Lecture du cône d’incertitude thermique',
+        body: 'Sur le graphique à 14 jours, la courbe centrale représente l’évolution la plus probable, entourée d’une zone ombrée illustrant les scénarios plus doux ou plus frais. Plus cette zone est étroite, plus la situation atmosphérique est stable et prévisible.',
       },
       {
-        title: 'Régimes de temps synoptiques et indices de blocage',
-        content: 'Nos algorithmes classent la circulation atmosphérique nord-atlantique selon 4 grands régimes : Régime d\'Ouest dépressionnaire (NAO+), Blocage Scandinave anticyclonique, Crête Atlantique (Atlantic Ridge) et Dorsale Méditerranéenne, anticipant ainsi les vagues de chaleur ou les coulées polaires.'
+        heading: 'Indice de fiabilité quotidien exprimé en pourcentage',
+        body: 'Chaque journée est accompagnée d’un score de confiance. Un indice supérieur à 80 % signale un régime bien établi (comme un anticyclone durable), tandis qu’un indice autour de 50 % indique une hésitation sur la trajectoire exacte d’une perturbation.',
       },
       {
-        title: 'Intervalles de confiance pour la planification de vos activités',
-        content: 'Visualisez sous forme de tubes de probabilités l\'évolution attendue des températures minimales et maximales, la probabilité journalière de précipitations supérieures à 1 mm et à 10 mm, ainsi que les risques de gel tardif ou d\'épisodes caniculaires.'
-      }
+        heading: 'Planification des travaux extérieurs, séjours et événements',
+        body: 'Le récapitulatif quotidien synthétise les cumuls de pluie attendus, la force maximale du vent et l’écart par rapport aux températures habituelles de la saison pour vous aider à choisir les meilleures journées.',
+      },
     ],
     faq: [
       {
-        question: 'Quel est le taux de fiabilité d\'une prévision météo à 14 jours ?',
-        answer: 'La fiabilité globale d\'une tendance synoptique à 14 jours oscille entre 60% et 75% selon la stabilité du régime de temps en place. En situation de blocage anticyclonique durable, la prévisibilité est excellente ; en flux d\'ouest ondulant, les incertitudes sur le timing des perturbations augmentent.'
+        question: 'Jusqu’à quelle échéance une prévision météo reste-t-elle très précise ?',
+        answer:
+          'Les prévisions sont généralement très précises jusqu’à 5 jours pour les horaires de pluie et les températures, puis donnent une tendance fiable sur le régime de temps (doux, frais, sec ou humide) entre 6 et 14 jours.',
       },
       {
-        question: 'Comment est calculé l\'indice de confiance (sur 5) ?',
-        answer: 'L\'indice de confiance reflète la dispersion statistique des 50 membres de l\'ensemble ECMWF. Un écart-type faible entre tous les membres donne 5/5 (très forte confiance), tandis qu\'un éclatement des scénarios donne 1/5 (faible confiance).'
+        question: 'Que signifie une probabilité de pluie de 60 % à 10 jours ?',
+        answer:
+          'Cela signifie que 6 simulations numériques sur 10 envisagent le passage d’une perturbation pluvieuse sur votre commune au cours de cette journée.',
       },
       {
-        question: 'Quels modèles numériques mondiaux sont comparés ?',
-        answer: 'Nous comparons en permanence l\'Européen ECMWF IFS, l\'Américain NOAA GFS, l\'Allemand DWD ICON et le Canadien CMC GEM.'
+        question: 'À quelle fréquence la tendance à 14 jours est-elle recalculée ?',
+        answer:
+          'Les scénarios sont mis à jour quatre fois par jour afin d’intégrer les dernières observations mondiales et d’affiner progressivement le cône d’incertitude.',
       },
-      {
-        question: 'À quelle fréquence les calculs à 14 jours sont-ils actualisés ?',
-        answer: 'Les ensembles météo mondiaux sont réinitialisés quatre fois par jour (runs 00z, 06z, 12z et 18z) et intégrés automatiquement sur notre plateforme.'
-      }
     ],
-    tabId: 'scenarios14d'
   },
+
   '/montagne': {
     slug: 'montagne',
     path: '/montagne',
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Météo Montagne & Nivologie (Bulletins BERA) - Instant Météo',
-    description: 'Météo des massifs de montagne en direct : risque d\'avalanche BERA de 1 à 5, relevés des balises Nivôse, isotherme 0°C et limite pluie-neige.',
-    keywords: '',
-    h1: 'Météo Montagne, Nivologie & Bulletins d\'Estimation du Risque d\'Avalanche',
-    h2s: [
-      'Bulletins Officiels BERA Météo-France par Massif Alpin et Pyrénéen',
-      'Échelle Européenne du Risque d\'Avalanche de 1 (Faible) à 5 (Très Fort)',
-      'Réseau des Balises Nivôse et Hauteurs de Neige de Haute Altitude',
-      'Simulateur d\'Isotherme 0°C, Limite Pluie-Neige et Gradient Thermique'
-    ],
-    intro: 'Le portail Météo Montagne d\'Instant Météo regroupe l\'ensemble des données de sécurité nivologique et météorologique pour les professionnels et amateurs de montagne. Couvrant les Alpes du Nord, les Alpes du Sud, les Pyrénées, le Massif Central, les Vosges, le Jura et la Corse, ce module centralise les bulletins officiels BERA et les stations automatiques Nivôse.',
+    title: 'Météo des montagnes et enneigement des massifs | Instant Météo',
+    description:
+      'Météo montagne dans les Alpes, Pyrénées, Massif Central, Vosges, Jura et Corse : enneigement, limite pluie-neige, isotherme 0°C, vent sur les crêtes et avalanches.',
+    h1: 'Météo en montagne et état de l’enneigement',
+    sectionTitle: 'Paramètres d’altitude pour les stations de ski et la randonnée',
+    breadcrumbName: 'Météo Montagne',
+    tabId: 'mountain',
+    changefreq: 'hourly',
+    priority: '0.85',
+    introParagraph:
+      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les six grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude, du fond de vallée jusqu’aux plus hauts sommets.',
     sections: [
       {
-        title: 'Décryptage du Bulletin d\'Estimation du Risque d\'Avalanche (BERA)',
-        content: 'Émis quotidiennement par les centres départementaux de Météo-France durant la saison nivologique, le BERA quantifie la stabilité du manteau neigeux selon l\'échelle européenne normalisée (1-Faible, 2-Limité, 3-Marqué, 4-Fort, 5-Très Fort). Il précise la localisation des plaques à vent, les versants les plus dangereux et les altitudes critiques.'
+        heading: 'Isotherme 0 °C et limite pluie-neige en temps réel',
+        body: 'L’isotherme 0 °C indique l’altitude à laquelle la température de l’air libre atteint le point de congélation. Lors d’une chute de précipitations continues, les flocons de neige descendent généralement 200 à 400 mètres plus bas que cet isotherme par effet d’isothermie.',
       },
       {
-        title: 'Balises Nivôse de haute altitude',
-        content: 'Implantées entre 1 800 et 3 000 mètres d\'altitude en zones isolées d\'altitude, les balises Nivôse mesurent en temps réel l\'épaisseur totale du manteau neigeux par capteur ultrason, la température de la neige, la vitesse du vent sur les crêtes et le cumul de neige fraîche sur 24 heures.'
+        heading: 'Épaisseur du manteau neigeux et qualité de la neige',
+        body: 'Pour chaque station et sommet, consultez la hauteur de neige au sol en bas et en haut des pistes, les cumuls de neige fraîche tombés ces dernières 24 heures, ainsi que l’évolution de la qualité du manteau (poudreuse, neige transformée de printemps ou croûte de regel).',
       },
       {
-        title: 'Calculateur d\'isotherme 0°C et limite pluie-neige',
-        content: 'Notre simulateur interactif modélise en continu l\'altitude exacte à laquelle la température de l\'air atteint 0°C (isotherme zéro), ainsi que la limite pluie-neige théorique (souvent située 200 à 300 mètres sous l\'isotherme par effet de refroidissement adiabatique de la fonte).'
-      }
+        heading: 'Stabilité du manteau et vent en haute altitude',
+        body: 'Le vent fort sur les crêtes transporte d’importantes quantités de neige et forme des plaques à vent sous le vent des reliefs. Vérifiez systématiquement l’indice de risque d’avalanche (échelle de 1 à 5) et la vitesse des rafales à 3 000 mètres avant toute sortie hors-piste.',
+      },
     ],
     faq: [
       {
-        question: 'À quelle heure les bulletins d\'avalanche BERA sont-ils publiés ?',
-        answer: 'Les bulletins BERA sont rédigés par les nivologues de Météo-France et publiés chaque après-midi à 16h00 pour le lendemain, avec actualisation matinale si les conditions ont évolué durant la nuit.'
+        question: 'Comment évolue la température lorsque l’on monte en altitude ?',
+        answer:
+          'En atmosphère standard, la température baisse en moyenne de 0,65 °C tous les 100 mètres de dénivelé positif, sauf en hiver lors d’inversions thermiques où l’air froid s’accumule au fond des vallées.',
       },
       {
-        question: 'Pourquoi le niveau 3 (Marqué) est-il le plus accidentogène ?',
-        answer: 'Statistiquement, la majorité des accidents mortels d\'avalanche surviennent au niveau 3. La neige y semble praticable, mais la présence de couches fragiles enfouies rend le déclenchement de plaques particulièrement facile sous le poids d\'un seul skieur ou randonneur.'
+        question: 'Que signifie un risque d’avalanche de niveau 3 sur 5 ?',
+        answer:
+          'Le niveau 3 (risque marqué) indique que des avalanches peuvent être déclenchées par le passage d’un seul skieur ou randonneur sur de nombreuses pentes raides : une grande expérience nivologique est indispensable.',
       },
       {
-        question: 'Quelle est la différence entre isotherme 0°C et limite pluie-neige ?',
-        answer: 'L\'isotherme 0°C est l\'altitude dans l\'atmosphère où la température de l\'air ambiant vaut 0°C. Les flocons de neige ne fondent pas instantanément en passant cette altitude : ils peuvent persister sous forme solide sur 200 à 400 mètres de chute supplémentaire, définissant la limite pluie-neige.'
+        question: 'Pourquoi l’indice UV est-il beaucoup plus fort en montagne ?',
+        answer:
+          'L’intensité du rayonnement ultraviolet augmente d’environ 10 % tous les 1 000 mètres d’altitude, et la réverbération sur la neige fraîche peut réfléchir jusqu’à 85 % des rayons UV.',
       },
-      {
-        question: 'Quels équipements sont obligatoires en montagne hors des pistes balisées ?',
-        answer: 'Le triptyque DVA (Détecteur de Victimes d\'Avalanche), pelle métallique et sonde rigide est indispensable et non négociable, complété idéalement d\'un sac airbag.'
-      }
     ],
-    tabId: 'mountain'
   },
+
   '/plages': {
     slug: 'plages',
     path: '/plages',
     canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Météo des Plages, Marées SHOM & Température de Mer - Instant Météo',
-    description: 'Météo du littoral et des plages de France : horaires et coefficients des marées SHOM, température de l\'eau en direct, hauteur de houle et pavillons.',
-    keywords: '',
-    h1: 'Météo des Plages, Annuaire des Marées SHOM & Température de l\'Eau',
-    h2s: [
-      'Annuaire Officiel des Marées SHOM : Horaires PM/BM et Coefficients',
-      'Température de Surface de la Mer (SST) par Télédétection Satellitaire',
-      'État de la Mer, Hauteur Significative de Houle et Période',
-      'Sécurité Balnéaire : Drapeaux de Baignade et Prévention des Baïnes'
-    ],
-    intro: 'Le service Météo des Plages d\'Instant Météo couvre les 5 500 kilomètres de côtes de la Manche, de l\'Océan Atlantique et de la Mer Méditerranée. Combinant les calculs astronomiques officiels du Service Hydrographique et Océanographique de la Marine (SHOM), les observations satellitaires Copernicus et les modèles de vagues Wavewatch III, il fournit toutes les clés pour une sortie côtière en toute sécurité.',
+    title: 'Météo des plages, marées et température de l’eau | Instant Météo',
+    description:
+      'Météo du littoral et des plages de France : horaires et coefficients de marée, température de la mer, hauteur de la houle, vent côtier et indice UV.',
+    h1: 'Météo du littoral, horaires des marées et baignade',
+    sectionTitle: 'Informations marines pour la baignade et les sports nautiques',
+    breadcrumbName: 'Météo des Plages',
+    tabId: 'beaches',
+    changefreq: 'hourly',
+    priority: '0.85',
+    introParagraph:
+      'De la Manche à la Méditerranée en passant par la côte Atlantique et la Corse, la page Météo des Plages réunit toutes les données marines utiles pour préparer une journée au bord de l’eau, une session de surf ou une sortie en plaisance.',
     sections: [
       {
-        title: 'Horaires et coefficients de marée issus des calculs officiels du SHOM',
-        content: 'Accédez en direct aux heures exactes de Pleine Mer (PM) et Basse Mer (BM), aux hauteurs d\'eau prévues en mètres par rapport au zéro hydrographique et aux coefficients de marée (de 20 pour les mortes-eaux à 120 pour les vives-eaux d\'équinoxe).'
+        heading: 'Horaires de pleine mer, basse mer et coefficients de marée',
+        body: 'Consultez les heures exactes de marée haute et de marée basse ainsi que le coefficient du jour (de 20 à 120). Au-delà d’un coefficient de 90 (grandes marées), l’amplitude de marnage est importante et les courants de baïnes ou de chenaux se renforcent sensiblement.',
       },
       {
-        title: 'Mesure de la température de l\'eau en temps réel',
-        content: 'Les températures marines de surface (SST - Sea Surface Temperature) sont issues des radiomètres spatiaux infrarouges de la flotte Sentinel et des bouées océanographiques côtières du réseau Météo-France, actualisées quotidiennement.'
+        heading: 'Température de l’eau de baignade et état du plan d’eau',
+        body: 'Chaque fiche de plage affiche la température de surface de la mer, la hauteur significative des vagues en mètres, la période de la houle en secondes (essentielle pour les surfeurs) ainsi que l’orientation de la brise thermique côtière.',
       },
       {
-        title: 'Houle, vagues et courants d\'arrachement (baïnes)',
-        content: 'Surveillez la hauteur significative des vagues, la période de la houle (en secondes), sa provenance et les alertes spécifiques au phénomène de baïnes et courants de retour sur les côtes de Nouvelle-Aquitaine et de Bretagne.'
-      }
+        heading: 'Protection solaire et sécurité de la baignade',
+        body: 'Un indicateur synthétique évalue les conditions de baignade selon l’agitation de la mer et la force du vent, complété par le suivi horaire de l’indice UV sur le sable.',
+      },
     ],
     faq: [
       {
-        question: 'Comment est calculé le coefficient de marée ?',
-        answer: 'Le coefficient de marée (utilisé principalement sur les côtes françaises de l\'Atlantique et de la Manche) compare l\'amplitude de la marée du jour à l\'amplitude moyenne d\'une marée de vive-eau moyenne à Brest (amplitude étalon de 6,10 mètres, coefficient 100).'
+        question: 'Qu’est-ce qu’un courant de baïne sur la côte Atlantique ?',
+        answer:
+          'Une baïne est une cuvette naturelle creusée dans le sable qui se vide à marée descendante en créant un puissant courant tirant vers le large. Si vous êtes entraîné, ne nagez jamais à contre-courant mais parallèlement à la plage.',
       },
       {
-        question: 'Que signifient les couleurs des drapeaux de baignade ?',
-        answer: 'Vert : baignade surveillée et sans danger apparent. Jaune : baignade surveillée avec danger limité ou marqué (vagues, courant). Rouge : baignade interdite. Violet : pollution de l\'eau ou présence d\'espèces aquatiques dangereuses (méduses).'
+        question: 'Pourquoi une houle de longue période (plus de 12 secondes) est-elle plus puissante ?',
+        answer:
+          'Une houle de longue période provient d’une dépression lointaine sur l’océan : elle transporte beaucoup plus d’énergie en profondeur et génère des séries de vagues plus hautes lorsqu’elle touche les bancs de sable côtiers.',
       },
       {
-        question: 'Qu\'est-ce qu\'une baïne et comment s\'en échapper ?',
-        answer: 'Une baïne est une cuvette d\'eau creusée dans le sable sur le littoral atlantique. À marée montante, l\'eau s\'évacue vers le large par un chenal en créant un violent courant d\'arrachement. Si vous êtes pris, ne luttez jamais à contre-courant : laissez-vous flotter et nagez parallèlement à la plage pour sortir du chenal.'
+        question: 'Pourquoi fait-il souvent plus frais sur la plage qu’à 10 kilomètres dans les terres ?',
+        answer:
+          'En cours d’après-midi, le réchauffement rapide des terres crée une brise de mer qui ramène vers la plage l’air marin plus tempéré.',
       },
-      {
-        question: 'Y a-t-il des marées en Mer Méditerranée ?',
-        answer: 'Oui, mais le marnage (différence entre marée haute et marée basse) est très faible en Méditerranée (généralement entre 20 et 40 centimètres), en raison de la configuration fermée du bassin relié à l\'océan par le seul détroit de Gibraltar.'
-      }
     ],
-    tabId: 'beaches'
   },
+
   '/secheresse-incendie': {
     slug: 'secheresse-incendie',
     path: '/secheresse-incendie',
     canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
-    title: 'Vigilance Sécheresse VigiEau & Météo des Forêts - Instant Météo',
-    description: 'Suivi de la sécheresse et du risque incendie : arrêtés préfectoraux de restriction d\'eau VigiEau, Indice Forêt Météo (IFM) et feux NASA FIRMS.',
-    keywords: '',
-    h1: 'Vigilance Sécheresse VigiEau & Météo des Forêts / Risque Incendie',
-    h2s: [
-      'Dispositif National de Restriction d\'Usage de l\'Eau VigiEau',
-      'Météo des Forêts Officielle et Indice Forêt Météo (IFM)',
-      'Détection Satellitaire des Anomalies Thermiques NASA FIRMS',
-      'Humidité des Sols, Bilan Hydrique et Arrêtés Préfectoraux'
-    ],
-    intro: 'La plateforme Sécheresse et Risque Incendie d\'Instant Météo regroupe les données critiques liées aux stress hydriques et feux de végétation sur le territoire métropolitain. Connecté aux bases gouvernementales VigiEau du Ministère de la Transition Écologique, aux prévisions de la Météo des Forêts de Météo-France et aux satellites de télédétection thermique de la NASA, ce tableau de bord offre une vision transparente des crises climatiques.',
+    title: 'État de la sécheresse et risque d’incendie en France | Instant Météo',
+    description:
+      'Suivi de la sécheresse des sols, du niveau des nappes phréatiques et du danger météorologique de feux de forêt par département en France.',
+    h1: 'Suivi de la sécheresse et du risque feux de forêt',
+    sectionTitle: 'Indicateurs d’humidité des sols, nappes souterraines et danger incendie',
+    breadcrumbName: 'Sécheresse & Incendies',
+    tabId: 'droughtFire',
+    changefreq: 'hourly',
+    priority: '0.85',
+    introParagraph:
+      'Cet observatoire environnemental suit l’état de la ressource en eau et la vulnérabilité de la végétation aux incendies sur le territoire français. Il distingue la sécheresse superficielle des sols agricoles, le niveau des réserves souterraines et le danger quotidien d’éclosion de feux.',
     sections: [
       {
-        title: 'Les 4 seuils réglementaires de restriction d\'eau VigiEau',
-        content: 'Vigilance (sensibilisation aux écogestes), Alerte (interdiction d\'arrosage des pelouses et massifs en journée, réduction des prélèvements agricoles de 30%), Alerte Renforcée (interdiction accrue de lavage de véhicules, arrosage fortement restreint) et Crise (arrêts totaux des prélèvements non prioritaires pour réserver l\'eau potable et la santé).'
+        heading: 'Humidité des sols superficiels et bilan hydrique',
+        body: 'Le bilan hydrique compare les pluies tombées au cours des dernières semaines à l’évapotranspiration des plantes sous l’effet de la chaleur et du vent. Il permet de mesurer le stress hydrique des cultures, des prairies et des jardins.',
       },
       {
-        title: 'L\'Indice Forêt Météo (IFM) et la Météo des Forêts',
-        content: 'Lancée par Météo-France durant la saison estivale, la Météo des Forêts évalue le danger de feu sur une échelle à 4 niveaux (Faible, Modéré, Élevé, Très Élevé). Elle intègre l\'Indice Forêt Météo (IFM / FWI canadien) qui combine sécheresse des litières de sol (FFMC), vitesse du vent et humidité relative de l\'air.'
+        heading: 'Niveau des nappes phréatiques et restrictions d’usage de l’eau',
+        body: 'Les réserves souterraines se rechargent principalement d’octobre à mars grâce aux pluies d’automne et d’hiver. En période d’étiage, quatre niveaux préfectoraux encadrent les usages de l’eau : vigilance, alerte, alerte renforcée et crise.',
       },
       {
-        title: 'Surveillance spatiale NASA FIRMS en continu',
-        content: 'Les capteurs satellitaires MODIS et VIIRS détectent les anomalies thermiques de surface en orbite polaire et géostationnaire, signalant les foyers d\'incendie actifs et les points chauds sur le territoire.'
-      }
+        heading: 'Indice météorologique de danger de feux de forêt',
+        body: 'La combinaison d’une végétation desséchée, d’une humidité de l’air inférieure à 30 %, de fortes chaleurs et d’un vent soutenu (comme le Mistral ou la Tramontane) favorise la propagation rapide des flammes. La carte signale les massifs forestiers les plus exposés.',
+      },
     ],
     faq: [
       {
-        question: 'Comment savoir si ma commune est soumise à un arrêté sécheresse ?',
-        answer: 'En consultant notre module ou le portail officiel VigiEau avec votre code postal ou commune, vous accédez directement aux règles précises applicables à votre adresse selon l\'arrêté préfectoral en vigueur.'
+        question: 'Pourquoi une forte pluie d’orage en été ne recharge-t-elle pas les nappes phréatiques ?',
+        answer:
+          'En été, les sols secs et durcis favorisent le ruissellement rapide, et la végétation active absorbe la quasi-totalité de l’eau infiltrée dans les premiers décimètres du sol avant qu’elle n’atteigne la nappe en profondeur.',
       },
       {
-        question: 'Quels comportements sont interdits en niveau Alerte Renforcée ?',
-        answer: 'L\'arrosage des jardins potagers est interdit entre 09h et 20h, l\'arrosage des pelouses est totalement interdit, le remplissage des piscines privées est prohibé, tout comme le lavage des véhicules à domicile.'
+        question: 'Quelles sont les règles d’arrosage en niveau d’alerte sécheresse ?',
+        answer:
+          'Dès le niveau d’alerte, l’arrosage des pelouses et des jardins potagers est généralement interdit aux heures les plus chaudes de la journée (souvent entre 11 h et 18 h), et totalement suspendu pour les espaces verts en niveau de crise.',
       },
       {
-        question: 'Comment Météo-France calcule-t-elle l\'Indice Forêt Météo (IFM) ?',
-        answer: 'L\'IFM est calculé quotidiennement à partir de quatre variables météorologiques mesurées à 12h UTC : la température, l\'humidité relative de l\'air, la vitesse du vent et les précipitations cumulées sur les dernières 24 heures.'
+        question: 'Quels gestes permettent d’éviter les départs de feux en période sèche ?',
+        answer:
+          'Ne jetez jamais de mégot au sol ou par la fenêtre d’un véhicule, n’utilisez pas d’outils produisant des étincelles (débroussailleuse, disqueuse) à proximité d’herbes sèches et respectez les fermetures temporaires de massifs forestiers.',
       },
-      {
-        question: '9 feux sur 10 sont-ils d\'origine humaine ?',
-        answer: 'Oui, selon les statistiques de la Sécurité Civile, 90% des départs de feux de forêt en France sont d\'origine anthropique (imprudence lors de barbecues, mégots jetés, travaux d\'outillage avec étincelles ou malveillance).'
-      }
     ],
-    tabId: 'droughtFire'
   },
+
   '/cours-d-eau': {
     slug: 'cours-d-eau',
     path: '/cours-d-eau',
     canonicalUrl: `${BASE_SITE_URL}/cours-d-eau`,
-    title: 'Vigie Cours d\'Eau, Hauteurs & Crues Vigicrues - Instant Météo',
-    description: 'Surveillance hydrologique des rivières et fleuves de France en direct : débits instantanés (m³/s), hauteurs d\'eau Vigicrues, niveaux de crue et crues historiques.',
-    keywords: '',
-    h1: 'Vigie Cours d\'Eau, Niveaux des Rivières & Prévention des Crues Vigicrues',
-    h2s: [
-      'Réseau National des Stations Limnimétriques et Hydrométriques Hub\'Eau',
-      'Hauteurs d\'Eau Instantanées (m) et Débits Mesurés en Temps Réel (m³/s)',
-      'Vigilance Crues SCHAPI : Niveaux Vert, Jaune, Orange et Rouge',
-      'Comparaisons aux Seuils Historiques et Débordements Notables'
-    ],
-    intro: 'L\'observatoire Vigie Cours d\'Eau d\'Instant Météo restitue les données hydrologiques du réseau public Vigicrues, piloté par le Service Central d\'Hydrométéorologie et d\'Appui à la Prévision des Inondations (SCHAPI). Grâce à plus de 3 000 stations limnimétriques automatiques réparties sur les bassins versants français (Seine, Loire, Garonne, Rhône, Rhin, fleuves côtiers), suivez l\'onde de crue minute par minute.',
+    title: 'Niveau des cours d’eau et suivi des crues | Instant Météo',
+    description:
+      'Surveillance hydrologique des fleuves et rivières de France : hauteur d’eau en mètres, débit en m³/s, tendance des niveaux et repères de crue.',
+    h1: 'Hauteur des rivières et surveillance des crues',
+    sectionTitle: 'Fonctionnement des stations hydrométriques et réaction des bassins versants',
+    breadcrumbName: 'Cours d’Eau & Crues',
+    tabId: 'watercourses',
+    changefreq: 'always',
+    priority: '0.85',
+    introParagraph:
+      'La page Cours d’Eau permet de suivre l’évolution du niveau des principaux fleuves, rivières et torrents français. Elle affiche la hauteur d’eau mesurée aux échelles limnimétriques, le débit estimé et la tendance immédiate (hausse, stabilité ou décrue).',
     sections: [
       {
-        title: 'Mesures limnimétriques et débitmétriques haute fréquence',
-        content: 'Chaque station enregistre en continu la hauteur d\'eau (en mètres par rapport au zéro d\'échelle locale) par sonde radar ou capteur piézorésistif, et calcule le débit instantané (en mètres cubes par seconde m³/s) via les courbes de tarage hydrauliques officielles.'
+        heading: 'Mesure de la hauteur d’eau (m) et du débit (m³/s)',
+        body: 'Les capteurs installés le long des ponts et des berges mesurent en continu la hauteur de la surface libre de l’eau. Une courbe de tarage propre à chaque section de rivière convertit cette hauteur en débit, c’est-à-dire le volume d’eau qui s’écoule chaque seconde.',
       },
       {
-        title: 'Niveaux de vigilance crues et dynamique d\'inondation',
-        content: 'Vert : situation normale. Jaune : risque de crue génératrice de débordements localisés et montée rapide des eaux. Orange : risque de crue majeure avec débordements importants impactant les zones urbanisées et les axes de communication. Rouge : risque de crue exceptionnelle menaçant directement la sécurité des biens et des personnes.'
+        heading: 'Différence entre crue lente de plaine et crue éclair torrentielle',
+        body: 'Les grands fleuves de plaine (Seine, Loire, Garonne, Rhône) réagissent progressivement sur plusieurs jours après de longues pluies hivernales. À l’inverse, les petits bassins versants escarpés (Cévennes, Alpes-Maritimes, Pyrénées, Corse) peuvent connaître une montée des eaux de plusieurs mètres en moins de deux heures lors d’orages stationnaires.',
       },
       {
-        title: 'Historique des grandes crues et repères patrimoniaux',
-        content: 'Confrontez la hauteur d\'eau observée aux plus grands événements hydrologiques enregistrés sur la même station (crues centennales de 1910, crues majeures de 1982, 2003, 2016 ou 2021).'
-      }
+        heading: 'Comparaison avec les crues historiques de référence',
+        body: 'Chaque fiche hydrologique rappelle les niveaux atteints lors des crues passées marquantes afin de situer immédiatement l’ampleur d’une montée des eaux par rapport aux seuils de débordement des berges.',
+      },
     ],
     faq: [
       {
-        question: 'Quelle est la différence entre une crue lente et une crue éclair cévenole ?',
-        answer: 'Une crue lente survient sur de grands bassins de plaine (Seine, Loire) après des semaines de pluies continues, avec une montée des eaux prévisible sur plusieurs jours. Une crue éclair (épisodes cévenols ou méditerranéens) frappe de petits bassins pentus en quelques heures seulement avec une violence extrême.'
+        question: 'Pourquoi le niveau d’une rivière continue-t-il de monter alors que la pluie s’est arrêtée ?',
+        answer:
+          'L’eau tombée sur l’ensemble des collines et des affluents en amont met plusieurs heures, voire plusieurs jours sur les grands fleuves, à s’écouler jusqu’aux stations situées en aval : c’est le temps de propagation de l’onde de crue.',
       },
       {
-        question: 'Comment sont établies les prévisions de hauteur d\'eau de Vigicrues ?',
-        answer: 'Les prévisionnistes utilisent des modèles de propagation hydraulique alimentés par les cumuls de pluie observés au radar et les prévisions pluviométriques à très court terme du modèle AROME.'
+        question: 'Quels sont les réflexes essentiels en cas d’inondation rapide ?',
+        answer:
+          'Ne vous engagez jamais à pied ou en voiture sur une route immergée (30 cm d’eau suffisent à emporter un véhicule), n’allez pas chercher votre voiture dans un parking souterrain et rejoignez les étages supérieurs.',
       },
       {
-        question: 'Que faire en cas de vigilance Crue Orange ou Rouge dans ma commune ?',
-        answer: 'Ne descendez sous aucun prétexte dans les sous-sols ou parkings souterrains, éloignez-vous impérativement des berges et des ponts, ne vous engagez jamais à pied ou en voiture sur une voie inondée (30 cm d\'eau suffisent à emporter un véhicule) et montez dans les étages supérieurs.'
+        question: 'Qu’appelle-t-on le débit d’étiage d’une rivière ?',
+        answer:
+          'L’étiage désigne le niveau moyen le plus bas atteint par un cours d’eau au cours de l’année, généralement observé à la fin de l’été après plusieurs semaines sans précipitations.',
       },
-      {
-        question: 'D\'où proviennent les données hydrométriques affichées ?',
-        answer: 'Les données proviennent directement des serveurs ouverts Hub\'Eau et du réseau national de surveillance des cours d\'eau Vigicrues géré par le Ministère de la Transition Écologique.'
-      }
     ],
-    tabId: 'watercourses'
   },
+
   '/cartes-thematiques': {
     slug: 'cartes-thematiques',
     path: '/cartes-thematiques',
     canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques`,
-    title: 'Cartes Météo Thématiques & Environnementales - Instant Météo',
-    description: 'Cartes météo thématiques haute résolution : qualité de l\'air AQI, indice UV, températures marines SST, anomalies climatiques et modélisation des vents.',
-    keywords: '',
-    h1: 'Cartes Météorologiques Thématiques & Environnementales Interactives',
-    h2s: [
-      'Qualité de l\'Air et Dispersion des Particules Fines (Copernicus CAMS)',
-      'Rayonnement Ultraviolet Solaire et Indice UV Maximal du Jour',
-      'Température de Surface des Mers (SST) et Bassins Océaniques',
-      'Champ de Vent Synoptique, Rafales et Lignes de Convergence'
-    ],
-    intro: 'L\'espace Cartes Thématiques d\'Instant Météo réunit la cartographie environnementale avancée pour comprendre l\'ensemble des dynamiques terrestres et marines. Grâce aux visualisations vectorielles interactives, observez la circulation des masses d\'air, les panaches de pollution particulaire, le rayonnement UV et les gradients thermiques marins.',
+    title: 'Cartes météo thématiques de la France | Instant Météo',
+    description:
+      'Explorez les cartes météo thématiques de France : températures par région, anomalies thermiques, rafales de vent, cumuls de pluie et relief.',
+    h1: 'Cartes météo thématiques par région',
+    sectionTitle: 'Analyse cartographique des paramètres atmosphériques en France',
+    breadcrumbName: 'Cartes Thématiques',
+    tabId: 'radar',
+    changefreq: 'hourly',
+    priority: '0.85',
+    introParagraph:
+      'Les cartes thématiques offrent une vue d’ensemble des contrastes météorologiques entre le nord et le sud, les façades océaniques et les massifs montagneux. Vous pouvez filtrer l’affichage par grandeur physique (température, vent, pluie, anomalie climatique) et par tranche d’altitude.',
     sections: [
       {
-        title: 'Indice de qualité de l\'air et composition atmosphérique',
-        content: 'Suivez la concentration de particules en suspension PM2.5 et PM10, le dioxyde d\'azote (NO2), le dioxyde de soufre (SO2) et l\'ozone troposphérique (O3) en liaison avec les alertes préfectorales de pic de pollution.'
+        heading: 'Carte thermique nationale et contrastes régionaux',
+        body: 'Visualisez simultanément les températures relevées dans les grandes villes, les stations côtières et les sommets d’altitude. Le filtre par étage topographique permet d’isoler les plaines (< 400 m), la moyenne montagne ou les sommets alpins et pyrénéens.',
       },
       {
-        title: 'Cartographie de l\'indice UV et photo-protection',
-        content: 'Visualisez la répartition spatiale de l\'indice UV international (échelle de 1 à 11+) calculé pour le midi solaire, tenant compte de l\'angle zénithal du soleil, de la couche d\'ozone stratosphérique et de l\'albédo du sol.'
+        heading: 'Champs de vent et couloirs d’accélération',
+        body: 'La carte des vents met en évidence les grands flux atmosphériques ainsi que les couloirs régionaux bien connus : Mistral dans la vallée du Rhône, Tramontane dans l’Aude et le Roussillon, vent d’Autan dans le Lauragais ou coups de vent atlantiques sur la pointe bretonne.',
       },
       {
-        title: 'Météorologie marine et température des mers',
-        content: 'Analysez les anomalies thermiques marines, le phénomène de remontée d\'eau froide (upwelling) sur les côtes méditerranéennes sous l\'effet du mistral et de la tramontane, et les courants de surface.'
-      }
+        heading: 'Répartition spatiale des pluies et des anomalies',
+        body: 'Comparez la pluviométrie et l’écart thermique de chaque région par rapport aux moyennes saisonnières pour repérer les zones soumises à un temps anormalement doux, frais ou humide.',
+      },
     ],
     faq: [
       {
-        question: 'À quelle fréquence les cartes thématiques sont-elles actualisées ?',
-        answer: 'Les cartes de vent et de pluie sont renouvelées toutes les 15 minutes, les cartes de qualité de l\'air toutes les heures, et les cartes de température marine SST une fois par jour à l\'issue des passes satellitaires nocturnes.'
+        question: 'Comment zoomer directement sur ma région ou sur un massif ?',
+        answer:
+          'Utilisez le bandeau de sélection rapide des 13 régions françaises ou la barre d’accès rapide aux sommets pour cadrer instantanément la carte sur la zone souhaitée.',
       },
       {
-        question: 'À partir de quel indice UV la protection solaire devient-elle indispensable ?',
-        answer: 'Dès l\'indice UV 3 (niveau modéré), l\'Organisation Mondiale de la Santé recommande le port de lunettes solaires avec filtre UV, l\'application de crème solaire et le port d\'un chapeau, particulièrement pour les enfants.'
+        question: 'À quoi sert le filtre par tranche d’altitude sur la carte ?',
+        answer:
+          'Il permet de comparer des stations situées à des altitudes équivalentes afin de ne pas confondre un refroidissement lié au relief avec l’arrivée d’une masse d’air froid en plaine.',
       },
       {
-        question: 'Comment fonctionne la modélisation des vents sur les cartes ?',
-        answer: 'Le champ vectoriel des vents (flèches et particules en mouvement) représente la vitesse et la direction du vent à 10 mètres de hauteur calculées par le modèle météorologique AROME de Météo-France.'
+        question: 'Peut-on changer le fond de carte entre vue satellite et carte du relief ?',
+        answer:
+          'Oui, les boutons situés en haut à gauche de la carte permettent de basculer à tout moment entre le fond standard, la carte topographique du relief, le mode sombre et l’imagerie satellite.',
       },
-      {
-        question: 'Peut-on superposer le radar des précipitations avec la carte des vents ?',
-        answer: 'Oui, notre moteur cartographique permet l\'activation simultanée des calques de précipitations, de vent, de pression isobarique et de nébulosité.'
-      }
     ],
-    tabId: 'radar'
   },
+
   '/sports': {
     slug: 'sports',
     path: '/sports',
     canonicalUrl: `${BASE_SITE_URL}/sports`,
-    title: 'Météo Sportive & Calculateur d\'Itinéraire Trajet - Instant Météo',
-    description: 'Indices de confort météo pour vos activités sportives (running, vélo, rando, nautisme) et calculateur météo étape par étape le long de vos trajets.',
-    keywords: '',
-    h1: 'Météo Sportive & Calculateur de Conditions le Long d\'un Trajet',
-    h2s: [
-      'Indices de Confort Météo par Discipline (Cyclisme, Course à Pied, Randonnée)',
-      'Calculateur Météo d\'Itinéraire Routier et Pédestre Pas à Pas',
-      'Sensibilité au Vent, Rafales Latérales et Pression Aérodynamique',
-      'Créneaux Optimaux de Sortie Outdoor et Évitement des Averses'
-    ],
-    intro: 'Que vous soyez cycliste préparant une sortie de 100 km, coureur à pied cherchant la fraîcheur matinale ou voyageur sur les autoroutes françaises, la Météo Sportive et Trajet d\'Instant Météo calcule précisément l\'impact des éléments sur votre parcours. Notre algorithme évalue le stress thermique, le risque d\'aquaplanage et la composante du vent (vent de face, dos ou latéral).',
+    title: 'Météo des trajets routiers et activités de plein air | Instant Météo',
+    description:
+      'Calculateur météo de trajet routier et indices pour le sport en extérieur : vélo, course à pied, randonnée, golf, sports nautiques et entretien du jardin.',
+    h1: 'Conditions météo pour la route et le sport',
+    sectionTitle: 'Planification des déplacements routiers et des séances sportives',
+    breadcrumbName: 'Météo Route & Sports',
+    tabId: 'sportsActivities',
+    changefreq: 'hourly',
+    priority: '0.80',
+    introParagraph:
+      'Que vous prépariez un long trajet sur autoroute, une sortie à vélo ou une séance de course à pied, cette page évalue l’impact concret des conditions météo sur la sécurité routière et sur la pratique sportive au fil des heures.',
     sections: [
       {
-        title: 'Calculateur météo le long de votre itinéraire étape par étape',
-        content: 'Saisissez votre point de départ, votre destination et votre heure de départ : notre moteur découpe votre itinéraire et calcule la météo exacte (température, pluie, vent, visibilité) à chaque point de passage selon votre vitesse moyenne de progression estimée.'
+        heading: 'Calculateur météo d’itinéraire routier étape par étape',
+        body: 'En renseignant votre ville de départ, votre destination et votre heure de départ, le calculateur estime les conditions que vous rencontrerez tout au long du parcours : chaussée mouillée, risque d’aquaplaning, brouillard réduisant la visibilité, verglas matinal ou rafales de vent latéral sur les viaducs.',
       },
       {
-        title: 'Indices d\'aptitude sportive par discipline',
-        content: 'Chaque sport possède sa propre sensibilité : le cyclisme est fortement pénalisé par le vent et la chaussée mouillée ; le trail et la randonnée dépendent des orages et du froid d\'altitude ; les sports nautiques exigent une analyse pointue de la force et direction des rafales.'
+        heading: 'Indices de confort pour le cyclisme, le running et la randonnée',
+        body: 'Pour chaque discipline, un score de praticabilité sur 10 analyse la force et la direction du vent (vent de face ou porteur), le stress thermique lié à la chaleur humide, l’absence d’averse et la qualité de l’air.',
       },
       {
-        title: 'Optimisation de vos fenêtres d\'entraînement',
-        content: 'Notre système passe au crible les 48 prochaines heures pour identifier les meilleures fenêtres horaires sans pluie, avec température optimale (entre 12°C et 20°C pour la course à pied) et vent faible.'
-      }
+        heading: 'Conseils pratiques pour le jardinage et les activités extérieures',
+        body: 'Identifiez les meilleurs créneaux horaires de la journée pour tondre, arroser, bricoler en extérieur ou organiser une sortie familiale à l’abri des averses et des fortes chaleurs.',
+      },
     ],
     faq: [
       {
-        question: 'Comment fonctionne le calculateur météo d\'itinéraire ?',
-        answer: 'Il interroge l\'API de routage cartographique pour calculer votre tracé, puis géolocalise chaque tronçon pour extraire la prévision météo à l\'heure exacte où vous vous trouverez sur chaque portion du trajet.'
+        question: 'À partir de quelle vitesse de vent la conduite devient-elle délicate ?',
+        answer:
+          'Dès que les rafales latérales dépassent 60 à 70 km/h, les deux-roues, les camping-cars et les véhicules tractant une remorque doivent réduire leur vitesse et redoubler de vigilance lors des dépassements de poids lourds.',
       },
       {
-        question: 'Comment est calculé le vent pour les cyclistes ?',
-        answer: 'L\'algorithme projette le vecteur vent sur le cap de déplacement de votre vélo pour calculer la composante exacte de vent de face (qui augmente la résistance aérodynamique) ou de vent latéral (danger d\'écart de trajectoire).'
+        question: 'Quel est le meilleur moment de la journée pour courir en été ?',
+        answer:
+          'En période estivale, privilégiez le créneau entre 6 h et 9 h du matin : la température est au plus bas et la concentration d’ozone troposphérique est nettement plus faible qu’en fin d’après-midi.',
       },
       {
-        question: 'Quels sports sont pris en compte dans les indices ?',
-        answer: 'Course à pied / running, cyclisme sur route, gravel / VTT, randonnée pédestre et trail, golf, tennis extérieur et sports nautiques (voile, paddle, kayak).'
+        question: 'Comment savoir si une route risque d’être glissante au petit matin ?',
+        answer:
+          'Lorsque la température de l’air descend sous +2 °C avec une humidité élevée ou après une averse nocturne, la chaussée peut descendre sous 0 °C et former des plaques de verglas localisées, notamment sur les ponts et en lisière de forêt.',
       },
-      {
-        question: 'Le système signale-t-il les risques d\'aquaplanage sur autoroute ?',
-        answer: 'Oui, si des intensités de précipitation supérieures à 15 mm/h sont modélisées sur votre trajet autoroutier, une alerte spécifique d\'aquaplanage et de réduction de vitesse recommandée est générée.'
-      }
     ],
-    tabId: 'sportsActivities'
   },
+
   '/bulletins': {
     slug: 'bulletins',
     path: '/bulletins',
     canonicalUrl: `${BASE_SITE_URL}/bulletins`,
-    title: 'Bulletins Prévisions Rédigés J+1 à J+7 & 4 Semaines - Instant Météo',
-    description: 'Bulletins météorologiques complets rédigés par nos experts pour votre commune, département et échelle nationale. Analyses synoptiques de J+1 à 4 semaines.',
-    keywords: '',
-    h1: 'Bulletins Météorologiques Rédigés : Commune, Département & France',
-    h2s: [
-      'Synthèse Synoptique Nationale et Analyse des Centres d\'Action',
-      'Bulletins Textuels Détaillés de J+1 à J+7 par Département',
-      'Tendances Climatologiques à 4 Semaines et Anomalies Moyennes',
-      'Commentaires d\'Experts sur l\'Évolution des Masses d\'Air'
-    ],
-    intro: 'Les chiffres et les pictogrammes ne remplacent pas une véritable analyse textuelle structurée. Les bulletins d\'Instant Météo décrivent avec précision l\'évolution synoptique globale, le positionnement des anticyclones et des dépressions, les passages frontaux (front chaud, front froid, occlusion) et leurs conséquences concrètes sur chaque région.',
+    title: 'Bulletins météo départementaux et tendances mensuelles | Instant Météo',
+    description:
+      'Bulletins météo rédigés pour la France et chaque département : synthèse du jour, évolution de la semaine et perspectives sur 4 semaines.',
+    h1: 'Bulletins météo détaillés par département',
+    sectionTitle: 'Organisation des bulletins quotidiens et des tendances à quatre semaines',
+    breadcrumbName: 'Bulletins & 4 Semaines',
+    tabId: 'bulletin',
+    changefreq: 'hourly',
+    priority: '0.85',
+    introParagraph:
+      'Pour ceux qui préfèrent une analyse rédigée et structurée aux simples icônes, la page Bulletins propose un point complet sur la situation atmosphérique en France, accompagné d’un bulletin propre à votre département et d’une perspective semaine par semaine sur un mois.',
     sections: [
       {
-        title: 'Le bulletin départemental quotidien rédigé',
-        content: 'Chaque matin et chaque soir, un bulletin complet détaille la chronologie de la journée : conditions du matin, évolution de l\'après-midi, risques d\'ondées vespérales, températures minimales et maximales attendues, ainsi que la fiabilité de la prévision.'
+        heading: 'Synthèse nationale et situation générale en Europe',
+        body: 'Le bulletin quotidien explique en termes accessibles le placement des anticyclones et des dépressions sur l’Atlantique Nord et l’Europe, afin de faire comprendre l’origine des masses d’air qui traversent la France.',
       },
       {
-        title: 'Tendance synoptique nationale à moyenne échéance',
-        content: 'Suivez le comportement du courant-jet (jet stream), les advections d\'air subtropical saharien ou polaire maritime, et l\'organisation des ondulations planétaires de Rossby qui gouvernent la météo européenne.'
+        heading: 'Bulletin départemental et communal détaillé',
+        body: 'Chaque territoire dispose d’un récapitulatif précis pour la matinée, l’après-midi et la soirée : état du ciel, températures minimales et maximales, orientation du vent et probabilités de précipitations.',
       },
       {
-        title: 'Perspectives climatologiques à 4 semaines',
-        content: 'Basées sur les modèles mensuels du Centre Européen (ECMWF Extended), nos analyses à 4 semaines projettent les anomalies probables de température et de précipitations pour anticiper la gestion agricole et énergétique.'
-      }
+        heading: 'Perspectives météo sur 4 semaines',
+        body: 'Le module à quatre semaines dégage les grandes lignes des prochains régimes de temps (flux océanique humide, blocage anticyclonique doux et sec, ou descente fraîche continentale) semaine après semaine.',
+      },
     ],
     faq: [
       {
-        question: 'À quelle heure les bulletins rédigés sont-ils mis à jour ?',
-        answer: 'Les bulletins quotidiens sont rédigés et mis à jour deux fois par jour (vers 06h30 et 17h30), et les tendances hebdomadaires sont renouvelées chaque lundi et jeudi soir.'
+        question: 'Quelle est la différence entre un bulletin météo à 7 jours et une tendance à 4 semaines ?',
+        answer:
+          'Le bulletin à 7 jours détaille le temps jour par jour avec les horaires de pluie et les températures précises, tandis que la tendance à 4 semaines décrit l’ambiance générale de chaque semaine (plus chaude, plus fraîche, plus sèche ou plus humide que la normale).',
       },
       {
-        question: 'Comment est élaborée l\'analyse synoptique ?',
-        answer: 'Elle s\'appuie sur la lecture experte des cartes de géopotentiel à 500 hPa, de température de la masse d\'air à 850 hPa (environ 1 500 m d\'altitude) et des champs de pression de surface.'
+        question: 'Puis-je consulter le bulletin spécifique à mon département ?',
+        answer:
+          'Oui, dès que vous sélectionnez une commune ou un département dans la barre de recherche, le bulletin départemental et communal s’adapte automatiquement à votre secteur géographique.',
       },
       {
-        question: 'Les bulletins couvrent-ils les départements d\'outre-mer ?',
-        answer: 'Oui, des synthèses régulières intègrent les spécificités cycloniques et de mousson des zones Antilles-Guyane et Océan Indien.'
+        question: 'Peut-on exporter ou imprimer un dossier météo complet ?',
+        answer:
+          'Un bouton d’export permet de générer un récapitulatif clair regroupant les relevés actuels, les prévisions de la semaine et les normales locales.',
       },
-      {
-        question: 'Peut-on recevoir les bulletins météo par notification ?',
-        answer: 'Oui, vous pouvez activer les alertes de synthèse quotidienne dans vos préférences de notification sur l\'application.'
-      }
     ],
-    tabId: 'bulletin'
   },
+
   '/archives': {
     slug: 'archives',
     path: '/archives',
     canonicalUrl: `${BASE_SITE_URL}/archives`,
-    title: 'Archives Météo Journalières & Historique depuis 2000 - Instant Météo',
-    description: 'Consultez l\'historique météo complet pour toute date passée depuis 2000 : températures relevées, précipitations, ensoleillement et records climatiques.',
-    keywords: '',
-    h1: 'Archives Météorologiques Journalières & Historique des Données depuis 2000',
-    h2s: [
-      'Recherche Rétrospective par Date et Commune de France',
-      'Températures Minimales (Tn), Maximales (Tx) et Moyennes Réelles',
-      'Cumuls Pluviométriques Enregistrés et Événements Remarquables',
-      'Comparaison avec les Records Historiques Absolus de la Station'
-    ],
-    intro: 'Quel temps faisait-il le jour de votre naissance, lors de votre mariage ou pendant la canicule historique de 2003 ? Le module Archives Météo d\'Instant Météo donne accès à plus de deux décennies d\'observations météorologiques numérisées et validées pour l\'ensemble des stations du réseau national français.',
+    title: 'Archives météo en France depuis 1950 | Instant Météo',
+    description:
+      'Consultez l’historique météo jour par jour en France depuis 1950 : températures passées, cumuls de pluie, records et normales climatiques 1991-2020.',
+    h1: 'Historique météo et normales de saison',
+    sectionTitle: 'Recherche dans les archives climatiques et comparaison aux normales',
+    breadcrumbName: 'Archives & Normales',
+    tabId: 'weatherArchive',
+    changefreq: 'daily',
+    priority: '0.80',
+    introParagraph:
+      'Quel temps faisait-il dans votre commune à une date précise il y a dix, trente ou soixante-dix ans ? La page Archives Météo vous permet de remonter le temps depuis 1950 et de comparer la météo actuelle aux moyennes de référence.',
     sections: [
       {
-        title: 'Exploration historique intuitive par calendrier',
-        content: 'Sélectionnez n\'importe quelle date depuis le 1er janvier 2000 pour retrouver instantanément la météo observée : température minimale de l\'aube, température maximale de l\'après-midi, cumul de pluie en 24h, rafale maximale de vent et temps sensible dominant.'
+        heading: 'Consultation de la météo passée jour par jour depuis 1950',
+        body: 'Sélectionnez n’importe quelle date du calendrier pour afficher les conditions reconstituées sur votre commune : température minimale à l’aube, maximale de l’après-midi, hauteur de pluie ou de neige tombée sur 24 heures et vitesse maximale du vent.',
       },
       {
-        title: 'Validation des données et réanalyses météorologiques ERA5',
-        content: 'Pour les communes ne disposant pas d\'une station physique continue, nous utilisons les réanalyses atmosphériques à haute résolution ERA5-Land du programme Copernicus, garantissant une précision spatiale de 9 kilomètres sur toute la France.'
+        heading: 'Que représentent les normales climatiques 1991-2020 ?',
+        body: 'Pour savoir si une journée est anormalement chaude ou froide, les météorologues utilisent la moyenne calculée sur trente années consécutives (la période officielle 1991-2020). Chaque fiche compare les températures du jour à ce repère historique.',
       },
       {
-        title: 'Statistiques climatologiques et records de station',
-        content: 'Comparez la journée consultée aux records absolus de chaleur ou de froid jamais enregistrés sur la station locale, ainsi qu\'au climat moyen observé sur le mois correspondant.'
-      }
+        heading: 'Chronologie des grands événements météo en France',
+        body: 'Retrouvez les dates marquantes de l’histoire météorologique française : vagues de froid mémorables (février 1956, janvier 1985), grandes tempêtes (décembre 1999, Xynthia) et étés caniculaires (2003, 2019, 2022).',
+      },
     ],
     faq: [
       {
-        question: 'Jusqu\'à quelle date remontent les archives météo disponibles ?',
-        answer: 'Nos archives couvrent l\'ensemble de la période allant du 1er janvier 2000 jusqu\'à hier, avec une profondeur statistique de référence remontant à 1950 pour les records de température absolus des grandes stations.'
+        question: 'Comment retrouver la météo d’une date précise pour un événement passé ?',
+        answer:
+          'Choisissez votre commune puis sélectionnez l’année, le mois et le jour dans le sélecteur d’archives : la fiche complète de cette journée passée s’affiche immédiatement.',
       },
       {
-        question: 'Ces relevés historiques peuvent-ils servir pour une déclaration d\'assurance ?',
-        answer: 'Nos données permettent de vérifier avec certitude la survenue d\'un événement (vent violent, fortes pluies, gel). Pour un dossier d\'indemnisation officiel d\'assurance, un certificat officiel d\'intempéries Météo-France peut être requis juridiquement.'
+        question: 'Pourquoi la période de référence climatique change-t-elle tous les dix ans ?',
+        answer:
+          'L’Organisation Météorologique Mondiale actualise la période de référence trentenaire à chaque décennie (1981-2010 puis 1991-2020) afin que les normales reflètent le climat récent tout en permettant de mesurer le réchauffement sur le long terme.',
       },
       {
-        question: 'Les archives incluent-elles les chutes de neige ?',
-        answer: 'Oui, les hauteurs de neige fraîche et la présence de neige au sol sont consignées dans nos registres hivernaux historiques.'
+        question: 'Peut-on utiliser ces archives pour vérifier une intempérie passée ?',
+        answer:
+          'Les relevés historiques permettent de visualiser les pics de rafales de vent et les cumuls de précipitations quotidiens enregistrés lors d’un épisode d’intempéries sur votre secteur.',
       },
-      {
-        question: 'Comment sont corrigées les données manquantes sur les petites communes ?',
-        answer: 'Grâce à l\'interpolation spatiale krigée et aux réanalyses atmosphériques ERA5 qui reconstituent l\'atmosphère avec les lois de la physique pour chaque kilomètre carré.'
-      }
     ],
-    tabId: 'weatherArchive'
   },
+
   '/monde-catastrophes': {
     slug: 'monde-catastrophes',
     path: '/monde-catastrophes',
     canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
-    title: 'Météo Monde, Tornades & Catastrophes Naturelles 24h - Instant Météo',
-    description: 'Suivi mondial des phénomènes météo extrêmes en direct : cyclones, typhons, tornades, inondations historiques et canicules record dans le monde entier.',
-    keywords: '',
-    h1: 'Observatoire Météorologique Mondial des Catastrophes & Phénomènes Extrêmes',
-    h2s: [
-      'Suivi en Temps Réel des Bassins Cycloniques Mondiaux (Ouragans & Typhons)',
-      'Détection des Épisodes de Tornades et Orages Supercellulaires (NOAA SPC)',
-      'Anomalies Thermiques Planétaires et Records Mondiaux de Température',
-      'Bilans et Analyses Validés par les Agences Internationales de Référence'
-    ],
-    intro: 'L\'Observatoire International d\'Instant Météo scrute en permanence les événements météorologiques violents à l\'échelle du globe. Alimenté par le National Hurricane Center (NHC), le Storm Prediction Center (SPC) de la NOAA, le Joint Typhoon Warning Center (JTWC) et l\'Organisation Météorologique Mondiale (OMM), ce module offre une fenêtre temps réel sur les furies de l\'atmosphère planétaire.',
+    title: 'Phénomènes naturels majeurs dans le monde | Instant Météo',
+    description:
+      'Suivi mondial des événements météo et géophysiques : cyclones tropicaux, tempêtes, inondations majeures, incendies, séismes et éruptions volcaniques.',
+    h1: 'Suivi mondial des événements naturels majeurs',
+    sectionTitle: 'Surveillance internationale des cyclones, séismes et phénomènes extrêmes',
+    breadcrumbName: 'Monde & Catastrophes',
+    tabId: 'worldDisasters',
+    changefreq: 'always',
+    priority: '0.80',
+    introParagraph:
+      'Au-delà des frontières françaises, cette page suit en temps réel les phénomènes naturels majeurs qui touchent la planète : cyclones tropicaux dans les bassins océaniques (notamment près des territoires français d’Outre-mer), séismes significatifs, éruptions volcaniques et grands feux de végétation.',
     sections: [
       {
-        title: 'Traque des cyclones tropicaux, ouragans et typhons',
-        content: 'Visualisez les trajectoires prévues par les modèles globaux, les catégories sur l\'échelle de Saffir-Simpson (1 à 5), la pression centrale minimale en hectopascals (hPa), les vents maximaux soutenus et les marées de tempête générées sur les zones côtières.'
+        heading: 'Trajectoire et intensité des cyclones, ouragans et typhons',
+        body: 'Suivez l’évolution des systèmes dépressionnaires tropicaux dans l’Atlantique (Antilles, Guyane), l’océan Indien (La Réunion, Mayotte) et le Pacifique Sud (Nouvelle-Calédonie, Polynésie française), avec leur catégorie sur l’échelle de Saffir-Simpson et leurs vents soutenus.',
       },
       {
-        title: 'Surveillance des tornades et supercellules géantes',
-        content: 'Suivez les corridors de tornades (Tornado Alley américaine, plaines d\'Amérique du Sud, Europe) avec les bulletins d\'alerte météo PDS (Particularly Dangerous Situation) émis par le NWS/NOAA et les rapports de dégâts sur l\'échelle de Fujita améliorée (EF0 à EF5).'
+        heading: 'Activité sismique et volcanique mondiale',
+        body: 'Les secousses sismiques significatives sont répertoriées avec leur magnitude, la profondeur de l’hypocentre et la distance aux zones habitées, complétées par le suivi des volcans en activité.',
       },
       {
-        title: 'Veille sur les vagues de chaleur et de froid polaires extrêmes',
-        content: 'Consultez les températures extrêmes mesurées sur les stations mondiales : des +54°C dans la Vallée de la Mort ou au Moyen-Orient aux -60°C en Sibérie et sur le plateau antarctique, avec mise en contexte du réchauffement climatique global.'
-      }
+        heading: 'Grands incendies et inondations à l’échelle des continents',
+        body: 'Visualisez les foyers thermiques majeurs et les épisodes d’inondations sévères recensés sur les cinq continents afin de suivre l’actualité environnementale internationale.',
+      },
     ],
     faq: [
       {
-        question: 'Quelle est la différence entre un cyclone, un ouragan et un typhon ?',
-        answer: 'Ce sont physiquement les mêmes phénomènes : des cyclones tropicaux intenses. Le nom varie selon la région géographique : "ouragan" dans l\'Atlantique Nord et le Pacifique Nord-Est, "typhon" dans le Pacifique Nord-Ouest, et "cyclone" dans l\'Océan Indien et le Pacifique Sud.'
+        question: 'Quelle est la différence entre un ouragan, un typhon et un cyclone ?',
+        answer:
+          'Il s’agit exactement du même phénomène météorologique : on l’appelle ouragan dans l’Atlantique Nord et le Pacifique Nord-Est, typhon dans le Pacifique Nord-Ouest (Asie), et cyclone tropical dans l’océan Indien et le Pacifique Sud.',
       },
       {
-        question: 'Comment une tornade est-elle classée sur l\'échelle de Fujita (EF) ?',
-        answer: 'La classification (de EF0 à EF5) ne se fait pas pendant la tornade mais a posteriori, par l\'analyse méticuleuse des dégâts structurels causés aux habitations et à la végétation par les enquêteurs météo sur le terrain.'
+        question: 'À partir de quelle vitesse de vent parle-t-on d’ouragan de catégorie 1 ?',
+        answer:
+          'Un système tropical atteint la catégorie 1 sur l’échelle de Saffir-Simpson lorsque ses vents moyens soutenus sur une minute dépassent 119 km/h (et la catégorie 5 au-delà de 252 km/h).',
       },
       {
-        question: 'Quelles sont les agences météorologiques internationales partenaires ?',
-        answer: 'Nous agrégeons les données publiques d\'observation et de prévision du National Weather Service (NWS / NOAA), de Météo-France Outre-Mer, de l\'agence japonaise JMA, du Bureau of Meteorology australien (BOM) et du Met Office britannique.'
+        question: 'Les territoires français d’Outre-mer sont-ils couverts par ce suivi ?',
+        answer:
+          'Oui, une attention particulière est portée aux bassins cycloniques et sismiques entourant la Guadeloupe, la Martinique, Saint-Martin, La Réunion, Mayotte, la Nouvelle-Calédonie et la Polynésie.',
       },
-      {
-        question: 'À quelle fréquence les bulletins cycloniques mondiaux sont-ils mis à jour ?',
-        answer: 'Toutes les 6 heures en situation nominale, et toutes les 3 heures lorsqu\'un système cyclonique s\'approche à moins de 48h des côtes habitées.'
-      }
     ],
-    tabId: 'worldDisasters'
   },
+
   '/climat': {
     slug: 'climat',
     path: '/climat',
     canonicalUrl: `${BASE_SITE_URL}/climat`,
-    title: 'Évolution du Climat & Tendances Saisonnières 8 Mois - Instant Météo',
-    description: 'Comprendre le changement climatique local et les tendances saisonnières à 8 mois en France. Analyse des anomalies, cycles ENSO et réchauffement.',
-    keywords: '',
-    h1: 'Évolution du Climat, Tendances Saisonnières à 8 Mois & Indices Globaux',
-    h2s: [
-      'Projections Climatiques Saisonnières à 8 Mois (Copernicus C3S / ECMWF SEAS5)',
-      'Oscillations Océan-Atmosphère : El Niño / La Niña (ENSO) et NAO',
-      'Trajectoire du Réchauffement Climatique Observé dans votre Commune',
-      'Bilan Pluviométrique Annuel et Évaporation des Sols'
-    ],
-    intro: 'Le laboratoire climatique d\'Instant Météo met en perspective la météo quotidienne avec les grandes dynamiques du système Terre. À travers les prévisions saisonnières étendues sur 8 mois et les données de référence du GIEC et de Météo-France, découvrez comment évolue le climat de votre terroir sous l\'effet du dérèglement climatique global.',
+    title: 'Tendances saisonnières et évolution du climat | Instant Météo',
+    description:
+      'Projections climatiques saisonnières sur 8 mois en France, suivi du cycle El Niño / La Niña (ENSO) et évolution des températures annuelles.',
+    h1: 'Tendances saisonnières et bilans climatiques',
+    sectionTitle: 'Analyse des tendances à long terme et des cycles océaniques',
+    breadcrumbName: 'Climat & 8 Mois',
+    tabId: 'eightMonths',
+    changefreq: 'daily',
+    priority: '0.80',
+    introParagraph:
+      'L’espace Climat explore l’évolution de l’atmosphère sur le temps long : tendances saisonnières pour les prochains mois en France, influence des grands cycles océaniques mondiaux et suivi de l’écart thermique annuel par rapport aux décennies passées.',
     sections: [
       {
-        title: 'Prévisions saisonnières multi-modèles sur 8 mois',
-        content: 'Les modèles saisonniers (ECMWF SEAS5, Météo-France Système 8, NCEP CFSv2) ne prévoient pas le temps d\'un jour précis, mais calculent si les prochains mois seront globalement plus chauds, plus froids, plus secs ou plus humides que les normales trentenaires de référence.'
+        heading: 'Tendances saisonnières mois par mois sur 8 mois',
+        body: 'Les projections saisonnières n’ont pas vocation à prévoir la météo d’un jour précis, mais à estimer si les prochains mois s’annoncent globalement plus chauds, plus frais, plus secs ou plus arrosés que la moyenne habituelle en France.',
       },
       {
-        title: 'L\'empreinte locale du réchauffement climatique',
-        content: 'Visualisez l\'évolution des températures moyennes annuelles, l\'augmentation du nombre de jours de fortes chaleurs (> 30°C) et de nuits tropicales (> 20°C), ainsi que la diminution spectaculaire des jours de gelée blanche depuis 1960 dans votre département.'
+        heading: 'Influence des cycles El Niño, La Niña et de l’Atlantique Nord',
+        body: 'Les variations de température de surface des océans (cycle ENSO dans le Pacifique) et l’Oscillation Nord-Atlantique (NAO) modifient la circulation des courants-jets et orientent la fréquence des hivers doux et humides ou des étés chauds en Europe.',
       },
       {
-        title: 'Oscillations climatiques majeures : ENSO, NAO et QBO',
-        content: 'Suivez les téléconnexions atmosphériques à grande échelle : les phases El Niño ou La Niña dans le Pacifique équatorial, et l\'Oscillation Nord-Atlantique (NAO) qui pilote la trajectoire des tempêtes hivernales vers l\'Europe.'
-      }
+        heading: 'Évolution des températures moyennes en France depuis le XXe siècle',
+        body: 'Les graphiques d’évolution annuelle illustrent la progression des températures moyennes, la diminution du nombre de jours de gel en plaine et la fréquence accrue des vagues de chaleur estivales.',
+      },
     ],
     faq: [
       {
-        question: 'Comment une prévision saisonnière à 8 mois est-elle possible ?',
-        answer: 'L\'atmosphère est couplée aux océans qui possèdent une inertie thermique colossale. La température des eaux de surface océaniques (Pacifique, Atlantique) influence la position durable des centres de haute et basse pression pendant plusieurs mois.'
+        question: 'Comment une tendance saisonnière peut-elle voir à plusieurs mois d’échéance ?',
+        answer:
+          'Contrairement à l’air qui change rapidement, les océans, la banquise et l’humidité des sols possèdent une forte inertie thermique qui influence durablement la circulation atmosphérique sur plusieurs mois.',
       },
       {
-        question: 'Qu\'est-ce que l\'Oscillation Nord-Atlantique (NAO) ?',
-        answer: 'La NAO mesure la différence de pression entre l\'Anticyclone des Açores et la Dépression d\'Islande. En phase positive (NAO+), les perturbations pluvieuses et douces balayent l\'Europe du Nord ; en phase négative (NAO-), le flux d\'ouest ralentit, favorisant les vagues de froid ou la pluie en Méditerranée.'
+        question: 'Qu’est-ce que l’Oscillation Nord-Atlantique (NAO) pour la météo en France ?',
+        answer:
+          'C’est la différence de pression entre l’anticyclone des Açores et la dépression d’Islande : lorsqu’elle est positive en hiver, elle dirige un flux océanique doux et pluvieux sur la France ; lorsqu’elle est négative, elle favorise les descentes d’air froid.',
       },
       {
-        question: 'Comment sont définies les normales climatiques 1991-2020 ?',
-        answer: 'Selon les normes de l\'OMM, les normales représentent la moyenne arithmétique calculée sur 30 ans consécutifs. La période 1991-2020 est la référence officielle actuelle, plus chaude de +0,4°C à +0,9°C que la précédente période 1981-2010.'
+        question: 'Que mesure l’anomalie thermique affichée en degrés (°C) ?',
+        answer:
+          'Elle mesure l’écart entre la température moyenne observée sur un mois ou une année et la température normale de référence calculée sur la période 1991-2020.',
       },
-      {
-        question: 'Le réchauffement climatique est-il uniforme sur toute la France ?',
-        answer: 'Non. En France métropolitaine, le réchauffement est plus marqué à l\'intérieur des terres, dans l\'Est et en haute montagne alpine qu\'en bordure de l\'Océan Atlantique qui amortit temporairement la hausse des températures.'
-      }
     ],
-    tabId: 'eightMonths'
   },
+
   '/communaute': {
     slug: 'communaute',
     path: '/communaute',
     canonicalUrl: `${BASE_SITE_URL}/communaute`,
-    title: 'Salon Météo & Observatoire Citoyen Collaboratif - Instant Météo',
-    description: 'Partagez vos relevés du ciel en direct avec la communauté Instant Météo : signalements météo géolocalisés, échanges entre passionnés et photos météo.',
-    keywords: '',
-    h1: 'Salon de Discussion Météorologique & Observatoire Citoyen Collaboratif',
-    h2s: [
-      'Signalements Météo Citoyens Géolocalisés en Temps Réel',
-      'Salon d\'Échange Direct entre Passionnés et Observateurs Locaux',
-      'Validation Communautaire des Phénomènes Rares et Violents',
-      'Défis Météorologiques et Badges d\'Expertise Climatique'
-    ],
-    intro: 'La météorologie est avant tout une passion collective de terrain. Le salon communautaire d\'Instant Météo rassemble des milliers d\'observateurs bénévoles, chasseurs d\'orages, agriculteurs et amateurs éclairés qui partagent leurs constats en direct pour enrichir la précision des modèles.',
+    title: 'Signalements météo participatifs en France | Instant Météo',
+    description:
+      'Partagez et consultez les observations météo des habitants en direct : chutes de neige, grêle, orages, rafales de vent, brouillard et discussions locales.',
+    h1: 'Observations météo partagées par les habitants',
+    sectionTitle: 'Fonctionnement des signalements citoyens et de l’entraide locale',
+    breadcrumbName: 'Communauté & Signalements',
+    tabId: 'discussionGroup',
+    changefreq: 'always',
+    priority: '0.75',
+    introParagraph:
+      'Même les réseaux de mesure les plus denses ne peuvent pas voir chaque flocon de neige, chaque averse de grêle localisée ou chaque nappe de brouillard au fond d’une vallée. L’espace Communauté permet aux habitants et aux passionnés de partager en direct ce qu’ils observent depuis chez eux.',
     sections: [
       {
-        title: 'Signalements météo citoyens instantanés',
-        content: 'Postez en un clic ce que vous observez depuis votre fenêtre : orage en cours, averse de grêle, neige qui commence à tenir au sol, nappe de brouillard épais ou coup de vent violent. Les autres utilisateurs confirment le signalement en temps réel.'
+        heading: 'Carte participative des phénomènes observés au sol',
+        body: 'En quelques secondes, signalez l’apparition de neige, de verglas, de grêle, d’un orage ou de fortes rafales dans votre commune. Votre observation apparaît sur la carte pour informer les habitants et automobilistes des environs.',
       },
       {
-        title: 'Salons de discussion par thématique et région',
-        content: 'Échangez sur les prévisions des prochains jours, partagez vos photos de nuages exceptionnels (mammatus, arcus, arc-en-ciel, parhélies) et confrontez les sorties des modèles numériques dans le respect de notre charte bienveillante.'
+        heading: 'Validation croisée avec les paramètres météo locaux',
+        body: 'Pour garantir la qualité des informations affichées, chaque signalement est accompagné du contexte météorologique local (température et humidité du secteur) afin d’éviter les erreurs manifestes.',
       },
       {
-        title: 'Système de ligue et réputation participative',
-        content: 'Chaque signalement validé, chaque observation régulière et chaque défi météo réussi vous rapporte des points de sentinelle météorologique, débloquant des titres honorifiques d\'Apprenti Météo à Grand Maître Cumulonimbus.'
-      }
+        heading: 'Fil d’échange et suivi collectif lors des épisodes météo marquants',
+        body: 'L’espace de discussion permet d’échanger entre passionnés et habitants d’une même région pour suivre l’avancée d’une ligne orageuse, la tenue de la neige au sol ou l’évolution du ciel.',
+      },
     ],
     faq: [
       {
-        question: 'Comment poster un signalement météo sur la carte ?',
-        answer: 'Cliquez sur l\'icône de signalement météo, choisissez le pictogramme correspondant au phénomène observé (soleil, pluie modérée, grêle, neige, orage), ajustez la température si nécessaire et validez : votre repère apparaît instantanément sur la carte nationale.'
+        question: 'Comment publier une observation météo sur ma commune ?',
+        answer:
+          'Cliquez sur le bouton de signalement, choisissez le phénomène observé (pluie, neige, orage, vent, ciel dégagé) et précisez éventuellement un court commentaire : votre observation est immédiatement visible.',
       },
       {
-        question: 'Comment sont modérés les messages du salon ?',
-        answer: 'Nos administrateurs et modérateurs veillent en permanence au respect de la courtoisie et de la pertinence des échanges. Les comportements abusifs ou propos haineux sont immédiatement sanctionnés par un bannissement du compte.'
+        question: 'Pourquoi les observations des habitants sont-elles utiles en hiver ?',
+        answer:
+          'Lors d’un épisode neigeux en plaine, un écart d’un demi-degré suffit à transformer la pluie en neige : seul un observateur au sol peut confirmer instantanément si les flocons tiennent sur la chaussée.',
       },
       {
-        question: 'Mes coordonnées GPS exactes sont-elles divulguées ?',
-        answer: 'Non, pour protéger la vie privée des utilisateurs, les coordonnées géographiques sont automatiquement associées au centre de la commune ou floutées à l\'échelle du quartier.'
+        question: 'La participation au fil communautaire est-elle gratuite ?',
+        answer:
+          'Oui, le partage d’observations et la participation aux échanges météo sont entièrement gratuits et ouverts à tous.',
       },
-      {
-        question: 'Puis-je synchroniser mes points et badges entre mon téléphone et mon PC ?',
-        answer: 'Oui, votre profil joueur et vos statistiques se synchronisent instantanément via notre base de données sécurisée dès que vous renseignez votre pseudo.'
-      }
     ],
-    tabId: 'discussionGroup'
   },
+
   '/competition': {
     slug: 'competition',
     path: '/competition',
     canonicalUrl: `${BASE_SITE_URL}/competition`,
-    title: 'Ligue Météo & Défi des Prévisionnistes - Instant Météo',
-    description: 'Participez à la Ligue Météo Instant Météo : gagnez des points d\'observation, accumulez les séries de flammes (streaks) et grimpez dans le classement.',
-    keywords: '',
-    h1: 'Ligue des Sentinelles Météo & Classement National des Observateurs',
-    h2s: [
-      'Classement National en Temps Réel et Top des Observateurs',
-      'Séries Quotidiennes (Streaks) et Multiplicateurs de Score',
-      'Collection des 10 Badges Thématiques Météorologiques',
-      'Synchronisation Multi-Plateformes Téléphone & Ordinateur'
-    ],
-    intro: 'Transformez votre intérêt pour le ciel en un jeu stimulant et éducatif. La Ligue des Sentinelles Météo récompense la régularité et la pertinence de vos observations quotidiennes à travers un système de points, de flammes de fidélité et de classements régionaux et nationaux.',
+    title: 'Quiz météo et défis de prévision | Instant Météo',
+    description:
+      'Testez vos connaissances avec le quiz météo et les défis de prévision : estimez les températures et les pluies en France pour progresser au classement.',
+    h1: 'Quiz météo et classement des pronostiqueurs',
+    sectionTitle: 'Règles du jeu de prévision et des quiz pédagogiques',
+    breadcrumbName: 'Quiz & Défis Météo',
+    tabId: 'competitive',
+    changefreq: 'daily',
+    priority: '0.75',
+    introParagraph:
+      'Apprenez à décrypter l’atmosphère tout en vous mesurant aux autres passionnés : l’espace Quiz & Défis propose des questions pédagogiques sur les phénomènes météo ainsi que des pronostics de prévision où la précision de vos estimations est récompensée.',
     sections: [
       {
-        title: 'Mécanique des points et multiplicateurs de série',
-        content: 'Chaque consultation quotidienne, chaque observation de phénomène météo et chaque exploration d\'une nouvelle commune vous attribue des points d\'expérience. Maintenez votre série de jours consécutifs (streak) pour multiplier vos gains.'
+        heading: 'Défis de prévision : mettez-vous dans la peau d’un prévisionniste',
+        body: 'Analysez les indices disponibles pour estimer la température maximale, le cumul de pluie ou la vitesse du vent sur une station donnée. Plus votre pronostic est proche de la réalité, plus vous marquez de points.',
       },
       {
-        title: 'Collectionnez les 10 badges de maîtrise météorologique',
-        content: 'Débloquez les trophées exclusifs : Soleil Radieux, Chasseur de Pluie, Maître des Orages, Sentinelle des Neiges, Résistant au Gel, Percepteur de Brouillard, Vigie des Tempêtes, Dompteur de Canicule, Explorateur d\'Altitude et Veilleur Nocturne.'
+        heading: 'Quiz thématiques sur les nuages, le climat et les records',
+        body: 'Des séries de questions variées vous permettent de réviser la classification des nuages, les mécanismes des orages, les vents régionaux français et les grands records climatiques.',
       },
       {
-        title: 'Une compétition saine et éducative',
-        content: 'L\'objectif de la ligue est d\'encourager l\'apprentissage des sciences atmosphériques et l\'observation attentive de la nature qui nous entoure.'
-      }
+        heading: 'Classement général et progression des joueurs',
+        body: 'Cumulez de l’expérience au fil de vos bonnes réponses pour faire évoluer votre grade de prévisionniste et figurer au tableau d’honneur des meilleurs joueurs.',
+      },
     ],
     faq: [
       {
-        question: 'Comment accumuler des points dans la ligue météo ?',
-        answer: 'Vous gagnez des points en consultant l\'application quotidiennement (+15 pts), en partageant un signalement météo (+30 pts), en explorant de nouvelles communes (+10 pts) et en maintenant votre série de visites actives.'
+        question: 'Comment sont attribués les points lors des défis météo ?',
+        answer:
+          'Le score dépend de la justesse de votre réponse et de votre régularité : une série de bonnes réponses consécutives déclenche un multiplicateur de points.',
       },
       {
-        question: 'Que se passe-t-il si je manque un jour de visite ?',
-        answer: 'Votre compteur de jours consécutifs (flammes / streak) est réinitialisé à 1 jour, mais votre total de points cumulés et vos badges déjà débloqués restent définitivement acquis.'
+        question: 'Faut-il être spécialiste en météorologie pour participer au quiz ?',
+        answer:
+          'Pas du tout : les questions comportent plusieurs niveaux de difficulté et chaque réponse est accompagnée d’une explication claire pour apprendre pas à pas.',
       },
       {
-        question: 'Les classements sont-ils mis à jour en temps réel ?',
-        answer: 'Oui, le classement TOP mondial et national est synchronisé instantanément sur notre serveur central dès qu\'un utilisateur marque de nouveaux points.'
+        question: 'Comment enregistrer mon score dans le classement des joueurs ?',
+        answer:
+          'Choisissez simplement un pseudonyme avant de lancer votre partie : vos points sont automatiquement sauvegardés et synchronisés avec le classement général.',
       },
-      {
-        question: 'Comment puis-je devenir Grand Maître Cumulonimbus ?',
-        answer: 'Ce titre suprême est automatiquement décerné aux sentinelles météo ayant accumulé plus de 3 000 points d\'expérience et validé l\'ensemble des 10 badges d\'observation.'
-      }
     ],
-    tabId: 'competitive'
-  }
+  },
 };
 
 /**
- * Normalise un chemin d'URL pour retrouver l'objet SEO correspondant
+ * Normalise un chemin URL et retourne les métadonnées SEO correspondantes.
  */
-export function getSeoDataForPath(rawPath: string): PageSeoItem {
-  let clean = (rawPath || '/').split('?')[0].split('#')[0].trim();
-  if (clean.length > 1 && clean.endsWith('/')) {
-    clean = clean.slice(0, -1);
+export function getSeoDataForPath(rawPathname: string): PageSeoMetadata {
+  if (!rawPathname) return SEO_PAGES_MAP['/'];
+  let cleanPath = rawPathname.split('?')[0].split('#')[0].trim();
+  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+    cleanPath = cleanPath.slice(0, -1);
   }
-  if (!clean) clean = '/';
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
 
-  // Alias courants et redirections d'anciennes pages supprimées vers les pages actives équivalentes
-  const ALIASES: Record<string, string> = {
+  // Correspondance exacte
+  if (SEO_PAGES_MAP[cleanPath]) {
+    return SEO_PAGES_MAP[cleanPath];
+  }
+
+  // Alias historiques éventuels redirigés vers la bonne configuration SEO
+  const aliases: Record<string, string> = {
+    '/accueil': '/',
+    '/home': '/',
+    '/meteo-en-direct': '/direct',
+    '/temps-reel': '/direct',
+    '/radar-pluie': '/radar',
+    '/radar-meteo': '/radar',
+    '/vigilance': '/vigilances',
+    '/alertes': '/vigilances',
+    '/nuage': '/nuages',
+    '/satellite': '/nuages',
+    '/nephologie': '/nuages',
     '/previsions': '/14-jours',
     '/previsions-14-jours': '/14-jours',
+    '/previsions-15-jours': '/14-jours',
     '/previsions-meteo': '/14-jours',
-    '/radar-pluie': '/radar',
-    '/radar-precipitations': '/radar',
-    '/alerte': '/vigilances',
-    '/alertes': '/vigilances',
-    '/vigilance': '/vigilances',
-    '/meteo-direct': '/direct',
-    '/temps-reel': '/direct',
+    '/tendances': '/14-jours',
+    '/neige': '/montagne',
+    '/ski': '/montagne',
     '/meteo-montagne': '/montagne',
+    '/plage': '/plages',
+    '/littoral': '/plages',
+    '/mer': '/plages',
+    '/marees': '/plages',
     '/meteo-des-plages': '/plages',
     '/vigi-secheresse-incendie': '/secheresse-incendie',
     '/secheresse': '/secheresse-incendie',
     '/incendie': '/secheresse-incendie',
-    '/vigie-cours-d-eau': '/cours-d-eau',
-    '/cours-deau': '/cours-d-eau',
-    '/inondations': '/cours-d-eau',
+    '/feux': '/secheresse-incendie',
+    '/qualite-air': '/secheresse-incendie',
+    '/vigicrues': '/cours-d-eau',
+    '/crues': '/cours-d-eau',
+    '/rivieres': '/cours-d-eau',
     '/cartes': '/cartes-thematiques',
-    '/meteo-sport': '/sports',
-    '/tendances': '/14-jours',
-    '/tendances-saisonnieres': '/climat',
+    '/carte-france': '/cartes-thematiques',
+    '/comparateur': '/cartes-thematiques',
+    '/sport': '/sports',
+    '/route': '/sports',
+    '/trajets': '/sports',
+    '/bulletin': '/bulletins',
+    '/4-semaines': '/bulletins',
+    '/methodologie': '/',
+    '/archive': '/archives',
+    '/historique': '/archives',
+    '/histoire': '/archives',
+    '/records': '/archives',
+    '/normales': '/archives',
+    '/monde': '/monde-catastrophes',
+    '/catastrophes': '/monde-catastrophes',
+    '/saisonnier': '/climat',
     '/8-mois': '/climat',
-    '/nephologie': '/nuages',
+    '/evolution-climatique': '/climat',
+    '/observations': '/communaute',
     '/forum': '/communaute',
-    '/discussion': '/communaute',
-    '/salon': '/communaute',
-    '/ligue': '/competition',
-    // Redirection des anciennes pages supprimées
-    '/webcams': '/direct',
-    '/webcam': '/direct',
-    '/modeles': '/nuages',
-    '/modele': '/nuages',
-    '/modeles-meteo': '/nuages'
+    '/quiz': '/competition',
+    '/jeu': '/competition',
+    '/jeu-meteo': '/competition',
   };
 
-  const targetPath = ALIASES[clean] || clean;
-  if (SEO_PAGES_MAP[targetPath]) {
-    return SEO_PAGES_MAP[targetPath];
+  if (aliases[cleanPath] && SEO_PAGES_MAP[aliases[cleanPath]]) {
+    return SEO_PAGES_MAP[aliases[cleanPath]];
   }
 
-  // Si le chemin n'est pas répertorié statiquement, générer dynamiquement son objet SEO
-  // avec sa PROPRE URL canonique (et JAMAIS celle de la page d'accueil '/')
-  const cleanTitle = targetPath
-    .replace(/^\//, '')
-    .replace(/[-_/]/g, ' ')
-    .trim();
-  const formattedTitle = cleanTitle ? cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1) : 'Page Météo';
-  const finalCanonicalPath = targetPath === '/' ? '' : (targetPath.endsWith('/') ? targetPath.slice(0, -1) : targetPath);
-
-  return {
-    slug: targetPath.replace(/^\//, '').replace(/[/_]/g, '-') || 'page',
-    path: targetPath,
-    canonicalUrl: `${BASE_SITE_URL}${finalCanonicalPath}`,
-    title: `${formattedTitle} - Instant Météo France`,
-    description: `Consultez ${cleanTitle || 'la météo'} en direct sur Instant Météo : prévisions de précision, température temps réel et radar précipitations HD.`,
-    keywords: '',
-    h1: `Instant Météo - ${formattedTitle}`,
-    h2s: [
-      'Données Atmosphériques & Conditions Météo en Direct',
-      'Radar Précipitations Doppler Haute Définition',
-      'Vigilances Météo-France & Bulletins Experts'
-    ],
-    intro: `Bienvenue sur l'observatoire Instant Météo dédié à ${cleanTitle || 'la météo en France'}. Retrouvez l'ensemble des mesures en temps réel et des analyses prévisionnelles.`,
-    sections: [
-      {
-        title: 'Précision hyper-locale',
-        content: 'Instant Météo agrège les observations directes des stations synoptiques, le réseau radar ARAMIS et les sorties des modèles numériques haute résolution.'
-      }
-    ],
-    faq: [
-      {
-        question: 'Comment consulter la météo de ma commune ?',
-        answer: 'Utilisez la barre de recherche ou activez la géolocalisation pour afficher immédiatement les prévisions de votre secteur.'
-      }
-    ],
-    tabId: 'realtime'
-  };
+  return SEO_PAGES_MAP['/'];
 }
 
 /**
- * Mappe un identifiant d'onglet React (NavTabId) vers son chemin d'URL canonique
+ * Retourne le chemin URL canonique associé à un onglet de navigation interne.
  */
 export function getPathForTabId(tabId: string, currentPath?: string): string {
-  const rawCurrent = currentPath !== undefined ? currentPath : (typeof window !== 'undefined' ? window.location.pathname : '');
-  let cleanCurrent = (rawCurrent || '/').split('?')[0].split('#')[0].trim();
-  if (cleanCurrent.length > 1 && cleanCurrent.endsWith('/')) {
-    cleanCurrent = cleanCurrent.slice(0, -1);
-  }
-  if (!cleanCurrent) cleanCurrent = '/';
-
-  // Conserver l'URL canonique exacte si l'URL courante correspond déjà à une page officielle associée à cet onglet
-  // (ex: '/' vs '/direct' pour realtime, ou '/radar' vs '/cartes-thematiques' pour radar)
-  if (SEO_PAGES_MAP[cleanCurrent] && SEO_PAGES_MAP[cleanCurrent].tabId === tabId) {
-    return cleanCurrent;
-  }
+  const rawCurrent = currentPath !== undefined ? currentPath : typeof window !== 'undefined' ? window.location.pathname : '';
+  const cleanCurrent = rawCurrent.length > 1 && rawCurrent.endsWith('/') ? rawCurrent.slice(0, -1) : rawCurrent;
 
   if (tabId === 'realtime') {
-    if (cleanCurrent === '/direct') return '/direct';
-    if (cleanCurrent === '/') return '/';
-    return '/direct';
+    return cleanCurrent === '/direct' ? '/direct' : '/';
+  }
+  if (tabId === 'radar') {
+    return cleanCurrent === '/cartes-thematiques' ? '/cartes-thematiques' : '/radar';
   }
 
-  const MAP: Record<string, string> = {
-    realtime: '/direct',
-    cloudNephology: '/nuages',
+  const tabToPath: Record<string, string> = {
     vigilance: '/vigilances',
+    cloudNephology: '/nuages',
     scenarios14d: '/14-jours',
-    radar: '/radar',
     mountain: '/montagne',
     beaches: '/plages',
     droughtFire: '/secheresse-incendie',
     watercourses: '/cours-d-eau',
-    eightMonths: '/climat',
-    historicalTrends: '/climat',
+    franceMap: '/cartes-thematiques',
     sportsActivities: '/sports',
-    worldDisasters: '/monde-catastrophes',
-    weatherArchive: '/archives',
     bulletin: '/bulletins',
-    competitive: '/competition',
+    fourWeeks: '/bulletins',
+    nationalDigest: '/bulletins',
+    weatherArchive: '/archives',
+    historicalArchive: '/archives',
+    historical: '/archives',
+    anomalies: '/climat',
+    worldDisasters: '/monde-catastrophes',
+    eightMonths: '/climat',
+    projections: '/climat',
     discussionGroup: '/communaute',
-    communityReports: '/communaute'
+    competitive: '/competition',
+    altitude: '/montagne',
   };
 
-  return MAP[tabId] || '/direct';
+  return tabToPath[tabId] || '/';
 }
 
 /**
- * Mappe un chemin d'URL vers son identifiant d'onglet React (NavTabId)
+ * Retourne l'identifiant d'onglet React correspondant à l'URL visitée.
  */
-export function getTabIdForPath(rawPath: string): string {
-  const page = getSeoDataForPath(rawPath);
-  return page.tabId || 'realtime';
+export function getTabIdForPath(pathname: string): string {
+  const seo = getSeoDataForPath(pathname);
+  return seo.tabId;
 }
 
 /**
- * Génère le bloc JSON-LD Schema.org complet pour la page
+ * Génère les balises HTML <link rel="alternate" hreflang="..."> pour signaler
+ * toutes les versions linguistiques et régionales à Google.
  */
-export function generatePageJsonLd(page: PageSeoItem): string {
-  const isHome = page.path === '/';
+export function generateHreflangLinksHtml(canonicalUrl: string): string {
+  const links = SUPPORTED_HREFLANG_LOCALES.map(
+    ({ hreflang, param }) =>
+      `    <link rel="alternate" hreflang="${hreflang}" href="${canonicalUrl}${param}" />`
+  );
+  links.push(`    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}" />`);
+  return links.join('\n');
+}
 
-  const graph: any[] = [
+/**
+ * Génère le Sitemap XML complet (sans balise <lastmod> fixe périmée)
+ * avec déclaration des variantes linguistiques xhtml:link hreflang pour Google.
+ */
+export function generateSitemapXml(): string {
+  const routes = Object.values(SEO_PAGES_MAP);
+  const urlEntries = routes
+    .map((page) => {
+      const hreflangTags = [
+        `    <xhtml:link rel="alternate" hreflang="fr" href="${page.canonicalUrl}" />`,
+        `    <xhtml:link rel="alternate" hreflang="fr-FR" href="${page.canonicalUrl}" />`,
+        `    <xhtml:link rel="alternate" hreflang="fr-BE" href="${page.canonicalUrl}" />`,
+        `    <xhtml:link rel="alternate" hreflang="fr-CH" href="${page.canonicalUrl}" />`,
+        `    <xhtml:link rel="alternate" hreflang="fr-CA" href="${page.canonicalUrl}" />`,
+        `    <xhtml:link rel="alternate" hreflang="en" href="${page.canonicalUrl}?hl=en" />`,
+        `    <xhtml:link rel="alternate" hreflang="de" href="${page.canonicalUrl}?hl=de" />`,
+        `    <xhtml:link rel="alternate" hreflang="es" href="${page.canonicalUrl}?hl=es" />`,
+        `    <xhtml:link rel="alternate" hreflang="it" href="${page.canonicalUrl}?hl=it" />`,
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${page.canonicalUrl}" />`,
+      ].join('\n');
+      return `  <url>\n    <loc>${page.canonicalUrl}</loc>\n${hreflangTags}\n  </url>`;
+    })
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries}\n</urlset>\n`;
+}
+
+/**
+ * Génère le graphe JSON-LD Schema.org (WebSite + WebPage + BreadcrumbList + FAQPage) propre à la page.
+ */
+export function generatePageJsonLd(seoData: PageSeoMetadata): string {
+  const breadcrumbItems: any[] = [
     {
-      '@type': 'WebPage',
-      '@id': `${page.canonicalUrl}#webpage`,
-      url: page.canonicalUrl,
-      name: page.title,
-      description: page.description,
-      inLanguage: 'fr-FR',
-      isPartOf: {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Instant Météo France',
+      item: `${BASE_SITE_URL}/`,
+    },
+  ];
+
+  if (seoData.path !== '/') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: seoData.breadcrumbName,
+      item: seoData.canonicalUrl,
+    });
+  }
+
+  const graph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
         '@type': 'WebSite',
         '@id': `${BASE_SITE_URL}/#website`,
         url: `${BASE_SITE_URL}/`,
-        name: 'Instant Météo',
-        publisher: {
-          '@type': 'Organization',
-          name: 'Instant Météo',
-          url: `${BASE_SITE_URL}/`,
-          logo: `${BASE_SITE_URL}/icon-512.png`
-        }
-      }
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': `${page.canonicalUrl}#breadcrumb`,
-      itemListElement: isHome
-        ? [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Accueil',
-              item: `${BASE_SITE_URL}/`
-            }
-          ]
-        : [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Accueil',
-              item: `${BASE_SITE_URL}/`
-            },
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: page.h1,
-              item: page.canonicalUrl
-            }
-          ]
-    }
-  ];
-
-  if (isHome) {
-    graph.push({
-      '@type': 'WebSite',
-      '@id': `${BASE_SITE_URL}/#website`,
-      url: `${BASE_SITE_URL}/`,
-      name: 'Instant Météo',
-      alternateName: ['InstantMétéo', 'Instant Meteo', 'InstantMeteo', 'Instant Météo France'],
-      description: page.description,
-      inLanguage: 'fr-FR',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: `${BASE_SITE_URL}/?q={search_term_string}`
+        name: 'Instant Météo France',
+        alternateName: ['Instant Météo', 'InstantMeteoFrance'],
+        description: SEO_PAGES_MAP['/'].description,
+        inLanguage: 'fr-FR',
+      },
+      {
+        '@type': 'Organization',
+        '@id': `${BASE_SITE_URL}/#organization`,
+        name: 'Instant Météo France',
+        url: `${BASE_SITE_URL}/`,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${BASE_SITE_URL}/icon-512.png`,
+          width: 512,
+          height: 512,
         },
-        'query-input': 'required name=search_term_string'
-      }
-    });
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${seoData.canonicalUrl}#webpage`,
+        url: seoData.canonicalUrl,
+        name: seoData.title,
+        headline: seoData.h1,
+        description: seoData.description,
+        isPartOf: { '@id': `${BASE_SITE_URL}/#website` },
+        about: { '@id': `${BASE_SITE_URL}/#organization` },
+        inLanguage: 'fr-FR',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${seoData.canonicalUrl}#breadcrumb`,
+        itemListElement: breadcrumbItems,
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${seoData.canonicalUrl}#faq`,
+        mainEntity: seoData.faq.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      },
+    ],
+  };
 
-    graph.push({
-      '@type': 'WebApplication',
-      '@id': `${BASE_SITE_URL}/#app`,
-      name: 'Instant Météo',
-      url: `${BASE_SITE_URL}/`,
-      applicationCategory: 'WeatherApplication',
-      operatingSystem: 'All',
-      browserRequirements: 'Requires JavaScript. Requires HTML5.',
-      description: page.description,
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EUR'
-      }
-    });
-  }
-
-  // Si la page contient une FAQ, injecter le type FAQPage pour rich snippets Google
-  if (page.faq && page.faq.length > 0) {
-    graph.push({
-      '@type': 'FAQPage',
-      '@id': `${page.canonicalUrl}#faq`,
-      mainEntity: page.faq.map((item) => ({
-        '@type': 'Question',
-        name: item.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: item.answer
-        }
-      }))
-    });
-  }
-
-  return JSON.stringify({
-    '@context': 'https://schema.org',
-    '@graph': graph
-  }, null, 2);
+  return JSON.stringify(graph, null, 2);
 }
 
 /**
- * Génère le contenu HTML statique substantiel (H1, H2, paragraphes, sections et FAQ)
- * pour les moteurs de recherche et les navigateurs sans JavaScript.
+ * Génère le bloc HTML sémantique complet propre à chaque URL (servi dès la réponse HTTP initiale)
+ * afin que Googlebot reçoive immédiatement le vrai H1 et le texte unique de la page.
  */
-export function generateStaticHtmlContent(page: PageSeoItem): string {
-  const sectionsHtml = page.sections
+export function generateStaticHtmlContent(seoData: PageSeoMetadata): string {
+  const navLinks = Object.values(SEO_PAGES_MAP)
+    .map(
+      (page) =>
+        `<li style="display:inline-block;margin:4px 8px 4px 0;"><a href="${page.path}" style="color:#38bdf8;text-decoration:underline;font-weight:600;">${page.breadcrumbName}</a></li>`
+    )
+    .join('\n            ');
+
+  const sectionsHtml = seoData.sections
     .map(
       (s) => `
-        <article style="margin-bottom: 24px; padding: 20px; background: #1e293b; border-radius: 12px; border: 1px solid #334155;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: #38bdf8; margin-bottom: 10px;">${escapeHtml(s.title)}</h2>
-          <p style="font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin: 0;">${escapeHtml(s.content)}</p>
+        <article style="margin-bottom: 20px; padding: 16px; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin-top: 0; margin-bottom: 8px;">${s.heading}</h3>
+          <p style="line-height: 1.65; color: #cbd5e1; margin: 0;">${s.body}</p>
         </article>`
     )
     .join('\n');
 
-  const faqHtml = page.faq
+  const faqHtml = seoData.faq
     .map(
-      (f, idx) => `
-        <details style="margin-bottom: 14px; padding: 16px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;" ${idx === 0 ? 'open' : ''}>
-          <summary style="font-weight: 600; font-size: 1.05rem; color: #f1f5f9; cursor: pointer;">${escapeHtml(f.question)}</summary>
-          <p style="margin-top: 12px; font-size: 0.95rem; line-height: 1.6; color: #94a3b8;">${escapeHtml(f.answer)}</p>
-        </details>`
-    )
-    .join('\n');
-
-  const internalLinks = Object.entries(SEO_PAGES_MAP)
-    .filter(([path]) => path !== page.path && path !== '/')
-    .map(
-      ([path, item]) => {
-        const canonicalPath = path === '/' ? '/' : (path.endsWith('/') ? path.slice(0, -1) : path);
-        return `
-        <li style="display: inline-block; margin: 4px 8px 4px 0;">
-          <a href="${canonicalPath}" style="color: #38bdf8; text-decoration: underline; font-size: 0.9rem;">${escapeHtml(item.h1.split(' - ')[0])}</a>
-        </li>`;
-      }
+      (f) => `
+        <div style="margin-bottom: 16px; padding: 14px; background: #0f172a; border-left: 3px solid #0284c7; border-radius: 6px;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: #f8fafc; margin-top: 0; margin-bottom: 6px;">${f.question}</h3>
+          <p style="line-height: 1.6; color: #cbd5e1; margin: 0;">${f.answer}</p>
+        </div>`
     )
     .join('\n');
 
   return `
-    <header style="max-width: 1100px; margin: 0 auto 32px auto; padding: 28px; background: #0f172a; color: #f8fafc; border-radius: 16px; border: 1px solid #334155;">
-      <nav aria-label="Fil d'Ariane" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 16px;">
-        <a href="/" style="color: #38bdf8; text-decoration: none;">Accueil Instant Météo</a> &gt; <span>${escapeHtml(page.h1.split(' - ')[0])}</span>
-      </nav>
+      <div class="seo-prerendered-content" style="max-width: 1140px; margin: 0 auto; padding: 28px 20px; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; background-color: #020617;">
+        <header style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;">
+          <nav aria-label="Fil d'Ariane et navigation principale" style="margin-bottom: 14px;">
+            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 8px 0;">
+              <a href="/" style="color: #38bdf8; text-decoration: none;">Instant Météo France</a>
+              ${seoData.path !== '/' ? ` &rsaquo; <strong style="color: #f8fafc;">${seoData.breadcrumbName}</strong>` : ''}
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${navLinks}
+            </ul>
+          </nav>
+          <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin: 12px 0; line-height: 1.25;">${seoData.h1}</h1>
+          <p style="font-size: 1.08rem; line-height: 1.7; color: #cbd5e1; margin: 0;">${seoData.introParagraph}</p>
+        </header>
 
-      <h1 style="font-size: 1.8rem; font-weight: 800; color: #f8fafc; margin-bottom: 16px; line-height: 1.3;">${escapeHtml(page.h1)}</h1>
-      <p style="font-size: 1.05rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 24px;">${escapeHtml(page.intro)}</p>
+        <section aria-labelledby="sections-explicatives" style="margin-bottom: 28px;">
+          <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 16px; border-bottom: 2px solid #334155; padding-bottom: 8px;">${seoData.sectionTitle}</h2>
+          ${sectionsHtml}
+        </section>
 
-      <section aria-labelledby="sections-explicatives" style="margin-bottom: 36px;">
-        <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Méthodologie Scientifique &amp; Données Publiques de Référence</h2>
-        <p style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 20px;">
-          Les indicateurs et cartographies présentés sur cette page sont générés à partir de données publiques ouvertes sous licence Etalab v2.0, actualisées en continu selon les standards de l'Organisation Météorologique Mondiale.
-        </p>
-        ${sectionsHtml}
-      </section>
+        <section aria-labelledby="questions-frequentes" style="margin-bottom: 28px;">
+          <h2 id="questions-frequentes" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 16px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Questions fréquentes — ${seoData.breadcrumbName}</h2>
+          ${faqHtml}
+        </section>
 
-      <section aria-labelledby="faq-title" style="margin-bottom: 36px;">
-        <h2 id="faq-title" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 18px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Foire Aux Questions (FAQ) - ${escapeHtml(page.h1.split(' - ')[0])}</h2>
-        ${faqHtml}
-      </section>
-
-      <footer style="padding-top: 20px; border-top: 1px solid #334155;">
-        <h3 style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 12px;">Consulter les autres observatoires météorologiques :</h3>
-        <ul style="list-style: none; padding: 0; margin: 0;">
-          ${internalLinks}
-        </ul>
-      </footer>
-    </header>
-  `.trim();
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+        <footer style="border-top: 1px solid #1e293b; padding-top: 16px; font-size: 0.85rem; color: #94a3b8;">
+          <p style="margin: 0 0 6px 0;">URL canonique : <a href="${seoData.canonicalUrl}" style="color: #38bdf8;">${seoData.canonicalUrl}</a></p>
+          <p style="margin: 0;">Langues disponibles : <a href="${seoData.canonicalUrl}" hreflang="fr" style="color: #38bdf8;">Français</a> | <a href="${seoData.canonicalUrl}?hl=en" hreflang="en" style="color: #38bdf8;">English</a> | <a href="${seoData.canonicalUrl}?hl=de" hreflang="de" style="color: #38bdf8;">Deutsch</a> | <a href="${seoData.canonicalUrl}?hl=es" hreflang="es" style="color: #38bdf8;">Español</a> | <a href="${seoData.canonicalUrl}?hl=it" hreflang="it" style="color: #38bdf8;">Italiano</a></p>
+        </footer>
+      </div>`;
 }

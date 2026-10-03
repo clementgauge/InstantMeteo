@@ -1,5 +1,5 @@
 // Service Worker for Instant Météo (PWA)
-const CACHE_NAME = 'instant-meteo-v4';
+const CACHE_NAME = 'instant-meteo-v5';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/manifest.webmanifest',

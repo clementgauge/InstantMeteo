@@ -48,6 +48,7 @@ import { getAllNasaFirmsHotspots } from '../services/nasaFirmsService';
 import { getOfficialAgencyForLocation } from '../utils/internationalAgencies';
 import { fetchLiveWeatherForStations, StationLiveWeather } from '../services/multiStationLiveWeatherService';
 import { fetchLiveRadarDetections, LiveRadarStormDetection, LiveRadarFireDetection } from '../services/radarDetectionApiService';
+import { createSeamlessCloudLayer } from '../utils/cloudSatelliteTileLayer';
 
 export interface PrecisionRadarMapProps {
   currentStation: LocationPoint;
@@ -163,7 +164,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
   const radarTileLayerRef = useRef<L.TileLayer | null>(null);
-  const satelliteTileLayerRef = useRef<L.TileLayer | null>(null);
+  const satelliteTileLayerRef = useRef<L.Layer | null>(null);
   const firmsTileLayerRef = useRef<L.TileLayer | null>(null);
   const stationsLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const stormsLayerGroupRef = useRef<L.LayerGroup | null>(null);
@@ -488,15 +489,28 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     };
 
     const handleFullscreenChange = () => {
-      const isNativeFs = !!(
+      const fsEl =
         document.fullscreenElement ||
         (document as any).webkitFullscreenElement ||
         (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-      setIsFullscreen(isNativeFs);
-      setTimeout(handleResize, 150);
+        (document as any).msFullscreenElement;
+      if (!fsEl) {
+        setIsFullscreen(false);
+      } else if (fsEl === radarContainerRef.current || fsEl === document.documentElement) {
+        setIsFullscreen(true);
+      }
+      setTimeout(handleResize, 120);
     };
+
+    if (isFullscreen) {
+      document.body.setAttribute('data-radar-fullscreen', 'true');
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -512,6 +526,9 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isFullscreen]);
 
@@ -717,14 +734,12 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       layer.addTo(map);
       firmsTileLayerRef.current = layer;
     } else if (activeLayer === 'satellite' || activeLayer === 'clouds') {
-      // NASA GIBS VIIRS TrueColor & Masses Nuageuses Satellite HD
-      const cloudsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
-      const satLayer = L.tileLayer(cloudsUrl, {
+      // Imagerie Néphologique HD sans zones noires ni fauchées manquantes
+      const frameTime = radarFrames[currentFrameIndex]?.time || Math.floor(Date.now() / 1000);
+      const satLayer = createSeamlessCloudLayer({
         opacity: 0.85,
         zIndex: 10,
-        maxNativeZoom: 9,
-        maxZoom: 19,
-        attribution: '© NASA GIBS / VIIRS Masses Nuageuses'
+        timestamp: frameTime,
       });
       satLayer.addTo(map);
       satelliteTileLayerRef.current = satLayer;
@@ -1388,32 +1403,31 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     });
   }, [filteredStations, currentStation.id, currentStation.latitude, currentStation.longitude, currentStation.altitude, weather?.temperature, weather?.feelsLike, weather?.windSpeed, weather?.humidity, activeLayer, liveStationWeatherMap]);
 
-  // Fullscreen container handler (Vrai plein écran navigateur natif identique aux paramètres)
+  // Fullscreen container handler (bloque strictement l'écran sur le radar sans défilement de la page)
   const handleToggleFullscreen = async () => {
-    const isCurrentlyFs = !!(
+    const nextState = !isFullscreen;
+    setIsFullscreen(nextState);
+
+    const isCurrentlyNativeFs = !!(
       document.fullscreenElement ||
       (document as any).webkitFullscreenElement ||
       (document as any).mozFullScreenElement ||
       (document as any).msFullscreenElement
     );
 
-    if (!isCurrentlyFs && !isFullscreen) {
-      try {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        } else if ((document.documentElement as any).webkitRequestFullscreen) {
-          await (document.documentElement as any).webkitRequestFullscreen();
-        } else if ((document.documentElement as any).mozRequestFullScreen) {
-          await (document.documentElement as any).mozRequestFullScreen();
-        } else if ((document.documentElement as any).msRequestFullscreen) {
-          await (document.documentElement as any).msRequestFullscreen();
+    try {
+      if (nextState && !isCurrentlyNativeFs) {
+        const targetEl = radarContainerRef.current || document.documentElement;
+        if (targetEl.requestFullscreen) {
+          await targetEl.requestFullscreen();
+        } else if ((targetEl as any).webkitRequestFullscreen) {
+          await (targetEl as any).webkitRequestFullscreen();
+        } else if ((targetEl as any).mozRequestFullScreen) {
+          await (targetEl as any).mozRequestFullScreen();
+        } else if ((targetEl as any).msRequestFullscreen) {
+          await (targetEl as any).msRequestFullscreen();
         }
-      } catch (err) {
-        console.warn('Native requestFullscreen could not be granted', err);
-      }
-      setIsFullscreen(true);
-    } else {
-      try {
+      } else if (!nextState && isCurrentlyNativeFs) {
         if (document.exitFullscreen) {
           await document.exitFullscreen();
         } else if ((document as any).webkitExitFullscreen) {
@@ -1423,10 +1437,9 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
         } else if ((document as any).msExitFullscreen) {
           await (document as any).msExitFullscreen();
         }
-      } catch (err) {
-        console.warn('Native exitFullscreen error', err);
       }
-      setIsFullscreen(false);
+    } catch {
+      // Le verrouillage plein écran CSS (`isFullscreen`) reste actif même en iframe ou iOS
     }
 
     setTimeout(() => {
@@ -1440,10 +1453,10 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     <div 
       ref={radarContainerRef}
       id="precision-radar-root-container" 
-      className={`relative w-full overflow-hidden transition-all duration-300 ${
+      className={`w-full overflow-hidden transition-all duration-300 ${
         isFullscreen 
-          ? 'fixed inset-0 z-[9999] w-screen h-screen bg-slate-950' 
-          : 'rounded-xl border border-slate-800 bg-slate-950 shadow-2xl h-[650px] sm:h-[720px]'
+          ? '!fixed !inset-0 !z-[99999] !w-screen !h-[100dvh] !rounded-none !border-0 !m-0 bg-slate-950 overscroll-none' 
+          : 'relative rounded-xl border border-slate-800 bg-slate-950 shadow-2xl h-[650px] sm:h-[720px]'
       }`}
     >
       {/* 1. Leaflet Map Element */}

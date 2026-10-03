@@ -112,9 +112,9 @@ export const DroughtAndFireView: React.FC<DroughtAndFireViewProps> = ({
                   96 Départements Métropolitains Connectés
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
                 Sécheresse des Sols, Restrictions VigiEau & Feux de Forêt
-              </h1>
+              </h2>
               <p className={`text-xs sm:text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
                 Indice Forêt Météo (FWI), indice d'humidité des sols (SWI), arrêtés préfectoraux et restrictions d'eau officielles.
               </p>

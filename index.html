@@ -1,171 +1,143 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
-    <link rel="shortcut icon" href="/Instant-Meteo.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Primary SEO Meta Tags -->
+    <title>Instant Météo France — Prévisions locales et suivi en temps réel</title>
+    <meta name="title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
+    <meta name="description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <meta name="author" content="Instant Météo France" />
+    <meta name="publisher" content="Instant Météo France" />
+    <meta name="application-name" content="Instant Météo" />
+    <meta name="apple-mobile-web-app-title" content="Instant Météo" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="google-site-verification" content="kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY" />
-    <meta name="google-site-verification" content="w0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM" />
-    <title>Instant Météo France - Météo Direct, Température & Radar Pluie HD</title>
-    <meta name="description" content="Instant Météo : Prévisions météo en direct pour la France et 34 965 communes. Consultez la température en temps réel, le radar pluie HD haute précision, les vigilances Météo-France et les modélisations." />
-    <meta name="author" content="Instant Météo" />
-    <link rel="canonical" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <meta name="language" content="French" />
+    <meta name="geo.region" content="FR" />
+    <meta name="geo.placename" content="France" />
+    <meta name="rating" content="general" />
+
+    <!-- Canonical & Internationalization (hreflang) -->
+    <link rel="canonical" id="dynamic-canonical-link" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <!--SEO_HREFLANG_START-->
+    <link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=de" />
+    <link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=es" />
+    <link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=it" />
+    <link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=pt" />
+    <link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=nl" />
+    <link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ar" />
+    <link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=zh-CN" />
+    <link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ja" />
+    <link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ru" />
+    <link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=uk" />
+    <link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <!--SEO_HREFLANG_END-->
+
+    <!-- Synchronisation immédiate de l'URL canonique avant hydratation -->
     <script>
       (function() {
         try {
-          var p = window.location.pathname || '/';
-          var link = document.querySelector('link[rel="canonical"]');
+          var origin = 'https://instantmeteo.instantmeteofr.workers.dev';
+          var rawPath = window.location.pathname || '/';
+          var cleanPath = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
+          var canonicalHref = cleanPath === '/' ? origin + '/' : origin + cleanPath;
+          var link = document.getElementById('dynamic-canonical-link');
           if (link) {
-            if (p === '/' || p === '') {
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/';
-            } else {
-              var clean = p.replace(/^\/+|\/+$/g, '');
-              link.href = 'https://instantmeteo.instantmeteofr.workers.dev/' + clean;
-            }
+            link.setAttribute('href', canonicalHref);
           }
         } catch (e) {}
       })();
     </script>
 
-    <!-- Open Graph / Facebook / LinkedIn -->
-    <meta property="og:site_name" content="Instant Météo" />
+    <!-- Open Graph / Facebook / Discord / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta property="og:title" content="Instant Météo France - Météo Direct, Température & Radar Pluie HD" />
-    <meta property="og:description" content="Instant Météo (InstantMétéo) : Prévisions météo en direct pour la France et 34 965 communes, température instantanée, radar précipitations pluie/neige HD, vigilances météorologiques Météo-France et néphologie." />
-    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:site_name" content="Instant Météo France" />
     <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <meta property="og:title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
+    <meta property="og:description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <meta property="og:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
+    <meta property="og:image:alt" content="Instant Météo France - Prévisions et radar des pluies" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Instant Météo France - Météo Direct, Température & Radar Pluie HD" />
-    <meta name="twitter:description" content="Prévisions météo instantanées en France : température temps réel, radar pluie HD, vigilances Météo-France et cartes radar." />
-    <meta name="twitter:image" content="/icon-512.png" />
+    <meta name="twitter:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <meta name="twitter:title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
+    <meta name="twitter:description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <meta name="twitter:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
 
-    <!-- Schema.org JSON-LD Structured Data for Google Search Console & Rich Snippets -->
-    <script type="application/ld+json" id="seo-page-jsonld">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
-          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-          "name": "Instant Météo",
-          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Instant Météo France", "Météo France Instantanée"],
-          "description": "Portail et marque météo de précision pour la France : prévisions directes pour 34 965 communes, températures en temps réel, radar précipitations pluie/neige HD et vigilances Météo-France.",
-          "inLanguage": "fr-FR",
-          "publisher": {
-            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization"
-          },
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": "https://instantmeteo.instantmeteofr.workers.dev/?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          }
-        },
-        {
-          "@type": "WebApplication",
-          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#app",
-          "name": "Instant Météo",
-          "alternateName": ["InstantMétéo", "Instant Meteo", "InstantMeteo", "Instant Météo France", "Météo France Instant"],
-          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-          "applicationCategory": "WeatherApplication",
-          "operatingSystem": "All",
-          "browserRequirements": "Requires JavaScript. Requires HTML5.",
-          "description": "Application météorologique de précision pour les 34 965 communes de France : prévisions directes, température temps réel, radar précipitations HD et vigilances Météo-France.",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "EUR"
-          }
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization",
-          "name": "Instant Météo",
-          "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-          "logo": "https://instantmeteo.instantmeteofr.workers.dev/icon-512.png",
-          "sameAs": [
-            "https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
-          ]
-        }
-      ]
-    }
-    </script>
-    
-    <!-- PWA & Mobile Web App settings -->
+    <!-- Favicons & App Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#f8fafc" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <meta name="theme-color" content="#020617" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Instant Météo" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
-    <meta name="application-name" content="Instant Météo" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="msapplication-TileColor" content="#f8fafc" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- Custom Style for embedded widgets & Google Translate banner suppression -->
-    <style>
-      /* Hide all Google Translate banner artifacts while preserving function */
-      .goog-te-banner-frame,
-      .goog-te-banner-frame.skiptranslate,
-      iframe.goog-te-banner-frame,
-      #goog-gt-tt,
-      .goog-te-balloon-frame,
-      .VIpgJd-ZVi9od-ORHb-OEVmcd,
-      .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
-      .VIpgJd-ZVi9od-vH1Gmf-ibnC6b {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0px !important;
-        width: 0px !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Structured Data (Schema.org JSON-LD) -->
+    <script id="seo-page-jsonld" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
+            "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+            "name": "Instant Météo France",
+            "alternateName": ["Instant Météo", "InstantMeteoFrance"],
+            "description": "Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département.",
+            "inLanguage": "fr-FR"
+          }
+        ]
       }
-      body {
-        top: 0px !important;
-        position: static !important;
-        margin-top: 0px !important;
-      }
-      html {
-        margin-top: 0px !important;
-        top: 0px !important;
-      }
-      #google_translate_element select {
-        background-color: #0f172a;
-        color: #f8fafc;
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 4px 8px;
-        font-size: 11px;
-        font-weight: 700;
-        outline: none;
-        cursor: pointer;
-      }
-      .goog-logo-link, .goog-te-gadget span { display: none !important; }
-      .goog-te-gadget { color: transparent !important; font-size: 0px !important; }
-      .goog-text-highlight { background: none !important; box-shadow: none !important; }
-    </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4008760457382100"
-     crossorigin="anonymous"></script>
+    </script>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet CSS for Interactive Maps & Radar -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+    <!-- Google AdSense Monetization Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544" crossorigin="anonymous"></script>
+
+    <!-- Instant Theme Initializer -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('instant_meteo_display_preferences');
+          if (raw) {
+            var prefs = JSON.parse(raw);
+            if (prefs && prefs.colorTheme === 'light') {
+              document.documentElement.classList.add('theme-light');
+              document.documentElement.classList.remove('theme-dark');
+              return;
+            }
+          }
+          document.documentElement.classList.add('theme-dark');
+          document.documentElement.classList.remove('theme-light');
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-100 text-slate-900 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">
-    <div id="root"></div>
+  <body class="bg-slate-950 text-slate-50 antialiased selection:bg-blue-500 selection:text-white">
+    <!--SEO_ROOT_START--><div id="root"></div><!--SEO_ROOT_END-->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

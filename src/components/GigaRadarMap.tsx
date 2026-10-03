@@ -4,6 +4,7 @@ import { LocationPoint, CurrentWeather } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
 import { getLocalityFromCoordinates, searchLocalities } from '../services/openMeteoService';
+import { createSeamlessCloudLayer } from '../utils/cloudSatelliteTileLayer';
 import { 
   Play, 
   Pause, 
@@ -131,11 +132,12 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   weather
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const fullscreenWrapperRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const labelsLayerRef = useRef<L.TileLayer | null>(null);
   const radarOverlayRef = useRef<L.TileLayer | null>(null);
-  const satelliteOverlayRef = useRef<L.TileLayer | null>(null);
+  const satelliteOverlayRef = useRef<L.Layer | null>(null);
   const markerGroupRef = useRef<L.LayerGroup | null>(null);
   const lightningGroupRef = useRef<L.LayerGroup | null>(null);
   const stormCellsGroupRef = useRef<L.LayerGroup | null>(null);
@@ -184,21 +186,24 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     }
   }, [currentStation]);
 
-  // Sync native HTML5 Fullscreen API with component state (matching Settings behavior)
+  // Sync native HTML5 Fullscreen API & body scroll lock with component state
   useEffect(() => {
     const handleFsChange = () => {
-      const isFs = !!(
+      const fsEl =
         document.fullscreenElement ||
         (document as any).webkitFullscreenElement ||
         (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-      setIsFullscreen(isFs);
+        (document as any).msFullscreenElement;
+      if (!fsEl) {
+        setIsFullscreen(false);
+      } else if (fsEl === fullscreenWrapperRef.current || fsEl === document.documentElement) {
+        setIsFullscreen(true);
+      }
       setTimeout(() => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize();
         }
-      }, 150);
+      }, 100);
     };
 
     document.addEventListener('fullscreenchange', handleFsChange);
@@ -214,28 +219,63 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     };
   }, []);
 
-  // True Browser Native Fullscreen (identique au bouton Grand Écran des paramètres)
+  // Lock page scroll and elevate radar container when fullscreen is active
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.setAttribute('data-radar-fullscreen', 'true');
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    const t1 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 60);
+    const t2 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 250);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isFullscreen]);
+
+  // Lock user strictly on the radar container in Fullscreen mode
   const handleToggleTrueFullscreen = async () => {
+    const nextState = !isFullscreen;
+    setIsFullscreen(nextState);
+
     try {
-      const isCurrentlyFs = !!(
+      const isCurrentlyNativeFs = !!(
         document.fullscreenElement ||
         (document as any).webkitFullscreenElement ||
         (document as any).mozFullScreenElement ||
         (document as any).msFullscreenElement
       );
 
-      if (!isCurrentlyFs) {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        } else if ((document.documentElement as any).webkitRequestFullscreen) {
-          await (document.documentElement as any).webkitRequestFullscreen();
-        } else if ((document.documentElement as any).mozRequestFullScreen) {
-          await (document.documentElement as any).mozRequestFullScreen();
-        } else if ((document.documentElement as any).msRequestFullscreen) {
-          await (document.documentElement as any).msRequestFullscreen();
+      if (nextState && !isCurrentlyNativeFs) {
+        const targetEl = fullscreenWrapperRef.current || document.documentElement;
+        if (targetEl.requestFullscreen) {
+          await targetEl.requestFullscreen();
+        } else if ((targetEl as any).webkitRequestFullscreen) {
+          await (targetEl as any).webkitRequestFullscreen();
+        } else if ((targetEl as any).mozRequestFullScreen) {
+          await (targetEl as any).mozRequestFullScreen();
+        } else if ((targetEl as any).msRequestFullscreen) {
+          await (targetEl as any).msRequestFullscreen();
         }
-        setIsFullscreen(true);
-      } else {
+      } else if (!nextState && isCurrentlyNativeFs) {
         if (document.exitFullscreen) {
           await document.exitFullscreen();
         } else if ((document as any).webkitExitFullscreen) {
@@ -245,11 +285,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         } else if ((document as any).msExitFullscreen) {
           await (document as any).msExitFullscreen();
         }
-        setIsFullscreen(false);
       }
-    } catch (err) {
-      console.warn('Native fullscreen error, fallback CSS toggle:', err);
-      setIsFullscreen(prev => !prev);
+    } catch {
+      // CSS fullscreen lock (`isFullscreen`) remains active even inside iframes or iOS Safari
     }
 
     setTimeout(() => {
@@ -716,36 +754,14 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
     const host = rvData?.host || 'https://tilecache.rainviewer.com';
 
-    // A. Satellite Cloud Layer - Haute Définition Imagerie Nuages Satellite
+    // A. Satellite Cloud Layer - Imagerie Néphologique HD sans zones noires
     if (isSatActive) {
-      if (rvData?.satellite?.infrared && rvData.satellite.infrared.length > 0) {
-        const satFrames = rvData.satellite.infrared;
-        const satFrame = satFrames[Math.min(currentFrameIndex, satFrames.length - 1)] || satFrames[0];
-        if (satFrame) {
-          const satUrl = `${host}${satFrame.path}/256/{z}/{x}/{y}/0/0_0.png`;
-          satelliteOverlayRef.current = L.tileLayer(satUrl, {
-            opacity: satelliteOpacity,
-            zIndex: 8,
-            tileSize: 256,
-            maxNativeZoom: 8,
-            maxZoom: 19,
-            className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
-          }).addTo(map);
-        }
-      } else {
-        // Flux satellite mondial direct NASA GIBS VIIRS / MODIS TrueColor & Masses Nuageuses
-        // Toujours actif avec CORS '*' et couverture nuageuse réelle et continue
-        const satUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
-        satelliteOverlayRef.current = L.tileLayer(satUrl, {
-          opacity: satelliteOpacity,
-          zIndex: 8,
-          tileSize: 256,
-          maxNativeZoom: 9,
-          maxZoom: 19,
-          className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp',
-          attribution: '© NASA GIBS / VIIRS Imagerie Nuages & Satellite'
-        }).addTo(map);
-      }
+      const frameTime = frames[currentFrameIndex]?.time || Math.floor(Date.now() / 1000);
+      satelliteOverlayRef.current = createSeamlessCloudLayer({
+        opacity: satelliteOpacity,
+        zIndex: 8,
+        timestamp: frameTime,
+      }).addTo(map);
     }
 
     // B. Doppler Rain Radar Layer (with maxNativeZoom: 12 and maxZoom: 19 so zooming into street level works perfectly!)
@@ -1253,8 +1269,11 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   return (
     <div
       id="giga-radar-map"
-      className={`relative rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
-        isFullscreen ? 'fixed inset-0 z-[9999] rounded-none h-screen w-screen' : 'h-[720px] sm:h-[800px]'
+      ref={fullscreenWrapperRef}
+      className={` rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
+        isFullscreen
+          ? '!fixed !inset-0 !z-[99999] !rounded-none !border-0 !m-0 !h-[100dvh] !w-screen overscroll-none'
+          : 'relative h-[720px] sm:h-[800px]'
       }`}
     >
       {/* 1. TOP FLOATING OPERATIONAL CONTROL BAR */}
@@ -1314,65 +1333,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
               <Zap className="h-3.5 w-3.5 text-yellow-400" />
               <span>Orages ({lightningCount})</span>
             </button>
-
-            <button
-              onClick={() => setActiveLayerMode('multi')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-                activeLayerMode === 'multi'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/40 ring-1 ring-white/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Vue combinée Pluie + Nuages + Orages"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>Multi-Spectre</span>
-            </button>
           </div>
-
-          {/* If Multi-Spectre is active, show quick layer check pills */}
-          {activeLayerMode === 'multi' && (
-            <div className="hidden lg:flex items-center gap-1.5 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur text-[11px] font-bold">
-              <button
-                onClick={() => setShowRadar(!showRadar)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  showRadar ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                <CloudRain className="h-3 w-3" />
-                <span>Pluie {showRadar ? '✓' : '✗'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowSatellite(!showSatellite)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  showSatellite ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                <Globe2 className="h-3 w-3" />
-                <span>Nuages {showSatellite ? '✓' : '✗'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowLightning(!showLightning)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  showLightning ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                <Zap className="h-3 w-3" />
-                <span>Foudre {showLightning ? '✓' : '✗'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowStormCells(!showStormCells)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  showStormCells ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                <Flame className="h-3 w-3" />
-                <span>Vecteurs {showStormCells ? '✓' : '✗'}</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Center: Search locality on map */}

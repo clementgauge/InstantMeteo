@@ -622,3 +622,31 @@ body {
   box-shadow: none !important;
 }
 
+/* ========================================================================= */
+/* VERROUILLAGE STRICT GRAND ÉCRAN DU RADAR (BLOQUE L'ÉCRAN SUR LE RADAR)     */
+/* ========================================================================= */
+html:has(body[data-radar-fullscreen="true"]),
+body[data-radar-fullscreen="true"] {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+
+body[data-radar-fullscreen="true"] header,
+body[data-radar-fullscreen="true"] footer,
+body[data-radar-fullscreen="true"] nav[aria-label="Navigation rapide inférieure"] {
+  display: none !important;
+}
+
+body[data-radar-fullscreen="true"] main,
+body[data-radar-fullscreen="true"] main > div,
+body[data-radar-fullscreen="true"] [class*="animate-in"] {
+  z-index: 99999 !important;
+  transform: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+

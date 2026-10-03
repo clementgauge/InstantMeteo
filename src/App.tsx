@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
-import { fetchWeatherData, getLocalityFromCoordinates } from './services/openMeteoService';
+import { fetchWeatherData, getLocalityFromCoordinates, getFallbackWeatherData } from './services/openMeteoService';
 import { getRichWeatherInfo } from './utils/weatherIcons';
 import { Header } from './components/Header';
 import { DossierExportModal } from './components/DossierExportModal';
@@ -85,7 +85,7 @@ import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
 import { updateDocumentSeo } from './utils/seoVerification';
-import { getTabIdForPath } from './seo/pagesSeoData';
+import { getTabIdForPath, getSeoDataForPath, getPathForTabId } from './seo/pagesSeoData';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -109,11 +109,12 @@ function WeatherApp() {
     }
     return FRENCH_STATIONS[0];
   });
-  const [weather, setWeather] = useState<CurrentWeather | null>(null);
-  const rawWeatherRef = useRef<CurrentWeather | null>(null);
-  const [hourly, setHourly] = useState<HourlyForecast[]>([]);
-  const [daily, setDaily] = useState<DailyForecast[]>([]);
-  const [anomaly, setAnomaly] = useState<ClimateAnomaly | null>(null);
+  const initialFallbackRef = useRef(getFallbackWeatherData(currentStation));
+  const [weather, setWeather] = useState<CurrentWeather | null>(() => initialFallbackRef.current.current);
+  const rawWeatherRef = useRef<CurrentWeather | null>(initialFallbackRef.current.current);
+  const [hourly, setHourly] = useState<HourlyForecast[]>(() => initialFallbackRef.current.hourly);
+  const [daily, setDaily] = useState<DailyForecast[]>(() => initialFallbackRef.current.daily);
+  const [anomaly, setAnomaly] = useState<ClimateAnomaly | null>(() => initialFallbackRef.current.anomaly);
 
   // Écoute dynamique des contradictions & régénérations haute intensité
   useEffect(() => {
@@ -126,7 +127,7 @@ function WeatherApp() {
     return unsubscribe;
   }, [currentStation]);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<NavTabId>(() => {
     if (typeof window !== 'undefined') {
       const tabFromPath = getTabIdForPath(window.location.pathname) as NavTabId;
@@ -438,7 +439,7 @@ function WeatherApp() {
 
   // Load weather when current station changes & persist station selection
   const loadStationData = async (station: LocationPoint, showLoading: boolean = true) => {
-    if (showLoading) setIsLoading(true);
+    if (showLoading && !weather) setIsLoading(true);
     try {
       const data = await fetchWeatherData(station);
 
@@ -873,11 +874,32 @@ function WeatherApp() {
         </div>
 
         <section className="min-w-0 w-full">
+        {/* En-tête sémantique unique H1 propre à chaque URL (visible sur mobile et bureau pour l'indexation) */}
+        {(() => {
+          const activeRoutePath = getPathForTabId(activeTab, currentPath);
+          const activePageSeo = getSeoDataForPath(activeRoutePath);
+          return (
+            <div className="mb-4 rounded-xl border border-slate-800/80 bg-slate-900/60 px-4 py-3 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug">
+                  {activePageSeo.h1}
+                </h1>
+                <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">
+                  {activePageSeo.description}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 text-[11px] text-sky-400 font-semibold">
+                <span>📍 {currentStation.name} ({currentStation.altitude ?? 0} m)</span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Flash Announcement Banner from Administrator */}
         <AdminAnnouncementBanner />
 
         {/* Tab Content */}
-        {isLoading || !weather || !anomaly ? (
+        {!weather || !anomaly ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
             <p className="mt-4 font-bold text-slate-300">
@@ -950,9 +972,9 @@ function WeatherApp() {
                         <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                         <span>Dispositif National de Sécurité Civile &bull; Actualisation 24h/24</span>
                       </div>
-                      <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
-                        Carte de Vigilance Météorologique &amp; Risques Météo-France en Direct
-                      </h1>
+                      <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+                        Suivi des risques météorologiques par département ({currentStation.name})
+                      </h2>
                       <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
                         Suivi en direct des 12 risques météo sur les 101 départements français : orages violents, crues, canicule, grand froid, neige-verglas et vent violent pour <strong>{currentStation.name}</strong> ({currentStation.department}).
                       </p>
@@ -1185,7 +1207,17 @@ function WeatherApp() {
         )}
 
         {/* Guide & FAQ Météo - Toujours présent dans le DOM dès le rendu initial pour l'indexation SEO */}
-        <SeoPageGuideCard activeTab={activeTab} currentPath={currentPath} isLightMode={themeMode === 'light'} />
+        <SeoPageGuideCard
+          activeTab={activeTab}
+          currentPath={currentPath}
+          isLightMode={themeMode === 'light'}
+          onNavigateRoute={(p, t) => {
+            setCurrentPath(p);
+            setActiveTab(t as NavTabId);
+            window.history.pushState(null, '', p);
+            updateDocumentSeo(p, false);
+          }}
+        />
         </section>
       </main>
 

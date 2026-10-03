@@ -120,9 +120,9 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
                   Marées Astronomiques SHOM en Temps Réel
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
                 Météo des Plages, Marées & Conditions Maritimes
-              </h1>
+              </h2>
               <p className={`text-xs sm:text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
                 Température de l'eau (SST), coefficients et horaires de marée SHOM, houle Douglas, sécurité baïnes et drapeaux officiels.
               </p>

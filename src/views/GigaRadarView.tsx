@@ -84,9 +84,9 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               <span>Mosaïque Nationale Doppler ARAMIS &bull; Rafraîchissement 5 min</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
-              Radar Pluie HD &amp; Carte des Précipitations en Direct sur la France
-            </h1>
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+              Suivi des précipitations, des nuages et des orages sur la carte
+            </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
               Suivi haute résolution des fronts pluvieux, orages de grêle, averses et chutes de neige en temps réel. Visualisation interactive de la réflectivité en dBZ et intensités en mm/h sur l'ensemble de la métropole.
             </p>

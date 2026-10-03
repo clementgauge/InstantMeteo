@@ -222,6 +222,25 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
   const [selectedRegion, setSelectedRegion] = useState<string>('france');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.setAttribute('data-radar-fullscreen', 'true');
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    const t = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 120);
+    return () => {
+      clearTimeout(t);
+      document.body.removeAttribute('data-radar-fullscreen');
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isFullscreen]);
+
   // Filter stations that have valid coordinates and dynamic current station
   const allMapStations = useMemo(() => {
     const seen = new Set<string>();
@@ -637,7 +656,7 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
       {/* 2. Main Map Graphic and HUD Card */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left 3 Cols: Interactive OpenStreetMap Map */}
-        <div className={`lg:col-span-3 rounded-lg border border-slate-800 bg-slate-950 relative overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen' : 'h-[460px] sm:h-[580px]'}`}>
+        <div className={`lg:col-span-3 rounded-lg border border-slate-800 bg-slate-950 overflow-hidden flex flex-col ${isFullscreen ? '!fixed !inset-0 !z-[99999] !rounded-none !border-0 !m-0 !h-[100dvh] !w-screen overscroll-none' : 'relative h-[460px] sm:h-[580px]'}`}>
           
           {/* Top Controls Overlay on Map */}
           <div className="absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 z-[400] flex items-center justify-between gap-1.5 pointer-events-none">

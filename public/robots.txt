@@ -1,20 +1,41 @@
-# Robots.txt - Instant Météo France (InstantMétéo)
-# Indexation 100% autorisée pour Googlebot et tous les moteurs de recherche légitimes
+# ============================================================================
+# ROBOTS.TXT OFFICIEL - INSTANT MÉTÉO FRANCE
+# Accès complet autorisé à toutes les pages, images, feuilles CSS, scripts JS et flux API
+# ============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /api/
+Allow: /direct
+Allow: /radar
+Allow: /vigilances
+Allow: /nuages
+Allow: /14-jours
+Allow: /cartes-thematiques
+Allow: /montagne
+Allow: /plages
+Allow: /secheresse-incendie
+Allow: /cours-d-eau
+Allow: /sports
+Allow: /bulletins
+Allow: /archives
+Allow: /monde-catastrophes
+Allow: /climat
+Allow: /communaute
+Allow: /competition
 
 User-agent: Googlebot
 Allow: /
+Allow: /assets/
+Allow: /api/
 
-User-agent: Google-InspectionTool
+User-agent: Googlebot-Image
 Allow: /
 
 User-agent: Bingbot
 Allow: /
-
-User-agent: Applebot
-Allow: /
-
-User-agent: *
-Allow: /
-Disallow: /api/
+Allow: /assets/
+Allow: /api/
 
 Sitemap: https://instantmeteo.instantmeteofr.workers.dev/sitemap.xml

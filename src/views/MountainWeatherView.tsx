@@ -96,9 +96,9 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                   Réseau Nivôse Haute Fréquence
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
                 Météo Montagne & Nivologie Haute Définition
-              </h1>
+              </h2>
               <p className={`text-xs sm:text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
                 Bulletins d'estimation du risque d'avalanche (BERA), hauteurs de neige officielles, isotherme 0°C et conditions en crête.
               </p>

@@ -178,9 +178,9 @@ export const DiscussionGroupView: React.FC<DiscussionGroupViewProps> = ({
                   Direct
                 </span>
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-white mt-1">
+              <h2 className="text-lg sm:text-xl font-bold text-white mt-1">
                 Observations &amp; Échanges Citoyens
-              </h1>
+              </h2>
               <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
                 Signalements météo locaux et retours d'observation terrain en direct.
               </p>

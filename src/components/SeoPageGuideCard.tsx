@@ -1,162 +1,164 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, BookOpen, ShieldCheck, Sparkles } from 'lucide-react';
-import { getSeoDataForPath, getPathForTabId } from '../seo/pagesSeoData';
+import { BookOpen, HelpCircle, ChevronDown, ChevronUp, ShieldCheck, Globe } from 'lucide-react';
+import { getSeoDataForPath, getPathForTabId, SEO_PAGES_MAP } from '../seo/pagesSeoData';
 
 interface SeoPageGuideCardProps {
   activeTab: string;
   currentPath?: string;
   isLightMode?: boolean;
+  onNavigateRoute?: (path: string, tabId: string) => void;
 }
 
-export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, currentPath, isLightMode = false }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
+  activeTab,
+  currentPath,
+  onNavigateRoute,
+}) => {
+  // Déplié par défaut afin que Googlebot (Mobile-First Indexing) indexe 100 % du texte unique et de la FAQ
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  const targetPath = getPathForTabId(activeTab, currentPath);
-  const pageSeo = getSeoDataForPath(targetPath);
-
-  if (!pageSeo) return null;
-
-  const toggleFaq = (idx: number) => {
-    setOpenFaqIndex(prev => prev === idx ? null : idx);
-  };
+  const resolvedPath = getPathForTabId(activeTab, currentPath);
+  const seoData = getSeoDataForPath(resolvedPath);
+  const allPages = Object.values(SEO_PAGES_MAP);
 
   return (
-    <section 
-      aria-label="Guide et questions fréquentes"
-      className={`mt-10 mb-8 rounded-2xl border transition-all duration-300 overflow-hidden ${
-        isLightMode 
-          ? 'bg-white border-slate-200 shadow-sm text-slate-800' 
-          : 'bg-slate-900/80 border-slate-800 text-slate-200'
-      }`}
+    <section
+      aria-labelledby="seo-page-guide-heading"
+      className="mt-8 rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md p-5 sm:p-7 text-slate-200 shadow-xl"
     >
-      <div 
-        onClick={() => setIsOpen(prev => !prev)}
-        className={`flex items-center justify-between p-4 sm:p-5 cursor-pointer select-none transition-colors ${
-          isLightMode 
-            ? 'hover:bg-slate-50' 
-            : 'hover:bg-slate-800/60'
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl ${isLightMode ? 'bg-sky-100 text-sky-700' : 'bg-sky-500/20 text-sky-400'}`}>
-            <BookOpen className="w-5 h-5" />
+      {/* En-tête éditorial propre à la page */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-800/80 pb-5">
+        <div className="space-y-2 max-w-4xl">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-sky-400">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span>Guide pratique &bull; {seoData.breadcrumbName}</span>
           </div>
-          <div>
-            <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-              <span>Guide &amp; FAQ : {pageSeo.h1.split(' - ')[0]}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                isLightMode ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'
-              }`}>
-                Données Publiques
-              </span>
-            </h2>
-            <p className={`text-xs sm:text-sm mt-0.5 ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-              Comprendre les modèles scientifiques, les capteurs et les seuils de référence
-            </p>
-          </div>
+
+          <h2
+            id="seo-page-guide-heading"
+            className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug"
+          >
+            {seoData.sectionTitle}
+          </h2>
+
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            {seoData.introParagraph}
+          </p>
         </div>
 
-        <button 
+        <button
           type="button"
-          aria-expanded={isOpen}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-colors ${
-            isLightMode 
-              ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200' 
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-          }`}
+          onClick={() => setIsExpanded(!isExpanded)}
+          aria-expanded={isExpanded}
+          className="inline-flex items-center gap-2 self-start shrink-0 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 px-3.5 py-2 text-xs font-semibold text-sky-300 transition-colors cursor-pointer"
         >
-          <span>{isOpen ? 'Masquer' : 'Consulter'}</span>
-          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <BookOpen className="h-4 w-4" />
+          <span>{isExpanded ? 'Réduire le guide' : 'Afficher le guide & FAQ'}</span>
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
       </div>
 
-      <div className={isOpen ? `p-4 sm:p-6 border-t ${isLightMode ? 'border-slate-100' : 'border-slate-800/80'} space-y-6` : 'sr-only'}>
-          {/* Introduction & Méthodologie */}
-          <div className={`p-4 rounded-xl text-sm leading-relaxed space-y-3 ${
-            isLightMode ? 'bg-slate-50 text-slate-700' : 'bg-slate-800/40 text-slate-300'
-          }`}>
-            <p className="font-medium">{pageSeo.intro}</p>
-            <div className={`pt-2.5 border-t ${isLightMode ? 'border-slate-200' : 'border-slate-700/60'}`}>
-              <h3 className="text-xs font-bold text-sky-400 mb-1 flex items-center gap-1.5 uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-sky-400" />
-                <span>Méthodologie Scientifique &amp; Données Publiques de Référence</span>
-              </h3>
-              <p className="text-xs opacity-90 leading-relaxed">
-                Les indicateurs et cartographies présentés sur cette page sont générés à partir de données publiques ouvertes sous licence Etalab v2.0, actualisées en continu selon les standards de l&apos;Organisation Météorologique Mondiale.
-              </p>
-            </div>
-          </div>
-
-          {/* Sections explicatives */}
+      {/* Sections explicatives uniques et FAQ de la page */}
+      {isExpanded && (
+        <div className="mt-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {pageSeo.sections.map((sec, idx) => (
-              <div 
+            {seoData.sections.map((sec, idx) => (
+              <article
                 key={idx}
-                className={`p-4 rounded-xl border ${
-                  isLightMode 
-                    ? 'bg-white border-slate-200' 
-                    : 'bg-slate-800/30 border-slate-800'
-                }`}
+                className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2"
               >
-                <h3 className="text-sm font-bold text-sky-500 mb-2 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 shrink-0" />
-                  <span>{sec.title}</span>
+                <h3 className="text-sm font-bold text-white leading-snug">
+                  {sec.heading}
                 </h3>
-                <p className={`text-xs leading-relaxed ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
-                  {sec.content}
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {sec.body}
                 </p>
-              </div>
+              </article>
             ))}
           </div>
 
-          {/* FAQ interactive */}
+          {/* Questions Fréquentes (FAQ) */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-sky-400" />
-              <span>Questions Fréquentes sur cet Observatoire</span>
+            <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-amber-400 mb-3">
+              <HelpCircle className="h-4 w-4" />
+              <span>Questions fréquentes — {seoData.breadcrumbName}</span>
             </h3>
-
-            <div className="space-y-2.5">
-              {pageSeo.faq.map((item, idx) => {
-                const isFaqOpen = openFaqIndex === idx;
-                return (
-                  <div 
-                    key={idx}
-                    className={`rounded-xl border transition-all ${
-                      isLightMode 
-                        ? 'border-slate-200 bg-white' 
-                        : 'border-slate-800 bg-slate-800/20'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleFaq(idx)}
-                      className="w-full flex items-center justify-between p-3.5 text-left text-xs sm:text-sm font-semibold"
-                    >
-                      <span className={isLightMode ? 'text-slate-800' : 'text-slate-200'}>
-                        {item.question}
-                      </span>
-                      {isFaqOpen ? (
-                        <ChevronUp className="w-4 h-4 text-sky-400 shrink-0 ml-2" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
-                      )}
-                    </button>
-
-                    <div className={isFaqOpen ? `px-3.5 pb-3.5 text-xs sm:text-sm leading-relaxed border-t pt-2.5 ${
-                      isLightMode 
-                        ? 'border-slate-100 text-slate-600' 
-                        : 'border-slate-800 text-slate-300'
-                    }` : 'sr-only'}>
-                      {item.answer}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {seoData.faq.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border-l-4 border-sky-500 bg-slate-950/60 p-4 space-y-1.5"
+                >
+                  <h4 className="text-sm font-bold text-white leading-snug">
+                    {item.question}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-      </div>
+        </div>
+      )}
+
+      {/* Maillage interne vers les 18 pages thématiques et versions linguistiques */}
+      <nav
+        aria-label="Rubriques météo thématiques"
+        className="mt-6 pt-4 border-t border-slate-800/70 space-y-3"
+      >
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold text-slate-400 mr-1">
+            Accès direct aux rubriques :
+          </span>
+          {allPages.map((page) => {
+            const isCurrent = page.path === seoData.path;
+            return (
+              <a
+                key={page.path}
+                href={page.path}
+                onClick={(e) => {
+                  if (onNavigateRoute) {
+                    e.preventDefault();
+                    onNavigateRoute(page.path, page.tabId);
+                  }
+                }}
+                className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isCurrent
+                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold'
+                    : 'bg-slate-950/50 text-slate-400 hover:text-sky-300 hover:bg-slate-800/60 border border-slate-800/60'
+                }`}
+              >
+                {page.breadcrumbName}
+              </a>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+          <Globe className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+          <span>Versions linguistiques disponibles :</span>
+          <a href={seoData.path} hrefLang="fr" className="text-sky-400 hover:underline font-medium">
+            Français (FR)
+          </a>
+          <span>&bull;</span>
+          <a href={`${seoData.path}?hl=en`} hrefLang="en" className="hover:text-sky-300 hover:underline">
+            English (EN)
+          </a>
+          <span>&bull;</span>
+          <a href={`${seoData.path}?hl=de`} hrefLang="de" className="hover:text-sky-300 hover:underline">
+            Deutsch (DE)
+          </a>
+          <span>&bull;</span>
+          <a href={`${seoData.path}?hl=es`} hrefLang="es" className="hover:text-sky-300 hover:underline">
+            Español (ES)
+          </a>
+          <span>&bull;</span>
+          <a href={`${seoData.path}?hl=it`} hrefLang="it" className="hover:text-sky-300 hover:underline">
+            Italiano (IT)
+          </a>
+        </div>
+      </nav>
     </section>
   );
 };

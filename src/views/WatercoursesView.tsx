@@ -252,9 +252,9 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
                   Réseau Hydrométrique Télétransmis en Direct
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">
                 Vigie Cours d'Eau & Vigicrues
-              </h1>
+              </h2>
               <p className={`text-sm mt-0.5 ${isLightMode ? 'text-slate-600' : 'text-slate-400'}`}>
                 Hauteurs d'eau en direct, débits instantanés (m³/s), cotes d'alerte SCHAPI et historique des crues centennales.
               </p>

@@ -53,12 +53,17 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
     observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
 
     try {
-      const savedLang = localStorage.getItem('app_user_lang');
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('hl') || params.get('lang');
+      const validUrlLang = urlLang && SUPPORTED_LANGUAGES.some(l => l.code === urlLang) ? urlLang : null;
+      const savedLang = validUrlLang || localStorage.getItem('app_user_lang');
       if (!savedLang || savedLang === 'fr') {
         clearTranslateCookies();
         setCurrentLang('fr');
+        document.documentElement.lang = 'fr';
       } else {
         setCurrentLang(savedLang);
+        document.documentElement.lang = savedLang;
         initGoogleTranslate(savedLang);
       }
     } catch {

@@ -2258,7 +2258,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   }
 }
 
-function getFallbackWeatherData(station: LocationPoint): {
+export function getFallbackWeatherData(station: LocationPoint): {
   current: CurrentWeather;
   hourly: HourlyForecast[];
   daily: DailyForecast[];

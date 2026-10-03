@@ -1,134 +1,162 @@
 import fs from 'fs';
 import path from 'path';
-import { SEO_PAGES_MAP, generatePageJsonLd, generateStaticHtmlContent, PageSeoItem } from '../src/seo/pagesSeoData';
+import {
+  SEO_PAGES_MAP,
+  getSeoDataForPath,
+  generatePageJsonLd,
+  generateStaticHtmlContent,
+  generateHreflangLinksHtml,
+  generateSitemapXml,
+  UNIFIED_ROBOTS_DIRECTIVE,
+} from '../src/seo/pagesSeoData';
+
+const distDir = path.resolve(process.cwd(), 'dist');
+const publicDir = path.resolve(process.cwd(), 'public');
+const indexHtmlPath = path.join(distDir, 'index.html');
 
 function escapeHtmlAttr(str: string): string {
-  return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-function escapeHtmlText(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+function transformHtmlForRoute(baseHtml: string, routePath: string): string {
+  const seoData = getSeoDataForPath(routePath);
+  const safeTitle = escapeHtmlAttr(seoData.title);
+  const safeDesc = escapeHtmlAttr(seoData.description);
+  const canonicalUrl = seoData.canonicalUrl;
 
-function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
-  let html = templateHtml;
+  let html = baseHtml;
 
-  // 1. Title
-  if (/<title>[^<]*<\/title>/i.test(html)) {
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
-  } else {
-    html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
+  // 1. Replace <title>
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${seoData.title}</title>`);
+
+  // 2. Replace meta title & description
+  html = html.replace(
+    /<meta\s+name="title"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="title" content="${safeTitle}" />`
+  );
+  html = html.replace(
+    /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="description" content="${safeDesc}" />`
+  );
+
+  // 3. Enforce unified meta robots & remove deprecated tags
+  html = html.replace(/<meta\s+name="keywords"[^>]*>\s*/gi, '');
+  html = html.replace(/<meta\s+name="googlebot"[^>]*>\s*/gi, '');
+  html = html.replace(/<meta\s+name="tdm-reservation"[^>]*>\s*/gi, '');
+  html = html.replace(
+    /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />`
+  );
+
+  // 4. Replace <link rel="canonical">
+  html = html.replace(
+    /<link\s+rel="canonical"[^>]*>/i,
+    `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`
+  );
+
+  // 5. Replace hreflang links block
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(canonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
+    html = html.replace(
+      /<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/,
+      hreflangBlock
+    );
   }
 
-  // 2. Canonical self-referential URL (avec slash pour l'accueil, sans slash pour les sous-pages)
-  const canonicalUrl = pageSeo.path === '/' 
-    ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
-    : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
-  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+  // 6. Replace OpenGraph tags
+  html = html.replace(
+    /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:url" content="${canonicalUrl}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:title" content="${safeTitle}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:description" content="${safeDesc}" />`
+  );
+
+  // 7. Replace Twitter tags
+  html = html.replace(
+    /<meta\s+name="twitter:url"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:url" content="${canonicalUrl}" />`
+  );
+  html = html.replace(
+    /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:title" content="${safeTitle}" />`
+  );
+  html = html.replace(
+    /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:description" content="${safeDesc}" />`
+  );
+
+  // 8. Replace JSON-LD Structured Data
+  const jsonLdString = generatePageJsonLd(seoData);
+  html = html.replace(
+    /<script\s+id="seo-page-jsonld"\s+type="application\/ld\+json">[\s\S]*?<\/script>/i,
+    `<script id="seo-page-jsonld" type="application/ld+json">\n${jsonLdString}\n    </script>`
+  );
+
+  // 9. Inject unique semantic HTML content inside <!--SEO_ROOT_START-->...<!--SEO_ROOT_END-->
+  const staticBodyHtml = generateStaticHtmlContent(seoData);
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticBodyHtml}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(
+      /<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/,
+      rootReplacement
+    );
   } else {
-    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
-  }
-
-  // 3. Meta Description
-  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  } else {
-    html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
-  }
-
-  // 4. OpenGraph Tags
-  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
-
-  // 5. Règle commune meta robots : index, follow, sans noai, noimageai ni tdm-reservation
-  html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
-  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*\/?>/gi, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
-  } else {
-    html = html.replace('</head>', `    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n  </head>`);
-  }
-
-  // 5b. Suppression des meta keywords
-  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
-
-  // 5c. Suppression des balises de clé
-  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
-
-  // 6. Twitter Card Tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-
-  // 7. Schema.org JSON-LD
-  const jsonLd = generatePageJsonLd(pageSeo);
-  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Pre-rendered (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
-  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
-  } else {
-    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
-  }
-
-  // 8. Static fallback content for search crawlers (greedy replacement of #root)
-  const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
-
-  if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
-    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  } else if (html.includes('<div id="root">')) {
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
+    html = html.replace(
+      /<div id="root">[\s\S]*?<\/div>/i,
+      rootReplacement
+    );
   }
 
   return html;
 }
 
-function prerenderSeoPages() {
-  const distDir = path.join(process.cwd(), 'dist');
-  const templatePath = path.join(distDir, 'index.html');
-
-  if (!fs.existsSync(templatePath)) {
-    console.error('[Prerender SEO] Error: dist/index.html not found. Run vite build first.');
-    return;
+function prerenderAllRoutes() {
+  if (!fs.existsSync(indexHtmlPath)) {
+    console.error('[Prerender SEO] dist/index.html not found. Run vite build first.');
+    process.exit(1);
   }
 
-  const baseHtml = fs.readFileSync(templatePath, 'utf-8');
-  console.log(`[Prerender SEO] Generating static HTML pages with unique canonical URLs for ${Object.keys(SEO_PAGES_MAP).length} routes...`);
+  // Keep a pristine copy of the template before modifying dist/index.html
+  const cleanTemplateHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
+  // Save a copy as _spa_template.html so the Cloudflare Worker can always access the clean shell
+  fs.writeFileSync(path.join(distDir, '_spa_template.html'), cleanTemplateHtml, 'utf-8');
 
-  for (const [routePath, pageSeo] of Object.entries(SEO_PAGES_MAP)) {
-    const rendered = renderHtmlForPage(baseHtml, pageSeo);
+  const allRoutes = Object.keys(SEO_PAGES_MAP);
 
-    if (routePath === '/') {
-      // Root index.html
-      fs.writeFileSync(templatePath, rendered, 'utf-8');
-      console.log(`  ✓ Prerendered / -> dist/index.html (canonical: ${pageSeo.canonicalUrl})`);
+  for (const route of allRoutes) {
+    const routeHtml = transformHtmlForRoute(cleanTemplateHtml, route);
+
+    if (route === '/') {
+      fs.writeFileSync(indexHtmlPath, routeHtml, 'utf-8');
+      console.log(`[Prerender SEO] Generated / -> dist/index.html`);
     } else {
-      const cleanPath = routePath.replace(/^\//, '');
-      const targetDir = path.join(distDir, cleanPath);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-      const targetFilePath = path.join(targetDir, 'index.html');
-      fs.writeFileSync(targetFilePath, rendered, 'utf-8');
-      fs.writeFileSync(path.join(distDir, `${cleanPath}.html`), rendered, 'utf-8');
-      console.log(`  ✓ Prerendered ${routePath} -> dist/${cleanPath}/index.html & dist/${cleanPath}.html (canonical: ${pageSeo.canonicalUrl})`);
+      const cleanRoute = route.replace(/^\/+|\/+$/g, '');
+      const routeDir = path.join(distDir, cleanRoute);
+      fs.mkdirSync(routeDir, { recursive: true });
+      fs.writeFileSync(path.join(routeDir, 'index.html'), routeHtml, 'utf-8');
+      fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), routeHtml, 'utf-8');
+      console.log(
+        `[Prerender SEO] Generated ${route} -> dist/${cleanRoute}/index.html & dist/${cleanRoute}.html`
+      );
     }
   }
 
-  // Generate clean sitemap.xml in dist/ without fixed lastmod
-  const sitemapUrls = Object.values(SEO_PAGES_MAP)
-    .map((p) => {
-      const loc = p.path === '/'
-        ? 'https://instantmeteo.instantmeteofr.workers.dev/'
-        : p.canonicalUrl.replace(/\/+$/, '');
-      return `  <url>\n    <loc>${loc}</loc>\n  </url>`;
-    })
-    .join('\n');
-  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls}\n</urlset>\n`;
+  // Generate clean sitemap.xml with hreflang annotations and without fixed lastmod
+  const sitemapXml = generateSitemapXml();
   fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemapXml, 'utf-8');
+  if (fs.existsSync(publicDir)) {
+    fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), sitemapXml, 'utf-8');
+  }
 
-  console.log('[Prerender SEO] All pages and sitemap.xml successfully prerendered with verified canonical URLs!');
+  console.log(
+    '[Prerender SEO] All 18 canonical routes and sitemap.xml (with hreflang) successfully prerendered!'
+  );
 }
 
-prerenderSeoPages();
+prerenderAllRoutes();

@@ -4,7 +4,15 @@
  * sur https://instantmeteo.instantmeteofr.workers.dev/ et https://instantmeteo-fr.ai.studio/
  */
 
-import { SEO_PAGES_MAP, getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from '../../src/seo/pagesSeoData';
+import {
+  SEO_PAGES_MAP,
+  getSeoDataForPath,
+  generatePageJsonLd,
+  generateStaticHtmlContent,
+  generateHreflangLinksHtml,
+  generateSitemapXml,
+  UNIFIED_ROBOTS_DIRECTIVE,
+} from '../../src/seo/pagesSeoData';
 
 export interface Env {
   DB: D1Database;
@@ -37,88 +45,127 @@ function escapeHtmlText(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function generateSitemapXml(): string {
-  const urls = Object.values(SEO_PAGES_MAP)
-    .map((page) => {
-      const loc = page.path === '/'
-        ? 'https://instantmeteo.instantmeteofr.workers.dev/'
-        : page.canonicalUrl.replace(/\/+$/, '');
-      return `  <url>\n    <loc>${loc}</loc>\n  </url>`;
-    })
-    .join('\n');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
-}
-
 function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
   const pageSeo = getSeoDataForPath(reqPath);
   let html = rawHtml;
 
-  // 1. Title spécifique et descriptif
-  if (/<title>[^<]*<\/title>/i.test(html)) {
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
+  // 1. Title naturel et propre à chaque page
+  if (/<title>[\s\S]*?<\/title>/i.test(html)) {
+    html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
   } else {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
   // 2. Balise canonique propre à la page (avec slash pour l'accueil, sans slash pour les sous-pages)
-  const canonicalUrl = pageSeo.path === '/' 
-    ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
-    : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
+  const canonicalUrl =
+    pageSeo.path === '/'
+      ? 'https://instantmeteo.instantmeteofr.workers.dev/'
+      : pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/gi, `<link rel="canonical" href="${canonicalUrl}" />`);
+    html = html.replace(
+      /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
+      `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`
+    );
   } else {
-    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
+    html = html.replace(
+      '</head>',
+      `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`
+    );
+  }
+
+  // 2b. Balises hreflang (signalement des différentes versions linguistiques à Google)
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(canonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
+    html = html.replace(
+      /<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/,
+      hreflangBlock
+    );
+  } else {
+    html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
   // 3. Meta Description unique par page
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+    html = html.replace(
+      /<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+      `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`
+    );
   } else {
-    html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
+    html = html.replace(
+      '</head>',
+      `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`
+    );
   }
 
   // 4. OpenGraph tags
-  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(
+    /<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta property="og:url" content="${canonicalUrl}" />`
+  );
 
-  // 5. Règle commune meta robots sur toutes les pages : index, follow, sans noai, noimageai ni tdm-reservation
+  // 5. Règle commune meta robots sur toutes les pages
   html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
   html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
   if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*\/?>/gi, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+    html = html.replace(
+      /<meta[^>]*name=["']robots["'][^>]*\/?>/gi,
+      `<meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />`
+    );
   } else {
-    html = html.replace('</head>', `    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n  </head>`);
+    html = html.replace(
+      '</head>',
+      `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`
+    );
   }
 
-  // 6. Suppression totale des meta keywords
+  // 6. Suppression totale des meta keywords et anciennes clés
   html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
-
-  // 7. Suppression de toute clé API exposée
   html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
   html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
 
-  // 8. Twitter Card tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  // 7. Twitter Card tags
+  html = html.replace(
+    /<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']twitter:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    `<meta name="twitter:url" content="${canonicalUrl}" />`
+  );
 
-  // 9. Schema.org JSON-LD
+  // 8. Schema.org JSON-LD
   const jsonLd = generatePageJsonLd(pageSeo);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
+    html = html.replace(
+      /<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi,
+      jsonLdTag
+    );
   } else {
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 10. Injection du contenu HTML initial réel dans <div id="root"> (H1 propre à la page, paragraphes, sections, FAQ)
+  // 9. Injection déterministe du contenu HTML initial propre à la page dans <!--SEO_ROOT_START-->...<!--SEO_ROOT_END-->
   const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
-  if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
     html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  } else if (html.includes('<div id="root">')) {
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
+  } else if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', rootReplacement);
   }
 
   return html;
@@ -126,7 +173,6 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Gestion des requêtes préliminaires CORS (preflight)
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -144,11 +190,48 @@ export default {
     if (path === '/webcams' || path === '/webcam' || path === '/webcams/' || path === '/webcam/') {
       return Response.redirect(`${url.origin}/direct`, 301);
     }
-    if (path === '/modeles' || path === '/modele' || path === '/modeles-meteo' || path === '/modeles/' || path === '/modele/' || path === '/modeles-meteo/') {
+    if (
+      path === '/modeles' ||
+      path === '/modele' ||
+      path === '/modeles-meteo' ||
+      path === '/modeles/' ||
+      path === '/modele/' ||
+      path === '/modeles-meteo/'
+    ) {
       return Response.redirect(`${url.origin}/nuages`, 301);
     }
 
-    // Sitemap XML dynamique sans balise <lastmod> fixe périmée
+    // Robots.txt : autorise l'exploration complète de toutes les ressources (CSS, JS, images, API) et pages
+    if (path === '/robots.txt' && (request.method === 'GET' || request.method === 'HEAD')) {
+      const robotsTxt = [
+        '# ROBOTS.TXT OFFICIEL - INSTANT MÉTÉO FRANCE',
+        'User-agent: *',
+        'Allow: /',
+        'Allow: /assets/',
+        'Allow: /api/',
+        '',
+        'User-agent: Googlebot',
+        'Allow: /',
+        'Allow: /assets/',
+        'Allow: /api/',
+        '',
+        'User-agent: Googlebot-Image',
+        'Allow: /',
+        '',
+        'Sitemap: https://instantmeteo.instantmeteofr.workers.dev/sitemap.xml',
+        '',
+      ].join('\n');
+      return new Response(robotsTxt, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=0, s-maxage=0, must-revalidate',
+          'CDN-Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    // Sitemap XML dynamique avec hreflang et sans balise <lastmod> fixe périmée
     if (path === '/sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')) {
       return new Response(generateSitemapXml(), {
         status: 200,

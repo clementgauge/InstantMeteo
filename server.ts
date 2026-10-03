@@ -3,7 +3,13 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
-import { getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from './src/seo/pagesSeoData';
+import {
+  getSeoDataForPath,
+  generatePageJsonLd,
+  generateStaticHtmlContent,
+  generateHreflangLinksHtml,
+  generateSitemapXml,
+} from './src/seo/pagesSeoData';
 
 const app = express();
 const PORT = 3000;
@@ -1714,9 +1720,17 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
     : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
   } else {
-    html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
+    html = html.replace('</head>', `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`);
+  }
+
+  // 3b. Balises hreflang (signalement des différentes versions linguistiques à Google)
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(canonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
+    html = html.replace(/<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/, hreflangBlock);
+  } else {
+    html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
   // 4. Remplacer ou injecter la meta description
@@ -1762,12 +1776,14 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
 
   // 9. Contenu statique initial propre à la page pour les moteurs de recherche (H1, intro, sections, FAQ)
   const staticContent = generateStaticHtmlContent(pageSeo);
-  const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
 
-  if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
     html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  } else if (html.includes('<div id="root">')) {
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
+  } else if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', rootReplacement);
   }
 
   return html;
@@ -1805,10 +1821,9 @@ app.get('/robots.txt', (req, res) => {
 });
 
 app.get('/sitemap.xml', (req, res) => {
-  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-  res.sendFile(sitemapPath);
+  res.send(generateSitemapXml());
 });
 
 // -------------------------------------------------------------
