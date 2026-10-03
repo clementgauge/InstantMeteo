@@ -404,7 +404,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Recherche avancée (35 000 villes)</span>
+                  <span>Recherche avancée (34 965 communes)</span>
                 </button>
                 <div className="space-y-0.5">
                   {FRENCH_STATIONS.slice(0, 16).map((st) => (

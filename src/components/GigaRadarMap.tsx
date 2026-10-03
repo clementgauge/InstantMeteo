@@ -711,7 +711,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       satelliteOverlayRef.current = null;
     }
 
-    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
+    const isRadarActive = activeLayerMode === 'multi' ? showRadar : (activeLayerMode === 'radar' || activeLayerMode === 'satellite');
     const isSatActive = activeLayerMode === 'multi' ? showSatellite : activeLayerMode === 'satellite';
 
     const host = rvData?.host || 'https://tilecache.rainviewer.com';
@@ -944,7 +944,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           <div class="font-black text-white text-sm">${userLocName}</div>
           <div class="text-slate-300 mt-0.5">${myPos.department || myPos.country || 'Position actuelle'} • Alt: <strong>${myPos.altitude ?? 100} m</strong></div>
           <div class="text-amber-400 font-bold mt-1 text-sm">🌡️ Température locale : <strong>${myTemp}°C</strong></div>
-          <div class="text-blue-300 mt-0.5">Données thermiques officielles géolocalisées en temps réel</div>
+          <div class="text-blue-300 mt-0.5">Données thermiques de référence (Météo-France / Open-Meteo) géolocalisées en temps réel</div>
         </div>
       `, { direction: 'top', offset: [0, -14] });
 
@@ -1283,10 +1283,10 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
-              title="Afficher uniquement la couverture nuageuse satellite en temps réel"
+              title="Afficher la couverture nuageuse satellite avec superposition des pluies en temps réel"
             >
               <Globe2 className="h-3.5 w-3.5 text-indigo-300" />
-              <span>Nuages</span>
+              <span>Nuages + Pluie</span>
             </button>
 
             <button
@@ -1608,7 +1608,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   : activeLayerMode === 'radar' 
                     ? 'Radar Précipitations Doppler HD' 
                     : activeLayerMode === 'satellite' 
-                      ? 'Couverture Nuageuse Satellite Temps Réel' 
+                      ? 'Couverture Nuageuse Satellite & Précipitations Temps Réel' 
                       : activeLayerMode === 'temperatures'
                         ? 'Températures des Stations'
                         : 'Cellules Orageuses & Réseau Foudre'}

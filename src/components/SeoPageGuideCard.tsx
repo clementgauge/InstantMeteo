@@ -76,6 +76,10 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
           <div className={`p-4 rounded-xl text-sm leading-relaxed ${
             isLightMode ? 'bg-slate-50 text-slate-700' : 'bg-slate-800/40 text-slate-300'
           }`}>
+            <h3 className="text-sm font-bold text-sky-400 mb-2 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-sky-400" />
+              <span>Méthodologie Scientifique &amp; Données Publiques de Référence</span>
+            </h3>
             <p>{pageSeo.intro}</p>
           </div>
 

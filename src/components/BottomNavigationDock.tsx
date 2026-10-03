@@ -326,7 +326,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                 <Search className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <div className="text-left">
                   <span className={`block font-extrabold ${isLightMode ? 'text-blue-950' : 'text-white'}`}>Recherche Universelle</span>
-                  <span className={`text-[10px] font-normal ${isLightMode ? 'text-blue-700' : 'text-blue-300'}`}>35 000 Communes &amp; Monde</span>
+                  <span className={`text-[10px] font-normal ${isLightMode ? 'text-blue-700' : 'text-blue-300'}`}>34 965 communes &amp; Monde</span>
                 </div>
               </button>
 

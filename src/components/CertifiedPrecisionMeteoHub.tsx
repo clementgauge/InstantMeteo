@@ -121,7 +121,7 @@ export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProp
             <span className="text-slate-400">Normes OMM / Météo-France</span>
           </div>
           <h3 className={`font-black text-white mt-1 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
-            Radiographie Complète des Données Météorologiques Certifiées
+            Radiographie Complète des Données Météorologiques de Référence
           </h3>
           <p className="text-xs text-slate-400 mt-1">
             Station de <strong>{station.name}</strong> ({station.department}) • Altitude : <strong className="text-slate-200">{station.altitude} m</strong> • Coordonnées : {station.latitude}°, {station.longitude}°
@@ -131,7 +131,7 @@ export const CertifiedPrecisionMeteoHub: React.FC<CertifiedPrecisionMeteoHubProp
         <div className="flex items-center gap-2">
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 text-xs text-emerald-300 flex items-center gap-1.5 font-bold">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Données Certifiées Directes</span>
+            <span>Données Publiques de Référence</span>
           </div>
         </div>
       </div>

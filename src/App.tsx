@@ -586,7 +586,7 @@ function WeatherApp() {
         { id: 'realtime-forecast-week', label: 'Prévisions jour & semaine', icon: Calendar },
         { id: 'realtime-indicators', label: 'Indicateurs & Précision Météorologique', icon: Gauge },
         { id: 'realtime-precipitation', label: 'Précipitations & Radar Direct', icon: CloudRain },
-        { id: 'realtime-certified-precision', label: 'Observatoire certifié (Expert)', icon: Sliders },
+        { id: 'realtime-certified-precision', label: 'Observatoire de référence (Expert)', icon: Sliders },
         { id: 'realtime-deep-conditions', label: 'Conditions météorologiques approfondies', icon: Layers },
         { id: 'realtime-more-forecast', label: 'Accès autres prévisions', icon: Split },
         { id: 'realtime-download', label: "Télécharger l'application", icon: FileText },

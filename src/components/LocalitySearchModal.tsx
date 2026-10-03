@@ -567,7 +567,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
             Station active : <strong className="text-white">{currentStation.name}</strong> ({currentStation.altitude} m)
           </span>
           <span className="text-blue-400">
-            Données Open-Meteo & Météo France certifiées
+            Données de référence (Météo-France &amp; Open-Meteo)
           </span>
         </div>
       </div>

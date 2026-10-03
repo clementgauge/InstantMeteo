@@ -764,7 +764,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
                 Cliquez sur une région ou ville pour actualiser la météo en temps réel.
               </p>
               <div className="flex items-center gap-2 pt-1 text-[9px] text-slate-500 font-bold border-t border-slate-200">
-                <span className="text-emerald-700">● Données officielles</span>
+                <span className="text-emerald-700">● Données de référence Météo-France</span>
                 <span>{new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             </div>

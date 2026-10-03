@@ -72,8 +72,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
         ]
       },
       {
-        label: 'Vigilance officielle',
-        title: 'Tableaux des risques et alertes météorologiques.',
+        label: 'Vigilances Météo-France',
+        title: 'Tableaux des risques et vigilances météorologiques.',
         description:
           'Cartographie des seuils de vigilance départementaux (vent, orages, pluie-inondation, grand froid) pour planifier vos activités en sécurité.',
         icon: <BellRing className="h-5 w-5 text-[#0284C7]" />,
@@ -113,7 +113,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
     {
       icon: <Sun className="h-4 w-4 text-[#0284C7]" />,
       title: 'Relevés en direct',
-      text: 'Mesures officielles de température, vent, humidité et point de rosée.'
+      text: 'Mesures de référence (Météo-France & OMM) de température, vent, humidité et pression.'
     },
     {
       icon: <CalendarDays className="h-4 w-4 text-[#0284C7]" />,

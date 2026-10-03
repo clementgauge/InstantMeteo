@@ -163,6 +163,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
   const radarTileLayerRef = useRef<L.TileLayer | null>(null);
+  const satelliteTileLayerRef = useRef<L.TileLayer | null>(null);
   const firmsTileLayerRef = useRef<L.TileLayer | null>(null);
   const stationsLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const stormsLayerGroupRef = useRef<L.LayerGroup | null>(null);
@@ -656,6 +657,11 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
       radarTileLayerRef.current = null;
     }
 
+    if (satelliteTileLayerRef.current) {
+      map.removeLayer(satelliteTileLayerRef.current);
+      satelliteTileLayerRef.current = null;
+    }
+
     if (firmsTileLayerRef.current) {
       map.removeLayer(firmsTileLayerRef.current);
       firmsTileLayerRef.current = null;
@@ -713,15 +719,36 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     } else if (activeLayer === 'satellite' || activeLayer === 'clouds') {
       // NASA GIBS VIIRS TrueColor & Masses Nuageuses Satellite HD
       const cloudsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
-      const layer = L.tileLayer(cloudsUrl, {
-        opacity: 0.9,
-        zIndex: 10,
+      const satLayer = L.tileLayer(cloudsUrl, {
+        opacity: 0.85,
+        zIndex: 8,
         maxNativeZoom: 9,
         maxZoom: 19,
         attribution: '© NASA GIBS / VIIRS Masses Nuageuses'
       });
-      layer.addTo(map);
-      radarTileLayerRef.current = layer;
+      satLayer.addTo(map);
+      satelliteTileLayerRef.current = satLayer;
+
+      // Ajout de la pluie sur les nuages comme demandé
+      if (radarFrames.length > 0) {
+        const frame = radarFrames[currentFrameIndex] || radarFrames[radarFrames.length - 1];
+        if (frame && frame.path) {
+          const smoothFlag = radarSmooth ? 1 : 0;
+          const snowFlag = radarSnow ? 1 : 0;
+          const radarUrl = `${radarHost}${frame.path}/512/{z}/{x}/{y}/${radarColorScheme}/${smoothFlag}_${snowFlag}.png`;
+          const rainLayer = L.tileLayer(radarUrl, {
+            opacity: radarOpacity,
+            zIndex: 12,
+            tileSize: 512,
+            zoomOffset: -1,
+            maxNativeZoom: 12,
+            maxZoom: 19,
+            className: 'rainviewer-radar-layer'
+          });
+          rainLayer.addTo(map);
+          radarTileLayerRef.current = rainLayer;
+        }
+      }
     }
   }, [activeLayer, radarFrames, currentFrameIndex, radarHost, radarOpacity, radarColorScheme, radarSmooth, radarSnow, minPrecipThresholdMm]);
 
@@ -1126,7 +1153,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
               <div>• <strong>Vitesse moyenne (10m) :</strong> <strong>${node.speed} km/h</strong></div>
               <div>• <strong>Rafales maximales :</strong> <strong style="color: #0f766e;">${node.gust} km/h</strong></div>
               <div>• <strong>Direction du flux :</strong> ${node.dir}°</div>
-              <div style="font-size: 9.5px; color: #0f766e; margin-top: 3px;">✓ Relevé anémométrique station officielle certifiée</div>
+              <div style="font-size: 9.5px; color: #0f766e; margin-top: 3px;">✓ Relevé station météorologique de référence (Météo-France / OMM)</div>
             </div>
           </div>
         `);
