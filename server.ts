@@ -1709,8 +1709,10 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 3. Remplacer ou injecter la balise canonique (self-canonical propre à chaque page sans slash final)
-  const canonicalUrl = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
+  // 3. Remplacer ou injecter la balise canonique (avec slash pour l'accueil, sans slash pour les sous-pages)
+  const canonicalUrl = pageSeo.path === '/' 
+    ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
+    : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
   } else {

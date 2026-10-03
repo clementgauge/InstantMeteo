@@ -68,7 +68,7 @@ const SCRIPT_STEPS: TutorialScriptStep[] = [
     badge: 'Étape 3 / 4 • Recherche & Communes',
     icon: Search,
     accentColor: 'from-emerald-500 to-teal-500',
-    speechBubble: 'La barre de recherche en haut vous permet de chercher instantanément le lieu de votre choix parmi 35 000 communes de France et dans le monde !',
+    speechBubble: 'La barre de recherche en haut vous permet de chercher instantanément le lieu de votre choix parmi 34 965 communes de France et dans le monde !',
     detailedText: 'Entrez un nom de ville, de village, de département, un sommet de montagne ou une grande capitale internationale pour charger immédiatement toutes ses prévisions au dixième de degré près.',
     targetElementId: 'open-locality-search-btn',
     actionHint: '💡 Vous pouvez également cliquer sur « Ma Position GPS » pour géolocaliser automatiquement votre commune.'

@@ -1382,9 +1382,8 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     });
   }, [filteredStations, currentStation.id, currentStation.latitude, currentStation.longitude, currentStation.altitude, weather?.temperature, weather?.feelsLike, weather?.windSpeed, weather?.humidity, activeLayer, liveStationWeatherMap]);
 
-  // Fullscreen container handler (Native Browser HTML5 Fullscreen API matching Settings)
+  // Fullscreen container handler (Vrai plein écran navigateur natif identique aux paramètres)
   const handleToggleFullscreen = async () => {
-    const container = radarContainerRef.current || document.documentElement;
     const isCurrentlyFs = !!(
       document.fullscreenElement ||
       (document as any).webkitFullscreenElement ||
@@ -1394,19 +1393,17 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
     if (!isCurrentlyFs && !isFullscreen) {
       try {
-        if (container.requestFullscreen) {
-          await container.requestFullscreen();
-        } else if ((container as any).webkitRequestFullscreen) {
-          await (container as any).webkitRequestFullscreen();
-        } else if ((container as any).mozRequestFullScreen) {
-          await (container as any).mozRequestFullScreen();
-        } else if ((container as any).msRequestFullscreen) {
-          await (container as any).msRequestFullscreen();
-        } else if (document.documentElement.requestFullscreen) {
+        if (document.documentElement.requestFullscreen) {
           await document.documentElement.requestFullscreen();
+        } else if ((document.documentElement as any).webkitRequestFullscreen) {
+          await (document.documentElement as any).webkitRequestFullscreen();
+        } else if ((document.documentElement as any).mozRequestFullScreen) {
+          await (document.documentElement as any).mozRequestFullScreen();
+        } else if ((document.documentElement as any).msRequestFullscreen) {
+          await (document.documentElement as any).msRequestFullscreen();
         }
       } catch (err) {
-        console.warn('Native requestFullscreen could not be granted (fallback to CSS fullscreen)', err);
+        console.warn('Native requestFullscreen could not be granted', err);
       }
       setIsFullscreen(true);
     } else {
@@ -1528,25 +1525,20 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
           </button>
         </div>
 
-        {/* Right side icons: Base layer cycle + Fullscreen */}
+        {/* Right side icons: Satellite HD indicator + Fullscreen */}
         <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl">
-          <button
-            type="button"
-            onClick={() => {
-              const modes: MapTileEngine[] = ['topo', 'satellite', 'osm'];
-              const nextIdx = (modes.indexOf(baseEngine) + 1) % modes.length;
-              setBaseEngine(modes[nextIdx]);
-            }}
-            title={`Fond de carte : ${baseEngine.toUpperCase()}`}
-            className="flex h-8 px-2 items-center justify-center rounded-xl text-[10px] font-bold text-slate-300 hover:bg-slate-800 transition active:scale-95 cursor-pointer"
+          <div
+            title="Fond de carte Satellite HD"
+            className="flex h-8 px-2 items-center justify-center rounded-xl text-[10px] font-bold text-slate-200"
           >
-            {baseEngine === 'topo' ? 'Relief' : baseEngine === 'satellite' ? 'Sat' : 'Plan'}
-          </button>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />
+            <span>Sat HD</span>
+          </div>
 
           <button
             type="button"
             onClick={handleToggleFullscreen}
-            title={isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}
+            title={isFullscreen ? 'Quitter Plein Écran (Échap)' : 'Plein Écran'}
             className={`flex h-8 w-8 items-center justify-center rounded-xl font-black text-xs shadow-lg transition active:scale-95 cursor-pointer border ${
               isFullscreen 
                 ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-400/50' 
@@ -1675,35 +1667,10 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
       {/* DESKTOP / PC TOP RIGHT: Fullscreen & Base Layer Chooser */}
       <div className="hidden sm:flex absolute top-3 right-3 z-[1000] pointer-events-auto items-center gap-2">
-        {/* Map style selector */}
-        <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-xl backdrop-blur-md text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => setBaseEngine('topo')}
-            className={`px-2.5 py-1 rounded-xl transition cursor-pointer ${
-              baseEngine === 'topo' ? 'bg-slate-800 text-white font-black' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Relief
-          </button>
-          <button
-            type="button"
-            onClick={() => setBaseEngine('satellite')}
-            className={`px-2.5 py-1 rounded-xl transition cursor-pointer ${
-              baseEngine === 'satellite' ? 'bg-slate-800 text-white font-black' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Satellite
-          </button>
-          <button
-            type="button"
-            onClick={() => setBaseEngine('osm')}
-            className={`px-2.5 py-1 rounded-xl transition cursor-pointer ${
-              baseEngine === 'osm' ? 'bg-slate-800 text-white font-black' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Plan OSM
-          </button>
+        {/* Map style indicator (Satellite HD exclusif) */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-xl backdrop-blur-md text-xs font-bold text-slate-200">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Satellite HD</span>
         </div>
 
         {/* FULLSCREEN TOGGLE BUTTON */}

@@ -636,7 +636,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow hover:bg-blue-500 transition cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Recherche avancée (35 000 communes & Monde)</span>
+                  <span>Recherche avancée (34 965 communes & Monde)</span>
                 </button>
 
                 <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">

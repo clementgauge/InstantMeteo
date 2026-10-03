@@ -1,7 +1,7 @@
 {
   "name": "Instant Météo - Prévisions & Radar HD",
   "short_name": "Instant Météo",
-  "description": "Application météorologique de précision pour les 35 000 communes de France : temps réel, vigilances Météo-France, radar HD, prévisions 30 jours et tendances 8 mois.",
+  "description": "Application météorologique de précision pour les 34 965 communes de France : temps réel, vigilances Météo-France, radar HD, prévisions 30 jours et tendances 8 mois.",
   "start_url": "/",
   "scope": "/",
   "id": "/",

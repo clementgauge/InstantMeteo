@@ -29,9 +29,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
   '/': {
     slug: 'home',
     path: '/',
-    canonicalUrl: `${BASE_SITE_URL}`,
+    canonicalUrl: `${BASE_SITE_URL}/`,
     title: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
-    description: 'Instant Météo : Prévisions météo en direct pour la France et 35 000 communes. Température temps réel, radar précipitations HD, vigilances et modélisations atmosphériques.',
+    description: 'Instant Météo : Prévisions météo en direct pour la France et 34 965 communes. Température temps réel, radar précipitations HD, vigilances et modélisations atmosphériques.',
     keywords: '',
     h1: 'Instant Météo France - Météo Direct, Température & Radar Pluie HD',
     h2s: [
@@ -43,7 +43,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     intro: 'Instant Météo est un portail d\'information météorologique dédié au suivi hyper-local et en temps réel des conditions atmosphériques en France métropolitaine et outre-mer. Notre infrastructure s\'appuie sur les données publiques ouvertes produites par Météo-France (modèles AROME 1,3 km et ARPEGE sous Licence Ouverte Etalab v2.0), le Centre Européen pour les Prévisions Météorologiques à Moyen Terme (ECMWF Open Data Licence), le réseau de radars Doppler polarimétriques ARAMIS, le SCHAPI (Vigicrues, Licence Ouverte) et les observations satellitaires de la NASA.',
     sections: [
       {
-        title: 'Précision hyper-locale pour 35 000 communes françaises (référentiel Insee)',
+        title: 'Précision hyper-locale pour les 34 965 communes françaises (référentiel Insee)',
         content: 'Chaque commune de France bénéficie d\'une fiche d\'observation complète intégrant température sous abri à 2 m, ressenti au vent (wind chill), indice humidex, hygrométrie relative, point de rosée, vitesse et rafales de vent à 10 m, pression atmosphérique ramenée au niveau de la mer et ensoleillement horaire. Les comparaisons aux normales climatiques de référence 1991-2020 permettent de visualiser immédiatement les anomalies thermiques locales.'
       },
       {
@@ -70,7 +70,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
       },
       {
         question: 'Puis-je consulter la météo de n\'importe quelle commune de France ?',
-        answer: 'Oui. Notre moteur de recherche couvre l\'ensemble des 35 000 communes de métropole et des départements d\'outre-mer (référentiel officiel Insee) avec prise en compte du relief altimétrique et des microclimats locaux.'
+        answer: 'Oui. Notre moteur de recherche couvre l\'ensemble des 34 965 communes de métropole et des départements d\'outre-mer (référentiel officiel Insee) avec prise en compte du relief altimétrique et des microclimats locaux.'
       }
     ],
     tabId: 'realtime'
@@ -80,7 +80,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
     title: 'Météo en Direct & Température Temps Réel France - Instant Météo',
-    description: 'Météo en direct pour 35 000 communes de France : température temps réel, humidité, pression barométrique, vent et ressenti thermique calculés à la minute.',
+    description: 'Météo en direct pour les 34 965 communes de France : température temps réel, humidité, pression barométrique, vent et ressenti thermique calculés à la minute.',
     keywords: 'météo direct, météo en direct, température temps réel, météo direct france, ressenti vent, humidité en direct, pression atmosphérique',
     h1: 'Météo en Direct & Température en Temps Réel sur toute la France',
     h2s: [
@@ -386,7 +386,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     intro: 'Le service Météo des Plages d\'Instant Météo couvre les 5 500 kilomètres de côtes de la Manche, de l\'Océan Atlantique et de la Mer Méditerranée. Combinant les calculs astronomiques officiels du Service Hydrographique et Océanographique de la Marine (SHOM), les observations satellitaires Copernicus et les modèles de vagues Wavewatch III, il fournit toutes les clés pour une sortie côtière en toute sécurité.',
     sections: [
       {
-        title: 'Horaires et coefficients de marée certifiés SHOM',
+        title: 'Horaires et coefficients de marée issus des calculs officiels du SHOM',
         content: 'Accédez en direct aux heures exactes de Pleine Mer (PM) et Basse Mer (BM), aux hauteurs d\'eau prévues en mètres par rapport au zéro hydrographique et aux coefficients de marée (de 20 pour les mortes-eaux à 120 pour les vives-eaux d\'équinoxe).'
       },
       {
@@ -734,7 +734,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
       },
       {
         title: 'Surveillance des tornades et supercellules géantes',
-        content: 'Suivez les corridors de tornades (Tornado Alley américaine, plaines d\'Amérique du Sud, Europe) avec les alertes officielles PDS (Particularly Dangerous Situation) et les rapports de dégâts sur l\'échelle de Fujita améliorée (EF0 à EF5).'
+        content: 'Suivez les corridors de tornades (Tornado Alley américaine, plaines d\'Amérique du Sud, Europe) avec les bulletins d\'alerte météo PDS (Particularly Dangerous Situation) émis par le NWS/NOAA et les rapports de dégâts sur l\'échelle de Fujita améliorée (EF0 à EF5).'
       },
       {
         title: 'Veille sur les vagues de chaleur et de froid polaires extrêmes',
@@ -752,7 +752,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
       },
       {
         question: 'Quelles sont les agences météorologiques internationales partenaires ?',
-        answer: 'Nous agrégeons les données certifiées du National Weather Service (NWS / NOAA), de Météo-France Outre-Mer, de l\'agence japonaise JMA, du Bureau of Meteorology australien (BOM) et du Met Office britannique.'
+        answer: 'Nous agrégeons les données publiques d\'observation et de prévision du National Weather Service (NWS / NOAA), de Météo-France Outre-Mer, de l\'agence japonaise JMA, du Bureau of Meteorology australien (BOM) et du Met Office britannique.'
       },
       {
         question: 'À quelle fréquence les bulletins cycloniques mondiaux sont-ils mis à jour ?',
@@ -1207,7 +1207,10 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
       <p style="font-size: 1.05rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 24px;">${escapeHtml(page.intro)}</p>
 
       <section aria-labelledby="sections-explicatives" style="margin-bottom: 36px;">
-        <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 18px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Méthodologie Scientifique &amp; Données Publiques de Référence</h2>
+        <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Méthodologie Scientifique &amp; Données Publiques de Référence</h2>
+        <p style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 20px;">
+          L'ensemble des modélisations, cartographies et indicateurs météorologiques présentés sur Instant Météo sont calculés à partir des données publiques ouvertes produites par les grands centres météorologiques et environnementaux : modèles numériques de prévision haute résolution AROME (1,3 km) et ARPEGE de Météo-France sous Licence Ouverte Etalab v2.0, sorties du modèle mondial IFS du CEPMMT (ECMWF Open Data Licence), réseau de radars Doppler polarimétriques ARAMIS, stations hydrométriques en temps réel du SCHAPI (Vigicrues) et télédétection satellitaire de la NOAA et de la NASA.
+        </p>
         ${sectionsHtml}
       </section>
 

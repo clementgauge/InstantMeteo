@@ -137,7 +137,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
     },
     {
       icon: <Search className="h-4 w-4 text-[#0284C7]" />,
-      title: '35 000 communes référencées',
+      title: '34 965 communes référencées',
       text: 'Recherche par nom, code postal, sommet alpin ou station balnéaire.'
     },
     {
@@ -206,7 +206,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
               </div>
               <div className="border-l border-slate-800 pl-4">
                 <div className="text-slate-400 font-medium">Couverture</div>
-                <div className="mt-1 font-bold text-white text-sm">35 000 communes</div>
+                <div className="mt-1 font-bold text-white text-sm">34 965 communes</div>
               </div>
               <div className="border-l border-slate-800 pl-4">
                 <div className="text-slate-400 font-medium">Modèles</div>

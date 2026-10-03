@@ -1208,7 +1208,7 @@ function WeatherApp() {
                 onClick={() => setIsSearchModalOpen(true)}
                 className="text-slate-300 hover:underline font-semibold"
               >
-                🔍 Recherche 35 000 communes
+                🔍 Recherche 34 965 communes
               </button>
               <span>•</span>
               <button

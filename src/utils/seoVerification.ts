@@ -65,8 +65,10 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     // 1. Title
     document.title = pageSeo.title;
 
-    // 2. Balise canonique auto-référentielle propre à l'URL de la page (sans slash final)
-    const cleanCanonical = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
+    // 2. Balise canonique auto-référentielle propre à l'URL de la page (avec slash pour l'accueil, sans slash pour les sous-pages)
+    const cleanCanonical = pageSeo.path === '/' 
+      ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
+      : pageSeo.canonicalUrl.replace(/\/+$/, '');
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');

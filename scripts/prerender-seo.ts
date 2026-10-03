@@ -20,8 +20,10 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 2. Canonical self-referential URL (sans slash final)
-  const canonicalUrl = pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
+  // 2. Canonical self-referential URL (avec slash pour l'accueil, sans slash pour les sous-pages)
+  const canonicalUrl = pageSeo.path === '/' 
+    ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
+    : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
   } else {

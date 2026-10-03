@@ -240,7 +240,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
                 Recherche de Localités (France & Monde)
               </h2>
               <p className="text-xs text-slate-400">
-                Accédez à toutes les 35 000 communes françaises, sommets & villes du monde à toute altitude
+                Accédez à toutes les 34 965 communes françaises, sommets & villes du monde à toute altitude
               </p>
             </div>
           </div>

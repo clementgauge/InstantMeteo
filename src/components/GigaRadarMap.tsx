@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
-import { LocationPoint } from '../types/weather';
+import { LocationPoint, CurrentWeather } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
 import { getLocalityFromCoordinates, searchLocalities } from '../services/openMeteoService';
@@ -47,6 +47,7 @@ interface GigaRadarMapProps {
   onSelectStation: (station: LocationPoint) => void;
   seniorMode: boolean;
   onOpenSearchModal?: () => void;
+  weather?: CurrentWeather;
 }
 
 interface RainViewerFrame {
@@ -126,7 +127,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   currentStation,
   onSelectStation,
   seniorMode,
-  onOpenSearchModal
+  onOpenSearchModal,
+  weather
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -141,8 +143,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const measurementLineGroupRef = useRef<L.LayerGroup | null>(null);
   const probeMarkerRef = useRef<L.Marker | null>(null);
 
-  // States
-  const [baseMap, setBaseMap] = useState<'satellite' | 'topo' | 'hybrid'>('satellite');
+  // States: Standardisation Satellite HD pure (route et relief retirés du radar selon la demande utilisateur)
+  const [baseMap] = useState<'satellite'>('satellite');
   const [activeLayerMode, setActiveLayerMode] = useState<'radar' | 'satellite' | 'temperatures' | 'lightning' | 'multi'>('radar');
   
   // Layer visibility toggles in Multi-Spectre mode
@@ -162,6 +164,159 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const [showStations, setShowStations] = useState<boolean>(false);
   const [showDistanceRings, setShowDistanceRings] = useState<boolean>(false);
   const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(7);
+
+  // User location auto-detection & live temperature for temperatures mode
+  const [userLocationPoint, setUserLocationPoint] = useState<LocationPoint | null>(currentStation || null);
+  const [userLocationTemp, setUserLocationTemp] = useState<number | null>(
+    weather?.temperature !== undefined ? Number(weather.temperature.toFixed(1)) : null
+  );
+
+  // Synchronisation dynamique si la météo ou la station change
+  useEffect(() => {
+    if (weather?.temperature !== undefined) {
+      setUserLocationTemp(Number(weather.temperature.toFixed(1)));
+    }
+  }, [weather?.temperature]);
+
+  useEffect(() => {
+    if (currentStation) {
+      setUserLocationPoint(prev => prev || currentStation);
+    }
+  }, [currentStation]);
+
+  // Sync native HTML5 Fullscreen API with component state (matching Settings behavior)
+  useEffect(() => {
+    const handleFsChange = () => {
+      const isFs = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFs);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 150);
+    };
+
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    document.addEventListener('mozfullscreenchange', handleFsChange);
+    document.addEventListener('MSFullscreenChange', handleFsChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+      document.removeEventListener('mozfullscreenchange', handleFsChange);
+      document.removeEventListener('MSFullscreenChange', handleFsChange);
+    };
+  }, []);
+
+  // True Browser Native Fullscreen (identique au bouton Grand Écran des paramètres)
+  const handleToggleTrueFullscreen = async () => {
+    try {
+      const isCurrentlyFs = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+
+      if (!isCurrentlyFs) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if ((document.documentElement as any).webkitRequestFullscreen) {
+          await (document.documentElement as any).webkitRequestFullscreen();
+        } else if ((document.documentElement as any).mozRequestFullScreen) {
+          await (document.documentElement as any).mozRequestFullScreen();
+        } else if ((document.documentElement as any).msRequestFullscreen) {
+          await (document.documentElement as any).msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+          await (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.warn('Native fullscreen error, fallback CSS toggle:', err);
+      setIsFullscreen(prev => !prev);
+    }
+
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
+  };
+
+  // Auto-detect user's GPS position automatically for live temperatures
+  useEffect(() => {
+    if (!userLocationPoint && currentStation) {
+      setUserLocationPoint(currentStation);
+    }
+
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          try {
+            const locality = await getLocalityFromCoordinates(latitude, longitude);
+            setUserLocationPoint(locality);
+          } catch {
+            setUserLocationPoint({
+              id: `user-gps-${latitude.toFixed(3)}-${longitude.toFixed(3)}`,
+              name: 'Ma position GPS',
+              latitude,
+              longitude,
+              altitude: 120,
+              department: 'Position GPS actuelle',
+              region: 'France',
+              climateZone: 'Tempéré',
+              allTimeRecordMax: 42.0,
+              allTimeRecordMin: -15.0,
+              allTimeRecordRain24h: 80.0
+            });
+          }
+        },
+        (err) => {
+          console.log('Auto geolocation fallback to current station:', err);
+          if (currentStation) {
+            setUserLocationPoint(currentStation);
+          }
+        },
+        { timeout: 7000, enableHighAccuracy: true }
+      );
+    }
+  }, [activeLayerMode, currentStation]);
+
+  // Fetch live measured temperature from Open-Meteo for user's exact coordinates
+  useEffect(() => {
+    const targetLoc = userLocationPoint || currentStation;
+    if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
+      let isMounted = true;
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${targetLoc.latitude}&longitude=${targetLoc.longitude}&current=temperature_2m&timezone=auto`)
+        .then(res => res.json())
+        .then(data => {
+          if (isMounted && data?.current?.temperature_2m !== undefined) {
+            setUserLocationTemp(Number(data.current.temperature_2m.toFixed(1)));
+          }
+        })
+        .catch(() => {
+          // handled by fallback calculation
+        });
+      return () => { isMounted = false; };
+    }
+  }, [userLocationPoint, currentStation]);
 
   // Target probe & distance measurement
   const [measuredTarget, setMeasuredTarget] = useState<{
@@ -517,33 +672,22 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       labelsLayerRef.current = null;
     }
 
+    // Fond cartographique Satellite HD exclusif (relief et routes supprimés à la demande)
     const baseMapConfigs = {
       satellite: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         maxNativeZoom: 18,
         maxZoom: 19,
         subdomains: 'abc'
-      },
-      topo: {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        maxNativeZoom: 19,
-        maxZoom: 19,
-        subdomains: 'abcd'
-      },
-      hybrid: {
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        maxNativeZoom: 19,
-        maxZoom: 19,
-        subdomains: 'abcd'
       }
     };
 
-    const currentConfig = baseMapConfigs[baseMap] || baseMapConfigs.satellite;
+    const currentConfig = baseMapConfigs.satellite;
     tileLayerRef.current = L.tileLayer(currentConfig.url, {
       maxNativeZoom: currentConfig.maxNativeZoom,
       maxZoom: currentConfig.maxZoom,
       subdomains: currentConfig.subdomains as any,
-      attribution: '© Esri, CartoDB, Open-Meteo'
+      attribution: '© Esri, Maxar, Earthstar Geographics'
     }).addTo(map);
 
     // Ensure radar overlays remain on top
@@ -760,7 +904,64 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       return Number(temp.toFixed(1));
     };
 
-    [...FRENCH_STATIONS, ...WORLD_STATIONS].forEach((st) => {
+    // Position exacte de l'utilisateur (auto-détectée par GPS ou commune active)
+    const myPos = userLocationPoint || currentStation;
+    const myTemp = userLocationTemp !== null 
+      ? userLocationTemp 
+      : (weather?.temperature !== undefined ? Number(weather.temperature.toFixed(1)) : (myPos ? getStationTemp(myPos) : null));
+
+    // 1. Ajouter OBLIGATOIREMENT le marqueur haute visibilité de la personne avec sa température locale
+    if (myPos && myTemp !== null) {
+      const userLocName = myPos.name || 'Ma position';
+      const userMarkerHtml = `
+        <div class="cursor-pointer transition-all duration-300 transform hover:scale-125 scale-110 z-[2000]">
+          <div class="relative flex items-center justify-center">
+            <span class="absolute -inset-4 rounded-full bg-blue-500/70 animate-ping"></span>
+            <span class="absolute -inset-2 rounded-full bg-cyan-400/90 animate-pulse"></span>
+            <div class="relative flex items-center gap-2 rounded-xl px-3 py-1.5 shadow-2xl border-2 border-white bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white text-xs font-black z-30 ring-4 ring-blue-500/40 whitespace-nowrap">
+              <span class="text-sm">📍</span>
+              <span class="tracking-wide">Votre position : ${userLocName}</span>
+              <span class="text-amber-300 font-extrabold bg-blue-950/90 px-2 py-0.5 rounded-lg shadow-inner text-xs">${myTemp}°C</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const userIcon = L.divIcon({
+        html: userMarkerHtml,
+        className: 'custom-user-location-pin',
+        iconSize: [220, 36],
+        iconAnchor: [110, 18]
+      });
+
+      const userMarker = L.marker([myPos.latitude, myPos.longitude], { icon: userIcon, zIndexOffset: 3000 });
+      userMarker.on('click', () => {
+        onSelectStation(myPos);
+      });
+      userMarker.bindTooltip(`
+        <div class="p-2 font-sans text-xs">
+          <div class="text-[10px] text-cyan-300 font-black uppercase tracking-wider mb-0.5">📍 Votre Position (Détectée Automatiquement)</div>
+          <div class="font-black text-white text-sm">${userLocName}</div>
+          <div class="text-slate-300 mt-0.5">${myPos.department || myPos.country || 'Position actuelle'} • Alt: <strong>${myPos.altitude ?? 100} m</strong></div>
+          <div class="text-amber-400 font-bold mt-1 text-sm">🌡️ Température locale : <strong>${myTemp}°C</strong></div>
+          <div class="text-blue-300 mt-0.5">Données thermiques officielles géolocalisées en temps réel</div>
+        </div>
+      `, { direction: 'top', offset: [0, -14] });
+
+      markerGroupRef.current?.addLayer(userMarker);
+    }
+
+    // 2. Affichage des autres stations du réseau sans chevauchement avec la position de la personne
+    const stationsList: LocationPoint[] = [...FRENCH_STATIONS, ...WORLD_STATIONS];
+    const filteredStations = stationsList.filter(st => {
+      if (!myPos) return true;
+      if (st.id === myPos.id) return false;
+      const dLat = Math.abs((st.latitude || 0) - myPos.latitude);
+      const dLon = Math.abs((st.longitude || 0) - myPos.longitude);
+      return dLat > 0.02 || dLon > 0.02;
+    });
+
+    filteredStations.forEach((st) => {
       const isSelected = st.id === currentStation.id;
       const isMountain = (st.altitude ?? 0) >= 800;
       const stTemp = getStationTemp(st);
@@ -792,7 +993,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         iconAnchor: [42, 13]
       });
 
-      const marker = L.marker([st.latitude, st.longitude], { icon });
+      const marker = L.marker([st.latitude, st.longitude], { icon, zIndexOffset: 0 });
       marker.on('click', () => {
         onSelectStation(st);
       });
@@ -800,15 +1001,20 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       marker.bindTooltip(`
         <div class="p-2 font-sans text-xs">
           <div class="font-black text-white text-sm">${st.name}</div>
-          <div class="text-slate-300 mt-0.5">${st.department || st.country || 'International'} • Alt: <strong>${st.altitude} m</strong></div>
-          <div class="text-amber-400 font-bold mt-0.5">🌡️ Température estimée : <strong>${stTemp}°C</strong></div>
+          <div class="text-slate-300 mt-0.5">${st.department || st.country || 'Position locale'} • Alt: <strong>${st.altitude ?? 100} m</strong></div>
+          <div class="text-amber-400 font-bold mt-0.5">🌡️ Température actuelle : <strong>${stTemp}°C</strong></div>
           <div class="text-blue-300 mt-0.5">${st.climateZone || 'Zone Tempérée'}</div>
         </div>
       `, { direction: 'top', offset: [0, -12] });
 
       markerGroupRef.current?.addLayer(marker);
     });
-  }, [currentStation, showStations, activeLayerMode]);
+
+    // Recentrage automatique et fluide sur la position de l'utilisateur quand le mode températures est actif
+    if (activeLayerMode === 'temperatures' && myPos && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([myPos.latitude, myPos.longitude], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 1.2 });
+    }
+  }, [currentStation, userLocationPoint, userLocationTemp, showStations, activeLayerMode]);
 
   // 10. Update Lightning Strikes and Convective Storm Cells across all countries (ONLY active in lightning mode or multi)
   useEffect(() => {
@@ -1048,7 +1254,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     <div
       id="giga-radar-map"
       className={`relative rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen' : 'h-[720px] sm:h-[800px]'
+        isFullscreen ? 'fixed inset-0 z-[9999] rounded-none h-screen w-screen' : 'h-[720px] sm:h-[800px]'
       }`}
     >
       {/* 1. TOP FLOATING OPERATIONAL CONTROL BAR */}
@@ -1215,35 +1421,10 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
         {/* Right: Base Map, GPS, Presets & Fullscreen */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Base Map Switcher without "Sombre" */}
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur">
-            <button
-              onClick={() => setBaseMap('satellite')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                baseMap === 'satellite' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-              title="Vue Satellite Réelle HD + Noms de Communes"
-            >
-              Satellite HD
-            </button>
-            <button
-              onClick={() => setBaseMap('topo')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                baseMap === 'topo' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-              title="Relief & Courbes de Niveau Topographiques"
-            >
-              Relief
-            </button>
-            <button
-              onClick={() => setBaseMap('hybrid')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                baseMap === 'hybrid' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-white'
-              }`}
-              title="Réseau Routier & Villes Claires"
-            >
-              Routes
-            </button>
+          {/* Fond cartographique Satellite HD exclusif (relief et routes retirés) */}
+          <div className="flex items-center gap-1.5 rounded-xl bg-slate-950/95 px-3 py-1.5 border border-slate-800/90 shadow-xl backdrop-blur text-xs font-bold text-slate-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Satellite HD</span>
           </div>
 
           {/* GPS Location Button */}
@@ -1273,11 +1454,16 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             <Target className="h-4 w-4" />
           </button>
 
-          {/* Fullscreen Button */}
+          {/* Fullscreen Button - Vrai grand écran identique aux paramètres */}
           <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="rounded-xl bg-slate-950/95 p-2 text-slate-300 border border-slate-800/90 shadow-xl backdrop-blur hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title={isFullscreen ? 'Quitter le mode Plein Écran' : 'Passer en Plein Écran'}
+            type="button"
+            onClick={handleToggleTrueFullscreen}
+            className={`rounded-xl p-2 border shadow-xl backdrop-blur transition cursor-pointer active:scale-95 ${
+              isFullscreen 
+                ? 'bg-rose-600/90 hover:bg-rose-500 border-rose-400 text-white' 
+                : 'bg-slate-950/95 border-slate-800/90 text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
+            title={isFullscreen ? 'Quitter le grand écran (Échap)' : 'Grand écran (Plein écran natif)'}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>

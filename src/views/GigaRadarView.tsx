@@ -160,6 +160,8 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         <WorldAverageTemperatureMap
           onBackToRadar={() => setActiveMapMode('radar')}
           seniorMode={seniorMode}
+          currentStation={currentStation}
+          weather={weather}
         />
       ) : activeMapMode === 'communityReports' ? (
         <CommunityWeatherMap
@@ -235,6 +237,7 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         onSelectStation={onSelectStation}
         seniorMode={seniorMode}
         onOpenSearchModal={onOpenSearchModal}
+        weather={weather}
       />
 
       {/* Interactive Toggle Buttons for Storm and Fire Blocks */}

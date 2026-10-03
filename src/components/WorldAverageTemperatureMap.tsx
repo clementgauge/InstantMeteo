@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Globe2, Search, Info, Thermometer, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { LocationPoint, CurrentWeather } from '../types/weather';
 
 export interface CountryTemperatureData {
   id: string;
@@ -88,11 +89,15 @@ export function getTemperatureColor(tempC: number): { bg: string; border: string
 interface WorldAverageTemperatureMapProps {
   onBackToRadar?: () => void;
   seniorMode?: boolean;
+  currentStation?: LocationPoint;
+  weather?: CurrentWeather;
 }
 
 export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProps> = ({
   onBackToRadar,
-  seniorMode = false
+  seniorMode = false,
+  currentStation,
+  weather
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -220,7 +225,59 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
 
       marker.addTo(group);
     });
-  }, [searchQuery, selectedContinent]);
+
+    // 3. Ajouter automatiquement le marqueur de la position de la personne avec sa température
+    const userLoc = currentStation;
+    const userTemp = weather?.temperature;
+    if (userLoc && userLoc.latitude && userLoc.longitude && userTemp !== undefined) {
+      const userMarkerHtml = `
+        <div style="
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, #1d4ed8, #4338ca);
+          border: 2px solid #ffffff;
+          border-radius: 9999px;
+          padding: 3px 10px;
+          box-shadow: 0 0 24px rgba(59, 130, 246, 0.9), 0 4px 12px rgba(0,0,0,0.7);
+          cursor: pointer;
+          white-space: nowrap;
+          transform: translate(-50%, -50%) scale(1.15);
+          z-index: 1000;
+        ">
+          <span style="font-size: 14px;">📍</span>
+          <span style="font-size: 11px; font-weight: 900; color: #ffffff; font-family: system-ui, sans-serif;">
+            Votre position (${userLoc.name}) :
+          </span>
+          <span style="font-size: 12px; font-weight: 900; color: #fde047; font-family: system-ui, sans-serif; background: rgba(15,23,42,0.85); padding: 1px 6px; border-radius: 6px;">
+            ${userTemp > 0 ? `+${userTemp.toFixed(1)}` : userTemp.toFixed(1)}°C
+          </span>
+        </div>
+      `;
+
+      const userCustomIcon = L.divIcon({
+        className: 'custom-user-world-temp-marker',
+        html: userMarkerHtml,
+        iconSize: [220, 32],
+        iconAnchor: [110, 16]
+      });
+
+      const userMarker = L.marker([userLoc.latitude, userLoc.longitude], { icon: userCustomIcon, zIndexOffset: 2500 });
+      userMarker.bindPopup(`
+        <div style="min-width: 220px; font-family: system-ui, sans-serif; color: #0f172a;">
+          <div style="font-weight: 900; font-size: 14px; margin-bottom: 4px;">📍 Votre Position : ${userLoc.name}</div>
+          <div style="font-size: 20px; font-weight: 900; color: #2563eb; margin-bottom: 4px;">
+            Température Actuelle : ${userTemp > 0 ? `+${userTemp}` : userTemp}°C
+          </div>
+          <div style="font-size: 11px; color: #64748b;">
+            Détectée automatiquement pour votre commune • ${userLoc.department || userLoc.country || 'France'}
+          </div>
+        </div>
+      `);
+      userMarker.addTo(group);
+    }
+  }, [searchQuery, selectedContinent, currentStation, weather]);
 
   const handleSelectCountry = (country: CountryTemperatureData) => {
     setSelectedCountry(country);

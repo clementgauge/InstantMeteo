@@ -380,7 +380,7 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Moteur de calcul de prévisions horaires, géocodage des 35 000 communes et interpolation multi-modèles (open-meteo.com).
+                    Moteur de calcul de prévisions horaires, géocodage des 34 965 communes et interpolation multi-modèles (open-meteo.com).
                   </p>
                 </div>
 
