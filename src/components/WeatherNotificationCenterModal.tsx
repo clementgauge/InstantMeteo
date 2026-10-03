@@ -985,7 +985,7 @@ export const WeatherNotificationCenterModal: React.FC<WeatherNotificationCenterM
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {[
                     { id: 'radarProximity', label: 'Traqueur Radar & Échos Proches (<300km/100km)', desc: 'Cellules orageuses & lignes de pluie en approche avec ETA', icon: Radar, color: 'text-cyan-400' },
-                    { id: 'vigilance', label: 'Vigilances Officielles (Jaune/Orange/Rouge)', desc: 'Changements de statuts départementaux Météo-France', icon: ShieldAlert, color: 'text-amber-400' },
+                    { id: 'vigilance', label: 'Vigilances Météo-France (Jaune/Orange/Rouge)', desc: 'Changements de statuts départementaux Météo-France', icon: ShieldAlert, color: 'text-amber-400' },
                     { id: 'thunderstorms', label: 'Orages Violents & Grêle', desc: 'Pic horaire, CAPE > 800 J/kg, foudre', icon: Zap, color: 'text-yellow-400' },
                     { id: 'galeWind', label: 'Vent Violent & Coups de Gale', desc: 'Rafales supérieures à 70 km/h', icon: Wind, color: 'text-cyan-400' },
                     { id: 'torrentialRain', label: 'Pluies Diluviennes & Crues', desc: 'Précipitations > 15 mm/h', icon: CloudRain, color: 'text-blue-400' },

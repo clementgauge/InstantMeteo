@@ -1320,7 +1320,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             <form onSubmit={handlePublishAnnouncement} className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
                 <Megaphone className="h-4 w-4" />
-                <span>Diffuser un Flash Info / Alerte Officielle Admin</span>
+                <span>Diffuser un Flash Info / Annonce Admin</span>
               </div>
 
               <div>

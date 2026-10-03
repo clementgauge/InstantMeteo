@@ -42,9 +42,13 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
   html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
   html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
 
-  // 5. Harmonisation des balises robots : index, follow, sans noai ni noimageai
+  // 5. Règle commune meta robots : index, follow, sans noai, noimageai ni tdm-reservation
+  html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
   if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*\/?>/gi, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  } else {
+    html = html.replace('</head>', `    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n  </head>`);
   }
 
   // 5b. Suppression des meta keywords
@@ -55,23 +59,25 @@ function renderHtmlForPage(templateHtml: string, pageSeo: PageSeoItem): string {
   html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
 
   // 6. Twitter Card Tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
 
   // 7. Schema.org JSON-LD
   const jsonLd = generatePageJsonLd(pageSeo);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Pre-rendered (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i, jsonLdTag);
+    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
   } else {
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 8. Static fallback content for search crawlers
+  // 8. Static fallback content for search crawlers (greedy replacement of #root)
   const staticContent = generateStaticHtmlContent(pageSeo);
   const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
 
-  if (html.includes('<div id="root">')) {
+  if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
+  } else if (html.includes('<div id="root">')) {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
   }
 
@@ -110,7 +116,19 @@ function prerenderSeoPages() {
     }
   }
 
-  console.log('[Prerender SEO] All pages successfully prerendered with verified canonical URLs!');
+  // Generate clean sitemap.xml in dist/ without fixed lastmod
+  const sitemapUrls = Object.values(SEO_PAGES_MAP)
+    .map((p) => {
+      const loc = p.path === '/'
+        ? 'https://instantmeteo.instantmeteofr.workers.dev/'
+        : p.canonicalUrl.replace(/\/+$/, '');
+      return `  <url>\n    <loc>${loc}</loc>\n  </url>`;
+    })
+    .join('\n');
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls}\n</urlset>\n`;
+  fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemapXml, 'utf-8');
+
+  console.log('[Prerender SEO] All pages and sitemap.xml successfully prerendered with verified canonical URLs!');
 }
 
 prerenderSeoPages();

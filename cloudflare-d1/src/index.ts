@@ -4,7 +4,7 @@
  * sur https://instantmeteo.instantmeteofr.workers.dev/ et https://instantmeteo-fr.ai.studio/
  */
 
-import { getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from '../../src/seo/pagesSeoData';
+import { SEO_PAGES_MAP, getSeoDataForPath, generatePageJsonLd, generateStaticHtmlContent } from '../../src/seo/pagesSeoData';
 
 export interface Env {
   DB: D1Database;
@@ -37,6 +37,19 @@ function escapeHtmlText(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function generateSitemapXml(): string {
+  const urls = Object.values(SEO_PAGES_MAP)
+    .map((page) => {
+      const loc = page.path === '/'
+        ? 'https://instantmeteo.instantmeteofr.workers.dev/'
+        : page.canonicalUrl.replace(/\/+$/, '');
+      return `  <url>\n    <loc>${loc}</loc>\n  </url>`;
+    })
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+}
+
 function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
   const pageSeo = getSeoDataForPath(reqPath);
   let html = rawHtml;
@@ -53,26 +66,30 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
     ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
     : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/gi, `<link rel="canonical" href="${canonicalUrl}" />`);
   } else {
     html = html.replace('</head>', `    <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
   }
 
   // 3. Meta Description unique par page
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
   } else {
     html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
   }
 
   // 4. OpenGraph tags
-  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
 
-  // 5. Harmonisation stricte robots : index, follow, sans noai ni noimageai
+  // 5. Règle commune meta robots sur toutes les pages : index, follow, sans noai, noimageai ni tdm-reservation
+  html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
   if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*\/?>/gi, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  } else {
+    html = html.replace('</head>', `    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n  </head>`);
   }
 
   // 6. Suppression totale des meta keywords
@@ -83,22 +100,24 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
   html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
 
   // 8. Twitter Card tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
 
   // 9. Schema.org JSON-LD
   const jsonLd = generatePageJsonLd(pageSeo);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i, jsonLdTag);
+    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
   } else {
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 10. Injection du contenu HTML initial réel dans <div id="root"> (H1, paragraphes, sources, fréquence, FAQ)
+  // 10. Injection du contenu HTML initial réel dans <div id="root"> (H1 propre à la page, paragraphes, sections, FAQ)
   const staticContent = generateStaticHtmlContent(pageSeo);
   const rootReplacement = `<div id="root">\n${staticContent}\n    </div>`;
-  if (html.includes('<div id="root">')) {
+  if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
+  } else if (html.includes('<div id="root">')) {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, rootReplacement);
   }
 
@@ -127,6 +146,19 @@ export default {
     }
     if (path === '/modeles' || path === '/modele' || path === '/modeles-meteo' || path === '/modeles/' || path === '/modele/' || path === '/modeles-meteo/') {
       return Response.redirect(`${url.origin}/nuages`, 301);
+    }
+
+    // Sitemap XML dynamique sans balise <lastmod> fixe périmée
+    if (path === '/sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')) {
+      return new Response(generateSitemapXml(), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=0, s-maxage=0, must-revalidate',
+          'CDN-Cache-Control': 'no-store',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
     }
 
     try {
@@ -178,7 +210,9 @@ export default {
                 status: 200,
                 headers: {
                   'Content-Type': 'text/html; charset=utf-8',
-                  'Cache-Control': 'public, max-age=120, s-maxage=600',
+                  'Cache-Control': 'public, max-age=0, s-maxage=0, must-revalidate',
+                  'CDN-Cache-Control': 'no-store',
+                  'X-Robots-Tag': 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
                   'X-Content-Type-Options': 'nosniff',
                   'Referrer-Policy': 'strict-origin-when-cross-origin',
                 },

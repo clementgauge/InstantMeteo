@@ -1,8 +1,6 @@
 // Service Worker for Instant Météo (PWA)
-const CACHE_NAME = 'instant-meteo-v1';
+const CACHE_NAME = 'instant-meteo-v4';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/manifest.webmanifest',
   '/favicon.svg',
@@ -36,10 +34,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache external APIs or version.json in Service Worker to ensure instant update detection
+  // Ne jamais mettre en cache les documents HTML, le sitemap.xml, robots.txt ni les APIs pour garantir des balises SEO et canonicals toujours fraîches
   if (
+    event.request.mode === 'navigate' ||
+    event.request.headers.get('accept')?.includes('text/html') ||
     url.origin !== location.origin ||
     url.pathname.startsWith('/api') ||
+    url.pathname.includes('sitemap.xml') ||
+    url.pathname.includes('robots.txt') ||
     url.pathname.includes('version.json') ||
     url.hostname.includes('open-meteo.com') ||
     url.hostname.includes('openstreetmap.org') ||

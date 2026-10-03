@@ -156,9 +156,9 @@ export const CloudNephologyObservatoryCard: React.FC<CloudNephologyObservatoryCa
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                Observatoire Néphologique &amp; Nuages 48h
-              </h2>
+              <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                Observatoire des Nuages &amp; Coupe Verticale de l&apos;Atmosphère sur 48h
+              </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-950 text-sky-300 border border-sky-800">
                 Sondage Vertical 0-12 000m • OMM &amp; METAR
               </span>

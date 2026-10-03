@@ -14,3 +14,4 @@ database_id = "8c0f3a17-c78d-4dad-9301-90f7138d1e9c"
 directory = "../dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+run_worker_first = true

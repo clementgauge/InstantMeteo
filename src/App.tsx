@@ -743,7 +743,7 @@ function WeatherApp() {
       className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
     >
       {/* Dynamic Canonical URL & Head SEO Synchronization */}
-      <SeoHead activeTab={activeTab} />
+      <SeoHead activeTab={activeTab} currentPath={currentPath} />
 
       {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
       <AtmosphereBackground 
@@ -951,7 +951,7 @@ function WeatherApp() {
                         <span>Dispositif National de Sécurité Civile &bull; Actualisation 24h/24</span>
                       </div>
                       <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
-                        Carte Officielle de Vigilance Météorologique Météo-France en Direct
+                        Carte de Vigilance Météorologique &amp; Risques Météo-France en Direct
                       </h1>
                       <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
                         Suivi en direct des 12 risques météo sur les 101 départements français : orages violents, crues, canicule, grand froid, neige-verglas et vent violent pour <strong>{currentStation.name}</strong> ({currentStation.department}).
@@ -959,7 +959,7 @@ function WeatherApp() {
                     </div>
                     <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
                       <span className="px-3 py-1 rounded-xl bg-amber-950/80 border border-amber-800 text-xs font-bold text-amber-200">
-                        12 Phénomènes Officiels
+                        12 Phénomènes Météo-France
                       </span>
                     </div>
                   </div>
@@ -1140,9 +1140,6 @@ function WeatherApp() {
               </div>
             )}
 
-            {/* Guide & FAQ Météo - Données Officielles & Méthodologie (Indexation SEO & Confort Utilisateur) */}
-            <SeoPageGuideCard activeTab={activeTab} isLightMode={themeMode === 'light'} />
-
             {/* Recommandation de site partenaire - Cin-Scope (Films & Cinéma) - Placé après le bloc Guide & FAQ */}
             <div className={`mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
               themeMode === 'light'
@@ -1186,6 +1183,9 @@ function WeatherApp() {
             </div>
           </div>
         )}
+
+        {/* Guide & FAQ Météo - Toujours présent dans le DOM dès le rendu initial pour l'indexation SEO */}
+        <SeoPageGuideCard activeTab={activeTab} currentPath={currentPath} isLightMode={themeMode === 'light'} />
         </section>
       </main>
 
@@ -1194,7 +1194,7 @@ function WeatherApp() {
         <div className="mx-auto max-w-7xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
             <p className="text-left font-medium">
-              © 2026 <strong>Instant Météo</strong> — Prévisions météorologiques officielles, temps réel, 14 jours, 8 mois par département &amp; Vigilances Météo-France.
+              © 2026 <strong>Instant Météo</strong> — Prévisions météorologiques de référence, temps réel, 14 jours, 8 mois par département &amp; Vigilances Météo-France.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -1228,7 +1228,7 @@ function WeatherApp() {
             <nav aria-label="Index des pages météorologiques" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
               <a
                 href="/"
-                onClick={(e) => { e.preventDefault(); setActiveTab('realtime'); window.history.pushState(null, '', '/'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/'); setActiveTab('realtime'); window.history.pushState(null, '', '/'); updateDocumentSeo('/', false); }}
                 className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
               >
                 Accueil France
@@ -1236,7 +1236,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/direct"
-                onClick={(e) => { e.preventDefault(); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/direct'); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); updateDocumentSeo('/direct', false); }}
                 className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
               >
                 Météo en Direct
@@ -1244,7 +1244,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/radar"
-                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/radar'); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); updateDocumentSeo('/radar', false); }}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Radar Précipitations HD
@@ -1252,7 +1252,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/vigilances"
-                onClick={(e) => { e.preventDefault(); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/vigilances'); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); updateDocumentSeo('/vigilances', false); }}
                 className="text-rose-400 hover:text-rose-300 hover:underline font-medium"
               >
                 Vigilances Météo-France
@@ -1260,7 +1260,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/nuages"
-                onClick={(e) => { e.preventDefault(); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/nuages'); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); updateDocumentSeo('/nuages', false); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Nuages &amp; Néphologie
@@ -1268,7 +1268,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/14-jours"
-                onClick={(e) => { e.preventDefault(); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/14-jours'); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); updateDocumentSeo('/14-jours', false); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Tendances 14 Jours
@@ -1276,7 +1276,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/cartes-thematiques"
-                onClick={(e) => { e.preventDefault(); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/cartes-thematiques'); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); updateDocumentSeo('/cartes-thematiques', false); }}
                 className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
               >
                 Cartes Thématiques (OSM)

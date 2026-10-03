@@ -4,14 +4,15 @@ import { getSeoDataForPath, getPathForTabId } from '../seo/pagesSeoData';
 
 interface SeoPageGuideCardProps {
   activeTab: string;
+  currentPath?: string;
   isLightMode?: boolean;
 }
 
-export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, isLightMode = false }) => {
+export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, currentPath, isLightMode = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  const targetPath = getPathForTabId(activeTab);
+  const targetPath = getPathForTabId(activeTab, currentPath);
   const pageSeo = getSeoDataForPath(targetPath);
 
   if (!pageSeo) return null;
@@ -70,8 +71,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
         </button>
       </div>
 
-      {isOpen && (
-        <div className={`p-4 sm:p-6 border-t ${isLightMode ? 'border-slate-100' : 'border-slate-800/80'} space-y-6`}>
+      <div className={isOpen ? `p-4 sm:p-6 border-t ${isLightMode ? 'border-slate-100' : 'border-slate-800/80'} space-y-6` : 'sr-only'}>
           {/* Introduction & Méthodologie */}
           <div className={`p-4 rounded-xl text-sm leading-relaxed space-y-3 ${
             isLightMode ? 'bg-slate-50 text-slate-700' : 'bg-slate-800/40 text-slate-300'
@@ -83,7 +83,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
                 <span>Méthodologie Scientifique &amp; Données Publiques de Référence</span>
               </h3>
               <p className="text-xs opacity-90 leading-relaxed">
-                Les modélisations et indicateurs présentés sur cette plateforme exploitent les flux ouverts officiels sous licence Etalab v2.0 et Open Data (Météo-France, CEPMMT, réseau radar et télédétection satellitaire).
+                Les indicateurs et cartographies présentés sur cette page sont générés à partir de données publiques ouvertes sous licence Etalab v2.0, actualisées en continu selon les standards de l&apos;Organisation Météorologique Mondiale.
               </p>
             </div>
           </div>
@@ -114,7 +114,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-sky-400" />
-              <span>Questions Fréquentes sur cette Observatoire</span>
+              <span>Questions Fréquentes sur cet Observatoire</span>
             </h3>
 
             <div className="space-y-2.5">
@@ -144,22 +144,19 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({ activeTab, i
                       )}
                     </button>
 
-                    {isFaqOpen && (
-                      <div className={`px-3.5 pb-3.5 text-xs sm:text-sm leading-relaxed border-t pt-2.5 ${
-                        isLightMode 
-                          ? 'border-slate-100 text-slate-600' 
-                          : 'border-slate-800 text-slate-300'
-                      }`}>
-                        {item.answer}
-                      </div>
-                    )}
+                    <div className={isFaqOpen ? `px-3.5 pb-3.5 text-xs sm:text-sm leading-relaxed border-t pt-2.5 ${
+                      isLightMode 
+                        ? 'border-slate-100 text-slate-600' 
+                        : 'border-slate-800 text-slate-300'
+                    }` : 'sr-only'}>
+                      {item.answer}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
-      )}
+      </div>
     </section>
   );
 };

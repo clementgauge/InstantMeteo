@@ -81,7 +81,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/direct`,
     title: 'Météo en Direct & Température Temps Réel France - Instant Météo',
     description: 'Météo en direct pour les 34 965 communes de France : température temps réel, humidité, pression barométrique, vent et ressenti thermique calculés à la minute.',
-    keywords: 'météo direct, météo en direct, température temps réel, météo direct france, ressenti vent, humidité en direct, pression atmosphérique',
+    keywords: '',
     h1: 'Météo en Direct & Température en Temps Réel sur toute la France',
     h2s: [
       'Relevés Thermo-Hygrométriques et Barométriques Instantanés',
@@ -130,7 +130,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/radar`,
     title: 'Radar Pluie HD en Direct & Précipitations ARAMIS - Instant Météo',
     description: 'Radar de pluie en direct haute définition sur la France : suivi des averses, orages et chutes de neige en temps réel. Échos Doppler ARAMIS toutes les 5 minutes.',
-    keywords: 'radar pluie, radar pluie hd, radar météo direct, radar précipitations france, suivi orages direct, radar aramis, carte pluie temps réel',
+    keywords: '',
     h1: 'Radar Pluie HD & Carte des Précipitations en Direct sur la France',
     h2s: [
       'Réseau Radar Doppler ARAMIS et Télédétection des Précipitations',
@@ -228,7 +228,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
     title: 'Observatoire des Nuages 48h & Néphologie Verticale - Instant Météo',
     description: 'Sondage atmosphérique vertical de 0 à 12 000 m, classification OMM des nuages, base et sommet des couches, risque de givrage et nébulosité 48h.',
-    keywords: 'nuages météo, néphologie, sondage atmosphérique, base des nuages, plafond nuageux, cirrus, stratus, cumulonimbus, givrage aviation',
+    keywords: '',
     h1: 'Observatoire des Nuages & Coupe Verticale de l\'Atmosphère sur 48h',
     h2s: [
       'Sondage Atmosphérique Numérique de 0 à 12 000 Mètres d\'Altitude',
@@ -277,7 +277,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/14-jours`,
     title: 'Prévisions Météo à 14 Jours & Scénarios Probabilistes - Instant Météo',
     description: 'Prévisions météo fiables à 14 jours sur la France : scénarios d\'ensemble multi-modèles (ECMWF, GFS, ICON), probabilités de pluie et indices de confiance.',
-    keywords: 'météo 14 jours, prévisions météo 14 jours, tendance 15 jours, modèles météo ensemble, ecmwf 14 jours, probabilité pluie 14 jours',
+    keywords: '',
     h1: 'Prévisions Météo à 14 Jours & Analyse d\'Ensemble Multi-Modèles',
     h2s: [
       'Méthode des Ensembles Probabilistes (EPS / GEFS / ICON-EPS)',
@@ -326,7 +326,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
     title: 'Météo Montagne & Nivologie (Bulletins BERA) - Instant Météo',
     description: 'Météo des massifs de montagne en direct : risque d\'avalanche BERA de 1 à 5, relevés des balises Nivôse, isotherme 0°C et limite pluie-neige.',
-    keywords: 'météo montagne, bera météo france, risque avalanche, nivologie, balise nivose, isotherme 0, alpes, pyrenees, limite pluie neige',
+    keywords: '',
     h1: 'Météo Montagne, Nivologie & Bulletins d\'Estimation du Risque d\'Avalanche',
     h2s: [
       'Bulletins Officiels BERA Météo-France par Massif Alpin et Pyrénéen',
@@ -375,7 +375,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/plages`,
     title: 'Météo des Plages, Marées SHOM & Température de Mer - Instant Météo',
     description: 'Météo du littoral et des plages de France : horaires et coefficients des marées SHOM, température de l\'eau en direct, hauteur de houle et pavillons.',
-    keywords: 'météo des plages, marées shom, température mer, météo mer littoral, coefficient marée, hauteur houle, drapeau baignade, baines',
+    keywords: '',
     h1: 'Météo des Plages, Annuaire des Marées SHOM & Température de l\'Eau',
     h2s: [
       'Annuaire Officiel des Marées SHOM : Horaires PM/BM et Coefficients',
@@ -423,8 +423,8 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     path: '/secheresse-incendie',
     canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
     title: 'Vigilance Sécheresse VigiEau & Météo des Forêts - Instant Météo',
-    description: 'Suivi officiel de la sécheresse et du risque incendie : arrêtés préfectoraux de restriction d\'eau VigiEau, Indice Forêt Météo (IFM) et feux NASA FIRMS.',
-    keywords: 'vigilance sécheresse, vigieau, restriction eau, météo des forêts, risque incendie forêt, indice forêt météo, ifm météo france, feux nasa firms',
+    description: 'Suivi de la sécheresse et du risque incendie : arrêtés préfectoraux de restriction d\'eau VigiEau, Indice Forêt Météo (IFM) et feux NASA FIRMS.',
+    keywords: '',
     h1: 'Vigilance Sécheresse VigiEau & Météo des Forêts / Risque Incendie',
     h2s: [
       'Dispositif National de Restriction d\'Usage de l\'Eau VigiEau',
@@ -473,7 +473,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/cours-d-eau`,
     title: 'Vigie Cours d\'Eau, Hauteurs & Crues Vigicrues - Instant Météo',
     description: 'Surveillance hydrologique des rivières et fleuves de France en direct : débits instantanés (m³/s), hauteurs d\'eau Vigicrues, niveaux de crue et crues historiques.',
-    keywords: 'vigie cours d eau, vigicrues, hauteur eau riviere, debit m3s, crue inondation, schapi, station hydrometrique, crues historiques',
+    keywords: '',
     h1: 'Vigie Cours d\'Eau, Niveaux des Rivières & Prévention des Crues Vigicrues',
     h2s: [
       'Réseau National des Stations Limnimétriques et Hydrométriques Hub\'Eau',
@@ -522,7 +522,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques`,
     title: 'Cartes Météo Thématiques & Environnementales - Instant Météo',
     description: 'Cartes météo thématiques haute résolution : qualité de l\'air AQI, indice UV, températures marines SST, anomalies climatiques et modélisation des vents.',
-    keywords: 'cartes météo thématiques, carte qualité air, carte uv france, carte sst température mer, carte vent france, anomalies thermiques',
+    keywords: '',
     h1: 'Cartes Météorologiques Thématiques & Environnementales Interactives',
     h2s: [
       'Qualité de l\'Air et Dispersion des Particules Fines (Copernicus CAMS)',
@@ -571,7 +571,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/sports`,
     title: 'Météo Sportive & Calculateur d\'Itinéraire Trajet - Instant Météo',
     description: 'Indices de confort météo pour vos activités sportives (running, vélo, rando, nautisme) et calculateur météo étape par étape le long de vos trajets.',
-    keywords: 'météo sportive, météo vélo, météo running, météo randonnée, météo trajet itinéraire, indice confort sport, vent vélo',
+    keywords: '',
     h1: 'Météo Sportive & Calculateur de Conditions le Long d\'un Trajet',
     h2s: [
       'Indices de Confort Météo par Discipline (Cyclisme, Course à Pied, Randonnée)',
@@ -620,7 +620,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/bulletins`,
     title: 'Bulletins Prévisions Rédigés J+1 à J+7 & 4 Semaines - Instant Météo',
     description: 'Bulletins météorologiques complets rédigés par nos experts pour votre commune, département et échelle nationale. Analyses synoptiques de J+1 à 4 semaines.',
-    keywords: 'bulletin météo rédigé, prévisions écrites météo, analyse synoptique, bulletin départemental, tendance 4 semaines, situation générale france',
+    keywords: '',
     h1: 'Bulletins Météorologiques Rédigés : Commune, Département & France',
     h2s: [
       'Synthèse Synoptique Nationale et Analyse des Centres d\'Action',
@@ -669,7 +669,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/archives`,
     title: 'Archives Météo Journalières & Historique depuis 2000 - Instant Météo',
     description: 'Consultez l\'historique météo complet pour toute date passée depuis 2000 : températures relevées, précipitations, ensoleillement et records climatiques.',
-    keywords: 'archives météo, historique météo france, météo date passée, météo hier, archives température, records météo historiques, climatologie passée',
+    keywords: '',
     h1: 'Archives Météorologiques Journalières & Historique des Données depuis 2000',
     h2s: [
       'Recherche Rétrospective par Date et Commune de France',
@@ -718,7 +718,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
     title: 'Météo Monde, Tornades & Catastrophes Naturelles 24h - Instant Météo',
     description: 'Suivi mondial des phénomènes météo extrêmes en direct : cyclones, typhons, tornades, inondations historiques et canicules record dans le monde entier.',
-    keywords: 'météo monde, cyclones en direct, suivi tornades usa, catastrophes naturelles météo, canicule mondiale, typhons direct, noaa spc',
+    keywords: '',
     h1: 'Observatoire Météorologique Mondial des Catastrophes & Phénomènes Extrêmes',
     h2s: [
       'Suivi en Temps Réel des Bassins Cycloniques Mondiaux (Ouragans & Typhons)',
@@ -767,7 +767,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/climat`,
     title: 'Évolution du Climat & Tendances Saisonnières 8 Mois - Instant Météo',
     description: 'Comprendre le changement climatique local et les tendances saisonnières à 8 mois en France. Analyse des anomalies, cycles ENSO et réchauffement.',
-    keywords: 'évolution climat, changement climatique france, tendances saisonnières 8 mois, el nino la nina, réchauffement climatique local, normales 1991-2020',
+    keywords: '',
     h1: 'Évolution du Climat, Tendances Saisonnières à 8 Mois & Indices Globaux',
     h2s: [
       'Projections Climatiques Saisonnières à 8 Mois (Copernicus C3S / ECMWF SEAS5)',
@@ -816,7 +816,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/communaute`,
     title: 'Salon Météo & Observatoire Citoyen Collaboratif - Instant Météo',
     description: 'Partagez vos relevés du ciel en direct avec la communauté Instant Météo : signalements météo géolocalisés, échanges entre passionnés et photos météo.',
-    keywords: 'communauté météo, salon météo, forum météo france, signalements citoyens météo, observatoire météo collaboratif, passionnés météo',
+    keywords: '',
     h1: 'Salon de Discussion Météorologique & Observatoire Citoyen Collaboratif',
     h2s: [
       'Signalements Météo Citoyens Géolocalisés en Temps Réel',
@@ -865,7 +865,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoItem> = {
     canonicalUrl: `${BASE_SITE_URL}/competition`,
     title: 'Ligue Météo & Défi des Prévisionnistes - Instant Météo',
     description: 'Participez à la Ligue Météo Instant Météo : gagnez des points d\'observation, accumulez les séries de flammes (streaks) et grimpez dans le classement.',
-    keywords: 'jeu météo, ligue météo, points prévision, classement météo, badges météo, quiz météo france, défi météo',
+    keywords: '',
     h1: 'Ligue des Sentinelles Météo & Classement National des Observateurs',
     h2s: [
       'Classement National en Temps Réel et Top des Observateurs',
@@ -978,7 +978,7 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
     canonicalUrl: `${BASE_SITE_URL}${finalCanonicalPath}`,
     title: `${formattedTitle} - Instant Météo France`,
     description: `Consultez ${cleanTitle || 'la météo'} en direct sur Instant Météo : prévisions de précision, température temps réel et radar précipitations HD.`,
-    keywords: `instant météo, instantmeteo, ${cleanTitle}, météo france, prévisions en direct, température temps réel, radar pluie`,
+    keywords: '',
     h1: `Instant Météo - ${formattedTitle}`,
     h2s: [
       'Données Atmosphériques & Conditions Météo en Direct',
@@ -1006,10 +1006,22 @@ export function getSeoDataForPath(rawPath: string): PageSeoItem {
  * Mappe un identifiant d'onglet React (NavTabId) vers son chemin d'URL canonique
  */
 export function getPathForTabId(tabId: string, currentPath?: string): string {
+  const rawCurrent = currentPath !== undefined ? currentPath : (typeof window !== 'undefined' ? window.location.pathname : '');
+  let cleanCurrent = (rawCurrent || '/').split('?')[0].split('#')[0].trim();
+  if (cleanCurrent.length > 1 && cleanCurrent.endsWith('/')) {
+    cleanCurrent = cleanCurrent.slice(0, -1);
+  }
+  if (!cleanCurrent) cleanCurrent = '/';
+
+  // Conserver l'URL canonique exacte si l'URL courante correspond déjà à une page officielle associée à cet onglet
+  // (ex: '/' vs '/direct' pour realtime, ou '/radar' vs '/cartes-thematiques' pour radar)
+  if (SEO_PAGES_MAP[cleanCurrent] && SEO_PAGES_MAP[cleanCurrent].tabId === tabId) {
+    return cleanCurrent;
+  }
+
   if (tabId === 'realtime') {
-    const p = currentPath !== undefined ? currentPath : (typeof window !== 'undefined' ? window.location.pathname : '');
-    if (p === '/direct' || p === '/direct/') return '/direct';
-    if (p === '/') return '/';
+    if (cleanCurrent === '/direct') return '/direct';
+    if (cleanCurrent === '/') return '/';
     return '/direct';
   }
 
@@ -1209,7 +1221,7 @@ export function generateStaticHtmlContent(page: PageSeoItem): string {
       <section aria-labelledby="sections-explicatives" style="margin-bottom: 36px;">
         <h2 id="sections-explicatives" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Méthodologie Scientifique &amp; Données Publiques de Référence</h2>
         <p style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 20px;">
-          L'ensemble des modélisations, cartographies et indicateurs présentés sur cette plateforme exploitent les données publiques ouvertes produites sous licences officielles (Etalab v2.0 et Open Data) : maillage atmosphérique fin, flux hydrométriques Vigicrues, réseau radar national et télédétection satellitaire de surface.
+          Les indicateurs et cartographies présentés sur cette page sont générés à partir de données publiques ouvertes sous licence Etalab v2.0, actualisées en continu selon les standards de l'Organisation Météorologique Mondiale.
         </p>
         ${sectionsHtml}
       </section>

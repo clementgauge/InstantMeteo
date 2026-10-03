@@ -125,25 +125,15 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     }
     jsonLdScript.textContent = generatePageJsonLd(pageSeo);
 
-    // 8. Vérification stricte anti-noindex et nettoyage noai/noimageai
-    const robotsMetas = document.querySelectorAll<HTMLMetaElement>('meta[name="robots"], meta[name="googlebot"]');
-    robotsMetas.forEach(meta => {
-      if (meta.content) {
-        meta.content = meta.content
-          .replace(/noai/gi, '')
-          .replace(/noimageai/gi, '')
-          .replace(/noindex/gi, 'index')
-          .replace(/,\s*,/g, ',')
-          .trim();
-      }
-    });
+    // 8. Règle commune meta robots sur toutes les pages (sans noai, noimageai ni tdm-reservation)
+    document.querySelectorAll('meta[name="googlebot"], meta[name="tdm-reservation"]').forEach(el => el.remove());
     let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
     if (!robotsTag) {
       robotsTag = document.createElement('meta');
       robotsTag.name = 'robots';
-      robotsTag.content = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
       document.head.appendChild(robotsTag);
     }
+    robotsTag.content = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
     // 8b. Suppression des meta keywords et des clés exposées
     document.querySelectorAll('meta[name="keywords"]').forEach(el => el.remove());

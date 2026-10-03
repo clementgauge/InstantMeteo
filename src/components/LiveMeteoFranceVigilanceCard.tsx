@@ -88,7 +88,7 @@ export const LiveMeteoFranceVigilanceCard: React.FC<LiveMeteoFranceVigilanceCard
             )}
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance Officielle</div>
+            <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance Météo-France</div>
             <div className="text-[9px] text-slate-400 truncate">{sourceLabel}</div>
           </div>
         </div>

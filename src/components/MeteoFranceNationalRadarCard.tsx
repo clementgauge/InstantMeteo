@@ -808,7 +808,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
             <div className="flex items-center justify-between text-white border-b border-slate-800 pb-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
-                <span className="font-black text-sm">Carte de Vigilance Officielle Météo-France (96 Départements)</span>
+                <span className="font-black text-sm">Carte de Vigilance Météo-France (96 Départements)</span>
               </div>
               <span className="text-xs text-slate-400">Actualisation toutes les heures</span>
             </div>
