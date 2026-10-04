@@ -30,7 +30,8 @@ import {
   CloudRain,
   Bell,
   Sun,
-  Moon
+  Moon,
+  Gamepad2
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -83,6 +84,7 @@ interface HeaderProps {
   onTriggerSecretCode?: (code: string) => boolean;
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
+  onOpenWeatherGame?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -127,7 +129,8 @@ export const Header: React.FC<HeaderProps> = ({
   isAdmin = false,
   onTriggerSecretCode,
   showFloatingBubble,
-  onToggleFloatingBubble
+  onToggleFloatingBubble,
+  onOpenWeatherGame
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -352,14 +355,27 @@ export const Header: React.FC<HeaderProps> = ({
               <span>HD &amp; DIRECT</span>
             </div>
 
+            {/* Gamepad Weather Game Launcher (Mobile Top Row) */}
+            {onOpenWeatherGame && (
+              <button
+                type="button"
+                onClick={onOpenWeatherGame}
+                title="Jouer au Jeu de Météo"
+                aria-label="Jouer au Jeu de Météo"
+                className="relative w-8 h-8 rounded-full bg-emerald-950/90 border border-emerald-500/50 flex items-center justify-center text-emerald-300 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+              >
+                <Gamepad2 className="h-4 w-4 text-emerald-400" />
+              </button>
+            )}
+
             {/* Notification Bell Circle with Red Badge Dot */}
             <button
               onClick={onOpenNotificationsModal}
               title="Centre d'alertes"
-              className="relative w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+              className="relative w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
             >
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-slate-950" />
+              <Bell className="h-3.5 w-3.5" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 border border-slate-950" />
             </button>
           </div>
         </div>
@@ -447,58 +463,72 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Row 3: Quick Action Circles (Radar, Vidéos, Premium, France, Paramètres) */}
-        <div className="flex items-center justify-between px-1 pt-1">
+        {/* Row 3: Quick Action Circles (Radar, Jeu, Vidéos, Premium, Langue, Paramètres) on a single compact line */}
+        <div className="flex items-center justify-between gap-1 px-0.5 pt-1 overflow-x-auto no-scrollbar">
           {/* 1. Radar */}
           <button
             onClick={() => {
               if (onOpenRadarTab) onOpenRadarTab();
               else if (onSelectTab) onSelectTab('radar');
             }}
-            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
           >
-            <div className="w-12 h-12 rounded-full bg-blue-600/30 border border-blue-400/60 shadow-lg shadow-blue-500/25 flex items-center justify-center text-cyan-300">
-              <Radio className="h-5 w-5 text-cyan-300" />
+            <div className="w-10 h-10 rounded-full bg-blue-600/30 border border-blue-400/60 shadow-lg shadow-blue-500/25 flex items-center justify-center text-cyan-300">
+              <Radio className="h-4 w-4 text-cyan-300" />
             </div>
-            <span className="text-[11px] font-medium text-slate-300">Radar</span>
+            <span className="text-[10px] font-medium text-slate-300">Radar</span>
           </button>
 
-          {/* 2. Vidéos */}
+          {/* 2. Jeu Météo (Manette) */}
+          {onOpenWeatherGame && (
+            <button
+              onClick={onOpenWeatherGame}
+              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
+              title="Jouer au Jeu de Météo"
+            >
+              <div className="w-10 h-10 rounded-full bg-emerald-600/30 border border-emerald-400/60 shadow-lg shadow-emerald-500/25 flex items-center justify-center text-emerald-300">
+                <Gamepad2 className="h-4 w-4 text-emerald-300" />
+              </div>
+              <span className="text-[10px] font-bold text-emerald-300">Jeu</span>
+            </button>
+          )}
+
+          {/* 3. Vidéos */}
           <a
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
           >
-            <div className="w-12 h-12 rounded-full bg-purple-600/30 border border-purple-400/60 shadow-lg shadow-purple-500/25 flex items-center justify-center text-purple-300">
-              <Play className="h-5 w-5 text-purple-300 fill-purple-300/30 ml-0.5" />
+            <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-400/60 shadow-lg shadow-purple-500/25 flex items-center justify-center text-purple-300">
+              <Play className="h-4 w-4 text-purple-300 fill-purple-300/30 ml-0.5" />
             </div>
-            <span className="text-[11px] font-medium text-slate-300">Vidéos</span>
+            <span className="text-[10px] font-medium text-slate-300">Vidéos</span>
           </a>
 
-          {/* 3. Premium */}
+          {/* 4. Premium */}
           <button
             onClick={onOpenAndroidModal}
-            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
           >
-            <div className="w-12 h-12 rounded-full bg-amber-500/30 border border-amber-400/60 shadow-lg shadow-amber-500/25 flex items-center justify-center text-amber-300">
-              <Crown className="h-5 w-5 text-amber-300" />
+            <div className="w-10 h-10 rounded-full bg-amber-500/30 border border-amber-400/60 shadow-lg shadow-amber-500/25 flex items-center justify-center text-amber-300">
+              <Crown className="h-4 w-4 text-amber-300" />
             </div>
-            <span className="text-[11px] font-medium text-slate-300">Premium</span>
+            <span className="text-[10px] font-medium text-slate-300">Premium</span>
           </button>
 
-          {/* 4. Choix de la langue (Traduction Google Translate) */}
+          {/* 5. Choix de la langue (Traduction Google Translate) */}
           <GoogleTranslateWidget variant="mobile-action" dropdownAlign="right" />
 
-          {/* 5. Paramètres */}
+          {/* 6. Paramètres */}
           <button
             onClick={() => setSettingsSidebarOpen(true)}
-            className="flex flex-col items-center gap-1.5 active:scale-95 transition cursor-pointer"
+            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
           >
-            <div className="w-12 h-12 rounded-full bg-[#0c1424] border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
-              <Settings className="h-5 w-5 text-slate-300" />
+            <div className="w-10 h-10 rounded-full bg-[#0c1424] border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+              <Settings className="h-4 w-4 text-slate-300" />
             </div>
-            <span className="text-[11px] font-medium text-slate-300">Paramètres</span>
+            <span className="text-[10px] font-medium text-slate-300">Options</span>
           </button>
         </div>
 
@@ -552,28 +582,29 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* DESKTOP EXCLUSIVE HEADER (Unchanged, for tablet & computer viewports)     */}
+      {/* DESKTOP EXCLUSIVE HEADER - Single line compact layout with Gamepad icon   */}
       {/* ========================================================================= */}
-      <div className="hidden sm:flex mx-auto max-w-7xl flex-wrap items-center justify-between gap-2 sm:gap-3">
-        {/* Brand & Logo */}
-        <AppLogo size="md" />
+      <div className="hidden sm:flex mx-auto max-w-[1720px] w-full flex-nowrap items-center justify-between gap-1.5">
+        {/* Brand & Logo (Compact to keep everything on 1 single line) */}
+        <AppLogo size="sm" showSubtitle={false} className="shrink-0" />
 
-        {/* Center/Right: Actions, Search, Social Links & Settings */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        {/* Right: All Actions, Search, Gamepad, Social Links & Settings on ONE line */}
+        <div className="flex flex-nowrap items-center gap-1 lg:gap-1.5 min-w-0">
           {/* Direct GPS Geolocation Button */}
           {onLocateGps && (
             <button
               id="header-gps-locate-btn"
               onClick={onLocateGps}
               title="Localiser automatiquement ma position GPS"
-              className={`flex items-center gap-1.5 rounded-2xl border px-2.5 py-2 sm:px-3 sm:py-2.5 font-bold shadow transition active:scale-95 ${
+              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-bold shadow transition active:scale-95 shrink-0 whitespace-nowrap cursor-pointer ${
                 isGpsActive || currentStation.id.startsWith('gps')
                   ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300 ring-1 ring-emerald-500/30'
                   : 'border-blue-500/40 bg-blue-950/40 text-blue-200 hover:border-emerald-400 hover:bg-blue-900/50'
-              } ${seniorMode ? 'text-base py-3 px-4' : 'text-xs sm:text-sm'}`}
+              }`}
             >
-              <Navigation className="h-4 w-4 text-emerald-400 fill-emerald-400/20" />
-              <span className="hidden sm:inline">Ma Position GPS</span>
+              <Navigation className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400/20 shrink-0" />
+              <span className="hidden xl:inline">Position </span>
+              <span>GPS</span>
             </button>
           )}
 
@@ -581,41 +612,36 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="open-locality-search-btn"
             onClick={onOpenSearchModal}
-            className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-blue-500/40 bg-blue-950/40 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-blue-200 shadow transition hover:border-blue-400 hover:bg-blue-900/50 active:scale-95 ${
-              seniorMode ? 'text-base py-3 px-5' : 'text-xs sm:text-sm'
-            }`}
+            title="Chercher une commune, un sommet ou une ville dans le monde"
+            className="flex items-center gap-1 rounded-xl border border-blue-500/40 bg-blue-950/40 px-2.5 py-1.5 text-[11px] leading-tight font-bold text-blue-200 shadow transition hover:border-blue-400 hover:bg-blue-900/50 active:scale-95 shrink-0 whitespace-nowrap cursor-pointer"
           >
-            <Search className="h-4 w-4 text-blue-400" />
-            <span className="hidden sm:inline">Chercher commune / sommet / monde</span>
-            <span className="sm:hidden">Recherche</span>
+            <Search className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+            <span className="hidden 2xl:inline">Chercher commune / monde</span>
+            <span className="2xl:hidden">Rechercher</span>
           </button>
 
           {/* Quick Dropdown Picker */}
-          <div className="relative" ref={desktopDropdownRef}>
+          <div className="relative shrink-0" ref={desktopDropdownRef}>
             <button
               id="station-selector-button"
               type="button"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-700 bg-slate-900/90 px-2.5 sm:px-3.5 py-2 sm:py-2.5 font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 cursor-pointer ${
-                seniorMode ? 'text-base py-3 px-5' : 'text-xs sm:text-sm'
-              }`}
+              className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900/90 px-2.5 py-1.5 text-[11px] leading-tight font-bold text-white shadow transition hover:border-slate-500 hover:bg-slate-800 cursor-pointer whitespace-nowrap"
             >
-              <div className="flex items-center gap-1.5">
-                {isHighAltitude ? (
-                  <span className="text-sm">🗻</span>
-                ) : isMountain ? (
-                  <span className="text-sm">🏔️</span>
-                ) : (
-                  <MapPin className="h-4 w-4 text-blue-400 shrink-0" />
-                )}
-                <div className="text-left max-w-[110px] sm:max-w-[160px] truncate">
-                  <div className="text-white leading-tight font-bold truncate">{currentStation.name}</div>
-                  <div className="text-[10px] font-normal text-slate-400 truncate">
-                    {currentStation.department} • <strong className="text-slate-300">{currentStation.altitude}m</strong>
-                  </div>
-                </div>
-              </div>
-              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform shrink-0 ${stationDropdownOpen ? 'rotate-180' : ''}`} />
+              {isHighAltitude ? (
+                <span className="text-xs">🗻</span>
+              ) : isMountain ? (
+                <span className="text-xs">🏔️</span>
+              ) : (
+                <MapPin className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+              )}
+              <span className="max-w-[95px] xl:max-w-[130px] truncate font-bold text-white">
+                {currentStation.name}
+              </span>
+              <span className="hidden lg:inline text-[10px] font-normal text-slate-400">
+                ({currentStation.altitude ?? 0}m)
+              </span>
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform shrink-0 ${stationDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Station List Dropdown */}
@@ -679,47 +705,61 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Instagram Official Page Link - Just logo on all formats */}
+          {/* Gamepad Icon Button — Jouer au Jeu de Météo */}
+          {onOpenWeatherGame && (
+            <button
+              id="header-weather-game-btn"
+              type="button"
+              onClick={onOpenWeatherGame}
+              title="Jouer au Jeu de Météo (Arcade, Duel & Jeu .zip)"
+              aria-label="Jouer au Jeu de Météo"
+              className="flex items-center gap-1 rounded-xl border border-emerald-500/50 bg-gradient-to-r from-emerald-950/70 via-teal-950/60 to-sky-950/70 px-2.5 py-1.5 text-[11px] leading-tight font-black text-emerald-300 hover:border-emerald-400 hover:from-emerald-900/70 hover:to-sky-900/70 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              <Gamepad2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <span>Jeu Météo</span>
+            </button>
+          )}
+
+          {/* Instagram Official Page Link */}
           <a
             id="header-instagram-link"
             href="https://www.instagram.com/instantmeteo_fr/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-2xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 p-2 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="flex h-7 w-7 items-center justify-center rounded-xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
             aria-label="Page Instagram officielle Instant Météo"
           >
-            <Instagram className="h-4 w-4 shrink-0" />
+            <Instagram className="h-3.5 w-3.5 shrink-0" />
           </a>
 
-          {/* YouTube Official Channel Link - Bouton secondaire discret pour ne pas simuler une alerte rouge */}
+          {/* YouTube Official Channel Link */}
           <a
             id="header-youtube-link"
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-2xl border border-slate-700/80 bg-slate-900/80 p-2 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="flex h-7 w-7 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/80 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
             title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
             aria-label="Chaîne YouTube officielle Instant Météo"
           >
-            <Youtube className="h-4 w-4 shrink-0" />
+            <Youtube className="h-3.5 w-3.5 shrink-0" />
           </a>
 
-          {/* Mode Simplifié Toggle (Mode par défaut pour les nouveaux visiteurs) */}
+          {/* Mode Simplifié Toggle */}
           {onToggleSimplifiedMode && (
             <button
               id="header-simplified-mode-btn"
               onClick={onToggleSimplifiedMode}
-              title={simplifiedMode ? "Mode Simplifié activé (vue épurée essentielle) — Cliquez pour passer en Mode Complet (Expert)" : "Mode Complet Expert actif (tous les modules affichés) — Cliquez pour revenir au Mode Simplifié"}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-2xl border px-2.5 sm:px-3 py-1.5 text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              title={simplifiedMode ? "Mode Simplifié activé — Cliquez pour passer en Mode Complet (Expert)" : "Mode Complet Expert actif — Cliquez pour revenir au Mode Simplifié"}
+              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
                 simplifiedMode
                   ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/40 hover:border-emerald-400'
                   : 'border-slate-700 bg-slate-900/90 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <SlidersHorizontal className={`h-3.5 w-3.5 shrink-0 ${simplifiedMode ? 'text-emerald-400' : 'text-slate-400'}`} />
-              <span className="hidden sm:inline">{simplifiedMode ? 'Mode Simplifié' : 'Mode Complet (Expert)'}</span>
-              <span className="sm:hidden">{simplifiedMode ? 'Épuré' : 'Expert'}</span>
+              <SlidersHorizontal className={`h-3 w-3 shrink-0 ${simplifiedMode ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span>{simplifiedMode ? 'Simplifié' : 'Expert'}</span>
             </button>
           )}
 
@@ -729,7 +769,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="header-theme-mode-btn"
               onClick={onToggleThemeMode}
               title={themeMode === 'light' ? "Passer en Mode Noir (Design sombre)" : "Passer en Mode Blanc (Design clair)"}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-xl border px-2.5 sm:px-3 py-2 text-xs font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
                 themeMode === 'light'
                   ? 'border-amber-400 bg-amber-100 text-amber-950 font-black shadow-md'
                   : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
@@ -737,15 +777,13 @@ export const Header: React.FC<HeaderProps> = ({
             >
               {themeMode === 'light' ? (
                 <>
-                  <Sun className="h-4 w-4 text-amber-500 shrink-0" />
-                  <span className="hidden sm:inline">Mode Blanc</span>
-                  <span className="sm:hidden">Blanc</span>
+                  <Sun className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <span>Blanc</span>
                 </>
               ) : (
                 <>
-                  <Moon className="h-4 w-4 text-sky-400 shrink-0" />
-                  <span className="hidden sm:inline">Mode Noir</span>
-                  <span className="sm:hidden">Noir</span>
+                  <Moon className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                  <span>Noir</span>
                 </>
               )}
             </button>
@@ -756,33 +794,33 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-tuto-btn"
               onClick={onOpenTutorial}
-              className="flex items-center gap-1.5 rounded-2xl border border-amber-500/40 bg-amber-950/40 px-2.5 sm:px-3 py-2 text-xs font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-950/40 px-2 py-1.5 text-[11px] leading-tight font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
               title="Lancer le tutoriel interactif du site"
             >
-              <HelpCircle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span className="hidden sm:inline">Tuto</span>
+              <HelpCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span>Tuto</span>
             </button>
           )}
 
-          {/* Language Selector (FR default, EN, DE, IT, ZH, RU, JA) */}
+          {/* Language Selector (Compact) */}
           <div className="flex items-center shrink-0">
-            <GoogleTranslateWidget compact={false} />
+            <GoogleTranslateWidget compact={true} />
           </div>
 
-          {/* Settings launcher - top right, always visible on mobile & pc */}
+          {/* Settings launcher - top right */}
           <button
             id="open-settings-sidebar-button"
             onClick={() => setSettingsSidebarOpen(true)}
             title="Ouvrir le panneau des paramètres"
             aria-label="Ouvrir les paramètres"
             aria-expanded={settingsSidebarOpen}
-            className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm active:scale-95 ${
+            className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer ${
               settingsSidebarOpen
                 ? 'border-white bg-white text-slate-950'
                 : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-blue-400 hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <Settings className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+            <Settings className="h-3.5 w-3.5" />
           </button>
         </div>
 

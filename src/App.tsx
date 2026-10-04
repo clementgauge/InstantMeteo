@@ -84,6 +84,7 @@ import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
+import { WeatherGameModal } from './components/WeatherGameModal';
 import { updateDocumentSeo } from './utils/seoVerification';
 import { getTabIdForPath, getSeoDataForPath, getPathForTabId } from './seo/pagesSeoData';
 
@@ -230,6 +231,7 @@ function WeatherApp() {
   const [isPseudoModalOpen, setIsPseudoModalOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
+  const [isWeatherGameOpen, setIsWeatherGameOpen] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const p = loadPlayerProfile();
@@ -803,6 +805,7 @@ function WeatherApp() {
           onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
+          onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
         />
       </div>
 
@@ -1091,6 +1094,7 @@ function WeatherApp() {
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onNavigateToTab={(tab) => setActiveTab(tab as any)}
                 onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+                onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
               />
             )}
 
@@ -1541,6 +1545,15 @@ function WeatherApp() {
       <PageBlockCustomizerModal
         isOpen={isPageBlockCustomizerOpen}
         onClose={() => setIsPageBlockCustomizerOpen(false)}
+      />
+
+      {/* Interactive Weather Game Modal (Arcade 2D, Duel, Quiz & .zip Runner) */}
+      <WeatherGameModal
+        isOpen={isWeatherGameOpen}
+        onClose={() => setIsWeatherGameOpen(false)}
+        currentStation={currentStation}
+        currentWeather={weather}
+        onOpenCompetitiveTab={() => setActiveTab('competitive')}
       />
     </div>
   );

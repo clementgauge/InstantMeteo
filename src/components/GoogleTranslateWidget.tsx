@@ -229,13 +229,19 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
           title="Traduire le site (Google Translate)"
           aria-label="Traduire le site"
           aria-expanded={isOpen}
-          className={`flex items-center gap-1.5 rounded-2xl border border-slate-700 bg-slate-900/90 text-white font-bold transition hover:border-blue-400 hover:bg-slate-800 active:scale-95 cursor-pointer shadow ${
-            compact ? 'px-2.5 py-2 text-xs' : 'px-3 py-2 text-xs sm:text-sm'
+          className={`flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900/90 text-white font-bold transition hover:border-blue-400 hover:bg-slate-800 active:scale-95 cursor-pointer shadow shrink-0 whitespace-nowrap ${
+            compact ? 'px-2 py-1.5 text-[11px] leading-tight' : 'px-3 py-2 text-xs sm:text-sm'
           }`}
         >
-          <span className="text-sm">{selectedLangObj.flag}</span>
-          <Globe className="h-3.5 w-3.5 text-blue-400" />
-          <span className="hidden sm:inline">{selectedLangObj.name}</span>
+          <span className="text-xs leading-none">{selectedLangObj.flag}</span>
+          {compact ? (
+            <span className="text-[11px] font-bold">{selectedLangObj.short}</span>
+          ) : (
+            <>
+              <Globe className="h-3.5 w-3.5 text-blue-400" />
+              <span className="hidden sm:inline">{selectedLangObj.name}</span>
+            </>
+          )}
           <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
       )}

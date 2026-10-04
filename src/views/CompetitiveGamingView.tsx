@@ -66,7 +66,8 @@ import {
   Terminal, 
   X,
   Code,
-  Crown
+  Crown,
+  Gamepad2
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { AMAZON_AFFILIATE_LINKS } from '../config/affiliateLinks';
@@ -78,6 +79,7 @@ interface CompetitiveGamingViewProps {
   seniorMode?: boolean;
   onOpenSearchModal?: () => void;
   onOpenAdminPanel?: () => void;
+  onOpenWeatherGame?: () => void;
 }
 
 export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
@@ -86,7 +88,8 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   onNavigateToTab,
   seniorMode = false,
   onOpenSearchModal,
-  onOpenAdminPanel
+  onOpenAdminPanel,
+  onOpenWeatherGame
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(() => loadPlayerProfile());
   const [pseudoInput, setPseudoInput] = useState<string>('');
@@ -496,6 +499,17 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               <span>Démarrer l'aventure (+100 pts offerts)</span>
               <ChevronRight className="h-4 w-4" />
             </button>
+
+            {onOpenWeatherGame && (
+              <button
+                type="button"
+                onClick={onOpenWeatherGame}
+                className="w-full flex items-center justify-center gap-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 transition cursor-pointer text-xs shadow-md"
+              >
+                <Gamepad2 className="h-4 w-4" />
+                <span>Jouer au Jeu de Météo (Arcade, Quiz &amp; .zip)</span>
+              </button>
+            )}
           </form>
 
           {/* Live Network connection indicator */}
@@ -815,7 +829,17 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
             <span>Gestion du profil</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenWeatherGame && (
+              <button
+                onClick={onOpenWeatherGame}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition cursor-pointer shadow-sm"
+                title="Lancer le Jeu de Météo"
+              >
+                <Gamepad2 className="h-3.5 w-3.5" />
+                <span>Jouer au Jeu de Météo</span>
+              </button>
+            )}
             <button
               onClick={() => setIsResetConfirmOpen(true)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-medium transition border border-slate-800 cursor-pointer"
