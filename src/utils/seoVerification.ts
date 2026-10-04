@@ -6,7 +6,7 @@ import {
   SUPPORTED_HREFLANG_LOCALES,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../seo/pagesSeoData';
-import { getNativeSiteLanguage } from '../i18n/siteTranslations';
+import { getActiveSiteLocale, getSiteBrandForLocale } from '../i18n/siteTranslations';
 
 export function initDynamicGoogleVerification(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -52,27 +52,29 @@ export function initDynamicGoogleVerification(): void {
  * - Script JSON-LD enrichi (FAQPage, WebPage, BreadcrumbList)
  */
 export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): PageSeoMetadata {
-  const nativeLang = getNativeSiteLanguage();
+  const activeLocale = getActiveSiteLocale();
+  const brand = getSiteBrandForLocale(activeLocale);
   if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return getSeoDataForPath('/', nativeLang);
+    return getSeoDataForPath('/', activeLocale);
   }
 
   const currentWindowPath = typeof window !== 'undefined' ? window.location.pathname : '/';
   const targetPath = pathOrTabId.startsWith('/')
     ? pathOrTabId
     : getPathForTabId(pathOrTabId, currentWindowPath);
-  const pageSeo = getSeoDataForPath(targetPath, nativeLang);
+  const pageSeo = getSeoDataForPath(targetPath, activeLocale);
 
   try {
     // 1. Title
     document.title = pageSeo.title;
 
-    // 2. Balise canonique auto-référentielle propre à l'URL de la page
+    // 2. Balise canonique auto-référentielle propre à l'URL de la page et à la langue active
     const cleanCanonical =
       pageSeo.path === '/'
         ? 'https://instantmeteo.instantmeteofr.workers.dev/'
         : pageSeo.canonicalUrl.replace(/\/+$/, '');
-    const localizedCanonical = nativeLang === 'en' ? `${cleanCanonical}?hl=en` : cleanCanonical;
+    const localizedCanonical =
+      activeLocale === 'fr' ? cleanCanonical : `${cleanCanonical}?hl=${activeLocale}`;
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -101,16 +103,23 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     });
     setHreflangLink('x-default', cleanCanonical);
 
-    // 3. Meta Description
-    let descMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!descMeta) {
-      descMeta = document.createElement('meta');
-      descMeta.name = 'description';
-      document.head.appendChild(descMeta);
-    }
-    descMeta.content = pageSeo.description;
+    // 3. Meta Description & Nom d'application traduit dans toutes les langues
+    const setMetaByName = (name: string, content: string) => {
+      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = name;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
 
-    // 4. OpenGraph Tags
+    setMetaByName('description', pageSeo.description);
+    setMetaByName('title', pageSeo.title);
+    setMetaByName('application-name', brand.brandName);
+    setMetaByName('apple-mobile-web-app-title', brand.brandName);
+
+    // 4. OpenGraph Tags (avec og:site_name traduit selon la langue)
     const setOgTag = (property: string, content: string) => {
       let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
       if (!meta) {
@@ -124,23 +133,14 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
     setOgTag('og:title', pageSeo.title);
     setOgTag('og:description', pageSeo.description);
     setOgTag('og:url', localizedCanonical);
-    setOgTag('og:locale', nativeLang === 'en' ? 'en_US' : 'fr_FR');
+    setOgTag('og:site_name', brand.brandName);
+    setOgTag('og:locale', brand.ogLocale);
 
     // 5. Twitter Card Tags
-    const setTwitterTag = (name: string, content: string) => {
-      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = name;
-        document.head.appendChild(meta);
-      }
-      meta.content = content;
-    };
+    setMetaByName('twitter:title', pageSeo.title);
+    setMetaByName('twitter:description', pageSeo.description);
 
-    setTwitterTag('twitter:title', pageSeo.title);
-    setTwitterTag('twitter:description', pageSeo.description);
-
-    // 6. Schema.org JSON-LD dynamique
+    // 6. Schema.org JSON-LD dynamique avec WebSite.name traduit
     let jsonLdScript = document.getElementById('seo-page-jsonld');
     if (!jsonLdScript) {
       jsonLdScript = document.createElement('script');
@@ -148,7 +148,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
       jsonLdScript.setAttribute('type', 'application/ld+json');
       document.head.appendChild(jsonLdScript);
     }
-    jsonLdScript.textContent = generatePageJsonLd(pageSeo, nativeLang);
+    jsonLdScript.textContent = generatePageJsonLd(pageSeo, activeLocale);
 
     // 7. Règle commune meta robots sur toutes les pages
     document

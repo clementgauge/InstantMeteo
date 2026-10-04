@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, HelpCircle, ChevronDown, ChevronUp, ShieldCheck, Globe } from 'lucide-react';
 import { getSeoDataForPath, getPathForTabId, SEO_PAGES_MAP } from '../seo/pagesSeoData';
-import { getNativeSiteLanguage, NativeSiteLang, SEO_PAGES_MAP_EN } from '../i18n/siteTranslations';
+import {
+  getActiveSiteLocale,
+  getNativeSiteLanguage,
+  NativeSiteLang,
+  SEO_PAGES_MAP_EN,
+  SupportedLocaleCode,
+} from '../i18n/siteTranslations';
 
 interface SeoPageGuideCardProps {
   activeTab: string;
@@ -33,18 +39,20 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
   // Déplié par défaut afin que Googlebot (Mobile-First Indexing) indexe 100 % du texte unique et de la FAQ
   const [isExpanded, setIsExpanded] = useState(true);
   const [nativeLang, setNativeLang] = useState<NativeSiteLang>(() => getNativeSiteLanguage());
+  const [activeLocale, setActiveLocale] = useState<SupportedLocaleCode>(() => getActiveSiteLocale());
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const custom = e as CustomEvent<{ lang: NativeSiteLang }>;
+      const custom = e as CustomEvent<{ lang: NativeSiteLang; locale?: SupportedLocaleCode }>;
       setNativeLang(custom.detail?.lang || getNativeSiteLanguage());
+      setActiveLocale(custom.detail?.locale || getActiveSiteLocale());
     };
     window.addEventListener('instant_meteo_native_lang_change', handler);
     return () => window.removeEventListener('instant_meteo_native_lang_change', handler);
   }, []);
 
   const resolvedPath = getPathForTabId(activeTab, currentPath);
-  const seoData = getSeoDataForPath(resolvedPath, nativeLang);
+  const seoData = getSeoDataForPath(resolvedPath, activeLocale);
   const allPages = Object.values(nativeLang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP);
 
   return (

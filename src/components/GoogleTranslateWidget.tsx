@@ -144,13 +144,12 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
       if (validUrlLang === 'en') {
         resetGoogleTranslateIfActive();
         setCurrentLang('en');
-        document.documentElement.lang = 'en';
-        applyNativeSiteLanguage('en');
+        applyNativeSiteLanguage('en', 'en');
         updateDocumentSeo(window.location.pathname, false);
       } else if (validUrlLang && validUrlLang !== 'fr') {
-        applyNativeSiteLanguage('fr');
+        applyNativeSiteLanguage('fr', validUrlLang);
         setCurrentLang(validUrlLang);
-        document.documentElement.lang = validUrlLang;
+        updateDocumentSeo(window.location.pathname, false);
         initGoogleTranslate(validUrlLang);
       } else {
         // Démarrage systématique en français natif par défaut
@@ -161,8 +160,7 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
           // ignore
         }
         setCurrentLang('fr');
-        document.documentElement.lang = 'fr';
-        applyNativeSiteLanguage('fr');
+        applyNativeSiteLanguage('fr', 'fr');
         updateDocumentSeo(window.location.pathname, false);
       }
     } catch {
@@ -268,16 +266,14 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
       // 1. Version Française ou Anglaise : changement de langue NATIF du site (sans Google Translate)
       if (langCode === 'fr' || langCode === 'en') {
         resetGoogleTranslateIfActive();
-        document.documentElement.lang = langCode;
-        applyNativeSiteLanguage(langCode);
+        applyNativeSiteLanguage(langCode, langCode);
         updateDocumentSeo(window.location.pathname, false);
         return;
       }
 
-      // 2. Autres langues (de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) : traduction via Google Translate depuis la base FR
-      applyNativeSiteLanguage('fr');
+      // 2. Autres langues (de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) : traduction via Google Translate + nom du site traduit
+      applyNativeSiteLanguage('fr', langCode);
       clearTranslateCookies();
-      document.documentElement.lang = langCode;
       updateDocumentSeo(window.location.pathname, false);
 
       const domains = ['', `domain=${window.location.hostname};`, `domain=.${window.location.hostname};`];

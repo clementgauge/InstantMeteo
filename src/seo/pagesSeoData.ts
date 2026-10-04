@@ -1,4 +1,9 @@
-import { SEO_PAGES_MAP_EN } from '../i18n/siteTranslations';
+import {
+  SEO_PAGES_MAP_EN,
+  getSiteBrandForLocale,
+  normalizeSupportedLocale,
+  SupportedLocaleCode,
+} from '../i18n/siteTranslations';
 
 export const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
@@ -19,6 +24,10 @@ export const SUPPORTED_HREFLANG_LOCALES = [
   { hreflang: 'fr-CH', param: '', label: 'Français (Suisse)' },
   { hreflang: 'fr-CA', param: '', label: 'Français (Canada)' },
   { hreflang: 'en', param: '?hl=en', label: 'English' },
+  { hreflang: 'en-US', param: '?hl=en', label: 'English (US)' },
+  { hreflang: 'en-GB', param: '?hl=en', label: 'English (UK)' },
+  { hreflang: 'en-CA', param: '?hl=en', label: 'English (Canada)' },
+  { hreflang: 'en-AU', param: '?hl=en', label: 'English (Australia)' },
   { hreflang: 'de', param: '?hl=de', label: 'Deutsch' },
   { hreflang: 'es', param: '?hl=es', label: 'Español' },
   { hreflang: 'it', param: '?hl=it', label: 'Italiano' },
@@ -30,6 +39,21 @@ export const SUPPORTED_HREFLANG_LOCALES = [
   { hreflang: 'ru', param: '?hl=ru', label: 'Русский' },
   { hreflang: 'uk', param: '?hl=uk', label: 'Українська' },
 ] as const;
+
+export const SITEMAP_LANGUAGE_PARAMS: ReadonlyArray<{ code: SupportedLocaleCode; param: string }> = [
+  { code: 'fr', param: '' },
+  { code: 'en', param: '?hl=en' },
+  { code: 'de', param: '?hl=de' },
+  { code: 'es', param: '?hl=es' },
+  { code: 'it', param: '?hl=it' },
+  { code: 'pt', param: '?hl=pt' },
+  { code: 'nl', param: '?hl=nl' },
+  { code: 'ar', param: '?hl=ar' },
+  { code: 'zh-CN', param: '?hl=zh-CN' },
+  { code: 'ja', param: '?hl=ja' },
+  { code: 'ru', param: '?hl=ru' },
+  { code: 'uk', param: '?hl=uk' },
+];
 
 export interface PageSeoSection {
   heading: string;
@@ -927,25 +951,20 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
 };
 
 /**
- * Normalise un chemin URL et retourne les métadonnées SEO correspondantes (en français ou en anglais natif).
+ * Normalise un chemin URL et retourne les métadonnées SEO correspondantes
+ * dans la langue demandée (fr, en, de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) avec le nom du site traduit.
  */
-export function getSeoDataForPath(rawPathname: string, lang: 'fr' | 'en' = 'fr'): PageSeoMetadata {
-  const map = lang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP;
-  if (!rawPathname) return map['/'] || SEO_PAGES_MAP['/'];
-  let cleanPath = rawPathname.split('?')[0].split('#')[0].trim();
+export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): PageSeoMetadata {
+  const locale = normalizeSupportedLocale(lang);
+  const isFr = locale === 'fr';
+  const map = isFr ? SEO_PAGES_MAP : SEO_PAGES_MAP_EN;
+
+  let cleanPath = (rawPathname || '/').split('?')[0].split('#')[0].trim();
   if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
     cleanPath = cleanPath.slice(0, -1);
   }
   if (!cleanPath.startsWith('/')) {
     cleanPath = '/' + cleanPath;
-  }
-
-  // Correspondance exacte
-  if (map[cleanPath]) {
-    return map[cleanPath];
-  }
-  if (SEO_PAGES_MAP[cleanPath]) {
-    return SEO_PAGES_MAP[cleanPath];
   }
 
   // Alias historiques éventuels redirigés vers la bonne configuration SEO
@@ -1011,11 +1030,37 @@ export function getSeoDataForPath(rawPathname: string, lang: 'fr' | 'en' = 'fr')
     '/jeu-meteo': '/competition',
   };
 
-  if (aliases[cleanPath] && map[aliases[cleanPath]]) {
-    return map[aliases[cleanPath]];
+  const resolvedPath = map[cleanPath]
+    ? cleanPath
+    : aliases[cleanPath] && map[aliases[cleanPath]]
+      ? aliases[cleanPath]
+      : '/';
+
+  const baseSeo = map[resolvedPath] || SEO_PAGES_MAP[resolvedPath] || SEO_PAGES_MAP['/'];
+  if (locale === 'fr' || locale === 'en') {
+    return baseSeo;
   }
 
-  return map['/'] || SEO_PAGES_MAP['/'];
+  // Pour les 10 autres langues (de, es, it, pt, nl, ar, zh-CN, ja, ru, uk),
+  // adapte automatiquement le nom du site et les balises de la page dans la langue choisie
+  const brand = getSiteBrandForLocale(locale);
+  if (resolvedPath === '/') {
+    return {
+      ...baseSeo,
+      title: brand.homeTitle,
+      description: brand.homeDescription,
+      h1: brand.homeH1,
+      breadcrumbName: brand.homeBreadcrumb,
+      introParagraph: `${brand.brandFull} (${brand.brandName}) — ${baseSeo.introParagraph}`,
+    };
+  }
+
+  return {
+    ...baseSeo,
+    title: baseSeo.title.replace(/\|\s*Instant (?:Weather|Météo).*$/i, `| ${brand.brandName}`),
+    description: `${brand.brandName}: ${baseSeo.description}`,
+    h1: `${brand.brandName} — ${baseSeo.h1}`,
+  };
 }
 
 /**
@@ -1083,38 +1128,48 @@ export function generateHreflangLinksHtml(canonicalUrl: string): string {
 
 /**
  * Génère le Sitemap XML complet (sans balise <lastmod> fixe périmée)
- * avec déclaration de toutes les variantes linguistiques xhtml:link hreflang pour Google.
+ * incluant les entrées <url><loc> pour chacune des 18 pages dans toutes les langues (fr, en, de, es, it, pt, nl, ar, zh-CN, ja, ru, uk)
+ * ainsi que la grappe réciproque complète xhtml:link hreflang pour Google.
  */
 export function generateSitemapXml(): string {
   const routes = Object.values(SEO_PAGES_MAP);
-  const urlEntries = routes
-    .map((page) => {
-      const hreflangTags = [
-        ...SUPPORTED_HREFLANG_LOCALES.map(
-          ({ hreflang, param }) =>
-            `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${page.canonicalUrl}${param}" />`
-        ),
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${page.canonicalUrl}" />`,
-      ].join('\n');
-      return `  <url>\n    <loc>${page.canonicalUrl}</loc>\n${hreflangTags}\n  </url>`;
-    })
-    .join('\n');
+  const urlEntries: string[] = [];
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries}\n</urlset>\n`;
+  for (const page of routes) {
+    const hreflangTags = [
+      ...SUPPORTED_HREFLANG_LOCALES.map(
+        ({ hreflang, param }) =>
+          `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${page.canonicalUrl}${param}" />`
+      ),
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${page.canonicalUrl}" />`,
+    ].join('\n');
+
+    for (const langVariant of SITEMAP_LANGUAGE_PARAMS) {
+      const locUrl = `${page.canonicalUrl}${langVariant.param}`;
+      urlEntries.push(`  <url>\n    <loc>${locUrl}</loc>\n${hreflangTags}\n  </url>`);
+    }
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries.join('\n')}\n</urlset>\n`;
 }
 
 /**
- * Génère le graphe JSON-LD Schema.org (WebSite + WebPage + BreadcrumbList + FAQPage) propre à la page.
+ * Génère le graphe JSON-LD Schema.org (WebSite + WebPage + BreadcrumbList + FAQPage) propre à la page et à la langue active.
+ * Le nom du site (WebSite.name, Organization.name) change dynamiquement selon la langue (Instant Météo en FR, Instant Weather en EN, Instant Wetter en DE, etc.).
  */
-export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' = 'fr'): string {
-  const inLang = lang === 'en' ? 'en' : 'fr-FR';
-  const homeSeo = lang === 'en' ? SEO_PAGES_MAP_EN['/'] : SEO_PAGES_MAP['/'];
+export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'): string {
+  const locale = normalizeSupportedLocale(lang);
+  const brand = getSiteBrandForLocale(locale);
+  const langParam = locale === 'fr' ? '' : `?hl=${locale}`;
+  const localizedHomeUrl = `${BASE_SITE_URL}/${langParam}`;
+  const localizedPageUrl = `${seoData.canonicalUrl}${langParam}`;
+
   const breadcrumbItems: any[] = [
     {
       '@type': 'ListItem',
       position: 1,
-      name: 'Instant Météo France',
-      item: `${BASE_SITE_URL}/`,
+      name: brand.brandName,
+      item: localizedHomeUrl,
     },
   ];
 
@@ -1123,7 +1178,7 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' =
       '@type': 'ListItem',
       position: 2,
       name: seoData.breadcrumbName,
-      item: seoData.canonicalUrl,
+      item: localizedPageUrl,
     });
   }
 
@@ -1132,18 +1187,32 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' =
     '@graph': [
       {
         '@type': 'WebSite',
-        '@id': `${BASE_SITE_URL}/#website`,
-        url: `${BASE_SITE_URL}/`,
-        name: 'Instant Météo France',
-        alternateName: ['Instant Météo', 'InstantMeteoFrance'],
-        description: homeSeo.description,
-        inLanguage: inLang,
+        '@id': `${BASE_SITE_URL}/#website-${locale}`,
+        url: localizedHomeUrl,
+        name: brand.brandName,
+        alternateName: [
+          brand.brandFull,
+          brand.brandUpper,
+          'Instant Météo',
+          'Instant Météo France',
+          'Instant Weather',
+          'Instant Weather France',
+          'INSTANT WEATHER',
+          'Instant Wetter',
+          'Instant Clima',
+          'Instant Meteo',
+          'Instant Tempo',
+          'Instant Weer',
+        ],
+        description: brand.homeDescription,
+        inLanguage: brand.inLanguage,
       },
       {
         '@type': 'Organization',
         '@id': `${BASE_SITE_URL}/#organization`,
-        name: 'Instant Météo France',
-        url: `${BASE_SITE_URL}/`,
+        name: brand.brandFull,
+        alternateName: brand.brandName,
+        url: localizedHomeUrl,
         logo: {
           '@type': 'ImageObject',
           url: `${BASE_SITE_URL}/icon-512.png`,
@@ -1153,23 +1222,23 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' =
       },
       {
         '@type': 'WebPage',
-        '@id': `${seoData.canonicalUrl}#webpage`,
-        url: seoData.canonicalUrl,
+        '@id': `${localizedPageUrl}#webpage`,
+        url: localizedPageUrl,
         name: seoData.title,
         headline: seoData.h1,
         description: seoData.description,
-        isPartOf: { '@id': `${BASE_SITE_URL}/#website` },
+        isPartOf: { '@id': `${BASE_SITE_URL}/#website-${locale}` },
         about: { '@id': `${BASE_SITE_URL}/#organization` },
-        inLanguage: inLang,
+        inLanguage: brand.inLanguage,
       },
       {
         '@type': 'BreadcrumbList',
-        '@id': `${seoData.canonicalUrl}#breadcrumb`,
+        '@id': `${localizedPageUrl}#breadcrumb`,
         itemListElement: breadcrumbItems,
       },
       {
         '@type': 'FAQPage',
-        '@id': `${seoData.canonicalUrl}#faq`,
+        '@id': `${localizedPageUrl}#faq`,
         mainEntity: seoData.faq.map((item) => ({
           '@type': 'Question',
           name: item.question,
@@ -1187,15 +1256,20 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' =
 
 /**
  * Génère le bloc HTML sémantique complet propre à chaque URL (servi dès la réponse HTTP initiale)
- * afin que Googlebot reçoive immédiatement le vrai H1 et le texte unique de la page en tout début de document,
+ * afin que Googlebot reçoive immédiatement le vrai H1, le nom de site traduit et le texte unique de la page en tout début de document,
  * sans dilution par le menu de navigation qui est placé en pied de page.
  */
-export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: 'fr' | 'en' = 'fr'): string {
-  const pagesMap = lang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP;
+export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string = 'fr'): string {
+  const locale = normalizeSupportedLocale(lang);
+  const brand = getSiteBrandForLocale(locale);
+  const isFr = locale === 'fr';
+  const langParam = isFr ? '' : `?hl=${locale}`;
+  const localizedCanonical = `${seoData.canonicalUrl}${langParam}`;
+  const pagesMap = isFr ? SEO_PAGES_MAP : SEO_PAGES_MAP_EN;
   const navLinks = Object.values(pagesMap)
     .map(
       (page) =>
-        `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${page.path}${lang === 'en' ? '?hl=en' : ''}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`
+        `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${page.path}${langParam}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`
     )
     .join('\n              ');
 
@@ -1220,18 +1294,18 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: 'fr' |
     .join('\n');
 
   const languageFooterLinks = [
-    { code: 'fr', param: '', label: 'Français' },
-    { code: 'en', param: '?hl=en', label: 'English' },
-    { code: 'de', param: '?hl=de', label: 'Deutsch' },
-    { code: 'es', param: '?hl=es', label: 'Español' },
-    { code: 'it', param: '?hl=it', label: 'Italiano' },
-    { code: 'pt', param: '?hl=pt', label: 'Português' },
-    { code: 'nl', param: '?hl=nl', label: 'Nederlands' },
-    { code: 'ar', param: '?hl=ar', label: 'العربية' },
-    { code: 'zh-CN', param: '?hl=zh-CN', label: '中文' },
-    { code: 'ja', param: '?hl=ja', label: '日本語' },
-    { code: 'ru', param: '?hl=ru', label: 'Русский' },
-    { code: 'uk', param: '?hl=uk', label: 'Українська' },
+    { code: 'fr', param: '', label: 'Français (Instant Météo)' },
+    { code: 'en', param: '?hl=en', label: 'English (Instant Weather)' },
+    { code: 'de', param: '?hl=de', label: 'Deutsch (Instant Wetter)' },
+    { code: 'es', param: '?hl=es', label: 'Español (Instant Clima)' },
+    { code: 'it', param: '?hl=it', label: 'Italiano (Instant Meteo)' },
+    { code: 'pt', param: '?hl=pt', label: 'Português (Instant Tempo)' },
+    { code: 'nl', param: '?hl=nl', label: 'Nederlands (Instant Weer)' },
+    { code: 'ar', param: '?hl=ar', label: 'العربية (طقس فوري)' },
+    { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (即时天气)' },
+    { code: 'ja', param: '?hl=ja', label: '日本語 (インスタント天気)' },
+    { code: 'ru', param: '?hl=ru', label: 'Русский (Мгновенная Погода)' },
+    { code: 'uk', param: '?hl=uk', label: 'Українська (Миттєва Погода)' },
   ]
     .map(
       (l) =>
@@ -1239,19 +1313,18 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: 'fr' |
     )
     .join(' | ');
 
-  const faqHeading =
-    lang === 'en'
-      ? `Frequently Asked Questions — ${seoData.breadcrumbName}`
-      : `Questions fréquentes — ${seoData.breadcrumbName}`;
-  const canonicalLabel = lang === 'en' ? 'Canonical URL:' : 'URL canonique :';
-  const langLabel = lang === 'en' ? 'Available languages:' : 'Langues disponibles :';
-  const dirLabel = lang === 'en' ? 'Weather sections:' : 'Rubriques météo :';
+  const faqHeading = isFr
+    ? `Questions fréquentes — ${seoData.breadcrumbName}`
+    : `Frequently Asked Questions — ${seoData.breadcrumbName}`;
+  const canonicalLabel = isFr ? 'URL canonique :' : 'Canonical URL:';
+  const langLabel = isFr ? 'Langues disponibles :' : 'Available languages:';
+  const dirLabel = isFr ? 'Rubriques météo :' : 'Weather sections:';
 
   return `
       <div class="seo-prerendered-content" style="max-width: 1140px; margin: 0 auto; padding: 28px 20px; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; background-color: #020617;">
         <header style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;">
           <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 10px 0;">
-            <a href="/${lang === 'en' ? '?hl=en' : ''}" style="color: #38bdf8; text-decoration: none;">Instant Météo France</a>
+            <a href="/${langParam}" style="color: #38bdf8; text-decoration: none; font-weight: 700;">${brand.brandFull}</a>
             ${seoData.path !== '/' ? ` &rsaquo; <strong style="color: #f8fafc;">${seoData.breadcrumbName}</strong>` : ''}
           </p>
           <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin: 12px 0; line-height: 1.25;">${seoData.h1}</h1>
@@ -1275,7 +1348,7 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: 'fr' |
               ${navLinks}
             </ul>
           </nav>
-          <p style="margin: 0 0 6px 0;">${canonicalLabel} <a href="${seoData.canonicalUrl}" style="color: #38bdf8;">${seoData.canonicalUrl}</a></p>
+          <p style="margin: 0 0 6px 0;">${canonicalLabel} <a href="${localizedCanonical}" style="color: #38bdf8;">${localizedCanonical}</a></p>
           <p style="margin: 0;">${langLabel} ${languageFooterLinks}</p>
         </footer>
       </div>`;

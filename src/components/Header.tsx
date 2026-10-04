@@ -38,6 +38,7 @@ import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { AppLogo } from './AppLogo';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
+import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
 import { GoogleTranslateWidget } from './GoogleTranslateWidget';
 
 interface HeaderProps {
@@ -150,6 +151,19 @@ export const Header: React.FC<HeaderProps> = ({
   const [batteryLevel, setBatteryLevel] = React.useState<number | null>(null);
   const [isCharging, setIsCharging] = React.useState<boolean>(false);
   const [isOnline, setIsOnline] = React.useState<boolean>(true);
+  const [activeLocale, setActiveLocale] = React.useState<SupportedLocaleCode>(() => getActiveSiteLocale());
+
+  React.useEffect(() => {
+    const syncLocale = () => setActiveLocale(getActiveSiteLocale());
+    window.addEventListener('instant_meteo_native_lang_change', syncLocale);
+    window.addEventListener('popstate', syncLocale);
+    return () => {
+      window.removeEventListener('instant_meteo_native_lang_change', syncLocale);
+      window.removeEventListener('popstate', syncLocale);
+    };
+  }, []);
+
+  const brand = getSiteBrandForLocale(activeLocale);
 
   React.useEffect(() => {
     // 1. Horloge temps réel mise à jour chaque seconde
@@ -318,13 +332,13 @@ export const Header: React.FC<HeaderProps> = ({
                 <polygon points="49,52 40,68 49,68 41,84 62,64 51,64" fill="#ea580c" />
               </svg>
             </div>
-            <div>
+            <div className="notranslate">
               <div className="text-base font-black tracking-tight leading-none text-white flex items-center gap-1">
-                <span>INSTANT</span>
-                <span className="text-sky-400 font-black">MÉTÉO</span>
+                <span>{brand.word1}</span>
+                <span className="text-sky-400 font-black">{brand.word2}</span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
-                Radar Doppler HD &amp; Prévisions Temps Réel
+                {brand.tagline}
               </p>
             </div>
           </div>

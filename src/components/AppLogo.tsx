@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
 
 interface AppLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -13,6 +14,19 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   className = '',
   onClick
 }) => {
+  const [locale, setLocale] = useState<SupportedLocaleCode>(() => getActiveSiteLocale());
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getActiveSiteLocale());
+    window.addEventListener('instant_meteo_native_lang_change', syncLocale);
+    window.addEventListener('popstate', syncLocale);
+    return () => {
+      window.removeEventListener('instant_meteo_native_lang_change', syncLocale);
+      window.removeEventListener('popstate', syncLocale);
+    };
+  }, []);
+
+  const brand = getSiteBrandForLocale(locale);
   const iconDimensions = {
     sm: 'h-8 w-8',
     md: 'h-11 w-11',
@@ -123,21 +137,21 @@ export const AppLogo: React.FC<AppLogoProps> = ({
       </div>
 
       {/* Brand Typography with Positive Radiant Styling */}
-      <div>
+      <div className="notranslate">
         <div className="flex items-center gap-2 flex-wrap">
           <div className={`font-black tracking-tight text-white ${titleSize} font-sans flex items-center gap-1.5 drop-shadow-sm`}>
-            <span className="tracking-tight text-slate-50 font-black">INSTANT</span>
-            <span className="bg-gradient-to-r from-sky-300 via-amber-300 to-yellow-300 bg-clip-text text-transparent font-black">MÉTÉO</span>
+            <span className="tracking-tight text-slate-50 font-black">{brand.word1}</span>
+            <span className="bg-gradient-to-r from-sky-300 via-amber-300 to-yellow-300 bg-clip-text text-transparent font-black">{brand.word2}</span>
           </div>
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-emerald-500/20 border border-amber-300/40 text-[9px] font-black text-amber-200 uppercase tracking-widest shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>HD & DIRECT</span>
+            <span>{locale === 'fr' ? 'HD & DIRECT' : 'HD & LIVE'}</span>
           </div>
         </div>
         
         {showSubtitle && (
           <p className="text-[11px] text-sky-200/80 font-medium tracking-normal">
-            Radar Doppler HD & Prévisions Météorologiques Temps Réel
+            {brand.tagline}
           </p>
         )}
       </div>

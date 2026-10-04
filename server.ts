@@ -10,6 +10,10 @@ import {
   generateHreflangLinksHtml,
   generateSitemapXml,
 } from './src/seo/pagesSeoData';
+import {
+  getSiteBrandForLocale,
+  normalizeSupportedLocale,
+} from './src/i18n/siteTranslations';
 
 const app = express();
 const PORT = 3000;
@@ -1699,12 +1703,14 @@ function escapeHtmlAttr(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: 'fr' | 'en' = 'fr'): string {
-  const pageSeo = getSeoDataForPath(reqPath, lang);
+function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: string = 'fr'): string {
+  const locale = normalizeSupportedLocale(lang);
+  const brand = getSiteBrandForLocale(locale);
+  const pageSeo = getSeoDataForPath(reqPath, locale);
   let html = rawHtml;
 
-  // 0. Attribut lang sur <html>
-  html = html.replace(/<html[^>]*>/i, `<html lang="${lang}" dir="ltr">`);
+  // 0. Attribut lang et dir sur <html>
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
 
   // 1. Google Verification Tags (toujours présents pour Search Console)
   if (!html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
@@ -1722,7 +1728,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
   const baseCanonicalUrl = pageSeo.path === '/' 
     ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
     : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
-  const canonicalUrl = lang === 'en' ? `${baseCanonicalUrl}?hl=en` : baseCanonicalUrl;
+  const canonicalUrl = locale === 'fr' ? baseCanonicalUrl : `${baseCanonicalUrl}?hl=${locale}`;
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
   } else {
@@ -1737,17 +1743,27 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
     html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
-  // 4. Remplacer ou injecter la meta description
+  // 4. Remplacer ou injecter la meta description et le nom du site traduit
+  html = html.replace(
+    /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
+    `<meta name="application-name" content="${escapeHtmlAttr(brand.brandName)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']apple-mobile-web-app-title["'][^>]*\/?>/gi,
+    `<meta name="apple-mobile-web-app-title" content="${escapeHtmlAttr(brand.brandName)}" />`
+  );
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
     html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
   } else {
     html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
   }
 
-  // 5. OpenGraph tags
+  // 5. OpenGraph tags (avec og:site_name et og:locale traduits)
   html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
   html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
   html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:locale["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:locale" content="${brand.ogLocale}" />`);
 
   // 6. Règle commune meta robots (index, follow, sans noai, noimageai ni tdm-reservation)
   html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
@@ -1770,7 +1786,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
   html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
 
   // 8. Remplacer ou injecter le Schema.org JSON-LD spécifique (FAQPage, BreadcrumbList, WebPage)
-  const jsonLd = generatePageJsonLd(pageSeo, lang);
+  const jsonLd = generatePageJsonLd(pageSeo, locale);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
     html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
@@ -1779,7 +1795,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
   }
 
   // 9. Contenu statique initial propre à la page pour les moteurs de recherche (H1, intro, sections, FAQ)
-  const staticContent = generateStaticHtmlContent(pageSeo, lang);
+  const staticContent = generateStaticHtmlContent(pageSeo, locale);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
 
   if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
@@ -1805,7 +1821,9 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
       ua.includes('mediapartners-google') ||
       req.query['google-site-verification'] !== undefined;
 
-    const reqLang = req.query.hl === 'en' || req.query.lang === 'en' ? 'en' : 'fr';
+    const reqLang = normalizeSupportedLocale(
+      (req.query.hl as string) || (req.query.lang as string)
+    );
     content = renderPageHtml(content, req.path, isGoogle, reqLang);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
@@ -1882,7 +1900,9 @@ async function startServer() {
         try {
           let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
           html = await vite.transformIndexHtml(req.originalUrl, html);
-          const reqLang = req.query.hl === 'en' || req.query.lang === 'en' ? 'en' : 'fr';
+          const reqLang = normalizeSupportedLocale(
+            (req.query.hl as string) || (req.query.lang as string)
+          );
           html = renderPageHtml(html, req.path, isGoogle, reqLang);
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           return res.send(html);

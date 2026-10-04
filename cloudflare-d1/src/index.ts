@@ -13,6 +13,10 @@ import {
   generateSitemapXml,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../../src/seo/pagesSeoData';
+import {
+  getSiteBrandForLocale,
+  normalizeSupportedLocale,
+} from '../../src/i18n/siteTranslations';
 
 export interface Env {
   DB: D1Database;
@@ -45,26 +49,28 @@ function escapeHtmlText(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | 'en' = 'fr'): string {
-  const pageSeo = getSeoDataForPath(reqPath, lang);
+function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
+  const locale = normalizeSupportedLocale(lang);
+  const brand = getSiteBrandForLocale(locale);
+  const pageSeo = getSeoDataForPath(reqPath, locale);
   let html = rawHtml;
 
-  // 0. Attribut lang sur <html>
-  html = html.replace(/<html[^>]*>/i, `<html lang="${lang}" dir="ltr">`);
+  // 0. Attribut lang et dir sur <html>
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
 
-  // 1. Title naturel et propre à chaque page
+  // 1. Title naturel et propre à chaque page (avec le nom du site traduit selon la langue)
   if (/<title>[\s\S]*?<\/title>/i.test(html)) {
     html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
   } else {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 2. Balise canonique propre à la page (avec slash pour l'accueil, sans slash pour les sous-pages)
+  // 2. Balise canonique propre à la page et à la langue active
   const baseCanonicalUrl =
     pageSeo.path === '/'
       ? 'https://instantmeteo.instantmeteofr.workers.dev/'
       : pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
-  const canonicalUrl = lang === 'en' ? `${baseCanonicalUrl}?hl=en` : baseCanonicalUrl;
+  const canonicalUrl = locale === 'fr' ? baseCanonicalUrl : `${baseCanonicalUrl}?hl=${locale}`;
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(
       /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
@@ -89,10 +95,18 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | '
     html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
-  // 3. Meta Description & Meta Title uniques par page
+  // 3. Meta Description, Meta Title & Nom du site traduit (application-name, apple-mobile-web-app-title)
   html = html.replace(
     /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
     `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
+    `<meta name="application-name" content="${escapeHtmlAttr(brand.brandName)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']apple-mobile-web-app-title["'][^>]*\/?>/gi,
+    `<meta name="apple-mobile-web-app-title" content="${escapeHtmlAttr(brand.brandName)}" />`
   );
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
     html = html.replace(
@@ -106,7 +120,7 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | '
     );
   }
 
-  // 4. OpenGraph tags
+  // 4. OpenGraph tags (avec og:site_name et og:locale traduits selon la langue)
   html = html.replace(
     /<meta[^>]*property=["']og:title["'][^>]*\/?>/gi,
     `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
@@ -120,8 +134,12 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | '
     `<meta property="og:url" content="${canonicalUrl}" />`
   );
   html = html.replace(
+    /<meta[^>]*property=["']og:site_name["'][^>]*\/?>/gi,
+    `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`
+  );
+  html = html.replace(
     /<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi,
-    `<meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'fr_FR'}" />`
+    `<meta property="og:locale" content="${brand.ogLocale}" />`
   );
 
   // 5. Suppression totale de keywords, googlebot, tdm-reservation, noai, noimageai et règle commune meta robots
@@ -146,8 +164,8 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | '
     `<meta name="twitter:url" content="${canonicalUrl}" />`
   );
 
-  // 8. Schema.org JSON-LD
-  const jsonLd = generatePageJsonLd(pageSeo, lang);
+  // 8. Schema.org JSON-LD avec WebSite.name traduit
+  const jsonLd = generatePageJsonLd(pageSeo, locale);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
     html = html.replace(
@@ -159,7 +177,7 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | '
   }
 
   // 9. Injection déterministe du contenu HTML initial propre à la page dans le <body>
-  const staticContent = generateStaticHtmlContent(pageSeo, lang);
+  const staticContent = generateStaticHtmlContent(pageSeo, locale);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
   if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
     html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
@@ -294,7 +312,9 @@ export default {
 
             if (baseRes) {
               const rawHtml = await baseRes.text();
-              const reqLang = url.searchParams.get('hl') === 'en' || url.searchParams.get('lang') === 'en' ? 'en' : 'fr';
+              const reqLang = normalizeSupportedLocale(
+                url.searchParams.get('hl') || url.searchParams.get('lang')
+              );
               const transformedHtml = transformHtmlForWorker(rawHtml, path, reqLang);
               return new Response(transformedHtml, {
                 status: 200,
