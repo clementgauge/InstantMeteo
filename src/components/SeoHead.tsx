@@ -32,8 +32,10 @@ export const SeoHead: React.FC<SeoHeadProps> = ({ activeTab, currentPath }) => {
     };
 
     window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('instant_meteo_native_lang_change', handleLocationChange);
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('instant_meteo_native_lang_change', handleLocationChange);
     };
   }, [activeTab, currentPath]);
 

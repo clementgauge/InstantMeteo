@@ -1,3 +1,5 @@
+import { SEO_PAGES_MAP_EN } from '../i18n/siteTranslations';
+
 export const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
 /**
@@ -11,22 +13,22 @@ export const UNIFIED_ROBOTS_DIRECTIVE = 'index, follow, max-image-preview:large,
  * Signalées à Google via les balises <link rel="alternate" hreflang="..."> et le Sitemap XML
  */
 export const SUPPORTED_HREFLANG_LOCALES = [
-  { hreflang: 'fr', param: '' },
-  { hreflang: 'fr-FR', param: '' },
-  { hreflang: 'fr-BE', param: '' },
-  { hreflang: 'fr-CH', param: '' },
-  { hreflang: 'fr-CA', param: '' },
-  { hreflang: 'en', param: '?hl=en' },
-  { hreflang: 'de', param: '?hl=de' },
-  { hreflang: 'es', param: '?hl=es' },
-  { hreflang: 'it', param: '?hl=it' },
-  { hreflang: 'pt', param: '?hl=pt' },
-  { hreflang: 'nl', param: '?hl=nl' },
-  { hreflang: 'ar', param: '?hl=ar' },
-  { hreflang: 'zh-CN', param: '?hl=zh-CN' },
-  { hreflang: 'ja', param: '?hl=ja' },
-  { hreflang: 'ru', param: '?hl=ru' },
-  { hreflang: 'uk', param: '?hl=uk' },
+  { hreflang: 'fr', param: '', label: 'Français' },
+  { hreflang: 'fr-FR', param: '', label: 'Français (France)' },
+  { hreflang: 'fr-BE', param: '', label: 'Français (Belgique)' },
+  { hreflang: 'fr-CH', param: '', label: 'Français (Suisse)' },
+  { hreflang: 'fr-CA', param: '', label: 'Français (Canada)' },
+  { hreflang: 'en', param: '?hl=en', label: 'English' },
+  { hreflang: 'de', param: '?hl=de', label: 'Deutsch' },
+  { hreflang: 'es', param: '?hl=es', label: 'Español' },
+  { hreflang: 'it', param: '?hl=it', label: 'Italiano' },
+  { hreflang: 'pt', param: '?hl=pt', label: 'Português' },
+  { hreflang: 'nl', param: '?hl=nl', label: 'Nederlands' },
+  { hreflang: 'ar', param: '?hl=ar', label: 'العربية' },
+  { hreflang: 'zh-CN', param: '?hl=zh-CN', label: '中文' },
+  { hreflang: 'ja', param: '?hl=ja', label: '日本語' },
+  { hreflang: 'ru', param: '?hl=ru', label: 'Русский' },
+  { hreflang: 'uk', param: '?hl=uk', label: 'Українська' },
 ] as const;
 
 export interface PageSeoSection {
@@ -255,46 +257,46 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'nuages',
     path: '/nuages',
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
-    title: 'Couverture nuageuse et animation satellite | Instant Météo',
+    title: 'Couverture nuageuse, sondage vertical et nébulosité | Instant Météo',
     description:
-      'Suivez la couverture nuageuse en France : étages de nuages bas, moyens et élevés, hauteur du plafond nuageux, éclaircies prévues et visibilité sur 48 heures.',
-    h1: 'Couverture nuageuse et imagerie satellite',
-    sectionTitle: 'Lecture des étages nuageux et prévision des éclaircies',
+      'Suivez la couverture nuageuse (nébulosité) en France : sondage vertical de l’atmosphère, classification des nuages (bas, moyens, élevés), plafond nuageux et risque de givrage sur 48 heures.',
+    h1: 'Couverture nuageuse, sondage vertical, classification des nuages et nébulosité',
+    sectionTitle: 'Sondage vertical troposphérique, classification des nuages, givrage et nébulosité',
     breadcrumbName: 'Carte des Nuages',
     tabId: 'cloudNephology',
     changefreq: 'always',
     priority: '0.90',
     introParagraph:
-      'L’observatoire des nuages détaille la structure verticale de la couverture nuageuse au-dessus de votre commune. Plutôt qu’un simple pourcentage global, cette page distingue les nuages bas, moyens et élevés pour vous indiquer si le ciel sera réellement lumineux ou complètement bouché.',
+      'L’observatoire des nuages et de la néphologie détaille la structure verticale de l’atmosphère au-dessus de votre commune. Grâce au sondage vertical troposphérique, à la classification internationale des nuages, à la détection du risque de givrage et au suivi de la nébulosité par étage (bas, moyen et élevé), anticipez avec précision la hauteur du plafond nuageux, l’épaisseur optique du voile et les fenêtres d’éclaircies sur 48 heures.',
     sections: [
       {
-        heading: 'Distinction entre nuages bas, moyens et élevés',
-        body: 'Les nuages bas (stratus, stratocumulus et brouillards, situés sous 2 000 mètres) bloquent fortement le rayonnement solaire et donnent une impression de temps gris. Les nuages de l’étage moyen (altocumulus, altostratus entre 2 000 et 6 000 mètres) annoncent souvent un changement de temps, tandis que les nuages élevés (cirrus de glace au-dessus de 6 000 mètres) laissent largement passer la lumière du soleil.',
+        heading: 'Sondage vertical de l’atmosphère et profil d’humidité (1000 hPa à 200 hPa)',
+        body: 'Le sondage vertical analyse l’évolution de la température, du point de rosée et de l’humidité relative du sol jusqu’à 12 000 mètres d’altitude à travers les niveaux de pression standard. Il calcule automatiquement le niveau de condensation par ascendance (NCA / LCL), l’altitude de la base des nuages (plafond nuageux en mètres et en pieds), le sommet des couches nuageuses et les inversions thermiques.',
       },
       {
-        heading: 'Plafond nuageux et visibilité pour l’aviation légère et la montagne',
-        body: 'Le profil vertical indique l’altitude estimée de la base des nuages en mètres. Cette information est essentielle pour savoir si un sommet de randonnée est pris dans le brouillard ou pour préparer un vol à vue (VFR) et une session de parapente.',
+        heading: 'Classification des nuages (OMM) et nébulosité par étage d’altitude',
+        body: 'La nébulosité exprime la fraction du ciel couverte par les nuages en pourcentage (0 à 100 %) et en octas (de 0/8 ciel dégagé à 8/8 ciel couvert). La classification des nuages distingue les 10 genres de l’Atlas international de l’OMM répartis sur trois étages : les nuages bas sous 2 000 mètres (stratus, stratocumulus, cumulus), les nuages de l’étage moyen entre 2 000 et 6 000 mètres (altocumulus, altostratus, nimbostratus), les nuages élevés de cristaux de glace au-dessus de 6 000 mètres (cirrus, cirrocumulus, cirrostratus) et les nuages convectifs à grand développement vertical (cumulonimbus).',
       },
       {
-        heading: 'Fenêtres d’éclaircies et observation du ciel nocturne',
-        body: 'Le graphique sur 48 heures met en évidence les créneaux de ciel dégagé en journée pour profiter du soleil, ainsi que les nuits claires favorables à l’astronomie amateur et à l’astrophotographie.',
+        heading: 'Risque de givrage en altitude, isotherme 0 °C et visibilité aéronautique',
+        body: 'En croisant l’humidité saturée des couches nuageuses avec les températures négatives comprises entre 0 °C et -20 °C, l’observatoire repère les tranches d’altitude contenant de l’eau liquide surfondue responsable du givrage sur les aéronefs et les reliefs. Ce diagnostic de givrage, associé à la hauteur du plafond nuageux et à l’épaisseur optique, sécurise la préparation des vols à vue (VFR), du parapente et des courses en haute montagne.',
       },
     ],
     faq: [
       {
-        question: 'Pourquoi fait-il beau malgré un taux de nuages affiché à 70 % ?',
+        question: 'Pourquoi fait-il beau malgré une nébulosité affichée à 70 % ?',
         answer:
-          'Lorsqu’il s’agit uniquement de nuages élevés de type cirrus (au-dessus de 6 000 mètres), leur faible épaisseur optique laisse passer l’essentiel de l’ensoleillement, contrairement à une couche de stratus bas.',
+          'Lorsqu’il s’agit uniquement de nuages élevés de type cirrus ou cirrostratus (au-dessus de 6 000 mètres), leur faible épaisseur optique laisse passer l’essentiel de l’ensoleillement, contrairement à une couche épaisse de stratus bas.',
       },
       {
-        question: 'Comment savoir si les nuages bas matinaux vont se dissiper ?',
+        question: 'Comment le sondage vertical détecte-t-il le risque de givrage dans les nuages ?',
         answer:
-          'Consultez la courbe de l’étage bas heure par heure : si son pourcentage chute entre 10 h et 13 h avec la hausse de la température au sol, la grisaille matinale laissera place à de belles éclaircies.',
+          'Le givrage apparaît lorsque l’humidité relative dépasse 85 % dans une couche atmosphérique où la température est comprise entre 0 °C et -20 °C, signalant la présence de gouttelettes d’eau en surfusion prêtes à geler au moindre contact.',
       },
       {
-        question: 'Quelle couverture nuageuse faut-il pour observer les étoiles ?',
+        question: 'Quelle nébulosité faut-il pour observer les étoiles ou profiter d’éclaircies ?',
         answer:
-          'Pour une observation astronomique optimale, privilégiez les créneaux nocturnes où les trois étages nuageux (bas, moyen et haut) sont simultanément inférieurs à 15 %.',
+          'Pour une observation astronomique optimale, privilégiez les créneaux nocturnes où la nébulosité des trois étages nuageux (bas, moyen et haut) est simultanément inférieure à 15 % (0 à 1 octa).',
       },
     ],
   },
@@ -361,7 +363,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     changefreq: 'hourly',
     priority: '0.85',
     introParagraph:
-      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les six grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude, du fond de vallée jusqu’aux plus hauts sommets.',
+      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les sept grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude, du fond de vallée jusqu’aux plus hauts sommets.',
     sections: [
       {
         heading: 'Isotherme 0 °C et limite pluie-neige en temps réel',
@@ -925,10 +927,11 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
 };
 
 /**
- * Normalise un chemin URL et retourne les métadonnées SEO correspondantes.
+ * Normalise un chemin URL et retourne les métadonnées SEO correspondantes (en français ou en anglais natif).
  */
-export function getSeoDataForPath(rawPathname: string): PageSeoMetadata {
-  if (!rawPathname) return SEO_PAGES_MAP['/'];
+export function getSeoDataForPath(rawPathname: string, lang: 'fr' | 'en' = 'fr'): PageSeoMetadata {
+  const map = lang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP;
+  if (!rawPathname) return map['/'] || SEO_PAGES_MAP['/'];
   let cleanPath = rawPathname.split('?')[0].split('#')[0].trim();
   if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
     cleanPath = cleanPath.slice(0, -1);
@@ -938,6 +941,9 @@ export function getSeoDataForPath(rawPathname: string): PageSeoMetadata {
   }
 
   // Correspondance exacte
+  if (map[cleanPath]) {
+    return map[cleanPath];
+  }
   if (SEO_PAGES_MAP[cleanPath]) {
     return SEO_PAGES_MAP[cleanPath];
   }
@@ -955,6 +961,9 @@ export function getSeoDataForPath(rawPathname: string): PageSeoMetadata {
     '/nuage': '/nuages',
     '/satellite': '/nuages',
     '/nephologie': '/nuages',
+    '/modeles': '/nuages',
+    '/modele': '/nuages',
+    '/modeles-meteo': '/nuages',
     '/previsions': '/14-jours',
     '/previsions-14-jours': '/14-jours',
     '/previsions-15-jours': '/14-jours',
@@ -1002,11 +1011,11 @@ export function getSeoDataForPath(rawPathname: string): PageSeoMetadata {
     '/jeu-meteo': '/competition',
   };
 
-  if (aliases[cleanPath] && SEO_PAGES_MAP[aliases[cleanPath]]) {
-    return SEO_PAGES_MAP[aliases[cleanPath]];
+  if (aliases[cleanPath] && map[aliases[cleanPath]]) {
+    return map[aliases[cleanPath]];
   }
 
-  return SEO_PAGES_MAP['/'];
+  return map['/'] || SEO_PAGES_MAP['/'];
 }
 
 /**
@@ -1074,22 +1083,17 @@ export function generateHreflangLinksHtml(canonicalUrl: string): string {
 
 /**
  * Génère le Sitemap XML complet (sans balise <lastmod> fixe périmée)
- * avec déclaration des variantes linguistiques xhtml:link hreflang pour Google.
+ * avec déclaration de toutes les variantes linguistiques xhtml:link hreflang pour Google.
  */
 export function generateSitemapXml(): string {
   const routes = Object.values(SEO_PAGES_MAP);
   const urlEntries = routes
     .map((page) => {
       const hreflangTags = [
-        `    <xhtml:link rel="alternate" hreflang="fr" href="${page.canonicalUrl}" />`,
-        `    <xhtml:link rel="alternate" hreflang="fr-FR" href="${page.canonicalUrl}" />`,
-        `    <xhtml:link rel="alternate" hreflang="fr-BE" href="${page.canonicalUrl}" />`,
-        `    <xhtml:link rel="alternate" hreflang="fr-CH" href="${page.canonicalUrl}" />`,
-        `    <xhtml:link rel="alternate" hreflang="fr-CA" href="${page.canonicalUrl}" />`,
-        `    <xhtml:link rel="alternate" hreflang="en" href="${page.canonicalUrl}?hl=en" />`,
-        `    <xhtml:link rel="alternate" hreflang="de" href="${page.canonicalUrl}?hl=de" />`,
-        `    <xhtml:link rel="alternate" hreflang="es" href="${page.canonicalUrl}?hl=es" />`,
-        `    <xhtml:link rel="alternate" hreflang="it" href="${page.canonicalUrl}?hl=it" />`,
+        ...SUPPORTED_HREFLANG_LOCALES.map(
+          ({ hreflang, param }) =>
+            `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${page.canonicalUrl}${param}" />`
+        ),
         `    <xhtml:link rel="alternate" hreflang="x-default" href="${page.canonicalUrl}" />`,
       ].join('\n');
       return `  <url>\n    <loc>${page.canonicalUrl}</loc>\n${hreflangTags}\n  </url>`;
@@ -1102,7 +1106,9 @@ export function generateSitemapXml(): string {
 /**
  * Génère le graphe JSON-LD Schema.org (WebSite + WebPage + BreadcrumbList + FAQPage) propre à la page.
  */
-export function generatePageJsonLd(seoData: PageSeoMetadata): string {
+export function generatePageJsonLd(seoData: PageSeoMetadata, lang: 'fr' | 'en' = 'fr'): string {
+  const inLang = lang === 'en' ? 'en' : 'fr-FR';
+  const homeSeo = lang === 'en' ? SEO_PAGES_MAP_EN['/'] : SEO_PAGES_MAP['/'];
   const breadcrumbItems: any[] = [
     {
       '@type': 'ListItem',
@@ -1130,8 +1136,8 @@ export function generatePageJsonLd(seoData: PageSeoMetadata): string {
         url: `${BASE_SITE_URL}/`,
         name: 'Instant Météo France',
         alternateName: ['Instant Météo', 'InstantMeteoFrance'],
-        description: SEO_PAGES_MAP['/'].description,
-        inLanguage: 'fr-FR',
+        description: homeSeo.description,
+        inLanguage: inLang,
       },
       {
         '@type': 'Organization',
@@ -1154,7 +1160,7 @@ export function generatePageJsonLd(seoData: PageSeoMetadata): string {
         description: seoData.description,
         isPartOf: { '@id': `${BASE_SITE_URL}/#website` },
         about: { '@id': `${BASE_SITE_URL}/#organization` },
-        inLanguage: 'fr-FR',
+        inLanguage: inLang,
       },
       {
         '@type': 'BreadcrumbList',
@@ -1181,15 +1187,17 @@ export function generatePageJsonLd(seoData: PageSeoMetadata): string {
 
 /**
  * Génère le bloc HTML sémantique complet propre à chaque URL (servi dès la réponse HTTP initiale)
- * afin que Googlebot reçoive immédiatement le vrai H1 et le texte unique de la page.
+ * afin que Googlebot reçoive immédiatement le vrai H1 et le texte unique de la page en tout début de document,
+ * sans dilution par le menu de navigation qui est placé en pied de page.
  */
-export function generateStaticHtmlContent(seoData: PageSeoMetadata): string {
-  const navLinks = Object.values(SEO_PAGES_MAP)
+export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: 'fr' | 'en' = 'fr'): string {
+  const pagesMap = lang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP;
+  const navLinks = Object.values(pagesMap)
     .map(
       (page) =>
-        `<li style="display:inline-block;margin:4px 8px 4px 0;"><a href="${page.path}" style="color:#38bdf8;text-decoration:underline;font-weight:600;">${page.breadcrumbName}</a></li>`
+        `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${page.path}${lang === 'en' ? '?hl=en' : ''}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`
     )
-    .join('\n            ');
+    .join('\n              ');
 
   const sectionsHtml = seoData.sections
     .map(
@@ -1211,18 +1219,41 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata): string {
     )
     .join('\n');
 
+  const languageFooterLinks = [
+    { code: 'fr', param: '', label: 'Français' },
+    { code: 'en', param: '?hl=en', label: 'English' },
+    { code: 'de', param: '?hl=de', label: 'Deutsch' },
+    { code: 'es', param: '?hl=es', label: 'Español' },
+    { code: 'it', param: '?hl=it', label: 'Italiano' },
+    { code: 'pt', param: '?hl=pt', label: 'Português' },
+    { code: 'nl', param: '?hl=nl', label: 'Nederlands' },
+    { code: 'ar', param: '?hl=ar', label: 'العربية' },
+    { code: 'zh-CN', param: '?hl=zh-CN', label: '中文' },
+    { code: 'ja', param: '?hl=ja', label: '日本語' },
+    { code: 'ru', param: '?hl=ru', label: 'Русский' },
+    { code: 'uk', param: '?hl=uk', label: 'Українська' },
+  ]
+    .map(
+      (l) =>
+        `<a href="${seoData.canonicalUrl}${l.param}" hreflang="${l.code}" style="color: #38bdf8;">${l.label}</a>`
+    )
+    .join(' | ');
+
+  const faqHeading =
+    lang === 'en'
+      ? `Frequently Asked Questions — ${seoData.breadcrumbName}`
+      : `Questions fréquentes — ${seoData.breadcrumbName}`;
+  const canonicalLabel = lang === 'en' ? 'Canonical URL:' : 'URL canonique :';
+  const langLabel = lang === 'en' ? 'Available languages:' : 'Langues disponibles :';
+  const dirLabel = lang === 'en' ? 'Weather sections:' : 'Rubriques météo :';
+
   return `
       <div class="seo-prerendered-content" style="max-width: 1140px; margin: 0 auto; padding: 28px 20px; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; background-color: #020617;">
         <header style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;">
-          <nav aria-label="Fil d'Ariane et navigation principale" style="margin-bottom: 14px;">
-            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 8px 0;">
-              <a href="/" style="color: #38bdf8; text-decoration: none;">Instant Météo France</a>
-              ${seoData.path !== '/' ? ` &rsaquo; <strong style="color: #f8fafc;">${seoData.breadcrumbName}</strong>` : ''}
-            </p>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              ${navLinks}
-            </ul>
-          </nav>
+          <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 10px 0;">
+            <a href="/${lang === 'en' ? '?hl=en' : ''}" style="color: #38bdf8; text-decoration: none;">Instant Météo France</a>
+            ${seoData.path !== '/' ? ` &rsaquo; <strong style="color: #f8fafc;">${seoData.breadcrumbName}</strong>` : ''}
+          </p>
           <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin: 12px 0; line-height: 1.25;">${seoData.h1}</h1>
           <p style="font-size: 1.08rem; line-height: 1.7; color: #cbd5e1; margin: 0;">${seoData.introParagraph}</p>
         </header>
@@ -1233,13 +1264,19 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata): string {
         </section>
 
         <section aria-labelledby="questions-frequentes" style="margin-bottom: 28px;">
-          <h2 id="questions-frequentes" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 16px; border-bottom: 2px solid #334155; padding-bottom: 8px;">Questions fréquentes — ${seoData.breadcrumbName}</h2>
+          <h2 id="questions-frequentes" style="font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 16px; border-bottom: 2px solid #334155; padding-bottom: 8px;">${faqHeading}</h2>
           ${faqHtml}
         </section>
 
         <footer style="border-top: 1px solid #1e293b; padding-top: 16px; font-size: 0.85rem; color: #94a3b8;">
-          <p style="margin: 0 0 6px 0;">URL canonique : <a href="${seoData.canonicalUrl}" style="color: #38bdf8;">${seoData.canonicalUrl}</a></p>
-          <p style="margin: 0;">Langues disponibles : <a href="${seoData.canonicalUrl}" hreflang="fr" style="color: #38bdf8;">Français</a> | <a href="${seoData.canonicalUrl}?hl=en" hreflang="en" style="color: #38bdf8;">English</a> | <a href="${seoData.canonicalUrl}?hl=de" hreflang="de" style="color: #38bdf8;">Deutsch</a> | <a href="${seoData.canonicalUrl}?hl=es" hreflang="es" style="color: #38bdf8;">Español</a> | <a href="${seoData.canonicalUrl}?hl=it" hreflang="it" style="color: #38bdf8;">Italiano</a></p>
+          <nav aria-label="${dirLabel}" style="margin-bottom: 12px;">
+            <strong style="color: #cbd5e1; display: block; margin-bottom: 4px;">${dirLabel}</strong>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${navLinks}
+            </ul>
+          </nav>
+          <p style="margin: 0 0 6px 0;">${canonicalLabel} <a href="${seoData.canonicalUrl}" style="color: #38bdf8;">${seoData.canonicalUrl}</a></p>
+          <p style="margin: 0;">${langLabel} ${languageFooterLinks}</p>
         </footer>
       </div>`;
 }

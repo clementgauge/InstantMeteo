@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen, HelpCircle, ChevronDown, ChevronUp, ShieldCheck, Globe } from 'lucide-react';
 import { getSeoDataForPath, getPathForTabId, SEO_PAGES_MAP } from '../seo/pagesSeoData';
+import { getNativeSiteLanguage, NativeSiteLang, SEO_PAGES_MAP_EN } from '../i18n/siteTranslations';
 
 interface SeoPageGuideCardProps {
   activeTab: string;
@@ -9,6 +10,21 @@ interface SeoPageGuideCardProps {
   onNavigateRoute?: (path: string, tabId: string) => void;
 }
 
+const FOOTER_LANG_LINKS = [
+  { code: 'fr', param: '', label: 'Français (FR)' },
+  { code: 'en', param: '?hl=en', label: 'English (EN)' },
+  { code: 'de', param: '?hl=de', label: 'Deutsch (DE)' },
+  { code: 'es', param: '?hl=es', label: 'Español (ES)' },
+  { code: 'it', param: '?hl=it', label: 'Italiano (IT)' },
+  { code: 'pt', param: '?hl=pt', label: 'Português (PT)' },
+  { code: 'nl', param: '?hl=nl', label: 'Nederlands (NL)' },
+  { code: 'ar', param: '?hl=ar', label: 'العربية (AR)' },
+  { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (ZH)' },
+  { code: 'ja', param: '?hl=ja', label: '日本語 (JA)' },
+  { code: 'ru', param: '?hl=ru', label: 'Русский (RU)' },
+  { code: 'uk', param: '?hl=uk', label: 'Українська (UK)' },
+];
+
 export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
   activeTab,
   currentPath,
@@ -16,10 +32,20 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
 }) => {
   // Déplié par défaut afin que Googlebot (Mobile-First Indexing) indexe 100 % du texte unique et de la FAQ
   const [isExpanded, setIsExpanded] = useState(true);
+  const [nativeLang, setNativeLang] = useState<NativeSiteLang>(() => getNativeSiteLanguage());
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ lang: NativeSiteLang }>;
+      setNativeLang(custom.detail?.lang || getNativeSiteLanguage());
+    };
+    window.addEventListener('instant_meteo_native_lang_change', handler);
+    return () => window.removeEventListener('instant_meteo_native_lang_change', handler);
+  }, []);
 
   const resolvedPath = getPathForTabId(activeTab, currentPath);
-  const seoData = getSeoDataForPath(resolvedPath);
-  const allPages = Object.values(SEO_PAGES_MAP);
+  const seoData = getSeoDataForPath(resolvedPath, nativeLang);
+  const allPages = Object.values(nativeLang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP);
 
   return (
     <section
@@ -31,7 +57,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
         <div className="space-y-2 max-w-4xl">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-sky-400">
             <ShieldCheck className="h-4 w-4 shrink-0" />
-            <span>Guide pratique &bull; {seoData.breadcrumbName}</span>
+            <span>{nativeLang === 'en' ? 'Practical Guide' : 'Guide pratique'} &bull; {seoData.breadcrumbName}</span>
           </div>
 
           <h2
@@ -53,7 +79,15 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
           className="inline-flex items-center gap-2 self-start shrink-0 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 px-3.5 py-2 text-xs font-semibold text-sky-300 transition-colors cursor-pointer"
         >
           <BookOpen className="h-4 w-4" />
-          <span>{isExpanded ? 'Réduire le guide' : 'Afficher le guide & FAQ'}</span>
+          <span>
+            {isExpanded
+              ? nativeLang === 'en'
+                ? 'Collapse guide'
+                : 'Réduire le guide'
+              : nativeLang === 'en'
+                ? 'Show guide & FAQ'
+                : 'Afficher le guide & FAQ'}
+          </span>
           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
       </div>
@@ -81,7 +115,10 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-amber-400 mb-3">
               <HelpCircle className="h-4 w-4" />
-              <span>Questions fréquentes — {seoData.breadcrumbName}</span>
+              <span>
+                {nativeLang === 'en' ? 'Frequently Asked Questions — ' : 'Questions fréquentes — '}
+                {seoData.breadcrumbName}
+              </span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {seoData.faq.map((item, idx) => (
@@ -104,19 +141,19 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
 
       {/* Maillage interne vers les 18 pages thématiques et versions linguistiques */}
       <nav
-        aria-label="Rubriques météo thématiques"
+        aria-label={nativeLang === 'en' ? 'Thematic weather sections' : 'Rubriques météo thématiques'}
         className="mt-6 pt-4 border-t border-slate-800/70 space-y-3"
       >
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-semibold text-slate-400 mr-1">
-            Accès direct aux rubriques :
+            {nativeLang === 'en' ? 'Direct access to sections:' : 'Accès direct aux rubriques :'}
           </span>
           {allPages.map((page) => {
             const isCurrent = page.path === seoData.path;
             return (
               <a
                 key={page.path}
-                href={page.path}
+                href={`${page.path}${nativeLang === 'en' ? '?hl=en' : ''}`}
                 onClick={(e) => {
                   if (onNavigateRoute) {
                     e.preventDefault();
@@ -137,26 +174,23 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
 
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
           <Globe className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-          <span>Versions linguistiques disponibles :</span>
-          <a href={seoData.path} hrefLang="fr" className="text-sky-400 hover:underline font-medium">
-            Français (FR)
-          </a>
-          <span>&bull;</span>
-          <a href={`${seoData.path}?hl=en`} hrefLang="en" className="hover:text-sky-300 hover:underline">
-            English (EN)
-          </a>
-          <span>&bull;</span>
-          <a href={`${seoData.path}?hl=de`} hrefLang="de" className="hover:text-sky-300 hover:underline">
-            Deutsch (DE)
-          </a>
-          <span>&bull;</span>
-          <a href={`${seoData.path}?hl=es`} hrefLang="es" className="hover:text-sky-300 hover:underline">
-            Español (ES)
-          </a>
-          <span>&bull;</span>
-          <a href={`${seoData.path}?hl=it`} hrefLang="it" className="hover:text-sky-300 hover:underline">
-            Italiano (IT)
-          </a>
+          <span>{nativeLang === 'en' ? 'Available language versions:' : 'Versions linguistiques disponibles :'}</span>
+          {FOOTER_LANG_LINKS.map((l, idx) => (
+            <React.Fragment key={l.code}>
+              {idx > 0 && <span>&bull;</span>}
+              <a
+                href={`${seoData.path}${l.param}`}
+                hrefLang={l.code}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.dispatchEvent(new CustomEvent('instant_meteo_select_lang', { detail: { code: l.code } }));
+                }}
+                className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
+              >
+                {l.label}
+              </a>
+            </React.Fragment>
+          ))}
         </div>
       </nav>
     </section>

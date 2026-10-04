@@ -6,6 +6,7 @@ import {
   SUPPORTED_HREFLANG_LOCALES,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../seo/pagesSeoData';
+import { getNativeSiteLanguage } from '../i18n/siteTranslations';
 
 export function initDynamicGoogleVerification(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -51,15 +52,16 @@ export function initDynamicGoogleVerification(): void {
  * - Script JSON-LD enrichi (FAQPage, WebPage, BreadcrumbList)
  */
 export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): PageSeoMetadata {
+  const nativeLang = getNativeSiteLanguage();
   if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return getSeoDataForPath('/');
+    return getSeoDataForPath('/', nativeLang);
   }
 
   const currentWindowPath = typeof window !== 'undefined' ? window.location.pathname : '/';
   const targetPath = pathOrTabId.startsWith('/')
     ? pathOrTabId
     : getPathForTabId(pathOrTabId, currentWindowPath);
-  const pageSeo = getSeoDataForPath(targetPath);
+  const pageSeo = getSeoDataForPath(targetPath, nativeLang);
 
   try {
     // 1. Title
@@ -70,6 +72,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
       pageSeo.path === '/'
         ? 'https://instantmeteo.instantmeteofr.workers.dev/'
         : pageSeo.canonicalUrl.replace(/\/+$/, '');
+    const localizedCanonical = nativeLang === 'en' ? `${cleanCanonical}?hl=en` : cleanCanonical;
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -77,7 +80,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
       canonical.id = 'dynamic-canonical-link';
       document.head.appendChild(canonical);
     }
-    canonical.href = cleanCanonical;
+    canonical.href = localizedCanonical;
 
     // 2b. Synchronisation des balises hreflang (versions linguistiques signalées à Google)
     const setHreflangLink = (hreflang: string, href: string) => {
@@ -120,7 +123,8 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
 
     setOgTag('og:title', pageSeo.title);
     setOgTag('og:description', pageSeo.description);
-    setOgTag('og:url', cleanCanonical);
+    setOgTag('og:url', localizedCanonical);
+    setOgTag('og:locale', nativeLang === 'en' ? 'en_US' : 'fr_FR');
 
     // 5. Twitter Card Tags
     const setTwitterTag = (name: string, content: string) => {
@@ -144,7 +148,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
       jsonLdScript.setAttribute('type', 'application/ld+json');
       document.head.appendChild(jsonLdScript);
     }
-    jsonLdScript.textContent = generatePageJsonLd(pageSeo);
+    jsonLdScript.textContent = generatePageJsonLd(pageSeo, nativeLang);
 
     // 7. Règle commune meta robots sur toutes les pages
     document

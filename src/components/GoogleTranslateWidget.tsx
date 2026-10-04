@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Globe, Check, ChevronDown, X } from 'lucide-react';
+import { applyNativeSiteLanguage } from '../i18n/siteTranslations';
+import { updateDocumentSeo } from '../utils/seoVerification';
 
 declare global {
   interface Window {
@@ -10,18 +12,18 @@ declare global {
 }
 
 const SUPPORTED_LANGUAGES = [
-  { code: 'fr', name: 'Français', short: 'FR', flag: '🇫🇷' },
-  { code: 'en', name: 'English', short: 'EN', flag: '🇬🇧' },
-  { code: 'de', name: 'Deutsch', short: 'DE', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', short: 'IT', flag: '🇮🇹' },
-  { code: 'zh-CN', name: '中文 (Chinois)', short: 'ZH', flag: '🇨🇳' },
-  { code: 'ru', name: 'Русский (Russe)', short: 'RU', flag: '🇷🇺' },
-  { code: 'ja', name: '日本語 (Japonais)', short: 'JA', flag: '🇯🇵' },
-  { code: 'es', name: 'Español', short: 'ES', flag: '🇪🇸' },
-  { code: 'pt', name: 'Português', short: 'PT', flag: '🇵🇹' },
-  { code: 'nl', name: 'Nederlands', short: 'NL', flag: '🇳🇱' },
-  { code: 'ar', name: 'العربية', short: 'AR', flag: '🇸🇦' },
-  { code: 'uk', name: 'Українська', short: 'UK', flag: '🇺🇦' }
+  { code: 'fr', name: 'Français (Natif)', short: 'FR', flag: '🇫🇷', isNative: true },
+  { code: 'en', name: 'English (Native)', short: 'EN', flag: '🇬🇧', isNative: true },
+  { code: 'de', name: 'Deutsch', short: 'DE', flag: '🇩🇪', isNative: false },
+  { code: 'es', name: 'Español', short: 'ES', flag: '🇪🇸', isNative: false },
+  { code: 'it', name: 'Italiano', short: 'IT', flag: '🇮🇹', isNative: false },
+  { code: 'pt', name: 'Português', short: 'PT', flag: '🇵🇹', isNative: false },
+  { code: 'nl', name: 'Nederlands', short: 'NL', flag: '🇳🇱', isNative: false },
+  { code: 'ar', name: 'العربية', short: 'AR', flag: '🇸🇦', isNative: false },
+  { code: 'zh-CN', name: '中文 (Chinois)', short: 'ZH', flag: '🇨🇳', isNative: false },
+  { code: 'ja', name: '日本語 (Japonais)', short: 'JA', flag: '🇯🇵', isNative: false },
+  { code: 'ru', name: 'Русский (Russe)', short: 'RU', flag: '🇷🇺', isNative: false },
+  { code: 'uk', name: 'Українська', short: 'UK', flag: '🇺🇦', isNative: false }
 ];
 
 export interface GoogleTranslateWidgetProps {
@@ -53,6 +55,34 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
       document.cookie = `googtrans=/fr/fr; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${d}`;
       document.cookie = `googtrans=/auto/fr; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${d}`;
     });
+  };
+
+  const resetGoogleTranslateIfActive = () => {
+    clearTranslateCookies();
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+    if (select && select.value && select.value !== 'fr') {
+      select.value = 'fr';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      setTimeout(() => {
+        select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }, 80);
+    }
+  };
+
+  const syncUrlLangParam = (langCode: string) => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('lang');
+      if (langCode === 'fr') {
+        url.searchParams.delete('hl');
+      } else {
+        url.searchParams.set('hl', langCode);
+      }
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      // ignore
+    }
   };
 
   useEffect(() => {
@@ -104,19 +134,27 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
     });
     suppressGoogleBanner();
 
-    // Le français est toujours la langue principale et de départ du site
+    // Le français est la langue principale et de départ par défaut ;
+    // 'fr' et 'en' sont gérés nativement sans Google Translate, et les autres langues via Google Translate.
     try {
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get('hl') || params.get('lang');
       const validUrlLang = urlLang && SUPPORTED_LANGUAGES.some(l => l.code === urlLang) ? urlLang : null;
 
-      if (validUrlLang && validUrlLang !== 'fr') {
+      if (validUrlLang === 'en') {
+        resetGoogleTranslateIfActive();
+        setCurrentLang('en');
+        document.documentElement.lang = 'en';
+        applyNativeSiteLanguage('en');
+        updateDocumentSeo(window.location.pathname, false);
+      } else if (validUrlLang && validUrlLang !== 'fr') {
+        applyNativeSiteLanguage('fr');
         setCurrentLang(validUrlLang);
         document.documentElement.lang = validUrlLang;
         initGoogleTranslate(validUrlLang);
       } else {
-        // Démarrage systématique en français par défaut
-        clearTranslateCookies();
+        // Démarrage systématique en français natif par défaut
+        resetGoogleTranslateIfActive();
         try {
           localStorage.setItem('app_user_lang', 'fr');
         } catch {
@@ -124,12 +162,25 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
         }
         setCurrentLang('fr');
         document.documentElement.lang = 'fr';
+        applyNativeSiteLanguage('fr');
+        updateDocumentSeo(window.location.pathname, false);
       }
     } catch {
       // ignore
     }
 
-    return () => observer.disconnect();
+    const handleExternalLangSelect = (e: Event) => {
+      const custom = e as CustomEvent<{ code: string }>;
+      if (custom.detail?.code) {
+        changeLanguage(custom.detail.code);
+      }
+    };
+    window.addEventListener('instant_meteo_select_lang', handleExternalLangSelect);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('instant_meteo_select_lang', handleExternalLangSelect);
+    };
   }, []);
 
   const handleToggleOpen = () => {
@@ -159,13 +210,13 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
               new window.google.translate.TranslateElement(
                 {
                   pageLanguage: 'fr',
-                  includedLanguages: 'fr,en,es,de,it,pt,nl,ar,zh-CN,ja,ru,uk,pl,tr',
+                  includedLanguages: 'fr,es,de,it,pt,nl,ar,zh-CN,ja,ru,uk,pl,tr',
                   autoDisplay: false
                 },
                 'google_translate_element'
               );
 
-              if (targetLang && targetLang !== 'fr') {
+              if (targetLang && targetLang !== 'fr' && targetLang !== 'en') {
                 setTimeout(() => {
                   applyComboLanguage(targetLang);
                 }, 300);
@@ -185,7 +236,7 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
           console.warn('Google translate script could not be loaded.');
         };
         document.body.appendChild(script);
-      } else if (targetLang && targetLang !== 'fr') {
+      } else if (targetLang && targetLang !== 'fr' && targetLang !== 'en') {
         applyComboLanguage(targetLang);
       }
     } catch (e) {
@@ -212,25 +263,23 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
         // ignore
       }
 
-      clearTranslateCookies();
+      syncUrlLangParam(langCode);
 
-      if (langCode === 'fr') {
-        document.documentElement.lang = 'fr';
-        const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-        if (select) {
-          select.value = 'fr';
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-          setTimeout(() => {
-            select.value = '';
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-          }, 100);
-        } else {
-          window.location.reload();
-        }
+      // 1. Version Française ou Anglaise : changement de langue NATIF du site (sans Google Translate)
+      if (langCode === 'fr' || langCode === 'en') {
+        resetGoogleTranslateIfActive();
+        document.documentElement.lang = langCode;
+        applyNativeSiteLanguage(langCode);
+        updateDocumentSeo(window.location.pathname, false);
         return;
       }
 
+      // 2. Autres langues (de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) : traduction via Google Translate depuis la base FR
+      applyNativeSiteLanguage('fr');
+      clearTranslateCookies();
       document.documentElement.lang = langCode;
+      updateDocumentSeo(window.location.pathname, false);
+
       const domains = ['', `domain=${window.location.hostname};`, `domain=.${window.location.hostname};`];
       domains.forEach(d => {
         document.cookie = `googtrans=/fr/${langCode}; path=/; ${d}`;

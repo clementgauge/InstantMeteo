@@ -1699,9 +1699,12 @@ function escapeHtmlAttr(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): string {
-  const pageSeo = getSeoDataForPath(reqPath);
+function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: 'fr' | 'en' = 'fr'): string {
+  const pageSeo = getSeoDataForPath(reqPath, lang);
   let html = rawHtml;
+
+  // 0. Attribut lang sur <html>
+  html = html.replace(/<html[^>]*>/i, `<html lang="${lang}" dir="ltr">`);
 
   // 1. Google Verification Tags (toujours présents pour Search Console)
   if (!html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
@@ -1716,9 +1719,10 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   }
 
   // 3. Remplacer ou injecter la balise canonique (avec slash pour l'accueil, sans slash pour les sous-pages)
-  const canonicalUrl = pageSeo.path === '/' 
+  const baseCanonicalUrl = pageSeo.path === '/' 
     ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
     : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
+  const canonicalUrl = lang === 'en' ? `${baseCanonicalUrl}?hl=en` : baseCanonicalUrl;
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
   } else {
@@ -1726,7 +1730,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   }
 
   // 3b. Balises hreflang (signalement des différentes versions linguistiques à Google)
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(canonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(baseCanonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
   if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
     html = html.replace(/<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/, hreflangBlock);
   } else {
@@ -1766,7 +1770,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
 
   // 8. Remplacer ou injecter le Schema.org JSON-LD spécifique (FAQPage, BreadcrumbList, WebPage)
-  const jsonLd = generatePageJsonLd(pageSeo);
+  const jsonLd = generatePageJsonLd(pageSeo, lang);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
     html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
@@ -1775,7 +1779,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean): st
   }
 
   // 9. Contenu statique initial propre à la page pour les moteurs de recherche (H1, intro, sections, FAQ)
-  const staticContent = generateStaticHtmlContent(pageSeo);
+  const staticContent = generateStaticHtmlContent(pageSeo, lang);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
 
   if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
@@ -1801,7 +1805,8 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
       ua.includes('mediapartners-google') ||
       req.query['google-site-verification'] !== undefined;
 
-    content = renderPageHtml(content, req.path, isGoogle);
+    const reqLang = req.query.hl === 'en' || req.query.lang === 'en' ? 'en' : 'fr';
+    content = renderPageHtml(content, req.path, isGoogle, reqLang);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.send(content);
@@ -1877,7 +1882,8 @@ async function startServer() {
         try {
           let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
           html = await vite.transformIndexHtml(req.originalUrl, html);
-          html = renderPageHtml(html, req.path, isGoogle);
+          const reqLang = req.query.hl === 'en' || req.query.lang === 'en' ? 'en' : 'fr';
+          html = renderPageHtml(html, req.path, isGoogle, reqLang);
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           return res.send(html);
         } catch (e) {

@@ -87,6 +87,7 @@ import { SeoHead } from './components/SeoHead';
 import { WeatherGameModal } from './components/WeatherGameModal';
 import { updateDocumentSeo } from './utils/seoVerification';
 import { getTabIdForPath, getSeoDataForPath, getPathForTabId } from './seo/pagesSeoData';
+import { getNativeSiteLanguage } from './i18n/siteTranslations';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -881,7 +882,7 @@ function WeatherApp() {
         {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA mais masqué visuellement pour l'utilisateur) */}
         {(() => {
           const activeRoutePath = getPathForTabId(activeTab, currentPath);
-          const activePageSeo = getSeoDataForPath(activeRoutePath);
+          const activePageSeo = getSeoDataForPath(activeRoutePath, getNativeSiteLanguage());
           return (
             <div className="sr-only">
               <div>
@@ -1407,6 +1408,46 @@ function WeatherApp() {
                 Arène Compétitive
               </a>
             </nav>
+
+            {/* Liens de versions linguistiques localisées avec hreflang (Français & Anglais natifs + langues traduites) */}
+            <div className="pt-3 mt-3 border-t border-slate-800/60 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11px] text-slate-400">
+              <span className="font-semibold text-slate-300">Versions linguistiques disponibles :</span>
+              {[
+                { code: 'fr', param: '', label: 'Français (FR)' },
+                { code: 'en', param: '?hl=en', label: 'English (EN)' },
+                { code: 'de', param: '?hl=de', label: 'Deutsch (DE)' },
+                { code: 'es', param: '?hl=es', label: 'Español (ES)' },
+                { code: 'it', param: '?hl=it', label: 'Italiano (IT)' },
+                { code: 'pt', param: '?hl=pt', label: 'Português (PT)' },
+                { code: 'nl', param: '?hl=nl', label: 'Nederlands (NL)' },
+                { code: 'ar', param: '?hl=ar', label: 'العربية (AR)' },
+                { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (ZH)' },
+                { code: 'ja', param: '?hl=ja', label: '日本語 (JA)' },
+                { code: 'ru', param: '?hl=ru', label: 'Русский (RU)' },
+                { code: 'uk', param: '?hl=uk', label: 'Українська (UK)' },
+              ].map((langItem, idx) => {
+                const routePath = getPathForTabId(activeTab, currentPath);
+                const hrefUrl = `${routePath === '/' ? '/' : routePath}${langItem.param}`;
+                return (
+                  <React.Fragment key={langItem.code}>
+                    {idx > 0 && <span className="text-slate-700">•</span>}
+                    <a
+                      href={hrefUrl}
+                      hrefLang={langItem.code}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.dispatchEvent(
+                          new CustomEvent('instant_meteo_select_lang', { detail: { code: langItem.code } })
+                        );
+                      }}
+                      className="text-sky-400 hover:text-sky-300 hover:underline font-medium cursor-pointer"
+                    >
+                      {langItem.label}
+                    </a>
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         </div>
       </footer>

@@ -45,9 +45,12 @@ function escapeHtmlText(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
-  const pageSeo = getSeoDataForPath(reqPath);
+function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: 'fr' | 'en' = 'fr'): string {
+  const pageSeo = getSeoDataForPath(reqPath, lang);
   let html = rawHtml;
+
+  // 0. Attribut lang sur <html>
+  html = html.replace(/<html[^>]*>/i, `<html lang="${lang}" dir="ltr">`);
 
   // 1. Title naturel et propre à chaque page
   if (/<title>[\s\S]*?<\/title>/i.test(html)) {
@@ -57,10 +60,11 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
   }
 
   // 2. Balise canonique propre à la page (avec slash pour l'accueil, sans slash pour les sous-pages)
-  const canonicalUrl =
+  const baseCanonicalUrl =
     pageSeo.path === '/'
       ? 'https://instantmeteo.instantmeteofr.workers.dev/'
       : pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
+  const canonicalUrl = lang === 'en' ? `${baseCanonicalUrl}?hl=en` : baseCanonicalUrl;
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(
       /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
@@ -74,7 +78,8 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
   }
 
   // 2b. Balises hreflang (signalement des différentes versions linguistiques à Google)
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(canonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(baseCanonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
   if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
     html = html.replace(
       /<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/,
@@ -84,10 +89,14 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
     html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
-  // 3. Meta Description unique par page
+  // 3. Meta Description & Meta Title uniques par page
+  html = html.replace(
+    /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
+    `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
     html = html.replace(
-      /<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+      /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
       `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`
     );
   } else {
@@ -99,54 +108,46 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
 
   // 4. OpenGraph tags
   html = html.replace(
-    /<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*property=["']og:title["'][^>]*\/?>/gi,
     `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
   );
   html = html.replace(
-    /<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*property=["']og:description["'][^>]*\/?>/gi,
     `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
   );
   html = html.replace(
-    /<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*property=["']og:url["'][^>]*\/?>/gi,
     `<meta property="og:url" content="${canonicalUrl}" />`
   );
+  html = html.replace(
+    /<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi,
+    `<meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'fr_FR'}" />`
+  );
 
-  // 5. Règle commune meta robots sur toutes les pages
-  html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
-  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(
-      /<meta[^>]*name=["']robots["'][^>]*\/?>/gi,
-      `<meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />`
-    );
-  } else {
-    html = html.replace(
-      '</head>',
-      `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`
-    );
-  }
-
-  // 6. Suppression totale des meta keywords et anciennes clés
-  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
+  // 5. Suppression totale de keywords, googlebot, tdm-reservation, noai, noimageai et règle commune meta robots
+  html = html.replace(/<meta\b[^>]*(?:keywords|googlebot|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(
+    '</head>',
+    `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`
+  );
 
   // 7. Twitter Card tags
   html = html.replace(
-    /<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi,
     `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
   );
   html = html.replace(
-    /<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*name=["']twitter:description["'][^>]*\/?>/gi,
     `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
   );
   html = html.replace(
-    /<meta[^>]*name=["']twitter:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi,
+    /<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi,
     `<meta name="twitter:url" content="${canonicalUrl}" />`
   );
 
   // 8. Schema.org JSON-LD
-  const jsonLd = generatePageJsonLd(pageSeo);
+  const jsonLd = generatePageJsonLd(pageSeo, lang);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
     html = html.replace(
@@ -157,15 +158,17 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string): string {
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 9. Injection déterministe du contenu HTML initial propre à la page dans <!--SEO_ROOT_START-->...<!--SEO_ROOT_END-->
-  const staticContent = generateStaticHtmlContent(pageSeo);
+  // 9. Injection déterministe du contenu HTML initial propre à la page dans le <body>
+  const staticContent = generateStaticHtmlContent(pageSeo, lang);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
   if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
     html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
-  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
-    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  } else if (html.includes('<div id="root"></div>')) {
-    html = html.replace('<div id="root"></div>', rootReplacement);
+  } else {
+    // Remplacement complet du corps <body> en préservant uniquement d'éventuels scripts externes
+    html = html.replace(/<body([^>]*)>([\s\S]*?)<\/body>/i, (_match, bodyAttrs, bodyInner) => {
+      const scripts = (bodyInner.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || []).join('\n    ');
+      return `<body${bodyAttrs}>\n    ${rootReplacement}${scripts ? `\n    ${scripts}` : ''}\n  </body>`;
+    });
   }
 
   return html;
@@ -275,20 +278,24 @@ export default {
               }
             } catch (_) {}
 
-            // Fallback SPA sur index.html
+            // Fallback SPA sur _spa_template.html, /direct ou /
             if (!baseRes) {
-              try {
-                const spaRequest = new Request(new URL('/', request.url).toString(), request);
-                const spaRes = await env.ASSETS.fetch(spaRequest);
-                if (spaRes.status !== 404) {
-                  baseRes = spaRes;
-                }
-              } catch (_) {}
+              for (const fallbackPath of ['/_spa_template.html', '/direct', '/']) {
+                try {
+                  const spaRequest = new Request(new URL(fallbackPath, request.url).toString(), request);
+                  const spaRes = await env.ASSETS.fetch(spaRequest);
+                  if (spaRes.status !== 404 && spaRes.headers.get('content-type')?.includes('text/html')) {
+                    baseRes = spaRes;
+                    break;
+                  }
+                } catch (_) {}
+              }
             }
 
             if (baseRes) {
               const rawHtml = await baseRes.text();
-              const transformedHtml = transformHtmlForWorker(rawHtml, path);
+              const reqLang = url.searchParams.get('hl') === 'en' || url.searchParams.get('lang') === 'en' ? 'en' : 'fr';
+              const transformedHtml = transformHtmlForWorker(rawHtml, path, reqLang);
               return new Response(transformedHtml, {
                 status: 200,
                 headers: {
