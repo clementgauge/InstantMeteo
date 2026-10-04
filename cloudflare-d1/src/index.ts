@@ -249,8 +249,8 @@ export default {
       // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE
       // =========================================================================
       if (!path.startsWith('/api/')) {
-        // Fichiers d'assets statiques (js, css, images, favicons, fonts, manifest)
-        const isStaticAsset = path.includes('.') && !path.endsWith('.html');
+        // Fichiers d'assets statiques (js, css, images, favicons, fonts, manifest) et jeu standalone
+        const isStaticAsset = (path.includes('.') && !path.endsWith('.html')) || path === '/paratonnerre.html';
         if (isStaticAsset && env.ASSETS) {
           try {
             const assetRes = await env.ASSETS.fetch(request);
