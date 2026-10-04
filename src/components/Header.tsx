@@ -31,7 +31,8 @@ import {
   Bell,
   Sun,
   Moon,
-  Gamepad2
+  Gamepad2,
+  Download
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -355,19 +356,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span>HD &amp; DIRECT</span>
             </div>
 
-            {/* Gamepad Weather Game Launcher (Mobile Top Row) */}
-            {onOpenWeatherGame && (
-              <button
-                type="button"
-                onClick={onOpenWeatherGame}
-                title="Jouer au Jeu de Météo"
-                aria-label="Jouer au Jeu de Météo"
-                className="relative w-8 h-8 rounded-full bg-emerald-950/90 border border-emerald-500/50 flex items-center justify-center text-emerald-300 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
-              >
-                <Gamepad2 className="h-4 w-4 text-emerald-400" />
-              </button>
-            )}
-
             {/* Notification Bell Circle with Red Badge Dot */}
             <button
               onClick={onOpenNotificationsModal}
@@ -506,15 +494,17 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] font-medium text-slate-300">Vidéos</span>
           </a>
 
-          {/* 4. Premium */}
+          {/* 4. Télécharger l'application */}
           <button
             onClick={onOpenAndroidModal}
+            title="Télécharger l'application"
+            aria-label="Télécharger l'application"
             className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
           >
             <div className="w-10 h-10 rounded-full bg-amber-500/30 border border-amber-400/60 shadow-lg shadow-amber-500/25 flex items-center justify-center text-amber-300">
-              <Crown className="h-4 w-4 text-amber-300" />
+              <Download className="h-4 w-4 text-amber-300" />
             </div>
-            <span className="text-[10px] font-medium text-slate-300">Premium</span>
+            <span className="text-[10px] font-medium text-slate-300">Appli</span>
           </button>
 
           {/* 5. Choix de la langue (Traduction Google Translate) */}

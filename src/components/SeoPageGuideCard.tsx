@@ -24,7 +24,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
   return (
     <section
       aria-labelledby="seo-page-guide-heading"
-      className="mt-8 rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md p-5 sm:p-7 text-slate-200 shadow-xl"
+      className="sr-only"
     >
       {/* En-tête éditorial propre à la page */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-800/80 pb-5">

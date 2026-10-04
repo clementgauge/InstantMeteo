@@ -809,24 +809,25 @@ function WeatherApp() {
         />
       </div>
 
+      {/* Full-Page Collapsible Left Sidebar Rail & Mobile Drawer — Placed at root level so it stays in the foreground above header, bottom dock, and page */}
+      <PageSectionSidebar
+        title={pageSidebarTitle}
+        sections={pageSections}
+        currentStation={currentStation}
+        isChristmasActive={isChristmasActive}
+        onTriggerSecretCode={handleTriggerSecretCode}
+        onLocateGps={handleLocateGps}
+        activeTab={activeTab}
+        onSelectTab={(tabId) => setActiveTab(tabId)}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenNotifications={() => setIsNotificationModalOpen(true)}
+        onOpenAtmosphere={() => setIsAtmosphereModalOpen(true)}
+        activeAlertCount={activeAlertCount}
+        isLightMode={themeMode === 'light'}
+      />
+
       {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
       <main className="relative z-20 flex-1 mx-auto w-full max-w-[1720px] px-2 sm:px-6 lg:px-8 xl:px-10 lg:pl-[84px] py-2 sm:py-4 pb-36 overflow-x-hidden">
-        {/* Full-Page Collapsible Left Sidebar Rail & Mobile Drawer */}
-        <PageSectionSidebar
-          title={pageSidebarTitle}
-          sections={pageSections}
-          currentStation={currentStation}
-          isChristmasActive={isChristmasActive}
-          onTriggerSecretCode={handleTriggerSecretCode}
-          onLocateGps={handleLocateGps}
-          activeTab={activeTab}
-          onSelectTab={(tabId) => setActiveTab(tabId)}
-          onOpenSearch={() => setIsSearchModalOpen(true)}
-          onOpenNotifications={() => setIsNotificationModalOpen(true)}
-          onOpenAtmosphere={() => setIsAtmosphereModalOpen(true)}
-          activeAlertCount={activeAlertCount}
-          isLightMode={themeMode === 'light'}
-        />
 
         {/* Atmosphere Context & Hub Filter Bar (Desktop only, mobile has it directly in the top header) */}
         <div className="hidden sm:block mb-3 rounded-lg bg-slate-950 border border-slate-800 p-2.5 sm:p-3">
@@ -877,21 +878,21 @@ function WeatherApp() {
         </div>
 
         <section className="min-w-0 w-full">
-        {/* En-tête sémantique unique H1 propre à chaque URL (visible sur mobile et bureau pour l'indexation) */}
+        {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA mais masqué visuellement pour l'utilisateur) */}
         {(() => {
           const activeRoutePath = getPathForTabId(activeTab, currentPath);
           const activePageSeo = getSeoDataForPath(activeRoutePath);
           return (
-            <div className="mb-4 rounded-xl border border-slate-800/80 bg-slate-900/60 px-4 py-3 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="sr-only">
               <div>
-                <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug">
+                <h1>
                   {activePageSeo.h1}
                 </h1>
-                <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">
+                <p>
                   {activePageSeo.description}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0 text-[11px] text-sky-400 font-semibold">
+              <div>
                 <span>📍 {currentStation.name} ({currentStation.altitude ?? 0} m)</span>
               </div>
             </div>

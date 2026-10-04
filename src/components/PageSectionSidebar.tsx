@@ -251,7 +251,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       {/* ========================================================================= */}
       {/* MOBILE TRIGGER DU BAS (Format Téléphone : Bouton Sommaire discret en bas)  */}
       {/* ========================================================================= */}
-      <div className="lg:hidden fixed left-2.5 bottom-16 sm:bottom-20 z-30">
+      <div className="lg:hidden fixed left-2.5 bottom-16 sm:bottom-20 z-[110]">
         <button
           type="button"
           onClick={() => setIsMobileOpen(true)}
@@ -282,7 +282,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       {/* ========================================================================= */}
       {isMobileOpen && (
         <div
-          className={`lg:hidden fixed inset-0 z-50 backdrop-blur-sm transition-opacity duration-300 ${
+          className={`lg:hidden fixed inset-0 z-[120] backdrop-blur-sm transition-opacity duration-300 ${
             isLightMode ? 'bg-slate-900/40' : 'bg-slate-950/80'
           }`}
           onClick={() => setIsMobileOpen(false)}
@@ -291,7 +291,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       )}
 
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[305px] max-w-[86vw] shadow-2xl flex flex-col justify-between rounded-r-[32px] overflow-hidden transform transition-transform duration-300 ease-out ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-[130] w-[305px] max-w-[86vw] shadow-2xl flex flex-col justify-between rounded-r-[32px] overflow-hidden transform transition-transform duration-300 ease-out ${
           isLightMode
             ? 'bg-gradient-to-b from-[#ffffff] via-[#f8fafc] to-[#f1f5f9] text-slate-900 border-r border-slate-200/90 shadow-slate-400/20'
             : 'bg-gradient-to-b from-[#0a1122] via-[#0d172e] to-[#070c18] text-slate-100 border-r border-slate-800/90 shadow-black/80'
@@ -601,7 +601,7 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       {/* NIVEAU 3 : JUSTE LA FLÈCHE EN BAS (Dock Minimaliste Flottant parfaitement aligné avec la barre du bas) */}
       {sidebarLevel === 'minimal' && (
         <aside
-          className="fixed left-1 bottom-3 z-40 hidden lg:flex items-center"
+          className="fixed left-1 bottom-3 z-[120] hidden lg:flex items-center"
           aria-label="Ouvrir le sommaire et les rubriques"
         >
           <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl backdrop-blur-2xl ring-1 ring-white/5">
@@ -633,13 +633,13 @@ export const PageSectionSidebar: React.FC<PageSectionSidebarProps> = ({
       {/* NIVEAU 1 (Tout voir: 275px) & NIVEAU 2 (Logos seuls: 68px) */}
       {sidebarLevel !== 'minimal' && (
         <aside
-          className={`fixed left-1 top-24 bottom-24 z-40 hidden lg:block transition-all duration-300 pointer-events-auto ${
+          className={`fixed left-1 top-3 bottom-3 z-[120] hidden lg:block transition-all duration-300 pointer-events-auto ${
             sidebarLevel === 'icons' ? 'w-[68px]' : 'w-[275px]'
           }`}
           aria-label={`Sommaire et rubriques de la page ${title}`}
         >
           <div
-            className={`max-h-[calc(100vh-8.5rem)] h-full overflow-y-auto rounded-[24px] border border-slate-800/90 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-2xl transition-all duration-300 flex flex-col justify-between scrollbar-none ${
+            className={`max-h-[calc(100vh-1.5rem)] h-full overflow-y-auto rounded-[24px] border border-slate-800/90 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-2xl transition-all duration-300 flex flex-col justify-between scrollbar-none ${
               sidebarLevel === 'icons' ? 'w-[68px]' : 'w-[275px]'
             }`}
           >
