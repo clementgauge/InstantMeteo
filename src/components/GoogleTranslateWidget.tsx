@@ -40,17 +40,54 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
   const [currentLang, setCurrentLang] = useState('fr');
 
   useEffect(() => {
-    // Body Mutation Observer to ensure no Google top-banner displaces the UI
-    const observer = new MutationObserver(() => {
+    const suppressGoogleBanner = () => {
       if (document.body.style.top && document.body.style.top !== '0px') {
-        document.body.style.top = '0px';
+        document.body.style.setProperty('top', '0px', 'important');
       }
-      if (document.body.style.position && document.body.style.position !== 'static') {
-        document.body.style.position = 'static';
+      if (document.body.style.marginTop && document.body.style.marginTop !== '0px') {
+        document.body.style.setProperty('margin-top', '0px', 'important');
       }
+      if (document.documentElement.style.marginTop && document.documentElement.style.marginTop !== '0px') {
+        document.documentElement.style.setProperty('margin-top', '0px', 'important');
+      }
+      if (document.documentElement.style.top && document.documentElement.style.top !== '0px') {
+        document.documentElement.style.setProperty('top', '0px', 'important');
+      }
+
+      const banners = document.querySelectorAll<HTMLElement>(
+        '.goog-te-banner-frame, iframe.skiptranslate, body > .skiptranslate, .VIpgJd-ZVi9od-ORHb-OEVmcd, .VIpgJd-ZVi9od-ORHb, .VIpgJd-ZVi9od-aZ2wEe-wOHMyf, #goog-gt-tt'
+      );
+      banners.forEach((el) => {
+        if (el.id === 'google_translate_element' || el.id === 'google-translate-custom-control') return;
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
+        el.style.setProperty('height', '0px', 'important');
+        el.style.setProperty('width', '0px', 'important');
+        el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+        el.style.setProperty('position', 'fixed', 'important');
+        el.style.setProperty('top', '-9999px', 'important');
+      });
+    };
+
+    // Body & HTML Mutation Observer to ensure no Google top-banner ever displaces or shows on the UI
+    const observer = new MutationObserver(() => {
+      suppressGoogleBanner();
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      childList: true,
+      subtree: false,
+      attributeFilter: ['style', 'class']
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: false,
+      attributeFilter: ['style', 'class']
+    });
+    suppressGoogleBanner();
 
     try {
       const params = new URLSearchParams(window.location.search);
