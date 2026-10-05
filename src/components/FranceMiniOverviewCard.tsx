@@ -547,8 +547,8 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
       </div>
 
       {/* Map Container (Dynamically scalable on PC via Zoom toggle) */}
-      <div className={`relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
-        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'h-[195px] sm:h-[220px]'
+      <div className={`relative w-full flex-1 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
+        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'min-h-[195px] sm:min-h-[215px]'
       }`}>
         <div 
           ref={mapContainerRef} 

@@ -828,10 +828,10 @@ function WeatherApp() {
       />
 
       {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1720px] px-2 sm:px-6 lg:px-8 xl:px-10 lg:pl-[84px] py-2 sm:py-4 pb-36 overflow-x-hidden">
+      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-5 xl:px-6 lg:pl-[76px] py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
 
         {/* Atmosphere Context & Hub Filter Bar (Desktop only, mobile has it directly in the top header) */}
-        <div className="hidden sm:block mb-3 rounded-lg bg-slate-950 border border-slate-800 p-2.5 sm:p-3">
+        <div className="hidden sm:block mb-2 rounded-lg bg-slate-950 border border-slate-800 py-1.5 px-2.5">
           {/* Quick shortcuts — centered. Search is already available in the global header. */}
           <div className="flex flex-wrap items-center justify-center gap-1.5">
             <button

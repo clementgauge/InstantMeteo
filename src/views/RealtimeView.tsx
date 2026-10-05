@@ -502,7 +502,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         />
       </div>
 
-      {/* 1. Hero Current Weather & Active GPS Localization Banner (Desktop - Exact Reference Design) */}
+      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid) */}
       <DesktopWeatherHeroDashboard
         station={station}
         weather={weather}
@@ -510,31 +510,28 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         daily={daily}
         anomaly={anomaly}
         tempUnit={tempUnit}
+        onSelectStation={onSelectStation}
         onOpenSearchModal={onOpenSearchModal}
         onOpenGigaRadar={onOpenGigaRadar}
         onNavigateTab={onNavigateTab}
         onLocateGps={onLocateGps}
         onOpenContradictionModal={() => setIsContradictionModalOpen(true)}
-      />
-
-      {/* Module de Fiabilisation & Calibrage Température Observée en Temps Réel */}
-      <TemperatureReliabilityCalibrationCard
-        station={station}
-        currentWeather={weather}
-        tempUnit={tempUnit}
         onRecalibrate={onRecalibrate}
-        onReset={onResetRecalibration}
+        onResetRecalibration={onResetRecalibration}
       />
 
-      {/* ========================================================================= */}
-      {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}
-      {/* ========================================================================= */}
+      {/* Mobile-only Calibration & Map (since Desktop integrates them directly in Row 1 alongside the Hero Card) */}
+      <div className="block sm:hidden space-y-3.5">
+        <TemperatureReliabilityCalibrationCard
+          station={station}
+          currentWeather={weather}
+          tempUnit={tempUnit}
+          onRecalibrate={onRecalibrate}
+          onReset={onResetRecalibration}
+        />
 
-      {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
-      {activeProfileTab === 'classic' && (
-        <div className="space-y-6">
-          {/* Carte de France miniature compacte avec icônes météo et températures (Notre propre carte vectorielle indépendante) */}
-          <div id="realtime-national-overview-mini" className="scroll-mt-28 w-full">
+        {activeProfileTab === 'classic' && (
+          <div className="w-full">
             <FranceMiniOverviewCard
               currentStation={station}
               tempUnit={tempUnit}
@@ -543,31 +540,52 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               onNavigateTab={onNavigateTab}
             />
           </div>
+        )}
+      </div>
 
-          {/* Prévisions du jour et à 7 jours */}
-          <div id="realtime-forecast-week" className="scroll-mt-28">
-            <GrandDayAndWeekDetailedForecastCard
-              station={station}
-              weather={weather}
-              hourly={hourly}
-              daily={daily}
-              seniorMode={seniorMode}
-              simplifiedMode={simplifiedMode}
-              tempUnit={tempUnit}
-              onOpenDayAnalyzer={handleOpenDayAnalyzer}
-            />
+      {/* ========================================================================= */}
+      {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}
+      {/* ========================================================================= */}
+
+      {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
+      {activeProfileTab === 'classic' && (
+        <div className="space-y-4">
+          {/* Row 3: Prévisions 7 jours & 24h (Gauche - 7 cols) + Nowcasting Précipitations (Droite - 5 cols) côte à côte */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
+            <div id="realtime-forecast-week" className="xl:col-span-7 scroll-mt-28 min-w-0">
+              <GrandDayAndWeekDetailedForecastCard
+                station={station}
+                weather={weather}
+                hourly={hourly}
+                daily={daily}
+                seniorMode={seniorMode}
+                simplifiedMode={simplifiedMode}
+                tempUnit={tempUnit}
+                onOpenDayAnalyzer={handleOpenDayAnalyzer}
+              />
+            </div>
+
+            <div id="realtime-precipitation" className="xl:col-span-5 scroll-mt-28 min-w-0">
+              <GigaPrecipitationNowcastingCard
+                weather={weather}
+                station={station}
+                hourly={hourly}
+                daily={daily}
+                seniorMode={seniorMode}
+              />
+            </div>
           </div>
 
-          {/* Jauges & indicateurs synoptiques (Humidité, Vent, UV, AQI, Pression, Pluie) */}
+          {/* Row 4: Les 6 Jauges & indicateurs synoptiques sur une seule ligne horizontale (Humidité, Vent, UV, AQI, Pression, Pluie) */}
           <div id="realtime-indicators" className="scroll-mt-28">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className={`font-bold text-slate-200 ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
+            <div className="mb-2.5 flex items-center justify-between">
+              <h3 className={`font-bold text-slate-200 ${seniorMode ? 'text-2xl' : 'text-base sm:text-lg'}`}>
                 Indicateurs &amp; Précision Météorologique
               </h3>
               <span className="text-xs text-slate-400">Relevé mis à jour en direct</span>
             </div>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 ${simplifiedMode ? 'lg:grid-cols-5' : 'lg:grid-cols-3'} gap-4`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${simplifiedMode ? 'xl:grid-cols-5' : 'xl:grid-cols-6'} gap-3`}>
               <WeatherGauge
                 title="Humidité Relative"
                 value={weather.humidity}
@@ -644,47 +662,42 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </div>
           </div>
 
-          {/* Éphéméride & Vie Quotidienne */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <EphemerisCard weather={weather} seniorMode={seniorMode} />
-            <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
+          {/* Row 5: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
+            <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-4 flex [&>div]:flex-1'}>
+              <EphemerisCard weather={weather} seniorMode={seniorMode} />
+            </div>
+            <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-5 flex [&>div]:flex-1'}>
+              <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
+            </div>
+            {!simplifiedMode && (
+              <div className="xl:col-span-3 flex [&>div]:flex-1">
+                <ImouWeatherSecurityBanner
+                  weather={weather}
+                  station={station}
+                  seniorMode={seniorMode}
+                />
+              </div>
+            )}
           </div>
-
-          {/* Nowcasting précipitations direct */}
-          <div id="realtime-precipitation" className="scroll-mt-28">
-            <GigaPrecipitationNowcastingCard
-              weather={weather}
-              station={station}
-              hourly={hourly}
-              daily={daily}
-              seniorMode={seniorMode}
-            />
-          </div>
-
-          {/* Partenaire Météo & Sécurité Extérieure IMOU (Masqué en mode simplifié) */}
-          {!simplifiedMode && (
-            <ImouWeatherSecurityBanner
-              weather={weather}
-              station={station}
-              seniorMode={seniorMode}
-            />
-          )}
         </div>
       )}
 
       {/* PROFIL 2 : AGRO-MÉTÉO (PULVÉRISATION ΔT, SOLS 4 PROFONDEURS, ET0, GELÉES, GDD) */}
       {activeProfileTab === 'agriculture' && (
-        <div className="space-y-6">
-          <AgricultureWeatherCard
-            station={station}
-            weather={weather}
-            hourly={hourly}
-            daily={daily}
-            seniorMode={seniorMode}
-            tempUnit={tempUnit}
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
+          <div className="xl:col-span-6 min-w-0">
+            <AgricultureWeatherCard
+              station={station}
+              weather={weather}
+              hourly={hourly}
+              daily={daily}
+              seniorMode={seniorMode}
+              tempUnit={tempUnit}
+            />
+          </div>
 
-          <div className="scroll-mt-28">
+          <div className="xl:col-span-6 scroll-mt-28 min-w-0">
             <GrandDayAndWeekDetailedForecastCard
               station={station}
               weather={weather}
@@ -701,17 +714,19 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
       {/* PROFIL 3 : MÉTÉO AVIATION (METAR/TAF, VFR/IFR, VENT DE TRAVERS PISTE, ALTITUDE-DENSITÉ) */}
       {activeProfileTab === 'aviation' && (
-        <div className="space-y-6">
-          <AviationWeatherCard
-            station={station}
-            weather={weather}
-            hourly={hourly}
-            daily={daily}
-            seniorMode={seniorMode}
-            tempUnit={tempUnit}
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
+          <div className="xl:col-span-6 min-w-0">
+            <AviationWeatherCard
+              station={station}
+              weather={weather}
+              hourly={hourly}
+              daily={daily}
+              seniorMode={seniorMode}
+              tempUnit={tempUnit}
+            />
+          </div>
 
-          <div id="realtime-precipitation-aviation" className="scroll-mt-28">
+          <div id="realtime-precipitation-aviation" className="xl:col-span-6 scroll-mt-28 min-w-0">
             <GigaPrecipitationNowcastingCard
               weather={weather}
               station={station}
@@ -725,99 +740,104 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
       {/* PROFIL 4 : MÉTÉO PROFESSIONNELLE (THERMODYNAMIQUE CAPE/CIN/LI, CISAILLEMENT, TW STULL, MULTI-MODÈLES) */}
       {activeProfileTab === 'pro' && (
-        <div className="space-y-6">
-          <ProfessionalMeteoCard
-            station={station}
-            weather={weather}
-            hourly={hourly}
-            daily={daily}
-            seniorMode={seniorMode}
-            tempUnit={tempUnit}
-          />
-
-          <div id="realtime-certified-precision-pro" className="scroll-mt-28">
-            <CertifiedPrecisionMeteoHub
-              weather={weather}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
+          <div className="xl:col-span-6 min-w-0">
+            <ProfessionalMeteoCard
               station={station}
+              weather={weather}
+              hourly={hourly}
+              daily={daily}
               seniorMode={seniorMode}
               tempUnit={tempUnit}
             />
           </div>
 
-          <div id="realtime-deep-conditions-pro" className="scroll-mt-28">
-            <DeepWeatherConditionsCard
-              weather={weather}
-              station={station}
-              seniorMode={seniorMode}
-              tempUnit={tempUnit}
-            />
+          <div className="xl:col-span-6 space-y-3.5 min-w-0">
+            <div id="realtime-certified-precision-pro" className="scroll-mt-28">
+              <CertifiedPrecisionMeteoHub
+                weather={weather}
+                station={station}
+                seniorMode={seniorMode}
+                tempUnit={tempUnit}
+              />
+            </div>
+
+            <div id="realtime-deep-conditions-pro" className="scroll-mt-28">
+              <DeepWeatherConditionsCard
+                weather={weather}
+                station={station}
+                seniorMode={seniorMode}
+                tempUnit={tempUnit}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 3. HUBS DE NAVIGATION RAPIDE & INSTALLATION (DISPONIBLES SUR TOUS PROFILS) */}
+      {/* 3. HUBS DE NAVIGATION RAPIDE & INSTALLATION CÔTE À CÔTE SUR UNE LIGNE      */}
       {/* ========================================================================= */}
-      <div id="realtime-more-forecast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 scroll-mt-28 pt-2">
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('vigilance')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/40 to-slate-900/80 hover:border-rose-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-rose-600/20 p-2.5 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition">
-            <ShieldAlert className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Météo-France (5 min)</span>
-            <h4 className="text-sm font-black text-white group-hover:text-rose-300">Vigilances &amp; Alertes</h4>
-            <p className="text-[11px] text-slate-400">Matrice des 12 risques</p>
-          </div>
-        </button>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch pt-1">
+        <div id="realtime-more-forecast" className="xl:col-span-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 scroll-mt-28">
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('vigilance')}
+            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/40 to-slate-900/80 hover:border-rose-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+          >
+            <div className="rounded-xl bg-rose-600/20 p-2 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition shrink-0">
+              <ShieldAlert className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-rose-400 block truncate">Météo-France (5 min)</span>
+              <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-rose-300 truncate">Vigilances &amp; Alertes</h4>
+              <p className="text-[10px] text-slate-400 truncate">Matrice des 12 risques</p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-900/80 hover:border-blue-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-blue-600/20 p-2.5 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Sub-saisonnier</span>
-            <h4 className="text-sm font-black text-white group-hover:text-blue-300">Prévisions 30 Jours</h4>
-            <p className="text-[11px] text-slate-400">Calendrier jour par jour</p>
-          </div>
-        </button>
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
+            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-900/80 hover:border-blue-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+          >
+            <div className="rounded-xl bg-blue-600/20 p-2 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
+              <Calendar className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-blue-400 block truncate">Sub-saisonnier</span>
+              <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-blue-300 truncate">Prévisions 30 Jours</h4>
+              <p className="text-[10px] text-slate-400 truncate">Calendrier jour par jour</p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-slate-900/80 hover:border-indigo-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-indigo-600/20 p-2.5 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition">
-            <Globe className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">24 Décades • 240 Jours</span>
-            <h4 className="text-sm font-black text-white group-hover:text-indigo-300">Tendances 8 Mois</h4>
-            <p className="text-[11px] text-slate-400">Département / Région / Pays</p>
-          </div>
-        </button>
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
+            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-slate-900/80 hover:border-indigo-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+          >
+            <div className="rounded-xl bg-indigo-600/20 p-2 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition shrink-0">
+              <Globe className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-400 block truncate">24 Décades • 240 Jours</span>
+              <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-indigo-300 truncate">Tendances 8 Mois</h4>
+              <p className="text-[10px] text-slate-400 truncate">Département / Région / Pays</p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => onNavigateTab && onNavigateTab('radar')}
-          className="flex items-center gap-3 p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 to-slate-900/80 hover:border-cyan-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
-        >
-          <div className="rounded-xl bg-cyan-600/20 p-2.5 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition">
-            <Radar className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">ARAMIS &amp; Satellite HD</span>
-            <h4 className="text-sm font-black text-white group-hover:text-cyan-300">Giga Radar de Pluie</h4>
-            <p className="text-[11px] text-slate-400">Échos précipitations direct</p>
-          </div>
-        </button>
-      </div>
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('radar')}
+            className="flex items-center gap-2.5 p-3.5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 to-slate-900/80 hover:border-cyan-400 hover:scale-[1.01] transition text-left group shadow-lg cursor-pointer"
+          >
+            <div className="rounded-xl bg-cyan-600/20 p-2 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition shrink-0">
+              <Radar className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-400 block truncate">ARAMIS &amp; Satellite HD</span>
+              <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 truncate">Giga Radar de Pluie</h4>
+              <p className="text-[10px] text-slate-400 truncate">Échos précipitations direct</p>
+            </div>
+          </button>
+        </div>
 
-      {/* Quick Action & Windows/Mobile Install / Fullscreen Banner */}
-      <div id="realtime-download" className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:px-5 flex flex-wrap items-center justify-between gap-4 shadow-md scroll-mt-28">
+        {/* Quick Action & Windows/Mobile Install / Fullscreen Banner */}
+        <div id="realtime-download" className="xl:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5 sm:px-4 flex flex-wrap items-center justify-between gap-3 shadow-md scroll-mt-28">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
             <Monitor className="h-5 w-5" />
@@ -880,6 +900,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               <span className="hidden md:inline">{isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}</span>
             </button>
           )}
+        </div>
         </div>
       </div>
 

@@ -32,6 +32,8 @@ import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAn
 import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 import { UnifiedHourly48hTrend } from './UnifiedHourly48hTrend';
+import { FranceMiniOverviewCard } from './FranceMiniOverviewCard';
+import { TemperatureReliabilityCalibrationCard } from './TemperatureReliabilityCalibrationCard';
 
 interface DesktopWeatherHeroDashboardProps {
   station: LocationPoint;
@@ -40,11 +42,14 @@ interface DesktopWeatherHeroDashboardProps {
   daily: DailyForecast[];
   anomaly: ClimateAnomaly;
   tempUnit: 'C' | 'F';
+  onSelectStation?: (station: LocationPoint) => void;
   onOpenSearchModal?: () => void;
   onOpenGigaRadar?: () => void;
   onNavigateTab?: (tab: string) => void;
   onLocateGps?: () => void;
   onOpenContradictionModal?: () => void;
+  onRecalibrate?: (offset: number) => void;
+  onResetRecalibration?: () => void;
 }
 
 export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardProps> = ({
@@ -54,11 +59,14 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   daily,
   anomaly,
   tempUnit,
+  onSelectStation,
   onOpenSearchModal,
   onOpenGigaRadar,
   onNavigateTab,
   onLocateGps,
-  onOpenContradictionModal
+  onOpenContradictionModal,
+  onRecalibrate,
+  onResetRecalibration
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
@@ -139,11 +147,12 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   const regionLabel = station.department?.split(' - ')[1] || station.region || 'Île-de-France';
 
   return (
-    <div className="hidden sm:block space-y-4 mb-6 select-none">
+    <div className="hidden sm:block space-y-3.5 mb-3.5 select-none">
       {/* ========================================================================= */}
-      {/* 1. TOP HERO CARD (Exact 1:1 match with Reference Image)                   */}
+      {/* 1. TOP ROW: HERO CARD (7 COLS) + LIVE MAP & CALIBRATION (5 COLS)          */}
       {/* ========================================================================= */}
-      <div className="scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl">
+      <div className="grid grid-cols-12 gap-3.5 items-stretch">
+        <div className="col-span-12 lg:col-span-7 scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl flex flex-col">
         {/* Photographic Panorama of Selected City / Landscape with no-referrer to prevent hotlinking blocks */}
         <img
           key={cityPhotoUrl}
@@ -168,7 +177,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
         <div className="absolute inset-0 bg-gradient-to-r from-[#071120]/85 via-transparent to-[#071120]/50" />
 
         {/* Hero Card Interior */}
-        <div className="relative z-10 p-6 sm:p-7 flex flex-col justify-between min-h-[310px]">
+        <div className="relative z-10 p-5 sm:p-6 flex flex-col justify-between flex-1 min-h-[270px]">
           {/* Top Row: Location & Actions (Left) / Date & Live Digital Clock (Right) */}
           <div className="flex items-start justify-between gap-4">
             {/* Left Header Group */}
@@ -341,28 +350,48 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
             </div>
           </div>
         </div>
+        </div>
+
+        {/* Right Column of Row 1: Interactive Map + Temperature Reliability Calibration */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col gap-3 justify-between">
+          <div id="realtime-national-overview-mini" className="scroll-mt-28 w-full flex-1 flex flex-col [&>div]:flex-1 [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
+            <FranceMiniOverviewCard
+              currentStation={station}
+              tempUnit={tempUnit}
+              onSelectStation={onSelectStation}
+              onOpenSearchModal={onOpenSearchModal}
+              onNavigateTab={onNavigateTab}
+            />
+          </div>
+
+          <TemperatureReliabilityCalibrationCard
+            station={station}
+            currentWeather={weather}
+            tempUnit={tempUnit}
+            onRecalibrate={onRecalibrate}
+            onReset={onResetRecalibration}
+          />
+        </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. MIDDLE ROW: 24H / 48H FORECAST (Full width)                             */}
+      {/* 2. SECOND ROW: 48H FORECAST (5 COLS) + TENDANCE / SOLEIL / AIR (7 COLS)   */}
       {/* ========================================================================= */}
-      <div className="w-full">
-        {/* Unified 48h Hourly Forecast Card - Full Width */}
-        <UnifiedHourly48hTrend
-          station={station}
-          currentWeather={weather}
-          hourly={hourly}
-          tempUnit={tempUnit}
-          onNavigateTab={onNavigateTab}
-        />
-      </div>
+      <div className="grid grid-cols-12 gap-3.5 items-stretch">
+        <div className="col-span-12 xl:col-span-5 flex flex-col [&>div]:flex-1">
+          {/* Unified 48h Hourly Forecast Card */}
+          <UnifiedHourly48hTrend
+            station={station}
+            currentWeather={weather}
+            hourly={hourly}
+            tempUnit={tempUnit}
+            onNavigateTab={onNavigateTab}
+          />
+        </div>
 
-      {/* ========================================================================= */}
-      {/* 3. BOTTOM ROW: TENDANCE (38%) / SOLEIL & LUNE (31%) / QUALITÉ AIR (31%)   */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-12 gap-4 items-stretch">
-        {/* Card 1: Tendance de la journée */}
-        <div className="col-span-12 lg:col-span-5 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
+        <div className="col-span-12 xl:col-span-7 grid grid-cols-12 gap-3.5 items-stretch">
+          {/* Card 1: Tendance de la journée */}
+          <div className="col-span-12 lg:col-span-5 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
               <TrendingUp className="h-4 w-4" />
@@ -582,6 +611,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               Voir tous les indices →
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
