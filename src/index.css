@@ -89,8 +89,15 @@ html.theme-light #root,
 .theme-light [class*="bg-slate-950"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-900"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light .bg-slate-950:not(.scenic-hero-card):not(.scenic-hero-card *),
-.theme-light .bg-slate-900:not(.scenic-hero-card):not(.scenic-hero-card *) {
+.theme-light .bg-slate-900:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="to-slate-900"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="to-slate-950"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="via-slate-900"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="via-slate-950"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="from-slate-900"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="from-slate-950"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
   background-color: #ffffff !important;
+  background-image: none !important;
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03) !important;
@@ -206,7 +213,8 @@ html.theme-light #root,
 }
 
 /* 8. Typography hierarchy (except inside solid buttons and badges) */
-.theme-light [class*="text-white"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]):not([class*="bg-cyan-"]):not([class*="bg-teal-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-red-"]):not([class*="bg-amber-"]):not([class*="bg-orange-"]):not([class*="bg-purple-"]):not([class*="bg-indigo-"]):not([class*="bg-violet-"]):not([class*="from-blue-"]):not([class*="bg-black/"]):not(button[class*="bg-"]):not(.badge-white),
+.theme-light [class*="text-white"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]):not([class*="bg-cyan-"]):not([class*="bg-teal-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-red-"]):not([class*="bg-amber-"]):not([class*="bg-orange-"]):not([class*="bg-purple-"]):not([class*="bg-indigo-"]):not([class*="bg-violet-"]):not([class*="from-blue-"]):not([class*="bg-black/"]):not(button[class*="bg-blue-600"]):not(button[class*="bg-sky-600"]):not(button[class*="bg-indigo-600"]):not(button[class*="bg-emerald-600"]):not(button[class*="bg-rose-600"]):not(button[class*="bg-purple-600"]):not(.badge-white),
+.theme-light [class*="text-slate-50"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]),
 .theme-light [class*="text-slate-100"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]),
 .theme-light [class*="text-slate-200"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
   color: #0f172a !important;

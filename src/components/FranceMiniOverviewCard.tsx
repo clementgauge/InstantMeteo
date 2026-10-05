@@ -234,12 +234,24 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
       }
     };
 
+    // ResizeObserver so Leaflet always fills its full flex container height
+    let resizeObs: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && mapContainerRef.current) {
+      resizeObs = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      resizeObs.observe(mapContainerRef.current);
+    }
+
     const timer1 = setTimeout(refreshMapLayout, 100);
     const timer2 = setTimeout(refreshMapLayout, 400);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
+      if (resizeObs) resizeObs.disconnect();
     };
   }, []);
 
@@ -431,7 +443,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const isFrenchLocation = !currentStation.country || currentStation.country === 'France';
 
   return (
-    <div className={`rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
+    <div className={`h-full flex flex-col rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
       isExpandedPc ? 'ring-2 ring-blue-500/50 shadow-xl' : ''
     }`}>
       {/* Sleek Compact Header */}
@@ -576,13 +588,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         </div>
       </div>
 
-      {/* Map Container (Dynamically scalable on PC via Zoom toggle) */}
-      <div className={`relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
-        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'h-[195px] sm:h-[220px]'
+      {/* Map Container (Fills the entire remaining height of the card block) */}
+      <div className={`relative w-full flex-1 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
+        isExpandedPc ? 'min-h-[380px] sm:min-h-[440px]' : 'min-h-[240px] sm:min-h-[285px]'
       }`}>
         <div 
           ref={mapContainerRef} 
-          className="w-full h-full z-0"
+          className="absolute inset-0 w-full h-full z-0"
         />
 
         {/* Floating Zoom Overlay Badge (only in city mode, discreet) */}

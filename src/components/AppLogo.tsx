@@ -140,10 +140,10 @@ export const AppLogo: React.FC<AppLogoProps> = ({
       <div className="notranslate">
         <div className="flex items-center gap-2 flex-wrap">
           <div className={`font-black tracking-tight text-white ${titleSize} font-sans flex items-center gap-1.5 drop-shadow-sm`}>
-            <span className="tracking-tight text-slate-50 font-black">{brand.word1}</span>
-            <span className="bg-gradient-to-r from-sky-300 via-amber-300 to-yellow-300 bg-clip-text text-transparent font-black">{brand.word2}</span>
+            <span className="tracking-tight text-white font-black">{brand.word1}</span>
+            <span className="bg-gradient-to-r from-sky-400 via-amber-400 to-orange-500 bg-clip-text text-transparent font-black">{brand.word2}</span>
           </div>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-emerald-500/20 border border-amber-300/40 text-[9px] font-black text-amber-200 uppercase tracking-widest shadow-sm">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-[9px] font-black text-amber-300 uppercase tracking-widest shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
             <span>{locale === 'fr' ? 'HD & DIRECT' : 'HD & LIVE'}</span>
           </div>

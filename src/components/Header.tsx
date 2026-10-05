@@ -717,9 +717,13 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenWeatherGame}
               title="Jouer au Jeu de Météo (Arcade, Duel & Jeu .zip)"
               aria-label="Jouer au Jeu de Météo"
-              className="flex items-center gap-1 rounded-xl border border-emerald-500/50 bg-gradient-to-r from-emerald-950/70 via-teal-950/60 to-sky-950/70 px-2.5 py-1.5 text-[11px] leading-tight font-black text-emerald-300 hover:border-emerald-400 hover:from-emerald-900/70 hover:to-sky-900/70 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+              className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+                themeMode === 'light'
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-400'
+                  : 'border-emerald-500/50 bg-emerald-950/60 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-900/70 hover:text-white'
+              }`}
             >
-              <Gamepad2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <Gamepad2 className={`h-3.5 w-3.5 shrink-0 ${themeMode === 'light' ? 'text-emerald-600' : 'text-emerald-400'}`} />
               <span>Jeu Météo</span>
             </button>
           )}
@@ -730,7 +734,11 @@ export const Header: React.FC<HeaderProps> = ({
             href="https://www.instagram.com/instantmeteo_fr/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-7 w-7 items-center justify-center rounded-xl border border-pink-500/40 bg-gradient-to-r from-purple-950/50 via-pink-950/40 to-slate-900 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              themeMode === 'light'
+                ? 'border-pink-300 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:border-pink-400'
+                : 'border-pink-500/40 bg-slate-900/90 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40'
+            }`}
             title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
             aria-label="Page Instagram officielle Instant Météo"
           >
@@ -743,7 +751,11 @@ export const Header: React.FC<HeaderProps> = ({
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-7 w-7 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/80 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              themeMode === 'light'
+                ? 'border-slate-300 bg-slate-100 text-red-600 hover:bg-red-50 hover:border-red-300'
+                : 'border-slate-700/80 bg-slate-900/80 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800'
+            }`}
             title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
             aria-label="Chaîne YouTube officielle Instant Météo"
           >
@@ -798,10 +810,14 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-tuto-btn"
               onClick={onOpenTutorial}
-              className="flex items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-950/40 px-2 py-1.5 text-[11px] leading-tight font-black text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+                themeMode === 'light'
+                  ? 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:border-amber-400'
+                  : 'border-amber-500/40 bg-amber-950/40 text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white'
+              }`}
               title="Lancer le tutoriel interactif du site"
             >
-              <HelpCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <HelpCircle className={`h-3.5 w-3.5 shrink-0 ${themeMode === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
               <span>Tuto</span>
             </button>
           )}
