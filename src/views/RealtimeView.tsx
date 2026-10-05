@@ -772,130 +772,119 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* ========================================================================= */}
       {/* 3. HUBS DE NAVIGATION RAPIDE & INSTALLATION CÔTE À CÔTE SUR UNE LIGNE      */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch pt-1">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-2 items-center pt-1">
         <div id="realtime-more-forecast" className="xl:col-span-7 grid grid-cols-2 lg:grid-cols-4 gap-2 scroll-mt-28">
           <button
             onClick={() => onNavigateTab && onNavigateTab('vigilance')}
-            className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-rose-500/30 bg-slate-900/90 hover:border-rose-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-rose-500/30 bg-slate-900/90 hover:border-rose-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
             <div className="rounded-lg bg-rose-500/15 p-1.5 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition shrink-0">
               <ShieldAlert className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[8px] font-bold uppercase tracking-wider text-rose-400 block truncate">Météo-France (5 min)</span>
               <h4 className="text-xs font-black text-white group-hover:text-rose-400 truncate leading-tight">Vigilances &amp; Alertes</h4>
-              <p className="text-[10px] text-slate-400 truncate leading-tight">Matrice des 12 risques</p>
+              <p className="text-[9px] text-slate-400 truncate leading-tight">Matrice des 12 risques</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
-            className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-blue-500/30 bg-slate-900/90 hover:border-blue-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-blue-500/30 bg-slate-900/90 hover:border-blue-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
             <div className="rounded-lg bg-blue-500/15 p-1.5 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
               <Calendar className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400 block truncate">Sub-saisonnier</span>
               <h4 className="text-xs font-black text-white group-hover:text-blue-400 truncate leading-tight">Prévisions 30 Jours</h4>
-              <p className="text-[10px] text-slate-400 truncate leading-tight">Calendrier jour par jour</p>
+              <p className="text-[9px] text-slate-400 truncate leading-tight">Calendrier jour par jour</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
-            className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-indigo-500/30 bg-slate-900/90 hover:border-indigo-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-indigo-500/30 bg-slate-900/90 hover:border-indigo-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
             <div className="rounded-lg bg-indigo-500/15 p-1.5 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition shrink-0">
               <Globe className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[8px] font-bold uppercase tracking-wider text-indigo-400 block truncate">24 Décades • 240 Jours</span>
               <h4 className="text-xs font-black text-white group-hover:text-indigo-400 truncate leading-tight">Tendances 8 Mois</h4>
-              <p className="text-[10px] text-slate-400 truncate leading-tight">Département / Région / Pays</p>
+              <p className="text-[9px] text-slate-400 truncate leading-tight">24 Décades • 240 Jours</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('radar')}
-            className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-cyan-500/30 bg-slate-900/90 hover:border-cyan-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-cyan-500/30 bg-slate-900/90 hover:border-cyan-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
             <div className="rounded-lg bg-cyan-500/15 p-1.5 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition shrink-0">
               <Radar className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[8px] font-bold uppercase tracking-wider text-cyan-400 block truncate">ARAMIS &amp; Satellite HD</span>
               <h4 className="text-xs font-black text-white group-hover:text-cyan-400 truncate leading-tight">Giga Radar de Pluie</h4>
-              <p className="text-[10px] text-slate-400 truncate leading-tight">Échos précipitations direct</p>
+              <p className="text-[9px] text-slate-400 truncate leading-tight">ARAMIS &amp; Satellite HD</p>
             </div>
           </button>
         </div>
 
-        {/* Quick Action & Windows/Mobile Install / Fullscreen Banner */}
-        <div id="realtime-download" className="xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 flex flex-wrap items-center justify-between gap-2.5 shadow-sm scroll-mt-28">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-            <Monitor className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white">Application Instant Météo</span>
-              <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
-                Windows, Android &amp; iOS
-              </span>
+        {/* Quick Action & Windows/Mobile Install / Fullscreen Banner (Compact single-line height) */}
+        <div id="realtime-download" className="xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-2.5 py-1.5 flex items-center justify-between gap-2 shadow-sm scroll-mt-28">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-7 w-7 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+              <Monitor className="h-3.5 w-3.5" />
             </div>
-            <p className="text-[11px] text-slate-400">
-              Installation sur PC Windows, package APK Android ou application mobile progressive.
-            </p>
+            <div className="min-w-0">
+              <span className="text-xs font-black text-white block truncate leading-tight">App Instant Météo</span>
+              <span className="text-[9px] text-slate-400 block truncate leading-tight">PC, Android &amp; iOS</span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href="/Instant-Meteo-Windows.cmd"
-            download="Instant-Meteo-Windows.cmd"
-            title="Télécharger le lanceur autonome pour Windows"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Windows (.cmd)</span>
-          </a>
-
-          <a
-            href="/Instant-Meteo.apk"
-            download="Instant-Meteo.apk"
-            title="Télécharger le package APK direct pour smartphone Android"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Android APK</span>
-          </a>
-
-          {onOpenInstallModal && (
-            <button
-              onClick={onOpenInstallModal}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-medium text-xs border border-slate-700/60 transition cursor-pointer"
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+            <a
+              href="/Instant-Meteo-Windows.cmd"
+              download="Instant-Meteo-Windows.cmd"
+              title="Télécharger le lanceur autonome pour Windows"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
             >
-              <QrCode className="h-3.5 w-3.5 text-blue-400" />
-              <span>Guide &amp; Options</span>
-            </button>
-          )}
+              <Download className="h-3 w-3" />
+              <span>Windows</span>
+            </a>
 
-          {onToggleFullscreen && (
-            <button
-              onClick={onToggleFullscreen}
-              title="Activer ou quitter le mode grand écran (F11)"
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs border transition cursor-pointer ${
-                isFullscreen
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                  : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:text-white'
-              }`}
+            <a
+              href="/Instant-Meteo.apk"
+              download="Instant-Meteo.apk"
+              title="Télécharger le package APK direct pour smartphone Android"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
             >
-              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-              <span className="hidden md:inline">{isFullscreen ? 'Quitter Plein Écran' : 'Plein Écran'}</span>
-            </button>
-          )}
-        </div>
+              <Download className="h-3 w-3" />
+              <span>APK</span>
+            </a>
+
+            {onOpenInstallModal && (
+              <button
+                onClick={onOpenInstallModal}
+                title="Guide & Options d'installation"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-medium text-[11px] border border-slate-700/60 transition cursor-pointer"
+              >
+                <QrCode className="h-3 w-3 text-blue-400" />
+                <span className="hidden sm:inline">Guide</span>
+              </button>
+            )}
+
+            {onToggleFullscreen && (
+              <button
+                onClick={onToggleFullscreen}
+                title="Activer ou quitter le mode grand écran (F11)"
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg font-bold text-[11px] border transition cursor-pointer ${
+                  isFullscreen
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                    : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:text-white'
+                }`}
+              >
+                {isFullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
