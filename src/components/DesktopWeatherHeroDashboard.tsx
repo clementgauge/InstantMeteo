@@ -147,12 +147,12 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   const regionLabel = station.department?.split(' - ')[1] || station.region || 'Île-de-France';
 
   return (
-    <div className="hidden sm:block space-y-3.5 mb-3.5 select-none">
+    <div className="space-y-3.5 mb-3.5 select-none">
       {/* ========================================================================= */}
       {/* 1. TOP ROW: HERO CARD (7 COLS) + LIVE MAP & CALIBRATION (5 COLS)          */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-12 gap-3.5 items-stretch">
-        <div className="col-span-12 lg:col-span-7 scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl flex flex-col">
+        <div className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card relative overflow-hidden rounded-[28px] border border-slate-700/70 bg-[#071120] text-white shadow-2xl flex-col">
         {/* Photographic Panorama of Selected City / Landscape with no-referrer to prevent hotlinking blocks */}
         <img
           key={cityPhotoUrl}
@@ -377,7 +377,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* ========================================================================= */}
       {/* 2. SECOND ROW: 48H FORECAST (5 COLS) + TENDANCE / SOLEIL / AIR (7 COLS)   */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-12 gap-3.5 items-stretch">
+      <div className="hidden sm:grid grid-cols-12 gap-3.5 items-stretch">
         <div className="col-span-12 xl:col-span-5 flex flex-col [&>div]:flex-1">
           {/* Unified 48h Hourly Forecast Card */}
           <UnifiedHourly48hTrend

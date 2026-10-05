@@ -172,52 +172,65 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
-        center: [46.5, 2.5],
-        zoom: 5.5,
-        zoomControl: false,
-        attributionControl: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: true,
-        touchZoom: true
-      });
+      try {
+        const map = L.map(mapContainerRef.current, {
+          center: [46.5, 2.5],
+          zoom: 5.5,
+          zoomControl: false,
+          attributionControl: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: true,
+          touchZoom: true
+        });
 
-      // Fond cartographique Satellite HD identique à Radar Précipitations & Vents HD
-      const baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxNativeZoom: 18,
-        maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '© Esri, Maxar, Earthstar Geographics'
-      });
-      baseTileLayer.on('tileerror', () => {
-        // Tolérance aux pannes réseau
-      });
-      baseTileLayer.addTo(map);
+        // Fond cartographique Satellite HD identique à Radar Précipitations & Vents HD
+        const baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxNativeZoom: 18,
+          maxZoom: 19,
+          subdomains: 'abc',
+          attribution: '© Esri, Maxar, Earthstar Geographics'
+        });
+        baseTileLayer.on('tileerror', () => {
+          // Tolérance aux pannes réseau
+        });
+        baseTileLayer.addTo(map);
 
-      // Markers Layer Group
-      const markersGroup = L.layerGroup().addTo(map);
-      markersLayerRef.current = markersGroup;
+        // Markers Layer Group
+        const markersGroup = L.layerGroup().addTo(map);
+        markersLayerRef.current = markersGroup;
 
-      mapInstanceRef.current = map;
+        mapInstanceRef.current = map;
 
-      // Initial View: Center on current station or France
-      if (currentStation && currentStation.latitude && currentStation.longitude) {
-        map.setView([currentStation.latitude, currentStation.longitude], 7);
-      } else {
-        map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+        // Initial View: Center on current station or France
+        if (currentStation && currentStation.latitude && currentStation.longitude) {
+          map.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
+        } else {
+          const sz = map.getSize();
+          if (sz.x > 0 && sz.y > 0) {
+            map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8], animate: false });
+          } else {
+            map.setView([46.5, 2.5], 5.5, { animate: false });
+          }
+        }
+      } catch (err) {
+        console.warn('[FranceMiniOverviewCard] Map init warning:', err);
       }
     }
 
     const refreshMapLayout = () => {
-      if (mapInstanceRef.current) {
+      if (!mapInstanceRef.current || !mapContainerRef.current) return;
+      if (mapContainerRef.current.clientWidth === 0 || mapContainerRef.current.clientHeight === 0) return;
+      try {
         mapInstanceRef.current.invalidateSize();
         if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
-          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 7);
+          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
         } else if (mapScope === 'france') {
-          mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+          mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8], animate: false });
         } else {
-          mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2);
+          mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2, { animate: false });
         }
+      } catch {
+        // Ignore transient layout errors
       }
     };
 
@@ -232,15 +245,32 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
   // Update View when station changes or scope changes
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || !mapContainerRef.current) return;
     const map = mapInstanceRef.current;
+    const isVisible = mapContainerRef.current.clientWidth > 0 && mapContainerRef.current.clientHeight > 0;
 
-    if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
-      map.flyTo([currentStation.latitude, currentStation.longitude], 7, { duration: 0.8 });
-    } else if (mapScope === 'france') {
-      map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
-    } else if (mapScope === 'world') {
-      map.flyTo([20, currentStation?.longitude || 0], 2, { duration: 0.8 });
+    try {
+      if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
+        if (isVisible) {
+          map.flyTo([currentStation.latitude, currentStation.longitude], 7, { duration: 0.8 });
+        } else {
+          map.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
+        }
+      } else if (mapScope === 'france') {
+        if (isVisible) {
+          map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+        } else {
+          map.setView([46.5, 2.5], 5.5, { animate: false });
+        }
+      } else if (mapScope === 'world') {
+        if (isVisible) {
+          map.flyTo([20, currentStation?.longitude || 0], 2, { duration: 0.8 });
+        } else {
+          map.setView([20, currentStation?.longitude || 0], 2, { animate: false });
+        }
+      }
+    } catch {
+      // Fallback if container was resizing during flyTo
     }
   }, [currentStation.latitude, currentStation.longitude, currentStation.id, mapScope]);
 
@@ -547,8 +577,8 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
       </div>
 
       {/* Map Container (Dynamically scalable on PC via Zoom toggle) */}
-      <div className={`relative w-full flex-1 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
-        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'min-h-[195px] sm:min-h-[215px]'
+      <div className={`relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 transition-all duration-300 ${
+        isExpandedPc ? 'h-[380px] sm:h-[440px]' : 'h-[195px] sm:h-[220px]'
       }`}>
         <div 
           ref={mapContainerRef} 

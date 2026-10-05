@@ -502,7 +502,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         />
       </div>
 
-      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid) */}
+      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid + Shared Map/Calibration) */}
       <DesktopWeatherHeroDashboard
         station={station}
         weather={weather}
@@ -519,29 +519,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onRecalibrate={onRecalibrate}
         onResetRecalibration={onResetRecalibration}
       />
-
-      {/* Mobile-only Calibration & Map (since Desktop integrates them directly in Row 1 alongside the Hero Card) */}
-      <div className="block sm:hidden space-y-3.5">
-        <TemperatureReliabilityCalibrationCard
-          station={station}
-          currentWeather={weather}
-          tempUnit={tempUnit}
-          onRecalibrate={onRecalibrate}
-          onReset={onResetRecalibration}
-        />
-
-        {activeProfileTab === 'classic' && (
-          <div className="w-full">
-            <FranceMiniOverviewCard
-              currentStation={station}
-              tempUnit={tempUnit}
-              onSelectStation={onSelectStation}
-              onOpenSearchModal={onOpenSearchModal}
-              onNavigateTab={onNavigateTab}
-            />
-          </div>
-        )}
-      </div>
 
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}
