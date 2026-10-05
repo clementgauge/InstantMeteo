@@ -516,7 +516,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         />
       </div>
 
-      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid) */}
+      {/* 1. Hero Current Weather, Map & Detailed Hourly/Daily/Curve Forecast + Soleil & Lune (Desktop Full-Page Grid) */}
       <DesktopWeatherHeroDashboard
         station={station}
         weather={weather}
@@ -524,6 +524,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         daily={daily}
         anomaly={anomaly}
         tempUnit={tempUnit}
+        seniorMode={seniorMode}
+        simplifiedMode={simplifiedMode}
         isUsingCachedData={isUsingCachedData}
         cachedAt={cachedAt}
         onSelectStation={onSelectStation}
@@ -532,6 +534,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onNavigateTab={onNavigateTab}
         onLocateGps={onLocateGps}
         onOpenContradictionModal={() => setIsContradictionModalOpen(true)}
+        onOpenDayAnalyzer={handleOpenDayAnalyzer}
         onRecalibrate={onRecalibrate}
         onResetRecalibration={onResetRecalibration}
       />
@@ -543,8 +546,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
       {activeProfileTab === 'classic' && (
         <div className="space-y-4">
-          {/* Row 3: Prévisions Détaillées de la Journée (24h) & Semaine (7 Jours) sur toute la largeur */}
-          <div id="realtime-forecast-week" className="w-full scroll-mt-28 min-w-0">
+          {/* Mobile only: Prévisions Détaillées de la Journée (24h) & Semaine (7 Jours) (already in Row 2 on Desktop) */}
+          <div className="sm:hidden w-full scroll-mt-28 min-w-0">
             <GrandDayAndWeekDetailedForecastCard
               station={station}
               weather={weather}

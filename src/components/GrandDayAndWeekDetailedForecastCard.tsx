@@ -64,7 +64,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   tempUnit,
   onOpenDayAnalyzer
 }) => {
-  const [activeTab, setActiveTab] = useState<'day' | 'week' | 'all168h'>('week');
+  const [activeTab, setActiveTab] = useState<'day' | 'week' | 'curve' | 'all168h'>('day');
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [selectedHourIdx, setSelectedHourIdx] = useState<number>(0);
   const [hourlyMetricFilter, setHourlyMetricFilter] = useState<'all' | 'temp' | 'rain' | 'wind' | 'convection' | 'clouds' | 'trend' | 'isotherm'>('all');
@@ -76,6 +76,13 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
       return `${Math.round((celsius * 9/5 + 32) * 10) / 10}°F`;
     }
     return `${celsius > 0 ? `+${celsius}` : celsius}°C`;
+  };
+
+  const formatTempSimple = (celsius: number) => {
+    if (tempUnit === 'F') {
+      return `${Math.round(celsius * 9/5 + 32)}°`;
+    }
+    return `${Math.round(celsius)}°`;
   };
 
   const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country);
@@ -195,20 +202,20 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base sm:text-lg font-bold text-white">
-                Prévisions Détaillées du Jour &amp; de la Semaine
+                Prévisions Heure par Heure — Journée &amp; Semaine
               </h2>
               <span className="rounded bg-sky-950/60 px-2 py-0.5 text-[10px] font-semibold text-sky-300 border border-sky-800/50">
-                Heure par heure
+                24h / 7 Jours / Courbe
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Station : <strong className="text-slate-200">{station.name}</strong> ({station.altitude} m) • Réactualisation continue
+              Station : <strong className="text-slate-200">{station.name}</strong> ({station.altitude} m) • Journée, journées suivantes, courbe &amp; tendance
             </p>
           </div>
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex rounded-md bg-slate-900 p-1 border border-slate-800 self-start md:self-auto">
+        <div className="flex flex-wrap rounded-md bg-slate-900 p-1 border border-slate-800 self-start md:self-auto gap-1">
           <button
             onClick={() => setActiveTab('day')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
@@ -231,6 +238,18 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
           >
             <Calendar className="h-3.5 w-3.5" />
             <span>Semaine 7 Jours</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('curve')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+              activeTab === 'curve'
+                ? 'bg-[#0284C7] text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <TrendingUp className="h-3.5 w-3.5" />
+            <span>Courbe &amp; Tendance</span>
           </button>
 
           <button
@@ -368,6 +387,184 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                   <Area type="monotone" dataKey="temp" stroke="#0284C7" strokeWidth={2} fill="#0284C7" fillOpacity={0.15} name="Température (°C)" />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Tendance de la journée placée directement après la courbe */}
+          <div className="rounded-md border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <h4 className="text-sm font-black text-white tracking-wide">
+                  Tendance de la journée
+                </h4>
+              </div>
+              <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <span>Température (°{tempUnit})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" />
+                  <span>Ressenti (°{tempUnit})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4 items-center">
+              <div className="col-span-12 sm:col-span-8 relative h-32 flex flex-col justify-between">
+                <div className="absolute left-0 top-0 bottom-5 flex flex-col justify-between text-[9px] text-slate-500 font-mono">
+                  <span>{formatTempSimple((daily[0]?.tempMax ?? weather.temperature) + 2)}</span>
+                  <span>{formatTempSimple(((daily[0]?.tempMax ?? weather.temperature) + (daily[0]?.tempMin ?? weather.temperature)) / 2)}</span>
+                  <span>{formatTempSimple((daily[0]?.tempMin ?? weather.temperature) - 2)}</span>
+                </div>
+
+                <div className="ml-8 mr-1 h-24 relative">
+                  <svg viewBox="0 0 200 90" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                    <line x1="0" y1="15" x2="200" y2="15" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="45" x2="200" y2="45" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="75" x2="200" y2="75" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="140" y1="0" x2="140" y2="85" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2" />
+                    <path d="M 0 65 Q 40 60 70 45 T 140 25 T 200 40" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                    <path d="M 0 75 Q 40 70 70 55 T 140 35 T 200 50" fill="none" stroke="#0284c7" strokeWidth="2" />
+                    <circle cx="140" cy="25" r="4" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                    <circle cx="140" cy="35" r="3.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+                  </svg>
+
+                  <div className="absolute -top-3 left-[68%] -translate-x-1/2 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow">
+                    Maintenant
+                  </div>
+                </div>
+
+                <div className="ml-8 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <span>00h</span>
+                  <span>03h</span>
+                  <span>06h</span>
+                  <span>09h</span>
+                  <span>12h</span>
+                  <span>15h</span>
+                  <span>18h</span>
+                  <span>21h</span>
+                </div>
+              </div>
+
+              <div className="col-span-12 sm:col-span-4 grid grid-cols-2 sm:grid-cols-1 gap-2 border-t sm:border-t-0 sm:border-l border-slate-800/80 pt-3 sm:pt-0 sm:pl-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-slate-400">Temp. actuelle</span>
+                  <span className="text-sm font-black text-white">{formatTemp(weather.temperature)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-slate-400">Ressenti</span>
+                  <span className="text-sm font-black text-sky-400">{formatTemp(weather.feelsLike)}</span>
+                </div>
+                <div className="flex justify-between items-center col-span-2 sm:col-span-1">
+                  <span className="text-[11px] text-slate-400">Min / Max</span>
+                  <span className="text-xs font-black">
+                    <span className="text-blue-400">{formatTemp(daily[0]?.tempMin ?? weather.temperature)}</span>
+                    <span className="text-slate-600 mx-1">/</span>
+                    <span className="text-amber-400">{formatTemp(daily[0]?.tempMax ?? weather.temperature)}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW 2.5 : COURBE & TENDANCE DE LA JOURNÉE                                */}
+      {/* ========================================================================= */}
+      {activeTab === 'curve' && (
+        <div className="space-y-4">
+          <div className="rounded-md border border-slate-800 bg-slate-900/60 p-3.5 space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Courbe Thermique &amp; Précipitations (24h)
+            </h4>
+            <div className="h-48 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={next24Hours.map(h => ({ hour: h.hourLabel, temp: h.temperature, rain: h.rainMm }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                  <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
+                  <YAxis stroke="#94a3b8" fontSize={10} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '11px' }}
+                    labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="temp" stroke="#0284C7" strokeWidth={2.5} fill="#0284C7" fillOpacity={0.18} name="Température (°C)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Tendance de la journée placée après la courbe */}
+          <div className="rounded-md border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <h4 className="text-sm font-black text-white tracking-wide">
+                  Tendance de la journée
+                </h4>
+              </div>
+              <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <span>Température (°{tempUnit})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" />
+                  <span>Ressenti (°{tempUnit})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-4 items-center">
+              <div className="col-span-12 sm:col-span-8 relative h-32 flex flex-col justify-between">
+                <div className="ml-2 mr-1 h-24 relative">
+                  <svg viewBox="0 0 200 90" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                    <line x1="0" y1="15" x2="200" y2="15" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="45" x2="200" y2="45" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="75" x2="200" y2="75" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="140" y1="0" x2="140" y2="85" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2" />
+                    <path d="M 0 65 Q 40 60 70 45 T 140 25 T 200 40" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                    <path d="M 0 75 Q 40 70 70 55 T 140 35 T 200 50" fill="none" stroke="#0284c7" strokeWidth="2" />
+                    <circle cx="140" cy="25" r="4" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                    <circle cx="140" cy="35" r="3.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+                  </svg>
+                </div>
+                <div className="ml-2 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <span>00h</span>
+                  <span>03h</span>
+                  <span>06h</span>
+                  <span>09h</span>
+                  <span>12h</span>
+                  <span>15h</span>
+                  <span>18h</span>
+                  <span>21h</span>
+                </div>
+              </div>
+
+              <div className="col-span-12 sm:col-span-4 grid grid-cols-2 sm:grid-cols-1 gap-2 border-t sm:border-t-0 sm:border-l border-slate-800/80 pt-3 sm:pt-0 sm:pl-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-slate-400">Temp. actuelle</span>
+                  <span className="text-sm font-black text-white">{formatTemp(weather.temperature)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-slate-400">Ressenti</span>
+                  <span className="text-sm font-black text-sky-400">{formatTemp(weather.feelsLike)}</span>
+                </div>
+                <div className="flex justify-between items-center col-span-2 sm:col-span-1">
+                  <span className="text-[11px] text-slate-400">Min / Max</span>
+                  <span className="text-xs font-black">
+                    <span className="text-blue-400">{formatTemp(daily[0]?.tempMin ?? weather.temperature)}</span>
+                    <span className="text-slate-600 mx-1">/</span>
+                    <span className="text-amber-400">{formatTemp(daily[0]?.tempMax ?? weather.temperature)}</span>
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

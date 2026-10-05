@@ -811,6 +811,29 @@ export const Header: React.FC<HeaderProps> = ({
             <GoogleTranslateWidget compact={true} />
           </div>
 
+          {/* Notification Bell Logo (Alertes Push) */}
+          {onOpenNotificationsModal && (
+            <button
+              id="header-open-notifications-btn"
+              type="button"
+              onClick={onOpenNotificationsModal}
+              title="Ouvrir le Centre d'Alertes et Notifications Météo en Temps Réel"
+              aria-label="Alertes et Notifications Météo"
+              className={`relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer ${
+                activeAlertCount > 0
+                  ? 'border-amber-500/60 bg-amber-950/70 text-amber-300 hover:bg-amber-900/80'
+                  : 'border-slate-700 bg-slate-900 text-indigo-300 hover:border-indigo-400 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <BellRing className={`h-3.5 w-3.5 ${activeAlertCount > 0 ? 'animate-pulse text-amber-400' : 'text-indigo-400'}`} />
+              {activeAlertCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black text-slate-950">
+                  {activeAlertCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Settings launcher - top right */}
           <button
             id="open-settings-sidebar-button"

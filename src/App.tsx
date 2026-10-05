@@ -903,54 +903,6 @@ function WeatherApp() {
       {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
       <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-5 xl:px-6 lg:pl-[76px] py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
 
-        {/* Atmosphere Context & Hub Filter Bar (Desktop only, mobile has it directly in the top header) */}
-        <div className="hidden sm:block mb-2 rounded-lg bg-slate-950 border border-slate-800 py-1.5 px-2.5">
-          {/* Quick shortcuts — centered. Search is already available in the global header. */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-            <button
-              onClick={() => setIsNotificationModalOpen(true)}
-              title="Ouvrir le Centre d'Alertes et Notifications Météo en Temps Réel"
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-xs font-semibold transition shrink-0 ${
-                activeAlertCount > 0
-                  ? 'border-amber-500/60 bg-amber-950/70 text-amber-300 hover:bg-amber-900/80'
-                  : 'border-slate-800 bg-slate-900 text-slate-300 hover:text-white'
-              }`}
-            >
-              <BellRing className="h-3.5 w-3.5" />
-              <span>Alertes &amp; Push</span>
-              {activeAlertCount > 0 && (
-                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-slate-950">
-                  {activeAlertCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('vigilance')}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1 cursor-pointer ${
-                activeTab === 'vigilance'
-                  ? 'bg-rose-600 text-white'
-                  : 'bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40'
-              }`}
-            >
-              <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Vigilance 15j</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('radar')}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1 cursor-pointer ${
-                activeTab === 'radar'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-800/40'
-              }`}
-            >
-              <CloudRain className="h-3.5 w-3.5" />
-              <span>Radar HD</span>
-            </button>
-          </div>
-        </div>
-
         <section className="min-w-0 w-full">
         {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA mais masqué visuellement pour l'utilisateur) */}
         {(() => {

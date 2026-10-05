@@ -172,62 +172,6 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
       {/* ========================================================================= */}
       {activeHorizon === '3h' && (
         <div className="space-y-6">
-          {/* Live Radar Doppler Status Banner */}
-          <div className="rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 via-slate-950/90 to-blue-950/60 p-5">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                  </span>
-                  <span className="text-xs uppercase font-black text-cyan-400 tracking-wider">
-                    Écho Doppler & Nowcasting Haute Résolution
-                  </span>
-                </div>
-
-                <h4 className="text-lg sm:text-xl font-black text-white">
-                  {nowcasting?.statusHeadline || (currentPrecip > 0 ? `🌧️ Précipitations en cours (${currentPrecip} mm/h)` : "☀️ Aucun épisode pluvieux détecté sur 3 heures")}
-                </h4>
-
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  {nowcasting?.statusSubtext || `Atmosphère stable au-dessus de ${station.name}. Réflectivité radar < 15 dBZ.`}
-                </p>
-              </div>
-
-              {/* 4 Quick Metric Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs shrink-0">
-                <div className="rounded-xl bg-slate-900/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Durée Pluie</span>
-                  <span className="font-black text-cyan-300 text-base">
-                    {nowcasting?.totalRainDurationMinutes ? `${nowcasting.totalRainDurationMinutes} min` : '0 min'}
-                  </span>
-                </div>
-
-                <div className="rounded-xl bg-slate-900/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Cumul 3h</span>
-                  <span className="font-black text-blue-300 text-base">
-                    {nowcasting?.totalAccumulation3hMm ?? 0} mm
-                  </span>
-                </div>
-
-                <div className="rounded-xl bg-slate-900/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Pic Intensité</span>
-                  <span className="font-black text-amber-300 text-base">
-                    {nowcasting?.peakIntensityMmH ? `${nowcasting.peakIntensityMmH} mm/h` : '0 mm/h'}
-                  </span>
-                </div>
-
-                <div className="rounded-xl bg-slate-900/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Réflectivité Max</span>
-                  <span className="font-black text-purple-300 text-base">
-                    {nowcasting?.peakRadarDbz ? `${nowcasting.peakRadarDbz} dBZ` : '< 15 dBZ'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Granular Timeline : 0-60 min (5min) & 60-180 min (15min) */}
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">

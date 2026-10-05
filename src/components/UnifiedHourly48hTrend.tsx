@@ -33,7 +33,7 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
   tempUnit,
   onNavigateTab
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all48h' | 'day1' | 'day2' | 'curve'>('all48h');
+  const [activeFilter, setActiveFilter] = useState<'all48h' | 'day1' | 'day2' | 'curve' | 'trend'>('all48h');
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +54,9 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
 
   // Get full 48 hours (or all available if < 48)
   const all48Slots = hourly.slice(0, 48);
+  const today24Slots = all48Slots.slice(0, 24);
+  const todayMin = today24Slots.length > 0 ? Math.min(...today24Slots.map(s => s.temperature), currentWeather.temperature) : currentWeather.temperature;
+  const todayMax = today24Slots.length > 0 ? Math.max(...today24Slots.map(s => s.temperature), currentWeather.temperature) : currentWeather.temperature;
 
   // Filter slots based on activeFilter
   const displayedSlots = activeFilter === 'day1' 
@@ -100,7 +103,7 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
 
         {/* View Switcher Controls */}
         <div className="flex items-center gap-1.5 self-start sm:self-auto flex-wrap">
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold shadow-inner">
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold shadow-inner flex-wrap">
             <button
               onClick={() => setActiveFilter('all48h')}
               className={`px-3 py-1 rounded-lg transition ${
@@ -142,6 +145,17 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
               <ChartIcon className="w-3 h-3" />
               <span>Courbe</span>
             </button>
+            <button
+              onClick={() => setActiveFilter('trend')}
+              className={`flex items-center gap-1 px-3 py-1 rounded-lg transition ${
+                activeFilter === 'trend'
+                  ? 'bg-sky-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <TrendingUp className="w-3 h-3" />
+              <span>Tendance de la journée</span>
+            </button>
           </div>
 
           {/* Desktop Left / Right Scroll Arrows */}
@@ -165,8 +179,94 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
       </div>
 
       {/* Main 48H Timeline Content */}
-      {activeFilter === 'curve' ? (
-        /* High-Definition 48h SVG Temperature & Precipitation Curve */
+      {activeFilter === 'trend' ? (
+        /* Tendance de la journée (Température vs Ressenti) */
+        <div className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <h4 className="text-sm font-black text-white tracking-wide">
+                Tendance de la journée
+              </h4>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span>Température (°{tempUnit})</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-sky-500" />
+                <span>Ressenti (°{tempUnit})</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-12 gap-4 items-center">
+            <div className="col-span-12 sm:col-span-8 relative h-36 flex flex-col justify-between">
+              <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[9px] text-slate-500 font-mono">
+                <span>{formatTempSimple(todayMax + 2)}</span>
+                <span>{formatTempSimple((todayMax + todayMin) / 2 + 2)}</span>
+                <span>{formatTempSimple((todayMax + todayMin) / 2)}</span>
+                <span>{formatTempSimple((todayMax + todayMin) / 2 - 2)}</span>
+                <span>{formatTempSimple(todayMin - 2)}</span>
+              </div>
+
+              <div className="ml-7 mr-1 h-28 relative">
+                <svg viewBox="0 0 200 90" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <line x1="0" y1="10" x2="200" y2="10" stroke="#1e293b" strokeDasharray="3 3" />
+                  <line x1="0" y1="30" x2="200" y2="30" stroke="#1e293b" strokeDasharray="3 3" />
+                  <line x1="0" y1="50" x2="200" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
+                  <line x1="0" y1="70" x2="200" y2="70" stroke="#1e293b" strokeDasharray="3 3" />
+                  <line x1="140" y1="0" x2="140" y2="85" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2" />
+                  <path d="M 0 65 Q 40 60 70 45 T 140 25 T 200 40" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                  <path d="M 0 75 Q 40 70 70 55 T 140 35 T 200 50" fill="none" stroke="#0284c7" strokeWidth="2" />
+                  <circle cx="140" cy="25" r="4" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                  <circle cx="140" cy="35" r="3.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+                </svg>
+
+                <div className="absolute -top-3 left-[68%] -translate-x-1/2 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow">
+                  Maintenant
+                </div>
+              </div>
+
+              <div className="ml-7 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                <span>00h</span>
+                <span>03h</span>
+                <span>06h</span>
+                <span>09h</span>
+                <span>12h</span>
+                <span>15h</span>
+                <span>18h</span>
+                <span>21h</span>
+              </div>
+            </div>
+
+            <div className="col-span-12 sm:col-span-4 grid grid-cols-2 sm:grid-cols-1 gap-2 border-t sm:border-t-0 sm:border-l border-slate-800/80 pt-3 sm:pt-0 sm:pl-4">
+              <div>
+                <div className="text-[10px] text-slate-400">Temp. actuelle</div>
+                <div className="text-sm font-black text-white">{formatTemp(currentWeather.temperature)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-slate-400">Ressenti</div>
+                <div className="text-sm font-black text-sky-400">{formatTemp(currentWeather.feelsLike)}</div>
+              </div>
+              <div className="flex items-center gap-4 col-span-2 sm:col-span-1">
+                <div>
+                  <div className="text-[10px] text-slate-400">Min</div>
+                  <div className="text-xs font-black text-blue-400">{formatTemp(todayMin)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400">Max</div>
+                  <div className="text-xs font-black text-amber-400">{formatTemp(todayMax)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : activeFilter === 'curve' ? (
+        /* High-Definition 48h SVG Temperature & Precipitation Curve + Tendance de la journée */
         <div className="space-y-3 pt-2">
           <div className="relative h-44 w-full bg-slate-950/90 rounded-2xl border border-slate-800 p-3 overflow-hidden">
             <div className="flex items-center justify-between text-xs text-slate-400 mb-1 px-1">
@@ -244,6 +344,67 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
                   {slot.dayLabel === "Aujourd'hui" ? '' : `${slot.dayLabel} `}{slot.hourLabel}
                 </span>
               ))}
+            </div>
+          </div>
+
+          {/* Tendance de la journée placée directement après la courbe */}
+          <div className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                </div>
+                <h4 className="text-xs font-black text-white tracking-wide">
+                  Tendance de la journée
+                </h4>
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <span>Température</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" />
+                  <span>Ressenti</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-3 items-center">
+              <div className="col-span-8 relative h-28 flex flex-col justify-between">
+                <div className="ml-1 mr-1 h-20 relative">
+                  <svg viewBox="0 0 200 90" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                    <line x1="0" y1="20" x2="200" y2="20" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="50" x2="200" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="140" y1="0" x2="140" y2="85" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2" />
+                    <path d="M 0 65 Q 40 60 70 45 T 140 25 T 200 40" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                    <path d="M 0 75 Q 40 70 70 55 T 140 35 T 200 50" fill="none" stroke="#0284c7" strokeWidth="2" />
+                    <circle cx="140" cy="25" r="3.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                    <circle cx="140" cy="35" r="3" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+                  </svg>
+                </div>
+                <div className="flex items-center justify-between text-[9px] text-slate-400 font-mono px-1">
+                  <span>00h</span>
+                  <span>06h</span>
+                  <span>12h</span>
+                  <span>18h</span>
+                  <span>21h</span>
+                </div>
+              </div>
+              <div className="col-span-4 space-y-1.5 border-l border-slate-800/80 pl-3 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400">Actuel</span>
+                  <span className="font-black text-white">{formatTemp(currentWeather.temperature)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400">Ressenti</span>
+                  <span className="font-black text-sky-400">{formatTemp(currentWeather.feelsLike)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-slate-400">Min / Max</span>
+                  <span className="font-black text-amber-300">{formatTemp(todayMin)} / {formatTemp(todayMax)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

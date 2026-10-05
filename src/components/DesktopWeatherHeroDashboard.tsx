@@ -31,7 +31,7 @@ import {
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
-import { UnifiedHourly48hTrend } from './UnifiedHourly48hTrend';
+import { GrandDayAndWeekDetailedForecastCard } from './GrandDayAndWeekDetailedForecastCard';
 import { FranceMiniOverviewCard } from './FranceMiniOverviewCard';
 
 interface DesktopWeatherHeroDashboardProps {
@@ -41,6 +41,8 @@ interface DesktopWeatherHeroDashboardProps {
   daily: DailyForecast[];
   anomaly: ClimateAnomaly;
   tempUnit: 'C' | 'F';
+  seniorMode?: boolean;
+  simplifiedMode?: boolean;
   isUsingCachedData?: boolean;
   cachedAt?: string;
   onSelectStation?: (station: LocationPoint) => void;
@@ -49,6 +51,7 @@ interface DesktopWeatherHeroDashboardProps {
   onNavigateTab?: (tab: string) => void;
   onLocateGps?: () => void;
   onOpenContradictionModal?: () => void;
+  onOpenDayAnalyzer?: (dayIndex: number) => void;
   onRecalibrate?: (offset: number) => void;
   onResetRecalibration?: () => void;
 }
@@ -60,6 +63,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   daily,
   anomaly,
   tempUnit,
+  seniorMode = false,
+  simplifiedMode = false,
   isUsingCachedData = false,
   cachedAt,
   onSelectStation,
@@ -68,6 +73,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   onNavigateTab,
   onLocateGps,
   onOpenContradictionModal,
+  onOpenDayAnalyzer,
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
@@ -382,133 +388,24 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. SECOND ROW: 48H FORECAST (5 COLS) + TENDANCE / SOLEIL / AIR (7 COLS)   */}
+      {/* 2. SECOND ROW: PRÉVISIONS HEURE PAR HEURE (8 COLS) + SOLEIL & LUNE (4 COLS) */}
       {/* ========================================================================= */}
       <div className="hidden sm:grid grid-cols-12 gap-3.5 items-stretch">
-        <div className="col-span-12 xl:col-span-5 flex flex-col [&>div]:flex-1">
-          {/* Unified 48h Hourly Forecast Card */}
-          <UnifiedHourly48hTrend
+        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col [&>div]:flex-1 min-w-0 scroll-mt-28">
+          <GrandDayAndWeekDetailedForecastCard
             station={station}
-            currentWeather={weather}
+            weather={weather}
             hourly={hourly}
+            daily={daily}
+            seniorMode={seniorMode}
+            simplifiedMode={simplifiedMode}
             tempUnit={tempUnit}
-            onNavigateTab={onNavigateTab}
+            onOpenDayAnalyzer={onOpenDayAnalyzer}
           />
         </div>
 
-        <div className="col-span-12 xl:col-span-7 grid grid-cols-12 gap-3.5 items-stretch">
-          {/* Card 1: Tendance de la journée */}
-          <div className="col-span-12 lg:col-span-5 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-4 sm:p-5 shadow-xl flex flex-col justify-between">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-1.5 rounded-lg bg-blue-500/20 text-sky-400">
-              <TrendingUp className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-black text-white tracking-wide">
-              Tendance de la journée
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-12 gap-3 items-center">
-            {/* SVG Line Graph */}
-            <div className="col-span-7 relative h-36 flex flex-col justify-between">
-              {/* Y-axis marks */}
-              <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[9px] text-slate-500 font-mono">
-                <span>28°</span>
-                <span>24°</span>
-                <span>20°</span>
-                <span>16°</span>
-                <span>12°</span>
-              </div>
-
-              {/* Chart Canvas */}
-              <div className="ml-6 mr-1 h-28 relative">
-                <svg viewBox="0 0 200 90" className="w-full h-full overflow-visible">
-                  {/* Horizontal grid lines */}
-                  <line x1="0" y1="10" x2="200" y2="10" stroke="#1e293b" strokeDasharray="3 3" />
-                  <line x1="0" y1="30" x2="200" y2="30" stroke="#1e293b" strokeDasharray="3 3" />
-                  <line x1="0" y1="50" x2="200" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
-                  <line x1="0" y1="70" x2="200" y2="70" stroke="#1e293b" strokeDasharray="3 3" />
-
-                  {/* Vertical "Maintenant" indicator */}
-                  <line x1="140" y1="0" x2="140" y2="85" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2" />
-
-                  {/* Orange Curve: Température */}
-                  <path
-                    d="M 0 65 Q 40 60 70 45 T 140 25 T 200 40"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="2.5"
-                  />
-                  {/* Cyan Curve: Ressenti */}
-                  <path
-                    d="M 0 75 Q 40 70 70 55 T 140 35 T 200 50"
-                    fill="none"
-                    stroke="#0284c7"
-                    strokeWidth="2"
-                  />
-
-                  {/* Points */}
-                  <circle cx="140" cy="25" r="4" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
-                  <circle cx="140" cy="35" r="3.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
-                </svg>
-
-                {/* Badge Maintenant */}
-                <div className="absolute -top-3 left-[62%] -translate-x-1/2 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow">
-                  Maintenant
-                </div>
-              </div>
-
-              {/* X-axis hours */}
-              <div className="ml-6 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                <span>00h</span>
-                <span>03h</span>
-                <span>06h</span>
-                <span>09h</span>
-                <span>12h</span>
-                <span>15h</span>
-                <span>18h</span>
-                <span>21h</span>
-              </div>
-            </div>
-
-            {/* Right Summary Metrics */}
-            <div className="col-span-5 space-y-2 border-l border-slate-800/80 pl-3">
-              <div>
-                <div className="text-[10px] text-slate-400">Temp. actuelle</div>
-                <div className="text-sm font-black text-white">{formatTemp(weather.temperature)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-400">Ressenti</div>
-                <div className="text-sm font-black text-sky-400">{formatTemp(weather.feelsLike)}</div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div>
-                  <div className="text-[10px] text-slate-400">Min</div>
-                  <div className="text-xs font-black text-blue-400">{formatTemp(todayMin)}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-400">Max</div>
-                  <div className="text-xs font-black text-amber-400">{formatTemp(todayMax)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Legend */}
-          <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span>Température (°C)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-sky-500" />
-              <span>Ressenti (°C)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Soleil & Lune */}
-        <div className="col-span-12 lg:col-span-4 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
+        {/* Right Column of Row 2: Soleil & Lune */}
+        <div className="col-span-12 xl:col-span-4 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
               <Sun className="h-4 w-4" />
@@ -539,14 +436,14 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
             <div className="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
               <div>
                 <span className="text-slate-400 text-[9px] block">Lever</span>
-                <span>07:54</span>
+                <span>{weather.solarEphemeris?.sunrise || '07:54'}</span>
               </div>
               <div className="text-center px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30 text-[10px] text-amber-300 font-bold">
-                ☀️ 11h 19min
+                ☀️ {weather.solarEphemeris?.dayLengthFormatted || '11h 19min'}
               </div>
               <div className="text-right">
                 <span className="text-slate-400 text-[9px] block">Coucher</span>
-                <span>19:13</span>
+                <span>{weather.solarEphemeris?.sunset || '19:13'}</span>
               </div>
             </div>
           </div>
@@ -560,65 +457,18 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-white">Lune : 20% illuminée</div>
-              <div className="text-[10px] text-slate-400">Dernier quartier</div>
+              <div className="text-xs font-bold text-white">
+                Lune : {weather.moonPhase?.illuminationPercent ?? 20}% illuminée
+              </div>
+              <div className="text-[10px] text-slate-400">
+                {weather.moonPhase?.phaseName || 'Dernier quartier'}
+              </div>
               <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-0.5 font-mono">
-                <span>🌅 02:18</span>
-                <span>🌄 16:43</span>
+                <span>🌅 {weather.solarEphemeris?.civilTwilightBegin || '06:18'}</span>
+                <span>🌄 {weather.solarEphemeris?.civilTwilightEnd || '19:43'}</span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Card 3: Indices & Qualité de l'air */}
-        <div className="col-span-12 lg:col-span-3 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
-              <Leaf className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-black text-white tracking-wide">
-              Indices &amp; Qualité de l'air
-            </h3>
-          </div>
-
-          {/* Circular AQI Gauge */}
-          <div className="flex items-center gap-3 py-1">
-            <div className="relative w-16 h-16 rounded-full border-4 border-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20 bg-emerald-950/20">
-              <span className="text-xl font-black text-emerald-400">42</span>
-            </div>
-            <div className="min-w-0">
-              <div className="text-[10px] text-slate-400">Qualité de l'air</div>
-              <div className="text-sm font-black text-emerald-400 leading-tight">Bonne</div>
-              <div className="text-[10px] text-slate-400 leading-snug">Peu de risque pour la santé</div>
-            </div>
-          </div>
-
-          {/* 3 Metric Pills */}
-          <div className="grid grid-cols-3 gap-1.5 pt-2">
-            <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800/80 text-center">
-              <span className="text-[9px] text-slate-400 block">UV</span>
-              <span className="text-xs font-black text-amber-300">5.6</span>
-            </div>
-            <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800/80 text-center">
-              <span className="text-[9px] text-slate-400 block">Rafales</span>
-              <span className="text-xs font-black text-cyan-300">30 km/h</span>
-            </div>
-            <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800/80 text-center">
-              <span className="text-[9px] text-slate-400 block">Pluie</span>
-              <span className="text-xs font-black text-sky-300">0 mm</span>
-            </div>
-          </div>
-
-          {/* Footer Link */}
-          <div className="pt-2 text-center">
-            <button
-              onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : null}
-              className="text-xs font-bold text-sky-400 hover:text-sky-300 transition"
-            >
-              Voir tous les indices →
-            </button>
-          </div>
-        </div>
         </div>
       </div>
     </div>
