@@ -510,7 +510,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         daily={daily}
         anomaly={anomaly}
         tempUnit={tempUnit}
-        onSelectStation={onSelectStation}
         onOpenSearchModal={onOpenSearchModal}
         onOpenGigaRadar={onOpenGigaRadar}
         onNavigateTab={onNavigateTab}
