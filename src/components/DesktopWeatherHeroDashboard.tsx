@@ -33,7 +33,6 @@ import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBac
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 import { UnifiedHourly48hTrend } from './UnifiedHourly48hTrend';
 import { FranceMiniOverviewCard } from './FranceMiniOverviewCard';
-import { TemperatureReliabilityCalibrationCard } from './TemperatureReliabilityCalibrationCard';
 
 interface DesktopWeatherHeroDashboardProps {
   station: LocationPoint;
@@ -42,6 +41,8 @@ interface DesktopWeatherHeroDashboardProps {
   daily: DailyForecast[];
   anomaly: ClimateAnomaly;
   tempUnit: 'C' | 'F';
+  isUsingCachedData?: boolean;
+  cachedAt?: string;
   onSelectStation?: (station: LocationPoint) => void;
   onOpenSearchModal?: () => void;
   onOpenGigaRadar?: () => void;
@@ -59,14 +60,14 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   daily,
   anomaly,
   tempUnit,
+  isUsingCachedData = false,
+  cachedAt,
   onSelectStation,
   onOpenSearchModal,
   onOpenGigaRadar,
   onNavigateTab,
   onLocateGps,
   onOpenContradictionModal,
-  onRecalibrate,
-  onResetRecalibration
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
@@ -261,15 +262,29 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               <div className="text-4xl sm:text-5xl font-black text-white tracking-tight font-mono">
                 {currentTime || '17:42'}
               </div>
-              {/* Palette fonctionnelle stricte : Vert = statut positif / flux en direct sain */}
+              {/* Palette fonctionnelle stricte : Vert = flux en direct sain / Ambre discret = Données en cache */}
               <div className="flex items-center justify-end gap-1.5 pt-0.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
-                  EN DIRECT
-                </span>
+                {isUsingCachedData ? (
+                  <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-950/75 border border-amber-500/40 text-amber-300 shadow-sm backdrop-blur-sm"
+                    title="Connexion interrompue : affichage de la dernière météo enregistrée en cache local"
+                  >
+                    <span className="inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                    <span className="text-[10px] font-bold tracking-wide">
+                      Données en cache{cachedAt ? ` (${cachedAt})` : ''}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                      EN DIRECT
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -352,8 +367,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
         </div>
         </div>
 
-        {/* Right Column of Row 1: Interactive Map + Temperature Reliability Calibration */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col gap-3 justify-between">
+        {/* Right Column of Row 1: Interactive Map filling full height alongside Hero Card */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between">
           <div id="realtime-national-overview-mini" className="scroll-mt-28 w-full flex-1 flex flex-col [&>div]:flex-1 [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
             <FranceMiniOverviewCard
               currentStation={station}
@@ -363,14 +378,6 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               onNavigateTab={onNavigateTab}
             />
           </div>
-
-          <TemperatureReliabilityCalibrationCard
-            station={station}
-            currentWeather={weather}
-            tempUnit={tempUnit}
-            onRecalibrate={onRecalibrate}
-            onReset={onResetRecalibration}
-          />
         </div>
       </div>
 

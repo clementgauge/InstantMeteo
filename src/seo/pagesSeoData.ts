@@ -43,17 +43,12 @@ export const SUPPORTED_HREFLANG_LOCALES = [
 export const SITEMAP_LANGUAGE_PARAMS: ReadonlyArray<{ code: SupportedLocaleCode; param: string }> = [
   { code: 'fr', param: '' },
   { code: 'en', param: '?hl=en' },
-  { code: 'de', param: '?hl=de' },
-  { code: 'es', param: '?hl=es' },
-  { code: 'it', param: '?hl=it' },
-  { code: 'pt', param: '?hl=pt' },
-  { code: 'nl', param: '?hl=nl' },
-  { code: 'ar', param: '?hl=ar' },
-  { code: 'zh-CN', param: '?hl=zh-CN' },
-  { code: 'ja', param: '?hl=ja' },
-  { code: 'ru', param: '?hl=ru' },
-  { code: 'uk', param: '?hl=uk' },
 ];
+
+export const SITEMAP_HREFLANG_LOCALES = [
+  { hreflang: 'fr', param: '' },
+  { hreflang: 'en', param: '?hl=en' },
+] as const;
 
 export interface PageSeoSection {
   heading: string;
@@ -950,6 +945,425 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
   },
 };
 
+export interface MajorCitySeoConfig {
+  slug: string;
+  path: string;
+  cityName: string;
+  stationId: string;
+  deptCode: string;
+  department: string;
+  region: string;
+  altitude: number;
+  climateZone: string;
+  recordMax: number;
+  recordMin: number;
+  recordRain24h: number;
+}
+
+export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
+  {
+    slug: 'paris',
+    path: '/paris',
+    cityName: 'Paris',
+    stationId: 'paris-montsouris',
+    deptCode: '75',
+    department: '75 - Paris',
+    region: 'Île-de-France',
+    altitude: 75,
+    climateZone: 'Océanique dégradé / Îlot de chaleur urbain',
+    recordMax: 42.6,
+    recordMin: -23.9,
+    recordRain24h: 104.2,
+  },
+  {
+    slug: 'lyon',
+    path: '/lyon',
+    cityName: 'Lyon',
+    stationId: 'lyon-bron',
+    deptCode: '69',
+    department: '69 - Rhône',
+    region: 'Auvergne-Rhône-Alpes',
+    altitude: 201,
+    climateZone: 'Semi-continental à influences méridionales',
+    recordMax: 41.4,
+    recordMin: -24.6,
+    recordRain24h: 106.0,
+  },
+  {
+    slug: 'marseille',
+    path: '/marseille',
+    cityName: 'Marseille',
+    stationId: 'marseille-marignane',
+    deptCode: '13',
+    department: '13 - Bouches-du-Rhône',
+    region: "Provence-Alpes-Côte d'Azur",
+    altitude: 36,
+    climateZone: 'Méditerranéen franc (Mistral)',
+    recordMax: 40.2,
+    recordMin: -16.8,
+    recordRain24h: 196.4,
+  },
+  {
+    slug: 'toulouse',
+    path: '/toulouse',
+    cityName: 'Toulouse',
+    stationId: 'toulouse-blagnac',
+    deptCode: '31',
+    department: '31 - Haute-Garonne',
+    region: 'Occitanie',
+    altitude: 151,
+    climateZone: "Océanique altéré / Aquitain chaud (Vent d'Autan)",
+    recordMax: 42.4,
+    recordMin: -19.2,
+    recordRain24h: 82.7,
+  },
+  {
+    slug: 'nice',
+    path: '/nice',
+    cityName: 'Nice',
+    stationId: 'nice-cote-dazur',
+    deptCode: '06',
+    department: '06 - Alpes-Maritimes',
+    region: "Provence-Alpes-Côte d'Azur",
+    altitude: 4,
+    climateZone: 'Méditerranéen maritime doux',
+    recordMax: 37.7,
+    recordMin: -7.2,
+    recordRain24h: 191.0,
+  },
+  {
+    slug: 'nantes',
+    path: '/nantes',
+    cityName: 'Nantes',
+    stationId: 'nantes-atlantique',
+    deptCode: '44',
+    department: '44 - Loire-Atlantique',
+    region: 'Pays de la Loire',
+    altitude: 26,
+    climateZone: 'Océanique franc tempéré',
+    recordMax: 42.0,
+    recordMin: -15.6,
+    recordRain24h: 94.9,
+  },
+  {
+    slug: 'montpellier',
+    path: '/montpellier',
+    cityName: 'Montpellier',
+    stationId: 'montpellier-frejorgues',
+    deptCode: '34',
+    department: '34 - Hérault',
+    region: 'Occitanie',
+    altitude: 2,
+    climateZone: 'Méditerranéen languedocien (Épisodes cévenols)',
+    recordMax: 43.5,
+    recordMin: -17.8,
+    recordRain24h: 299.5,
+  },
+  {
+    slug: 'strasbourg',
+    path: '/strasbourg',
+    cityName: 'Strasbourg',
+    stationId: 'strasbourg-entzheim',
+    deptCode: '67',
+    department: '67 - Bas-Rhin',
+    region: 'Grand Est',
+    altitude: 153,
+    climateZone: "Semi-continental d'abri rhénan",
+    recordMax: 38.9,
+    recordMin: -23.6,
+    recordRain24h: 68.4,
+  },
+  {
+    slug: 'bordeaux',
+    path: '/bordeaux',
+    cityName: 'Bordeaux',
+    stationId: 'bordeaux-merignac',
+    deptCode: '33',
+    department: '33 - Gironde',
+    region: 'Nouvelle-Aquitaine',
+    altitude: 47,
+    climateZone: 'Océanique aquitain doux et humide',
+    recordMax: 41.2,
+    recordMin: -16.4,
+    recordRain24h: 111.4,
+  },
+  {
+    slug: 'lille',
+    path: '/lille',
+    cityName: 'Lille',
+    stationId: 'lille-lesquin',
+    deptCode: '59',
+    department: '59 - Nord',
+    region: 'Hauts-de-France',
+    altitude: 47,
+    climateZone: 'Océanique flamand frais',
+    recordMax: 41.5,
+    recordMin: -19.5,
+    recordRain24h: 64.0,
+  },
+  {
+    slug: 'rennes',
+    path: '/rennes',
+    cityName: 'Rennes',
+    stationId: 'rennes-st-jacques',
+    deptCode: '35',
+    department: '35 - Ille-et-Vilaine',
+    region: 'Bretagne',
+    altitude: 36,
+    climateZone: 'Océanique breton intérieur',
+    recordMax: 40.5,
+    recordMin: -14.7,
+    recordRain24h: 81.0,
+  },
+  {
+    slug: 'grenoble',
+    path: '/grenoble',
+    cityName: 'Grenoble',
+    stationId: 'grenoble-saint-geoirs',
+    deptCode: '38',
+    department: '38 - Isère',
+    region: 'Auvergne-Rhône-Alpes',
+    altitude: 384,
+    climateZone: 'Préalpin à cuvette thermique',
+    recordMax: 40.7,
+    recordMin: -27.1,
+    recordRain24h: 118.4,
+  },
+  {
+    slug: 'dijon',
+    path: '/dijon',
+    cityName: 'Dijon',
+    stationId: 'dijon-longvic',
+    deptCode: '21',
+    department: "21 - Côte-d'Or",
+    region: 'Bourgogne-Franche-Comté',
+    altitude: 221,
+    climateZone: 'Semi-continental bourguignon',
+    recordMax: 39.5,
+    recordMin: -22.0,
+    recordRain24h: 75.0,
+  },
+  {
+    slug: 'brest',
+    path: '/brest',
+    cityName: 'Brest',
+    stationId: 'brest-guipavas',
+    deptCode: '29',
+    department: '29 - Finistère',
+    region: 'Bretagne',
+    altitude: 94,
+    climateZone: 'Hyper-océanique venteux',
+    recordMax: 39.3,
+    recordMin: -14.0,
+    recordRain24h: 83.6,
+  },
+  {
+    slug: 'clermont-ferrand',
+    path: '/clermont-ferrand',
+    cityName: 'Clermont-Ferrand',
+    stationId: 'clermont-ferrand',
+    deptCode: '63',
+    department: '63 - Puy-de-Dôme',
+    region: 'Auvergne-Rhône-Alpes',
+    altitude: 330,
+    climateZone: "Semi-continental de plaine d'abri (Limagne)",
+    recordMax: 40.9,
+    recordMin: -29.0,
+    recordRain24h: 93.3,
+  },
+  {
+    slug: 'reims',
+    path: '/reims',
+    cityName: 'Reims',
+    stationId: 'reims-prunay',
+    deptCode: '51',
+    department: '51 - Marne',
+    region: 'Grand Est',
+    altitude: 95,
+    climateZone: 'Semi-continental champenois',
+    recordMax: 41.1,
+    recordMin: -21.0,
+    recordRain24h: 65.0,
+  },
+  {
+    slug: 'rouen',
+    path: '/rouen',
+    cityName: 'Rouen',
+    stationId: 'rouen-boos',
+    deptCode: '76',
+    department: '76 - Seine-Maritime',
+    region: 'Normandie',
+    altitude: 156,
+    climateZone: 'Océanique normand humide',
+    recordMax: 41.3,
+    recordMin: -17.1,
+    recordRain24h: 70.0,
+  },
+  {
+    slug: 'tours',
+    path: '/tours',
+    cityName: 'Tours',
+    stationId: 'tours-val-de-loire',
+    deptCode: '37',
+    department: '37 - Indre-et-Loire',
+    region: 'Centre-Val de Loire',
+    altitude: 108,
+    climateZone: 'Océanique tourangeau doux',
+    recordMax: 40.8,
+    recordMin: -18.5,
+    recordRain24h: 80.0,
+  },
+  {
+    slug: 'perpignan',
+    path: '/perpignan',
+    cityName: 'Perpignan',
+    stationId: 'perpignan-rivesaltes',
+    deptCode: '66',
+    department: '66 - Pyrénées-Orientales',
+    region: 'Occitanie',
+    altitude: 44,
+    climateZone: 'Méditerranéen roussillonnais (Tramontane)',
+    recordMax: 42.4,
+    recordMin: -11.0,
+    recordRain24h: 222.0,
+  },
+  {
+    slug: 'caen',
+    path: '/caen',
+    cityName: 'Caen',
+    stationId: 'caen-carpiquet',
+    deptCode: '14',
+    department: '14 - Calvados',
+    region: 'Normandie',
+    altitude: 78,
+    climateZone: 'Océanique normand tempéré',
+    recordMax: 40.1,
+    recordMin: -19.6,
+    recordRain24h: 75.0,
+  },
+];
+
+const MAJOR_CITY_SEO_MAP_EN: Record<string, PageSeoMetadata> = {};
+
+for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
+  SEO_PAGES_MAP[city.path] = {
+    slug: city.slug,
+    path: city.path,
+    canonicalUrl: `${BASE_SITE_URL}${city.path}`,
+    title: `Météo ${city.cityName} (${city.deptCode}) en Direct — Prévisions 14 Jours & Radar Pluie | Instant Météo`,
+    description: `Consultez la météo à ${city.cityName} (${city.department}, ${city.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
+    h1: `Météo ${city.cityName} (${city.deptCode}) — Observations en direct et prévisions à 14 jours`,
+    sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${city.cityName}`,
+    breadcrumbName: `Météo ${city.cityName}`,
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '0.90',
+    introParagraph: `Suivez en temps réel la météo à ${city.cityName} (${city.department}, région ${city.region}, altitude ${city.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
+    sections: [
+      {
+        heading: `Spécificités climatiques de ${city.cityName} (${city.region})`,
+        body: `Située à ${city.altitude} mètres d'altitude dans le département ${city.department}, l'agglomération de ${city.cityName} se caractérise par un climat ${city.climateZone.toLowerCase()}. Les modèles haute résolution AROME (1,3 km) et ECMWF ajustent les prévisions locales en tenant compte de la topographie et de l'îlot de chaleur urbain.`,
+      },
+      {
+        heading: `Suivi des précipitations et radar de pluie sur ${city.cityName}`,
+        body: `Le nowcasting chirurgical (< 3h) et le radar des pluies permettent d'anticiper minute par minute le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${city.cityName} et de sa périphérie.`,
+      },
+      {
+        heading: `Records météorologiques historiques à ${city.cityName}`,
+        body: `Les archives climatiques de la station de référence de ${city.cityName} enregistrent un record absolu de chaleur de +${city.recordMax}°C, un record de froid de ${city.recordMin}°C et un cumul maximal de pluie en 24 heures de ${city.recordRain24h} mm.`,
+      },
+    ],
+    faq: [
+      {
+        question: `Quel temps fait-il aujourd'hui à ${city.cityName} (${city.deptCode}) ?`,
+        answer: `Consultez en haut de cette page le relevé en direct pour ${city.cityName} : température actuelle, ressenti, humidité, rafales de vent, pression atmosphérique et évolution heure par heure.`,
+      },
+      {
+        question: `Va-t-il pleuvoir dans l'heure à ${city.cityName} ?`,
+        answer: `Le module Prévisions Précipitations & Nowcasting analyse les échos radar en temps réel par pas de 5 minutes pour indiquer l'heure exacte du début et de la fin de la pluie à ${city.cityName}.`,
+      },
+      {
+        question: `Quelles sont les prévisions météo à 7 et 14 jours pour ${city.cityName} ?`,
+        answer: `Le tableau quotidien détaille pour chaque journée à ${city.cityName} les températures minimales et maximales, le cumul de pluie attendu, la vitesse du vent et l'indice UV.`,
+      },
+    ],
+  };
+
+  MAJOR_CITY_SEO_MAP_EN[city.path] = {
+    slug: city.slug,
+    path: city.path,
+    canonicalUrl: `${BASE_SITE_URL}${city.path}`,
+    title: `${city.cityName} Weather Live (${city.deptCode}) — 14-Day Forecast & Rain Radar | Instant Weather`,
+    description: `Live weather in ${city.cityName} (${city.department}, ${city.region}, France): current temperature, 48-hour hourly forecast, 14-day outlook, HD Doppler rain radar and weather warnings.`,
+    h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
+    sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
+    breadcrumbName: `${city.cityName} Weather`,
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '0.90',
+    introParagraph: `Track real-time weather in ${city.cityName} (${city.department}, ${city.region}, elevation ${city.altitude} m). View current temperature, wind chill / heat index, next-hour Doppler rain radar nowcasting, 48-hour hourly trends and 14-day forecasts.`,
+    sections: [
+      {
+        heading: `Local climate characteristics of ${city.cityName} (${city.region})`,
+        body: `Located at ${city.altitude} meters elevation in ${city.department}, ${city.cityName} experiences a ${city.climateZone} climate regime. High-resolution AROME (1.3 km) and ECMWF IFS models calibrate local forecasts for urban and topographic effects.`,
+      },
+      {
+        heading: `Rain radar and 3-hour precipitation nowcasting in ${city.cityName}`,
+        body: `Surgical 5-minute precipitation nowcasting and live Doppler radar track approaching rain bands, showers and thunderstorm cells across ${city.cityName}.`,
+      },
+      {
+        heading: `Historical climate records in ${city.cityName}`,
+        body: `Official station archives for ${city.cityName} record an all-time high temperature of +${city.recordMax}°C, an all-time low of ${city.recordMin}°C and a 24-hour rainfall record of ${city.recordRain24h} mm.`,
+      },
+    ],
+    faq: [
+      {
+        question: `What is the current weather in ${city.cityName} today?`,
+        answer: `Check the live telemetry card at the top of this page for ${city.cityName}: current temperature, feels-like index, humidity, wind gusts, barometric pressure and hourly trend.`,
+      },
+      {
+        question: `Will it rain in the next hour in ${city.cityName}?`,
+        answer: `The Precipitation Nowcasting module analyzes live Doppler radar echoes in 5-minute steps to indicate exact rain start and end times in ${city.cityName}.`,
+      },
+      {
+        question: `What is the 7-day and 14-day weather forecast for ${city.cityName}?`,
+        answer: `The daily forecast table provides minimum and maximum temperatures, precipitation probabilities, wind gusts and UV index day by day for ${city.cityName}.`,
+      },
+    ],
+  };
+}
+
+export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoConfig | null {
+  let cleanPath = (rawPathname || '/').split('?')[0].split('#')[0].trim().toLowerCase();
+  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+  if (cleanPath.startsWith('/meteo-')) {
+    cleanPath = '/' + cleanPath.slice('/meteo-'.length);
+  }
+  return MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.path === cleanPath) || null;
+}
+
+export function getMajorCityPathForStationId(stationId?: string, stationName?: string): string | null {
+  if (!stationId && !stationName) return null;
+  const byId = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.stationId === stationId);
+  if (byId) return byId.path;
+  if (stationName) {
+    const cleanName = stationName.toLowerCase().trim();
+    const byName = MAJOR_FRENCH_CITY_SEO_LIST.find(
+      (c) =>
+        cleanName === c.cityName.toLowerCase() ||
+        cleanName.startsWith(c.cityName.toLowerCase() + '-') ||
+        cleanName.startsWith(c.cityName.toLowerCase() + ' ')
+    );
+    if (byName) return byName.path;
+  }
+  return null;
+}
+
 /**
  * Normalise un chemin URL et retourne les métadonnées SEO correspondantes
  * dans la langue demandée (fr, en, de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) avec le nom du site traduit.
@@ -957,7 +1371,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
 export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): PageSeoMetadata {
   const locale = normalizeSupportedLocale(lang);
   const isFr = locale === 'fr';
-  const map = isFr ? SEO_PAGES_MAP : SEO_PAGES_MAP_EN;
+  const map: Record<string, PageSeoMetadata> = isFr
+    ? SEO_PAGES_MAP
+    : { ...SEO_PAGES_MAP_EN, ...MAJOR_CITY_SEO_MAP_EN };
 
   let cleanPath = (rawPathname || '/').split('?')[0].split('#')[0].trim();
   if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
@@ -965,6 +1381,9 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
   }
   if (!cleanPath.startsWith('/')) {
     cleanPath = '/' + cleanPath;
+  }
+  if (cleanPath.toLowerCase().startsWith('/meteo-') && MAJOR_FRENCH_CITY_SEO_LIST.some((c) => c.path === '/' + cleanPath.slice(7).toLowerCase())) {
+    cleanPath = '/' + cleanPath.slice(7).toLowerCase();
   }
 
   // Alias historiques éventuels redirigés vers la bonne configuration SEO
@@ -1071,6 +1490,8 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
   const cleanCurrent = rawCurrent.length > 1 && rawCurrent.endsWith('/') ? rawCurrent.slice(0, -1) : rawCurrent;
 
   if (tabId === 'realtime') {
+    const cityCfg = getMajorCityConfigFromPath(cleanCurrent);
+    if (cityCfg) return cityCfg.path;
     return cleanCurrent === '/direct' ? '/direct' : '/';
   }
   if (tabId === 'radar') {
@@ -1137,7 +1558,7 @@ export function generateSitemapXml(): string {
 
   for (const page of routes) {
     const hreflangTags = [
-      ...SUPPORTED_HREFLANG_LOCALES.map(
+      ...SITEMAP_HREFLANG_LOCALES.map(
         ({ hreflang, param }) =>
           `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${page.canonicalUrl}${param}" />`
       ),

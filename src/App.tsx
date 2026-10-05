@@ -86,12 +86,28 @@ import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
 import { WeatherGameModal } from './components/WeatherGameModal';
 import { updateDocumentSeo } from './utils/seoVerification';
-import { getTabIdForPath, getSeoDataForPath, getPathForTabId } from './seo/pagesSeoData';
+import {
+  getTabIdForPath,
+  getSeoDataForPath,
+  getPathForTabId,
+  getMajorCityConfigFromPath,
+  getMajorCityPathForStationId,
+  MAJOR_FRENCH_CITY_SEO_LIST,
+} from './seo/pagesSeoData';
 import { getNativeSiteLanguage } from './i18n/siteTranslations';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
     try {
+      if (typeof window !== 'undefined') {
+        const cityCfg = getMajorCityConfigFromPath(window.location.pathname);
+        if (cityCfg) {
+          const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
+          if (matched) {
+            return { ...matched, name: cityCfg.cityName };
+          }
+        }
+      }
       const saved = localStorage.getItem('instant_meteo_last_station') || localStorage.getItem('climafrance_last_selected_locality');
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -155,6 +171,16 @@ function WeatherApp() {
       if (typeof window !== 'undefined') {
         const p = window.location.pathname;
         setCurrentPath(p);
+        const cityCfg = getMajorCityConfigFromPath(p);
+        if (cityCfg) {
+          const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
+          if (matched) {
+            setCurrentStation({ ...matched, name: cityCfg.cityName });
+          }
+          setActiveTab('realtime');
+          updateDocumentSeo(cityCfg.path, false);
+          return;
+        }
         const tabFromPath = getTabIdForPath(p) as NavTabId;
         if (tabFromPath) {
           setActiveTab(tabFromPath);
@@ -375,6 +401,10 @@ function WeatherApp() {
   // 2. Vigilances & 24h à 14 jours : 5 min (300s loop)
   // 3. Toutes les autres (> 14j, 30j, Climat AR6, ENSO) : 30 min (1800s loop)
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string>('');
+  const [isUsingCachedData, setIsUsingCachedData] = useState<boolean>(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine === false : false
+  );
+  const [cachedAtTime, setCachedAtTime] = useState<string>('');
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(300); // 5 min (300s) default cadence
   const [nextRefreshSeconds, setNextRefreshSeconds] = useState<number>(300);
@@ -456,12 +486,55 @@ function WeatherApp() {
       setAnomaly(data.anomaly);
 
       const now = new Date();
-      setLastUpdatedTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const shortTimeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      setLastUpdatedTime(timeStr);
+
+      const isOfflineNow = typeof navigator !== 'undefined' && navigator.onLine === false;
+      if (data.isFromCache || isOfflineNow) {
+        setIsUsingCachedData(true);
+        setCachedAtTime(data.cachedAt || shortTimeStr);
+      } else {
+        setIsUsingCachedData(false);
+        setCachedAtTime(shortTimeStr);
+      }
+
       setNextRefreshSeconds(autoRefreshInterval);
     } catch (err) {
       console.error("Failed to load weather:", err);
+      setIsUsingCachedData(true);
     } finally {
       if (showLoading) setIsLoading(false);
+    }
+  };
+
+  // Surveillance temps réel de la connexion réseau (Gestion du hors-ligne)
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsUsingCachedData(true);
+      setCachedAtTime((prev) => prev || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+    };
+    const handleOnline = () => {
+      loadStationData(currentStation, false);
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [currentStation]);
+
+  const handleSelectStationWithSeo = (st: LocationPoint) => {
+    setCurrentStation(st);
+    if (typeof window !== 'undefined' && activeTab === 'realtime') {
+      const majorCityPath = getMajorCityPathForStationId(st.id, st.name);
+      const nextPath = majorCityPath || (currentPath === '/direct' ? '/direct' : '/');
+      if (window.location.pathname !== nextPath) {
+        setCurrentPath(nextPath);
+        window.history.pushState(null, '', `${nextPath}${window.location.search || ''}`);
+        updateDocumentSeo(nextPath, false);
+      }
     }
   };
 
@@ -760,7 +833,7 @@ function WeatherApp() {
       <div className="relative z-30 w-full max-w-full">
         <Header
           currentStation={currentStation}
-          onSelectStation={(st) => setCurrentStation(st)}
+          onSelectStation={handleSelectStationWithSeo}
           seniorMode={seniorMode}
           onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
           simplifiedMode={simplifiedMode}
@@ -932,7 +1005,9 @@ function WeatherApp() {
                   seniorMode={seniorMode}
                   simplifiedMode={simplifiedMode}
                   tempUnit={tempUnit}
-                  onSelectStation={(st) => setCurrentStation(st)}
+                  isUsingCachedData={isUsingCachedData}
+                  cachedAt={cachedAtTime}
+                  onSelectStation={handleSelectStationWithSeo}
                   onOpenSearchModal={() => setIsSearchModalOpen(true)}
                   onOpenGigaRadar={() => setActiveTab('radar')}
                   onNavigateTab={(tab) => setActiveTab(tab as any)}
@@ -1409,6 +1484,42 @@ function WeatherApp() {
               </a>
             </nav>
 
+            {/* SEO Localisé : Pages dédiées par Grande Ville de France (/paris, /lyon, /marseille, etc.) */}
+            <div className="pt-3 mt-3 border-t border-slate-800/60 space-y-1.5">
+              <h5 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                Météo des Grandes Villes de France (Accès Direct) :
+              </h5>
+              <nav aria-label="Météo des grandes villes de France" className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11px]">
+                {MAJOR_FRENCH_CITY_SEO_LIST.map((city, idx) => (
+                  <React.Fragment key={city.slug}>
+                    {idx > 0 && <span className="text-slate-700">•</span>}
+                    <a
+                      href={city.path}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const matched = FRENCH_STATIONS.find((s) => s.id === city.stationId);
+                        if (matched) {
+                          setCurrentStation({ ...matched, name: city.cityName });
+                        }
+                        setCurrentPath(city.path);
+                        setActiveTab('realtime');
+                        window.history.pushState(null, '', `${city.path}${window.location.search || ''}`);
+                        updateDocumentSeo(city.path, false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`hover:underline font-medium cursor-pointer ${
+                        currentPath === city.path
+                          ? 'text-amber-300 font-bold'
+                          : 'text-emerald-400 hover:text-emerald-300'
+                      }`}
+                    >
+                      Météo {city.cityName}
+                    </a>
+                  </React.Fragment>
+                ))}
+              </nav>
+            </div>
+
             {/* Liens de versions linguistiques localisées avec hreflang (Français & Anglais natifs + langues traduites) */}
             <div className="pt-3 mt-3 border-t border-slate-800/60 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11px] text-slate-400">
               <span className="font-semibold text-slate-300">Versions linguistiques disponibles :</span>
@@ -1518,7 +1629,7 @@ function WeatherApp() {
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         currentStation={currentStation}
-        onSelectStation={(st) => setCurrentStation(st)}
+        onSelectStation={handleSelectStationWithSeo}
         seniorMode={seniorMode}
       />
 

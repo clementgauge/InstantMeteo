@@ -106,6 +106,8 @@ interface RealtimeViewProps {
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
   onWeatherRectified?: () => void;
+  isUsingCachedData?: boolean;
+  cachedAt?: string;
 }
 
 export const RealtimeView: React.FC<RealtimeViewProps> = ({
@@ -129,7 +131,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   onResetRecalibration,
   showFloatingBubble: propShowFloatingBubble,
   onToggleFloatingBubble,
-  onWeatherRectified
+  onWeatherRectified,
+  isUsingCachedData = false,
+  cachedAt,
 }) => {
   const [isContradictionModalOpen, setIsContradictionModalOpen] = useState<boolean>(false);
   const [activeProfileTab, setActiveProfileTab] = useState<'classic' | 'agriculture' | 'aviation' | 'pro'>('classic');
@@ -384,14 +388,24 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </div>
 
               <div className="flex flex-col items-end gap-1 shrink-0">
-                {/* En Direct Badge */}
-                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-950/85 border border-slate-700 text-emerald-400 text-[10px] font-black tracking-wide shadow-sm">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span>En direct</span>
-                </div>
+                {/* En Direct / Données en cache Badge */}
+                {isUsingCachedData ? (
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-950/85 border border-amber-500/40 text-amber-300 text-[10px] font-bold tracking-wide shadow-sm"
+                    title="Connexion interrompue : affichage de la dernière météo enregistrée en cache"
+                  >
+                    <span className="inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                    <span>Données en cache{cachedAt ? ` (${cachedAt})` : ''}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-950/85 border border-slate-700 text-emerald-400 text-[10px] font-black tracking-wide shadow-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>En direct</span>
+                  </div>
+                )}
 
                 {/* Dynamic Sky Artwork (Sun, Cloud+Sun, Rain, etc.) */}
                 <DynamicSkyHeroArt 
@@ -502,7 +516,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         />
       </div>
 
-      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid + Shared Map/Calibration) */}
+      {/* 1. Hero Current Weather, Map & 48h Overview (Desktop Full-Page Grid) */}
       <DesktopWeatherHeroDashboard
         station={station}
         weather={weather}
@@ -510,6 +524,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         daily={daily}
         anomaly={anomaly}
         tempUnit={tempUnit}
+        isUsingCachedData={isUsingCachedData}
+        cachedAt={cachedAt}
         onSelectStation={onSelectStation}
         onOpenSearchModal={onOpenSearchModal}
         onOpenGigaRadar={onOpenGigaRadar}
@@ -527,30 +543,18 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
       {activeProfileTab === 'classic' && (
         <div className="space-y-4">
-          {/* Row 3: Prévisions 7 jours & 24h (Gauche - 7 cols) + Nowcasting Précipitations (Droite - 5 cols) côte à côte */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
-            <div id="realtime-forecast-week" className="xl:col-span-7 scroll-mt-28 min-w-0">
-              <GrandDayAndWeekDetailedForecastCard
-                station={station}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                seniorMode={seniorMode}
-                simplifiedMode={simplifiedMode}
-                tempUnit={tempUnit}
-                onOpenDayAnalyzer={handleOpenDayAnalyzer}
-              />
-            </div>
-
-            <div id="realtime-precipitation" className="xl:col-span-5 scroll-mt-28 min-w-0">
-              <GigaPrecipitationNowcastingCard
-                weather={weather}
-                station={station}
-                hourly={hourly}
-                daily={daily}
-                seniorMode={seniorMode}
-              />
-            </div>
+          {/* Row 3: Prévisions Détaillées de la Journée (24h) & Semaine (7 Jours) sur toute la largeur */}
+          <div id="realtime-forecast-week" className="w-full scroll-mt-28 min-w-0">
+            <GrandDayAndWeekDetailedForecastCard
+              station={station}
+              weather={weather}
+              hourly={hourly}
+              daily={daily}
+              seniorMode={seniorMode}
+              simplifiedMode={simplifiedMode}
+              tempUnit={tempUnit}
+              onOpenDayAnalyzer={handleOpenDayAnalyzer}
+            />
           </div>
 
           {/* Row 4: Les 6 Jauges & indicateurs synoptiques sur une seule ligne horizontale (Humidité, Vent, UV, AQI, Pression, Pluie) */}
@@ -656,6 +660,17 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 />
               </div>
             )}
+          </div>
+
+          {/* Row 6: Prévisions Précipitations & Nowcasting Chirurgical (< 3h & < 24h) plus bas sur toute la largeur de la page */}
+          <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0">
+            <GigaPrecipitationNowcastingCard
+              weather={weather}
+              station={station}
+              hourly={hourly}
+              daily={daily}
+              seniorMode={seniorMode}
+            />
           </div>
         </div>
       )}
@@ -879,6 +894,19 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           )}
         </div>
         </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. BLOC FIABILITÉ THERMOMÉTRIQUE & CONTRÔLE STATISTIQUE (TOUT EN BAS)     */}
+      {/* ========================================================================= */}
+      <div id="realtime-thermometric-reliability" className="w-full scroll-mt-28 pt-1">
+        <TemperatureReliabilityCalibrationCard
+          station={station}
+          currentWeather={weather}
+          tempUnit={tempUnit}
+          onRecalibrate={onRecalibrate}
+          onReset={onResetRecalibration}
+        />
       </div>
 
       {/* 7-Day Day-by-Day Analyzer Modal */}

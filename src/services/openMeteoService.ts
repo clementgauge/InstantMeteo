@@ -1031,7 +1031,8 @@ function getCachedData<T>(key: string): T | null {
         memoryCache.set(key, parsed);
         return parsed.data as T;
       }
-      localStorage.removeItem(key);
+      // On conserve l'entrée dans localStorage (sans la supprimer) afin de pouvoir
+      // servir la dernière météo enregistrée en mode hors-ligne si la connexion coupe.
     }
   } catch (e) {
     // Ignore storage exceptions
@@ -1039,11 +1040,45 @@ function getCachedData<T>(key: string): T | null {
   return null;
 }
 
-function setCachedData<T>(key: string, data: T): void {
+function getOfflineCachedData<T>(key: string, stationId?: string): { data: T; timestamp: number } | null {
+  try {
+    const mem = memoryCache.get(key);
+    if (mem && mem.data) {
+      return { data: mem.data as T, timestamp: mem.timestamp };
+    }
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && parsed.data) {
+        return { data: parsed.data as T, timestamp: parsed.timestamp || Date.now() };
+      }
+    }
+    if (stationId) {
+      const lastGlobal = localStorage.getItem('instant_meteo_last_recorded_weather');
+      if (lastGlobal) {
+        const parsedGlobal = JSON.parse(lastGlobal);
+        if (parsedGlobal && parsedGlobal.stationId === stationId && parsedGlobal.data) {
+          return { data: parsedGlobal.data as T, timestamp: parsedGlobal.timestamp || Date.now() };
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore storage exceptions
+  }
+  return null;
+}
+
+function setCachedData<T>(key: string, data: T, stationId?: string): void {
   try {
     const entry = { timestamp: Date.now(), data };
     memoryCache.set(key, entry);
     localStorage.setItem(key, JSON.stringify(entry));
+    if (stationId) {
+      localStorage.setItem(
+        'instant_meteo_last_recorded_weather',
+        JSON.stringify({ stationId, timestamp: entry.timestamp, data })
+      );
+    }
   } catch (e) {
     // Ignore storage quota limits
   }
@@ -1057,8 +1092,28 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   hourly: HourlyForecast[];
   daily: DailyForecast[];
   anomaly: ClimateAnomaly;
+  isFromCache?: boolean;
+  cachedAt?: string;
 }> {
   const cacheKey = `meteo_cache_${station.id}_${station.latitude.toFixed(3)}_${station.longitude.toFixed(3)}`;
+
+  // Si l'utilisateur est hors-ligne, afficher immédiatement la dernière météo enregistrée en cache
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    const offlineEntry = getOfflineCachedData<{
+      current: CurrentWeather;
+      hourly: HourlyForecast[];
+      daily: DailyForecast[];
+      anomaly: ClimateAnomaly;
+    }>(cacheKey, station.id);
+    if (offlineEntry) {
+      const cachedAt = new Date(offlineEntry.timestamp).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return { ...offlineEntry.data, isFromCache: true, cachedAt };
+    }
+  }
+
   const cached = getCachedData<{
     current: CurrentWeather;
     hourly: HourlyForecast[];
@@ -1067,7 +1122,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   }>(cacheKey);
 
   if (cached) {
-    return cached;
+    return { ...cached, isFromCache: false };
   }
 
   try {
@@ -2250,11 +2305,29 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     };
 
     const result = { current, hourly, daily, anomaly };
-    setCachedData(cacheKey, result);
-    return result;
+    setCachedData(cacheKey, result, station.id);
+    return { ...result, isFromCache: false };
   } catch (error) {
-    console.error("Fetch weather error, falling back to simulated high-accuracy dataset", error);
-    return getFallbackWeatherData(station);
+    console.error("Fetch weather error, recovering last cached weather or fallback dataset", error);
+    const offlineEntry = getOfflineCachedData<{
+      current: CurrentWeather;
+      hourly: HourlyForecast[];
+      daily: DailyForecast[];
+      anomaly: ClimateAnomaly;
+    }>(cacheKey, station.id);
+    if (offlineEntry) {
+      const cachedAt = new Date(offlineEntry.timestamp).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return { ...offlineEntry.data, isFromCache: true, cachedAt };
+    }
+    const fallback = getFallbackWeatherData(station);
+    return {
+      ...fallback,
+      isFromCache: true,
+      cachedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    };
   }
 }
 
