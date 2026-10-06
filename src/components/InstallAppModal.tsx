@@ -212,52 +212,21 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
     setIsDownloadingWindows(false);
   };
 
-  // Robust multi-tier APK downloader
+  // Native browser download manager for APK (prevents in-memory blob truncation on Android)
   const handleTriggerApkDownload = async () => {
     setIsDownloadingApk(true);
     setApkDownloadSuccess(false);
 
     try {
-      // Strategy 1: Fetch as blob with explicit APK MIME type and trigger programmatic object URL download
-      const response = await fetch('/Instant-Meteo.apk');
-      if (response.ok) {
-        const blob = await response.blob();
-        const apkBlob = new Blob([blob], { type: 'application/vnd.android.package-archive' });
-        const blobUrl = window.URL.createObjectURL(apkBlob);
-        
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = 'Instant-Meteo.apk';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(blobUrl);
-        }, 1500);
-
-        setApkDownloadSuccess(true);
-        setIsDownloadingApk(false);
-        return;
-      }
-    } catch (e) {
-      console.warn('Blob download fallback triggered:', e);
-    }
-
-    // Strategy 2: Direct anchor download
-    try {
       const link = document.createElement('a');
       link.href = '/Instant-Meteo.apk';
       link.download = 'Instant-Meteo.apk';
-      link.target = '_blank';
       link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       setTimeout(() => document.body.removeChild(link), 500);
       setApkDownloadSuccess(true);
     } catch (e2) {
-      // Strategy 3: Window location or direct opening
       window.location.href = '/Instant-Meteo.apk';
       setApkDownloadSuccess(true);
     }

@@ -1842,6 +1842,15 @@ app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
   res.sendFile(gamePath);
 });
 
+app.get(['/Instant-Meteo.apk', '/Instant-Meteo-France.apk', '/ClimaFrance-Precision.apk'], (req, res) => {
+  const validBuiltApk = path.join(process.cwd(), '.build-outputs', 'app-debug.apk');
+  const publicApk = path.join(process.cwd(), 'public', 'Instant-Meteo.apk');
+  const targetApk = fs.existsSync(validBuiltApk) ? validBuiltApk : publicApk;
+  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+  res.setHeader('Content-Disposition', 'attachment; filename="Instant-Meteo.apk"');
+  res.sendFile(targetApk);
+});
+
 app.get('/robots.txt', (req, res) => {
   const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
