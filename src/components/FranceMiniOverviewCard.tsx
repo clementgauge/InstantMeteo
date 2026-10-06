@@ -64,6 +64,92 @@ const FRANCE_BOUNDS: L.LatLngBoundsLiteral = [
   [51.1, 9.6]   // Northeast (Dunkirk north / Alsace east)
 ];
 
+// Country bounding boxes & French display names for automatic country map framing
+const COUNTRY_MAP_PROFILES: Record<string, { labelFr: string; bounds: L.LatLngBoundsLiteral }> = {
+  'france': { labelFr: 'France', bounds: FRANCE_BOUNDS },
+  'united kingdom': { labelFr: 'Royaume-Uni', bounds: [[49.8, -8.6], [58.7, 1.8]] },
+  'royaume-uni': { labelFr: 'Royaume-Uni', bounds: [[49.8, -8.6], [58.7, 1.8]] },
+  'uk': { labelFr: 'Royaume-Uni', bounds: [[49.8, -8.6], [58.7, 1.8]] },
+  'great britain': { labelFr: 'Royaume-Uni', bounds: [[49.8, -8.6], [58.7, 1.8]] },
+  'england': { labelFr: 'Royaume-Uni', bounds: [[49.8, -8.6], [58.7, 1.8]] },
+  'spain': { labelFr: 'Espagne', bounds: [[36.0, -9.3], [43.8, 3.3]] },
+  'espagne': { labelFr: 'Espagne', bounds: [[36.0, -9.3], [43.8, 3.3]] },
+  'italy': { labelFr: 'Italie', bounds: [[36.6, 6.6], [47.1, 18.5]] },
+  'italie': { labelFr: 'Italie', bounds: [[36.6, 6.6], [47.1, 18.5]] },
+  'germany': { labelFr: 'Allemagne', bounds: [[47.2, 5.8], [55.1, 15.0]] },
+  'allemagne': { labelFr: 'Allemagne', bounds: [[47.2, 5.8], [55.1, 15.0]] },
+  'switzerland': { labelFr: 'Suisse', bounds: [[45.8, 5.9], [47.8, 10.5]] },
+  'suisse': { labelFr: 'Suisse', bounds: [[45.8, 5.9], [47.8, 10.5]] },
+  'belgium': { labelFr: 'Belgique', bounds: [[49.5, 2.5], [51.5, 6.4]] },
+  'belgique': { labelFr: 'Belgique', bounds: [[49.5, 2.5], [51.5, 6.4]] },
+  'netherlands': { labelFr: 'Pays-Bas', bounds: [[50.7, 3.3], [53.5, 7.2]] },
+  'pays-bas': { labelFr: 'Pays-Bas', bounds: [[50.7, 3.3], [53.5, 7.2]] },
+  'portugal': { labelFr: 'Portugal', bounds: [[36.9, -9.5], [42.2, -6.2]] },
+  'austria': { labelFr: 'Autriche', bounds: [[46.3, 9.5], [49.0, 17.2]] },
+  'autriche': { labelFr: 'Autriche', bounds: [[46.3, 9.5], [49.0, 17.2]] },
+  'ireland': { labelFr: 'Irlande', bounds: [[51.4, -10.5], [55.4, -6.0]] },
+  'irlande': { labelFr: 'Irlande', bounds: [[51.4, -10.5], [55.4, -6.0]] },
+  'greece': { labelFr: 'Grèce', bounds: [[34.8, 19.3], [41.7, 28.2]] },
+  'grèce': { labelFr: 'Grèce', bounds: [[34.8, 19.3], [41.7, 28.2]] },
+  'morocco': { labelFr: 'Maroc', bounds: [[27.6, -13.2], [35.9, -1.0]] },
+  'maroc': { labelFr: 'Maroc', bounds: [[27.6, -13.2], [35.9, -1.0]] },
+  'algeria': { labelFr: 'Algérie', bounds: [[28.0, -2.2], [37.1, 8.7]] },
+  'algérie': { labelFr: 'Algérie', bounds: [[28.0, -2.2], [37.1, 8.7]] },
+  'tunisia': { labelFr: 'Tunisie', bounds: [[32.0, 7.5], [37.5, 11.6]] },
+  'tunisie': { labelFr: 'Tunisie', bounds: [[32.0, 7.5], [37.5, 11.6]] },
+  'united states': { labelFr: 'États-Unis', bounds: [[24.5, -125.0], [49.4, -66.9]] },
+  'états-unis': { labelFr: 'États-Unis', bounds: [[24.5, -125.0], [49.4, -66.9]] },
+  'usa': { labelFr: 'États-Unis', bounds: [[24.5, -125.0], [49.4, -66.9]] },
+  'canada': { labelFr: 'Canada', bounds: [[42.0, -141.0], [65.0, -52.6]] },
+  'japan': { labelFr: 'Japon', bounds: [[30.0, 129.5], [45.5, 145.8]] },
+  'japon': { labelFr: 'Japon', bounds: [[30.0, 129.5], [45.5, 145.8]] },
+  'australia': { labelFr: 'Australie', bounds: [[-43.6, 113.3], [-10.7, 153.6]] },
+  'australie': { labelFr: 'Australie', bounds: [[-43.6, 113.3], [-10.7, 153.6]] },
+  'brazil': { labelFr: 'Brésil', bounds: [[-33.7, -73.9], [5.2, -34.7]] },
+  'brésil': { labelFr: 'Brésil', bounds: [[-33.7, -73.9], [5.2, -34.7]] },
+  'poland': { labelFr: 'Pologne', bounds: [[49.0, 14.1], [54.8, 24.1]] },
+  'pologne': { labelFr: 'Pologne', bounds: [[49.0, 14.1], [54.8, 24.1]] },
+  'norway': { labelFr: 'Norvège', bounds: [[57.9, 4.6], [71.2, 31.1]] },
+  'norvège': { labelFr: 'Norvège', bounds: [[57.9, 4.6], [71.2, 31.1]] },
+  'sweden': { labelFr: 'Suède', bounds: [[55.3, 11.1], [69.1, 24.2]] },
+  'suède': { labelFr: 'Suède', bounds: [[55.3, 11.1], [69.1, 24.2]] },
+};
+
+function resolveStationCountryProfile(station: LocationPoint): { isFrance: boolean; labelFr: string; bounds?: L.LatLngBoundsLiteral } {
+  const rawCountry = (station.country || '').trim();
+  const lowerCountry = rawCountry.toLowerCase();
+  const lowerName = (station.name || '').toLowerCase();
+
+  // Check explicit London / UK / foreign station names if country was not set
+  if (lowerName.includes('londres') || lowerName === 'london') {
+    return { isFrance: false, labelFr: 'Royaume-Uni', bounds: COUNTRY_MAP_PROFILES['royaume-uni'].bounds };
+  }
+
+  if (!rawCountry || lowerCountry === 'france' || lowerCountry === 'fr') {
+    return { isFrance: true, labelFr: 'France', bounds: FRANCE_BOUNDS };
+  }
+
+  if (COUNTRY_MAP_PROFILES[lowerCountry]) {
+    return {
+      isFrance: lowerCountry === 'france',
+      labelFr: COUNTRY_MAP_PROFILES[lowerCountry].labelFr,
+      bounds: COUNTRY_MAP_PROFILES[lowerCountry].bounds,
+    };
+  }
+
+  // Fallback for any other country on Earth: build a national bounding box around the city
+  const lat = station.latitude || 46.5;
+  const lon = station.longitude || 2.5;
+  return {
+    isFrance: false,
+    labelFr: rawCountry,
+    bounds: [
+      [Math.max(-85, lat - 4.2), lon - 5.5],
+      [Math.min(85, lat + 4.2), lon + 5.5],
+    ],
+  };
+}
+
 export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   currentStation,
   onSelectStation,
@@ -72,11 +158,19 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const [selectedSlot, setSelectedSlot] = useState<'current' | 'afternoon' | 'tomorrow'>('current');
   const [regionsData, setRegionsData] = useState<RegionWeather[]>(FRANCE_REGIONS);
   const [isExpandedPc, setIsExpandedPc] = useState<boolean>(false);
-  const [mapScope, setMapScope] = useState<'city' | 'france' | 'world'>('city');
+  // Par défaut, affiche directement le pays en global (France ou le pays de la ville demandée comme Royaume-Uni)
+  const [mapScope, setMapScope] = useState<'country' | 'city' | 'world'>('country');
+
+  const countryProfile = resolveStationCountryProfile(currentStation);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
+
+  // Quand l'utilisateur change de ville (ex: demande Londres -> affiche automatiquement le Royaume-Uni)
+  useEffect(() => {
+    setMapScope('country');
+  }, [currentStation.id, currentStation.name, currentStation.country]);
 
   // Fetch live weather codes for all 13 regions in a single request
   useEffect(() => {
@@ -201,16 +295,14 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
 
         mapInstanceRef.current = map;
 
-        // Initial View: Center on current station or France
-        if (currentStation && currentStation.latitude && currentStation.longitude) {
-          map.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
+        // Initial View: Center on country in global view (France or the station's country)
+        const sz = map.getSize();
+        if (countryProfile.bounds && sz.x > 0 && sz.y > 0) {
+          map.fitBounds(countryProfile.bounds, { padding: [8, 8], animate: false });
+        } else if (currentStation && currentStation.latitude && currentStation.longitude) {
+          map.setView([currentStation.latitude, currentStation.longitude], 5.5, { animate: false });
         } else {
-          const sz = map.getSize();
-          if (sz.x > 0 && sz.y > 0) {
-            map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8], animate: false });
-          } else {
-            map.setView([46.5, 2.5], 5.5, { animate: false });
-          }
+          map.setView([46.5, 2.5], 5.5, { animate: false });
         }
       } catch (err) {
         console.warn('[FranceMiniOverviewCard] Map init warning:', err);
@@ -223,9 +315,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
       try {
         mapInstanceRef.current.invalidateSize();
         if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
-          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
-        } else if (mapScope === 'france') {
-          mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8], animate: false });
+          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 9, { animate: false });
+        } else if (mapScope === 'country') {
+          if (countryProfile.bounds) {
+            mapInstanceRef.current.fitBounds(countryProfile.bounds, { padding: [8, 8], animate: false });
+          } else {
+            mapInstanceRef.current.setView([currentStation?.latitude || 46.5, currentStation?.longitude || 2.5], 5.5, { animate: false });
+          }
         } else {
           mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2, { animate: false });
         }
@@ -264,15 +360,19 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     try {
       if (mapScope === 'city' && currentStation?.latitude && currentStation?.longitude) {
         if (isVisible) {
-          map.flyTo([currentStation.latitude, currentStation.longitude], 7, { duration: 0.8 });
+          map.flyTo([currentStation.latitude, currentStation.longitude], 9, { duration: 0.8 });
         } else {
-          map.setView([currentStation.latitude, currentStation.longitude], 7, { animate: false });
+          map.setView([currentStation.latitude, currentStation.longitude], 9, { animate: false });
         }
-      } else if (mapScope === 'france') {
-        if (isVisible) {
-          map.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+      } else if (mapScope === 'country') {
+        if (countryProfile.bounds) {
+          if (isVisible) {
+            map.fitBounds(countryProfile.bounds, { padding: [8, 8] });
+          } else {
+            map.fitBounds(countryProfile.bounds, { padding: [8, 8], animate: false });
+          }
         } else {
-          map.setView([46.5, 2.5], 5.5, { animate: false });
+          map.setView([currentStation?.latitude || 46.5, currentStation?.longitude || 2.5], 5.5, { animate: false });
         }
       } else if (mapScope === 'world') {
         if (isVisible) {
@@ -284,7 +384,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     } catch {
       // Fallback if container was resizing during flyTo
     }
-  }, [currentStation.latitude, currentStation.longitude, currentStation.id, mapScope]);
+  }, [currentStation.latitude, currentStation.longitude, currentStation.id, currentStation.country, mapScope]);
 
   // Update Markers: Weather Symbols for regions + Active Marker for currentStation!
   useEffect(() => {
@@ -293,66 +393,67 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     const markersGroup = markersLayerRef.current;
     markersGroup.clearLayers();
 
-    // 1. Regional Weather Symbols
-    regionsData.forEach(reg => {
-      const isCurrentRegion = currentStation.region && 
-        (reg.name.toLowerCase().includes(currentStation.region.toLowerCase()) || 
-         currentStation.region.toLowerCase().includes(reg.name.toLowerCase()));
+    // 1. Regional Weather Symbols (displayed when viewing France or World)
+    if (countryProfile.isFrance || mapScope === 'world') {
+      regionsData.forEach(reg => {
+        const isCurrentRegion = currentStation.region && 
+          (reg.name.toLowerCase().includes(currentStation.region.toLowerCase()) || 
+           currentStation.region.toLowerCase().includes(reg.name.toLowerCase()));
 
-      const code = selectedSlot === 'current' 
-        ? reg.currentCode 
-        : selectedSlot === 'afternoon' 
-        ? reg.afternoonCode 
-        : reg.tomorrowCode;
+        const code = selectedSlot === 'current' 
+          ? reg.currentCode 
+          : selectedSlot === 'afternoon' 
+          ? reg.afternoonCode 
+          : reg.tomorrowCode;
 
-      const temp = selectedSlot === 'current' 
-        ? reg.currentTemp 
-        : selectedSlot === 'afternoon' 
-        ? reg.afternoonTemp 
-        : reg.tomorrowTemp;
+        const temp = selectedSlot === 'current' 
+          ? reg.currentTemp 
+          : selectedSlot === 'afternoon' 
+          ? reg.afternoonTemp 
+          : reg.tomorrowTemp;
 
-      const symbolSvg = getWeatherSymbolSvg(code);
-      const labelDesc = getWeatherLabel(code);
+        const symbolSvg = getWeatherSymbolSvg(code);
+        const labelDesc = getWeatherLabel(code);
 
-      // ONLY THE WEATHER SYMBOL: pure, elegant floating pictogram disc
-      const html = `
-        <div class="group cursor-pointer transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:scale-125" title="${reg.name} : ${labelDesc} (${temp}°C)">
-          <div class="flex items-center justify-center w-8 h-8 rounded-full shadow-md backdrop-blur-md transition-all ${
-            isCurrentRegion
-              ? 'bg-blue-600/90 text-white ring-2 ring-blue-400 scale-110 shadow-blue-500/40'
-              : 'bg-white/90 dark:bg-slate-900/90 hover:bg-white text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700/80'
-          }">
-            ${symbolSvg}
+        // ONLY THE WEATHER SYMBOL: pure, elegant floating pictogram disc
+        const html = `
+          <div class="group cursor-pointer transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 hover:scale-125" title="${reg.name} : ${labelDesc} (${temp}°C)">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full shadow-md backdrop-blur-md transition-all ${
+              isCurrentRegion
+                ? 'bg-blue-600/90 text-white ring-2 ring-blue-400 scale-110 shadow-blue-500/40'
+                : 'bg-white/90 dark:bg-slate-900/90 hover:bg-white text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700/80'
+            }">
+              ${symbolSvg}
+            </div>
           </div>
-        </div>
-      `;
+        `;
 
-      const customIcon = L.divIcon({
-        className: 'france-region-symbol-marker',
-        html,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        const customIcon = L.divIcon({
+          className: 'france-region-symbol-marker',
+          html,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const marker = L.marker([reg.lat, reg.lon], { icon: customIcon });
+
+        marker.bindTooltip(`<strong>${reg.name}</strong><br/>${labelDesc} • ${temp}°C`, {
+          direction: 'top',
+          offset: [0, -10],
+          opacity: 0.95
+        });
+
+        marker.on('click', () => {
+          handleRegionClick(reg);
+        });
+
+        marker.addTo(markersGroup);
       });
-
-      const marker = L.marker([reg.lat, reg.lon], { icon: customIcon });
-
-      marker.bindTooltip(`<strong>${reg.name}</strong><br/>${labelDesc} • ${temp}°C`, {
-        direction: 'top',
-        offset: [0, -10],
-        opacity: 0.95
-      });
-
-      marker.on('click', () => {
-        handleRegionClick(reg);
-      });
-
-      marker.addTo(markersGroup);
-    });
+    }
 
     // 2. Active Pulse Marker for the selected station anywhere in France or on Earth
-    // When zoomed to France or World, the city marker size is strongly reduced to a tiny discrete micro-point so it does not clutter the regional view
     if (currentStation && currentStation.latitude && currentStation.longitude) {
-      const isMacroScope = mapScope === 'france' || mapScope === 'world';
+      const isMacroScope = (mapScope === 'country' && countryProfile.isFrance) || mapScope === 'world';
 
       const currentStationHtml = isMacroScope
         ? `
@@ -407,9 +508,13 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
       if (mapScope === 'city') {
-        mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], 7);
-      } else if (mapScope === 'france') {
-        mapInstanceRef.current.fitBounds(FRANCE_BOUNDS, { padding: [8, 8] });
+        mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], 9);
+      } else if (mapScope === 'country') {
+        if (countryProfile.bounds) {
+          mapInstanceRef.current.fitBounds(countryProfile.bounds, { padding: [8, 8] });
+        } else {
+          mapInstanceRef.current.setView([currentStation.latitude, currentStation.longitude], 5.5);
+        }
       } else {
         mapInstanceRef.current.setView([20, currentStation?.longitude || 0], 2);
       }
@@ -440,8 +545,6 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     }, 200);
   };
 
-  const isFrenchLocation = !currentStation.country || currentStation.country === 'France';
-
   return (
     <div className={`h-full flex flex-col rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-[#0c1424]/90 p-2.5 sm:p-3 shadow-md backdrop-blur-xl relative overflow-hidden transition-all duration-300 ${
       isExpandedPc ? 'ring-2 ring-blue-500/50 shadow-xl' : ''
@@ -454,29 +557,38 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           </div>
           <div className="truncate">
             <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none truncate">
-              {mapScope === 'france' 
-                ? 'Carte Météo Direct • France' 
+              {mapScope === 'country' 
+                ? `Carte Météo Direct • ${countryProfile.labelFr}` 
                 : mapScope === 'world' 
                 ? 'Carte Météo Direct • Monde' 
-                : isFrenchLocation 
-                ? `Carte Météo Direct • ${currentStation.name}` 
-                : `Carte Météo Globale • ${currentStation.name}`}
+                : `Carte Météo Direct • ${currentStation.name}`}
             </h3>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              {mapScope === 'france'
-                ? 'Synthèse météo des régions françaises'
+              {mapScope === 'country'
+                ? countryProfile.isFrance
+                  ? 'Synthèse météo des régions françaises'
+                  : `Vue nationale (${countryProfile.labelFr}) • ${currentStation.name}`
                 : mapScope === 'world'
                 ? 'Vue atmosphérique globale'
-                : currentStation.country 
-                ? `${currentStation.name} (${currentStation.country}) • ${currentStation.altitude}m` 
-                : `${currentStation.name} (${currentStation.altitude}m)`}
+                : `${currentStation.name} (${countryProfile.labelFr}) • ${currentStation.altitude}m`}
             </span>
           </div>
         </div>
 
-        {/* Scope Selector: Ma Ville / France / Monde */}
+        {/* Scope Selector: Pays (France / Royaume-Uni / etc.) en premier, puis Ma Ville, puis Monde */}
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-800 text-[11px]">
+            <button
+              onClick={() => setMapScope('country')}
+              className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
+                mapScope === 'country'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title={`Vue d'ensemble (${countryProfile.labelFr})`}
+            >
+              {countryProfile.labelFr}
+            </button>
             <button
               onClick={() => setMapScope('city')}
               className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
@@ -487,17 +599,6 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
               title="Centrer sur ma ville sélectionnée"
             >
               Ma Ville
-            </button>
-            <button
-              onClick={() => setMapScope('france')}
-              className={`px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
-                mapScope === 'france'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-              title="Vue d'ensemble de la France métropolitaine"
-            >
-              France
             </button>
             <button
               onClick={() => setMapScope('world')}
