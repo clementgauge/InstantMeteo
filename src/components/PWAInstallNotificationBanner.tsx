@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Smartphone, Monitor, X, Share2, CheckCircle2, BellRing, Sparkles, MoreVertical } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { getCurrentVersionSignature, getUpdateSignature, AppVersionInfo } from '../services/appUpdateCheckerService';
 
 interface PWAInstallNotificationBannerProps {
   onOpenInstallModal?: () => void;
 }
 
-const DISMISS_SESSION_KEY = 'instant_meteo_install_notif_dismissed_session';
+const DISMISSED_INSTALL_SIG_KEY = 'instant_meteo_install_notif_dismissed_sig';
 
 export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBannerProps> = ({
   onOpenInstallModal,
@@ -16,6 +17,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [downloadTriggered, setDownloadTriggered] = useState(false);
+  const [currentVersionSig, setCurrentVersionSig] = useState<string>('default-v2.5.0');
 
   useEffect(() => {
     if (isInstalled) {
@@ -23,53 +25,88 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       return;
     }
 
-    try {
-      if (sessionStorage.getItem(DISMISS_SESSION_KEY) === '1') {
-        return;
-      }
-    } catch {
-      // ignore storage restriction
-    }
+    let cancelled = false;
+    let timer: number | null = null;
 
-    // Show the browser/system-style download notification after 1.5s on PC and Mobile (Chrome, Firefox, Brave, Edge, Safari, etc.)
-    const timer = window.setTimeout(() => {
-      setVisible(true);
+    getCurrentVersionSignature().then((sig) => {
+      if (cancelled) return;
+      setCurrentVersionSig(sig);
 
-      // If Web Notification permission is already granted by the browser, also fire a native system notification
       try {
-        if (
-          typeof window !== 'undefined' &&
-          'Notification' in window &&
-          Notification.permission === 'granted' &&
-          !sessionStorage.getItem('instant_meteo_native_install_notified')
-        ) {
-          sessionStorage.setItem('instant_meteo_native_install_notified', '1');
-          const n = new Notification('Instant Météo — Application disponible', {
-            body: `Installez l'application Instant Météo sur votre ${
-              deviceProfile.isMobile ? `téléphone (${deviceProfile.osName})` : `ordinateur (${deviceProfile.osName})`
-            } via ${deviceProfile.browserName}.`,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag: 'instant-meteo-install-offer',
-          });
-          n.onclick = () => {
-            window.focus();
-            handlePrimaryInstallAction();
-            n.close();
-          };
+        const dismissedSig = localStorage.getItem(DISMISSED_INSTALL_SIG_KEY);
+        // Si l'utilisateur a déjà cliqué sur OK pour cette version précise, on n'affiche plus la notif
+        // sauf s'il y a une mise à jour différente (nouvelle signature de version)
+        if (dismissedSig && dismissedSig === sig) {
+          return;
         }
       } catch {
-        // Ignore if native Notification constructor is restricted
+        // ignore storage restriction
       }
-    }, 1500);
 
-    return () => clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        setVisible(true);
+
+        try {
+          if (
+            typeof window !== 'undefined' &&
+            'Notification' in window &&
+            Notification.permission === 'granted' &&
+            localStorage.getItem('instant_meteo_native_install_sig') !== sig
+          ) {
+            localStorage.setItem('instant_meteo_native_install_sig', sig);
+            const n = new Notification('Instant Météo — Application PWA disponible', {
+              body: deviceProfile.isMobile
+                ? `Installez l'application PWA Instant Météo avec son logo officiel sur votre téléphone (${deviceProfile.osName}).`
+                : `Installez l'application Instant Météo sur votre ordinateur (${deviceProfile.osName}) via ${deviceProfile.browserName}.`,
+              icon: '/icon-192.png',
+              badge: '/icon-192.png',
+              tag: 'instant-meteo-install-offer',
+            });
+            n.onclick = () => {
+              window.focus();
+              handlePrimaryInstallAction();
+              n.close();
+            };
+          }
+        } catch {
+          // Ignore if native Notification constructor is restricted
+        }
+      }, 1500);
+    });
+
+    // Si une nouvelle mise à jour différente arrive en direct, réautoriser la proposition si l'app n'est pas installée
+    const handleNewUpdate = (e: Event) => {
+      const info = (e as CustomEvent<AppVersionInfo>).detail;
+      if (info && !isInstalled) {
+        const newSig = getUpdateSignature(info);
+        setCurrentVersionSig(newSig);
+        try {
+          const dismissedSig = localStorage.getItem(DISMISSED_INSTALL_SIG_KEY);
+          if (dismissedSig !== newSig) {
+            setVisible(true);
+          }
+        } catch {
+          setVisible(true);
+        }
+      }
+    };
+
+    window.addEventListener('instant_meteo_code_update_available', handleNewUpdate as EventListener);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('instant_meteo_code_update_available', handleNewUpdate as EventListener);
+    };
   }, [isInstalled, deviceProfile]);
 
   const handleDismiss = () => {
     setVisible(false);
+    setShowAndroidGuide(false);
+    setShowIOSGuide(false);
     try {
-      sessionStorage.setItem(DISMISS_SESSION_KEY, '1');
+      localStorage.setItem(DISMISSED_INSTALL_SIG_KEY, currentVersionSig);
     } catch {
       // ignore
     }
@@ -86,8 +123,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       setTimeout(() => document.body.removeChild(a), 500);
       setDownloadTriggered(true);
       setTimeout(() => {
-        setVisible(false);
-        setShowAndroidGuide(false);
+        handleDismiss();
       }, 2200);
     } catch {
       if (onOpenInstallModal) onOpenInstallModal();
@@ -100,20 +136,19 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       const accepted = await install();
       if (accepted) {
         setDownloadTriggered(true);
-        setTimeout(() => setVisible(false), 1500);
+        setTimeout(() => handleDismiss(), 1500);
         return;
       }
     }
 
-    // 2. iOS Safari / iPhone / iPad
+    // 2. iOS Safari / iPhone / iPad (PWA)
     if (isIOS) {
       setShowIOSGuide(true);
       return;
     }
 
-    // 3. Android (Brave, Firefox, Chrome, Samsung Internet when beforeinstallprompt wasn't exposed)
-    // Open the dedicated Android install helper (PWA 1-click via browser menu + direct signed APK option)
-    if (deviceProfile.isAndroid) {
+    // 3. Android / Téléphone (PWA officielle avec logo sur l'écran d'accueil)
+    if (deviceProfile.isAndroid || deviceProfile.isMobile) {
       setShowAndroidGuide(true);
       return;
     }
@@ -144,18 +179,21 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       {/* Browser & System Style Notification Banner (Top-Right on PC, Top Floating on Mobile) */}
       <div
         role="region"
-        aria-label="Notification d'installation de l'application Instant Météo"
-        className="fixed top-16 sm:top-20 right-2.5 sm:right-5 left-2.5 sm:left-auto z-[9990] sm:w-[410px] rounded-2xl border border-blue-500/40 bg-slate-950/95 dark:bg-slate-950/95 text-white p-3.5 sm:p-4 shadow-2xl shadow-blue-950/60 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-300"
+        aria-label="Notification d'installation de l'application PWA Instant Météo"
+        className="fixed top-16 sm:top-20 right-2.5 sm:right-5 left-2.5 sm:left-auto z-[9990] sm:w-[420px] rounded-2xl border border-blue-500/40 bg-slate-950/95 dark:bg-slate-950/95 text-white p-3.5 sm:p-4 shadow-2xl shadow-blue-950/60 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-300"
       >
         <div className="flex items-start gap-3">
-          {/* App Icon with Notification Badge */}
+          {/* Official App Logo with PWA Badge */}
           <div className="relative shrink-0">
             <img
               src="/icon-192.png"
-              alt="Instant Météo"
-              className="w-11 h-11 rounded-xl border border-blue-400/40 shadow-md object-cover bg-slate-900"
+              alt="Logo Officiel Instant Météo PWA"
+              className="w-12 h-12 rounded-2xl border-2 border-blue-400/50 shadow-lg shadow-blue-500/20 object-cover bg-slate-900"
             />
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white ring-2 ring-slate-950">
+            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-md bg-gradient-to-r from-emerald-500 to-teal-500 text-[8px] font-black uppercase text-white ring-2 ring-slate-950 shadow">
+              PWA
+            </span>
+            <span className="absolute -top-1 -left-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white ring-2 ring-slate-950">
               <BellRing className="w-2.5 h-2.5 animate-bounce" />
             </span>
           </div>
@@ -170,14 +208,14 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
                   <Monitor className="w-3 h-3 text-sky-400" />
                 )}
                 <span>
-                  {deviceProfile.browserName} &bull; {deviceProfile.osName}
+                  {deviceProfile.browserName} &bull; {deviceProfile.osName} &bull; Application PWA
                 </span>
               </span>
               <button
                 type="button"
                 onClick={handleDismiss}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Fermer la notification"
+                title="Fermer jusqu'à la prochaine mise à jour"
                 aria-label="Fermer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -185,19 +223,19 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
             </div>
 
             <h4 className="text-xs sm:text-sm font-black text-white leading-snug mt-0.5">
-              Installer l’application Instant Météo
+              {deviceProfile.isMobile
+                ? 'Installer l’application PWA Instant Météo'
+                : 'Installer l’application Instant Météo'}
             </h4>
             <p className="text-[11px] text-slate-300 leading-snug mt-0.5">
-              {isInstallable
-                ? `Installez l'application en 1 clic depuis ${deviceProfile.browserName} (${deviceProfile.osName}) pour un accès direct et hors-ligne.`
-                : deviceProfile.isAndroid
-                ? `Installez l'application Instant Météo sur votre téléphone Android (${deviceProfile.browserName}) sans passer par le Play Store.`
-                : isIOS
-                ? `Ajoutez l'application Instant Météo sur l'écran d'accueil de votre ${deviceProfile.osName}.`
-                : `Téléchargez l'application bureau Instant Météo pour ${deviceProfile.osName} (${deviceProfile.browserName}).`}
+              {deviceProfile.isMobile
+                ? `Ajoutez l'application PWA officielle avec le logo Instant Météo sur l'écran d'accueil de votre téléphone (${deviceProfile.browserName}) en 1 clic, sans fichier APK.`
+                : isInstallable
+                ? `Installez l'application PWA avec le logo officiel depuis ${deviceProfile.browserName} (${deviceProfile.osName}) pour un accès direct.`
+                : `Téléchargez et installez l'application Instant Météo avec son logo officiel sur ${deviceProfile.osName} (${deviceProfile.browserName}).`}
             </p>
 
-            {/* Action Buttons */}
+            {/* Action Buttons: Installer PWA + Bouton OK + Options */}
             <div className="flex items-center gap-2 mt-2.5">
               <button
                 type="button"
@@ -207,22 +245,30 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
                 {downloadTriggered ? (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
-                    <span>Installation lancée !</span>
+                    <span>Installation PWA lancée !</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-3.5 h-3.5" />
+                    <img src="/icon-192.png" alt="" className="w-4 h-4 rounded-md object-cover border border-white/30" />
                     <span>
-                      {isInstallable
-                        ? 'Installer l’application'
-                        : deviceProfile.isAndroid
-                        ? 'Installer sur Android'
-                        : isIOS
-                        ? 'Installer sur iPhone/iPad'
+                      {deviceProfile.isMobile
+                        ? 'Installer la PWA'
+                        : isInstallable
+                        ? 'Installer l’application PWA'
                         : 'Télécharger sur PC'}
                     </span>
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-black text-white shadow-md shadow-emerald-600/25 transition active:scale-95 cursor-pointer shrink-0"
+                title="OK — Ne plus afficher cette notification sauf lors d'une prochaine mise à jour différente"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>OK</span>
               </button>
 
               {onOpenInstallModal && (
@@ -235,7 +281,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
                   className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold text-slate-200 transition cursor-pointer shrink-0"
                 >
                   <Sparkles className="w-3 h-3 text-amber-400" />
-                  <span>Options</span>
+                  <span>Guide</span>
                 </button>
               )}
             </div>
@@ -243,19 +289,28 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
         </div>
       </div>
 
-      {/* Android (Brave / Chrome / Firefox) Instant Install Modal */}
+      {/* Téléphone Android (Brave / Chrome / Firefox / Samsung) — Installation PWA Officielle avec Logo */}
       {showAndroidGuide && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-blue-500/40 bg-slate-900 p-5 text-white shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-2xl border border-emerald-500/40 bg-slate-900 p-5 text-white shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img src="/icon-192.png" alt="Instant Météo" className="w-10 h-10 rounded-xl border border-blue-400/30" />
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <img
+                    src="/icon-192.png"
+                    alt="Logo Officiel Instant Météo"
+                    className="w-12 h-12 rounded-2xl border-2 border-emerald-400/50 shadow-lg object-cover"
+                  />
+                  <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-emerald-600 text-[9px] font-black text-white">
+                    PWA
+                  </span>
+                </div>
                 <div>
                   <h3 className="text-sm font-black text-white">
-                    Installer sur Android ({deviceProfile.browserName})
+                    Application PWA Instant Météo ({deviceProfile.browserName})
                   </h3>
-                  <p className="text-[11px] text-sky-400 font-semibold">
-                    2 méthodes rapides disponibles
+                  <p className="text-[11px] text-emerald-400 font-semibold">
+                    Installation directe avec le logo officiel sur votre écran d’accueil
                   </p>
                 </div>
               </div>
@@ -268,20 +323,51 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
               </button>
             </div>
 
-            {/* Method 1: Direct Browser WebApp Install (Works 100% on Brave, Chrome, Firefox without APK parsing issues) */}
+            {/* Aperçu visuel de l'icône PWA avec le logo sur le téléphone */}
+            <div className="flex items-center gap-3.5 rounded-xl bg-slate-950/90 border border-slate-800 p-3">
+              <img
+                src="/icon-512.png"
+                alt="Icône Instant Météo"
+                className="w-14 h-14 rounded-2xl border border-blue-400/40 shadow-md object-cover shrink-0"
+              />
+              <div className="space-y-0.5">
+                <div className="inline-flex items-center gap-1.5 text-xs font-black text-white">
+                  <span>Logo officiel Instant Météo</span>
+                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold">
+                    Sans fichier APK
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  L’application <strong>PWA</strong> s’installe instantanément avec son vrai logo sur votre téléphone, en plein écran et sans erreur d’analyse de package.
+                </p>
+              </div>
+            </div>
+
+            {isInstallable && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await install();
+                  if (ok) handleDismiss();
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 py-3 px-4 text-xs font-black text-white shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+              >
+                <img src="/icon-192.png" alt="" className="w-4 h-4 rounded object-cover" />
+                <span>Installer la PWA maintenant (1 clic)</span>
+              </button>
+            )}
+
+            {/* Étapes d'installation PWA sur Brave, Chrome, Firefox */}
             <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-3.5 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-400">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Méthode 1 (Recommandée sur {deviceProfile.browserName})
+                  Installation PWA sur {deviceProfile.browserName}
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
-                  Sans erreur de package
+                  100% Compatible
                 </span>
               </div>
-              <p className="text-xs text-slate-200 leading-relaxed">
-                Installe directement l’application officielle depuis <strong>{deviceProfile.browserName}</strong> sans aucun blocage de sécurité Android :
-              </p>
               <div className="space-y-2 text-xs text-slate-100 bg-slate-950/80 p-3 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">
@@ -300,51 +386,43 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
                     2
                   </span>
                   <span>
-                    Appuyez sur <strong>« Installer l’application »</strong> ou <strong>« Ajouter à l’écran d’accueil »</strong>.
+                    Appuyez sur <strong>« Installer l’application »</strong> ou <strong>« Ajouter à l’écran d’accueil »</strong> pour placer le logo <strong>Instant Météo</strong> sur votre téléphone.
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Method 2: Signed Native APK Download */}
-            <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-3.5 space-y-2">
-              <div className="text-[11px] font-bold text-slate-300">
-                Méthode 2 : Télécharger le paquet APK Android signé (23 Mo)
-              </div>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => triggerDirectFileDownload('/Instant-Meteo.apk', 'Instant-Meteo.apk')}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 py-2.5 px-4 text-xs font-black text-white shadow-md transition cursor-pointer"
+                onClick={handleDismiss}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-black text-white transition cursor-pointer"
               >
-                <Download className="w-4 h-4" />
-                <span>Télécharger Instant-Meteo.apk (v2 signé)</span>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>OK</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAndroidGuide(false)}
+                className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2.5 text-xs font-bold text-slate-200 transition cursor-pointer"
+              >
+                Retour
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowAndroidGuide(false);
-                handleDismiss();
-              }}
-              className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-xs font-bold text-slate-200 transition cursor-pointer"
-            >
-              Fermer
-            </button>
           </div>
         </div>
       )}
 
-      {/* iOS Safari Guided Install Modal */}
+      {/* iOS Safari Guided PWA Install Modal */}
       {showIOSGuide && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 text-white shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <img src="/icon-192.png" alt="Instant Météo" className="w-9 h-9 rounded-xl" />
+                <img src="/icon-192.png" alt="Logo Officiel Instant Météo" className="w-11 h-11 rounded-2xl border border-blue-400/40" />
                 <div>
-                  <h3 className="text-sm font-black text-white">Installer sur iPhone / iPad</h3>
-                  <p className="text-[11px] text-slate-400">Application Instant Météo (iOS)</p>
+                  <h3 className="text-sm font-black text-white">Installer la PWA sur iPhone / iPad</h3>
+                  <p className="text-[11px] text-sky-400 font-semibold">Application PWA avec logo officiel</p>
                 </div>
               </div>
               <button
@@ -371,20 +449,18 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
                   2
                 </span>
                 <span>
-                  Faites défiler et appuyez sur <strong>« Sur l’écran d’accueil »</strong>.
+                  Appuyez sur <strong>« Sur l’écran d’accueil »</strong> pour installer la PWA avec le logo <strong>Instant Météo</strong>.
                 </span>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => {
-                setShowIOSGuide(false);
-                handleDismiss();
-              }}
-              className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 py-2.5 text-xs font-black text-white transition cursor-pointer"
+              onClick={handleDismiss}
+              className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-black text-white transition cursor-pointer"
             >
-              J’ai compris
+              <CheckCircle2 className="w-4 h-4" />
+              <span>OK</span>
             </button>
           </div>
         </div>

@@ -1,12 +1,12 @@
 {
-  "version": "2.5.0",
-  "buildId": "build-20261006-250",
-  "updatedAt": "2026-10-06T17:12:00.000Z",
-  "title": "APK Android signé v2 (Brave/Chrome), Zones Météo Mondiales & Jeu 3D",
-  "changelog": "Correction de l'installation APK sur Android (Brave/Chrome), ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
+  "version": "2.5.1",
+  "buildId": "build-20261006-251",
+  "updatedAt": "2026-10-06T17:48:00.000Z",
+  "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
+  "changelog": "Remplacement de l'APK par l'application PWA avec le logo officiel sur téléphone, ajout du bouton OK sur les notifications (mise à jour et installation) qui ne réapparaissent qu'en cas de nouvelle mise à jour différente, et météo par zones mondiales.",
   "changes": [
-    "📱 Android (Brave, Chrome, Firefox) : Correction de l'erreur « problème lors de l'analyse du package » avec un nouvel APK signé v1 + v2 universel",
-    "💻 Notification d'installation intelligente sur PC et mobile (Chrome, Firefox, Brave, Edge, Safari)",
+    "📱 Téléphone (Android & iOS) : Remplacement de l'APK par l'installation directe en PWA avec le logo officiel Instant Météo",
+    "✅ Bouton OK sur la notification de mise à jour et d'installation : une fois validé, la notification ne s'affiche plus sauf s'il y a une mise à jour différente",
     "🇬🇧 Météo par zones pour tous les pays : 11 régions météo en direct pour le Royaume-Uni / Angleterre et découpage dynamique mondial",
     "🗺️ Mini-carte interactive : Affichage prioritaire du pays de la ville recherchée (ex: Londres → Royaume-Uni) avant la ville et le monde",
     "🎮 Jeu Paratonnerre 3D : Chargement instantané dans l'application sans blocage par le routeur SEO",
@@ -14,28 +14,27 @@
   ],
   "history": [
     {
+      "version": "2.5.1",
+      "buildId": "build-20261006-251",
+      "updatedAt": "2026-10-06T17:48:00.000Z",
+      "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
+      "changelog": "Installation PWA avec logo officiel sur téléphone (sans APK) et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
+      "changes": [
+        "📱 Téléphone : Application PWA officielle avec logo Instant Météo à la place de l'APK",
+        "✅ Bouton OK sur les notifications de mise à jour et d'installation (mémorisé jusqu'à une mise à jour différente)"
+      ]
+    },
+    {
       "version": "2.5.0",
       "buildId": "build-20261006-250",
-      "updatedAt": "2026-10-06T16:55:00.000Z",
-      "title": "APK Android signé v2 (Brave/Chrome), Zones Météo Mondiales & Jeu 3D",
-      "changelog": "Correction de l'installation APK sur Android (Brave/Chrome), ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
+      "updatedAt": "2026-10-06T17:12:00.000Z",
+      "title": "Zones Météo Mondiales, Jeu Paratonnerre 3D & Journal de mise à jour",
+      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, réparation du jeu 3D et journal de mise à jour détaillé en temps réel.",
       "changes": [
-        "📱 APK Android signé v1 + v2 compatible Brave, Chrome et Firefox sans erreur d'analyse du package",
         "🇬🇧 Données météo en direct par zones régionales pour le Royaume-Uni (11 zones) et tous les pays du monde",
         "🗺️ Bascule automatique de la carte sur le pays de la ville sélectionnée (France, Royaume-Uni, Espagne, etc.)",
         "🎮 Correction du chargement du jeu Paratonnerre 3D — Les gardiens de l'orage",
         "⚡ Détail exact des nouveautés affiché dans la notification de mise à jour"
-      ]
-    },
-    {
-      "version": "2.4.5",
-      "buildId": "build-20261006-245",
-      "updatedAt": "2026-10-06T15:10:00.000Z",
-      "title": "Jeu Paratonnerre 3D & Météo régionale Royaume-Uni",
-      "changelog": "Correction du jeu 3D autonome et ajout des prévisions régionales en direct pour l'Angleterre et les pays étrangers.",
-      "changes": [
-        "🎮 Réparation de l'écran du jeu Paratonnerre 3D",
-        "🌍 Ajout des synthèses météo par zone pour l'Angleterre et l'international"
       ]
     },
     {

@@ -924,15 +924,24 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               <span>Windows</span>
             </a>
 
-            <a
-              href="/Instant-Meteo.apk"
-              download="Instant-Meteo.apk"
-              title="Télécharger le package APK direct pour smartphone Android"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
+            <button
+              type="button"
+              onClick={async () => {
+                const promptEvt = (window as any).__deferredPwaPrompt;
+                if (promptEvt) {
+                  try {
+                    await promptEvt.prompt();
+                    return;
+                  } catch {}
+                }
+                if (onOpenInstallModal) onOpenInstallModal();
+              }}
+              title="Installer l'application PWA avec le logo officiel sur téléphone ou PC"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
             >
-              <Download className="h-3 w-3" />
-              <span>APK</span>
-            </a>
+              <img src="/icon-32.png" alt="Logo" className="h-3.5 w-3.5 rounded-sm object-cover" />
+              <span>PWA</span>
+            </button>
 
             {onOpenInstallModal && (
               <button

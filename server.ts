@@ -1845,8 +1845,8 @@ app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
 const FILE_FEATURE_DESCRIPTIONS: Record<string, string> = {
   'FranceMiniOverviewCard.tsx': '🗺️ Mini-carte météo interactive par zones et régions (France, Royaume-Uni & Monde)',
   'FranceMapView.tsx': '🗺️ Carte de France & Synthèse régionale des températures et vigilances',
-  'InstallAppModal.tsx': '📱 Installation de l’application & Package APK Android signé v2 (Brave / Chrome / Firefox)',
-  'PWAInstallNotificationBanner.tsx': '💻 Notification d’installation intelligente multi-navigateurs (PC & Mobile)',
+  'InstallAppModal.tsx': '📱 Installation de l’application PWA avec le logo officiel sur Téléphone (Android & iOS) et PC',
+  'PWAInstallNotificationBanner.tsx': '💻 Notification d’installation PWA avec logo officiel et bouton OK mémorisé par version',
   'Instant-Meteo.apk': '📦 Package APK Android natif signé v1 + v2 universel (sans erreur d’analyse du package)',
   'WeatherGameModal.tsx': '🎮 Jeu Paratonnerre 3D — Les gardiens de l’orage (chargement direct intégré)',
   'paratonnerre.html': '🎮 Moteur 3D du jeu Paratonnerre — Les gardiens de l’orage',

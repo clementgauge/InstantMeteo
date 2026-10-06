@@ -35,30 +35,20 @@ export const UpdateNotificationPrompt: React.FC<UpdateNotificationPromptProps> =
   }, []);
 
   useEffect(() => {
-    let timer: number | null = null;
-
     // Écoute automatique des changements de code en direct
     const unsubscribe = onAppUpdateDetected((info) => {
       console.log('[UpdateNotificationPrompt] Mise à jour détectée:', info);
       setUpdateInfo(info);
-
-      if (timer) clearTimeout(timer);
-      // Auto-fermeture après 20 secondes tout en marquant ce build comme vu
-      timer = window.setTimeout(() => {
-        markUpdateAsSeen(info.buildId);
-        setUpdateInfo(null);
-      }, 20000);
     });
 
     return () => {
       unsubscribe();
-      if (timer) clearTimeout(timer);
     };
   }, []);
 
   const handleDismiss = () => {
     if (updateInfo) {
-      markUpdateAsSeen(updateInfo.buildId);
+      markUpdateAsSeen(updateInfo);
     }
     setUpdateInfo(null);
   };
@@ -184,12 +174,22 @@ export const UpdateNotificationPrompt: React.FC<UpdateNotificationPromptProps> =
             </div>
           )}
 
-          {/* Actions en bas de la notif : Actualiser + Profil + Admin */}
+          {/* Actions en bas de la notif : Bouton OK + Actualiser + Profil + Admin */}
           <div className="pt-2 mt-1 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => applyAppUpdate(updateInfo.buildId)}
+                onClick={handleDismiss}
+                className="inline-flex items-center gap-1 px-3.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/30 transition active:scale-95 cursor-pointer"
+                title="Valider et ne plus afficher cette notification jusqu'à la prochaine mise à jour différente"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                <span>OK</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyAppUpdate(updateInfo)}
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-200 font-bold text-[10px] transition cursor-pointer"
               >
                 <RefreshCw className="h-3 w-3 text-cyan-300" />

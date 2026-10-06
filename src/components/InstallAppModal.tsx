@@ -39,14 +39,11 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   isFullscreen,
   onToggleFullscreen
 }) => {
-  const [activeTab, setActiveTab] = useState<'apk' | 'android' | 'ios' | 'windows' | 'fullscreen'>('apk');
+  const [activeTab, setActiveTab] = useState<'android' | 'ios' | 'windows' | 'fullscreen'>('android');
   const [copied, setCopied] = useState(false);
-  const [copiedApkUrl, setCopiedApkUrl] = useState(false);
   const [copiedWindowsCmdUrl, setCopiedWindowsCmdUrl] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
-  const [isDownloadingApk, setIsDownloadingApk] = useState(false);
-  const [apkDownloadSuccess, setApkDownloadSuccess] = useState(false);
   const [isDownloadingWindows, setIsDownloadingWindows] = useState(false);
   const [windowsDownloadSuccess, setWindowsDownloadSuccess] = useState(false);
 
@@ -54,10 +51,6 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   const appUrl = typeof window !== 'undefined' 
     ? (window.location.origin.includes('run.app') ? window.location.href.split('?')[0] : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app')
     : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app';
-
-  const apkUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/Instant-Meteo.apk`
-    : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app/Instant-Meteo.apk';
 
   const windowsCmdUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/Instant-Meteo-Windows.cmd`
@@ -107,18 +100,6 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
     }
   };
 
-  const handleCopyApkLink = async () => {
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(apkUrl);
-        setCopiedApkUrl(true);
-        setTimeout(() => setCopiedApkUrl(false), 3000);
-      }
-    } catch (err) {
-      console.error('Erreur copie APK URL:', err);
-    }
-  };
-
   const handleCopyWindowsCmdLink = async () => {
     try {
       if (navigator.clipboard) {
@@ -136,7 +117,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
       try {
         await navigator.share({
           title: 'Instant Météo - Prévisions & Radar HD',
-          text: 'Téléchargez et installez l\'application Instant Météo sur votre ordinateur ou téléphone !',
+          text: 'Téléchargez et installez l\'application PWA Instant Météo sur votre téléphone ou ordinateur !',
           url: appUrl,
         });
       } catch (err) {
@@ -212,49 +193,34 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
     setIsDownloadingWindows(false);
   };
 
-  // Native browser download manager for APK (prevents in-memory blob truncation on Android)
-  const handleTriggerApkDownload = async () => {
-    setIsDownloadingApk(true);
-    setApkDownloadSuccess(false);
-
-    try {
-      const link = document.createElement('a');
-      link.href = '/Instant-Meteo.apk';
-      link.download = 'Instant-Meteo.apk';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => document.body.removeChild(link), 500);
-      setApkDownloadSuccess(true);
-    } catch (e2) {
-      window.location.href = '/Instant-Meteo.apk';
-      setApkDownloadSuccess(true);
-    }
-
-    setIsDownloadingApk(false);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
-        {/* Modal Header */}
+        {/* Modal Header with Official Logo */}
         <div className="border-b border-slate-800 bg-gradient-to-r from-blue-950/80 via-slate-900 to-indigo-950/80 p-5 sm:p-6 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 border border-blue-400/30 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 shrink-0">
-              <Monitor className="h-6 w-6" />
+            <div className="relative shrink-0">
+              <img
+                src="/icon-192.png"
+                alt="Logo Officiel Instant Météo"
+                className="h-12 w-12 rounded-2xl border-2 border-blue-400/50 shadow-lg shadow-blue-500/25 object-cover"
+              />
+              <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-emerald-600 text-[8px] font-black uppercase text-white ring-2 ring-slate-900">
+                PWA
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-black text-white">
-                  Télécharger &amp; Installer Instant Météo
+                  Installer l’Application Instant Météo
                 </h2>
                 <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                  <ShieldCheck className="h-3 w-3" /> Windows, Android &amp; iOS
+                  <ShieldCheck className="h-3 w-3" /> Application PWA &amp; Bureau PC
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Installation directe sur Windows (PC/Bureau), Android (Package APK direct &amp; PWA), iPhone / iPad (iOS) &amp; Mode Grand Écran
+                Installation directe en PWA avec le logo officiel sur Téléphone (Android &amp; iPhone/iPad) et Windows (PC/Bureau)
               </p>
             </div>
           </div>
@@ -300,20 +266,8 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 p-2 bg-slate-950/90 border-b border-slate-800">
-          <button
-            onClick={() => setActiveTab('apk')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
-              activeTab === 'apk'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-            }`}
-          >
-            <Download className="h-4 w-4" />
-            <span>Android APK (.apk)</span>
-          </button>
-
+        {/* Navigation Tabs (PWA Mobile with Logo + Windows + Fullscreen) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-2 bg-slate-950/90 border-b border-slate-800">
           <button
             onClick={() => setActiveTab('android')}
             className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
@@ -322,7 +276,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                 : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
             }`}
           >
-            <Smartphone className="h-4 w-4" />
+            <img src="/icon-32.png" alt="" className="h-4 w-4 rounded" />
             <span>Android (PWA)</span>
           </button>
 
@@ -335,7 +289,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
             }`}
           >
             <Apple className="h-4 w-4" />
-            <span>iPhone / iPad</span>
+            <span>iPhone / iPad (PWA)</span>
           </button>
 
           <button
@@ -507,150 +461,50 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
             </div>
           )}
 
-          {/* TAB 1: APK Android Download */}
-          {activeTab === 'apk' && (
+          {/* TAB 1: Android PWA with Official Logo */}
+          {activeTab === 'android' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/50 via-slate-900 to-slate-950 p-5 shadow-lg">
+              <div className="rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-950 p-4 sm:p-5 shadow-lg">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-                    <HardDrive className="h-7 w-7" />
+                  <div className="relative shrink-0">
+                    <img
+                      src="/icon-192.png"
+                      alt="Logo Officiel Instant Météo PWA"
+                      className="h-16 w-16 rounded-2xl border-2 border-emerald-400/50 shadow-xl shadow-emerald-500/20 object-cover"
+                    />
+                    <span className="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 rounded-md bg-emerald-600 text-[9px] font-black uppercase text-white ring-2 ring-slate-900 shadow">
+                      PWA
+                    </span>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-lg font-black text-white">
-                        Package Natif Android Instant Météo (.APK)
+                      <h3 className="text-base sm:text-lg font-black text-white">
+                        Application PWA Android avec Logo Officiel
                       </h3>
                       <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-500/30">
-                        ✓ Compilé & Signé (29 Ko)
+                        ✓ Brave, Chrome, Firefox &amp; Samsung
                       </span>
                     </div>
                     <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                      Fichier package universel standalone pour <strong>tous les smartphones Android</strong> (Samsung Galaxy, Google Pixel, Xiaomi, Redmi, Huawei, Sony, OnePlus, Oppo, etc.).
+                      Installez l’application <strong>PWA (Progressive Web App)</strong> en 1 clic sur votre téléphone Android sans fichier APK ni Play Store. L’icône officielle <strong>Instant Météo</strong> s’ajoute directement sur votre écran d’accueil en mode plein écran autonome.
                     </p>
 
-                    {/* Technical badges */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-                      <span className="rounded-lg bg-slate-950 px-2.5 py-1 border border-slate-800 font-mono text-purple-300">
-                        Package: com.instantmeteo.app
-                      </span>
-                      <span className="rounded-lg bg-slate-950 px-2.5 py-1 border border-slate-800 text-slate-300">
-                        Cible: Android 5.0 à Android 15+ (API 21-34)
-                      </span>
-                      <span className="rounded-lg bg-slate-950 px-2.5 py-1 border border-slate-800 text-emerald-300 flex items-center gap-1">
-                        <FileCheck2 className="h-3.5 w-3.5" /> Signatures v1, v2 & v3 valides
-                      </span>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      {isInstallable ? (
+                        <button
+                          onClick={handleInstallPWA}
+                          className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-600/30 active:scale-95 cursor-pointer"
+                        >
+                          <img src="/icon-32.png" alt="" className="h-5 w-5 rounded" />
+                          <span>Installer l’Application PWA (1 clic)</span>
+                        </button>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/90 border border-emerald-500/30 text-xs text-emerald-300 font-bold">
+                          <img src="/icon-32.png" alt="" className="h-4 w-4 rounded" />
+                          <span>Utilisez le menu ⋮ de votre navigateur (« Installer l’application »)</span>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Main Download Button */}
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <button
-                        onClick={handleTriggerApkDownload}
-                        disabled={isDownloadingApk}
-                        className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-black text-sm transition shadow-xl shadow-purple-600/30 active:scale-95 cursor-pointer disabled:opacity-50"
-                      >
-                        <Download className="h-5 w-5" />
-                        <span>
-                          {isDownloadingApk 
-                            ? 'Téléchargement en cours...' 
-                            : 'Télécharger Instant-Meteo.apk (29 Ko)'}
-                        </span>
-                      </button>
-
-                      <a
-                        href="/Instant-Meteo.apk"
-                        download="Instant-Meteo.apk"
-                        className="flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer"
-                      >
-                        <ExternalLink className="h-4 w-4 text-purple-400" />
-                        <span>Lien de secours direct</span>
-                      </a>
-
-                      <button
-                        onClick={handleCopyApkLink}
-                        className="flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold text-xs border border-slate-750 transition cursor-pointer"
-                      >
-                        {copiedApkUrl ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4 text-purple-400" />}
-                        <span>{copiedApkUrl ? 'Lien copié !' : 'Copier l\'adresse du fichier APK'}</span>
-                      </button>
-                    </div>
-
-                    {apkDownloadSuccess && (
-                      <div className="mt-3 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                        <span>Téléchargement initié avec succès ! Ouvrez le fichier téléchargé sur votre smartphone pour lancer l'installation.</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Step by step installation guide */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 space-y-4">
-                <h4 className="font-black text-sm text-white flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4 text-purple-400" />
-                  Guide d'installation pas à pas sur votre téléphone Android :
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-6 w-6 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center">1</span>
-                      <strong className="text-white">Télécharger le fichier</strong>
-                    </div>
-                    <p className="text-slate-400 leading-relaxed">
-                      Cliquez sur le bouton violet ci-dessus. Le fichier <code className="text-purple-300">Instant-Meteo.apk</code> se télécharge en 1 seconde.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-6 w-6 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center">2</span>
-                      <strong className="text-white">Autoriser la source</strong>
-                    </div>
-                    <p className="text-slate-400 leading-relaxed">
-                      Touchez la notification. Si Android affiche <em>« Fichier potentiellement dangereux »</em> ou <em>« Bloqué par Play Protect »</em>, cliquez sur <strong>Détails ➔ Installer quand même</strong> (ou activez « Autoriser cette source »).
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-6 w-6 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center">3</span>
-                      <strong className="text-white">Installer & Lancer</strong>
-                    </div>
-                    <p className="text-slate-400 leading-relaxed">
-                      Validez <strong>« Installer »</strong>. L'icône <em>Instant Météo</em> s'ajoute sur votre écran d'accueil avec son affichage fluide et ses alertes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: Android Chrome PWA */}
-          {activeTab === 'android' && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 p-4 sm:p-5">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <Smartphone className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-black text-white">
-                      Installer sur Smartphone Android via le Navigateur (PWA)
-                    </h3>
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                      Installez l'application en 1 clic sans passer par le Play Store. Elle fonctionne en <strong>mode autonome plein écran</strong> et se met à jour automatiquement en temps réel.
-                    </p>
-
-                    {isInstallable && (
-                      <button
-                        onClick={handleInstallPWA}
-                        className="mt-3.5 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg shadow-emerald-600/30 active:scale-95 cursor-pointer"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>Installer Instant Météo directement sur cet appareil Android</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -662,9 +516,9 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                     <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 text-white font-black text-xs">1</span>
                     <Globe className="h-5 w-5 text-emerald-400" />
                   </div>
-                  <h4 className="font-black text-sm text-white">Ouvrir dans Chrome</h4>
+                  <h4 className="font-black text-sm text-white">Ouvrir dans votre navigateur</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Ouvrez le lien dans le navigateur <strong>Google Chrome</strong> ou <strong>Samsung Internet</strong> sur votre téléphone Android.
+                    Ouvrez Instant Météo dans <strong>Brave</strong>, <strong>Google Chrome</strong>, <strong>Firefox</strong> ou <strong>Samsung Internet</strong> sur votre téléphone Android.
                   </p>
                 </div>
 
@@ -675,38 +529,45 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                   </div>
                   <h4 className="font-black text-sm text-white">Menu Options (3 points)</h4>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Appuyez sur les <strong>3 petits points verticaux ⋮</strong> en haut à droite de l'écran du navigateur.
+                    Appuyez sur les <strong>3 petits points verticaux ⋮</strong> en haut ou en bas à droite de votre navigateur.
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-xs">3</span>
-                    <CheckCircle2 className="h-5 w-5 text-blue-400" />
+                    <img src="/icon-32.png" alt="Logo" className="h-5 w-5 rounded" />
                   </div>
                   <h4 className="font-black text-sm text-white">« Installer l'application »</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Sélectionnez <strong>« Installer l'application »</strong> (ou « Ajouter à l'écran d'accueil »). L'icône est créée instantanément.
+                    Sélectionnez <strong>« Installer l'application »</strong> (ou « Ajouter à l'écran d'accueil »). La PWA avec le <strong>logo officiel</strong> est prête !
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: iOS iPhone & iPad */}
+          {/* TAB 2: iOS iPhone & iPad PWA with Official Logo */}
           {activeTab === 'ios' && (
             <div className="space-y-6 animate-fadeIn">
               <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-slate-900 to-indigo-950/40 p-4 sm:p-5">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                    <Apple className="h-6 w-6" />
+                  <div className="relative shrink-0">
+                    <img
+                      src="/icon-192.png"
+                      alt="Logo Officiel Instant Météo PWA"
+                      className="h-14 w-14 rounded-2xl border-2 border-blue-400/50 shadow-lg object-cover"
+                    />
+                    <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-blue-600 text-[8px] font-black text-white">
+                      PWA
+                    </span>
                   </div>
                   <div>
                     <h3 className="text-base font-black text-white">
-                      Installer sur iPhone ou iPad (Sans passer par l'App Store)
+                      Application PWA iPhone &amp; iPad avec Logo Officiel
                     </h3>
                     <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                      L'application utilise la technologie officielle <strong>Apple Progressive Web App (PWA)</strong>. Une fois ajoutée, elle s'ouvre directement en <strong>plein écran complet</strong>, sans barre d'adresse Safari, avec son icône dédiée sur votre écran d'accueil et des performances ultra-rapides.
+                      L'application utilise la technologie officielle <strong>Apple Progressive Web App (PWA)</strong>. Une fois ajoutée, elle s'ouvre directement en <strong>plein écran complet</strong> avec le <strong>logo officiel Instant Météo</strong> sur votre écran d'accueil.
                     </p>
                   </div>
                 </div>
