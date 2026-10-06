@@ -1842,6 +1842,156 @@ app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
   res.sendFile(gamePath);
 });
 
+const FILE_FEATURE_DESCRIPTIONS: Record<string, string> = {
+  'FranceMiniOverviewCard.tsx': '🗺️ Mini-carte météo interactive par zones et régions (France, Royaume-Uni & Monde)',
+  'FranceMapView.tsx': '🗺️ Carte de France & Synthèse régionale des températures et vigilances',
+  'InstallAppModal.tsx': '📱 Installation de l’application & Package APK Android signé v2 (Brave / Chrome / Firefox)',
+  'PWAInstallNotificationBanner.tsx': '💻 Notification d’installation intelligente multi-navigateurs (PC & Mobile)',
+  'Instant-Meteo.apk': '📦 Package APK Android natif signé v1 + v2 universel (sans erreur d’analyse du package)',
+  'WeatherGameModal.tsx': '🎮 Jeu Paratonnerre 3D — Les gardiens de l’orage (chargement direct intégré)',
+  'paratonnerre.html': '🎮 Moteur 3D du jeu Paratonnerre — Les gardiens de l’orage',
+  'UpdateNotificationPrompt.tsx': '⚡ Notification de mise à jour avec détail exact des nouveautés déployées',
+  'appUpdateCheckerService.ts': '🔄 Détection temps réel des mises à jour et journal détaillé des modifications',
+  'Header.tsx': '🧭 Barre de navigation supérieure, recherche rapide et sélecteur de station',
+  'LocalitySearchModal.tsx': '🔍 Recherche mondiale de villes, communes françaises et géolocalisation GPS',
+  'SearchModal.tsx': '🔍 Fenêtre de recherche de stations météorologiques',
+  'RealtimeView.tsx': '☀️ Observatoire Météo en Temps Réel & Radiographie locale complète',
+  'GigaRadarView.tsx': '📡 Radar HD Précipitations, Feux NASA & Flux de vents',
+  'MultiDayVigilanceMatrixCard.tsx': '⚠️ Matrice de Vigilances Météo & Alertes multi-jours',
+  'DirectAlertBanner.tsx': '🚨 Bandeau d’alerte météo immédiate en direct',
+  'CompetitiveGamingView.tsx': '🏆 Mode Compétitif, Trophées Météo & Classement des joueurs',
+  'competitiveGameService.ts': '🏅 Système de points, flammes et sauvegarde des profils joueurs',
+  'DiscussionGroupView.tsx': '💬 Salon de Discussion Météo & Observations communautaires en direct',
+  'AdminPanelModal.tsx': '👑 Panneau d’Administration, modération et annonces officielles',
+  'MountainWeatherView.tsx': '🏔️ Météo Montagne, Neige & Nivologie (BERA)',
+  'BeachWeatherView.tsx': '🏖️ Météo des Plages, Marées SHOM & Température de l’eau',
+  'DroughtAndFireView.tsx': '🔥 Vigie Sécheresse, Nappes phréatiques & Feux de Forêt',
+  'WatercoursesView.tsx': '💧 Vigie Cours d’Eau, Débits & Crues (Vigicrues)',
+  'openMeteoService.ts': '🌐 Moteur de données météorologiques haute précision & Géocodage mondial',
+  'App.tsx': '✨ Interface principale Instant Météo & Navigation multi-observatoires',
+  'server.ts': '⚙️ Serveur temps réel, API météo & Synchronisation base de données',
+};
+
+function scanRecentWorkspaceModifications(): {
+  latestMtimeMs: number;
+  recentFiles: { file: string; mtimeMs: number; description: string }[];
+} {
+  const dirsToScan = [
+    path.join(process.cwd(), 'src', 'components'),
+    path.join(process.cwd(), 'src', 'views'),
+    path.join(process.cwd(), 'src', 'services'),
+    path.join(process.cwd(), 'src'),
+    path.join(process.cwd(), 'public'),
+  ];
+
+  const entries: { file: string; mtimeMs: number; description: string }[] = [];
+  const seenFiles = new Set<string>();
+
+  for (const dir of dirsToScan) {
+    try {
+      if (!fs.existsSync(dir)) continue;
+      const list = fs.readdirSync(dir, { withFileTypes: true });
+      for (const item of list) {
+        if (!item.isFile()) continue;
+        if (item.name === 'version.json' || item.name === 'sitemap.xml' || item.name.endsWith('.json')) continue;
+        const fullPath = path.join(dir, item.name);
+        if (seenFiles.has(fullPath)) continue;
+        seenFiles.add(fullPath);
+
+        const stat = fs.statSync(fullPath);
+        const desc =
+          FILE_FEATURE_DESCRIPTIONS[item.name] ||
+          `🔧 Mise à jour du module ${item.name.replace(/\.(tsx|ts|js|html|css)$/, '')}`;
+        entries.push({
+          file: item.name,
+          mtimeMs: stat.mtimeMs,
+          description: desc,
+        });
+      }
+    } catch (_) {}
+  }
+
+  entries.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  const latestMtimeMs = entries.length > 0 ? entries[0].mtimeMs : Date.now();
+  // Regrouper les fichiers modifiés dans la dernière fenêtre de travail (15 minutes autour de la dernière modif)
+  const windowThreshold = latestMtimeMs - 15 * 60 * 1000;
+  const recentFiles = entries.filter((e) => e.mtimeMs >= windowThreshold).slice(0, 6);
+
+  return { latestMtimeMs, recentFiles };
+}
+
+app.get(['/version.json', '/api/version'], (req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  try {
+    const versionFilePath = path.join(process.cwd(), 'public', 'version.json');
+    let baseData: any = {
+      version: '2.5.0',
+      buildId: 'build-20261006-250',
+      updatedAt: new Date().toISOString(),
+      title: 'Mise à jour Instant Météo',
+      changelog: 'Améliorations et correctifs en temps réel.',
+      changes: [],
+      history: [],
+    };
+
+    let versionFileMtimeMs = 0;
+    if (fs.existsSync(versionFilePath)) {
+      const stat = fs.statSync(versionFilePath);
+      versionFileMtimeMs = stat.mtimeMs;
+      baseData = JSON.parse(fs.readFileSync(versionFilePath, 'utf-8'));
+    }
+
+    const { latestMtimeMs, recentFiles } = scanRecentWorkspaceModifications();
+    const modifiedComponentNames = recentFiles.map((f) => f.file);
+
+    // Si des fichiers du code ont été modifiés APRÈS public/version.json (marge de 30s),
+    // on enrichit automatiquement la notification avec les modules qui viennent d'être modifiés !
+    if (latestMtimeMs > versionFileMtimeMs + 30000 && recentFiles.length > 0) {
+      const uniqueDescriptions = Array.from(new Set(recentFiles.map((r) => r.description)));
+      const dynamicBuildId = `${baseData.buildId || 'build'}-${Math.floor(latestMtimeMs / 1000)}`;
+      const cleanTopFeature = uniqueDescriptions[0].replace(/^[^\wÀ-ÿ]+/, '').trim();
+      const baseChanges = Array.isArray(baseData.changes) ? baseData.changes : [];
+      const mergedChanges = Array.from(new Set([...uniqueDescriptions, ...baseChanges])).slice(0, 7);
+
+      res.json({
+        ...baseData,
+        buildId: dynamicBuildId,
+        updatedAt: new Date(latestMtimeMs).toISOString(),
+        title:
+          uniqueDescriptions.length === 1
+            ? cleanTopFeature
+            : `${cleanTopFeature} (+${uniqueDescriptions.length - 1} ${uniqueDescriptions.length - 1 > 1 ? 'autres nouveautés' : 'autre nouveauté'})`,
+        changelog: uniqueDescriptions.join(' • '),
+        changes: mergedChanges,
+        modifiedComponents: modifiedComponentNames,
+      });
+      return;
+    }
+
+    res.json({
+      ...baseData,
+      modifiedComponents: modifiedComponentNames,
+    });
+  } catch (err) {
+    res.json({
+      version: '2.5.0',
+      buildId: 'build-20261006-250',
+      updatedAt: new Date().toISOString(),
+      title: 'APK Android signé v2, Zones Météo Mondiales & Jeu 3D',
+      changelog: 'Correction APK Android sur Brave/Chrome, météo par zones pour le Royaume-Uni et le monde, et réparation du jeu Paratonnerre 3D.',
+      changes: [
+        '📱 APK Android signé v1 + v2 compatible Brave, Chrome et Firefox',
+        '🇬🇧 Météo en direct par zones pour le Royaume-Uni et tous les pays',
+        '🎮 Chargement direct du jeu Paratonnerre 3D',
+      ],
+    });
+  }
+});
+
 app.get(['/Instant-Meteo.apk', '/Instant-Meteo-France.apk', '/ClimaFrance-Precision.apk'], (req, res) => {
   const validBuiltApk = path.join(process.cwd(), '.build-outputs', 'app-debug.apk');
   const publicApk = path.join(process.cwd(), 'public', 'Instant-Meteo.apk');
