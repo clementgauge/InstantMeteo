@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Gamepad2, X, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import paratonnerreHtml from '../../public/paratonnerre.html?raw';
 
 interface WeatherGameModalProps {
   isOpen: boolean;
@@ -86,7 +87,7 @@ export const WeatherGameModal: React.FC<WeatherGameModalProps> = ({ isOpen, onCl
           <iframe
             key={reloadKey}
             ref={iframeRef}
-            src="/paratonnerre.html"
+            srcDoc={paratonnerreHtml}
             title="Paratonnerre — Les gardiens de l’orage"
             className="w-full h-full border-0 block"
             allow="fullscreen; autoplay; gamepad"

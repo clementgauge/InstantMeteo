@@ -1836,6 +1836,12 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
 // -------------------------------------------------------------
 // ROBOTS.TXT & SITEMAP.XML
 // -------------------------------------------------------------
+app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
+  const gamePath = path.join(process.cwd(), 'public', 'paratonnerre.html');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(gamePath);
+});
+
 app.get('/robots.txt', (req, res) => {
   const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');

@@ -271,7 +271,7 @@ export default {
       // =========================================================================
       if (!path.startsWith('/api/')) {
         // Fichiers d'assets statiques (js, css, images, favicons, fonts, manifest) et jeu standalone
-        const isStaticAsset = (path.includes('.') && !path.endsWith('.html')) || path === '/paratonnerre.html';
+        const isStaticAsset = (path.includes('.') && !path.endsWith('.html')) || path === '/paratonnerre.html' || path === '/paratonnerre';
         if (isStaticAsset && env.ASSETS) {
           try {
             const assetRes = await env.ASSETS.fetch(request);
