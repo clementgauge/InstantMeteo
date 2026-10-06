@@ -63,16 +63,34 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
     ? `${window.location.origin}/Instant-Meteo-Windows.cmd`
     : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app/Instant-Meteo-Windows.cmd';
 
-  // Listen for PWA beforeinstallprompt
+  // Listen for PWA beforeinstallprompt (and read any prompt already captured globally)
   useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).__deferredPwaPrompt) {
+      setDeferredPrompt((window as any).__deferredPwaPrompt);
+      setIsInstallable(true);
+    }
+
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
+      (window as any).__deferredPwaPrompt = e;
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
+    const handlePwaReady = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        setDeferredPrompt(detail);
+        setIsInstallable(true);
+      }
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('instant_meteo_pwa_ready', handlePwaReady as EventListener);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('instant_meteo_pwa_ready', handlePwaReady as EventListener);
+    };
   }, []);
 
   if (!isOpen) return null;

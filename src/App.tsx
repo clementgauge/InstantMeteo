@@ -43,6 +43,7 @@ import { MultiDayVigilanceMatrixCard } from './components/MultiDayVigilanceMatri
 import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
 import { applyCorrectionToWeather, subscribeToContradictions } from './services/liveContradictionService';
 import { InstallAppModal } from './components/InstallAppModal';
+import { PWAInstallNotificationBanner } from './components/PWAInstallNotificationBanner';
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
 import { BottomNavigationDock, NavTabId } from './components/BottomNavigationDock';
@@ -1574,6 +1575,11 @@ function WeatherApp() {
         onClose={() => setIsInstallModalOpen(false)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={handleToggleFullscreen}
+      />
+
+      {/* Automatic Browser & Device App Download Notification Banner (Chrome, Firefox, Edge, Safari — PC & Mobile) */}
+      <PWAInstallNotificationBanner
+        onOpenInstallModal={() => setIsInstallModalOpen(true)}
       />
 
       {/* Universal Locality Search Modal */}

@@ -85,8 +85,18 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <meta name="theme-color" content="#020617" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script>
+      // Capture beforeinstallprompt immediately before React mounts so it is never missed
+      window.__deferredPwaPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__deferredPwaPrompt = e;
+        window.dispatchEvent(new CustomEvent('instant_meteo_pwa_ready', { detail: e }));
+      });
+    </script>
 
     <!-- Structured Data (Schema.org JSON-LD) -->
     <script id="seo-page-jsonld" type="application/ld+json">
