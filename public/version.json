@@ -1,18 +1,27 @@
 {
-  "version": "2.5.1",
-  "buildId": "build-20261006-251",
-  "updatedAt": "2026-10-06T18:45:00.000Z",
-  "title": "Application PWA avec Logo Officiel, Bouton OK & Notifications Mobile Ultra-Compactes",
-  "changelog": "Notifications ultra-compactes sur une seule ligne sur téléphone, remplacement de l'APK par l'application PWA avec le logo officiel, et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
+  "version": "2.5.2",
+  "buildId": "build-20261006-252",
+  "updatedAt": "2026-10-06T19:15:00.000Z",
+  "title": "Installation PWA Directe (« Ajouter ce site Web à l'écran Applis ? ») & Notifications Compactes",
+  "changelog": "Déclenchement direct de la notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA, bouton unique d'installation PWA sur téléphone avec logo officiel, et notifications ultra-compactes.",
   "changes": [
-    "📱 Notifications Mobile Ultra-Compactes : Affichage sur une seule ligne fine sur téléphone avec bouton « Détails » dépliable et bouton « OK »",
-    "📱 Téléphone (Android & iOS) : Remplacement de l'APK par l'installation directe en PWA avec le logo officiel Instant Météo",
-    "✅ Bouton OK sur la notification de mise à jour et d'installation : une fois validé, la notification ne s'affiche plus sauf s'il y a une mise à jour différente",
-    "🇬🇧 Météo par zones pour tous les pays : 11 régions météo en direct pour le Royaume-Uni / Angleterre et découpage dynamique mondial",
-    "🗺️ Mini-carte interactive : Affichage prioritaire du pays de la ville recherchée (ex: Londres → Royaume-Uni) avant la ville et le monde",
-    "🎮 Jeu Paratonnerre 3D : Chargement instantané dans l'application sans blocage par le routeur SEO"
+    "📲 Clic sur « Installer en PWA » : Ouverture immédiate de la notification « Ajouter ce site Web à l'écran Applis ? » avec le logo officiel Instant Météo",
+    "📱 Téléphone : Un seul type d'installation unifié avec uniquement le bouton « Installer en PWA » et le logo officiel",
+    "📱 Notifications Mobile Ultra-Compactes : Affichage sur une seule ligne fine sur téléphone avec bouton « Détails » et bouton « OK »",
+    "✅ Bouton OK mémorisé sur les notifications de mise à jour et d'installation jusqu'à la prochaine mise à jour différente"
   ],
   "history": [
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:15:00.000Z",
+      "title": "Installation PWA Directe (« Ajouter ce site Web à l'écran Applis ? ») & Bouton Unique",
+      "changelog": "Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA et bouton unique PWA sur téléphone.",
+      "changes": [
+        "📲 Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA",
+        "📱 Bouton unique « Installer en PWA » sur téléphone avec logo officiel"
+      ]
+    },
     {
       "version": "2.5.1",
       "buildId": "build-20261006-251",

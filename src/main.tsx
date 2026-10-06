@@ -92,15 +92,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // Register Service Worker for PWA installability and static asset caching across all environments
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  const registerSW = () => {
     navigator.serviceWorker
-      .register('/service-worker.js')
+      .register('/service-worker.js', { scope: '/' })
       .then((reg) => {
         console.log('Instant Météo ServiceWorker registered successfully:', reg.scope);
       })
       .catch((err) => {
         console.warn('Instant Météo ServiceWorker registration failed:', err);
       });
-  });
+  };
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    registerSW();
+  } else {
+    window.addEventListener('load', registerSW);
+  }
 }
 

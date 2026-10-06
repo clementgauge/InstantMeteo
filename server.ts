@@ -1842,6 +1842,21 @@ app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
   res.sendFile(gamePath);
 });
 
+app.get(['/manifest.webmanifest', '/manifest.json'], (req, res) => {
+  const manifestPath = path.join(process.cwd(), 'public', 'manifest.webmanifest');
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.sendFile(manifestPath);
+});
+
+app.get('/service-worker.js', (req, res) => {
+  const swPath = path.join(process.cwd(), 'public', 'service-worker.js');
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.sendFile(swPath);
+});
+
 const FILE_FEATURE_DESCRIPTIONS: Record<string, string> = {
   'FranceMiniOverviewCard.tsx': '🗺️ Mini-carte météo interactive par zones et régions (France, Royaume-Uni & Monde)',
   'FranceMapView.tsx': '🗺️ Carte de France & Synthèse régionale des températures et vigilances',

@@ -901,15 +901,13 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </button>
         </div>
 
-        {/* Quick Action & Windows/Mobile Install / Fullscreen Banner (Compact single-line height) */}
+        {/* Quick Action & Install Banner (Single PWA install button on mobile, Windows + PWA on PC) */}
         <div id="realtime-download" className="xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-2.5 py-1.5 flex items-center justify-between gap-2 shadow-sm scroll-mt-28">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-7 w-7 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-              <Monitor className="h-3.5 w-3.5" />
-            </div>
+            <img src="/icon-192.png" alt="Logo Instant Météo" className="h-7 w-7 rounded-lg border border-blue-500/30 object-cover shrink-0" />
             <div className="min-w-0">
               <span className="text-xs font-black text-white block truncate leading-tight">App Instant Météo</span>
-              <span className="text-[9px] text-slate-400 block truncate leading-tight">PC, Android &amp; iOS</span>
+              <span className="text-[9px] text-slate-400 block truncate leading-tight">Application PWA</span>
             </div>
           </div>
 
@@ -918,7 +916,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               href="/Instant-Meteo-Windows.cmd"
               download="Instant-Meteo-Windows.cmd"
               title="Télécharger le lanceur autonome pour Windows"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
             >
               <Download className="h-3 w-3" />
               <span>Windows</span>
@@ -934,25 +932,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                     return;
                   } catch {}
                 }
-                if (onOpenInstallModal) onOpenInstallModal();
+                window.dispatchEvent(new CustomEvent('instant_meteo_show_add_to_apps_prompt'));
               }}
-              title="Installer l'application PWA avec le logo officiel sur téléphone ou PC"
+              title="Installer l'application en PWA"
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
             >
               <img src="/icon-32.png" alt="Logo" className="h-3.5 w-3.5 rounded-sm object-cover" />
-              <span>PWA</span>
+              <span>Installer en PWA</span>
             </button>
-
-            {onOpenInstallModal && (
-              <button
-                onClick={onOpenInstallModal}
-                title="Guide & Options d'installation"
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-300 font-medium text-[11px] border border-slate-700/60 transition cursor-pointer"
-              >
-                <QrCode className="h-3 w-3 text-blue-400" />
-                <span className="hidden sm:inline">Guide</span>
-              </button>
-            )}
 
             {onToggleFullscreen && (
               <button

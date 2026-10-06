@@ -34,9 +34,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Ne jamais mettre en cache les documents HTML, le sitemap.xml, robots.txt ni les APIs pour garantir des balises SEO et canonicals toujours fraîches
+  // Pour les navigations HTML : toujours récupérer en direct depuis le réseau (SEO/canonicals frais)
+  // tout en appelant event.respondWith() pour valider l'éligibilité PWA Android/Chrome ("Ajouter ce site Web à l'écran Applis ?")
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/'))
+    );
+    return;
+  }
+
+  // Ne jamais mettre en cache les documents HTML, le sitemap.xml, robots.txt ni les APIs
   if (
-    event.request.mode === 'navigate' ||
     event.request.headers.get('accept')?.includes('text/html') ||
     url.origin !== location.origin ||
     url.pathname.startsWith('/api') ||

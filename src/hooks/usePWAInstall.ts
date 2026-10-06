@@ -128,18 +128,23 @@ export function usePWAInstall() {
 
   const install = async (): Promise<boolean> => {
     const promptToUse = deferredPrompt || (typeof window !== 'undefined' ? window.__deferredPwaPrompt : null);
-    if (!promptToUse) return false;
-    try {
-      await promptToUse.prompt();
-      const { outcome } = await promptToUse.userChoice;
-      if (outcome === 'accepted') {
-        setIsInstalled(true);
-        window.__deferredPwaPrompt = null;
-        setDeferredPrompt(null);
-        return true;
+    if (promptToUse) {
+      try {
+        await promptToUse.prompt();
+        const { outcome } = await promptToUse.userChoice;
+        if (outcome === 'accepted') {
+          setIsInstalled(true);
+          window.__deferredPwaPrompt = null;
+          setDeferredPrompt(null);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.warn('PWA install prompt warning:', err);
       }
-    } catch (err) {
-      console.warn('PWA install prompt warning:', err);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('instant_meteo_show_add_to_apps_prompt'));
     }
     return false;
   };
@@ -151,4 +156,24 @@ export function usePWAInstall() {
     deviceProfile,
     install,
   };
+}
+
+export async function triggerPwaInstallPrompt(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  const promptToUse = window.__deferredPwaPrompt;
+  if (promptToUse) {
+    try {
+      await promptToUse.prompt();
+      const { outcome } = await promptToUse.userChoice;
+      if (outcome === 'accepted') {
+        window.__deferredPwaPrompt = null;
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn('PWA install prompt warning:', err);
+    }
+  }
+  window.dispatchEvent(new CustomEvent('instant_meteo_show_add_to_apps_prompt'));
+  return false;
 }
