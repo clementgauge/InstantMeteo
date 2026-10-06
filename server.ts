@@ -1857,6 +1857,44 @@ app.get('/service-worker.js', (req, res) => {
   res.sendFile(swPath);
 });
 
+// Garantir que les icônes PNG du manifeste PWA (16..512) sont toujours des PNG binaires valides
+// pour Chrome, Brave, Samsung Internet, Edge et Opera
+let pwaIconsVerified = false;
+async function ensureValidPwaPngIcons() {
+  if (pwaIconsVerified) return;
+  try {
+    const icon192Path = path.join(process.cwd(), 'public', 'icon-192.png');
+    if (fs.existsSync(icon192Path)) {
+      const buf = fs.readFileSync(icon192Path);
+      if (buf.length > 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+        pwaIconsVerified = true;
+        return;
+      }
+    }
+    const { Resvg } = await import('@resvg/resvg-js');
+    const svgPath = path.join(process.cwd(), 'public', 'favicon.svg');
+    if (!fs.existsSync(svgPath)) return;
+    const svgContent = fs.readFileSync(svgPath, 'utf-8');
+    for (const size of [512, 256, 192, 128, 64, 48, 32, 16]) {
+      const resvg = new Resvg(svgContent, { fitTo: { mode: 'width', value: size } });
+      const pngBuffer = resvg.render().asPng();
+      fs.writeFileSync(path.join(process.cwd(), 'public', `icon-${size}.png`), pngBuffer);
+    }
+    pwaIconsVerified = true;
+  } catch (e) {
+    console.warn('[PWA Icons] Verification warning:', e);
+  }
+}
+ensureValidPwaPngIcons();
+
+app.get(/^\/icon-(16|32|48|64|128|192|256|512)\.png$/, async (req, res) => {
+  await ensureValidPwaPngIcons();
+  const iconFile = path.join(process.cwd(), 'public', req.path.replace(/^\//, ''));
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(iconFile);
+});
+
 const FILE_FEATURE_DESCRIPTIONS: Record<string, string> = {
   'FranceMiniOverviewCard.tsx': '🗺️ Mini-carte météo interactive par zones et régions (France, Royaume-Uni & Monde)',
   'FranceMapView.tsx': '🗺️ Carte de France & Synthèse régionale des températures et vigilances',

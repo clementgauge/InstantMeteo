@@ -901,8 +901,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </button>
         </div>
 
-        {/* Quick Action & Install Banner (Single PWA install button on mobile, Windows + PWA on PC) */}
-        <div id="realtime-download" className="xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-2.5 py-1.5 flex items-center justify-between gap-2 shadow-sm scroll-mt-28">
+        {/* Quick Action & Install Banner (Desktop only so mobile never shows a duplicate install bar) */}
+        <div id="realtime-download" className="hidden sm:flex xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-2.5 py-1.5 items-center justify-between gap-2 shadow-sm scroll-mt-28">
           <div className="flex items-center gap-2 min-w-0">
             <img src="/icon-192.png" alt="Logo Instant Météo" className="h-7 w-7 rounded-lg border border-blue-500/30 object-cover shrink-0" />
             <div className="min-w-0">

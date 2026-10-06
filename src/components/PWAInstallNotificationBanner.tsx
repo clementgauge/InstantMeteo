@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Monitor, X, CheckCircle2, Sparkles } from 'lucide-react';
-import { usePWAInstall } from '../hooks/usePWAInstall';
+import { usePWAInstall, waitForNativePwaPrompt } from '../hooks/usePWAInstall';
 import { getCurrentVersionSignature, getUpdateSignature, AppVersionInfo } from '../services/appUpdateCheckerService';
 
 interface PWAInstallNotificationBannerProps {
@@ -12,15 +12,17 @@ const DISMISSED_INSTALL_SIG_KEY = 'instant_meteo_install_notif_dismissed_sig';
 export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBannerProps> = ({
   onOpenInstallModal,
 }) => {
-  const { isInstalled, deviceProfile } = usePWAInstall();
+  const { isInstalled } = usePWAInstall();
   const [visible, setVisible] = useState(false);
   const [showAddToAppsPrompt, setShowAddToAppsPrompt] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
   const [downloadTriggered, setDownloadTriggered] = useState(false);
-  const [currentVersionSig, setCurrentVersionSig] = useState<string>('default-v2.5.1');
+  const [currentVersionSig, setCurrentVersionSig] = useState<string>('default-v2.5.2');
 
   useEffect(() => {
     const handleOpenAddToApps = () => {
+      // Masquer la bannière du haut pour ne jamais avoir 2 notifications affichées en même temps sur téléphone
+      setVisible(false);
       setShowAddToAppsPrompt(true);
     };
     window.addEventListener('instant_meteo_show_add_to_apps_prompt', handleOpenAddToApps);
@@ -32,6 +34,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
   useEffect(() => {
     if (isInstalled) {
       setVisible(false);
+      setShowAddToAppsPrompt(false);
       return;
     }
 
@@ -53,32 +56,9 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
 
       timer = window.setTimeout(() => {
         if (cancelled) return;
+        // Une seule notification d'installation (pas de new Notification() système en doublon)
         setVisible(true);
-
-        try {
-          if (
-            typeof window !== 'undefined' &&
-            'Notification' in window &&
-            Notification.permission === 'granted' &&
-            localStorage.getItem('instant_meteo_native_install_sig') !== sig
-          ) {
-            localStorage.setItem('instant_meteo_native_install_sig', sig);
-            const n = new Notification('Instant Météo — Application PWA', {
-              body: "Ajouter ce site Web à l'écran Applis ? Cliquez pour installer l'application PWA Instant Météo avec son logo officiel.",
-              icon: '/icon-192.png',
-              badge: '/icon-192.png',
-              tag: 'instant-meteo-install-offer',
-            });
-            n.onclick = () => {
-              window.focus();
-              handlePrimaryInstallAction();
-              n.close();
-            };
-          }
-        } catch {
-          // Ignore if native Notification constructor is restricted
-        }
-      }, 1500);
+      }, 1200);
     });
 
     const handleNewUpdate = (e: Event) => {
@@ -104,7 +84,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       if (timer) clearTimeout(timer);
       window.removeEventListener('instant_meteo_code_update_available', handleNewUpdate as EventListener);
     };
-  }, [isInstalled, deviceProfile]);
+  }, [isInstalled]);
 
   const handleDismiss = () => {
     setVisible(false);
@@ -117,9 +97,15 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
   };
 
   const handlePrimaryInstallAction = async () => {
-    // 1. Si l'événement natif beforeinstallprompt du navigateur est prêt, déclencher directement
-    // la boîte de dialogue native "Ajouter ce site Web à l'écran Applis ?"
-    const nativePrompt = typeof window !== 'undefined' ? window.__deferredPwaPrompt : null;
+    // Masquer immédiatement la bannière pour qu'il n'y ait jamais 2 notifications d'installation en même temps
+    setVisible(false);
+
+    // 1. Sur Chrome, Brave, Samsung Internet, Edge et Opera : utiliser l'invite native beforeinstallprompt
+    // ("Ajouter ce site Web à l'écran Applis ?") dès qu'elle est disponible
+    const nativePrompt =
+      (typeof window !== 'undefined' ? window.__deferredPwaPrompt : null) ||
+      (await waitForNativePwaPrompt(600));
+
     if (nativePrompt) {
       try {
         await nativePrompt.prompt();
@@ -127,21 +113,24 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
         if (outcome === 'accepted') {
           window.__deferredPwaPrompt = null;
           setDownloadTriggered(true);
-          setTimeout(() => handleDismiss(), 1200);
+          handleDismiss();
           return;
         }
         return;
       } catch {
-        // Fallback vers la boîte de dialogue "Ajouter ce site Web à l'écran Applis ?"
+        // En cas d'erreur de prompt natif, basculer sur la boîte de dialogue "Ajouter ce site Web à l'écran Applis ?"
       }
     }
 
-    // 2. Afficher immédiatement la notification "Ajouter ce site Web à l'écran Applis ?"
+    // 2. Sinon, afficher la boîte de dialogue "Ajouter ce site Web à l'écran Applis ?"
     setShowAddToAppsPrompt(true);
   };
 
   const handleConfirmAddToApps = async () => {
-    const nativePrompt = typeof window !== 'undefined' ? window.__deferredPwaPrompt : null;
+    const nativePrompt =
+      (typeof window !== 'undefined' ? window.__deferredPwaPrompt : null) ||
+      (await waitForNativePwaPrompt(400));
+
     if (nativePrompt) {
       try {
         await nativePrompt.prompt();
@@ -153,7 +142,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
           setTimeout(() => {
             setAddedSuccess(false);
             handleDismiss();
-          }, 1200);
+          }, 1000);
           return;
         }
       } catch {
@@ -161,7 +150,6 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
       }
     }
 
-    // S'assurer que le Service Worker PWA est enregistré
     try {
       if ('serviceWorker' in navigator) {
         await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
@@ -175,12 +163,12 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
     setTimeout(() => {
       setAddedSuccess(false);
       handleDismiss();
-    }, 1400);
+    }, 1200);
   };
 
   return (
     <>
-      {!isInstalled && visible && (
+      {!isInstalled && visible && !showAddToAppsPrompt && (
         <div
           role="region"
           aria-label="Notification d'installation de l'application PWA Instant Météo"

@@ -158,9 +158,49 @@ export function usePWAInstall() {
   };
 }
 
+export async function waitForNativePwaPrompt(timeoutMs = 600): Promise<BeforeInstallPromptEvent | null> {
+  if (typeof window === 'undefined') return null;
+  if (window.__deferredPwaPrompt) return window.__deferredPwaPrompt;
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const onReady = (e: Event) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      const customEvt = e as CustomEvent<BeforeInstallPromptEvent>;
+      resolve(customEvt.detail || window.__deferredPwaPrompt || null);
+    };
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      const promptEvt = e as BeforeInstallPromptEvent;
+      window.__deferredPwaPrompt = promptEvt;
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(promptEvt);
+    };
+    const timer = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(window.__deferredPwaPrompt || null);
+    }, timeoutMs);
+
+    function cleanup() {
+      clearTimeout(timer);
+      window.removeEventListener('instant_meteo_pwa_ready', onReady as EventListener);
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+    }
+
+    window.addEventListener('instant_meteo_pwa_ready', onReady as EventListener, { once: true });
+    window.addEventListener('beforeinstallprompt', onBeforeInstall, { once: true });
+  });
+}
+
 export async function triggerPwaInstallPrompt(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
-  const promptToUse = window.__deferredPwaPrompt;
+  const promptToUse = window.__deferredPwaPrompt || (await waitForNativePwaPrompt(600));
   if (promptToUse) {
     try {
       await promptToUse.prompt();
