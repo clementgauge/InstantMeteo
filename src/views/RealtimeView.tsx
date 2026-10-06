@@ -213,65 +213,139 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
     <div className="space-y-6">
       {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
       {!simplifiedMode && (
-        <div className="sticky top-0 z-20 py-2 -my-2 bg-slate-950/85 backdrop-blur-md">
-          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-x-auto scrollbar-none overscroll-x-contain touch-pan-x scroll-smooth">
+        <div className="w-full">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-1 rounded-xl bg-slate-900/95 border border-slate-800/90 shadow-md">
             <button
               id="realtime-tab-classic"
               onClick={() => setActiveProfileTab('classic')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'classic'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-400/50'
+                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
               }`}
             >
-              <Tv className="h-4 w-4 text-blue-300" />
-              <span>📺 Chaîne Météo (Classique)</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                  activeProfileTab === 'classic'
+                    ? 'bg-white/15 border-white/25 text-white'
+                    : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                }`}>
+                  <Tv className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black tracking-tight truncate leading-tight">
+                    Chaîne Météo (Classique)
+                  </div>
+                  <div className={`text-[10px] truncate leading-tight ${
+                    activeProfileTab === 'classic' ? 'text-blue-100 font-medium' : 'text-slate-400'
+                  }`}>
+                    Vue générale &amp; prévisions
+                  </div>
+                </div>
+              </div>
+              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                activeProfileTab === 'classic' ? 'bg-white' : 'bg-slate-700'
+              }`} />
             </button>
 
             <button
               id="realtime-tab-agriculture"
               onClick={() => setActiveProfileTab('agriculture')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'agriculture'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-white/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-400/50'
+                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
               }`}
             >
-              <Sprout className="h-4 w-4 text-emerald-300" />
-              <span>🌾 Agro-Météo</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                  activeProfileTab === 'agriculture'
+                    ? 'bg-white/15 border-white/25 text-white'
+                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                }`}>
+                  <Sprout className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black tracking-tight truncate leading-tight">
+                    Agro-Météo
+                  </div>
+                  <div className={`text-[10px] truncate leading-tight ${
+                    activeProfileTab === 'agriculture' ? 'text-emerald-100 font-medium' : 'text-slate-400'
+                  }`}>
+                    Sols, ET0, gelées &amp; ΔT
+                  </div>
+                </div>
+              </div>
+              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                activeProfileTab === 'agriculture' ? 'bg-white' : 'bg-slate-700'
+              }`} />
             </button>
 
             <button
               id="realtime-tab-aviation"
               onClick={() => setActiveProfileTab('aviation')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'aviation'
-                  ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 ring-1 ring-white/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-sky-600 text-white shadow-sm ring-1 ring-sky-400/50'
+                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
               }`}
             >
-              <Plane className="h-4 w-4 text-sky-300" />
-              <span>✈️ Météo Aviation</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                  activeProfileTab === 'aviation'
+                    ? 'bg-white/15 border-white/25 text-white'
+                    : 'bg-sky-500/10 border-sky-500/20 text-sky-400'
+                }`}>
+                  <Plane className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black tracking-tight truncate leading-tight">
+                    Météo Aviation
+                  </div>
+                  <div className={`text-[10px] truncate leading-tight ${
+                    activeProfileTab === 'aviation' ? 'text-sky-100 font-medium' : 'text-slate-400'
+                  }`}>
+                    METAR, VFR/IFR &amp; vent piste
+                  </div>
+                </div>
+              </div>
+              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                activeProfileTab === 'aviation' ? 'bg-white' : 'bg-slate-700'
+              }`} />
             </button>
 
             <button
               id="realtime-tab-pro"
               onClick={() => setActiveProfileTab('pro')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'pro'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400/50'
+                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
               }`}
             >
-              <Activity className="h-4 w-4 text-indigo-300" />
-              <span>🔬 Météo Pro &amp; Modèles</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                  activeProfileTab === 'pro'
+                    ? 'bg-white/15 border-white/25 text-white'
+                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                }`}>
+                  <Activity className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black tracking-tight truncate leading-tight">
+                    Météo Pro &amp; Modèles
+                  </div>
+                  <div className={`text-[10px] truncate leading-tight ${
+                    activeProfileTab === 'pro' ? 'text-indigo-100 font-medium' : 'text-slate-400'
+                  }`}>
+                    CAPE, cisaillement &amp; AROME
+                  </div>
+                </div>
+              </div>
+              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                activeProfileTab === 'pro' ? 'bg-white' : 'bg-slate-700'
+              }`} />
             </button>
-          </div>
-          {/* Mobile Swipe Navigation Hint */}
-          <div className="flex sm:hidden items-center justify-between px-2 pt-1 text-[10px] text-slate-400 font-medium">
-            <span>👈 Glissez pour défiler</span>
-            <span className="text-blue-400 font-bold">4 modes météo</span>
-            <span>Glissez l'écran pour changer 👉</span>
           </div>
         </div>
       )}
