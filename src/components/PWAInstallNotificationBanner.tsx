@@ -176,31 +176,28 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
 
   return (
     <>
-      {/* Browser & System Style Notification Banner (Top-Right on PC, Top Floating on Mobile) */}
+      {/* Browser & System Style Notification Banner (Ultra-compact single bar on Mobile, Rich Card on PC) */}
       <div
         role="region"
         aria-label="Notification d'installation de l'application PWA Instant Météo"
-        className="fixed top-16 sm:top-20 right-2.5 sm:right-5 left-2.5 sm:left-auto z-[9990] sm:w-[420px] rounded-2xl border border-blue-500/40 bg-slate-950/95 dark:bg-slate-950/95 text-white p-3.5 sm:p-4 shadow-2xl shadow-blue-950/60 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-300"
+        className="fixed top-12 sm:top-20 right-2 sm:right-5 left-2 sm:left-auto z-[9990] sm:w-[400px] rounded-xl sm:rounded-2xl border border-blue-500/40 bg-slate-950/95 text-white px-2 py-1.5 sm:p-3.5 shadow-xl shadow-blue-950/60 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-300"
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-center sm:items-start gap-2 sm:gap-3">
           {/* Official App Logo with PWA Badge */}
           <div className="relative shrink-0">
             <img
               src="/icon-192.png"
               alt="Logo Officiel Instant Météo PWA"
-              className="w-12 h-12 rounded-2xl border-2 border-blue-400/50 shadow-lg shadow-blue-500/20 object-cover bg-slate-900"
+              className="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border border-blue-400/50 shadow-md object-cover bg-slate-900"
             />
-            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-md bg-gradient-to-r from-emerald-500 to-teal-500 text-[8px] font-black uppercase text-white ring-2 ring-slate-950 shadow">
+            <span className="absolute -bottom-0.5 -right-0.5 px-1 py-0 rounded bg-gradient-to-r from-emerald-500 to-teal-500 text-[6px] sm:text-[8px] font-black uppercase text-white ring-1 ring-slate-950 shadow">
               PWA
-            </span>
-            <span className="absolute -top-1 -left-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white ring-2 ring-slate-950">
-              <BellRing className="w-2.5 h-2.5 animate-bounce" />
             </span>
           </div>
 
           {/* Notification Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
+            <div className="hidden sm:flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-sky-400">
                 {deviceProfile.isMobile ? (
                   <Smartphone className="w-3 h-3 text-sky-400" />
@@ -214,7 +211,7 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="rounded-lg p-0.5 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
                 title="Fermer jusqu'à la prochaine mise à jour"
                 aria-label="Fermer"
               >
@@ -222,21 +219,45 @@ export const PWAInstallNotificationBanner: React.FC<PWAInstallNotificationBanner
               </button>
             </div>
 
-            <h4 className="text-xs sm:text-sm font-black text-white leading-snug mt-0.5">
-              {deviceProfile.isMobile
-                ? 'Installer l’application PWA Instant Météo'
-                : 'Installer l’application Instant Météo'}
-            </h4>
-            <p className="text-[11px] text-slate-300 leading-snug mt-0.5">
-              {deviceProfile.isMobile
-                ? `Ajoutez l'application PWA officielle avec le logo Instant Météo sur l'écran d'accueil de votre téléphone (${deviceProfile.browserName}) en 1 clic, sans fichier APK.`
-                : isInstallable
-                ? `Installez l'application PWA avec le logo officiel depuis ${deviceProfile.browserName} (${deviceProfile.osName}) pour un accès direct.`
-                : `Téléchargez et installez l'application Instant Météo avec son logo officiel sur ${deviceProfile.osName} (${deviceProfile.browserName}).`}
-            </p>
+            <div className="flex items-center justify-between gap-1.5 sm:block">
+              <div className="min-w-0 flex-1">
+                <h4 className="text-[11px] sm:text-xs font-black text-white leading-tight truncate">
+                  {deviceProfile.isMobile
+                    ? 'Installer l’app PWA Instant Météo'
+                    : 'Installer l’application Instant Météo'}
+                </h4>
+                <p className="hidden sm:block text-[11px] text-slate-300 leading-tight mt-0.5">
+                  {deviceProfile.isMobile
+                    ? `Installez la PWA avec le logo officiel sur ${deviceProfile.browserName}.`
+                    : isInstallable
+                    ? `Installez l'application PWA avec le logo officiel depuis ${deviceProfile.browserName}.`
+                    : `Téléchargez l'application avec son logo officiel sur ${deviceProfile.osName}.`}
+                </p>
+              </div>
 
-            {/* Action Buttons: Installer PWA + Bouton OK + Options */}
-            <div className="flex items-center gap-2 mt-2.5">
+              {/* Mobile inline compact buttons (1 single slim line) */}
+              <div className="flex sm:hidden items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={handlePrimaryInstallAction}
+                  className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-blue-600 to-sky-500 px-2 py-1 text-[10px] font-black text-white shadow cursor-pointer active:scale-95"
+                >
+                  <img src="/icon-192.png" alt="" className="w-3 h-3 rounded-sm object-cover" />
+                  <span>{downloadTriggered ? 'Lancé' : 'PWA'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-2 py-1 text-[10px] font-black text-white shadow cursor-pointer active:scale-95"
+                  title="OK — Ne plus afficher sauf mise à jour différente"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Action Buttons */}
+            <div className="hidden sm:flex items-center gap-2 mt-2">
               <button
                 type="button"
                 onClick={handlePrimaryInstallAction}

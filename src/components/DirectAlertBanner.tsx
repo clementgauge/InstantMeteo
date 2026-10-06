@@ -71,42 +71,43 @@ export const DirectAlertBanner: React.FC<DirectAlertBannerProps> = ({
   return (
     <div 
       id="direct-screen-weather-alert"
-      className={`rounded-2xl border-2 ${borderClass} p-3.5 sm:px-5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 transition-all animate-fadeIn relative z-30`}
+      className={`rounded-xl sm:rounded-2xl border sm:border-2 ${borderClass} px-2.5 py-1.5 sm:p-3.5 sm:px-5 shadow-lg sm:shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 sm:gap-3 transition-all animate-fadeIn relative z-30`}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950/60 border border-white/20">
-          <Icon className="h-5 w-5 text-amber-300 animate-pulse" />
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+        <div className="flex h-7 w-7 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-slate-950/60 border border-white/20">
+          <Icon className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-amber-300 animate-pulse" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider ${badgeClass}`}>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className={`hidden sm:inline-block text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0 ${badgeClass}`}>
               Vigilance Directe
             </span>
-            <strong className={`font-black text-white ${seniorMode ? 'text-base' : 'text-sm'}`}>
+            <strong className={`font-black text-white truncate block ${seniorMode ? 'text-xs sm:text-base' : 'text-[11px] sm:text-sm'}`}>
               {alertTitle}
             </strong>
           </div>
-          <p className="text-xs text-slate-200 mt-0.5">
+          <p className="hidden sm:block text-xs text-slate-200 mt-0.5">
             {alertDesc}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         <button
           onClick={onOpenAlerts}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition cursor-pointer border border-white/30"
+          className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-[10px] sm:text-xs transition cursor-pointer border border-white/30"
         >
           <span>Détails</span>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
         </button>
 
         <button
           onClick={() => setIsDismissed(true)}
-          className="p-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+          className="px-2 py-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-600/90 sm:bg-transparent hover:bg-emerald-500 sm:hover:bg-white/10 text-white sm:text-slate-300 font-black text-[10px] sm:text-xs transition cursor-pointer"
           title="Fermer la notification d'alerte"
         >
-          <X className="h-4 w-4" />
+          <span className="sm:hidden">OK</span>
+          <X className="hidden sm:block h-4 w-4" />
         </button>
       </div>
     </div>

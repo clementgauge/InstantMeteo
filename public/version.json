@@ -1,16 +1,16 @@
 {
   "version": "2.5.1",
   "buildId": "build-20261006-251",
-  "updatedAt": "2026-10-06T17:48:00.000Z",
-  "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
-  "changelog": "Remplacement de l'APK par l'application PWA avec le logo officiel sur téléphone, ajout du bouton OK sur les notifications (mise à jour et installation) qui ne réapparaissent qu'en cas de nouvelle mise à jour différente, et météo par zones mondiales.",
+  "updatedAt": "2026-10-06T18:45:00.000Z",
+  "title": "Application PWA avec Logo Officiel, Bouton OK & Notifications Mobile Ultra-Compactes",
+  "changelog": "Notifications ultra-compactes sur une seule ligne sur téléphone, remplacement de l'APK par l'application PWA avec le logo officiel, et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
   "changes": [
+    "📱 Notifications Mobile Ultra-Compactes : Affichage sur une seule ligne fine sur téléphone avec bouton « Détails » dépliable et bouton « OK »",
     "📱 Téléphone (Android & iOS) : Remplacement de l'APK par l'installation directe en PWA avec le logo officiel Instant Météo",
     "✅ Bouton OK sur la notification de mise à jour et d'installation : une fois validé, la notification ne s'affiche plus sauf s'il y a une mise à jour différente",
     "🇬🇧 Météo par zones pour tous les pays : 11 régions météo en direct pour le Royaume-Uni / Angleterre et découpage dynamique mondial",
     "🗺️ Mini-carte interactive : Affichage prioritaire du pays de la ville recherchée (ex: Londres → Royaume-Uni) avant la ville et le monde",
-    "🎮 Jeu Paratonnerre 3D : Chargement instantané dans l'application sans blocage par le routeur SEO",
-    "⚡ Notifications de mise à jour : Affichage détaillé des vraies nouveautés et fichiers modifiés à chaque déploiement"
+    "🎮 Jeu Paratonnerre 3D : Chargement instantané dans l'application sans blocage par le routeur SEO"
   ],
   "history": [
     {
