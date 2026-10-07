@@ -1,16 +1,27 @@
 {
-  "version": "2.5.2",
-  "buildId": "build-20261006-252",
-  "updatedAt": "2026-10-06T19:25:00.000Z",
-  "title": "Installation PWA Directe (Chrome, Brave, Samsung Internet, Edge, Opera) & Sans Doublon",
-  "changelog": "Suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète avec Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »).",
+  "version": "2.5.3",
+  "buildId": "build-20261007-253",
+  "updatedAt": "2026-10-07T08:50:00.000Z",
+  "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
+  "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt), suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète (Chrome, Brave, Samsung Internet, Edge, Opera).",
   "changes": [
+    "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt) dans l'en-tête (PC & mobile), le salon météo et le pied de page",
     "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
     "🚫 Suppression des notifications d'installation en double sur téléphone (une seule bannière compacte)",
-    "📱 Téléphone : Un seul type d'installation unifié avec uniquement le bouton « Installer en PWA » et le logo officiel",
-    "✅ Bouton OK mémorisé sur les notifications de mise à jour et d'installation jusqu'à la prochaine mise à jour différente"
+    "📱 Téléphone : Un seul type d'installation unifié avec uniquement le bouton « Installer en PWA » et le logo officiel"
   ],
   "history": [
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:25:00.000Z",
+      "title": "Installation PWA Directe (Chrome, Brave, Samsung Internet, Edge, Opera) & Sans Doublon",
+      "changelog": "Suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète avec Chrome, Brave, Samsung Internet, Edge et Opera.",
+      "changes": [
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
+        "🚫 Suppression des notifications d'installation en double sur téléphone"
+      ]
+    },
     {
       "version": "2.5.2",
       "buildId": "build-20261006-252",
