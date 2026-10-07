@@ -1,16 +1,25 @@
 {
-  "version": "2.5.4",
-  "buildId": "build-20261007-254",
-  "updatedAt": "2026-10-07T09:45:00.000Z",
-  "title": "Suivi des Taux de Pollen en Temps Réel (Jauge Rouge ➔ Vert) & Prévention Allergique",
-  "changelog": "Ajout du module de suivi des taux de pollen en temps réel (Graminées, Bouleau, Ambroisie, Olivier, Aulne, Armoise) avec jauge graduée de Rouge à Vert et conseils de prévention pour les personnes allergiques dans les indicateurs météo.",
+  "version": "2.5.5",
+  "buildId": "build-20261007-255",
+  "updatedAt": "2026-10-07T13:06:00.000Z",
+  "title": "Partenariat Observatoire Climatique Mondial & Jauge Pollen (Rouge ➔ Vert)",
+  "changelog": "Ajout du site partenaire Observatoire Climatique Mondial (https://observatoire-climatique-mondial.ecologia.workers.dev/) et intégration de la jauge de pollen graduée de Rouge à Vert dans les indicateurs météo.",
   "changes": [
-    "🌿 Nouveau module de suivi des taux de pollen en temps réel (en grains/m³) intégré dans les indicateurs météo",
-    "🎯 Jauge visuelle graduée de Rouge (Risque Élevé / Alerte) à Vert (Risque Faible / Air Sain) avec aiguille dynamique",
-    "🛡️ Conseils de prévention personnalisés pour les personnes allergiques (aération optimale, protection oculaire, hygiène et lessivage pluvieux)",
+    "🌍 Nouveau site partenaire ajouté : Observatoire Climatique Mondial (https://observatoire-climatique-mondial.ecologia.workers.dev/)",
+    "🌿 Jauge de Taux de Pollen graduée de Rouge à Vert intégrée dans la ligne des indicateurs météo",
     "💬 Logo officiel Discord avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)"
   ],
   "history": [
+    {
+      "version": "2.5.4",
+      "buildId": "build-20261007-254",
+      "updatedAt": "2026-10-07T09:45:00.000Z",
+      "title": "Jauge des Taux de Pollen en Temps Réel (Rouge ➔ Vert)",
+      "changelog": "Ajout de la jauge des taux de pollen en temps réel graduée de Rouge à Vert dans les indicateurs météo.",
+      "changes": [
+        "🎯 Jauge visuelle du taux de pollen graduée de Rouge à Vert avec aiguille dynamique"
+      ]
+    },
     {
       "version": "2.5.3",
       "buildId": "build-20261007-253",

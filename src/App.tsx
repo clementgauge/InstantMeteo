@@ -1196,46 +1196,91 @@ function WeatherApp() {
               </div>
             )}
 
-            {/* Recommandation de site partenaire - Cin-Scope (Films & Cinéma) - Placé après le bloc Guide & FAQ */}
-            <div className={`mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
-              themeMode === 'light'
-                ? 'bg-amber-50/90 border-amber-200 text-slate-800'
-                : 'bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 border-slate-700/50 text-slate-100'
-            }`}>
-              <div className="flex items-center gap-3 text-left">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500/20 via-red-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-inner">
-                  <Film className="h-5 w-5" />
+            {/* Recommandations de sites partenaires - Observatoire Climatique Mondial & Cin-Scope */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {/* Partenaire 1 : Observatoire Climatique Mondial */}
+              <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
+                themeMode === 'light'
+                  ? 'bg-emerald-50/90 border-emerald-200 text-slate-800'
+                  : 'bg-gradient-to-r from-slate-900/90 via-emerald-950/30 to-slate-900/90 border-emerald-500/30 text-slate-100'
+              }`}>
+                <div className="flex items-center gap-3 text-left">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-sky-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0 shadow-inner">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold flex items-center gap-2 flex-wrap">
+                      <span>Observatoire Climatique Mondial</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                        Partenaire
+                      </span>
+                    </p>
+                    <p className={`text-[11px] sm:text-xs ${themeMode === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Suivez l'évolution du climat mondial et les indicateurs écologiques sur notre site partenaire :{' '}
+                      <a
+                        href="https://observatoire-climatique-mondial.ecologia.workers.dev/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 dark:text-emerald-400 hover:underline font-mono font-medium break-all"
+                      >
+                        https://observatoire-climatique-mondial.ecologia.workers.dev/
+                      </a>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs sm:text-sm font-bold flex items-center gap-2">
-                    <span>Envie d'une pause cinéma ?</span>
-                    <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">
-                      Partenaire
-                    </span>
-                  </p>
-                  <p className={`text-[11px] sm:text-xs ${themeMode === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-                    Découvrez et explorez également notre autre site dédié au cinéma et aux films :{' '}
-                    <a
-                      href="https://cin-scope.ai.studio"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-600 dark:text-amber-400 hover:underline font-mono font-medium"
-                    >
-                      https://cin-scope.ai.studio
-                    </a>
-                  </p>
-                </div>
+                <a
+                  href="https://observatoire-climatique-mondial.ecologia.workers.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-emerald-500/20 cursor-pointer"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>Visiter l'Observatoire</span>
+                  <span className="text-xs">→</span>
+                </a>
               </div>
-              <a
-                href="https://cin-scope.ai.studio"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
-              >
-                <Film className="h-4 w-4" />
-                <span>Visiter Cin-Scope</span>
-                <span className="text-xs">→</span>
-              </a>
+
+              {/* Partenaire 2 : Cin-Scope (Films & Cinéma) */}
+              <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
+                themeMode === 'light'
+                  ? 'bg-amber-50/90 border-amber-200 text-slate-800'
+                  : 'bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 border-slate-700/50 text-slate-100'
+              }`}>
+                <div className="flex items-center gap-3 text-left">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500/20 via-red-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-inner">
+                    <Film className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold flex items-center gap-2 flex-wrap">
+                      <span>Envie d'une pause cinéma ?</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                        Partenaire
+                      </span>
+                    </p>
+                    <p className={`text-[11px] sm:text-xs ${themeMode === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Découvrez et explorez également notre autre site dédié au cinéma et aux films :{' '}
+                      <a
+                        href="https://cin-scope.ai.studio"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-600 dark:text-amber-400 hover:underline font-mono font-medium"
+                      >
+                        https://cin-scope.ai.studio
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="https://cin-scope.ai.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-md transition transform active:scale-95 hover:shadow-amber-500/20 cursor-pointer"
+                >
+                  <Film className="h-4 w-4" />
+                  <span>Visiter Cin-Scope</span>
+                  <span className="text-xs">→</span>
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -1274,6 +1319,16 @@ function WeatherApp() {
                   <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
                 </svg>
                 <span>Discord Officiel</span>
+              </a>
+              <span>•</span>
+              <a
+                href="https://observatoire-climatique-mondial.ecologia.workers.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 hover:underline font-bold"
+                title="Site partenaire : Observatoire Climatique Mondial"
+              >
+                <span>🌍 Observatoire Climatique Mondial</span>
               </a>
               <span>•</span>
               <button
