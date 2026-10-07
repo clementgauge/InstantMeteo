@@ -644,7 +644,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               <span className="text-xs text-slate-400">Relevé mis à jour en direct</span>
             </div>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${simplifiedMode ? 'xl:grid-cols-5' : 'xl:grid-cols-6'} gap-3`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${simplifiedMode ? 'xl:grid-cols-6' : 'xl:grid-cols-7'} gap-3`}>
               <WeatherGauge
                 title="Humidité Relative"
                 value={weather.humidity}
@@ -718,14 +718,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   seniorMode={seniorMode}
                 />
               )}
-            </div>
 
-            {/* Module de suivi des taux de pollen en temps réel avec jauge de Rouge à Vert et conseils de prévention allergiques */}
-            <PollenRealtimeTrackerCard
-              weather={weather}
-              station={station}
-              seniorMode={seniorMode}
-            />
+              {/* Jauge de Pollen de Rouge à Vert uniquement */}
+              <PollenRealtimeTrackerCard
+                weather={weather}
+                station={station}
+                seniorMode={seniorMode}
+              />
+            </div>
           </div>
 
           {/* Row 5: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
