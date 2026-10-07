@@ -27,6 +27,40 @@ export interface LocationPoint {
   modelSource?: string;
 }
 
+export interface PollenSpeciesReading {
+  id: 'grass' | 'birch' | 'ragweed' | 'olive' | 'alder' | 'mugwort';
+  name: string;
+  scientificName: string;
+  category: 'Graminées' | 'Arbres' | 'Herbacées';
+  concentrationGrainsM3: number;
+  riskIndex: 0 | 1 | 2 | 3 | 4 | 5; // Échelle RNSA 0 à 5
+  riskScore100: number; // 0 à 100 pour la jauge
+  levelLabel: 'Nul / Très faible' | 'Faible' | 'Modéré' | 'Élevé' | 'Très élevé' | 'Alerte extrême';
+  seasonWindow: string;
+  allergenicity: 'Modérée' | 'Forte' | 'Très forte';
+  symptoms: string;
+}
+
+export interface PollenTrackingData {
+  overallRiskIndex: 0 | 1 | 2 | 3 | 4 | 5; // 0 (Vert) à 5 (Rouge)
+  overallScore100: number; // 0 (Vert) à 100 (Rouge)
+  overallStatusLabel: 'Risque Nul à Très Faible' | 'Risque Faible' | 'Risque Modéré' | 'Risque Élevé' | 'Risque Très Élevé' | 'Alerte Allergique Maximale';
+  dominantPollenName: string;
+  totalGrainsM3: number;
+  dispersionFactorLabel: string;
+  dispersionFactorDetail: string;
+  optimalVentilationWindow: string;
+  isWashoutActive: boolean;
+  sourceLabel: string;
+  species: PollenSpeciesReading[];
+  preventionTips: {
+    title: string;
+    detail: string;
+    category: 'Domicile' | 'Extérieur' | 'Hygiène' | 'Traitement';
+    priority: 'Haute' | 'Recommandée' | 'Confort';
+  }[];
+}
+
 export interface DetailedAirQuality {
   aqi: number;
   label: string;
@@ -38,6 +72,7 @@ export interface DetailedAirQuality {
   o3: number;
   so2: number;
   uvIndex: number;
+  pollenData?: PollenTrackingData;
 }
 
 export interface MountainAltitudeMetrics {
@@ -875,6 +910,7 @@ export interface CurrentWeather {
   airQualityAqi: number;
   airQualityLabel: string;
   airQualityDetails?: DetailedAirQuality;
+  pollenData?: PollenTrackingData;
   dewPoint?: number;
   humidex?: number;
   windChill?: number;

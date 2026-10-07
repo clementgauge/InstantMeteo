@@ -58,6 +58,7 @@ import {
   calculateReliableFeelsLike
 } from '../utils/bioclimaticCalculations';
 import { getRecalibrationOffsetForStation } from './userObservationService';
+import { computeRealtimePollenTracking, RawCamsPollenInput } from './pollenService';
 
 export function getWeatherDescription(code: number, isDay: boolean = true): { label: string; icon: string; emoji: string; shortLabel: string } {
   const info = getRichWeatherInfo(code, isDay);
@@ -1131,7 +1132,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const alt = station.altitude ?? 0;
 
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
-    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide&timezone=auto`;
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
     const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,ecmwf_ifs025,icon_seamless,gfs_seamless&forecast_days=1&timezone=auto`;
 
     const [weatherRes, aqiRes, multiModelLiveRes] = await Promise.all([
@@ -1146,8 +1147,9 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     const weatherData = await weatherRes.json();
     
-    // Parse Air Quality
+    // Parse Air Quality & CAMS Pollen
     let aqiValue = 25;
+    let rawCamsPollen: RawCamsPollenInput | null = null;
     let detailedAqi: DetailedAirQuality = {
       aqi: 25,
       label: "Bonne",
@@ -1166,6 +1168,14 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       if (aqiData.current) {
         const curAqi = aqiData.current;
         aqiValue = Math.round(curAqi.european_aqi ?? 25);
+        rawCamsPollen = {
+          alder_pollen: curAqi.alder_pollen ?? null,
+          birch_pollen: curAqi.birch_pollen ?? null,
+          grass_pollen: curAqi.grass_pollen ?? null,
+          mugwort_pollen: curAqi.mugwort_pollen ?? null,
+          olive_pollen: curAqi.olive_pollen ?? null,
+          ragweed_pollen: curAqi.ragweed_pollen ?? null
+        };
         const aqiInfo = getAirQualityLabel(aqiValue);
         detailedAqi = {
           aqi: aqiValue,
@@ -1721,6 +1731,20 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     }
     const finalWeatherDesc = getWeatherDescription(calibratedWeatherCode, cur.is_day);
 
+    const pollenData = computeRealtimePollenTracking(
+      station,
+      {
+        temperature: finalCurTemp,
+        humidity: Math.round(cur.relative_humidity_2m),
+        windSpeed: Math.round(cur.wind_speed_10m),
+        precipitation: Number(effectivePrecipRate.toFixed(1)),
+        uvIndex: uvAdjustedAltitude,
+        isDay: cur.is_day === 1
+      },
+      rawCamsPollen
+    );
+    detailedAqi.pollenData = pollenData;
+
     const currentPartial: CurrentWeather = {
       temperature: finalCurTemp,
       feelsLike: calibratedFeelsLike,
@@ -1739,6 +1763,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       airQualityAqi: aqiValue,
       airQualityLabel: aqiInfo.label,
       airQualityDetails: detailedAqi,
+      pollenData,
       dewPoint: exactDewPoint,
       humidex: humidexVal,
       windChill: windChillVal,

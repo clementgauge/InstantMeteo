@@ -58,6 +58,7 @@ import { AnomalyBadge } from '../components/AnomalyBadge';
 import { AltitudeMeteorologyCard } from '../components/AltitudeMeteorologyCard';
 import { EphemerisCard } from '../components/EphemerisCard';
 import { OutdoorIndicesCard } from '../components/OutdoorIndicesCard';
+import { PollenRealtimeTrackerCard } from '../components/PollenRealtimeTrackerCard';
 import { DeepWeatherConditionsCard } from '../components/DeepWeatherConditionsCard';
 import { RadarProximityTrackerCard } from '../components/RadarProximityTrackerCard';
 import { ThunderstormConvectiveDetailsCard } from '../components/ThunderstormConvectiveDetailsCard';
@@ -718,6 +719,13 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 />
               )}
             </div>
+
+            {/* Module de suivi des taux de pollen en temps réel avec jauge de Rouge à Vert et conseils de prévention allergiques */}
+            <PollenRealtimeTrackerCard
+              weather={weather}
+              station={station}
+              seniorMode={seniorMode}
+            />
           </div>
 
           {/* Row 5: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}

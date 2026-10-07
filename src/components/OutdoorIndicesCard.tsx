@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
+import { computeRealtimePollenTracking } from '../services/pollenService';
 import { 
   Footprints, 
   Bike, 
   Palmtree, 
   Sprout, 
   SunMedium, 
+  Flower2,
   CheckCircle2, 
   AlertTriangle, 
   ShieldCheck, 
@@ -28,10 +30,25 @@ export const OutdoorIndicesCard: React.FC<OutdoorIndicesCardProps> = ({
   station,
   seniorMode
 }) => {
-  const [activeTab, setActiveTab] = useState<'hiking' | 'cycling' | 'beach' | 'agri' | 'solar'>('hiking');
+  const [activeTab, setActiveTab] = useState<'pollen' | 'hiking' | 'cycling' | 'beach' | 'agri' | 'solar'>('pollen');
   const indices = weather.outdoorIndices;
 
+  const pollen = useMemo(() => {
+    if (weather.pollenData) return weather.pollenData;
+    if (weather.airQualityDetails?.pollenData) return weather.airQualityDetails.pollenData;
+    return computeRealtimePollenTracking(station, {
+      temperature: weather.temperature,
+      humidity: weather.humidity,
+      windSpeed: weather.windSpeed,
+      precipitation: weather.precipitation,
+      uvIndex: weather.uvIndex,
+      isDay: weather.isDay,
+    });
+  }, [weather, station]);
+
   if (!indices) return null;
+
+  const redToGreenPosPct = Math.max(4, Math.min(96, 100 - pollen.overallScore100));
 
   return (
     <div id="outdoor-indices-card" className="rounded-xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl backdrop-blur">
@@ -43,16 +60,26 @@ export const OutdoorIndicesCard: React.FC<OutdoorIndicesCardProps> = ({
           </div>
           <div>
             <h3 className="font-bold text-white text-base sm:text-lg">
-              Indices d'Activités & Confort Plein Air
+              Indicateurs Météo, Pollen &amp; Confort Plein Air
             </h3>
             <p className="text-xs text-slate-400">
-              Évaluations biométéorologiques pour sports, loisirs, agriculture et énergie
+              Suivi des taux de pollen en temps réel, prévention allergique et indices biométéorologiques
             </p>
           </div>
         </div>
 
         {/* Tab Buttons */}
         <div className="flex items-center gap-1 rounded-2xl bg-slate-950 p-1 border border-slate-800 overflow-x-auto max-w-full">
+          <button
+            onClick={() => setActiveTab('pollen')}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition shrink-0 cursor-pointer ${
+              activeTab === 'pollen' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Flower2 className="h-3.5 w-3.5" />
+            <span>Pollen &amp; Allergies</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('hiking')}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition shrink-0 ${
@@ -106,6 +133,91 @@ export const OutdoorIndicesCard: React.FC<OutdoorIndicesCardProps> = ({
       </div>
 
       {/* Content for Active Tab */}
+      {activeTab === 'pollen' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1: Jauge de Rouge à Vert */}
+          <div className="rounded-2xl bg-slate-950 p-4 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-slate-300">Jauge Pollen (Rouge ➔ Vert)</span>
+                <span className="text-[11px] font-mono font-bold text-emerald-300">
+                  {pollen.totalGrainsM3} gr/m³
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <span className="text-3xl font-black text-white">Indice {pollen.overallRiskIndex}</span>
+                <span className="text-xs font-bold text-slate-400">/ 5 ({pollen.overallStatusLabel})</span>
+              </div>
+
+              {/* Barre de Jauge Rouge à Vert */}
+              <div className="mt-3 space-y-1">
+                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider">
+                  <span className="text-rose-400">🔴 Rouge (Risque Fort)</span>
+                  <span className="text-emerald-400">🟢 Vert (Risque Faible)</span>
+                </div>
+                <div
+                  className="relative h-3 w-full rounded-full border border-slate-700"
+                  style={{
+                    background:
+                      'linear-gradient(90deg, #ef4444 0%, #f97316 25%, #eab308 50%, #84cc16 75%, #10b981 100%)',
+                  }}
+                >
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-white border-2 border-slate-950 shadow-md"
+                    style={{ left: `${redToGreenPosPct}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 mt-3 pt-2.5 border-t border-slate-800">
+              Allergène dominant : <strong className="text-white">{pollen.dominantPollenName}</strong> • Aération :{' '}
+              <strong className="text-emerald-300">{pollen.optimalVentilationWindow}</strong>
+            </p>
+          </div>
+
+          {/* Card 2: Taux par espèce */}
+          <div className="rounded-2xl bg-slate-950 p-4 border border-slate-800 space-y-2 text-xs">
+            <div className="font-bold text-slate-300 uppercase tracking-wider text-[11px]">
+              Taux de Pollen en Temps Réel
+            </div>
+            <div className="space-y-1.5">
+              {pollen.species.slice(0, 4).map((sp) => (
+                <div key={sp.id} className="flex items-center justify-between gap-2 border-b border-slate-800/70 pb-1 last:border-0">
+                  <span className="text-slate-300 font-semibold truncate">{sp.name}</span>
+                  <span className="font-mono text-[11px] text-white shrink-0">
+                    {sp.concentrationGrainsM3} gr/m³{' '}
+                    <strong className={sp.riskIndex >= 3 ? 'text-amber-400' : 'text-emerald-400'}>
+                      ({sp.levelLabel})
+                    </strong>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 3: Conseils de prévention pour les personnes allergiques */}
+          <div className="rounded-2xl bg-slate-950 p-4 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Prévention Personnes Allergiques</span>
+              </div>
+              <ul className="space-y-1.5 text-[11px] text-slate-300 leading-snug">
+                {pollen.preventionTips.slice(0, 3).map((tip, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 font-bold">•</span>
+                    <span>
+                      <strong className="text-white">{tip.title} :</strong> {tip.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'hiking' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-slate-950 p-5 border border-slate-800 flex flex-col justify-between">

@@ -1,16 +1,27 @@
 {
-  "version": "2.5.3",
-  "buildId": "build-20261007-253",
-  "updatedAt": "2026-10-07T08:50:00.000Z",
-  "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
-  "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt), suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète (Chrome, Brave, Samsung Internet, Edge, Opera).",
+  "version": "2.5.4",
+  "buildId": "build-20261007-254",
+  "updatedAt": "2026-10-07T09:45:00.000Z",
+  "title": "Suivi des Taux de Pollen en Temps Réel (Jauge Rouge ➔ Vert) & Prévention Allergique",
+  "changelog": "Ajout du module de suivi des taux de pollen en temps réel (Graminées, Bouleau, Ambroisie, Olivier, Aulne, Armoise) avec jauge graduée de Rouge à Vert et conseils de prévention pour les personnes allergiques dans les indicateurs météo.",
   "changes": [
-    "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt) dans l'en-tête (PC & mobile), le salon météo et le pied de page",
-    "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
-    "🚫 Suppression des notifications d'installation en double sur téléphone (une seule bannière compacte)",
-    "📱 Téléphone : Un seul type d'installation unifié avec uniquement le bouton « Installer en PWA » et le logo officiel"
+    "🌿 Nouveau module de suivi des taux de pollen en temps réel (en grains/m³) intégré dans les indicateurs météo",
+    "🎯 Jauge visuelle graduée de Rouge (Risque Élevé / Alerte) à Vert (Risque Faible / Air Sain) avec aiguille dynamique",
+    "🛡️ Conseils de prévention personnalisés pour les personnes allergiques (aération optimale, protection oculaire, hygiène et lessivage pluvieux)",
+    "💬 Logo officiel Discord avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)"
   ],
   "history": [
+    {
+      "version": "2.5.3",
+      "buildId": "build-20261007-253",
+      "updatedAt": "2026-10-07T08:50:00.000Z",
+      "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
+      "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt) et compatibilité PWA complète.",
+      "changes": [
+        "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)",
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera"
+      ]
+    },
     {
       "version": "2.5.2",
       "buildId": "build-20261006-252",
