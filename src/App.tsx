@@ -77,7 +77,6 @@ import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
 import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile } from './services/competitiveGameService';
 import { isPageVisible } from './services/displayPreferencesService';
-import { InteractiveTutorialModal } from './components/InteractiveTutorialModal';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
@@ -255,7 +254,6 @@ function WeatherApp() {
   const [isAtmosphereModalOpen, setIsAtmosphereModalOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState<boolean>(false);
-  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
   const [isPseudoModalOpen, setIsPseudoModalOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
@@ -870,7 +868,6 @@ function WeatherApp() {
           onToggleFullscreen={handleToggleFullscreen}
           onOpenVigilanceTab={() => setActiveTab('vigilance')}
           onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
-          onOpenTutorial={() => setIsTutorialOpen(true)}
           activeAlertCount={activeAlertCount}
           onOpenPageBlockCustomizer={() => setIsPageBlockCustomizerOpen(true)}
           onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
@@ -1691,13 +1688,6 @@ function WeatherApp() {
           seniorMode={seniorMode}
         />
       )}
-
-      {/* Interactive Step-by-Step Tutorial Modal */}
-      <InteractiveTutorialModal
-        isOpen={isTutorialOpen}
-        onClose={() => setIsTutorialOpen(false)}
-        onNavigateTab={(tab) => setActiveTab(tab as NavTabId)}
-      />
 
       {/* Direct Page Push Notification Permission Prompt */}
       <UpdateNotificationPrompt

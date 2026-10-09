@@ -19,7 +19,6 @@ import {
   Instagram,
   Youtube,
   SlidersHorizontal,
-  HelpCircle,
   LayoutGrid,
   Crown,
   KeyRound,
@@ -56,7 +55,6 @@ interface HeaderProps {
   onOpenComparatorModal: () => void;
   onOpenAtmosphereModal?: () => void;
   onOpenReportModal?: () => void;
-  onOpenTutorial?: () => void;
   activeRecalibration?: { isActive: boolean; stationName: string; tempOffset: number } | null;
   currentTheme?: AtmosphereThemeConfig;
   onRefresh: () => void;
@@ -104,7 +102,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenComparatorModal,
   onOpenAtmosphereModal,
   onOpenReportModal,
-  onOpenTutorial,
   activeRecalibration,
   currentTheme,
   onRefresh,
@@ -519,17 +516,17 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* 2. Jeu Météo (Manette) */}
+          {/* 2. Jeu Météo (Logo Manette uniquement) */}
           {onOpenWeatherGame && (
             <button
               onClick={onOpenWeatherGame}
-              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
+              className="flex flex-col items-center justify-center active:scale-95 transition cursor-pointer shrink-0"
               title="Jouer au Jeu de Météo"
+              aria-label="Jouer au Jeu de Météo"
             >
               <div className="w-10 h-10 rounded-full bg-emerald-600/30 border border-emerald-400/60 shadow-lg shadow-emerald-500/25 flex items-center justify-center text-emerald-300">
                 <Gamepad2 className="h-4 w-4 text-emerald-300" />
               </div>
-              <span className="text-[10px] font-bold text-emerald-300">Jeu</span>
             </button>
           )}
 
@@ -765,7 +762,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Gamepad Icon Button — Jouer au Jeu de Météo */}
+          {/* Gamepad Icon Button — Jouer au Jeu de Météo (Logo uniquement) */}
           {onOpenWeatherGame && (
             <button
               id="header-weather-game-btn"
@@ -773,14 +770,13 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenWeatherGame}
               title="Jouer au Jeu de Météo (Arcade, Duel & Jeu .zip)"
               aria-label="Jouer au Jeu de Météo"
-              className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+              className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
                 themeMode === 'light'
-                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-400'
-                  : 'border-emerald-500/50 bg-emerald-950/60 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-900/70 hover:text-white'
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-400'
+                  : 'border-emerald-500/50 bg-emerald-950/60 text-emerald-400 hover:border-emerald-400 hover:bg-emerald-900/70 hover:text-white'
               }`}
             >
-              <Gamepad2 className={`h-3.5 w-3.5 shrink-0 ${themeMode === 'light' ? 'text-emerald-600' : 'text-emerald-400'}`} />
-              <span>Jeu Météo</span>
+              <Gamepad2 className="h-3.5 w-3.5 shrink-0" />
             </button>
           )}
 
@@ -877,23 +873,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>Noir</span>
                 </>
               )}
-            </button>
-          )}
-
-          {/* Interactive Tutorial Button */}
-          {onOpenTutorial && (
-            <button
-              id="header-tuto-btn"
-              onClick={onOpenTutorial}
-              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
-                themeMode === 'light'
-                  ? 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:border-amber-400'
-                  : 'border-amber-500/40 bg-amber-950/40 text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-white'
-              }`}
-              title="Lancer le tutoriel interactif du site"
-            >
-              <HelpCircle className={`h-3.5 w-3.5 shrink-0 ${themeMode === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
-              <span>Tuto</span>
             </button>
           )}
 
