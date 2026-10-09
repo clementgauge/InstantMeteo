@@ -83,6 +83,11 @@ import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluie
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
 import { IntenseRegenerationBanner } from '../components/IntenseRegenerationBanner';
+import { FavoriteCitiesBar } from '../components/FavoriteCitiesBar';
+import { TodayVsYesterdayCard } from '../components/TodayVsYesterdayCard';
+import { MorningAudioBriefingCard } from '../components/MorningAudioBriefingCard';
+import { ShareableWeatherCardModal } from '../components/ShareableWeatherCardModal';
+import { AuroraNightSkyCard } from '../components/AuroraNightSkyCard';
 import { isBlockVisible } from '../services/displayPreferencesService';
 
 interface RealtimeViewProps {
@@ -143,6 +148,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const toggleBubble = onToggleFloatingBubble || (() => setLocalShowBubble(!localShowBubble));
   const [isDailyAnalyzerOpen, setIsDailyAnalyzerOpen] = useState<boolean>(false);
   const [selectedDayIndexForAnalyzer, setSelectedDayIndexForAnalyzer] = useState<number>(0);
+  const [isShareCardModalOpen, setIsShareCardModalOpen] = useState<boolean>(false);
+  const [publicChapterFilter, setPublicChapterFilter] = useState<'ALL' | 'ESSENTIAL' | 'INDICATORS' | 'SKY_AURORA' | 'RAIN_RADAR'>('ALL');
   const [activeWinterModule, setActiveWinterModule] = useState<'NONE' | 'CLOUD' | 'SNOW' | 'FROST' | 'ALTITUDE'>('CLOUD');
   const initialGeoBackdrop = getClientGeographicBackdrop(
     station.name,
@@ -211,7 +218,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
   const isGpsPosition = station.id.startsWith('gps');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* 0. BARRE DES VILLES FAVORITES (Accès en 1 clic avec météo temps réel) */}
+      <FavoriteCitiesBar
+        currentStation={station}
+        currentWeather={weather}
+        tempUnit={tempUnit}
+        onSelectStation={(st) => onSelectStation && onSelectStation(st)}
+        onOpenSearchModal={onOpenSearchModal}
+      />
+
       {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
       {!simplifiedMode && (
         <div className="w-full">
@@ -620,7 +636,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
       {/* PROFIL 1 : CHAÎNE MÉTÉO (CLASSIQUE - CLARTÉ & EN UN COUP D'ŒIL) */}
       {activeProfileTab === 'classic' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Mobile only: Prévisions Détaillées de la Journée (24h) & Semaine (7 Jours) (already in Row 2 on Desktop) */}
           <div className="sm:hidden w-full scroll-mt-28 min-w-0">
             <GrandDayAndWeekDetailedForecastCard
@@ -635,127 +651,341 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             />
           </div>
 
-          {/* Row 4: Les 6 Jauges & indicateurs synoptiques sur une seule ligne horizontale (Humidité, Vent, UV, AQI, Pression, Pluie) */}
-          <div id="realtime-indicators" className="scroll-mt-28">
-            <div className="mb-2.5 flex items-center justify-between">
-              <h3 className={`font-bold text-slate-200 ${seniorMode ? 'text-2xl' : 'text-base sm:text-lg'}`}>
-                Indicateurs &amp; Précision Météorologique
-              </h3>
-              <span className="text-xs text-slate-400">Relevé mis à jour en direct</span>
+          {/* BARRE DE NAVIGATION CLAIRE TOUT PUBLIC (Organisation par thématiques sans aucune perte de données) */}
+          <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/95 border border-slate-800/90 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs sm:text-sm font-black text-white flex items-center gap-2">
+                  <span>Parcours Guidé &amp; Organisation Tout Public</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    100% des données préservées
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Affichez l'intégralité du tableau de bord ou filtrez par rubrique thématique en un clic
+                </p>
+              </div>
             </div>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${simplifiedMode ? 'xl:grid-cols-6' : 'xl:grid-cols-7'} gap-3`}>
-              <WeatherGauge
-                title="Humidité Relative"
-                value={weather.humidity}
-                unit="%"
-                subValue={weather.humidity > 70 ? "Humide" : weather.humidity < 40 ? "Air Sec" : "Confortable"}
-                icon={Droplets}
-                colorClass="text-blue-400"
-                bgGradient="bg-blue-600/20"
-                description="Teneur en vapeur d'eau de l'atmosphère. Une valeur entre 45% et 65% offre un confort respiratoire optimal."
-                seniorMode={seniorMode}
-              />
-
-              <WeatherGauge
-                title="Vitesse du Vent"
-                value={weather.windSpeed}
-                unit="km/h"
-                subValue={`Rafales : ${weather.windGust} km/h • Dir : ${weather.windDirection}°`}
-                icon={Wind}
-                colorClass="text-teal-400"
-                bgGradient="bg-teal-600/20"
-                description="Vitesse moyenne mesurée à 10 mètres du sol avec analyse des rafales instantanées."
-                seniorMode={seniorMode}
-              />
-
-              <WeatherGauge
-                title="Indice UV (Rayonnement)"
-                value={weather.uvIndex}
-                unit="/ 12"
-                subValue={weather.uvIndex >= 8 ? "Très Fort" : weather.uvIndex >= 6 ? "Élevé" : weather.uvIndex >= 3 ? "Modéré" : "Faible"}
-                icon={Sun}
-                colorClass="text-amber-400"
-                bgGradient="bg-amber-600/20"
-                description="Intensité des rayons ultraviolets corrigée de l'altitude (+10% / 1000m). Protection solaire conseillée."
-                seniorMode={seniorMode}
-              />
-
-              <WeatherGauge
-                title="Qualité de l'Air (AQI)"
-                value={weather.airQualityAqi}
-                unit="IQA"
-                subValue={weather.airQualityLabel}
-                icon={Activity}
-                colorClass="text-emerald-400"
-                bgGradient="bg-emerald-600/20"
-                description="Indice européen de pureté de l'air (PM2.5, PM10, Ozone, NO2). Air pur sans risque respiratoire."
-                seniorMode={seniorMode}
-              />
-
-              <WeatherGauge
-                title="Pression Barométrique"
-                value={weather.pressure}
-                unit="hPa"
-                subValue={weather.pressureMsl ? `QNH (mer) : ${weather.pressureMsl} hPa` : `Station : ${weather.pressure} hPa`}
-                icon={Gauge}
-                colorClass="text-indigo-400"
-                bgGradient="bg-indigo-600/20"
-                description={`Pression réelle QFE à ${station.altitude} m d'altitude. Tendance barométrique stable.`}
-                seniorMode={seniorMode}
-              />
-
-              {!simplifiedMode && (
-                <WeatherGauge
-                  title="Précipitations Actuelles"
-                  value={weather.precipitation}
-                  unit="mm"
-                  subValue={weather.precipitation === 0 ? "Temps Sec" : `${weather.precipitation} mm/h`}
-                  icon={CloudRain}
-                  colorClass="text-cyan-400"
-                  bgGradient="bg-cyan-600/20"
-                  description="Quantité de pluie mesurée sur la dernière heure. Détection radar en temps réel."
-                  seniorMode={seniorMode}
-                />
-              )}
-
-              {/* Jauge de Pollen de Rouge à Vert uniquement */}
-              <PollenRealtimeTrackerCard
-                weather={weather}
-                station={station}
-                seniorMode={seniorMode}
-              />
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+              {[
+                { id: 'ALL', label: '✨ Tout Afficher (Complet)' },
+                { id: 'ESSENTIAL', label: '🎙️ Briefing & Hier vs Auj.' },
+                { id: 'INDICATORS', label: '🌡️ Indicateurs & Pollen' },
+                { id: 'SKY_AURORA', label: '🌌 Soleil, Lune & Aurores' },
+                { id: 'RAIN_RADAR', label: '🌧️ Pluie & Nowcasting' }
+              ].map((ch) => (
+                <button
+                  key={ch.id}
+                  onClick={() => setPublicChapterFilter(ch.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                    publicChapterFilter === ch.id
+                      ? 'bg-sky-500 text-slate-950 font-black shadow-sm'
+                      : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                  }`}
+                >
+                  {ch.label}
+                </button>
+              ))}
+              <button
+                onClick={() => setIsShareCardModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white shadow-sm transition cursor-pointer flex items-center gap-1.5"
+              >
+                <span>📸 Carte Partageable</span>
+              </button>
             </div>
           </div>
 
-          {/* Row 5: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
-            <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-4 flex [&>div]:flex-1'}>
-              <EphemerisCard weather={weather} seniorMode={seniorMode} />
+          {/* CHAPITRE 1 : BRIEFING MATINAL AUDIO (SYNTHÈSE VOCALE) & COMPARATEUR AUJOURD'HUI VS HIER */}
+          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'ESSENTIAL') && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-500/30 text-[10px] font-black text-sky-300 uppercase tracking-wider">
+                    Étape 1 • Synthèse &amp; Évolution 24h
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    Bulletin Audio Intelligent &amp; Comparateur Aujourd'hui vs Hier
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsShareCardModalOpen(true)}
+                  className="text-xs font-bold text-sky-400 hover:text-sky-300 underline cursor-pointer hidden sm:inline"
+                >
+                  Générer une image météo à partager →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
+                <div className="xl:col-span-6 flex [&>div]:flex-1">
+                  <MorningAudioBriefingCard
+                    station={station}
+                    weather={weather}
+                    daily={daily}
+                    hourly={hourly}
+                    tempUnit={tempUnit}
+                    onOpenShareCard={() => setIsShareCardModalOpen(true)}
+                  />
+                </div>
+                <div className="xl:col-span-6 flex [&>div]:flex-1">
+                  <TodayVsYesterdayCard
+                    station={station}
+                    weather={weather}
+                    tempUnit={tempUnit}
+                  />
+                </div>
+              </div>
             </div>
-            <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-5 flex [&>div]:flex-1'}>
-              <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
-            </div>
-            {!simplifiedMode && (
-              <div className="xl:col-span-3 flex [&>div]:flex-1">
-                <ImouWeatherSecurityBanner
+          )}
+
+          {/* CHAPITRE 2 : LES 7 JAUGES & INDICATEURS SYNOPTIQUES (Humidité, Vent, UV, AQI, Pression, Pluie, Pollen) */}
+          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'INDICATORS') && (
+            <div id="realtime-indicators" className="scroll-mt-28 space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-300 uppercase tracking-wider">
+                    Étape 2 • Santé, Air &amp; Atmosphère
+                  </span>
+                  <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-sm sm:text-base'}`}>
+                    Indicateurs Temps Réel, Qualité de l'Air &amp; Jauge Pollen
+                  </h3>
+                </div>
+                <span className="text-xs text-slate-400">Relevé mis à jour en direct</span>
+              </div>
+
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${simplifiedMode ? 'xl:grid-cols-6' : 'xl:grid-cols-7'} gap-3`}>
+                <WeatherGauge
+                  title="Humidité Relative"
+                  value={weather.humidity}
+                  unit="%"
+                  subValue={weather.humidity > 70 ? "Humide" : weather.humidity < 40 ? "Air Sec" : "Confortable"}
+                  icon={Droplets}
+                  colorClass="text-blue-400"
+                  bgGradient="bg-blue-600/20"
+                  description="Teneur en vapeur d'eau de l'atmosphère. Une valeur entre 45% et 65% offre un confort respiratoire optimal."
+                  seniorMode={seniorMode}
+                />
+
+                <WeatherGauge
+                  title="Vitesse du Vent"
+                  value={weather.windSpeed}
+                  unit="km/h"
+                  subValue={`Rafales : ${weather.windGust} km/h • Dir : ${weather.windDirection}°`}
+                  icon={Wind}
+                  colorClass="text-teal-400"
+                  bgGradient="bg-teal-600/20"
+                  description="Vitesse moyenne mesurée à 10 mètres du sol avec analyse des rafales instantanées."
+                  seniorMode={seniorMode}
+                />
+
+                <WeatherGauge
+                  title="Indice UV (Rayonnement)"
+                  value={weather.uvIndex}
+                  unit="/ 12"
+                  subValue={weather.uvIndex >= 8 ? "Très Fort" : weather.uvIndex >= 6 ? "Élevé" : weather.uvIndex >= 3 ? "Modéré" : "Faible"}
+                  icon={Sun}
+                  colorClass="text-amber-400"
+                  bgGradient="bg-amber-600/20"
+                  description="Intensité des rayons ultraviolets corrigée de l'altitude (+10% / 1000m). Protection solaire conseillée."
+                  seniorMode={seniorMode}
+                />
+
+                <WeatherGauge
+                  title="Qualité de l'Air (AQI)"
+                  value={weather.airQualityAqi}
+                  unit="IQA"
+                  subValue={weather.airQualityLabel}
+                  icon={Activity}
+                  colorClass="text-emerald-400"
+                  bgGradient="bg-emerald-600/20"
+                  description="Indice européen de pureté de l'air (PM2.5, PM10, Ozone, NO2). Air pur sans risque respiratoire."
+                  seniorMode={seniorMode}
+                />
+
+                <WeatherGauge
+                  title="Pression Barométrique"
+                  value={weather.pressure}
+                  unit="hPa"
+                  subValue={weather.pressureMsl ? `QNH (mer) : ${weather.pressureMsl} hPa` : `Station : ${weather.pressure} hPa`}
+                  icon={Gauge}
+                  colorClass="text-indigo-400"
+                  bgGradient="bg-indigo-600/20"
+                  description={`Pression réelle QFE à ${station.altitude} m d'altitude. Tendance barométrique stable.`}
+                  seniorMode={seniorMode}
+                />
+
+                {!simplifiedMode && (
+                  <WeatherGauge
+                    title="Précipitations Actuelles"
+                    value={weather.precipitation}
+                    unit="mm"
+                    subValue={weather.precipitation === 0 ? "Temps Sec" : `${weather.precipitation} mm/h`}
+                    icon={CloudRain}
+                    colorClass="text-cyan-400"
+                    bgGradient="bg-cyan-600/20"
+                    description="Quantité de pluie mesurée sur la dernière heure. Détection radar en temps réel."
+                    seniorMode={seniorMode}
+                  />
+                )}
+
+                {/* Jauge de Pollen de Rouge à Vert uniquement */}
+                <PollenRealtimeTrackerCard
                   weather={weather}
                   station={station}
                   seniorMode={seniorMode}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Row 6: Prévisions Précipitations & Nowcasting Chirurgical (< 3h & < 24h) plus bas sur toute la largeur de la page */}
-          <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0">
-            <GigaPrecipitationNowcastingCard
-              weather={weather}
-              station={station}
-              hourly={hourly}
-              daily={daily}
-              seniorMode={seniorMode}
-            />
+          {/* CHAPITRE 3 : ASTRONOMIE VÉRIFIÉE, AURORES BORÉALES & VIE QUOTIDIENNE */}
+          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'SKY_AURORA' || publicChapterFilter === 'INDICATORS') && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30 text-[10px] font-black text-purple-300 uppercase tracking-wider">
+                    Étape 3 • Astronomie, Aurores Boréales &amp; Plein Air
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    Éphéméride Solaire &amp; Lunaire Vérifiée, Aurores Boréales (Kp) &amp; Indices Quotidiens
+                  </h3>
+                </div>
+              </div>
+
+              {/* Row 5A: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
+                <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-4 flex [&>div]:flex-1'}>
+                  <EphemerisCard weather={weather} seniorMode={seniorMode} />
+                </div>
+                <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-5 flex [&>div]:flex-1'}>
+                  <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
+                </div>
+                {!simplifiedMode && (
+                  <div className="xl:col-span-3 flex [&>div]:flex-1">
+                    <ImouWeatherSecurityBanner
+                      weather={weather}
+                      station={station}
+                      seniorMode={seniorMode}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Row 5B: Observatoire des Aurores Boréales & Ciel Nocturne */}
+              <AuroraNightSkyCard
+                station={station}
+                weather={weather}
+              />
+            </div>
+          )}
+
+          {/* CHAPITRE 4 : PRÉCIPITATIONS CHIRURGICALES & NOWCASTING (< 3h & < 24h) */}
+          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'RAIN_RADAR') && (
+            <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0 space-y-2.5">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-black text-cyan-300 uppercase tracking-wider">
+                    Étape 4 • Suivi Pluie Minute par Minute
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    Nowcasting Chirurgical des Précipitations (&lt; 3h &amp; 24h)
+                  </h3>
+                </div>
+              </div>
+              <GigaPrecipitationNowcastingCard
+                weather={weather}
+                station={station}
+                hourly={hourly}
+                daily={daily}
+                seniorMode={seniorMode}
+              />
+            </div>
+          )}
+
+          {/* CHAPITRE 5 : PORTAIL DES 4 GRANDS UNIVERS TERRITORIAUX (Montagne 8 Versants, Littoral & Marées, Cours d'Eau, Incendies) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-[#0c1629] to-slate-900 border border-slate-800 shadow-xl space-y-3.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-wider text-sky-400">
+                  Exploration Thématique Approfondie • France &amp; Monde Entier
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-white mt-0.5">
+                  Observatoires Spécialisés pour {station.name} et toutes les localités du monde
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Cliquez sur un univers pour ouvrir l'analyse locale dédiée
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <button
+                onClick={() => onNavigateTab && onNavigateTab('mountain')}
+                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-sky-950/40 border border-sky-500/30 hover:border-sky-400 text-left transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-sky-400 uppercase tracking-wider">🏔️ Montagne &amp; 8 Versants</span>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-sky-400 transition" />
+                </div>
+                <div className="text-xs font-bold text-white mt-1.5">
+                  Analyse N, NE, E, SE, S, SW, W, NW
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                  Plaques à vent, bilan radiatif Ubac/Adret, coupe hypsométrique et recherche mondiale de stations.
+                </p>
+              </button>
+
+              <button
+                onClick={() => onNavigateTab && onNavigateTab('beaches')}
+                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">🏖️ Mer, Plages &amp; SHOM</span>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-cyan-400 transition" />
+                </div>
+                <div className="text-xs font-bold text-white mt-1.5">
+                  Toutes Communes Littorales
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                  Température de l'eau, houle primaire vs clapot, marées SHOM et scores surf/voile/baignade.
+                </p>
+              </button>
+
+              <button
+                onClick={() => onNavigateTab && onNavigateTab('watercourses')}
+                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-blue-950/40 border border-blue-500/30 hover:border-blue-400 text-left transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-blue-400 uppercase tracking-wider">💧 Cours d'Eau &amp; Crues</span>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition" />
+                </div>
+                <div className="text-xs font-bold text-white mt-1.5">
+                  Hub'Eau Local &amp; GloFAS 7j
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                  Rivières dans un rayon de 28 km autour de chaque commune, débits m³/s et seuils Vigicrues.
+                </p>
+              </button>
+
+              <button
+                onClick={() => onNavigateTab && onNavigateTab('droughtFire')}
+                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-amber-950/40 border border-amber-500/30 hover:border-amber-400 text-left transition group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">🔥 Sécheresse &amp; Feux</span>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-amber-400 transition" />
+                </div>
+                <div className="text-xs font-bold text-white mt-1.5">
+                  Sols 4 Profondeurs &amp; FWI
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                  Humidité des sols 0-27 cm, VPD, vitesse de propagation sur pente et restrictions VigiEau.
+                </p>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1001,6 +1231,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onRegenerationStarted={() => {
           if (onWeatherRectified) onWeatherRectified();
         }}
+      />
+
+      {/* Shareable Weather Card Generator Modal */}
+      <ShareableWeatherCardModal
+        isOpen={isShareCardModalOpen}
+        onClose={() => setIsShareCardModalOpen(false)}
+        station={station}
+        weather={weather}
+        daily={daily}
+        tempUnit={tempUnit}
       />
     </div>
   );

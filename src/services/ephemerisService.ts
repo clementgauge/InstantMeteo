@@ -7,81 +7,175 @@ import {
   BarometricTrend 
 } from '../types/weather';
 
+export interface SolarEphemerisOptions {
+  sunriseIso?: string;
+  sunsetIso?: string;
+  utcOffsetSeconds?: number;
+  localTimeIso?: string;
+}
+
 /**
- * Astronomical and Solar Ephemeris calculations for any latitude/longitude
+ * Astronomical and Solar Ephemeris calculations for any latitude/longitude worldwide
+ * Uses NOAA Solar Calculator equations + optional exact Open-Meteo sunrise/sunset & station timezone
  */
-export function calculateSolarEphemeris(lat: number, lon: number, date: Date = new Date()): SolarEphemeris {
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
-  
-  // Solar declination (degrees)
-  const declination = 23.45 * Math.sin(((360 / 365) * (dayOfYear - 81) * Math.PI) / 180);
-  
-  // Equation of time (minutes)
-  const b = (2 * Math.PI * (dayOfYear - 81)) / 364;
-  const eqTime = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
-  
-  // Solar noon in UTC hours
-  const solarNoonUtc = 12 - (lon / 15) - (eqTime / 60);
-  
-  // Local timezone offset in hours (e.g. +2 for CEST, +1 for CET)
-  const tzOffset = -date.getTimezoneOffset() / 60;
-  const solarNoonLocal = solarNoonUtc + tzOffset;
-  
-  // Hour angle calculation for sunrise/sunset (zenith = 90.833° for civil refraction)
-  const latRad = (lat * Math.PI) / 180;
-  const decRad = (declination * Math.PI) / 180;
-  
-  const cosHourAngle = (Math.cos((90.833 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad));
-  
-  let hourAngle = 0;
-  if (cosHourAngle > 1) {
-    // Polar night
-    hourAngle = 0;
-  } else if (cosHourAngle < -1) {
-    // Midnight sun
-    hourAngle = Math.PI;
-  } else {
-    hourAngle = Math.acos(cosHourAngle);
+export function calculateSolarEphemeris(
+  lat: number,
+  lon: number,
+  date: Date = new Date(),
+  options?: SolarEphemerisOptions
+): SolarEphemeris {
+  // Station timezone offset in hours: use Open-Meteo utc_offset_seconds if provided,
+  // otherwise estimate from longitude for non-European points or browser offset for France
+  const isEuropeanCoords = lat >= 35 && lat <= 60 && lon >= -10 && lon <= 25;
+  const tzOffsetHours =
+    options?.utcOffsetSeconds !== undefined
+      ? options.utcOffsetSeconds / 3600
+      : isEuropeanCoords
+        ? -date.getTimezoneOffset() / 60
+        : Math.round(lon / 15);
+
+  // Determine current local decimal hour at the station
+  let currentDecHour = date.getUTCHours() + date.getUTCMinutes() / 60 + tzOffsetHours;
+  currentDecHour = ((currentDecHour % 24) + 24) % 24;
+  if (options?.localTimeIso && options.localTimeIso.includes('T')) {
+    const timePart = options.localTimeIso.split('T')[1];
+    if (timePart) {
+      const [hh, mm] = timePart.split(':').map(Number);
+      if (!isNaN(hh) && !isNaN(mm)) {
+        currentDecHour = hh + mm / 60;
+      }
+    }
   }
-  
-  const hourAngleHours = (hourAngle * 180) / (Math.PI * 15);
-  
-  const sunriseDec = solarNoonLocal - hourAngleHours;
-  const sunsetDec = solarNoonLocal + hourAngleHours;
-  const dayLengthHoursTotal = 2 * hourAngleHours;
-  
+
+  // Day of year (1 to 365)
+  const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0);
+  const dayOfYear = Math.floor((date.getTime() - startOfYear) / 86400000);
+
+  // Fractional year gamma (radians) - NOAA equation
+  const gamma = ((2 * Math.PI) / 365) * (dayOfYear - 1 + (12 - 12) / 24);
+
+  // Equation of time (minutes) - Spencer (1971) / NOAA
+  const eqTime =
+    229.18 *
+    (0.000075 +
+      0.001868 * Math.cos(gamma) -
+      0.032077 * Math.sin(gamma) -
+      0.014615 * Math.cos(2 * gamma) -
+      0.040849 * Math.sin(2 * gamma));
+
+  // Solar declination (radians & degrees) - Spencer (1971)
+  const declRad =
+    0.006918 -
+    0.399912 * Math.cos(gamma) +
+    0.070257 * Math.sin(gamma) -
+    0.006758 * Math.cos(2 * gamma) +
+    0.000907 * Math.sin(2 * gamma) -
+    0.002697 * Math.cos(3 * gamma) +
+    0.00148 * Math.sin(3 * gamma);
+  const declination = (declRad * 180) / Math.PI;
+
+  const latRad = (lat * Math.PI) / 180;
+
+  // Helper to compute hour angle (in hours) for a given zenith angle
+  const computeHourAngleHours = (zenithDeg: number, decR: number): number => {
+    const zenRad = (zenithDeg * Math.PI) / 180;
+    const denom = Math.cos(latRad) * Math.cos(decR);
+    if (Math.abs(denom) < 1e-6) return 6;
+    const cosHa = (Math.cos(zenRad) - Math.sin(latRad) * Math.sin(decR)) / denom;
+    if (cosHa >= 1) return 0; // Polar night
+    if (cosHa <= -1) return 12; // Midnight sun
+    return (Math.acos(cosHa) * 180) / (Math.PI * 15);
+  };
+
+  // Solar noon in local station hours
+  let solarNoonLocal = 12 - lon / 15 - eqTime / 60 + tzOffsetHours;
+  solarNoonLocal = ((solarNoonLocal % 24) + 24) % 24;
+
+  const haSunriseHours = computeHourAngleHours(90.833, declRad);
+  let sunriseDec = solarNoonLocal - haSunriseHours;
+  let sunsetDec = solarNoonLocal + haSunriseHours;
+
+  // If Open-Meteo provided exact local sunrise/sunset ISO strings, parse them for 100% precision
+  const parseIsoHourDec = (iso?: string): number | null => {
+    if (!iso || !iso.includes('T')) return null;
+    const tPart = iso.split('T')[1];
+    if (!tPart) return null;
+    const [h, m] = tPart.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h + m / 60;
+  };
+
+  const apiSunriseDec = parseIsoHourDec(options?.sunriseIso);
+  const apiSunsetDec = parseIsoHourDec(options?.sunsetIso);
+  if (apiSunriseDec !== null && apiSunsetDec !== null && apiSunsetDec > apiSunriseDec) {
+    sunriseDec = apiSunriseDec;
+    sunsetDec = apiSunsetDec;
+    solarNoonLocal = (sunriseDec + sunsetDec) / 2;
+  }
+
+  const dayLengthHoursTotal = Math.max(0, sunsetDec - sunriseDec);
+
   const formatTime = (decHours: number): string => {
-    let h = Math.floor((decHours + 24) % 24);
-    let m = Math.floor(((decHours + 24) % 1) * 60);
+    const normalized = ((decHours % 24) + 24) % 24;
+    let h = Math.floor(normalized);
+    let m = Math.round((normalized - h) * 60);
+    if (m === 60) {
+      h = (h + 1) % 24;
+      m = 0;
+    }
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
-  
-  const dLenHours = Math.floor(dayLengthHoursTotal);
-  const dLenMinutes = Math.round((dayLengthHoursTotal - dLenHours) * 60);
-  
-  // Day length change per day estimate
-  const nextDayDeclination = 23.45 * Math.sin(((360 / 365) * (dayOfYear + 1 - 81) * Math.PI) / 180);
-  const nextDecRad = (nextDayDeclination * Math.PI) / 180;
-  const nextCosHa = (Math.cos((90.833 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(nextDecRad)) / (Math.cos(latRad) * Math.cos(nextDecRad));
-  const nextHa = (Math.acos(Math.max(-1, Math.min(1, nextCosHa))) * 180) / (Math.PI * 15);
-  const dayLengthChangeMinutes = Number(((2 * nextHa - dayLengthHoursTotal) * 60).toFixed(1));
-  
-  // Twilights
-  const civilHa = (Math.acos(Math.max(-1, Math.min(1, (Math.cos((96 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad))))) * 180) / (Math.PI * 15);
-  const nautHa = (Math.acos(Math.max(-1, Math.min(1, (Math.cos((102 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad))))) * 180) / (Math.PI * 15);
-  
+
+  const totalMinutesRounded = Math.round(dayLengthHoursTotal * 60);
+  const dLenHours = Math.floor(totalMinutesRounded / 60);
+  const dLenMinutes = totalMinutesRounded % 60;
+
+  // Next day declination for exact daily daylight gain/loss (minutes/day)
+  const gammaNext = ((2 * Math.PI) / 365) * (dayOfYear + (12 - 12) / 24);
+  const declRadNext =
+    0.006918 -
+    0.399912 * Math.cos(gammaNext) +
+    0.070257 * Math.sin(gammaNext) -
+    0.006758 * Math.cos(2 * gammaNext) +
+    0.000907 * Math.sin(2 * gammaNext) -
+    0.002697 * Math.cos(3 * gammaNext) +
+    0.00148 * Math.sin(3 * gammaNext);
+  const nextHaHours = computeHourAngleHours(90.833, declRadNext);
+  const dayLengthChangeMinutes = Number(((2 * nextHaHours - 2 * haSunriseHours) * 60).toFixed(1));
+
+  // Civil (96°) and Nautical (102°) twilight hour angles
+  const civilHa = computeHourAngleHours(96.0, declRad);
+  const nautHa = computeHourAngleHours(102.0, declRad);
+  const civilDiff = Math.max(0.35, civilHa - haSunriseHours);
+  const nautDiff = Math.max(0.75, nautHa - haSunriseHours);
+
   // Max solar elevation at solar noon (deg)
-  const maxSolarElevationDeg = Number(Math.max(0, 90 - Math.abs(lat - declination)).toFixed(1));
-  
-  // Solar progress percentage today
-  const currentDecHour = date.getHours() + date.getMinutes() / 60;
+  const maxSolarElevationDeg = Number(
+    Math.max(0, Math.min(90, 90 - Math.abs(lat - declination))).toFixed(1)
+  );
+
+  // Current solar elevation angle at current local hour
+  const currentHourAngleRad = ((currentDecHour - solarNoonLocal) * 15 * Math.PI) / 180;
+  const sinElev =
+    Math.sin(latRad) * Math.sin(declRad) +
+    Math.cos(latRad) * Math.cos(declRad) * Math.cos(currentHourAngleRad);
+  const currentSolarElevationDeg = Number(
+    ((Math.asin(Math.max(-1, Math.min(1, sinElev))) * 180) / Math.PI).toFixed(1)
+  );
+
+  // Solar progress percentage today (0% at sunrise, 50% at solar noon, 100% at sunset)
+  const isSunAboveHorizon = currentDecHour >= sunriseDec && currentDecHour <= sunsetDec;
   let sunProgress = 0;
-  if (currentDecHour > sunriseDec && currentDecHour < sunsetDec) {
+  if (currentDecHour > sunriseDec && currentDecHour < sunsetDec && sunsetDec > sunriseDec) {
     sunProgress = Math.round(((currentDecHour - sunriseDec) / (sunsetDec - sunriseDec)) * 100);
   } else if (currentDecHour >= sunsetDec) {
     sunProgress = 100;
   }
-  
+
+  // Golden hours (approx 45 min after sunrise & 45 min before sunset)
+  const goldenHourMorning = `${formatTime(sunriseDec)} - ${formatTime(sunriseDec + 0.75)}`;
+  const goldenHourEvening = `${formatTime(sunsetDec - 0.75)} - ${formatTime(sunsetDec)}`;
+
   return {
     sunrise: formatTime(sunriseDec),
     sunset: formatTime(sunsetDec),
@@ -90,76 +184,173 @@ export function calculateSolarEphemeris(lat: number, lon: number, date: Date = n
     dayLengthMinutes: dLenMinutes,
     dayLengthFormatted: `${dLenHours}h ${dLenMinutes.toString().padStart(2, '0')}min`,
     dayLengthChangeMinutes,
-    civilTwilightBegin: formatTime(solarNoonLocal - civilHa),
-    civilTwilightEnd: formatTime(solarNoonLocal + civilHa),
-    nauticalTwilightBegin: formatTime(solarNoonLocal - nautHa),
-    nauticalTwilightEnd: formatTime(solarNoonLocal + nautHa),
+    civilTwilightBegin: formatTime(sunriseDec - civilDiff),
+    civilTwilightEnd: formatTime(sunsetDec + civilDiff),
+    nauticalTwilightBegin: formatTime(sunriseDec - nautDiff),
+    nauticalTwilightEnd: formatTime(sunsetDec + nautDiff),
+    goldenHourMorning,
+    goldenHourEvening,
     maxSolarElevationDeg,
-    solarRadiationKwhM2: Number((dayLengthHoursTotal * 0.45 * Math.sin((maxSolarElevationDeg * Math.PI) / 180)).toFixed(2)),
-    sunProgressPercent: sunProgress
+    currentSolarElevationDeg,
+    isSunAboveHorizon,
+    solarRadiationKwhM2: Number(
+      Math.max(0.5, dayLengthHoursTotal * 0.45 * Math.sin((maxSolarElevationDeg * Math.PI) / 180)).toFixed(2)
+    ),
+    sunProgressPercent: Math.max(0, Math.min(100, sunProgress))
   };
 }
 
 /**
- * Calculates Moon Phase and illumination percentage based on synodic lunar cycle
+ * Calculates Moon Phase, illumination percentage, moonrise/moonset & next full/new moon
+ * based on Jean Meeus Astronomical Algorithms
  */
-export function calculateMoonPhase(date: Date = new Date()): MoonPhaseData {
-  // Known new moon reference (e.g. 2000-01-06 18:14 UTC)
-  const refNewMoon = new Date(Date.UTC(2000, 0, 6, 18, 14));
-  const synodicMonthDays = 29.53058867;
-  
-  const diffDays = (date.getTime() - refNewMoon.getTime()) / 86400000;
-  const cycleProgress = (diffDays % synodicMonthDays + synodicMonthDays) % synodicMonthDays;
-  const ageDays = Number(cycleProgress.toFixed(1));
-  
-  // Illumination percentage from 0 to 100%
-  const illumination = Number(((1 - Math.cos((2 * Math.PI * cycleProgress) / synodicMonthDays)) / 2 * 100).toFixed(0));
-  
-  let phaseName = "Nouvelle Lune";
+export function calculateMoonPhase(
+  date: Date = new Date(),
+  lat: number = 46.5,
+  lon: number = 2.5,
+  utcOffsetSeconds?: number
+): MoonPhaseData {
+  // Julian Day (JD)
+  const jd = date.getTime() / 86400000 + 2440587.5;
+  const T = (jd - 2451545.0) / 36525.0; // Julian centuries since J2000.0
+
+  const deg2rad = (d: number) => (d * Math.PI) / 180;
+  const norm360 = (d: number) => ((d % 360) + 360) % 360;
+
+  // Mean elongation of the Moon (D)
+  const D = norm360(
+    297.8501921 + 445267.1114034 * T - 0.0018819 * T * T + (T * T * T) / 545868
+  );
+  // Sun's mean anomaly (M)
+  const M = norm360(357.5291092 + 35999.0502909 * T - 0.0001536 * T * T);
+  // Moon's mean anomaly (M')
+  const Mprime = norm360(
+    134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + (T * T * T) / 69699
+  );
+  // Moon's mean longitude (L')
+  const Lprime = norm360(218.3164477 + 481267.88123421 * T);
+
+  // Phase angle i (degrees) - Meeus Ch. 48
+  const i =
+    180 -
+    D -
+    6.289 * Math.sin(deg2rad(Mprime)) +
+    2.1 * Math.sin(deg2rad(M)) -
+    1.274 * Math.sin(deg2rad(2 * D - Mprime)) -
+    0.658 * Math.sin(deg2rad(2 * D)) -
+    0.214 * Math.sin(deg2rad(2 * Mprime)) -
+    0.11 * Math.sin(deg2rad(D));
+
+  // Illuminated fraction k (0 to 100%)
+  const k = (1 + Math.cos(deg2rad(i))) / 2;
+  const illumination = Math.max(0, Math.min(100, Math.round(k * 100)));
+
+  // Synodic cycle progress (0 to 29.530588853 days) based on true elongation
+  const synodicMonthDays = 29.530588853;
+  const trueElongation = norm360(
+    D + 6.289 * Math.sin(deg2rad(Mprime)) - 2.1 * Math.sin(deg2rad(M))
+  );
+  const ageDays = Number(((trueElongation / 360) * synodicMonthDays).toFixed(1));
+  const isWaxing = trueElongation < 180;
+
+  let phaseName = 'Nouvelle Lune';
   let phaseCode: MoonPhaseData['phaseCode'] = 'new_moon';
-  
-  if (ageDays < 1.84) {
-    phaseName = "Nouvelle Lune";
+
+  if (trueElongation < 12 || trueElongation >= 348) {
+    phaseName = 'Nouvelle Lune';
     phaseCode = 'new_moon';
-  } else if (ageDays < 5.53) {
-    phaseName = "Premier Croissant";
+  } else if (trueElongation < 78) {
+    phaseName = 'Premier Croissant';
     phaseCode = 'waxing_crescent';
-  } else if (ageDays < 9.22) {
-    phaseName = "Premier Quartier";
+  } else if (trueElongation < 102) {
+    phaseName = 'Premier Quartier';
     phaseCode = 'first_quarter';
-  } else if (ageDays < 12.91) {
-    phaseName = "Gibbeuse Croissante";
+  } else if (trueElongation < 168) {
+    phaseName = 'Gibbeuse Croissante';
     phaseCode = 'waxing_gibbous';
-  } else if (ageDays < 16.61) {
-    phaseName = "Pleine Lune";
+  } else if (trueElongation < 192) {
+    phaseName = 'Pleine Lune';
     phaseCode = 'full_moon';
-  } else if (ageDays < 20.30) {
-    phaseName = "Gibbeuse Décroissante";
+  } else if (trueElongation < 258) {
+    phaseName = 'Gibbeuse Décroissante';
     phaseCode = 'waning_gibbous';
-  } else if (ageDays < 23.99) {
-    phaseName = "Dernier Quartier";
+  } else if (trueElongation < 282) {
+    phaseName = 'Dernier Quartier';
     phaseCode = 'last_quarter';
-  } else if (ageDays < 27.68) {
-    phaseName = "Dernier Croissant";
-    phaseCode = 'waning_crescent';
   } else {
-    phaseName = "Nouvelle Lune";
-    phaseCode = 'new_moon';
+    phaseName = 'Dernier Croissant';
+    phaseCode = 'waning_crescent';
   }
-  
-  // Zodiac moon sign approximate calculation
-  const moonSigns = ["Bélier", "Taureau", "Gémeaux", "Cancer", "Lion", "Vierge", "Balance", "Scorpion", "Sagittaire", "Capricorne", "Verseau", "Poissons"];
-  const signIdx = Math.floor((date.getMonth() * 2.5 + ageDays) % 12);
-  const moonSign = moonSigns[signIdx] || "Taureau";
-  
+
+  // Ecliptic longitude of the Moon for zodiac constellation
+  const eclipticLon = norm360(Lprime + 6.289 * Math.sin(deg2rad(Mprime)));
+  const moonSigns = [
+    'Bélier',
+    'Taureau',
+    'Gémeaux',
+    'Cancer',
+    'Lion',
+    'Vierge',
+    'Balance',
+    'Scorpion',
+    'Sagittaire',
+    'Capricorne',
+    'Verseau',
+    'Poissons'
+  ];
+  const signIdx = Math.floor(eclipticLon / 30) % 12;
+  const moonSign = moonSigns[signIdx] || 'Taureau';
+
   const isSyzygy = phaseCode === 'new_moon' || phaseCode === 'full_moon';
   const isQuadrature = phaseCode === 'first_quarter' || phaseCode === 'last_quarter';
-  
-  const tideType = isSyzygy 
-    ? 'Vives-Eaux (Forts coefficients)' 
-    : isQuadrature 
-      ? 'Mortes-Eaux (Faibles coefficients)' 
+
+  const tideType = isSyzygy
+    ? 'Vives-Eaux (Forts coefficients)'
+    : isQuadrature
+      ? 'Mortes-Eaux (Faibles coefficients)'
       : 'Moyennes';
+
+  // Estimate local moonrise and moonset based on lunar elongation from Sun
+  const tzOffsetHours =
+    utcOffsetSeconds !== undefined
+      ? utcOffsetSeconds / 3600
+      : -date.getTimezoneOffset() / 60;
+  const solarNoonLocal = ((12 - lon / 15 + tzOffsetHours) % 24 + 24) % 24;
+  // Moon transits ~(trueElongation / 15) hours after Solar Noon
+  const moonTransitLocal = (solarNoonLocal + trueElongation / 15) % 24;
+  // Lunar declination approx: ±23.4° sin(eclipticLon)
+  const moonDecDeg = 23.4 * Math.sin(deg2rad(eclipticLon));
+  const cosMoonHa =
+    -Math.tan(deg2rad(Math.max(-60, Math.min(60, lat)))) * Math.tan(deg2rad(moonDecDeg));
+  const moonSemiArcHours =
+    (Math.acos(Math.max(-0.95, Math.min(0.95, cosMoonHa))) * 180) / (Math.PI * 15);
+
+  const fmtHour = (decH: number) => {
+    const n = ((decH % 24) + 24) % 24;
+    const h = Math.floor(n);
+    const m = Math.round((n - h) * 60) % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const moonrise = fmtHour(moonTransitLocal - moonSemiArcHours);
+  const moonset = fmtHour(moonTransitLocal + moonSemiArcHours);
+
+  // Next Full Moon & Next New Moon dates
+  const daysToFullMoon =
+    ((180 - trueElongation + 360) % 360) * (synodicMonthDays / 360);
+  const daysToNewMoon =
+    ((360 - trueElongation) % 360) * (synodicMonthDays / 360);
+  const nextFullDate = new Date(date.getTime() + daysToFullMoon * 86400000);
+  const nextNewDate = new Date(date.getTime() + daysToNewMoon * 86400000);
+
+  const nextFullMoonDate = nextFullDate.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short'
+  });
+  const nextNewMoonDate = nextNewDate.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short'
+  });
 
   return {
     phaseName,
@@ -167,7 +358,12 @@ export function calculateMoonPhase(date: Date = new Date()): MoonPhaseData {
     illuminationPercent: illumination,
     moonAgeDays: ageDays,
     moonSign,
-    tideType
+    tideType,
+    moonrise,
+    moonset,
+    nextFullMoonDate,
+    nextNewMoonDate,
+    isWaxing
   };
 }
 

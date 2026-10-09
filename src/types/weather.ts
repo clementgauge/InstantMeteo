@@ -242,7 +242,11 @@ export interface SolarEphemeris {
   civilTwilightEnd: string;
   nauticalTwilightBegin: string;
   nauticalTwilightEnd: string;
+  goldenHourMorning?: string;
+  goldenHourEvening?: string;
   maxSolarElevationDeg: number;
+  currentSolarElevationDeg?: number;
+  isSunAboveHorizon?: boolean;
   solarRadiationKwhM2: number;
   sunProgressPercent: number;
 }
@@ -256,6 +260,9 @@ export interface MoonPhaseData {
   tideType: 'Vives-Eaux (Forts coefficients)' | 'Mortes-Eaux (Faibles coefficients)' | 'Moyennes';
   moonrise?: string;
   moonset?: string;
+  nextFullMoonDate?: string;
+  nextNewMoonDate?: string;
+  isWaxing?: boolean;
 }
 
 export interface BarometricTrend {

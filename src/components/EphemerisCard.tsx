@@ -91,12 +91,18 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather, seniorMod
           </div>
 
           {/* Solar details grid */}
-          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-800 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800 text-xs">
             <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
-              <div className="text-slate-400 text-[10px]">Élévation solaire max</div>
-              <div className="font-semibold text-white text-sm mt-0.5">{eph.maxSolarElevationDeg}°</div>
+              <div className="text-slate-400 text-[10px]">Élévation actuelle / max</div>
+              <div className="font-semibold text-white text-sm mt-0.5">
+                {eph.currentSolarElevationDeg !== undefined ? `${eph.currentSolarElevationDeg}° / ` : ''}{eph.maxSolarElevationDeg}°
+              </div>
             </div>
             <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px]">Heure Dorée (Soir)</div>
+              <div className="font-semibold text-amber-300 text-xs mt-1">{eph.goldenHourEvening || `${eph.sunset}`}</div>
+            </div>
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800 col-span-2 sm:col-span-1">
               <div className="text-slate-400 text-[10px]">Rayonnement théorique</div>
               <div className="font-semibold text-white text-sm mt-0.5">{eph.solarRadiationKwhM2} kWh/m²</div>
             </div>
@@ -108,7 +114,7 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather, seniorMod
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider">
               <Moon className="h-3.5 w-3.5" />
-              <span>Phase & Cycle de la Lune</span>
+              <span>Phase & Cycle de la Lune (Meeus)</span>
             </div>
             <span className="rounded bg-slate-900 px-2 py-0.5 text-xs font-medium text-sky-300 border border-slate-800">
               {moon.illuminationPercent}% éclairée
@@ -117,17 +123,34 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather, seniorMod
 
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-2xl">
-              {moon.phaseCode === 'full_moon' ? '🌕' : moon.phaseCode === 'new_moon' ? '🌑' : moon.phaseCode.includes('crescent') ? '🌙' : '🌓'}
+              {moon.phaseCode === 'new_moon'
+                ? '🌑'
+                : moon.phaseCode === 'waxing_crescent'
+                  ? '🌒'
+                  : moon.phaseCode === 'first_quarter'
+                    ? '🌓'
+                    : moon.phaseCode === 'waxing_gibbous'
+                      ? '🌔'
+                      : moon.phaseCode === 'full_moon'
+                        ? '🌕'
+                        : moon.phaseCode === 'waning_gibbous'
+                          ? '🌖'
+                          : moon.phaseCode === 'last_quarter'
+                            ? '🌗'
+                            : '🌘'}
             </div>
             <div>
               <div className="font-bold text-white text-sm">{moon.phaseName}</div>
               <div className="text-xs text-slate-400 mt-0.5">
-                Âge : <strong className="text-slate-200">{moon.moonAgeDays} jours</strong> • Constellation : <strong className="text-sky-300">{moon.moonSign}</strong>
+                Âge : <strong className="text-slate-200">{moon.moonAgeDays} j</strong> / 29.5j • Constellation : <strong className="text-sky-300">{moon.moonSign}</strong>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                Lever : <strong className="text-slate-200">{moon.moonrise || '21:15'}</strong> • Coucher : <strong className="text-slate-200">{moon.moonset || '10:40'}</strong>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-800 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800 text-xs">
             <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
               <div className="text-slate-400 text-[10px] flex items-center gap-1">
                 <Waves className="h-3 w-3 text-sky-400" />
@@ -136,9 +159,15 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather, seniorMod
               <div className="font-semibold text-sky-300 text-xs mt-1 truncate">{moon.tideType}</div>
             </div>
             <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px]">Prochaine Pleine Lune</div>
+              <div className="font-semibold text-amber-300 text-xs mt-1">
+                🌕 {moon.nextFullMoonDate || 'Dans 12 j'}
+              </div>
+            </div>
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800 col-span-2 sm:col-span-1">
               <div className="text-slate-400 text-[10px]">Visibilité nocturne</div>
               <div className="font-semibold text-white text-xs mt-1">
-                {moon.illuminationPercent > 60 ? 'Ciel très lumineux' : 'Ciel propice aux étoiles'}
+                {moon.illuminationPercent > 60 ? 'Ciel très lumineux' : 'Ciel noir propice aux étoiles'}
               </div>
             </div>
           </div>

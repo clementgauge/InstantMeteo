@@ -404,72 +404,163 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           />
         </div>
 
-        {/* Right Column of Row 2: Soleil & Lune */}
-        <div className="col-span-12 xl:col-span-4 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
-              <Sun className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-black text-white tracking-wide">
-              Soleil &amp; Lune
-            </h3>
-          </div>
+        {/* Right Column of Row 2: Soleil & Lune (Astronomie Vérifiée & Temps Réel) */}
+        {(() => {
+          const eph = weather.solarEphemeris;
+          const moon = weather.moonPhase;
+          const progressPct = eph?.sunProgressPercent ?? (weather.isDay ? 55 : 100);
+          const isSunUp = eph?.isSunAboveHorizon ?? (weather.isDay ?? true);
+          // Quadratic Bezier curve M 15 55 Q 80 -10 145 55 parameter t in [0, 1]
+          const t = Math.max(0, Math.min(1, progressPct / 100));
+          const oneMinusT = 1 - t;
+          const sunCx = Number((oneMinusT * oneMinusT * 15 + 2 * oneMinusT * t * 80 + t * t * 145).toFixed(1));
+          const sunCy = Number((oneMinusT * oneMinusT * 55 + 2 * oneMinusT * t * -10 + t * t * 55).toFixed(1));
+          const illum = moon?.illuminationPercent ?? 50;
+          const phaseCode = moon?.phaseCode || 'first_quarter';
+          const dayDelta = eph?.dayLengthChangeMinutes ?? 0;
 
-          {/* Top Half: Sun Trajectory Arc */}
-          <div className="relative py-2">
-            <div className="h-16 relative flex items-center justify-center">
-              <svg viewBox="0 0 160 60" className="w-full h-full overflow-visible">
-                {/* Dotted Arch */}
-                <path
-                  d="M 15 55 Q 80 -10 145 55"
-                  fill="none"
-                  stroke="#475569"
-                  strokeWidth="1.5"
-                  strokeDasharray="3 3"
-                />
-                {/* Active Sun position */}
-                <circle cx="110" cy="18" r="7" fill="#f59e0b" className="animate-pulse" />
-                <circle cx="110" cy="18" r="12" fill="#f59e0b" opacity="0.25" />
-              </svg>
-            </div>
+          return (
+            <div className="col-span-12 xl:col-span-4 rounded-[24px] border border-slate-800/90 bg-[#0c1424]/95 p-5 shadow-xl flex flex-col justify-between">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+                    <Sun className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white tracking-wide leading-tight">
+                      Soleil &amp; Lune
+                    </h3>
+                    <span className="text-[10px] text-slate-400 block">
+                      Midi solaire : {eph?.solarNoon || '13:48'} • Élév. max {eph?.maxSolarElevationDeg ?? 46}°
+                    </span>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  dayDelta >= 0
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                    : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                }`}>
+                  {dayDelta > 0 ? `+${dayDelta}` : dayDelta} min/j
+                </span>
+              </div>
 
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
-              <div>
-                <span className="text-slate-400 text-[9px] block">Lever</span>
-                <span>{weather.solarEphemeris?.sunrise || '07:54'}</span>
-              </div>
-              <div className="text-center px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30 text-[10px] text-amber-300 font-bold">
-                ☀️ {weather.solarEphemeris?.dayLengthFormatted || '11h 19min'}
-              </div>
-              <div className="text-right">
-                <span className="text-slate-400 text-[9px] block">Coucher</span>
-                <span>{weather.solarEphemeris?.sunset || '19:13'}</span>
-              </div>
-            </div>
-          </div>
+              {/* Top Half: Dynamic Sun Trajectory Arc */}
+              <div className="relative py-1.5">
+                <div className="h-16 relative flex items-center justify-center">
+                  <svg viewBox="0 0 160 64" className="w-full h-full overflow-visible">
+                    <defs>
+                      <linearGradient id="sunArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.9" />
+                        <stop offset="50%" stopColor="#fde047" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#fb923c" stopOpacity="0.9" />
+                      </linearGradient>
+                    </defs>
+                    {/* Horizon baseline */}
+                    <line x1="8" y1="55" x2="152" y2="55" stroke="#1e293b" strokeWidth="1" />
+                    {/* Full Dotted Arch */}
+                    <path
+                      d="M 15 55 Q 80 -10 145 55"
+                      fill="none"
+                      stroke="#475569"
+                      strokeWidth="1.75"
+                      strokeDasharray="3 3"
+                    />
+                    {/* Illuminated Progressed Arc */}
+                    {progressPct > 0 && (
+                      <path
+                        d="M 15 55 Q 80 -10 145 55"
+                        fill="none"
+                        stroke="url(#sunArcGrad)"
+                        strokeWidth="2.5"
+                        pathLength={100}
+                        strokeDasharray={`${progressPct} 100`}
+                        strokeLinecap="round"
+                      />
+                    )}
+                    {/* Sunrise & Sunset Horizon Nodes */}
+                    <circle cx="15" cy="55" r="2.5" fill="#fbbf24" />
+                    <circle cx="145" cy="55" r="2.5" fill="#fb923c" />
+                    {/* Active Sun / Night Moon Position along the exact trajectory */}
+                    {isSunUp ? (
+                      <g>
+                        <circle cx={sunCx} cy={sunCy} r="12" fill="#f59e0b" opacity="0.25" />
+                        <circle cx={sunCx} cy={sunCy} r="6.5" fill="#fbbf24" stroke="#fef08a" strokeWidth="1.5" />
+                      </g>
+                    ) : (
+                      <g>
+                        <circle cx="80" cy="24" r="10" fill="#38bdf8" opacity="0.18" />
+                        <circle cx="80" cy="24" r="5.5" fill="#bae6fd" />
+                      </g>
+                    )}
+                  </svg>
+                </div>
 
-          {/* Bottom Half: Moon Section */}
-          <div className="pt-2 border-t border-slate-800/80 flex items-center gap-3">
-            {/* Crescent Moon Visual */}
-            <div className="relative w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-400 to-slate-200 shadow-md" />
-              <div className="absolute -top-1 -right-1 w-9 h-9 rounded-full bg-slate-900" />
-            </div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
+                  <div>
+                    <span className="text-slate-400 text-[9px] block">Lever réel</span>
+                    <span className="font-mono text-amber-300">{eph?.sunrise || '07:54'}</span>
+                  </div>
+                  <div className="text-center px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30 text-[10px] text-amber-300 font-bold">
+                    ☀️ {eph?.dayLengthFormatted || '11h 19min'} ({progressPct}%)
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 text-[9px] block">Coucher réel</span>
+                    <span className="font-mono text-orange-300">{eph?.sunset || '19:13'}</span>
+                  </div>
+                </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-white">
-                Lune : {weather.moonPhase?.illuminationPercent ?? 20}% illuminée
+                <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 mt-1 font-mono">
+                  <span>🌅 Aube : {eph?.civilTwilightBegin || '07:22'}</span>
+                  <span>✨ Crépuscule : {eph?.civilTwilightEnd || '19:45'}</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-400">
-                {weather.moonPhase?.phaseName || 'Dernier quartier'}
-              </div>
-              <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-0.5 font-mono">
-                <span>🌅 {weather.solarEphemeris?.civilTwilightBegin || '06:18'}</span>
-                <span>🌄 {weather.solarEphemeris?.civilTwilightEnd || '19:43'}</span>
+
+              {/* Bottom Half: Accurate Lunar Section */}
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center gap-3">
+                {/* Accurate Dynamic Moon Phase Visual */}
+                <div className="relative w-12 h-12 rounded-full bg-slate-950 border border-slate-700/80 flex items-center justify-center shrink-0 shadow-inner">
+                  <span className="text-2xl select-none" aria-hidden="true">
+                    {phaseCode === 'new_moon'
+                      ? '🌑'
+                      : phaseCode === 'waxing_crescent'
+                        ? '🌒'
+                        : phaseCode === 'first_quarter'
+                          ? '🌓'
+                          : phaseCode === 'waxing_gibbous'
+                            ? '🌔'
+                            : phaseCode === 'full_moon'
+                              ? '🌕'
+                              : phaseCode === 'waning_gibbous'
+                                ? '🌖'
+                                : phaseCode === 'last_quarter'
+                                  ? '🌗'
+                                  : '🌘'}
+                  </span>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black text-white truncate">
+                      {moon?.phaseName || 'Cycle lunaire'}
+                    </span>
+                    <span className="text-[10px] font-bold text-sky-300 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-md shrink-0">
+                      {illum}% éclairée
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                    Âge : <strong className="text-slate-200">{moon?.moonAgeDays ?? 14} j</strong> / 29.5j • Signe : <strong className="text-sky-300">{moon?.moonSign || 'Taureau'}</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+                    <span>🌙 Lever {moon?.moonrise || '21:15'} • Coucher {moon?.moonset || '10:40'}</span>
+                    {moon?.nextFullMoonDate && (
+                      <span className="text-amber-300 font-sans font-semibold">🌕 Pleine : {moon.nextFullMoonDate}</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
     </div>
   );

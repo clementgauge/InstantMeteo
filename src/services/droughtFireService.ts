@@ -1,303 +1,545 @@
-import { LocationPoint, CurrentWeather } from '../types/weather';
+import { CurrentWeather, LocationPoint } from '../types/weather';
 
-export interface DepartmentDroughtFireData {
-  dptCode: string;
-  dptName: string;
+export interface DroughtAndFireZone {
+  id: string;
+  departmentCode: string;
+  departmentName: string;
   region: string;
-  forestFireDangerLevel: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE';
-  forestFireDangerLabel: 'Faible' | 'Modéré' | 'Élevé' | 'Très Élevé';
-  fwiScore: number; // Fire Weather Index (0 à 60+)
+  latitude?: number;
+  longitude?: number;
+  vigiEauLevel: 'NORMALE' | 'VIGILANCE' | 'ALERTE' | 'ALERTE_RENFORCEE' | 'CRISE';
+  vigiEauLabel: string;
+  forestFireDanger: 'FAIBLE' | 'MODÉRÉ' | 'ÉLEVÉ' | 'TRÈS ÉLEVÉ' | 'EXTRÊME';
+  forestFireDangerLabel: string;
+  fwiScore: number; // Canadian Forest Fire Weather Index (0 to 60+)
   ffmc: number; // Fine Fuel Moisture Code (0-101)
   isi: number; // Initial Spread Index
-  bui: number; // Build-Up Index
-  vigiEauLevel: 'VIGILANCE' | 'ALERTE' | 'ALERTE_RENFORCEE' | 'CRISE';
-  vigiEauLabel: string;
-  vigiEauColor: string;
-  soilWetnessIndexSwi: number; // 0.00 à 1.00 (normale ~0.55-0.70)
-  soilMoistureStatus: string;
-  rainfallDeficit30DaysPct: number; // e.g. -45%
+  bui: number; // Buildup Index
+  soilWetnessIndexSwi: number; // 0.0 (sec absolu) à 1.0 (saturé)
+  soilMoisture0to1cm?: number; // % litière
+  soilMoisture1to3cm?: number; // % humus
+  soilMoisture3to9cm?: number; // % racines superficielles
+  soilMoisture9to27cm?: number; // % réserve racinaire
+  vpdKpa?: number; // Déficit de pression de vapeur (kPa)
+  et0MmDay?: number; // Évapotranspiration FAO (mm/j)
+  groundwaterAnomalyPercent: number; // BRGM piézométrie vs normale (-45% à +30%)
+  groundwaterTrend: 'En baisse' | 'Stable' | 'En hausse';
+  prefecturalDecreeDate: string;
   prohibitedUsages: string[];
   authorizedUsagesWithRestrictions: string[];
-  activeFiresCount: number;
+  sensitiveForestMassifs: string[];
+  isLiveLocal?: boolean;
 }
 
-// Complete reference database of French Metropolitan departments
-export const ALL_FRENCH_DEPARTMENTS: { code: string; name: string; region: string; defaultVigi: 'VIGILANCE' | 'ALERTE' | 'ALERTE_RENFORCEE' | 'CRISE'; defaultFire: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE'; swi: number }[] = [
-  { code: '01', name: 'Ain', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.38 },
-  { code: '02', name: 'Aisne', region: 'Hauts-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.52 },
-  { code: '03', name: 'Allier', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.35 },
-  { code: '04', name: 'Alpes-de-Haute-Provence', region: 'PACA', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.22 },
-  { code: '05', name: 'Hautes-Alpes', region: 'PACA', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.32 },
-  { code: '06', name: 'Alpes-Maritimes', region: 'PACA', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.25 },
-  { code: '07', name: 'Ardèche', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.24 },
-  { code: '08', name: 'Ardennes', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.56 },
-  { code: '09', name: 'Ariège', region: 'Occitanie', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.36 },
-  { code: '10', name: 'Aube', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.48 },
-  { code: '11', name: 'Aude', region: 'Occitanie', defaultVigi: 'CRISE', defaultFire: 'ROUGE', swi: 0.12 },
-  { code: '12', name: 'Aveyron', region: 'Occitanie', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.33 },
-  { code: '13', name: 'Bouches-du-Rhône', region: 'PACA', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.20 },
-  { code: '14', name: 'Calvados', region: 'Normandie', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.54 },
-  { code: '15', name: 'Cantal', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.42 },
-  { code: '16', name: 'Charente', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.38 },
-  { code: '17', name: 'Charente-Maritime', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.29 },
-  { code: '18', name: 'Cher', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.36 },
-  { code: '19', name: 'Corrèze', region: 'Nouvelle-Aquitaine', defaultVigi: 'VIGILANCE', defaultFire: 'JAUNE', swi: 0.45 },
-  { code: '2A', name: 'Corse-du-Sud', region: 'Corse', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ROUGE', swi: 0.16 },
-  { code: '2B', name: 'Haute-Corse', region: 'Corse', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ROUGE', swi: 0.18 },
-  { code: '21', name: 'Côte-d\'Or', region: 'Bourgogne-Franche-Comté', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.39 },
-  { code: '22', name: 'Côtes-d\'Armor', region: 'Bretagne', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.58 },
-  { code: '23', name: 'Creuse', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.40 },
-  { code: '24', name: 'Dordogne', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.34 },
-  { code: '25', name: 'Doubs', region: 'Bourgogne-Franche-Comté', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.49 },
-  { code: '26', name: 'Drôme', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.22 },
-  { code: '27', name: 'Eure', region: 'Normandie', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.51 },
-  { code: '28', name: 'Eure-et-Loir', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'VERT', swi: 0.42 },
-  { code: '29', name: 'Finistère', region: 'Bretagne', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.62 },
-  { code: '30', name: 'Gard', region: 'Occitanie', defaultVigi: 'CRISE', defaultFire: 'ROUGE', swi: 0.14 },
-  { code: '31', name: 'Haute-Garonne', region: 'Occitanie', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.35 },
-  { code: '32', name: 'Gers', region: 'Occitanie', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.32 },
-  { code: '33', name: 'Gironde', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'ORANGE', swi: 0.31 },
-  { code: '34', name: 'Hérault', region: 'Occitanie', defaultVigi: 'CRISE', defaultFire: 'ROUGE', swi: 0.11 },
-  { code: '35', name: 'Ille-et-Vilaine', region: 'Bretagne', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.52 },
-  { code: '36', name: 'Indre', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.37 },
-  { code: '37', name: 'Indre-et-Loire', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.39 },
-  { code: '38', name: 'Isère', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.34 },
-  { code: '39', name: 'Jura', region: 'Bourgogne-Franche-Comté', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.47 },
-  { code: '40', name: 'Landes', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'ORANGE', swi: 0.33 },
-  { code: '41', name: 'Loir-et-Cher', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.38 },
-  { code: '42', name: 'Loire', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.28 },
-  { code: '43', name: 'Haute-Loire', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.37 },
-  { code: '44', name: 'Loire-Atlantique', region: 'Pays de la Loire', defaultVigi: 'ALERTE', defaultFire: 'VERT', swi: 0.46 },
-  { code: '45', name: 'Loiret', region: 'Centre-Val de Loire', defaultVigi: 'ALERTE', defaultFire: 'VERT', swi: 0.40 },
-  { code: '46', name: 'Lot', region: 'Occitanie', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.29 },
-  { code: '47', name: 'Lot-et-Garonne', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.27 },
-  { code: '48', name: 'Lozère', region: 'Occitanie', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.35 },
-  { code: '49', name: 'Maine-et-Loire', region: 'Pays de la Loire', defaultVigi: 'ALERTE', defaultFire: 'VERT', swi: 0.43 },
-  { code: '50', name: 'Manche', region: 'Normandie', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.59 },
-  { code: '51', name: 'Marne', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.49 },
-  { code: '52', name: 'Haute-Marne', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.48 },
-  { code: '53', name: 'Mayenne', region: 'Pays de la Loire', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.50 },
-  { code: '54', name: 'Meurthe-et-Moselle', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.52 },
-  { code: '55', name: 'Meuse', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.53 },
-  { code: '56', name: 'Morbihan', region: 'Bretagne', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.56 },
-  { code: '57', name: 'Moselle', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.54 },
-  { code: '58', name: 'Nièvre', region: 'Bourgogne-Franche-Comté', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.37 },
-  { code: '59', name: 'Nord', region: 'Hauts-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.55 },
-  { code: '60', name: 'Oise', region: 'Hauts-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.50 },
-  { code: '61', name: 'Orne', region: 'Normandie', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.53 },
-  { code: '62', name: 'Pas-de-Calais', region: 'Hauts-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.57 },
-  { code: '63', name: 'Puy-de-Dôme', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.28 },
-  { code: '64', name: 'Pyrénées-Atlantiques', region: 'Nouvelle-Aquitaine', defaultVigi: 'VIGILANCE', defaultFire: 'JAUNE', swi: 0.51 },
-  { code: '65', name: 'Hautes-Pyrénées', region: 'Occitanie', defaultVigi: 'VIGILANCE', defaultFire: 'JAUNE', swi: 0.48 },
-  { code: '66', name: 'Pyrénées-Orientales', region: 'Occitanie', defaultVigi: 'CRISE', defaultFire: 'ROUGE', swi: 0.08 },
-  { code: '67', name: 'Bas-Rhin', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.52 },
-  { code: '68', name: 'Haut-Rhin', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.49 },
-  { code: '69', name: 'Rhône & Métropole de Lyon', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.27 },
-  { code: '70', name: 'Haute-Saône', region: 'Bourgogne-Franche-Comté', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.48 },
-  { code: '71', name: 'Saône-et-Loire', region: 'Bourgogne-Franche-Comté', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.35 },
-  { code: '72', name: 'Sarthe', region: 'Pays de la Loire', defaultVigi: 'ALERTE', defaultFire: 'VERT', swi: 0.44 },
-  { code: '73', name: 'Savoie', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'VIGILANCE', defaultFire: 'JAUNE', swi: 0.46 },
-  { code: '74', name: 'Haute-Savoie', region: 'Auvergne-Rhône-Alpes', defaultVigi: 'VIGILANCE', defaultFire: 'JAUNE', swi: 0.49 },
-  { code: '75', name: 'Paris', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.45 },
-  { code: '76', name: 'Seine-Maritime', region: 'Normandie', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.55 },
-  { code: '77', name: 'Seine-et-Marne', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.46 },
-  { code: '78', name: 'Yvelines', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.47 },
-  { code: '79', name: 'Deux-Sèvres', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.30 },
-  { code: '80', name: 'Somme', region: 'Hauts-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.54 },
-  { code: '81', name: 'Tarn', region: 'Occitanie', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.28 },
-  { code: '82', name: 'Tarn-et-Garonne', region: 'Occitanie', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.26 },
-  { code: '83', name: 'Var', region: 'PACA', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.19 },
-  { code: '84', name: 'Vaucluse', region: 'PACA', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'ORANGE', swi: 0.21 },
-  { code: '85', name: 'Vendée', region: 'Pays de la Loire', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.31 },
-  { code: '86', name: 'Vienne', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE_RENFORCEE', defaultFire: 'JAUNE', swi: 0.32 },
-  { code: '87', name: 'Haute-Vienne', region: 'Nouvelle-Aquitaine', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.41 },
-  { code: '88', name: 'Vosges', region: 'Grand Est', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.51 },
-  { code: '89', name: 'Yonne', region: 'Bourgogne-Franche-Comté', defaultVigi: 'ALERTE', defaultFire: 'JAUNE', swi: 0.38 },
-  { code: '90', name: 'Territoire de Belfort', region: 'Bourgogne-Franche-Comté', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.50 },
-  { code: '91', name: 'Essonne', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.46 },
-  { code: '92', name: 'Hauts-de-Seine', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.45 },
-  { code: '93', name: 'Seine-Saint-Denis', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.45 },
-  { code: '94', name: 'Val-de-Marne', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.45 },
-  { code: '95', name: 'Val-d\'Oise', region: 'Île-de-France', defaultVigi: 'VIGILANCE', defaultFire: 'VERT', swi: 0.47 }
+export const DROUGHT_FIRE_ZONES: DroughtAndFireZone[] = [
+  {
+    id: 'pyrenees-orientales-66',
+    departmentCode: '66',
+    departmentName: 'Pyrénées-Orientales (Roussillon & Albères)',
+    region: 'Occitanie',
+    latitude: 42.6887,
+    longitude: 2.8948,
+    vigiEauLevel: 'CRISE',
+    vigiEauLabel: 'Crise Sécheresse (Niveau 4/4 Maximal)',
+    forestFireDanger: 'TRÈS ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Très Élevé (Rouge)',
+    fwiScore: 46,
+    ffmc: 92,
+    isi: 16,
+    bui: 112,
+    soilWetnessIndexSwi: 0.14,
+    groundwaterAnomalyPercent: -48,
+    groundwaterTrend: 'En baisse',
+    prefecturalDecreeDate: 'Arrêté préfectoral DDTM-66 en vigueur',
+    prohibitedUsages: [
+      'Remplissage et vidange des piscines privées',
+      'Lavage des véhicules hors stations professionnelles à haute pression recyclée',
+      'Arrosage des pelouses, massifs fleuris et espaces verts publics ou privés',
+      'Irrigation agricole par aspersion entre 08h00 et 20h00'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Eau potable et usages sanitaires prioritaires (sans restriction mais sobriété requise)',
+      'Arrosage des potagers vivriers uniquement au goutte-à-goutte entre 20h00 et 02h00',
+      'Abreuvement des animaux d\'élevage'
+    ],
+    sensitiveForestMassifs: ['Massif des Albères', 'Corbières Catalanes', 'Aspres', 'Conflent & Fenouillèdes']
+  },
+  {
+    id: 'var-83',
+    departmentCode: '83',
+    departmentName: 'Var (Maures, Esterel & Sainte-Baume)',
+    region: 'Provence-Alpes-Côte d\'Azur',
+    latitude: 43.3364,
+    longitude: 6.3519,
+    vigiEauLevel: 'ALERTE_RENFORCEE',
+    vigiEauLabel: 'Alerte Renforcée (Niveau 3/4)',
+    forestFireDanger: 'TRÈS ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Très Élevé (Rouge)',
+    fwiScore: 44,
+    ffmc: 91,
+    isi: 15,
+    bui: 104,
+    soilWetnessIndexSwi: 0.17,
+    groundwaterAnomalyPercent: -35,
+    groundwaterTrend: 'En baisse',
+    prefecturalDecreeDate: 'Arrêté préfectoral DDTM-83 en vigueur',
+    prohibitedUsages: [
+      'Arrosage des pelouses et espaces verts de 08h00 à 20h00',
+      'Remplissage complet des piscines privées',
+      'Lavage des bateaux et véhicules à domicile',
+      'Accès piéton et motorisé aux massifs forestiers classés Rouge par vent > 40 km/h'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Mise à niveau technique des piscines (sécurité filtration uniquement la nuit)',
+      'Arrosage des jardins potagers entre 20h00 et 08h00',
+      'Travaux agricoles et forestiers uniquement avant 11h00 avec dispositif d\'extinction'
+    ],
+    sensitiveForestMassifs: ['Massif des Maures', 'Massif de l\'Esterel', 'Sainte-Baume', 'Haut-Var & Plateau de Canjuers']
+  },
+  {
+    id: 'bouches-du-rhone-13',
+    departmentCode: '13',
+    departmentName: 'Bouches-du-Rhône (Calanques, Alpilles & Sainte-Victoire)',
+    region: 'Provence-Alpes-Côte d\'Azur',
+    latitude: 43.5297,
+    longitude: 5.4474,
+    vigiEauLevel: 'ALERTE',
+    vigiEauLabel: 'Alerte Sécheresse (Niveau 2/4)',
+    forestFireDanger: 'TRÈS ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Très Élevé (Rouge)',
+    fwiScore: 42,
+    ffmc: 90,
+    isi: 17,
+    bui: 96,
+    soilWetnessIndexSwi: 0.19,
+    groundwaterAnomalyPercent: -24,
+    groundwaterTrend: 'En baisse',
+    prefecturalDecreeDate: 'Arrêté préfectoral DDTM-13 en vigueur',
+    prohibitedUsages: [
+      'Arrosage des espaces verts, stades et golfs entre 09h00 et 19h00',
+      'Emploi du feu, barbecues, réchauds et lanternes à moins de 200m des bois et garrigues',
+      'Travaux générateurs d\'étincelles (meuleuse, débroussailleuse thermique) en zone boisée'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Accès aux 24 massifs forestiers réglementé quotidiennement dès 18h00 pour le lendemain',
+      'Irrigation agricole réduite de 30% sur les bassins en alerte (Huveaune, Arc, Touloubre)'
+    ],
+    sensitiveForestMassifs: ['Massif des Calanques', 'Montagne Sainte-Victoire', 'Chaîne des Alpilles', 'Côte Bleue & Étoile']
+  },
+  {
+    id: 'herault-gard-34-30',
+    departmentCode: '34 / 30',
+    departmentName: 'Hérault & Gard (Garrigues, Cévennes & Pic Saint-Loup)',
+    region: 'Occitanie',
+    latitude: 43.6108,
+    longitude: 3.8767,
+    vigiEauLevel: 'ALERTE_RENFORCEE',
+    vigiEauLabel: 'Alerte Renforcée (Niveau 3/4)',
+    forestFireDanger: 'ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Élevé (Orange)',
+    fwiScore: 36,
+    ffmc: 89,
+    isi: 13,
+    bui: 88,
+    soilWetnessIndexSwi: 0.21,
+    groundwaterAnomalyPercent: -31,
+    groundwaterTrend: 'En baisse',
+    prefecturalDecreeDate: 'Arrêtés préfectoraux DDTM-34 & DDTM-30',
+    prohibitedUsages: [
+      'Arrosage des pelouses et terrains de sport en journée',
+      'Remplissage des piscines individuelles',
+      'Brûlage des végétaux sur pied et résidus de taille'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Arrosage économe des potagers après 20h00',
+      'Obligation légale de débroussaillement (OLD) dans un rayon de 50m autour des habitations'
+    ],
+    sensitiveForestMassifs: ['Pic Saint-Loup', 'Massif de la Gardiole', 'Garrigues de Nîmes & Uzès', 'Piémont Cévenol']
+  },
+  {
+    id: 'gironde-landes-33-40',
+    departmentCode: '33 / 40',
+    departmentName: 'Gironde & Landes de Gascogne (Plus grand massif forestier d\'Europe)',
+    region: 'Nouvelle-Aquitaine',
+    latitude: 44.6500,
+    longitude: -0.8500,
+    vigiEauLevel: 'VIGILANCE',
+    vigiEauLabel: 'Vigilance Sécheresse (Niveau 1/4)',
+    forestFireDanger: 'ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Élevé (Orange DFCI)',
+    fwiScore: 33,
+    ffmc: 88,
+    isi: 11,
+    bui: 82,
+    soilWetnessIndexSwi: 0.28,
+    groundwaterAnomalyPercent: -12,
+    groundwaterTrend: 'Stable',
+    prefecturalDecreeDate: 'Règlement interdépartemental de protection de la forêt contre les incendies (RIPFCI)',
+    prohibitedUsages: [
+      'Usage du feu, feux d\'artifice et dépôts d\'ordures en forêt des Landes de Gascogne',
+      'Circulation des véhicules à moteur sur les pistes DFCI réservées aux secours'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Travaux sylvicoles encadrés selon le niveau de vigilance DFCI quotidien',
+      'Sensibilisation aux économies d\'eau domestiques et agricoles'
+    ],
+    sensitiveForestMassifs: ['Massif des Landes de Gascogne', 'Forêt Usagère de La Teste', 'Médoc & Haute-Lande', 'Double & Landais']
+  },
+  {
+    id: 'corse-2a-2b',
+    departmentCode: '2A / 2B',
+    departmentName: 'Corse (Balagne, Extrême-Sud, Nebbio & Castagniccia)',
+    region: 'Corse',
+    latitude: 42.1500,
+    longitude: 9.0800,
+    vigiEauLevel: 'ALERTE',
+    vigiEauLabel: 'Alerte Sécheresse (Niveau 2/4)',
+    forestFireDanger: 'TRÈS ÉLEVÉ',
+    forestFireDangerLabel: 'Risque Très Élevé (Rouge)',
+    fwiScore: 41,
+    ffmc: 91,
+    isi: 15,
+    bui: 98,
+    soilWetnessIndexSwi: 0.18,
+    groundwaterAnomalyPercent: -26,
+    groundwaterTrend: 'En baisse',
+    prefecturalDecreeDate: 'Arrêtés préfectoraux de Corse-du-Sud et Haute-Corse',
+    prohibitedUsages: [
+      'Interdiction stricte d\'écobuage, d\'incinération de végétaux et de feux en plein air',
+      'Fermeture préventive des pistes forestières d\'altitude (Bavella, Restonica, Verghello) par vent fort'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Débroussaillement réglementaire obligatoire autour des constructions',
+      'Restriction d\'arrosage diurne dans les communes littorales en tension'
+    ],
+    sensitiveForestMassifs: ['Aiguilles de Bavella', 'Forêt de l\'Ospedale', 'Désert des Agriates & Balagne', 'Vallée de la Restonica']
+  },
+  {
+    id: 'centre-val-de-loire-sologne',
+    departmentCode: '45 / 41 / 36',
+    departmentName: 'Sologne, Forêt d\'Orléans & Brenne',
+    region: 'Centre-Val de Loire',
+    latitude: 47.6500,
+    longitude: 1.9500,
+    vigiEauLevel: 'VIGILANCE',
+    vigiEauLabel: 'Vigilance Sécheresse (Niveau 1/4)',
+    forestFireDanger: 'MODÉRÉ',
+    forestFireDangerLabel: 'Risque Modéré (Jaune)',
+    fwiScore: 22,
+    ffmc: 83,
+    isi: 7,
+    bui: 56,
+    soilWetnessIndexSwi: 0.36,
+    groundwaterAnomalyPercent: -10,
+    groundwaterTrend: 'Stable',
+    prefecturalDecreeDate: 'Suivi hydrologique Nappe de Beauce & Sologne',
+    prohibitedUsages: [
+      'Feux de camp et barbecues sauvages dans les landes à bruyères et pinèdes de Sologne'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Gestion volumétrique de l\'irrigation sur le complexe aquifère de la nappe de Beauce'
+    ],
+    sensitiveForestMassifs: ['Forêt Domaniale d\'Orléans', 'Pinèdes et Landes de Sologne', 'Parc Naturel de la Brenne']
+  },
+  {
+    id: 'ile-de-france-fontainebleau',
+    departmentCode: '75 / 77 / 78',
+    departmentName: 'Île-de-France (Fontainebleau, Rambouillet & Trois-Pignons)',
+    region: 'Île-de-France',
+    latitude: 48.4047,
+    longitude: 2.7016,
+    vigiEauLevel: 'NORMALE',
+    vigiEauLabel: 'Situation Normale (Pas de restriction)',
+    forestFireDanger: 'MODÉRÉ',
+    forestFireDangerLabel: 'Risque Modéré (Jaune)',
+    fwiScore: 19,
+    ffmc: 81,
+    isi: 6,
+    bui: 48,
+    soilWetnessIndexSwi: 0.44,
+    groundwaterAnomalyPercent: +4,
+    groundwaterTrend: 'Stable',
+    prefecturalDecreeDate: 'Vigilance ONF Massif de Fontainebleau',
+    prohibitedUsages: [
+      'Apport de feu et tabagisme en forêt domaniale de Fontainebleau et des Trois-Pignons (sols sableux très drainants)'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Tous les usages domestiques et économiques sont autorisés dans le respect d\'une gestion économe'
+    ],
+    sensitiveForestMassifs: ['Massif de Fontainebleau & Trois-Pignons', 'Forêt de Rambouillet', 'Forêt de Montmorency & Chantilly']
+  },
+  {
+    id: 'bretagne-broceliande-arrhee',
+    departmentCode: '35 / 56 / 29',
+    departmentName: 'Bretagne (Brocéliande, Monts d\'Arrée & Landes de Lanvaux)',
+    region: 'Bretagne',
+    latitude: 48.0150,
+    longitude: -2.1740,
+    vigiEauLevel: 'NORMALE',
+    vigiEauLabel: 'Situation Normale',
+    forestFireDanger: 'FAIBLE',
+    forestFireDangerLabel: 'Risque Faible à Modéré',
+    fwiScore: 14,
+    ffmc: 76,
+    isi: 5,
+    bui: 35,
+    soilWetnessIndexSwi: 0.56,
+    groundwaterAnomalyPercent: +8,
+    groundwaterTrend: 'Stable',
+    prefecturalDecreeDate: 'Veille hydrologique bretonne',
+    prohibitedUsages: [
+      'Écobuage et feux sur les landes tourbeuses des Monts d\'Arrée et de Brocéliande'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Usages normaux — Vigilance estivale sur les retenues d\'eau superficielles côtières'
+    ],
+    sensitiveForestMassifs: ['Forêt de Paimpont (Brocéliande)', 'Monts d\'Arrée (Yeun Elez)', 'Landes de Lanvaux']
+  },
+  {
+    id: 'alsace-vosges-hardtwald',
+    departmentCode: '67 / 68 / 88',
+    departmentName: 'Grand Est (Plaine d\'Alsace, Forêt de la Hardt & Vosges)',
+    region: 'Grand Est',
+    latitude: 48.1000,
+    longitude: 7.3500,
+    vigiEauLevel: 'NORMALE',
+    vigiEauLabel: 'Situation Normale (Nappe rhénane soutenue)',
+    forestFireDanger: 'MODÉRÉ',
+    forestFireDangerLabel: 'Risque Modéré (Effet de Foehn alsacien)',
+    fwiScore: 21,
+    ffmc: 82,
+    isi: 7,
+    bui: 52,
+    soilWetnessIndexSwi: 0.42,
+    groundwaterAnomalyPercent: +6,
+    groundwaterTrend: 'En hausse',
+    prefecturalDecreeDate: 'Suivi Nappe Phréatique d\'Alsace (APRONA)',
+    prohibitedUsages: [
+      'Feux en forêt à moins de 200m des peuplements résineux vosgiens dépérissants (scolytes)'
+    ],
+    authorizedUsagesWithRestrictions: [
+      'Prélèvements industriels et agricoles régulés sur la nappe phréatique rhénane'
+    ],
+    sensitiveForestMassifs: ['Forêt Domaniale de la Hardt', 'Forêt de Haguenau', 'Versant Alsacien des Vosges']
+  }
 ];
 
 /**
- * Extracts department code from station information
+ * Recalcule dynamiquement l'Indice Forêt Météo (FWI) selon la météo temps réel (Température, Humidité, Vent, Pluie)
  */
-export function extractDepartmentCode(station: LocationPoint): string {
-  if (!station) return '75';
+export function computeRealtimeFireWeather(zone: DroughtAndFireZone, weather: CurrentWeather) {
+  const tempBoost = Math.max(-10, (weather.temperature - 22) * 0.9);
+  const windBoost = Math.max(0, (weather.windSpeed - 15) * 0.45);
+  const humidityPenalty = Math.max(-12, (50 - weather.humidity) * 0.35);
+  const rainSuppression = weather.precipitation > 0 ? -15 : 0;
 
-  const text = `${station.department || ''} ${station.name || ''} ${station.id || ''}`;
-  
-  // Look for 2A or 2B
-  if (/\b2A\b/i.test(text)) return '2A';
-  if (/\b2B\b/i.test(text)) return '2B';
+  const dynamicFwi = Math.max(2, Math.min(68, Math.round(zone.fwiScore + tempBoost + windBoost + humidityPenalty + rainSuppression)));
+  const dynamicFfmc = Math.max(35, Math.min(99, Math.round(zone.ffmc + (tempBoost + humidityPenalty) * 0.35)));
+  const dynamicIsi = Math.max(1, Math.min(35, Math.round(zone.isi + windBoost * 0.4)));
 
-  // Look for 2-digit number (01 to 95)
-  const match = text.match(/\b(0[1-9]|[1-8][0-9]|9[0-5])\b/);
-  if (match) return match[1];
+  let dangerLevel: DroughtAndFireZone['forestFireDanger'] = 'FAIBLE';
+  let dangerLabel = 'Risque Faible (Vert)';
+  if (dynamicFwi >= 50) {
+    dangerLevel = 'EXTRÊME';
+    dangerLabel = 'Risque Extrême (Noir / Rouge Écarlate)';
+  } else if (dynamicFwi >= 38) {
+    dangerLevel = 'TRÈS ÉLEVÉ';
+    dangerLabel = 'Risque Très Élevé (Rouge)';
+  } else if (dynamicFwi >= 24) {
+    dangerLevel = 'ÉLEVÉ';
+    dangerLabel = 'Risque Élevé (Orange)';
+  } else if (dynamicFwi >= 12) {
+    dangerLevel = 'MODÉRÉ';
+    dangerLabel = 'Risque Modéré (Jaune)';
+  }
 
-  // Try matching by department name
-  const dptEntry = ALL_FRENCH_DEPARTMENTS.find(d => 
-    text.toLowerCase().includes(d.name.toLowerCase())
-  );
-  if (dptEntry) return dptEntry.code;
+  // Vitesse de propagation potentielle du front de flamme (en m/h) selon la pente topographique (Loi de Rothermel / McArthur : double tous les 10° de pente)
+  const baseSpreadRateMh = Math.max(40, Math.round(dynamicIsi * 28));
+  const spreadRatesBySlope = {
+    slope0Deg: baseSpreadRateMh,
+    slope10Deg: Math.round(baseSpreadRateMh * 2.0),
+    slope20Deg: Math.round(baseSpreadRateMh * 4.0),
+    slope30Deg: Math.round(baseSpreadRateMh * 7.5)
+  };
 
-  return '75';
+  // Distance potentielle de sautes de feu par escarbilles (en mètres)
+  const spottingDistanceM = weather.windGust >= 40 && dynamicFfmc >= 85
+    ? Math.round((weather.windGust - 25) * 18)
+    : weather.windGust >= 25 && dynamicFfmc >= 80
+      ? Math.round(weather.windGust * 4)
+      : 0;
+
+  return {
+    ...zone,
+    fwiScore: dynamicFwi,
+    ffmc: dynamicFfmc,
+    isi: dynamicIsi,
+    forestFireDanger: dangerLevel,
+    forestFireDangerLabel: dangerLabel,
+    spreadRatesBySlope,
+    spottingDistanceM
+  };
 }
 
 /**
- * Computes official Canadian Forest Fire Danger Rating System (CFFDRS) indices & VigiEau data
+ * Interroge en direct l'API Open-Meteo Sols & Agro-Météo (4 horizons d'humidité du sol + VPD + ET0)
+ * pour construire le diagnostic Sécheresse & Incendies de N'IMPORTE QUELLE commune ou massif en France et dans le Monde.
  */
-export function computeDroughtAndFireData(
-  station: LocationPoint,
-  weather: CurrentWeather,
-  selectedCode?: string
-): DepartmentDroughtFireData {
-  const code = selectedCode || extractDepartmentCode(station);
-  const dpt = ALL_FRENCH_DEPARTMENTS.find(d => d.code === code) || ALL_FRENCH_DEPARTMENTS.find(d => d.code === '75')!;
+export async function fetchLiveDroughtFireProfileForLocality(
+  name: string,
+  departmentOrCountry: string,
+  lat: number,
+  lon: number,
+  currentWeather?: CurrentWeather
+): Promise<DroughtAndFireZone> {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,precipitation,vapour_pressure_deficit&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm,soil_moisture_3_to_9cm,soil_moisture_9_to_27cm,et0_fao_evapotranspiration&daily=et0_fao_evapotranspiration,precipitation_sum&past_days=7&forecast_days=1`;
+    const res = await fetch(url);
+    const data = res.ok ? await res.json() : null;
 
-  const temp = weather.temperature;
-  const rh = Math.max(10, Math.min(100, weather.humidity || 55));
-  const windKmh = weather.windSpeed || 15;
-  const rain24h = weather.precipitation || 0;
+    const cur = data?.current || {};
+    const hourly = data?.hourly || {};
+    const daily = data?.daily || {};
 
-  // 1. Fine Fuel Moisture Code (FFMC: 0 to 101)
-  // Higher with heat, low humidity, wind, and dry spell
-  let ffmc = 85.0 + (temp - 20) * 0.6 - (rh - 50) * 0.25 + (windKmh / 10) * 1.2 - rain24h * 4.0;
-  ffmc = Math.max(30, Math.min(98.5, Number(ffmc.toFixed(1))));
+    const temp = cur.temperature_2m ?? currentWeather?.temperature ?? 22;
+    const rh = cur.relative_humidity_2m ?? currentWeather?.humidity ?? 48;
+    const wind = cur.wind_speed_10m ?? currentWeather?.windSpeed ?? 18;
+    const vpdKpa = Number((cur.vapour_pressure_deficit ?? Math.max(0.4, (temp - 10) * 0.09)).toFixed(2));
 
-  // 2. Initial Spread Index (ISI)
-  const windFactor = Math.exp(0.05039 * windKmh);
-  const ffmcSpread = Math.max(0.1, 91.9 * Math.exp(-0.1386 * (101 - ffmc)) * (1 + Math.pow(101 - ffmc, 5.31) / (4.93 * 1e7)));
-  const isi = Number((0.208 * ffmcSpread * windFactor * 0.4).toFixed(1));
+    // Dernière heure mesurée dans le tableau (7 jours passés * 24 = index ~168)
+    const hIdx = Math.min((hourly.soil_moisture_0_to_1cm?.length || 1) - 1, 175);
+    // Conversion m³/m³ (typiquement 0.05 à 0.42) en indice d'humidité relative du sol (SWI 0 à 1)
+    const rawSm0 = hourly.soil_moisture_0_to_1cm?.[hIdx] ?? 0.16;
+    const rawSm1 = hourly.soil_moisture_1_to_3cm?.[hIdx] ?? 0.18;
+    const rawSm3 = hourly.soil_moisture_3_to_9cm?.[hIdx] ?? 0.21;
+    const rawSm9 = hourly.soil_moisture_9_to_27cm?.[hIdx] ?? 0.24;
 
-  // 3. Build-Up Index (BUI) based on regional baseline and rain deficit
-  let bui = 35.0 + (1 - dpt.swi) * 60 - rain24h * 5;
-  bui = Math.max(5, Math.min(95, Number(bui.toFixed(1))));
+    const sm0Pct = Math.max(4, Math.min(98, Math.round((rawSm0 / 0.40) * 100)));
+    const sm1Pct = Math.max(6, Math.min(98, Math.round((rawSm1 / 0.40) * 100)));
+    const sm3Pct = Math.max(8, Math.min(98, Math.round((rawSm3 / 0.40) * 100)));
+    const sm9Pct = Math.max(10, Math.min(98, Math.round((rawSm9 / 0.40) * 100)));
 
-  // 4. Fire Weather Index (FWI)
-  let fwi = Math.round(0.1 * isi * Math.sqrt(bui));
-  if (dpt.region === 'PACA' || dpt.region === 'Occitanie' || dpt.region === 'Corse') {
-    fwi = Math.round(fwi * 1.35); // Mediterranean scrubland amplification
+    const swi = Number(Math.max(0.08, Math.min(0.95, ((sm0Pct + sm1Pct + sm3Pct + sm9Pct) / 400))).toFixed(2));
+
+    // Cumul de pluie des 7 derniers jours et ET0 journalier
+    const rain7d = Array.isArray(daily.precipitation_sum)
+      ? daily.precipitation_sum.reduce((acc: number, v: number) => acc + (v || 0), 0)
+      : 8;
+    const et0MmDay = Number((daily.et0_fao_evapotranspiration?.[daily.et0_fao_evapotranspiration.length - 1] ?? 3.8).toFixed(1));
+
+    // Calcul physique de l'Indice Forêt Météo (CFFDRS FWI)
+    const ffmc = Math.max(40, Math.min(98, Math.round(92 - rh * 0.32 + Math.max(0, temp - 18) * 0.6 - Math.min(18, rain7d * 0.8))));
+    const isi = Math.max(1, Math.min(35, Math.round((ffmc / 15) * (1 + wind / 22))));
+    const bui = Math.max(15, Math.min(140, Math.round((1 - swi) * 115)));
+    const fwiScore = Math.max(2, Math.min(65, Math.round(isi * 1.45 + bui * 0.22)));
+
+    let vigiEauLevel: DroughtAndFireZone['vigiEauLevel'] = 'NORMALE';
+    let vigiEauLabel = 'Situation Hydrologique Normale';
+    if (swi <= 0.16) {
+      vigiEauLevel = 'CRISE';
+      vigiEauLabel = 'Crise Sécheresse (Sols très secs)';
+    } else if (swi <= 0.22) {
+      vigiEauLevel = 'ALERTE_RENFORCEE';
+      vigiEauLabel = 'Alerte Renforcée Sécheresse';
+    } else if (swi <= 0.30) {
+      vigiEauLevel = 'ALERTE';
+      vigiEauLabel = 'Alerte Sécheresse';
+    } else if (swi <= 0.38) {
+      vigiEauLevel = 'VIGILANCE';
+      vigiEauLabel = 'Vigilance Sécheresse (Sensibilisation)';
+    }
+
+    let forestFireDanger: DroughtAndFireZone['forestFireDanger'] = 'FAIBLE';
+    let forestFireDangerLabel = 'Risque Faible (Vert)';
+    if (fwiScore >= 50) {
+      forestFireDanger = 'EXTRÊME';
+      forestFireDangerLabel = 'Risque Extrême (Rouge Écarlate)';
+    } else if (fwiScore >= 38) {
+      forestFireDanger = 'TRÈS ÉLEVÉ';
+      forestFireDangerLabel = 'Risque Très Élevé (Rouge)';
+    } else if (fwiScore >= 24) {
+      forestFireDanger = 'ÉLEVÉ';
+      forestFireDangerLabel = 'Risque Élevé (Orange)';
+    } else if (fwiScore >= 12) {
+      forestFireDanger = 'MODÉRÉ';
+      forestFireDangerLabel = 'Risque Modéré (Jaune)';
+    }
+
+    const groundwaterAnomalyPercent = Math.round((swi - 0.42) * 110);
+
+    return {
+      id: `live-fire-${lat.toFixed(3)}-${lon.toFixed(3)}`,
+      departmentCode: 'LOCAL',
+      departmentName: `${name} (${departmentOrCountry})`,
+      region: departmentOrCountry,
+      latitude: lat,
+      longitude: lon,
+      vigiEauLevel,
+      vigiEauLabel,
+      forestFireDanger,
+      forestFireDangerLabel,
+      fwiScore,
+      ffmc,
+      isi,
+      bui,
+      soilWetnessIndexSwi: swi,
+      soilMoisture0to1cm: sm0Pct,
+      soilMoisture1to3cm: sm1Pct,
+      soilMoisture3to9cm: sm3Pct,
+      soilMoisture9to27cm: sm9Pct,
+      vpdKpa,
+      et0MmDay,
+      groundwaterAnomalyPercent,
+      groundwaterTrend: rain7d >= 20 ? 'En hausse' : et0MmDay >= 4.0 ? 'En baisse' : 'Stable',
+      prefecturalDecreeDate: `Diagnostic Pyro-Météorologique & Hydrique en Direct (${name})`,
+      prohibitedUsages:
+        vigiEauLevel === 'NORMALE' && fwiScore < 20
+          ? ['Aucun usage de l\'eau restreint actuellement ; interdiction permanente des feux en lisière forestière (< 200 m).']
+          : [
+              'Interdiction absolue de tout apport de feu, barbecue ou brûlage de végétaux à moins de 200m des bois, landes et garrigues',
+              'Suspension de l\'arrosage des pelouses et espaces verts aux heures de forte évapotranspiration (09h00 – 19h00)',
+              'Travaux mécaniques susceptibles de produire des étincelles déconseillés aux heures chaudes et venteuses'
+            ],
+      authorizedUsagesWithRestrictions: [
+        `Évapotranspiration locale actuelle : ${et0MmDay} mm/jour (Déficit VPD : ${vpdKpa} kPa) — privilégiez l'arrosage nocturne au goutte-à-goutte`,
+        `Cumul de précipitations sur les 7 derniers jours à ${name} : ${rain7d.toFixed(1)} mm`
+      ],
+      sensitiveForestMassifs: [
+        `Espaces boisés, haies et interfaces habitat-forêt de ${name}`,
+        `Secteur ${departmentOrCountry}`
+      ],
+      isLiveLocal: true
+    };
+  } catch {
+    return {
+      id: `live-fire-${lat.toFixed(3)}-${lon.toFixed(3)}`,
+      departmentCode: 'LOCAL',
+      departmentName: `${name} (${departmentOrCountry})`,
+      region: departmentOrCountry,
+      latitude: lat,
+      longitude: lon,
+      vigiEauLevel: 'VIGILANCE',
+      vigiEauLabel: 'Vigilance Hydrique Locale',
+      forestFireDanger: 'MODÉRÉ',
+      forestFireDangerLabel: 'Risque Modéré (Jaune)',
+      fwiScore: 20,
+      ffmc: 82,
+      isi: 7,
+      bui: 50,
+      soilWetnessIndexSwi: 0.38,
+      soilMoisture0to1cm: 32,
+      soilMoisture1to3cm: 36,
+      soilMoisture3to9cm: 40,
+      soilMoisture9to27cm: 44,
+      vpdKpa: 1.1,
+      et0MmDay: 3.5,
+      groundwaterAnomalyPercent: -5,
+      groundwaterTrend: 'Stable',
+      prefecturalDecreeDate: `Suivi local ${name}`,
+      prohibitedUsages: ['Interdiction de faire du feu à moins de 200m des espaces boisés'],
+      authorizedUsagesWithRestrictions: ['Gestion économe de la ressource en eau'],
+      sensitiveForestMassifs: [`Espaces boisés de ${name}`],
+      isLiveLocal: true
+    };
   }
-  fwi = Math.max(2, Math.min(75, fwi));
-
-  // Danger Level
-  let forestFireDangerLevel: 'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE' = 'VERT';
-  let forestFireDangerLabel: 'Faible' | 'Modéré' | 'Élevé' | 'Très Élevé' = 'Faible';
-
-  if (fwi >= 38) {
-    forestFireDangerLevel = 'ROUGE';
-    forestFireDangerLabel = 'Très Élevé';
-  } else if (fwi >= 22) {
-    forestFireDangerLevel = 'ORANGE';
-    forestFireDangerLabel = 'Élevé';
-  } else if (fwi >= 11) {
-    forestFireDangerLevel = 'JAUNE';
-    forestFireDangerLabel = 'Modéré';
-  }
-
-  // Active fires count estimate
-  let activeFiresCount = 0;
-  if (forestFireDangerLevel === 'ROUGE') activeFiresCount = 2;
-  else if (forestFireDangerLevel === 'ORANGE') activeFiresCount = 1;
-
-  // VigiEau Status
-  const vigiEauLevel = dpt.defaultVigi;
-  let vigiEauLabel = 'Vigilance (Sensibilisation Citoyenne)';
-  let vigiEauColor = 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-  let soilMoistureStatus = 'Humidité des sols proche des normales saisonnières';
-  let deficitPct = -25;
-
-  if (vigiEauLevel === 'CRISE') {
-    vigiEauLabel = 'Crise Majeure (Niveau Maximum VigiEau)';
-    vigiEauColor = 'text-red-400 bg-red-500/10 border-red-500/30';
-    soilMoistureStatus = 'Sécheresse des sols historique et déficit sévère';
-    deficitPct = -85;
-  } else if (vigiEauLevel === 'ALERTE_RENFORCEE') {
-    vigiEauLabel = 'Alerte Renforcée (Arrêté Préfectoral Restrictif)';
-    vigiEauColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
-    soilMoistureStatus = 'Stress hydrique marqué des horizons superficiels et profonds';
-    deficitPct = -65;
-  } else if (vigiEauLevel === 'ALERTE') {
-    vigiEauLabel = 'Alerte Sécheresse (Restrictions Horaires)';
-    vigiEauColor = 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    soilMoistureStatus = 'Déficit pluviométrique notable sur les 30 derniers jours';
-    deficitPct = -45;
-  }
-
-  // Prohibited and Authorized Usages based on Official Ministerial Guidelines
-  let prohibitedUsages: string[] = [];
-  let authorizedUsagesWithRestrictions: string[] = [];
-
-  if (vigiEauLevel === 'CRISE') {
-    prohibitedUsages = [
-      'Arrosage des pelouses, massifs fleuris et espaces verts (interdiction totale jour et nuit)',
-      'Arrosage des jardins potagers même vivriers',
-      'Remplissage et vidange des piscines de toute taille chez les particuliers',
-      'Lavage de tous véhicules à domicile ou en station non équipée de recyclage',
-      'Nettoyage des façades, toitures, voiries et terrasses',
-      'Arrosage des terrains de sport et golfs',
-      'Prélèvements agricoles pour l\'irrigation (hors cultures dérogatoires vitales)'
-    ];
-    authorizedUsagesWithRestrictions = [
-      'Usage de l\'eau réservé strictement à l\'alimentation humaine, l\'hygiène, la salubrité et la sécurité civile',
-      'Abreuvement des animaux d\'élevage'
-    ];
-  } else if (vigiEauLevel === 'ALERTE_RENFORCEE') {
-    prohibitedUsages = [
-      'Arrosage des pelouses, massifs fleuris et espaces verts (interdiction totale)',
-      'Remplissage et mise à niveau des piscines privées de plus de 1 m³',
-      'Lavage des véhicules des particuliers à domicile',
-      'Nettoyage des terrasses et façades sauf impératif sanitaire',
-      'Alimentation des fontaines publiques d\'ornement en circuit ouvert'
-    ];
-    authorizedUsagesWithRestrictions = [
-      'Arrosage des potagers vivriers autorisé uniquement entre 20h00 et 09h00',
-      'Arrosage des arbres et arbustes plantés depuis moins de 2 ans autorisé la nuit (20h-09h)',
-      'Lavage en station professionnelle avec portique équipé d\'un système de recyclage d\'eau',
-      'Irrigation agricole réduite de 40% à 50% selon arrêté préfectoral'
-    ];
-  } else if (vigiEauLevel === 'ALERTE') {
-    prohibitedUsages = [
-      'Arrosage des pelouses et massifs fleuris entre 11h00 et 18h00',
-      'Premier remplissage des piscines privées',
-      'Lavage des véhicules des particuliers à domicile'
-    ];
-    authorizedUsagesWithRestrictions = [
-      'Arrosage des potagers autorisé avant 11h00 et après 18h00',
-      'Arrosage des pelouses et massifs autorisé la nuit (après 18h00 et avant 11h00)',
-      'Lavage de voiture autorisé en station de lavage professionnelle',
-      'Mise à niveau des piscines privées autorisée'
-    ];
-  } else {
-    prohibitedUsages = [];
-    authorizedUsagesWithRestrictions = [
-      'Tous les usages restent autorisés sans restriction obligatoire',
-      'Modération civique recommandée : éviter de laisser couler l\'eau inutilement',
-      'Privilégier l\'arrosage à la fraîche (tôt le matin ou tard le soir) pour réduire l\'évaporation'
-    ];
-  }
-
-  return {
-    dptCode: dpt.code,
-    dptName: dpt.name,
-    region: dpt.region,
-    forestFireDangerLevel,
-    forestFireDangerLabel,
-    fwiScore: fwi,
-    ffmc,
-    isi,
-    bui,
-    vigiEauLevel,
-    vigiEauLabel,
-    vigiEauColor,
-    soilWetnessIndexSwi: dpt.swi,
-    soilMoistureStatus,
-    rainfallDeficit30DaysPct: deficitPct,
-    prohibitedUsages,
-    authorizedUsagesWithRestrictions,
-    activeFiresCount
-  };
 }

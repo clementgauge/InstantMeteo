@@ -1131,7 +1131,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const lon = station.longitude;
     const alt = station.altitude ?? 0;
 
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
     const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,ecmwf_ifs025,icon_seamless,gfs_seamless&forecast_days=1&timezone=auto`;
 
@@ -1309,8 +1309,20 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const snowRainLimit = isoDiag.snowRainLimitMeters;
     const isotherm0 = isoDiag.isotherm0Meters;
 
-    const solarEphemeris = calculateSolarEphemeris(lat, lon);
-    const moonPhase = calculateMoonPhase();
+    const utcOffsetSec: number | undefined =
+      typeof weatherData.utc_offset_seconds === 'number'
+        ? weatherData.utc_offset_seconds
+        : undefined;
+    const todaySunriseIso: string | undefined = dailyData.sunrise?.[todayDailyIndex];
+    const todaySunsetIso: string | undefined = dailyData.sunset?.[todayDailyIndex];
+
+    const solarEphemeris = calculateSolarEphemeris(lat, lon, nowTime, {
+      sunriseIso: todaySunriseIso,
+      sunsetIso: todaySunsetIso,
+      utcOffsetSeconds: utcOffsetSec,
+      localTimeIso: curLocalTimeStr
+    });
+    const moonPhase = calculateMoonPhase(nowTime, lat, lon, utcOffsetSec);
     const barometricTrend = calculateBarometricTrend(qfe, qnh);
 
     // ==========================================
@@ -2496,11 +2508,15 @@ export function getFallbackWeatherData(station: LocationPoint): {
     },
     synopticConditions: calculateSynopticConditions(tempBase, 55, 16, Math.round(1013 - (alt * 0.12)), alt, 1, true),
     radarProximity: calculateRadarProximity(station, 0, 1, 16, 230),
+    solarEphemeris: calculateSolarEphemeris(station.latitude, station.longitude, new Date()),
+    moonPhase: calculateMoonPhase(new Date(), station.latitude, station.longitude),
+    barometricTrend: calculateBarometricTrend(Math.round(1013 - (alt * 0.12)), 1018),
     pastHourly: fallbackPastHourly,
     dailyPrecipitationDiagnostic: fallbackPrecipDiag,
     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
     isDay: true
   };
+  fallbackCurrent.outdoorIndices = calculateOutdoorIndices(fallbackCurrent, station);
 
   const fallbackHourly: HourlyForecast[] = Array.from({ length: 168 }).map((_, i) => {
     const timeDate = new Date(Date.now() + i * 3600000);
