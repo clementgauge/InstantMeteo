@@ -219,14 +219,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
   return (
     <div className="space-y-5">
-      {/* 0. BARRE DES VILLES FAVORITES (Accès en 1 clic avec météo temps réel) */}
-      <FavoriteCitiesBar
-        currentStation={station}
-        currentWeather={weather}
-        tempUnit={tempUnit}
-        onSelectStation={(st) => onSelectStation && onSelectStation(st)}
-        onOpenSearchModal={onOpenSearchModal}
-      />
+      {/* 0. BARRE DES VILLES FAVORITES (Accès en 1 clic avec météo temps réel - Mode Expert uniquement) */}
+      {!simplifiedMode && (
+        <FavoriteCitiesBar
+          currentStation={station}
+          currentWeather={weather}
+          tempUnit={tempUnit}
+          onSelectStation={(st) => onSelectStation && onSelectStation(st)}
+          onOpenSearchModal={onOpenSearchModal}
+        />
+      )}
 
       {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
       {!simplifiedMode && (
@@ -651,104 +653,110 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             />
           </div>
 
-          {/* BARRE DE NAVIGATION CLAIRE TOUT PUBLIC (Organisation par thématiques sans aucune perte de données) */}
-          <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/95 border border-slate-800/90 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <div>
-                <div className="text-xs sm:text-sm font-black text-white flex items-center gap-2">
-                  <span>Parcours Guidé &amp; Organisation Tout Public</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    100% des données préservées
-                  </span>
+          {/* BARRE DE NAVIGATION CLAIRE TOUT PUBLIC & CHAPITRE 1 (Mode Expert uniquement) */}
+          {!simplifiedMode && (
+            <>
+              <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/95 border border-slate-800/90 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-black text-white flex items-center gap-2">
+                      <span>Parcours Guidé &amp; Organisation Tout Public</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Mode Expert Complet
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Affichez l'intégralité du tableau de bord ou filtrez par rubrique thématique en un clic
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Affichez l'intégralité du tableau de bord ou filtrez par rubrique thématique en un clic
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-              {[
-                { id: 'ALL', label: '✨ Tout Afficher (Complet)' },
-                { id: 'ESSENTIAL', label: '🎙️ Briefing & Hier vs Auj.' },
-                { id: 'INDICATORS', label: '🌡️ Indicateurs & Pollen' },
-                { id: 'SKY_AURORA', label: '🌌 Soleil, Lune & Aurores' },
-                { id: 'RAIN_RADAR', label: '🌧️ Pluie & Nowcasting' }
-              ].map((ch) => (
-                <button
-                  key={ch.id}
-                  onClick={() => setPublicChapterFilter(ch.id as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
-                    publicChapterFilter === ch.id
-                      ? 'bg-sky-500 text-slate-950 font-black shadow-sm'
-                      : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
-                  }`}
-                >
-                  {ch.label}
-                </button>
-              ))}
-              <button
-                onClick={() => setIsShareCardModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white shadow-sm transition cursor-pointer flex items-center gap-1.5"
-              >
-                <span>📸 Carte Partageable</span>
-              </button>
-            </div>
-          </div>
-
-          {/* CHAPITRE 1 : BRIEFING MATINAL AUDIO (SYNTHÈSE VOCALE) & COMPARATEUR AUJOURD'HUI VS HIER */}
-          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'ESSENTIAL') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-500/30 text-[10px] font-black text-sky-300 uppercase tracking-wider">
-                    Étape 1 • Synthèse &amp; Évolution 24h
-                  </span>
-                  <h3 className="text-sm sm:text-base font-black text-white">
-                    Bulletin Audio Intelligent &amp; Comparateur Aujourd'hui vs Hier
-                  </h3>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+                  {[
+                    { id: 'ALL', label: '✨ Tout Afficher (Complet)' },
+                    { id: 'ESSENTIAL', label: '🎙️ Briefing & Hier vs Auj.' },
+                    { id: 'INDICATORS', label: '🌡️ Indicateurs & Pollen' },
+                    { id: 'SKY_AURORA', label: '🌌 Soleil, Lune & Aurores' },
+                    { id: 'RAIN_RADAR', label: '🌧️ Pluie & Nowcasting' }
+                  ].map((ch) => (
+                    <button
+                      key={ch.id}
+                      onClick={() => setPublicChapterFilter(ch.id as any)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                        publicChapterFilter === ch.id
+                          ? 'bg-sky-500 text-slate-950 font-black shadow-sm'
+                          : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                      }`}
+                    >
+                      {ch.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setIsShareCardModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white shadow-sm transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>📸 Carte Partageable</span>
+                  </button>
                 </div>
-                <button
-                  onClick={() => setIsShareCardModalOpen(true)}
-                  className="text-xs font-bold text-sky-400 hover:text-sky-300 underline cursor-pointer hidden sm:inline"
-                >
-                  Générer une image météo à partager →
-                </button>
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
-                <div className="xl:col-span-6 flex [&>div]:flex-1">
-                  <MorningAudioBriefingCard
-                    station={station}
-                    weather={weather}
-                    daily={daily}
-                    hourly={hourly}
-                    tempUnit={tempUnit}
-                    onOpenShareCard={() => setIsShareCardModalOpen(true)}
-                  />
+              {/* CHAPITRE 1 : BRIEFING MATINAL AUDIO (SYNTHÈSE VOCALE) & COMPARATEUR AUJOURD'HUI VS HIER */}
+              {(publicChapterFilter === 'ALL' || publicChapterFilter === 'ESSENTIAL') && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-500/30 text-[10px] font-black text-sky-300 uppercase tracking-wider">
+                        Étape 1 • Synthèse &amp; Évolution 24h
+                      </span>
+                      <h3 className="text-sm sm:text-base font-black text-white">
+                        Bulletin Audio Intelligent &amp; Comparateur Aujourd'hui vs Hier
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setIsShareCardModalOpen(true)}
+                      className="text-xs font-bold text-sky-400 hover:text-sky-300 underline cursor-pointer hidden sm:inline"
+                    >
+                      Générer une image météo à partager →
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
+                    <div className="xl:col-span-6 flex [&>div]:flex-1">
+                      <MorningAudioBriefingCard
+                        station={station}
+                        weather={weather}
+                        daily={daily}
+                        hourly={hourly}
+                        tempUnit={tempUnit}
+                        onOpenShareCard={() => setIsShareCardModalOpen(true)}
+                      />
+                    </div>
+                    <div className="xl:col-span-6 flex [&>div]:flex-1">
+                      <TodayVsYesterdayCard
+                        station={station}
+                        weather={weather}
+                        tempUnit={tempUnit}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="xl:col-span-6 flex [&>div]:flex-1">
-                  <TodayVsYesterdayCard
-                    station={station}
-                    weather={weather}
-                    tempUnit={tempUnit}
-                  />
-                </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
 
           {/* CHAPITRE 2 : LES 7 JAUGES & INDICATEURS SYNOPTIQUES (Humidité, Vent, UV, AQI, Pression, Pluie, Pollen) */}
-          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'INDICATORS') && (
+          {(simplifiedMode || publicChapterFilter === 'ALL' || publicChapterFilter === 'INDICATORS') && (
             <div id="realtime-indicators" className="scroll-mt-28 space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-300 uppercase tracking-wider">
-                    Étape 2 • Santé, Air &amp; Atmosphère
-                  </span>
+                  {!simplifiedMode && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-300 uppercase tracking-wider">
+                      Étape 2 • Santé, Air &amp; Atmosphère
+                    </span>
+                  )}
                   <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-sm sm:text-base'}`}>
                     Indicateurs Temps Réel, Qualité de l'Air &amp; Jauge Pollen
                   </h3>
@@ -842,18 +850,20 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           )}
 
           {/* CHAPITRE 3 : ASTRONOMIE VÉRIFIÉE, AURORES BORÉALES & VIE QUOTIDIENNE */}
-          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'SKY_AURORA' || publicChapterFilter === 'INDICATORS') && (
+          {(simplifiedMode || publicChapterFilter === 'ALL' || publicChapterFilter === 'SKY_AURORA' || publicChapterFilter === 'INDICATORS') && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30 text-[10px] font-black text-purple-300 uppercase tracking-wider">
-                    Étape 3 • Astronomie, Aurores Boréales &amp; Plein Air
-                  </span>
-                  <h3 className="text-sm sm:text-base font-black text-white">
-                    Éphéméride Solaire &amp; Lunaire Vérifiée, Aurores Boréales (Kp) &amp; Indices Quotidiens
-                  </h3>
+              {!simplifiedMode && (
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30 text-[10px] font-black text-purple-300 uppercase tracking-wider">
+                      Étape 3 • Astronomie, Aurores Boréales &amp; Plein Air
+                    </span>
+                    <h3 className="text-sm sm:text-base font-black text-white">
+                      Éphéméride Solaire &amp; Lunaire Vérifiée, Aurores Boréales (Kp) &amp; Indices Quotidiens
+                    </h3>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Row 5A: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
@@ -874,27 +884,31 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 )}
               </div>
 
-              {/* Row 5B: Observatoire des Aurores Boréales & Ciel Nocturne */}
-              <AuroraNightSkyCard
-                station={station}
-                weather={weather}
-              />
+              {/* Row 5B: Observatoire des Aurores Boréales & Ciel Nocturne (Mode Expert uniquement) */}
+              {!simplifiedMode && (
+                <AuroraNightSkyCard
+                  station={station}
+                  weather={weather}
+                />
+              )}
             </div>
           )}
 
           {/* CHAPITRE 4 : PRÉCIPITATIONS CHIRURGICALES & NOWCASTING (< 3h & < 24h) */}
-          {(publicChapterFilter === 'ALL' || publicChapterFilter === 'RAIN_RADAR') && (
+          {(simplifiedMode || publicChapterFilter === 'ALL' || publicChapterFilter === 'RAIN_RADAR') && (
             <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0 space-y-2.5">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-black text-cyan-300 uppercase tracking-wider">
-                    Étape 4 • Suivi Pluie Minute par Minute
-                  </span>
-                  <h3 className="text-sm sm:text-base font-black text-white">
-                    Nowcasting Chirurgical des Précipitations (&lt; 3h &amp; 24h)
-                  </h3>
+              {!simplifiedMode && (
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-black text-cyan-300 uppercase tracking-wider">
+                      Étape 4 • Suivi Pluie Minute par Minute
+                    </span>
+                    <h3 className="text-sm sm:text-base font-black text-white">
+                      Nowcasting Chirurgical des Précipitations (&lt; 3h &amp; 24h)
+                    </h3>
+                  </div>
                 </div>
-              </div>
+              )}
               <GigaPrecipitationNowcastingCard
                 weather={weather}
                 station={station}
@@ -905,88 +919,90 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </div>
           )}
 
-          {/* CHAPITRE 5 : PORTAIL DES 4 GRANDS UNIVERS TERRITORIAUX (Montagne 8 Versants, Littoral & Marées, Cours d'Eau, Incendies) */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-[#0c1629] to-slate-900 border border-slate-800 shadow-xl space-y-3.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-sky-400">
-                  Exploration Thématique Approfondie • France &amp; Monde Entier
+          {/* CHAPITRE 5 : PORTAIL DES 4 GRANDS UNIVERS TERRITORIAUX (Mode Expert uniquement) */}
+          {!simplifiedMode && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-[#0c1629] to-slate-900 border border-slate-800 shadow-xl space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-wider text-sky-400">
+                    Exploration Thématique Approfondie • France &amp; Monde Entier
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-white mt-0.5">
+                    Observatoires Spécialisés pour {station.name} et toutes les localités du monde
+                  </h3>
                 </div>
-                <h3 className="text-sm sm:text-base font-black text-white mt-0.5">
-                  Observatoires Spécialisés pour {station.name} et toutes les localités du monde
-                </h3>
+                <span className="text-[11px] text-slate-400">
+                  Cliquez sur un univers pour ouvrir l'analyse locale dédiée
+                </span>
               </div>
-              <span className="text-[11px] text-slate-400">
-                Cliquez sur un univers pour ouvrir l'analyse locale dédiée
-              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('mountain')}
+                  className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-sky-950/40 border border-sky-500/30 hover:border-sky-400 text-left transition group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-sky-400 uppercase tracking-wider">🏔️ Montagne &amp; 8 Versants</span>
+                    <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-sky-400 transition" />
+                  </div>
+                  <div className="text-xs font-bold text-white mt-1.5">
+                    Analyse N, NE, E, SE, S, SW, W, NW
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                    Plaques à vent, bilan radiatif Ubac/Adret, coupe hypsométrique et recherche mondiale de stations.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('beaches')}
+                  className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">🏖️ Mer, Plages &amp; SHOM</span>
+                    <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-cyan-400 transition" />
+                  </div>
+                  <div className="text-xs font-bold text-white mt-1.5">
+                    Toutes Communes Littorales
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                    Température de l'eau, houle primaire vs clapot, marées SHOM et scores surf/voile/baignade.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('watercourses')}
+                  className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-blue-950/40 border border-blue-500/30 hover:border-blue-400 text-left transition group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-blue-400 uppercase tracking-wider">💧 Cours d'Eau &amp; Crues</span>
+                    <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition" />
+                  </div>
+                  <div className="text-xs font-bold text-white mt-1.5">
+                    Hub'Eau Local &amp; GloFAS 7j
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                    Rivières dans un rayon de 28 km autour de chaque commune, débits m³/s et seuils Vigicrues.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab && onNavigateTab('droughtFire')}
+                  className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-amber-950/40 border border-amber-500/30 hover:border-amber-400 text-left transition group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-amber-400 uppercase tracking-wider">🔥 Sécheresse &amp; Feux</span>
+                    <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-amber-400 transition" />
+                  </div>
+                  <div className="text-xs font-bold text-white mt-1.5">
+                    Sols 4 Profondeurs &amp; FWI
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                    Humidité des sols 0-27 cm, VPD, vitesse de propagation sur pente et restrictions VigiEau.
+                  </p>
+                </button>
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <button
-                onClick={() => onNavigateTab && onNavigateTab('mountain')}
-                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-sky-950/40 border border-sky-500/30 hover:border-sky-400 text-left transition group cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-sky-400 uppercase tracking-wider">🏔️ Montagne &amp; 8 Versants</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-sky-400 transition" />
-                </div>
-                <div className="text-xs font-bold text-white mt-1.5">
-                  Analyse N, NE, E, SE, S, SW, W, NW
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                  Plaques à vent, bilan radiatif Ubac/Adret, coupe hypsométrique et recherche mondiale de stations.
-                </p>
-              </button>
-
-              <button
-                onClick={() => onNavigateTab && onNavigateTab('beaches')}
-                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition group cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">🏖️ Mer, Plages &amp; SHOM</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-cyan-400 transition" />
-                </div>
-                <div className="text-xs font-bold text-white mt-1.5">
-                  Toutes Communes Littorales
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                  Température de l'eau, houle primaire vs clapot, marées SHOM et scores surf/voile/baignade.
-                </p>
-              </button>
-
-              <button
-                onClick={() => onNavigateTab && onNavigateTab('watercourses')}
-                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-blue-950/40 border border-blue-500/30 hover:border-blue-400 text-left transition group cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-blue-400 uppercase tracking-wider">💧 Cours d'Eau &amp; Crues</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition" />
-                </div>
-                <div className="text-xs font-bold text-white mt-1.5">
-                  Hub'Eau Local &amp; GloFAS 7j
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                  Rivières dans un rayon de 28 km autour de chaque commune, débits m³/s et seuils Vigicrues.
-                </p>
-              </button>
-
-              <button
-                onClick={() => onNavigateTab && onNavigateTab('droughtFire')}
-                className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-amber-950/40 border border-amber-500/30 hover:border-amber-400 text-left transition group cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">🔥 Sécheresse &amp; Feux</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-amber-400 transition" />
-                </div>
-                <div className="text-xs font-bold text-white mt-1.5">
-                  Sols 4 Profondeurs &amp; FWI
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                  Humidité des sols 0-27 cm, VPD, vitesse de propagation sur pente et restrictions VigiEau.
-                </p>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       )}
 

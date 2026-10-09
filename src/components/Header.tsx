@@ -343,14 +343,32 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Bouton Mode Simple / Expert visible sur téléphone */}
+            {onToggleSimplifiedMode && (
+              <button
+                type="button"
+                id="mobile-header-simplified-mode-btn"
+                onClick={onToggleSimplifiedMode}
+                title={simplifiedMode ? "Mode Simple actif — Appuyer pour passer en Mode Expert" : "Mode Expert actif — Appuyer pour passer en Mode Simple"}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
+                  simplifiedMode
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-emerald-500/20'
+                    : 'bg-indigo-600/30 border-indigo-400 text-indigo-200 shadow-indigo-500/20'
+                }`}
+              >
+                <SlidersHorizontal className="h-3 w-3 shrink-0" />
+                <span>{simplifiedMode ? 'Simple' : 'Expert'}</span>
+              </button>
+            )}
+
             {/* Floating Weather Bubble Launcher */}
             {onToggleFloatingBubble && (
               <button
                 type="button"
                 onClick={onToggleFloatingBubble}
                 title={showFloatingBubble ? "Masquer la bulle météo" : "Afficher la bulle météo (détachable sur l'écran d'accueil)"}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
                   showFloatingBubble
                     ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sky-500/20'
                     : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
@@ -362,12 +380,12 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             {/* HD & DIRECT Pill */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-black tracking-wide shadow-sm">
+            <div className="hidden xs:flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-black tracking-wide shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>HD &amp; DIRECT</span>
+              <span>DIRECT</span>
             </div>
 
             {/* Notification Bell Circle with Red Badge Dot */}
@@ -480,6 +498,26 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <span className="text-[10px] font-medium text-slate-300">Radar</span>
           </button>
+
+          {/* 1b. Mode Simple / Expert (Format Téléphone) */}
+          {onToggleSimplifiedMode && (
+            <button
+              onClick={onToggleSimplifiedMode}
+              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
+              title={simplifiedMode ? "Passer en Mode Expert" : "Passer en Mode Simple"}
+            >
+              <div className={`w-10 h-10 rounded-full border shadow-lg flex items-center justify-center ${
+                simplifiedMode
+                  ? 'bg-emerald-600/30 border-emerald-400/60 shadow-emerald-500/25 text-emerald-300'
+                  : 'bg-indigo-600/30 border-indigo-400/60 shadow-indigo-500/25 text-indigo-300'
+              }`}>
+                <SlidersHorizontal className="h-4 w-4" />
+              </div>
+              <span className={`text-[10px] font-bold ${simplifiedMode ? 'text-emerald-300' : 'text-indigo-300'}`}>
+                {simplifiedMode ? 'Simple' : 'Expert'}
+              </span>
+            </button>
+          )}
 
           {/* 2. Jeu Météo (Manette) */}
           {onOpenWeatherGame && (
@@ -1013,6 +1051,31 @@ export const Header: React.FC<HeaderProps> = ({
 
               <section className="space-y-2">
                 <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Affichage</p>
+
+                {onToggleSimplifiedMode && (
+                  <button
+                    id="sidebar-simplified-mode-toggle"
+                    type="button"
+                    onClick={onToggleSimplifiedMode}
+                    className={`group flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition cursor-pointer ${
+                      simplifiedMode
+                        ? 'border-emerald-400 bg-emerald-500/15 text-emerald-200'
+                        : 'border-indigo-500/50 bg-indigo-950/40 text-indigo-200 hover:bg-white hover:text-slate-950'
+                    }`}
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 group-hover:bg-slate-100">
+                      <SlidersHorizontal className={`h-5 w-5 ${simplifiedMode ? 'text-emerald-400' : 'text-indigo-400 group-hover:text-slate-950'}`} />
+                    </div>
+                    <div>
+                      <div className="font-black">
+                        {simplifiedMode ? 'Mode Simple Actif (Essentiel)' : 'Mode Expert Actif (Complet)'}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
+                        {simplifiedMode ? 'Appuyez pour activer tous les blocs experts' : 'Appuyez pour alléger et passer en mode simple'}
+                      </div>
+                    </div>
+                  </button>
+                )}
 
                 {onOpenAtmosphereModal && currentTheme && (
                   <button
