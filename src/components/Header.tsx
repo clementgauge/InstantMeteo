@@ -272,8 +272,7 @@ export const Header: React.FC<HeaderProps> = ({
   const isMountain = (currentStation.altitude ?? 0) >= 800;
 
   return (
-    <>
-    <header ref={headerRef} className="relative z-40 rounded-t-2xl border border-slate-800/90 bg-gradient-to-b from-[#0d182e]/95 to-[#091224]/95 backdrop-blur-md px-3 py-2.5 sm:px-4 lg:px-5 sm:py-3 shadow-lg">
+    <header ref={headerRef} className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-2.5 py-2 sm:px-6 sm:py-3">
       {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HEADER - Pixel-perfect match with reference design       */}
       {/* ========================================================================= */}
@@ -622,7 +621,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* ========================================================================= */}
       {/* DESKTOP EXCLUSIVE HEADER - Single line compact layout with Gamepad icon   */}
       {/* ========================================================================= */}
-      <div className="hidden sm:flex w-full flex-nowrap items-center justify-between gap-2">
+      <div className="hidden sm:flex mx-auto max-w-[1720px] w-full flex-nowrap items-center justify-between gap-1.5">
         {/* Brand & Logo (Compact to keep everything on 1 single line) */}
         <AppLogo size="sm" showSubtitle={false} className="shrink-0" />
 
@@ -903,7 +902,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
       </div>
-    </header>
 
       {/* Settings drawer - right side */}
       {settingsSidebarOpen && (
@@ -912,7 +910,8 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             aria-label="Fermer le panneau des paramètres"
             onClick={() => setSettingsSidebarOpen(false)}
-            className="fixed inset-0 z-[80] bg-slate-950/55 backdrop-blur-[2px]"
+            className="fixed bottom-0 left-0 right-0 z-[80] bg-slate-950/55 backdrop-blur-[2px]"
+            style={{ top: headerHeight }}
           />
 
           <aside
@@ -920,7 +919,8 @@ export const Header: React.FC<HeaderProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label="Paramètres rapides"
-            className="fixed top-0 right-0 bottom-0 z-[90] flex w-[min(92vw,380px)] flex-col overflow-hidden border-l border-slate-700/80 bg-slate-950 shadow-2xl"
+            className="fixed right-0 z-[90] flex w-[min(92vw,380px)] flex-col overflow-hidden border-l border-slate-700/80 bg-slate-950 shadow-2xl"
+            style={{ top: headerHeight, height: `calc(100dvh - ${headerHeight}px)` }}
           >
             <div className="flex items-center justify-between border-b border-slate-800 px-5 py-5">
               <div className="flex items-center gap-3">
@@ -1373,6 +1373,6 @@ export const Header: React.FC<HeaderProps> = ({
           </aside>
         </>
       )}
-    </>
+    </header>
   );
 };

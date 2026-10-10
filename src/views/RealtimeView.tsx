@@ -221,25 +221,21 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
 
   return (
     <div className="space-y-5">
-      {/* ========================================================================= */}
-      {/* BLOC MAÎTRE UNIFIÉ AVEC LE HEADER : BARRES DE NAVIGATION + HÉRO & CARTE   */}
-      {/* ========================================================================= */}
-      <div className="rounded-b-2xl border border-t-0 border-slate-800/90 bg-[#08101f]/95 p-3 sm:p-4 shadow-2xl space-y-3">
-        {/* 0. BARRE DES VILLES FAVORITES (Accès en 1 clic avec météo temps réel - Mode Expert uniquement) */}
-        {!simplifiedMode && (
-          <FavoriteCitiesBar
-            currentStation={station}
-            currentWeather={weather}
-            tempUnit={tempUnit}
-            onSelectStation={(st) => onSelectStation && onSelectStation(st)}
-            onOpenSearchModal={onOpenSearchModal}
-          />
-        )}
+      {/* 0. BARRE DES VILLES FAVORITES (Accès en 1 clic avec météo temps réel - Mode Expert uniquement) */}
+      {!simplifiedMode && (
+        <FavoriteCitiesBar
+          currentStation={station}
+          currentWeather={weather}
+          tempUnit={tempUnit}
+          onSelectStation={(st) => onSelectStation && onSelectStation(st)}
+          onOpenSearchModal={onOpenSearchModal}
+        />
+      )}
 
-        {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
-        {!simplifiedMode && (
-          <div className="w-full">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-1 rounded-xl bg-slate-950/65 border border-slate-800/80">
+      {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
+      {!simplifiedMode && (
+        <div className="w-full">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-1 rounded-xl bg-slate-900/95 border border-slate-800/90 shadow-md">
             <button
               id="realtime-tab-classic"
               onClick={() => setActiveProfileTab('classic')}
@@ -388,9 +384,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       />
 
       {/* ========================================================================= */}
-      {/* MOBILE EXCLUSIVE HERO CARD (Intégré dans le bloc complet avec le Header)  */}
+      {/* MOBILE EXCLUSIVE HERO & FORECAST (Exact 1:1 match with user reference)    */}
       {/* ========================================================================= */}
-      <div className="block sm:hidden">
+      <div className="block sm:hidden space-y-3.5 mb-4">
         {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
         <div className="scenic-hero-card relative overflow-hidden rounded-xl border border-slate-700/60 shadow-xl text-white bg-slate-950">
           {/* Photographic Background Asset */}
@@ -589,35 +585,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </button>
           </div>
         </div>
-      </div>
 
-      {/* 1a. Desktop Row 1: Hero Current Weather & Live France Map (Intégré dans le bloc complet avec le Header) */}
-      <DesktopWeatherHeroDashboard
-        station={station}
-        weather={weather}
-        hourly={hourly}
-        daily={daily}
-        anomaly={anomaly}
-        tempUnit={tempUnit}
-        seniorMode={seniorMode}
-        simplifiedMode={simplifiedMode}
-        isUsingCachedData={isUsingCachedData}
-        cachedAt={cachedAt}
-        onSelectStation={onSelectStation}
-        onOpenSearchModal={onOpenSearchModal}
-        onOpenGigaRadar={onOpenGigaRadar}
-        onNavigateTab={onNavigateTab}
-        onLocateGps={onLocateGps}
-        onOpenContradictionModal={() => setIsContradictionModalOpen(true)}
-        onOpenDayAnalyzer={handleOpenDayAnalyzer}
-        onRecalibrate={onRecalibrate}
-        onResetRecalibration={onResetRecalibration}
-        sectionMode="hero-only"
-      />
-      </div>
-
-      {/* Suite des cartes Mobile (Vigilance, Pluie dans l'heure, Tendance 48h) */}
-      <div className="block sm:hidden space-y-3.5 mb-4">
         {/* 2. Aperçu Vigilance Officielle Météo-France */}
         <LiveMeteoFranceVigilanceCard
           station={station}
@@ -643,7 +611,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         />
       </div>
 
-      {/* 1b. Desktop Row 2: Detailed Hourly/Daily/Curve Forecast + Soleil & Lune */}
+      {/* 1. Hero Current Weather, Map & Detailed Hourly/Daily/Curve Forecast + Soleil & Lune (Desktop Full-Page Grid) */}
       <DesktopWeatherHeroDashboard
         station={station}
         weather={weather}
@@ -664,7 +632,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onOpenDayAnalyzer={handleOpenDayAnalyzer}
         onRecalibrate={onRecalibrate}
         onResetRecalibration={onResetRecalibration}
-        sectionMode="forecast-only"
       />
 
       {/* ========================================================================= */}

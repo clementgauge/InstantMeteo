@@ -828,6 +828,59 @@ function WeatherApp() {
         isLightMode={themeMode === 'light'}
       />
 
+      {/* Header */}
+      <div className="relative z-30 w-full max-w-full">
+        <Header
+          currentStation={currentStation}
+          onSelectStation={handleSelectStationWithSeo}
+          seniorMode={seniorMode}
+          onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
+          simplifiedMode={simplifiedMode}
+          onToggleSimplifiedMode={handleToggleSimplifiedMode}
+          themeMode={themeMode}
+          onToggleThemeMode={handleToggleThemeMode}
+          onOpenAndroidModal={() => setIsInstallModalOpen(true)}
+          onOpenDossierModal={() => setIsDossierModalOpen(true)}
+          onOpenSearchModal={() => setIsSearchModalOpen(true)}
+          onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
+          onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
+          onOpenReportModal={() => setIsReportModalOpen(true)}
+          activeRecalibration={activeRecalibration}
+          currentTheme={currentTheme}
+          onRefresh={handleRefresh}
+          onLocateGps={handleLocateGps}
+          isGpsActive={currentStation.id.startsWith('gps')}
+          isLoading={isLoading}
+          tempUnit={tempUnit}
+          onToggleUnit={() => setTempUnit(tempUnit === 'C' ? 'F' : 'C')}
+          lastUpdatedTime={lastUpdatedTime}
+          nextRefreshSeconds={nextRefreshSeconds}
+          vigilanceRefreshSeconds={vigilanceRefreshSeconds}
+          macroRefreshSeconds={macroRefreshSeconds}
+          autoRefreshEnabled={autoRefreshEnabled}
+          onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+          autoRefreshInterval={autoRefreshInterval}
+          onChangeRefreshInterval={(sec) => {
+            setAutoRefreshInterval(sec);
+            setNextRefreshSeconds(sec);
+          }}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={handleToggleFullscreen}
+          onOpenVigilanceTab={() => setActiveTab('vigilance')}
+          onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
+          activeAlertCount={activeAlertCount}
+          onOpenPageBlockCustomizer={() => setIsPageBlockCustomizerOpen(true)}
+          onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+          isAdmin={isAdmin}
+          onTriggerSecretCode={handleTriggerSecretCode}
+          onOpenRadarTab={() => setActiveTab('radar')}
+          onSelectTab={(tabId) => setActiveTab(tabId)}
+          showFloatingBubble={showFloatingBubble}
+          onToggleFloatingBubble={handleToggleFloatingBubble}
+          onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
+        />
+      </div>
+
       {/* Full-Page Collapsible Left Sidebar Rail & Mobile Drawer — Placed at root level so it stays in the foreground above header, bottom dock, and page */}
       <PageSectionSidebar
         title={pageSidebarTitle}
@@ -845,8 +898,8 @@ function WeatherApp() {
         isLightMode={themeMode === 'light'}
       />
 
-      {/* Main Container - Unified Header & Content Blocks with exact same width and left rail spacing */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-5 xl:px-6 lg:pl-[76px] pt-2 sm:pt-3 pb-28 overflow-x-hidden">
+      {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
+      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-5 xl:px-6 lg:pl-[76px] py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
 
         <section className="min-w-0 w-full">
         {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA mais masqué visuellement pour l'utilisateur) */}
@@ -873,72 +926,9 @@ function WeatherApp() {
         {/* Flash Announcement Banner from Administrator */}
         <AdminAnnouncementBanner />
 
-        {/* Direct on-screen weather alert notification banner (placed above the unified header-hero block if active) */}
-        {weather && (
-          <DirectAlertBanner
-            station={currentStation}
-            weather={weather}
-            onOpenAlerts={() => setActiveTab('vigilance')}
-            seniorMode={seniorMode}
-          />
-        )}
-
-        {/* Header intégré au bloc principal (aligné à 100 % et fusionné sans espace avec le bloc du dessous) */}
-        <div className="relative z-30 w-full">
-          <Header
-            currentStation={currentStation}
-            onSelectStation={handleSelectStationWithSeo}
-            seniorMode={seniorMode}
-            onToggleSeniorMode={() => setSeniorMode(!seniorMode)}
-            simplifiedMode={simplifiedMode}
-            onToggleSimplifiedMode={handleToggleSimplifiedMode}
-            themeMode={themeMode}
-            onToggleThemeMode={handleToggleThemeMode}
-            onOpenAndroidModal={() => setIsInstallModalOpen(true)}
-            onOpenDossierModal={() => setIsDossierModalOpen(true)}
-            onOpenSearchModal={() => setIsSearchModalOpen(true)}
-            onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
-            onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
-            onOpenReportModal={() => setIsReportModalOpen(true)}
-            activeRecalibration={activeRecalibration}
-            currentTheme={currentTheme}
-            onRefresh={handleRefresh}
-            onLocateGps={handleLocateGps}
-            isGpsActive={currentStation.id.startsWith('gps')}
-            isLoading={isLoading}
-            tempUnit={tempUnit}
-            onToggleUnit={() => setTempUnit(tempUnit === 'C' ? 'F' : 'C')}
-            lastUpdatedTime={lastUpdatedTime}
-            nextRefreshSeconds={nextRefreshSeconds}
-            vigilanceRefreshSeconds={vigilanceRefreshSeconds}
-            macroRefreshSeconds={macroRefreshSeconds}
-            autoRefreshEnabled={autoRefreshEnabled}
-            onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-            autoRefreshInterval={autoRefreshInterval}
-            onChangeRefreshInterval={(sec) => {
-              setAutoRefreshInterval(sec);
-              setNextRefreshSeconds(sec);
-            }}
-            isFullscreen={isFullscreen}
-            onToggleFullscreen={handleToggleFullscreen}
-            onOpenVigilanceTab={() => setActiveTab('vigilance')}
-            onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
-            activeAlertCount={activeAlertCount}
-            onOpenPageBlockCustomizer={() => setIsPageBlockCustomizerOpen(true)}
-            onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-            isAdmin={isAdmin}
-            onTriggerSecretCode={handleTriggerSecretCode}
-            onOpenRadarTab={() => setActiveTab('radar')}
-            onSelectTab={(tabId) => setActiveTab(tabId)}
-            showFloatingBubble={showFloatingBubble}
-            onToggleFloatingBubble={handleToggleFloatingBubble}
-            onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
-          />
-        </div>
-
         {/* Tab Content */}
         {!weather || !anomaly ? (
-          <div className="flex flex-col items-center justify-center py-20 rounded-b-2xl border border-t-0 border-slate-800/90 bg-[#08101f]/95">
+          <div className="flex flex-col items-center justify-center py-20">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
             <p className="mt-4 font-bold text-slate-300">
               Chargement des données météo et radar pour {currentStation.name} ({currentStation.altitude} m)...
@@ -946,6 +936,13 @@ function WeatherApp() {
           </div>
         ) : (
           <div id={`page-${activeTab}`} className="scroll-mt-28 space-y-5">
+            {/* Direct on-screen weather alert notification banner */}
+            <DirectAlertBanner
+              station={currentStation}
+              weather={weather}
+              onOpenAlerts={() => setActiveTab('vigilance')}
+              seniorMode={seniorMode}
+            />
 
             {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
               <div className="space-y-4">
