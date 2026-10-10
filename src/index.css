@@ -684,4 +684,291 @@ body[data-radar-fullscreen="true"] [class*="animate-in"] {
   filter: none !important;
 }
 
+/* ========================================================================= */
+/* SYSTÈME DE MOTION DESIGN FLUIDE SUR TOUT LE SITE WEB                      */
+/* ========================================================================= */
+
+@keyframes motionViewReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motionCardFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motionKenBurns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.055) translate3d(-1%, -0.8%, 0);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes motionSunSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes motionSunPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes motionMoonFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2.5px) rotate(-3deg);
+  }
+}
+
+@keyframes motionStarTwinkle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes motionCloudDrift {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px);
+  }
+  50% {
+    transform: translateX(2.5px) translateY(-1px);
+  }
+}
+
+@keyframes motionCloudDriftSlow {
+  0%, 100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(-2.5px);
+  }
+}
+
+@keyframes motionRainFall {
+  0% {
+    transform: translateY(-2px) translateX(0.5px);
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(3px) translateX(-1px);
+    opacity: 0.35;
+  }
+}
+
+@keyframes motionSnowFloat {
+  0%, 100% {
+    transform: translateY(-1.5px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(2.5px) rotate(25deg);
+  }
+}
+
+@keyframes motionLightningFlash {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.5));
+  }
+  45% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 8px rgba(253, 224, 71, 0.95));
+  }
+  55% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes motionOrbBreathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.32);
+    opacity: 0.48;
+  }
+}
+
+@keyframes motionShimmerSweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.motion-view-enter {
+  animation: motionViewReveal 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-card-enter {
+  animation: motionCardFloatIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-stagger-1 { animation-delay: 40ms; }
+.motion-stagger-2 { animation-delay: 90ms; }
+.motion-stagger-3 { animation-delay: 140ms; }
+.motion-stagger-4 { animation-delay: 190ms; }
+.motion-stagger-5 { animation-delay: 240ms; }
+.motion-stagger-6 { animation-delay: 290ms; }
+
+.motion-ken-burns {
+  animation: motionKenBurns 26s ease-in-out infinite;
+  will-change: transform;
+}
+
+.motion-sun-spin {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionSunSpin 22s linear infinite;
+}
+
+.motion-sun-pulse {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionSunPulse 3.6s ease-in-out infinite;
+}
+
+.motion-moon-float {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionMoonFloat 4.8s ease-in-out infinite;
+}
+
+.motion-star-twinkle {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionStarTwinkle 2.8s ease-in-out infinite;
+}
+
+.motion-star-twinkle-delayed {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionStarTwinkle 3.4s ease-in-out 1.2s infinite;
+}
+
+.motion-cloud-drift {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionCloudDrift 5.5s ease-in-out infinite;
+}
+
+.motion-cloud-drift-slow {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionCloudDriftSlow 7s ease-in-out infinite;
+}
+
+.motion-rain-drop-1 {
+  animation: motionRainFall 1.3s ease-in-out infinite;
+}
+
+.motion-rain-drop-2 {
+  animation: motionRainFall 1.3s ease-in-out 0.4s infinite;
+}
+
+.motion-rain-drop-3 {
+  animation: motionRainFall 1.3s ease-in-out 0.8s infinite;
+}
+
+.motion-snow-flake {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionSnowFloat 3.2s ease-in-out infinite;
+}
+
+.motion-lightning-bolt {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionLightningFlash 2.6s ease-in-out infinite;
+}
+
+.motion-orb-breathe {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: motionOrbBreathe 3.2s ease-in-out infinite;
+}
+
+/* Interactive Card & Widget Elevation across the entire app */
+main .rounded-xl.border,
+main .rounded-2xl.border {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.28s ease;
+}
+
+@media (hover: hover) {
+  main .scenic-hero-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 42px -12px rgba(2, 132, 199, 0.22), 0 12px 24px -8px rgba(0, 0, 0, 0.65);
+  }
+
+  .motion-hover-lift {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .motion-hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px -10px rgba(14, 165, 233, 0.22);
+  }
+}
+
+/* Smooth tactile micro-interactions on all interactive buttons */
+button {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+
 

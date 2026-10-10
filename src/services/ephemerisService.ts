@@ -15,6 +15,82 @@ export interface SolarEphemerisOptions {
 }
 
 /**
+ * Resolves exact real-time local clock & timezone offset at a station.
+ * Uses Europe/Paris IANA timezone for France/Western Europe and UTC+offset for worldwide locations,
+ * ensuring the solar/lunar cycle always reflects the real current minute (never a stale API cache).
+ */
+export function getStationLiveClock(
+  lat: number,
+  lon: number,
+  date: Date = new Date(),
+  utcOffsetSeconds?: number
+): {
+  hour: number;
+  minute: number;
+  second: number;
+  decimalHour: number;
+  tzOffsetHours: number;
+  formattedTime: string;
+} {
+  const isEuropeanCoords = lat >= 35 && lat <= 60 && lon >= -10 && lon <= 25;
+
+  if (isEuropeanCoords && (utcOffsetSeconds === undefined || Math.abs(utcOffsetSeconds / 3600 - 1.5) <= 1.5)) {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Paris',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+      const parts = formatter.formatToParts(date);
+      const getPart = (type: string) => Number(parts.find((p) => p.type === type)?.value || 0);
+      const year = getPart('year');
+      const month = getPart('month');
+      const day = getPart('day');
+      const hour = getPart('hour') % 24;
+      const minute = getPart('minute');
+      const second = getPart('second');
+
+      const parisAsUtcMs = Date.UTC(year, month - 1, day, hour, minute, second);
+      const utcMs = Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds()
+      );
+      const tzOffsetHours = Math.round(((parisAsUtcMs - utcMs) / 3600000) * 4) / 4;
+      const decimalHour = hour + minute / 60 + second / 3600;
+      const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      return { hour, minute, second, decimalHour, tzOffsetHours, formattedTime };
+    } catch {
+      // Fallback below
+    }
+  }
+
+  const tzOffsetHours =
+    utcOffsetSeconds !== undefined
+      ? utcOffsetSeconds / 3600
+      : isEuropeanCoords
+        ? -date.getTimezoneOffset() / 60
+        : Math.round(lon / 15);
+
+  let dec = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600 + tzOffsetHours;
+  dec = ((dec % 24) + 24) % 24;
+  const hour = Math.floor(dec);
+  const minute = Math.floor((dec - hour) * 60);
+  const second = date.getUTCSeconds();
+  const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+
+  return { hour, minute, second, decimalHour: dec, tzOffsetHours, formattedTime };
+}
+
+/**
  * Astronomical and Solar Ephemeris calculations for any latitude/longitude worldwide
  * Uses NOAA Solar Calculator equations + optional exact Open-Meteo sunrise/sunset & station timezone
  */
@@ -24,28 +100,10 @@ export function calculateSolarEphemeris(
   date: Date = new Date(),
   options?: SolarEphemerisOptions
 ): SolarEphemeris {
-  // Station timezone offset in hours: use Open-Meteo utc_offset_seconds if provided,
-  // otherwise estimate from longitude for non-European points or browser offset for France
-  const isEuropeanCoords = lat >= 35 && lat <= 60 && lon >= -10 && lon <= 25;
-  const tzOffsetHours =
-    options?.utcOffsetSeconds !== undefined
-      ? options.utcOffsetSeconds / 3600
-      : isEuropeanCoords
-        ? -date.getTimezoneOffset() / 60
-        : Math.round(lon / 15);
-
-  // Determine current local decimal hour at the station
-  let currentDecHour = date.getUTCHours() + date.getUTCMinutes() / 60 + tzOffsetHours;
-  currentDecHour = ((currentDecHour % 24) + 24) % 24;
-  if (options?.localTimeIso && options.localTimeIso.includes('T')) {
-    const timePart = options.localTimeIso.split('T')[1];
-    if (timePart) {
-      const [hh, mm] = timePart.split(':').map(Number);
-      if (!isNaN(hh) && !isNaN(mm)) {
-        currentDecHour = hh + mm / 60;
-      }
-    }
-  }
+  // Always use the live real-time clock at the station so cached API timestamps never freeze the sun
+  const liveClock = getStationLiveClock(lat, lon, date, options?.utcOffsetSeconds);
+  const tzOffsetHours = liveClock.tzOffsetHours;
+  const currentDecHour = liveClock.decimalHour;
 
   // Day of year (1 to 365)
   const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0);
@@ -114,6 +172,7 @@ export function calculateSolarEphemeris(
   }
 
   const dayLengthHoursTotal = Math.max(0, sunsetDec - sunriseDec);
+  const nightLengthHoursTotal = Math.max(0, 24 - dayLengthHoursTotal);
 
   const formatTime = (decHours: number): string => {
     const normalized = ((decHours % 24) + 24) % 24;
@@ -124,6 +183,13 @@ export function calculateSolarEphemeris(
       m = 0;
     }
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const formatDurationHours = (hoursTotal: number): string => {
+    const mins = Math.max(0, Math.round(hoursTotal * 60));
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}h ${m.toString().padStart(2, '0')}min`;
   };
 
   const totalMinutesRounded = Math.round(dayLengthHoursTotal * 60);
@@ -149,6 +215,9 @@ export function calculateSolarEphemeris(
   const civilDiff = Math.max(0.35, civilHa - haSunriseHours);
   const nautDiff = Math.max(0.75, nautHa - haSunriseHours);
 
+  const civilDawnDec = sunriseDec - civilDiff;
+  const civilDuskDec = sunsetDec + civilDiff;
+
   // Max solar elevation at solar noon (deg)
   const maxSolarElevationDeg = Number(
     Math.max(0, Math.min(90, 90 - Math.abs(lat - declination))).toFixed(1)
@@ -163,13 +232,51 @@ export function calculateSolarEphemeris(
     ((Math.asin(Math.max(-1, Math.min(1, sinElev))) * 180) / Math.PI).toFixed(1)
   );
 
-  // Solar progress percentage today (0% at sunrise, 50% at solar noon, 100% at sunset)
-  const isSunAboveHorizon = currentDecHour >= sunriseDec && currentDecHour <= sunsetDec;
+  // Strictly determine if the sun is currently above the horizon (Daytime vs Nighttime)
+  const isSunAboveHorizon = currentDecHour >= sunriseDec && currentDecHour < sunsetDec;
+  const isNight = !isSunAboveHorizon;
+
+  // Daytime progress: 0..100 ONLY while the sun is above the horizon. At night, sunProgress is 0.
   let sunProgress = 0;
-  if (currentDecHour > sunriseDec && currentDecHour < sunsetDec && sunsetDec > sunriseDec) {
-    sunProgress = Math.round(((currentDecHour - sunriseDec) / (sunsetDec - sunriseDec)) * 100);
-  } else if (currentDecHour >= sunsetDec) {
-    sunProgress = 100;
+  let nightProgress = 0;
+  let nextEventLabel = '';
+  let currentPhaseLabel = '';
+
+  if (isSunAboveHorizon && sunsetDec > sunriseDec) {
+    sunProgress = Math.max(1, Math.min(99, Math.round(((currentDecHour - sunriseDec) / (sunsetDec - sunriseDec)) * 100)));
+    nightProgress = 0;
+    const hoursToSunset = Math.max(0, sunsetDec - currentDecHour);
+    nextEventLabel = `Coucher à ${formatTime(sunsetDec)} (dans ${formatDurationHours(hoursToSunset)})`;
+
+    if (currentDecHour < sunriseDec + 1.0) {
+      currentPhaseLabel = 'Heure dorée matinale · Soleil levant';
+    } else if (Math.abs(currentDecHour - solarNoonLocal) <= 0.75) {
+      currentPhaseLabel = 'Zénith / Midi solaire · Culmination';
+    } else if (currentDecHour > sunsetDec - 1.0) {
+      currentPhaseLabel = 'Heure dorée du soir · Déclin solaire';
+    } else {
+      currentPhaseLabel = 'Plein jour · Soleil au-dessus de l’horizon';
+    }
+  } else {
+    // NIGHTTIME: Sun is below the horizon (either after sunset or before sunrise)
+    sunProgress = 0;
+    const totalNightSpan = Math.max(0.1, (24 - sunsetDec) + sunriseDec);
+    const elapsedSinceSunset =
+      currentDecHour >= sunsetDec
+        ? currentDecHour - sunsetDec
+        : (24 - sunsetDec) + currentDecHour;
+    nightProgress = Math.max(2, Math.min(98, Math.round((elapsedSinceSunset / totalNightSpan) * 100)));
+
+    const hoursToSunrise = Math.max(0, totalNightSpan - elapsedSinceSunset);
+    nextEventLabel = `Prochain lever à ${formatTime(sunriseDec)} (dans ${formatDurationHours(hoursToSunrise)})`;
+
+    if (currentDecHour >= sunsetDec && currentDecHour <= civilDuskDec) {
+      currentPhaseLabel = `Crépuscule civil · Soleil couché depuis ${formatTime(sunsetDec)}`;
+    } else if (currentDecHour >= civilDawnDec && currentDecHour < sunriseDec) {
+      currentPhaseLabel = `Aube civile · Lever imminent à ${formatTime(sunriseDec)}`;
+    } else {
+      currentPhaseLabel = `Nuit en cours · Soleil sous l’horizon (${currentSolarElevationDeg}°)`;
+    }
   }
 
   // Golden hours (approx 45 min after sunrise & 45 min before sunset)
@@ -183,9 +290,10 @@ export function calculateSolarEphemeris(
     dayLengthHours: dLenHours,
     dayLengthMinutes: dLenMinutes,
     dayLengthFormatted: `${dLenHours}h ${dLenMinutes.toString().padStart(2, '0')}min`,
+    nightLengthFormatted: formatDurationHours(nightLengthHoursTotal),
     dayLengthChangeMinutes,
-    civilTwilightBegin: formatTime(sunriseDec - civilDiff),
-    civilTwilightEnd: formatTime(sunsetDec + civilDiff),
+    civilTwilightBegin: formatTime(civilDawnDec),
+    civilTwilightEnd: formatTime(civilDuskDec),
     nauticalTwilightBegin: formatTime(sunriseDec - nautDiff),
     nauticalTwilightEnd: formatTime(sunsetDec + nautDiff),
     goldenHourMorning,
@@ -193,10 +301,15 @@ export function calculateSolarEphemeris(
     maxSolarElevationDeg,
     currentSolarElevationDeg,
     isSunAboveHorizon,
+    isNight,
     solarRadiationKwhM2: Number(
       Math.max(0.5, dayLengthHoursTotal * 0.45 * Math.sin((maxSolarElevationDeg * Math.PI) / 180)).toFixed(2)
     ),
-    sunProgressPercent: Math.max(0, Math.min(100, sunProgress))
+    sunProgressPercent: sunProgress,
+    nightProgressPercent: nightProgress,
+    currentLocalTimeFormatted: liveClock.formattedTime,
+    currentPhaseLabel,
+    nextEventLabel
   };
 }
 

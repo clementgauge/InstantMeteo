@@ -50,6 +50,8 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
+import { calculateSolarEphemeris } from '../services/ephemerisService';
+import { getRichWeatherInfo } from '../utils/weatherIcons';
 import { DynamicSkyHeroArt } from '../components/DynamicSkyHeroArt';
 import { FloatingWeatherBubble } from '../components/FloatingWeatherBubble';
 import { UnifiedHourly48hTrend } from '../components/UnifiedHourly48hTrend';
@@ -195,15 +197,34 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
     }
   }, [simplifiedMode, activeProfileTab]);
 
-  // Actualisation réactive des blocs masqués / affichés selon les préférences
-  const [, setDisplayTick] = useState(0);
+  // Actualisation réactive des blocs masqués / affichés selon les préférences + horloge astronomique
+  const [displayTick, setDisplayTick] = useState(0);
   useEffect(() => {
     const handlePreferencesUpdate = () => {
       setDisplayTick((t) => t + 1);
     };
     window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
-    return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+    const liveEphInterval = setInterval(() => setDisplayTick((t) => t + 1), 15000);
+    return () => {
+      window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+      clearInterval(liveEphInterval);
+    };
   }, []);
+
+  const liveEphemeris = React.useMemo(() => {
+    const now = new Date();
+    const prevEph = weather.solarEphemeris;
+    const todayDatePrefix = now.toISOString().split('T')[0];
+    return calculateSolarEphemeris(station.latitude, station.longitude, now, {
+      sunriseIso: prevEph?.sunrise ? `${todayDatePrefix}T${prevEph.sunrise}` : undefined,
+      sunsetIso: prevEph?.sunset ? `${todayDatePrefix}T${prevEph.sunset}` : undefined,
+    });
+  }, [station.latitude, station.longitude, weather.solarEphemeris, displayTick]);
+
+  const effectiveIsDay = liveEphemeris.isSunAboveHorizon ?? weather.isDay ?? true;
+  const effectiveWeatherDesc = React.useMemo(() => {
+    return getRichWeatherInfo(weather.weatherCode, effectiveIsDay).label;
+  }, [weather.weatherCode, effectiveIsDay]);
 
   const formatTemp = (celsius: number) => {
     if (tempUnit === 'F') {
@@ -388,7 +409,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* ========================================================================= */}
       <div className="block sm:hidden space-y-3.5 mb-4">
         {/* 1. Scenic Hero Weather Card with Parisian / Park Landscape */}
-        <div className="scenic-hero-card relative overflow-hidden rounded-xl border border-slate-700/60 shadow-xl text-white bg-slate-950">
+        <div className="scenic-hero-card motion-card-enter relative overflow-hidden rounded-xl border border-slate-700/60 shadow-xl text-white bg-slate-950">
           {/* Photographic Background Asset */}
           <img 
             src={cityPhotoUrl}
@@ -405,7 +426,11 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 setCityPhotoUrl(fallback);
               }
             }}
-            className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 filter brightness-[0.85] contrast-[1.05]"
+            className={`absolute inset-0 w-full h-full object-cover object-center motion-ken-burns transition-all duration-700 filter ${
+              effectiveIsDay
+                ? 'brightness-[0.85] contrast-[1.05]'
+                : 'brightness-[0.62] contrast-[1.12] saturate-[0.85]'
+            }`}
           />
           {/* Subtle Atmospheric Gradient Overlay for contrast and readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30" />
@@ -478,7 +503,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   {formatTemp(weather.temperature)}
                 </div>
                 <p className="text-xs font-medium text-slate-200 mt-1.5 max-w-[200px] leading-snug drop-shadow-sm">
-                  {weather.weatherDescription || 'Ciel principalement clair avec quelques cirrus / voiles'}
+                  {effectiveWeatherDesc}
                 </p>
               </div>
 
@@ -498,14 +523,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <span>En direct</span>
+                    <span>{effectiveIsDay ? 'En direct · Jour' : 'En direct · Nuit'}</span>
                   </div>
                 )}
 
-                {/* Dynamic Sky Artwork (Sun, Cloud+Sun, Rain, etc.) */}
+                {/* Dynamic Sky Artwork (Sun, Cloud+Sun, Rain, Moon, etc.) */}
                 <DynamicSkyHeroArt 
                   weatherCode={weather.weatherCode} 
-                  isDay={weather.isDay ?? true} 
+                  isDay={effectiveIsDay} 
                   size="sm" 
                 />
               </div>
@@ -870,7 +895,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               {/* Row 5A: Éphéméride + Indices Plein Air + Sécurité Extérieure IMOU côte à côte */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
                 <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-4 flex [&>div]:flex-1'}>
-                  <EphemerisCard weather={weather} seniorMode={seniorMode} />
+                  <EphemerisCard weather={{ ...weather, isDay: effectiveIsDay, solarEphemeris: liveEphemeris }} seniorMode={seniorMode} />
                 </div>
                 <div className={simplifiedMode ? 'xl:col-span-6 flex [&>div]:flex-1' : 'xl:col-span-5 flex [&>div]:flex-1'}>
                   <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />

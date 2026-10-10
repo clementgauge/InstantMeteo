@@ -310,7 +310,7 @@ function WeatherApp() {
   const [atmosphereEventTrigger, setAtmosphereEventTrigger] = useState<number>(0);
 
   // Compute live auto time of day and season based on station position & real clock
-  const autoTimeOfDay = calculateTimeOfDay(new Date(), currentStation.latitude);
+  const autoTimeOfDay = calculateTimeOfDay(new Date(), currentStation.latitude, currentStation.longitude);
   const autoSeason = calculateSeason(new Date(), currentStation.latitude);
 
   const effectiveTimeOfDay = atmosphereMode === 'AUTO' ? autoTimeOfDay : selectedTimeOfDay;
@@ -935,7 +935,7 @@ function WeatherApp() {
             </p>
           </div>
         ) : (
-          <div id={`page-${activeTab}`} className="scroll-mt-28 space-y-5">
+          <div id={`page-${activeTab}`} key={`${activeTab}-${currentStation.id}`} className="scroll-mt-28 space-y-5 motion-view-enter">
             {/* Direct on-screen weather alert notification banner */}
             <DirectAlertBanner
               station={currentStation}

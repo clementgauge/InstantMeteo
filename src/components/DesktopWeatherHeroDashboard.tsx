@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
 import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
+import { calculateSolarEphemeris, calculateMoonPhase, getStationLiveClock } from '../services/ephemerisService';
+import { getRichWeatherInfo } from '../utils/weatherIcons';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 import { GrandDayAndWeekDetailedForecastCard } from './GrandDayAndWeekDetailedForecastCard';
 import { FranceMiniOverviewCard } from './FranceMiniOverviewCard';
@@ -63,6 +65,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
+  const [liveTick, setLiveTick] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const initialGeoBackdrop = getClientGeographicBackdrop(
     station.name,
@@ -101,20 +104,51 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
-      
-      const day = now.toLocaleDateString('fr-FR', { weekday: 'long' });
-      const capitalizedDay = day.charAt(0).toUpperCase() + day.slice(1);
-      const dateNum = now.getDate();
-      const month = now.toLocaleDateString('fr-FR', { month: 'long' });
-      const year = now.getFullYear();
-      setCurrentDateString(`${capitalizedDay} ${dateNum} ${month} ${year}`);
+      const stationClock = getStationLiveClock(station.latitude, station.longitude, now);
+      setCurrentTime(stationClock.formattedTime);
+      setLiveTick((t) => t + 1);
+
+      try {
+        const isEuro = station.latitude >= 35 && station.latitude <= 60 && station.longitude >= -10 && station.longitude <= 25;
+        const opts: Intl.DateTimeFormatOptions = isEuro
+          ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }
+          : { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const formattedDate = now.toLocaleDateString('fr-FR', opts);
+        setCurrentDateString(formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1));
+      } catch {
+        const day = now.toLocaleDateString('fr-FR', { weekday: 'long' });
+        const capitalizedDay = day.charAt(0).toUpperCase() + day.slice(1);
+        const dateNum = now.getDate();
+        const month = now.toLocaleDateString('fr-FR', { month: 'long' });
+        const year = now.getFullYear();
+        setCurrentDateString(`${capitalizedDay} ${dateNum} ${month} ${year}`);
+      }
     };
 
     updateTime();
     const interval = setInterval(updateTime, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [station.latitude, station.longitude]);
+
+  // Calcul astronomique temps réel (rafraîchi en continu pour éviter tout décalage jour/nuit)
+  const liveEphemeris = React.useMemo(() => {
+    const now = new Date();
+    const prevEph = weather.solarEphemeris;
+    const todayDatePrefix = now.toISOString().split('T')[0];
+    return calculateSolarEphemeris(station.latitude, station.longitude, now, {
+      sunriseIso: prevEph?.sunrise ? `${todayDatePrefix}T${prevEph.sunrise}` : undefined,
+      sunsetIso: prevEph?.sunset ? `${todayDatePrefix}T${prevEph.sunset}` : undefined,
+    });
+  }, [station.latitude, station.longitude, weather.solarEphemeris, liveTick]);
+
+  const liveMoonPhase = React.useMemo(() => {
+    return calculateMoonPhase(new Date(), station.latitude, station.longitude);
+  }, [station.latitude, station.longitude, liveTick]);
+
+  const effectiveIsDay = liveEphemeris.isSunAboveHorizon ?? weather.isDay ?? true;
+  const effectiveWeatherDesc = React.useMemo(() => {
+    return getRichWeatherInfo(weather.weatherCode, effectiveIsDay).label;
+  }, [weather.weatherCode, effectiveIsDay]);
 
   const formatTemp = (celsius: number) => {
     if (tempUnit === 'F') {
@@ -135,9 +169,9 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       <div className="grid grid-cols-12 gap-4 items-stretch">
         <div
           id="realtime-radiography"
-          className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card relative overflow-hidden rounded-xl border border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
+          className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card motion-card-enter motion-stagger-1 relative overflow-hidden rounded-xl border border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
         >
-          {/* Photographic Panorama of Selected City / Landscape */}
+          {/* Photographic Panorama of Selected City / Landscape with Ken Burns Motion */}
           <img
             key={cityPhotoUrl}
             src={cityPhotoUrl}
@@ -154,10 +188,20 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 setCityPhotoUrl(fallback);
               }
             }}
-            className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500 filter brightness-[0.88] contrast-[1.06]"
+            className={`absolute inset-0 w-full h-full object-cover object-center motion-ken-burns transition-all duration-700 filter ${
+              effectiveIsDay
+                ? 'brightness-[0.88] contrast-[1.06]'
+                : 'brightness-[0.62] contrast-[1.12] saturate-[0.85]'
+            }`}
           />
           {/* Measured Atmospheric Scrims for WCAG AA Legibility across all luminance frames */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050b16]/95 via-[#050b16]/55 to-[#050b16]/30" />
+          <div
+            className={`absolute inset-0 ${
+              effectiveIsDay
+                ? 'bg-gradient-to-t from-[#050b16]/95 via-[#050b16]/55 to-[#050b16]/30'
+                : 'bg-gradient-to-t from-[#030712]/96 via-[#081226]/70 to-[#09152e]/45'
+            }`}
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-[#050b16]/85 via-[#050b16]/35 to-transparent" />
 
           {/* Hero Card Interior */}
@@ -284,15 +328,28 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 <div className="shrink-0">
                   <DynamicSkyHeroArt
                     weatherCode={weather.weatherCode}
-                    isDay={weather.isDay ?? true}
+                    isDay={effectiveIsDay}
                     size="lg"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5 sm:text-right max-w-xs">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 border border-white/15 text-[11px] font-semibold text-sky-200 mb-0.5">
+                  {effectiveIsDay ? (
+                    <>
+                      <Sun className="h-3 w-3 text-amber-400" />
+                      <span>Jour · Coucher {liveEphemeris.sunset}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-3 w-3 text-indigo-300" />
+                      <span>Nuit · Lever {liveEphemeris.sunrise}</span>
+                    </>
+                  )}
+                </div>
                 <div className="text-base sm:text-lg font-bold text-white leading-snug drop-shadow-sm">
-                  {weather.weatherDescription || 'Ciel dégagé à peu nuageux'}
+                  {effectiveWeatherDesc}
                 </div>
                 <div className="flex sm:justify-end items-center gap-2.5 text-xs font-medium text-slate-200 font-mono tabular-nums">
                   <span>Ressenti {formatTemp(weather.feelsLike)}</span>
@@ -408,80 +465,160 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
 
         {/* Right Column of Row 2: Soleil & Lune (Astronomie Vérifiée & Temps Réel) */}
         {(() => {
-          const eph = weather.solarEphemeris;
-          const moon = weather.moonPhase;
-          const progressPct = eph?.sunProgressPercent ?? (weather.isDay ? 55 : 100);
-          const isSunUp = eph?.isSunAboveHorizon ?? (weather.isDay ?? true);
-          const t = Math.max(0, Math.min(1, progressPct / 100));
+          const eph = liveEphemeris;
+          const moon = liveMoonPhase || weather.moonPhase;
+          const isSunUp = eph.isSunAboveHorizon ?? false;
+          const sunProgressPct = isSunUp ? Math.max(1, Math.min(99, eph.sunProgressPercent)) : 0;
+          const nightProgressPct = !isSunUp ? Math.max(2, Math.min(98, eph.nightProgressPercent ?? 50)) : 0;
+          const activeArcProgressPct = isSunUp ? sunProgressPct : nightProgressPct;
+
+          const t = Math.max(0.02, Math.min(0.98, activeArcProgressPct / 100));
           const oneMinusT = 1 - t;
-          const sunCx = Number((oneMinusT * oneMinusT * 15 + 2 * oneMinusT * t * 80 + t * t * 145).toFixed(1));
-          const sunCy = Number((oneMinusT * oneMinusT * 55 + 2 * oneMinusT * t * -10 + t * t * 55).toFixed(1));
+          const orbCx = Number((oneMinusT * oneMinusT * 15 + 2 * oneMinusT * t * 80 + t * t * 145).toFixed(1));
+          const orbCy = Number((oneMinusT * oneMinusT * 52 + 2 * oneMinusT * t * -6 + t * t * 52).toFixed(1));
+
           const illum = moon?.illuminationPercent ?? 50;
           const phaseCode = moon?.phaseCode || 'first_quarter';
-          const dayDelta = eph?.dayLengthChangeMinutes ?? 0;
+          const dayDelta = eph.dayLengthChangeMinutes ?? 0;
 
           return (
-            <div className="col-span-12 xl:col-span-4 rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-lg flex flex-col justify-between">
+            <div className="col-span-12 xl:col-span-4 rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-lg flex flex-col justify-between motion-card-enter motion-stagger-3 motion-hover-lift">
               <div className="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-3">
                 <div>
-                  <div className="text-[11px] font-medium text-amber-400 tracking-wide">
-                    Astronomie locale vérifiée
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
+                    {isSunUp ? (
+                      <span className="inline-flex items-center gap-1 text-amber-400">
+                        <Sun className="h-3.5 w-3.5 motion-sun-spin" />
+                        <span>Cycle diurne en direct ({eph.currentLocalTimeFormatted || currentTime})</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-indigo-300">
+                        <Moon className="h-3.5 w-3.5 motion-moon-float" />
+                        <span>Cycle nocturne en direct ({eph.currentLocalTimeFormatted || currentTime})</span>
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
                     Soleil &amp; Cycle Lunaire
                   </h3>
                   <div className="text-xs text-slate-400 mt-0.5 font-mono tabular-nums">
-                    Midi solaire {eph?.solarNoon || '13:48'} · Élév. max {eph?.maxSolarElevationDeg ?? 46}°
+                    {isSunUp
+                      ? `Midi solaire ${eph.solarNoon} · Élév. actuelle +${eph.currentSolarElevationDeg}°`
+                      : `Soleil sous l'horizon (${eph.currentSolarElevationDeg}°) · Couché à ${eph.sunset}`}
                   </div>
                 </div>
-                <span className={`text-xs font-mono tabular-nums font-semibold ${
-                  dayDelta >= 0 ? 'text-emerald-400' : 'text-amber-400'
+                <span className={`text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md border ${
+                  dayDelta >= 0
+                    ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25'
+                    : 'text-amber-300 bg-amber-500/10 border-amber-500/25'
                 }`}>
                   {dayDelta > 0 ? `+${dayDelta}` : dayDelta} min/j
                 </span>
               </div>
 
-              {/* Dynamic Sun Trajectory Arc */}
-              <div className="py-3 space-y-2">
-                <div className="h-20 relative flex items-center justify-center">
-                  <svg viewBox="0 0 160 64" className="w-full h-full overflow-visible">
+              {/* Dynamic Day / Night Trajectory Arc */}
+              <div className="py-3 space-y-2.5">
+                {/* Explicit Day/Night Live Status Pill */}
+                <div className={`flex items-center justify-between px-3 py-1.5 rounded-lg border text-xs ${
+                  isSunUp
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                    : 'bg-indigo-950/70 border-indigo-500/30 text-indigo-200'
+                }`}>
+                  <span className="font-bold flex items-center gap-1.5 truncate">
+                    {isSunUp ? (
+                      <>
+                        <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Jour à {station.name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="inline-block h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                        <span>Nuit à {station.name}</span>
+                      </>
+                    )}
+                  </span>
+                  <span className="font-mono tabular-nums text-[11px] font-semibold shrink-0">
+                    {isSunUp
+                      ? `Course du soleil : ${sunProgressPct}%`
+                      : `Avancement nuit : ${nightProgressPct}%`}
+                  </span>
+                </div>
+
+                <div className="h-22 relative flex items-center justify-center rounded-lg bg-slate-950/70 border border-slate-800/70 px-2 pt-2 pb-1 overflow-hidden">
+                  <svg viewBox="0 0 160 66" className="w-full h-full overflow-visible">
                     <defs>
                       <linearGradient id="sunArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.9" />
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.95" />
                         <stop offset="50%" stopColor="#fde047" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#fb923c" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#fb923c" stopOpacity="0.95" />
+                      </linearGradient>
+                      <linearGradient id="nightArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#6366f1" stopOpacity="0.95" />
+                        <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#818cf8" stopOpacity="0.95" />
                       </linearGradient>
                     </defs>
-                    <line x1="8" y1="55" x2="152" y2="55" stroke="#1e293b" strokeWidth="1" />
+
+                    {/* Twinkling stars only when it is Night */}
+                    {!isSunUp && (
+                      <g>
+                        <circle cx="28" cy="14" r="0.9" fill="#e0e7ff" className="motion-star-twinkle" />
+                        <circle cx="54" cy="8" r="1.1" fill="#fef08a" className="motion-star-twinkle-delayed" />
+                        <circle cx="80" cy="6" r="0.8" fill="#bae6fd" className="motion-star-twinkle" />
+                        <circle cx="108" cy="10" r="1.0" fill="#e0e7ff" className="motion-star-twinkle-delayed" />
+                        <circle cx="132" cy="16" r="0.85" fill="#fef08a" className="motion-star-twinkle" />
+                      </g>
+                    )}
+
+                    {/* Horizon Line */}
+                    <line x1="8" y1="52" x2="152" y2="52" stroke="#1e293b" strokeWidth="1.2" />
+
+                    {/* Reference Trajectory Curve (Dashed) */}
                     <path
-                      d="M 15 55 Q 80 -10 145 55"
+                      d="M 15 52 Q 80 -6 145 52"
                       fill="none"
-                      stroke="#334155"
+                      stroke={isSunUp ? '#334155' : '#1e293b'}
                       strokeWidth="1.75"
                       strokeDasharray="3 3"
                     />
-                    {progressPct > 0 && (
-                      <path
-                        d="M 15 55 Q 80 -10 145 55"
-                        fill="none"
-                        stroke="url(#sunArcGrad)"
-                        strokeWidth="2.5"
-                        pathLength={100}
-                        strokeDasharray={`${progressPct} 100`}
-                        strokeLinecap="round"
-                      />
-                    )}
-                    <circle cx="15" cy="55" r="2.5" fill="#fbbf24" />
-                    <circle cx="145" cy="55" r="2.5" fill="#fb923c" />
+
+                    {/* Active Trajectory Progress Curve: Golden Sun Arc by Day, Indigo Lunar/Night Arc by Night */}
+                    <path
+                      d="M 15 52 Q 80 -6 145 52"
+                      fill="none"
+                      stroke={isSunUp ? 'url(#sunArcGrad)' : 'url(#nightArcGrad)'}
+                      strokeWidth="2.75"
+                      pathLength={100}
+                      strokeDasharray={`${activeArcProgressPct} 100`}
+                      strokeLinecap="round"
+                    />
+
+                    {/* Left & Right Horizon Endpoints */}
+                    <circle cx="15" cy="52" r="2.8" fill={isSunUp ? '#fbbf24' : '#6366f1'} />
+                    <circle cx="145" cy="52" r="2.8" fill={isSunUp ? '#fb923c' : '#38bdf8'} />
+
+                    {/* Endpoint Labels inside SVG */}
+                    <text x="15" y="63" textAnchor="start" fill="#94a3b8" fontSize="6.5" fontFamily="monospace">
+                      {isSunUp ? `Lever ${eph.sunrise}` : `Coucher ${eph.sunset}`}
+                    </text>
+                    <text x="80" y="63" textAnchor="middle" fill="#64748b" fontSize="6" fontFamily="monospace">
+                      {isSunUp ? `Midi ${eph.solarNoon}` : `Soleil sous l'horizon`}
+                    </text>
+                    <text x="145" y="63" textAnchor="end" fill="#94a3b8" fontSize="6.5" fontFamily="monospace">
+                      {isSunUp ? `Coucher ${eph.sunset}` : `Lever ${eph.sunrise}`}
+                    </text>
+
+                    {/* Moving Celestial Orb at Exact Real-Time Position (orbCx, orbCy) */}
                     {isSunUp ? (
                       <g>
-                        <circle cx={sunCx} cy={sunCy} r="12" fill="#f59e0b" opacity="0.22" />
-                        <circle cx={sunCx} cy={sunCy} r="6" fill="#fbbf24" stroke="#fef08a" strokeWidth="1.5" />
+                        <circle cx={orbCx} cy={orbCy} r="11" fill="#f59e0b" opacity="0.26" className="motion-orb-breathe" />
+                        <circle cx={orbCx} cy={orbCy} r="5.5" fill="#fbbf24" stroke="#fef08a" strokeWidth="1.5" />
                       </g>
                     ) : (
                       <g>
-                        <circle cx="80" cy="24" r="10" fill="#38bdf8" opacity="0.18" />
-                        <circle cx="80" cy="24" r="5" fill="#bae6fd" />
+                        <circle cx={orbCx} cy={orbCy} r="11" fill="#6366f1" opacity="0.3" className="motion-orb-breathe" />
+                        <circle cx={orbCx} cy={orbCy} r="5.5" fill="#e0e7ff" stroke="#38bdf8" strokeWidth="1.4" />
+                        <circle cx={orbCx + 1.8} cy={orbCy - 1.2} r="4.1" fill="#091122" />
                       </g>
                     )}
                   </svg>
@@ -490,29 +627,31 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 <div className="grid grid-cols-3 items-center text-xs border-t border-slate-800/60 pt-2.5">
                   <div>
                     <span className="text-slate-400 text-[11px] block">Lever réel</span>
-                    <span className="font-mono tabular-nums font-bold text-amber-300">{eph?.sunrise || '07:54'}</span>
+                    <span className="font-mono tabular-nums font-bold text-amber-300">{eph.sunrise}</span>
                   </div>
                   <div className="text-center">
                     <span className="text-slate-400 text-[11px] block">Durée du jour</span>
-                    <span className="font-mono tabular-nums font-bold text-white">{eph?.dayLengthFormatted || '11h 19m'}</span>
+                    <span className="font-mono tabular-nums font-bold text-white">{eph.dayLengthFormatted}</span>
                   </div>
                   <div className="text-right">
                     <span className="text-slate-400 text-[11px] block">Coucher réel</span>
-                    <span className="font-mono tabular-nums font-bold text-orange-300">{eph?.sunset || '19:13'}</span>
+                    <span className="font-mono tabular-nums font-bold text-orange-300">{eph.sunset}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono tabular-nums">
-                  <span>Aube civile {eph?.civilTwilightBegin || '07:22'}</span>
-                  <span>·</span>
-                  <span>Crépuscule {eph?.civilTwilightEnd || '19:45'}</span>
+                  <span>Aube {eph.civilTwilightBegin}</span>
+                  <span className="text-sky-300 font-sans font-medium truncate px-1">
+                    {eph.nextEventLabel}
+                  </span>
+                  <span>Crépusc. {eph.civilTwilightEnd}</span>
                 </div>
               </div>
 
               {/* Accurate Lunar Section */}
               <div className="pt-3 border-t border-slate-800/80 flex items-center gap-3.5">
                 <div className="relative w-11 h-11 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0">
-                  <span className="text-2xl select-none" aria-hidden="true">
+                  <span className="text-2xl select-none motion-moon-float" aria-hidden="true">
                     {phaseCode === 'new_moon'
                       ? '🌑'
                       : phaseCode === 'waxing_crescent'
@@ -541,7 +680,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-400 mt-0.5 truncate font-mono tabular-nums">
-                    Âge {moon?.moonAgeDays ?? 14}j / 29.5j · {moon?.moonSign || 'Taureau'}
+                    Âge {moon?.moonAgeDays ?? 14}j / 29.5j · Constellation {moon?.moonSign || 'Taureau'}
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-400 mt-0.5 font-mono tabular-nums">
                     <span>Lever {moon?.moonrise || '21:15'} · Coucher {moon?.moonset || '10:40'}</span>

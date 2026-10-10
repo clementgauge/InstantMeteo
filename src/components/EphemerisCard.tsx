@@ -19,20 +19,34 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
 
   if (!eph || !moon) return null;
 
+  const isSunUp = eph.isSunAboveHorizon ?? false;
+  const activeProgressPct = isSunUp
+    ? Math.max(1, Math.min(99, eph.sunProgressPercent))
+    : Math.max(2, Math.min(98, eph.nightProgressPercent ?? 50));
+
   return (
-    <div id="ephemeris-astronomy-card" className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
+    <div id="ephemeris-astronomy-card" className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between motion-card-enter motion-hover-lift">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3.5 mb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
-            <Sun className="h-3.5 w-3.5 shrink-0" />
-            <span>Calcul astronomique Jean Meeus</span>
+          <div className="flex items-center gap-2 text-xs font-medium">
+            {isSunUp ? (
+              <span className="inline-flex items-center gap-1.5 text-amber-400">
+                <Sun className="h-3.5 w-3.5 shrink-0 motion-sun-spin" />
+                <span>Jour en cours · Calcul astronomique Jean Meeus</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-indigo-300">
+                <Moon className="h-3.5 w-3.5 shrink-0 motion-moon-float" />
+                <span>Nuit en cours · Calcul astronomique Jean Meeus</span>
+              </span>
+            )}
           </div>
           <h3 className="font-bold text-white text-base tracking-tight mt-0.5">
             Éphéméride Solaire &amp; Cycle Lunaire
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Heures solaires vraies, crépuscules civils et révolution synodique
+            {eph.currentPhaseLabel || 'Heures solaires vraies, crépuscules civils et révolution synodique'}
           </p>
         </div>
         <span className="text-xs font-mono tabular-nums font-semibold text-slate-300 shrink-0">
@@ -41,11 +55,11 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
-        {/* Solar Section */}
+        {/* Solar / Nocturnal Section */}
         <div className="space-y-3.5 pt-2 md:pt-0 md:pr-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-400">
-              Cycle diurne du Soleil
+            <span className={`text-xs font-semibold ${isSunUp ? 'text-amber-400' : 'text-indigo-300'}`}>
+              {isSunUp ? 'Cycle diurne du Soleil (Jour)' : 'Cycle nocturne en cours (Soleil couché)'}
             </span>
             <span className="text-xs font-mono tabular-nums font-semibold text-emerald-400">
               {eph.dayLengthChangeMinutes > 0 ? `+${eph.dayLengthChangeMinutes} min/j` : `${eph.dayLengthChangeMinutes} min/j`}
@@ -59,7 +73,7 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
                 <span>{eph.sunrise}</span>
               </div>
               <div className="font-semibold text-white">
-                {eph.dayLengthFormatted}
+                Jour {eph.dayLengthFormatted}
               </div>
               <div className="flex items-center gap-1.5 text-orange-300 font-semibold">
                 <Sunset className="h-3.5 w-3.5" />
@@ -67,23 +81,29 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
               </div>
             </div>
 
-            <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden relative">
+            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden relative">
               <div
-                className="h-full bg-amber-400 transition-transform duration-200 origin-left"
-                style={{ width: `${eph.sunProgressPercent}%` }}
+                className={`h-full transition-all duration-500 rounded-full ${
+                  isSunUp
+                    ? 'bg-gradient-to-r from-amber-500 via-yellow-300 to-orange-400'
+                    : 'bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-400'
+                }`}
+                style={{ width: `${activeProgressPct}%` }}
               />
             </div>
 
             <div className="flex justify-between text-[11px] text-slate-400 font-mono tabular-nums">
               <span>Aube {eph.civilTwilightBegin}</span>
-              <span>{eph.sunProgressPercent}%</span>
+              <span className={isSunUp ? 'text-amber-300 font-semibold' : 'text-indigo-300 font-semibold'}>
+                {isSunUp ? `Course solaire ${activeProgressPct}%` : `Avancement nuit ${activeProgressPct}%`}
+              </span>
               <span>Crépuscule {eph.civilTwilightEnd}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-3 divide-x divide-slate-800/80 pt-3 border-t border-slate-800/80 text-xs">
             <div className="pr-2">
-              <div className="text-slate-400 text-[11px]">Élévation max</div>
+              <div className="text-slate-400 text-[11px]">Élévation actuelle</div>
               <div className="font-bold text-white font-mono tabular-nums mt-0.5">
                 {eph.currentSolarElevationDeg !== undefined ? `${eph.currentSolarElevationDeg}° / ` : ''}{eph.maxSolarElevationDeg}°
               </div>

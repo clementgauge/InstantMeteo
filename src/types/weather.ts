@@ -237,6 +237,7 @@ export interface SolarEphemeris {
   dayLengthHours: number;
   dayLengthMinutes: number;
   dayLengthFormatted: string;
+  nightLengthFormatted?: string;
   dayLengthChangeMinutes: number; // e.g. +2.4 min / day
   civilTwilightBegin: string;
   civilTwilightEnd: string;
@@ -247,8 +248,13 @@ export interface SolarEphemeris {
   maxSolarElevationDeg: number;
   currentSolarElevationDeg?: number;
   isSunAboveHorizon?: boolean;
+  isNight?: boolean;
   solarRadiationKwhM2: number;
   sunProgressPercent: number;
+  nightProgressPercent?: number;
+  currentLocalTimeFormatted?: string;
+  currentPhaseLabel?: string;
+  nextEventLabel?: string;
 }
 
 export interface MoonPhaseData {

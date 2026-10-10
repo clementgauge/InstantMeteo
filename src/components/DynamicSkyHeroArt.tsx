@@ -8,8 +8,8 @@ interface DynamicSkyHeroArtProps {
 }
 
 /**
- * Symbole météo vectoriel multi-couleurs haute visibilité (identique sur l'image de la ville,
- * sur les cartes météo interactives et dans le déroulé heure par heure).
+ * Symbole météo vectoriel multi-couleurs haute visibilité avec Motion Design intégré
+ * (identique sur l'image de la ville, sur les cartes météo interactives et dans le déroulé heure par heure).
  */
 export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
   weatherCode,
@@ -33,8 +33,8 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
     if (isClear && isDay) {
       return (
         <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-          <circle cx="14" cy="14" r="10.5" fill="#fbbf24" fillOpacity="0.24" />
-          <g stroke="#fbbf24" strokeWidth="2.1" strokeLinecap="round">
+          <circle cx="14" cy="14" r="10.5" fill="#fbbf24" fillOpacity="0.24" className="motion-sun-pulse" />
+          <g stroke="#fbbf24" strokeWidth="2.1" strokeLinecap="round" className="motion-sun-spin">
             <line x1="14" y1="2.2" x2="14" y2="5" />
             <line x1="14" y1="23" x2="14" y2="25.8" />
             <line x1="2.2" y1="14" x2="5" y2="14" />
@@ -54,15 +54,18 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
     if (isClear && !isDay) {
       return (
         <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-          <circle cx="14" cy="14" r="10" fill="#818cf8" fillOpacity="0.18" />
-          <path
-            d="M18.8 18.2C14.7 18.2 11.4 14.9 11.4 10.8C11.4 8.7 12.3 6.8 13.7 5.5C9.8 6.1 6.8 9.5 6.8 13.6C6.8 18.1 10.5 21.8 15 21.8C18.2 21.8 20.9 20 22.3 17.3C21.2 17.9 20 18.2 18.8 18.2Z"
-            fill="#fde68a"
-            stroke="#f59e0b"
-            strokeWidth="1.1"
-          />
-          <circle cx="20.5" cy="8" r="1" fill="#fef08a" />
-          <circle cx="23" cy="11.5" r="0.8" fill="#e0e7ff" />
+          <circle cx="14" cy="14" r="10.5" fill="#6366f1" fillOpacity="0.22" className="motion-orb-breathe" />
+          <g className="motion-moon-float">
+            <path
+              d="M18.8 18.2C14.7 18.2 11.4 14.9 11.4 10.8C11.4 8.7 12.3 6.8 13.7 5.5C9.8 6.1 6.8 9.5 6.8 13.6C6.8 18.1 10.5 21.8 15 21.8C18.2 21.8 20.9 20 22.3 17.3C21.2 17.9 20 18.2 18.8 18.2Z"
+              fill="#fde68a"
+              stroke="#f59e0b"
+              strokeWidth="1.1"
+            />
+          </g>
+          <circle cx="20.5" cy="7.8" r="1.15" fill="#fef08a" className="motion-star-twinkle" />
+          <circle cx="23.2" cy="11.8" r="0.9" fill="#bae6fd" className="motion-star-twinkle-delayed" />
+          <circle cx="8" cy="6.8" r="0.75" fill="#e0e7ff" className="motion-star-twinkle" />
         </svg>
       );
     }
@@ -72,35 +75,42 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
       if (!isDay) {
         return (
           <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-            <path
-              d="M14.2 12.2C11.7 12.2 9.7 10.2 9.7 7.7C9.7 6.4 10.2 5.3 11.1 4.5C8.7 4.9 6.9 7 6.9 9.5C6.9 12.3 9.2 14.5 12 14.5C13.9 14.5 15.6 13.4 16.4 11.8C15.7 12.1 15 12.2 14.2 12.2Z"
-              fill="#fde68a"
-              stroke="#f59e0b"
-              strokeWidth="1"
-            />
+            <circle cx="11.5" cy="9.5" r="7" fill="#6366f1" fillOpacity="0.2" className="motion-orb-breathe" />
+            <g className="motion-moon-float">
+              <path
+                d="M14.5 12.5C11.7 12.5 9.5 10.3 9.5 7.5C9.5 6.1 10.1 4.8 11 3.9C8.3 4.4 6.3 6.7 6.3 9.5C6.3 12.6 8.8 15.1 11.9 15.1C14 15.1 15.8 13.9 16.7 12.1C16 12.4 15.3 12.5 14.5 12.5Z"
+                fill="#fde68a"
+                stroke="#f59e0b"
+                strokeWidth="1"
+              />
+            </g>
+            <circle cx="19.5" cy="6.2" r="0.95" fill="#fef08a" className="motion-star-twinkle" />
+            <circle cx="22.8" cy="9.2" r="0.75" fill="#bae6fd" className="motion-star-twinkle-delayed" />
             <path
               d="M10.5 22.5H20.5C23 22.5 25 20.6 25 18.2C25 16 23.3 14.2 21.1 14C20.4 10.9 17.6 8.8 14.4 8.8C11.1 8.8 8.3 11.2 7.8 14.4C5.9 14.8 4.5 16.4 4.5 18.4C4.5 20.7 6.4 22.5 8.8 22.5H10.5Z"
-              fill="#e2e8f0"
-              stroke="#94a3b8"
+              fill="#cbd5e1"
+              stroke="#64748b"
               strokeWidth="1.1"
+              className="motion-cloud-drift"
             />
           </svg>
         );
       }
       return (
         <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-          <g stroke="#fbbf24" strokeWidth="1.9" strokeLinecap="round">
+          <g stroke="#fbbf24" strokeWidth="1.9" strokeLinecap="round" className="motion-sun-spin">
             <line x1="9.5" y1="2.8" x2="9.5" y2="5" />
             <line x1="2.8" y1="9.5" x2="5" y2="9.5" />
             <line x1="4.7" y1="4.7" x2="6.3" y2="6.3" />
             <line x1="14.3" y1="4.7" x2="12.7" y2="6.3" />
           </g>
-          <circle cx="10" cy="10.5" r="5" fill="#facc15" stroke="#f59e0b" strokeWidth="1.1" />
+          <circle cx="10" cy="10.5" r="5" fill="#facc15" stroke="#f59e0b" strokeWidth="1.1" className="motion-sun-pulse" />
           <path
             d="M10.5 22.5H20.5C23 22.5 25 20.6 25 18.2C25 16 23.3 14.2 21.1 14C20.4 10.9 17.6 8.8 14.4 8.8C11.1 8.8 8.3 11.2 7.8 14.4C5.9 14.8 4.5 16.4 4.5 18.4C4.5 20.7 6.4 22.5 8.8 22.5H10.5Z"
             fill="#f8fafc"
             stroke="#cbd5e1"
             strokeWidth="1.15"
+            className="motion-cloud-drift"
           />
         </svg>
       );
@@ -110,16 +120,21 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
     if (isOvercast) {
       return (
         <svg className={svgClass} viewBox="0 0 28 28" fill="none">
+          {!isDay && (
+            <circle cx="21" cy="7" r="0.9" fill="#bae6fd" className="motion-star-twinkle" />
+          )}
           <path
             d="M11 19.5H21.5C23.7 19.5 25.5 17.8 25.5 15.6C25.5 13.6 23.9 11.9 21.9 11.7C21.2 9 18.7 7 15.8 7C12.7 7 10.2 9.2 9.7 12.1C8 12.5 6.8 14 6.8 15.8C6.8 17.9 8.5 19.5 10.6 19.5H11Z"
             fill="#94a3b8"
-            fillOpacity="0.8"
+            fillOpacity="0.82"
+            className="motion-cloud-drift-slow"
           />
           <path
             d="M8.5 22.5H19.5C22 22.5 24 20.6 24 18.2C24 16 22.3 14.2 20.1 14C19.4 11 16.7 9 13.5 9C10.2 9 7.5 11.3 7 14.5C5.1 14.9 3.8 16.5 3.8 18.5C3.8 20.7 5.7 22.5 8.5 22.5Z"
-            fill="#f1f5f9"
+            fill={isDay ? '#f1f5f9' : '#cbd5e1'}
             stroke="#94a3b8"
             strokeWidth="1.15"
+            className="motion-cloud-drift"
           />
         </svg>
       );
@@ -134,8 +149,9 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
             fill="#e2e8f0"
             stroke="#94a3b8"
             strokeWidth="1"
+            className="motion-cloud-drift"
           />
-          <g stroke="#94a3b8" strokeWidth="2" strokeLinecap="round">
+          <g stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" className="motion-cloud-drift-slow">
             <line x1="5" y1="19.5" x2="23" y2="19.5" />
             <line x1="7" y1="23" x2="21" y2="23" />
           </g>
@@ -147,19 +163,28 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
     if (isDrizzle || isShowers) {
       return (
         <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-          {isDay && (
-            <circle cx="9.5" cy="9.5" r="4.2" fill="#facc15" stroke="#f59e0b" strokeWidth="1" />
+          {isDay ? (
+            <circle cx="9.5" cy="9.5" r="4.2" fill="#facc15" stroke="#f59e0b" strokeWidth="1" className="motion-sun-pulse" />
+          ) : (
+            <path
+              d="M11.8 10.2C9.8 10.2 8.2 8.6 8.2 6.6C8.2 5.6 8.6 4.7 9.3 4.1C7.3 4.5 5.9 6.2 5.9 8.2C5.9 10.5 7.7 12.3 10 12.3C11.5 12.3 12.8 11.4 13.4 10.1C12.9 10.2 12.3 10.2 11.8 10.2Z"
+              fill="#fde68a"
+              stroke="#f59e0b"
+              strokeWidth="0.9"
+              className="motion-moon-float"
+            />
           )}
           <path
             d="M8.5 18.5H19.5C21.8 18.5 23.6 16.8 23.6 14.6C23.6 12.6 22 10.9 20 10.7C19.3 8 16.8 6 13.8 6C10.6 6 8 8.3 7.5 11.3C5.7 11.7 4.4 13.2 4.4 15C4.4 17 6.2 18.5 8.5 18.5Z"
             fill="#e2e8f0"
             stroke="#64748b"
             strokeWidth="1.05"
+            className="motion-cloud-drift"
           />
           <g stroke="#38bdf8" strokeWidth="2.1" strokeLinecap="round">
-            <line x1="10" y1="20.5" x2="8.6" y2="24.8" />
-            <line x1="14.5" y1="20.5" x2="13.1" y2="24.8" />
-            <line x1="19" y1="20.5" x2="17.6" y2="24.8" />
+            <line x1="10" y1="20.5" x2="8.6" y2="24.8" className="motion-rain-drop-1" />
+            <line x1="14.5" y1="20.5" x2="13.1" y2="24.8" className="motion-rain-drop-2" />
+            <line x1="19" y1="20.5" x2="17.6" y2="24.8" className="motion-rain-drop-3" />
           </g>
         </svg>
       );
@@ -174,11 +199,12 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
             fill="#cbd5e1"
             stroke="#64748b"
             strokeWidth="1.1"
+            className="motion-cloud-drift"
           />
           <g stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round">
-            <line x1="9.5" y1="20.5" x2="8" y2="25.2" />
-            <line x1="14" y1="20.5" x2="12.5" y2="25.2" />
-            <line x1="18.5" y1="20.5" x2="17" y2="25.2" />
+            <line x1="9.5" y1="20.5" x2="8" y2="25.2" className="motion-rain-drop-1" />
+            <line x1="14" y1="20.5" x2="12.5" y2="25.2" className="motion-rain-drop-2" />
+            <line x1="18.5" y1="20.5" x2="17" y2="25.2" className="motion-rain-drop-3" />
           </g>
         </svg>
       );
@@ -193,10 +219,11 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
             fill="#f1f5f9"
             stroke="#94a3b8"
             strokeWidth="1.1"
+            className="motion-cloud-drift"
           />
-          <circle cx="9.5" cy="22" r="1.7" fill="#7dd3fc" />
-          <circle cx="14" cy="24" r="1.7" fill="#38bdf8" />
-          <circle cx="18.5" cy="22" r="1.7" fill="#7dd3fc" />
+          <circle cx="9.5" cy="22" r="1.7" fill="#7dd3fc" className="motion-snow-flake" />
+          <circle cx="14" cy="24" r="1.7" fill="#38bdf8" className="motion-snow-flake" />
+          <circle cx="18.5" cy="22" r="1.7" fill="#7dd3fc" className="motion-snow-flake" />
         </svg>
       );
     }
@@ -210,21 +237,37 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
             fill="#64748b"
             stroke="#475569"
             strokeWidth="1.1"
+            className="motion-cloud-drift"
           />
           <polygon
             points="15,15 10.5,21 14,21 12.5,26.5 18.5,19.5 14.8,19.5"
             fill="#facc15"
             stroke="#f59e0b"
             strokeWidth="0.7"
+            className="motion-lightning-bolt"
           />
         </svg>
       );
     }
 
-    // Fallback : Soleil / Lune
+    // Fallback : Soleil (Jour) / Lune (Nuit)
+    if (!isDay) {
+      return (
+        <svg className={svgClass} viewBox="0 0 28 28" fill="none">
+          <path
+            d="M18.8 18.2C14.7 18.2 11.4 14.9 11.4 10.8C11.4 8.7 12.3 6.8 13.7 5.5C9.8 6.1 6.8 9.5 6.8 13.6C6.8 18.1 10.5 21.8 15 21.8C18.2 21.8 20.9 20 22.3 17.3C21.2 17.9 20 18.2 18.8 18.2Z"
+            fill="#fde68a"
+            stroke="#f59e0b"
+            strokeWidth="1.1"
+            className="motion-moon-float"
+          />
+        </svg>
+      );
+    }
+
     return (
       <svg className={svgClass} viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="6.2" fill="#facc15" stroke="#f59e0b" strokeWidth="1.2" />
+        <circle cx="14" cy="14" r="6.2" fill="#facc15" stroke="#f59e0b" strokeWidth="1.2" className="motion-sun-pulse" />
       </svg>
     );
   };
@@ -248,7 +291,11 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
   if (size === 'sm') {
     return (
       <div className={`relative w-14 h-14 flex items-center justify-center select-none ${className}`} aria-hidden="true">
-        <div className="absolute inset-0 w-12 h-12 m-auto rounded-full bg-sky-400/20 blur-md" />
+        <div
+          className={`absolute inset-0 w-12 h-12 m-auto rounded-full blur-md motion-orb-breathe ${
+            isDay ? 'bg-amber-400/20' : 'bg-indigo-400/25'
+          }`}
+        />
         <div className="relative w-12 h-12 rounded-2xl bg-slate-900/75 border border-white/25 backdrop-blur-md flex items-center justify-center shadow-lg">
           {renderWeatherSvg('w-9 h-9 shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]')}
         </div>
@@ -259,8 +306,12 @@ export const DynamicSkyHeroArt: React.FC<DynamicSkyHeroArtProps> = ({
   // Format Desktop (lg) sur l'image de la ville
   return (
     <div className={`relative flex items-center justify-center w-28 h-28 select-none ${className}`} aria-hidden="true">
-      <div className="absolute w-24 h-24 rounded-full bg-amber-400/20 blur-2xl" />
-      <div className="relative w-22 h-22 rounded-2xl bg-slate-900/75 border border-white/25 backdrop-blur-md shadow-2xl flex items-center justify-center p-2">
+      <div
+        className={`absolute w-24 h-24 rounded-full blur-2xl motion-orb-breathe ${
+          isDay ? 'bg-amber-400/25' : 'bg-indigo-500/30'
+        }`}
+      />
+      <div className="relative w-22 h-22 rounded-2xl bg-slate-900/75 border border-white/25 backdrop-blur-md shadow-2xl flex items-center justify-center p-2 transition-transform duration-300 hover:scale-105">
         {renderWeatherSvg('w-16 h-16 shrink-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.55)]')}
       </div>
     </div>

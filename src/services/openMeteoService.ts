@@ -1123,7 +1123,15 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   }>(cacheKey);
 
   if (cached) {
-    return { ...cached, isFromCache: false };
+    const freshEph = calculateSolarEphemeris(station.latitude, station.longitude, new Date());
+    const freshIsDay = freshEph.isSunAboveHorizon ?? cached.current.isDay ?? true;
+    const refreshedCurrent: CurrentWeather = {
+      ...cached.current,
+      solarEphemeris: freshEph,
+      isDay: freshIsDay,
+      weatherDescription: getWeatherDescription(cached.current.weatherCode, freshIsDay).label,
+    };
+    return { ...cached, current: refreshedCurrent, isFromCache: false };
   }
 
   try {
@@ -1741,7 +1749,8 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         calibratedWeatherCode = 0;
       }
     }
-    const finalWeatherDesc = getWeatherDescription(calibratedWeatherCode, cur.is_day);
+    const isTrueDaytime = solarEphemeris.isSunAboveHorizon ?? (cur.is_day === 1);
+    const finalWeatherDesc = getWeatherDescription(calibratedWeatherCode, isTrueDaytime);
 
     const pollenData = computeRealtimePollenTracking(
       station,
@@ -1751,7 +1760,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         windSpeed: Math.round(cur.wind_speed_10m),
         precipitation: Number(effectivePrecipRate.toFixed(1)),
         uvIndex: uvAdjustedAltitude,
-        isDay: cur.is_day === 1
+        isDay: isTrueDaytime
       },
       rawCamsPollen
     );
@@ -1810,7 +1819,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       pastHourly,
       dailyPrecipitationDiagnostic: dailyPrecipDiagnostic,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      isDay: cur.is_day === 1,
+      isDay: isTrueDaytime,
       multiModelRealtime,
       recalibrationOffsetApplied: userRecalibOffset !== 0 ? userRecalibOffset : undefined,
       recalibrationSource: userRecalibOffset !== 0 ? "Thermomètre réel local" : undefined
@@ -1824,7 +1833,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       qfe,
       alt,
       cur.weather_code,
-      cur.is_day === 1,
+      isTrueDaytime,
       hourlyData.cloud_cover?.[currentHourIndexInHourly] ?? (cur.weather_code === 0 ? 0 : 25),
       hourlyData.cloud_cover_low?.[currentHourIndexInHourly] ?? 0,
       hourlyData.cloud_cover_mid?.[currentHourIndexInHourly] ?? 0,
@@ -2458,6 +2467,9 @@ export function getFallbackWeatherData(station: LocationPoint): {
     ]
   };
 
+  const fallbackEph = calculateSolarEphemeris(station.latitude, station.longitude, new Date());
+  const fallbackIsDay = fallbackEph.isSunAboveHorizon ?? true;
+
   const fallbackCurrent: CurrentWeather = {
     temperature: tempBase,
     feelsLike: tempBase + 0.5,
@@ -2469,10 +2481,10 @@ export function getFallbackWeatherData(station: LocationPoint): {
     windDirection: 230,
     pressure: Math.round(1013 - (alt * 0.12)),
     pressureMsl: 1018,
-    uvIndex: Number((5.0 * (1 + (alt / 1000) * 0.1)).toFixed(1)),
+    uvIndex: fallbackIsDay ? Number((5.0 * (1 + (alt / 1000) * 0.1)).toFixed(1)) : 0,
     precipitation: 0,
     weatherCode: 1,
-    weatherDescription: "Ensoleillé avec passages nuageux",
+    weatherDescription: getWeatherDescription(1, fallbackIsDay).label,
     airQualityAqi: 22,
     airQualityLabel: "Très Bonne",
     airQualityDetails: {
@@ -2485,7 +2497,7 @@ export function getFallbackWeatherData(station: LocationPoint): {
       no2: 8.5,
       o3: 42.0,
       so2: 1.5,
-      uvIndex: 5.5
+      uvIndex: fallbackIsDay ? 5.5 : 0
     },
     altitudeMetrics: {
       altitudeMeters: alt,
@@ -2506,15 +2518,15 @@ export function getFallbackWeatherData(station: LocationPoint): {
       djuHeat: Math.max(0, 18 - tempBase),
       djuCool: 0
     },
-    synopticConditions: calculateSynopticConditions(tempBase, 55, 16, Math.round(1013 - (alt * 0.12)), alt, 1, true),
+    synopticConditions: calculateSynopticConditions(tempBase, 55, 16, Math.round(1013 - (alt * 0.12)), alt, 1, fallbackIsDay),
     radarProximity: calculateRadarProximity(station, 0, 1, 16, 230),
-    solarEphemeris: calculateSolarEphemeris(station.latitude, station.longitude, new Date()),
+    solarEphemeris: fallbackEph,
     moonPhase: calculateMoonPhase(new Date(), station.latitude, station.longitude),
     barometricTrend: calculateBarometricTrend(Math.round(1013 - (alt * 0.12)), 1018),
     pastHourly: fallbackPastHourly,
     dailyPrecipitationDiagnostic: fallbackPrecipDiag,
     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-    isDay: true
+    isDay: fallbackIsDay
   };
   fallbackCurrent.outdoorIndices = calculateOutdoorIndices(fallbackCurrent, station);
 

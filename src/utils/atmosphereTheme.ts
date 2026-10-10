@@ -1,25 +1,42 @@
 import { TimeOfDay, Season, AtmosphereThemeConfig, EphemerisInfo } from '../types/atmosphere';
+import { calculateSolarEphemeris, getStationLiveClock } from '../services/ephemerisService';
 
 /**
- * Calculates time of day based on hour (0-23) and optional sun elevation
+ * Calculates time of day based on true astronomical sunrise, sunset, and civil twilight at the station
  */
-export function calculateTimeOfDay(date: Date = new Date(), lat?: number): TimeOfDay {
-  const hour = date.getHours();
-  const minutes = date.getMinutes();
-  const timeFraction = hour + minutes / 60;
+export function calculateTimeOfDay(date: Date = new Date(), lat: number = 48.8566, lon: number = 2.3522): TimeOfDay {
+  try {
+    const eph = calculateSolarEphemeris(lat, lon, date);
+    const liveClock = getStationLiveClock(lat, lon, date);
+    const dec = liveClock.decimalHour;
 
-  // Adapt slightly by latitude if available (Northern France ~48°N)
-  // Dawn: 05:30 - 08:30
-  // Day: 08:30 - 19:00 (or 20:00 in summer)
-  // Dusk: 19:00 - 22:00
-  // Night: 22:00 - 05:30
-  if (timeFraction >= 5.25 && timeFraction < 8.5) {
-    return 'DAWN';
-  } else if (timeFraction >= 8.5 && timeFraction < 19.5) {
-    return 'DAY';
-  } else if (timeFraction >= 19.5 && timeFraction < 22.25) {
-    return 'DUSK';
-  } else {
+    const parseHm = (hm: string, fallback: number): number => {
+      const [h, m] = hm.split(':').map(Number);
+      if (isNaN(h) || isNaN(m)) return fallback;
+      return h + m / 60;
+    };
+
+    const dawnStart = parseHm(eph.civilTwilightBegin, 6.5);
+    const sunrise = parseHm(eph.sunrise, 7.5);
+    const sunset = parseHm(eph.sunset, 19.2);
+    const duskEnd = parseHm(eph.civilTwilightEnd, 19.8);
+
+    if (dec >= dawnStart && dec < sunrise + 0.5) {
+      return 'DAWN';
+    } else if (dec >= sunrise + 0.5 && dec < sunset - 0.35) {
+      return 'DAY';
+    } else if (dec >= sunset - 0.35 && dec <= duskEnd + 0.25) {
+      return 'DUSK';
+    } else {
+      return 'NIGHT';
+    }
+  } catch {
+    const hour = date.getHours();
+    const minutes = date.getMinutes();
+    const timeFraction = hour + minutes / 60;
+    if (timeFraction >= 6.0 && timeFraction < 8.25) return 'DAWN';
+    if (timeFraction >= 8.25 && timeFraction < 18.75) return 'DAY';
+    if (timeFraction >= 18.75 && timeFraction < 20.0) return 'DUSK';
     return 'NIGHT';
   }
 }

@@ -71,7 +71,7 @@ export const DirectAlertBanner: React.FC<DirectAlertBannerProps> = ({
   return (
     <div 
       id="direct-screen-weather-alert"
-      className={`rounded-xl sm:rounded-2xl border sm:border-2 ${borderClass} px-2.5 py-1.5 sm:p-3.5 sm:px-5 shadow-lg sm:shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 sm:gap-3 transition-all animate-fadeIn relative z-30`}
+      className={`mb-2.5 rounded-xl sm:rounded-2xl border sm:border-2 ${borderClass} px-2.5 py-1.5 sm:p-3.5 sm:px-5 shadow-lg sm:shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 sm:gap-3 transition-all animate-fadeIn relative z-30`}
     >
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <div className="flex h-7 w-7 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-slate-950/60 border border-white/20">
