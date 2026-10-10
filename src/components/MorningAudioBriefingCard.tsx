@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Volume2,
-  VolumeX,
   Play,
   Pause,
   Square,
-  Radio,
-  Sparkles,
   Share2,
   FileText
 } from 'lucide-react';
@@ -17,20 +14,24 @@ interface MorningAudioBriefingCardProps {
   weather: CurrentWeather;
   hourly: HourlyForecast[];
   daily: DailyForecast[];
+  tempUnit?: 'C' | 'F';
+  onOpenShareCard?: () => void;
   onOpenShareCardModal?: () => void;
 }
 
 export const MorningAudioBriefingCard: React.FC<MorningAudioBriefingCardProps> = ({
   station,
   weather,
-  hourly,
   daily,
+  onOpenShareCard,
   onOpenShareCardModal
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [showTranscript, setShowTranscript] = useState<boolean>(false);
+
+  const handleOpenShare = onOpenShareCard || onOpenShareCardModal;
 
   const briefingText = useMemo(() => {
     const now = new Date();
@@ -141,58 +142,46 @@ export const MorningAudioBriefingCard: React.FC<MorningAudioBriefingCardProps> =
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800/90 bg-gradient-to-r from-slate-900 via-slate-900/95 to-blue-950/50 p-4 sm:p-5 shadow-xl">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Left: Title & Radio Studio Badge */}
-        <div className="flex items-start sm:items-center gap-3">
-          <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition ${
-              isPlaying
-                ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 shadow-lg shadow-emerald-500/10'
-                : 'bg-sky-500/15 border-sky-500/30 text-sky-400'
-            }`}
-          >
-            <Volume2 className={`h-5 w-5 ${isPlaying ? 'animate-pulse' : ''}`} />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                Briefing Audio &amp; Synthèse Vocale
-              </span>
+    <div className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3.5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs text-sky-400 font-medium">
+              <Volume2 className="h-3.5 w-3.5 shrink-0" />
+              <span>Synthèse vocale francophone</span>
               {isPlaying && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  Lecture vocale en cours...
-                </span>
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="text-emerald-400 font-semibold">Lecture en cours</span>
+                </>
               )}
             </div>
-            <h3 className="text-sm sm:text-base font-black text-white mt-0.5">
-              Écouter la Météo Parlée de {station.name}
+            <h3 className="text-base font-bold text-white tracking-tight">
+              Bulletin Audio de {station.name}
             </h3>
-            <p className="text-xs text-slate-400">
-              Bulletin vocal complet : direct, comparaison hier, pluie, vent, UV, pollen et prévisions demain
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Point complet sur le direct, l&apos;écart avec hier, la pluie dans les 3h, le vent, l&apos;UV et la tendance de demain.
             </p>
           </div>
         </div>
 
-        {/* Right: Audio Controls + Shareable Weather Card Trigger */}
         <div className="flex flex-wrap items-center gap-2">
           {!isPlaying ? (
             <button
               type="button"
               onClick={handlePlayBriefing}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-sm transition cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Play className="h-4 w-4 fill-white" />
-              <span>{isPaused ? 'Reprendre le bulletin' : 'Écouter le briefing météo'}</span>
+              <Play className="h-3.5 w-3.5 fill-white" />
+              <span>{isPaused ? 'Reprendre la lecture' : 'Écouter le bulletin'}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handlePauseBriefing}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs shadow-sm transition cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Pause className="h-4 w-4 fill-slate-950" />
+              <Pause className="h-3.5 w-3.5 fill-slate-950" />
               <span>Pause</span>
             </button>
           )}
@@ -201,23 +190,22 @@ export const MorningAudioBriefingCard: React.FC<MorningAudioBriefingCardProps> =
             <button
               type="button"
               onClick={handleStopBriefing}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-bold text-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Square className="h-3.5 w-3.5 fill-rose-300" />
-              <span>Stop</span>
+              <Square className="h-3 w-3 fill-rose-300" />
+              <span>Arrêter</span>
             </button>
           )}
 
-          {/* Speed Selector */}
-          <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 p-0.5 text-[11px]">
+          <div className="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs font-mono tabular-nums">
             {[0.9, 1.0, 1.15].map((r) => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setSpeechRate(r)}
-                className={`px-2 py-1 rounded-lg font-bold transition cursor-pointer ${
+                className={`px-2 py-1 rounded-md font-semibold transition cursor-pointer ${
                   speechRate === r
-                    ? 'bg-sky-600 text-white'
+                    ? 'bg-slate-800 text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -229,34 +217,31 @@ export const MorningAudioBriefingCard: React.FC<MorningAudioBriefingCardProps> =
           <button
             type="button"
             onClick={() => setShowTranscript((prev) => !prev)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-medium text-xs transition cursor-pointer whitespace-nowrap shrink-0"
           >
-            <FileText className="h-3.5 w-3.5 text-sky-400" />
-            <span>{showTranscript ? 'Masquer le texte' : 'Lire le script'}</span>
+            <FileText className="h-3.5 w-3.5 text-slate-400" />
+            <span>{showTranscript ? 'Masquer le script' : 'Afficher le script'}</span>
           </button>
 
-          {onOpenShareCardModal && (
+          {handleOpenShare && (
             <button
               type="button"
-              onClick={onOpenShareCardModal}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs shadow-md transition active:scale-95 cursor-pointer"
+              onClick={handleOpenShare}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-300 hover:text-sky-200 font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ml-auto"
             >
               <Share2 className="h-3.5 w-3.5" />
-              <span>Créer Carte Météo Partageable</span>
+              <span>Carte partageable</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Transcript Box */}
       {showTranscript && (
-        <div className="mt-3.5 pt-3.5 border-t border-slate-800/80">
-          <div className="rounded-xl bg-slate-950/90 border border-slate-800 p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
-            <span className="text-sky-400 font-bold uppercase text-[10px] tracking-wider block mb-1">
-              Transcription du Bulletin Vocal Officiel — {station.name}
-            </span>
-            « {briefingText} »
+        <div className="mt-4 pt-3.5 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
+          <div className="text-[11px] font-semibold text-sky-400 mb-1">
+            Transcription du bulletin — {station.name}
           </div>
+          <p>« {briefingText} »</p>
         </div>
       )}
     </div>
