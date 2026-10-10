@@ -5,7 +5,13 @@ import {
   Moon, 
   Sunrise, 
   Sunset, 
-  Waves
+  Clock, 
+  Compass, 
+  Sparkles, 
+  Flame, 
+  ArrowUpRight, 
+  Waves,
+  Calendar
 } from 'lucide-react';
 
 interface EphemerisCardProps {
@@ -13,106 +19,110 @@ interface EphemerisCardProps {
   seniorMode: boolean;
 }
 
-export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
+export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather, seniorMode }) => {
   const eph = weather.solarEphemeris;
   const moon = weather.moonPhase;
 
   if (!eph || !moon) return null;
 
   return (
-    <div id="ephemeris-astronomy-card" className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
+    <div id="ephemeris-astronomy-card" className="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3.5 mb-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
-            <Sun className="h-3.5 w-3.5 shrink-0" />
-            <span>Calcul astronomique Jean Meeus</span>
+      <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-3 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-950 text-amber-400 border border-slate-800">
+            <Sun className="h-4 w-4" />
           </div>
-          <h3 className="font-bold text-white text-base tracking-tight mt-0.5">
-            Éphéméride Solaire &amp; Cycle Lunaire
-          </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Heures solaires vraies, crépuscules civils et révolution synodique
-          </p>
+          <div>
+            <h3 className="font-bold text-white text-sm sm:text-base">
+              Éphéméride Solaire & Astronomie
+            </h3>
+            <p className="text-xs text-slate-400">
+              Heures solaires locales, durée du jour et cycle lunaire synodique
+            </p>
+          </div>
         </div>
-        <span className="text-xs font-mono tabular-nums font-semibold text-slate-300 shrink-0">
-          Midi solaire {eph.solarNoon}
+        <span className="rounded bg-slate-950 border border-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-300">
+          Midi solaire : {eph.solarNoon}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Solar Section */}
-        <div className="space-y-3.5 pt-2 md:pt-0 md:pr-5">
+        <div className="rounded-md bg-slate-950 p-4 border border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-400">
-              Cycle diurne du Soleil
-            </span>
-            <span className="text-xs font-mono tabular-nums font-semibold text-emerald-400">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
+              <Sun className="h-3.5 w-3.5" />
+              <span>Cycle Diurne du Soleil</span>
+            </div>
+            <span className="text-xs font-semibold text-amber-300">
               {eph.dayLengthChangeMinutes > 0 ? `+${eph.dayLengthChangeMinutes} min/j` : `${eph.dayLengthChangeMinutes} min/j`}
             </span>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-xs font-mono tabular-nums">
+          {/* Sunrise / Sunset visual bar */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center text-xs">
               <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
                 <Sunrise className="h-3.5 w-3.5" />
-                <span>{eph.sunrise}</span>
+                <span>Lever : {eph.sunrise}</span>
               </div>
-              <div className="font-semibold text-white">
-                {eph.dayLengthFormatted}
+              <div className="font-semibold text-slate-200">
+                Durée : {eph.dayLengthFormatted}
               </div>
-              <div className="flex items-center gap-1.5 text-orange-300 font-semibold">
+              <div className="flex items-center gap-1.5 text-orange-400 font-semibold">
                 <Sunset className="h-3.5 w-3.5" />
-                <span>{eph.sunset}</span>
+                <span>Coucher : {eph.sunset}</span>
               </div>
             </div>
 
-            <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden relative">
+            {/* Sun progress bar */}
+            <div className="h-2 w-full rounded bg-slate-800 overflow-hidden relative">
               <div
-                className="h-full bg-amber-400 transition-transform duration-200 origin-left"
+                className="h-full bg-amber-500 transition-all duration-300"
                 style={{ width: `${eph.sunProgressPercent}%` }}
               />
             </div>
-
-            <div className="flex justify-between text-[11px] text-slate-400 font-mono tabular-nums">
-              <span>Aube {eph.civilTwilightBegin}</span>
-              <span>{eph.sunProgressPercent}%</span>
-              <span>Crépuscule {eph.civilTwilightEnd}</span>
+            <div className="flex justify-between text-[10px] text-slate-400">
+              <span>Aube : {eph.civilTwilightBegin}</span>
+              <span>Progression : {eph.sunProgressPercent}%</span>
+              <span>Crépuscule : {eph.civilTwilightEnd}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 divide-x divide-slate-800/80 pt-3 border-t border-slate-800/80 text-xs">
-            <div className="pr-2">
-              <div className="text-slate-400 text-[11px]">Élévation max</div>
-              <div className="font-bold text-white font-mono tabular-nums mt-0.5">
+          {/* Solar details grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800 text-xs">
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px]">Élévation actuelle / max</div>
+              <div className="font-semibold text-white text-sm mt-0.5">
                 {eph.currentSolarElevationDeg !== undefined ? `${eph.currentSolarElevationDeg}° / ` : ''}{eph.maxSolarElevationDeg}°
               </div>
             </div>
-            <div className="px-2">
-              <div className="text-slate-400 text-[11px]">Heure dorée</div>
-              <div className="font-bold text-amber-300 font-mono tabular-nums mt-0.5">{eph.goldenHourEvening || eph.sunset}</div>
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px]">Heure Dorée (Soir)</div>
+              <div className="font-semibold text-amber-300 text-xs mt-1">{eph.goldenHourEvening || `${eph.sunset}`}</div>
             </div>
-            <div className="pl-2">
-              <div className="text-slate-400 text-[11px]">Rayonnement</div>
-              <div className="font-bold text-white font-mono tabular-nums mt-0.5">{eph.solarRadiationKwhM2} <span className="text-[10px] font-normal">kWh/m²</span></div>
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800 col-span-2 sm:col-span-1">
+              <div className="text-slate-400 text-[10px]">Rayonnement théorique</div>
+              <div className="font-semibold text-white text-sm mt-0.5">{eph.solarRadiationKwhM2} kWh/m²</div>
             </div>
           </div>
         </div>
 
         {/* Lunar Section */}
-        <div className="space-y-3.5 pt-4 md:pt-0 md:pl-5">
+        <div className="rounded-md bg-slate-950 p-4 border border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-sky-400 flex items-center gap-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider">
               <Moon className="h-3.5 w-3.5" />
-              <span>Phase &amp; cycle lunaire</span>
-            </span>
-            <span className="text-xs font-mono tabular-nums font-semibold text-sky-300">
+              <span>Phase & Cycle de la Lune (Meeus)</span>
+            </div>
+            <span className="rounded bg-slate-900 px-2 py-0.5 text-xs font-medium text-sky-300 border border-slate-800">
               {moon.illuminationPercent}% éclairée
             </span>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-950 border border-slate-800 text-2xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-2xl">
               {moon.phaseCode === 'new_moon'
                 ? '🌑'
                 : moon.phaseCode === 'waxing_crescent'
@@ -129,35 +139,35 @@ export const EphemerisCard: React.FC<EphemerisCardProps> = ({ weather }) => {
                             ? '🌗'
                             : '🌘'}
             </div>
-            <div className="min-w-0">
-              <div className="font-bold text-white text-sm truncate">{moon.phaseName}</div>
-              <div className="text-xs text-slate-400 mt-0.5 font-mono tabular-nums truncate">
-                Âge {moon.moonAgeDays}j / 29.5j · {moon.moonSign}
+            <div>
+              <div className="font-bold text-white text-sm">{moon.phaseName}</div>
+              <div className="text-xs text-slate-400 mt-0.5">
+                Âge : <strong className="text-slate-200">{moon.moonAgeDays} j</strong> / 29.5j • Constellation : <strong className="text-sky-300">{moon.moonSign}</strong>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5 font-mono tabular-nums">
-                Lever {moon.moonrise || '21:15'} · Coucher {moon.moonset || '10:40'}
+              <div className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                Lever : <strong className="text-slate-200">{moon.moonrise || '21:15'}</strong> • Coucher : <strong className="text-slate-200">{moon.moonset || '10:40'}</strong>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 divide-x divide-slate-800/80 pt-3 border-t border-slate-800/80 text-xs">
-            <div className="pr-2">
-              <div className="text-slate-400 text-[11px] flex items-center gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800 text-xs">
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px] flex items-center gap-1">
                 <Waves className="h-3 w-3 text-sky-400" />
-                <span>Marées</span>
+                <span>Régime de Marées</span>
               </div>
-              <div className="font-bold text-sky-300 text-xs mt-0.5 truncate">{moon.tideType}</div>
+              <div className="font-semibold text-sky-300 text-xs mt-1 truncate">{moon.tideType}</div>
             </div>
-            <div className="px-2">
-              <div className="text-slate-400 text-[11px]">Pleine lune</div>
-              <div className="font-bold text-amber-300 font-mono tabular-nums text-xs mt-0.5 truncate">
-                {moon.nextFullMoonDate || 'Dans 12 j'}
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800">
+              <div className="text-slate-400 text-[10px]">Prochaine Pleine Lune</div>
+              <div className="font-semibold text-amber-300 text-xs mt-1">
+                🌕 {moon.nextFullMoonDate || 'Dans 12 j'}
               </div>
             </div>
-            <div className="pl-2">
-              <div className="text-slate-400 text-[11px]">Ciel nocturne</div>
-              <div className="font-bold text-white text-xs mt-0.5 truncate">
-                {moon.illuminationPercent > 60 ? 'Lumineux' : 'Favorable étoiles'}
+            <div className="rounded bg-slate-900 p-2.5 border border-slate-800 col-span-2 sm:col-span-1">
+              <div className="text-slate-400 text-[10px]">Visibilité nocturne</div>
+              <div className="font-semibold text-white text-xs mt-1">
+                {moon.illuminationPercent > 60 ? 'Ciel très lumineux' : 'Ciel noir propice aux étoiles'}
               </div>
             </div>
           </div>

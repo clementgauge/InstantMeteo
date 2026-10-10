@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Plus, X } from 'lucide-react';
+import { Star, Plus, X, MapPin, Sparkles } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
-import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
+import { getRichWeatherInfo } from '../utils/weatherIcons';
 
 interface FavoriteCitiesBarProps {
   currentStation: LocationPoint;
@@ -88,6 +88,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
     saveFavorites(next);
   };
 
+  // Sync current station live weather into quickSnaps immediately
   useEffect(() => {
     if (currentStation && currentWeather) {
       setQuickSnaps((prev) => ({
@@ -101,6 +102,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
     }
   }, [currentStation, currentWeather]);
 
+  // Lightweight background fetch for favorite cities' live temperatures
   useEffect(() => {
     let cancelled = false;
     const fetchMissingSnaps = async () => {
@@ -134,43 +136,45 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
     if (tempUnit === 'F') {
       return `${Math.round((celsius * 9) / 5 + 32)}°F`;
     }
-    const val = Math.round(celsius);
-    return `${val > 0 ? `+${val}` : val}°C`;
+    return `${Math.round(celsius)}°C`;
   };
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 px-3.5 py-2.5 shadow-md">
-      <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-slate-800">
-          <span className="text-xs font-semibold text-slate-300 whitespace-nowrap hidden sm:inline">
-            Stations favorites
-          </span>
+    <div className="rounded-2xl border border-slate-800/90 bg-slate-900/90 backdrop-blur-md px-3 py-2 shadow-lg">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {/* Label & Pin Current City Button */}
+        <div className="flex items-center gap-1.5 shrink-0 pr-2 border-r border-slate-800">
+          <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-amber-400">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="hidden sm:inline">Villes Favorites</span>
+          </div>
 
           <button
             type="button"
             onClick={toggleCurrentStationFavorite}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer whitespace-nowrap shrink-0 ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition cursor-pointer active:scale-95 ${
               isCurrentFavorite
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
-                : 'bg-slate-900 border-slate-700 text-slate-200 hover:border-sky-500/50 hover:text-sky-300'
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30'
+                : 'bg-sky-500/15 border-sky-500/40 text-sky-300 hover:bg-sky-500/25'
             }`}
             title={
               isCurrentFavorite
-                ? `Retirer ${currentStation.name} de vos favoris`
-                : `Épingler ${currentStation.name} dans vos favoris`
+                ? `Retirer ${currentStation.name} de vos villes favorites`
+                : `Épingler ${currentStation.name} dans vos villes favorites`
             }
           >
             <Star
-              className={`h-3.5 w-3.5 ${
-                isCurrentFavorite ? 'fill-amber-400 text-amber-400' : 'text-slate-400'
+              className={`h-3 w-3 ${
+                isCurrentFavorite ? 'fill-amber-400 text-amber-400' : 'text-sky-400'
               }`}
             />
             <span>
-              {isCurrentFavorite ? 'Épinglée' : `Épingler ${currentStation.name.split(' ')[0]}`}
+              {isCurrentFavorite ? 'Épinglée' : `+ Épingler ${currentStation.name.split(' ')[0]}`}
             </span>
           </button>
         </div>
 
+        {/* Favorites Pills */}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           {favorites.map((fav) => {
             const isSelected =
@@ -185,6 +189,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
                     isDay: currentWeather.isDay ?? true
                   }
                 : quickSnaps[fav.id];
+            const info = getRichWeatherInfo(snap?.weatherCode ?? 1, snap?.isDay ?? true);
 
             return (
               <div
@@ -195,23 +200,22 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') onSelectStation(fav);
                 }}
-                className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition shrink-0 cursor-pointer select-none ${
+                className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition shrink-0 cursor-pointer select-none ${
                   isSelected
-                    ? 'bg-sky-600/20 border-sky-400/60 text-white shadow-sm'
-                    : 'bg-slate-950/60 border-slate-800/90 hover:border-slate-700 text-slate-300 hover:text-white hover:bg-slate-900'
+                    ? 'bg-blue-600/25 border-blue-400/60 text-white shadow-sm ring-1 ring-blue-400/30'
+                    : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <DynamicSkyHeroArt
-                  weatherCode={snap?.weatherCode ?? 1}
-                  isDay={snap?.isDay ?? true}
-                  size="xs"
-                  className="-m-1"
-                />
-                <span className="font-semibold truncate max-w-[115px]">{fav.name}</span>
+                <span className="text-sm leading-none" aria-hidden="true">
+                  {info.emoji}
+                </span>
+                <span className="font-bold truncate max-w-[115px]">{fav.name}</span>
                 {snap !== undefined && (
                   <span
-                    className={`font-bold font-mono tabular-nums text-xs ${
-                      isSelected ? 'text-sky-300' : 'text-amber-300'
+                    className={`font-black tabular-nums px-1.5 py-0.5 rounded-md text-[11px] ${
+                      isSelected
+                        ? 'bg-blue-500/30 text-blue-200'
+                        : 'bg-slate-900 text-amber-300 border border-slate-800'
                     }`}
                   >
                     {formatTemp(snap.tempC)}
@@ -221,7 +225,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
                   <button
                     type="button"
                     onClick={(e) => removeFavorite(e, fav.id)}
-                    className="opacity-50 group-hover:opacity-100 hover:text-rose-400 p-0.5 rounded transition cursor-pointer"
+                    className="opacity-60 group-hover:opacity-100 hover:text-rose-400 p-0.5 rounded transition cursor-pointer"
                     title={`Retirer ${fav.name} des favoris`}
                   >
                     <X className="h-3 w-3" />
@@ -235,7 +239,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
             <button
               type="button"
               onClick={onOpenSearchModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-slate-700 hover:border-sky-400/60 bg-slate-950/40 text-slate-400 hover:text-sky-300 text-xs font-medium shrink-0 transition cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-dashed border-slate-700 hover:border-sky-400/60 bg-slate-950/50 text-slate-400 hover:text-sky-300 text-xs font-semibold shrink-0 transition cursor-pointer"
               title="Rechercher une autre ville en France ou dans le monde"
             >
               <Plus className="h-3.5 w-3.5" />
