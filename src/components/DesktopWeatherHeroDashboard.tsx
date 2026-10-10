@@ -40,6 +40,7 @@ interface DesktopWeatherHeroDashboardProps {
   onOpenDayAnalyzer?: (dayIndex: number) => void;
   onRecalibrate?: (offset: number) => void;
   onResetRecalibration?: () => void;
+  sectionMode?: 'all' | 'hero-only' | 'forecast-only';
 }
 
 export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardProps> = ({
@@ -60,6 +61,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   onLocateGps,
   onOpenContradictionModal,
   onOpenDayAnalyzer,
+  sectionMode = 'all',
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDateString, setCurrentDateString] = useState('');
@@ -127,12 +129,16 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   const todayMin = daily[0]?.tempMin ?? Math.round((weather.temperature - 4) * 10) / 10;
   const todayMax = daily[0]?.tempMax ?? Math.round((weather.temperature + 3) * 10) / 10;
 
+  const showHeroRow = sectionMode === 'all' || sectionMode === 'hero-only';
+  const showForecastRow = sectionMode === 'all' || sectionMode === 'forecast-only';
+
   return (
-    <div className="space-y-4 mb-4 select-none">
+    <div className={`${sectionMode === 'hero-only' ? '' : 'space-y-4 mb-4'} select-none`}>
       {/* ========================================================================= */}
       {/* 1. TOP ROW: ARCHITECTURAL HERO OBSERVATORY (7 COLS) + LIVE MAP (5 COLS)   */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-12 gap-4 items-stretch">
+      {showHeroRow && (
+      <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
         <div
           id="realtime-radiography"
           className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card relative overflow-hidden rounded-xl border border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
@@ -388,10 +394,12 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           </div>
         </div>
       </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 2. SECOND ROW: PRÉVISIONS HEURE PAR HEURE (8 COLS) + SOLEIL & LUNE (4 COLS) */}
       {/* ========================================================================= */}
+      {showForecastRow && (
       <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
         <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col [&>div]:flex-1 min-w-0 scroll-mt-28">
           <GrandDayAndWeekDetailedForecastCard
@@ -555,6 +563,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           );
         })()}
       </div>
+      )}
     </div>
   );
 };

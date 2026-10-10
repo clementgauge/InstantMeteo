@@ -139,7 +139,7 @@ export const FavoriteCitiesBar: React.FC<FavoriteCitiesBarProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 px-3.5 py-2.5 shadow-md">
+    <div className="rounded-xl border border-slate-800/80 bg-slate-950/55 px-3 py-2">
       <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-slate-800">
           <span className="text-xs font-semibold text-slate-300 whitespace-nowrap hidden sm:inline">
