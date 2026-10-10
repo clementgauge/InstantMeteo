@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { HourlyForecast, CurrentWeather, LocationPoint } from '../types/weather';
 import { getRichWeatherInfo } from '../utils/weatherIcons';
+import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 
 interface UnifiedHourly48hTrendProps {
   station: LocationPoint;
@@ -429,8 +430,12 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
                 </div>
 
                 <div className="my-1.5 flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-2xl shadow-inner">
-                    {getRichWeatherInfo(currentWeather.weatherCode, true, currentWeather.precipitation, currentWeather.windGust).emoji || '☀️'}
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shadow-inner">
+                    <DynamicSkyHeroArt
+                      weatherCode={currentWeather.weatherCode}
+                      isDay={currentWeather.isDay ?? true}
+                      size="xs"
+                    />
                   </div>
                   <span className="text-sm sm:text-base font-black tracking-tight text-white mt-1 tabular-nums">
                     {formatTemp(currentWeather.temperature)}
@@ -476,12 +481,16 @@ export const UnifiedHourly48hTrend: React.FC<UnifiedHourly48hTrendProps> = ({
                     </span>
                   </div>
 
-                  {/* Weather Emoji / Icon */}
+                  {/* Weather Symbol / Icon */}
                   <div className="my-1.5 flex flex-col items-center">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xl shadow-inner ${
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-inner ${
                       isNight ? 'bg-indigo-950/50 text-indigo-300' : 'bg-slate-900/80 text-amber-300'
                     }`}>
-                      {richInfo.emoji || (isNight ? '🌙' : '☀️')}
+                      <DynamicSkyHeroArt
+                        weatherCode={slot.weatherCode}
+                        isDay={!isNight}
+                        size="xs"
+                      />
                     </div>
                     <span className="text-sm sm:text-base font-black tracking-tight text-white mt-1 tabular-nums">
                       {formatTempSimple(slot.temperature)}

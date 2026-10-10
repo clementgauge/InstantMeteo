@@ -42,6 +42,7 @@ import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '..
 import { getNormalsForStation } from '../data/climateNormals';
 import { getThermalTierForTemp } from '../utils/thermalTiers';
 import { getRichWeatherInfo, getRainRiskExplanation, getDetailedCloudCover, getOctasFromPercent } from '../utils/weatherIcons';
+import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 
 interface GrandDayAndWeekDetailedForecastCardProps {
   station: LocationPoint;
@@ -156,7 +157,9 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">{h.hourLabel}</span>
-                  <span className="text-xl" title={richWeather.detailedLabel}>{richWeather.emoji}</span>
+                  <span title={richWeather.detailedLabel}>
+                    <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
+                  </span>
                 </div>
 
                 <div>
@@ -323,7 +326,9 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white">{h.hourLabel}</span>
-                      <span className="text-lg" title={richWeather.detailedLabel}>{richWeather.emoji}</span>
+                      <span title={richWeather.detailedLabel}>
+                        <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
+                      </span>
                     </div>
 
                     <div>

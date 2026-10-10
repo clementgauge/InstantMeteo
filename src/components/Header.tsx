@@ -496,26 +496,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] font-medium text-slate-300">Radar</span>
           </button>
 
-          {/* 1b. Mode Simple / Expert (Format Téléphone) */}
-          {onToggleSimplifiedMode && (
-            <button
-              onClick={onToggleSimplifiedMode}
-              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-              title={simplifiedMode ? "Passer en Mode Expert" : "Passer en Mode Simple"}
-            >
-              <div className={`w-10 h-10 rounded-full border shadow-lg flex items-center justify-center ${
-                simplifiedMode
-                  ? 'bg-emerald-600/30 border-emerald-400/60 shadow-emerald-500/25 text-emerald-300'
-                  : 'bg-indigo-600/30 border-indigo-400/60 shadow-indigo-500/25 text-indigo-300'
-              }`}>
-                <SlidersHorizontal className="h-4 w-4" />
-              </div>
-              <span className={`text-[10px] font-bold ${simplifiedMode ? 'text-emerald-300' : 'text-indigo-300'}`}>
-                {simplifiedMode ? 'Simple' : 'Expert'}
-              </span>
-            </button>
-          )}
-
           {/* 2. Jeu Météo (Logo Manette uniquement) */}
           {onOpenWeatherGame && (
             <button

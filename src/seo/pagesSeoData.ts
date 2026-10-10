@@ -84,21 +84,21 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo France — Prévisions locales et suivi en temps réel',
+    title: 'Instant Météo France — Météo en direct gratuite, sans pub & données ouvertes',
     description:
-      'Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département.',
-    h1: 'Prévisions météo en France et suivi en temps réel',
-    sectionTitle: 'Sources météorologiques et fonctionnement du portail',
+      'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes.',
+    h1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes',
+    sectionTitle: 'Sources météorologiques en données ouvertes (Open Data) et fonctionnement du portail',
     breadcrumbName: 'Accueil Météo France',
     tabId: 'realtime',
     changefreq: 'always',
     priority: '1.0',
     introParagraph:
-      'Instant Météo France regroupe sur une interface claire les observations actuelles et les prévisions locales pour les 34 965 communes de France métropolitaine et d’Outre-mer. Recherchez votre ville ou utilisez la géolocalisation pour afficher immédiatement la température, le ressenti au vent, l’évolution heure par heure et la tendance des prochains jours.',
+      'Instant Météo France est un portail météorologique 100 % gratuit, garanti sans publicité permettant de nuire à la visibilité et à la lisibilité du site, et intégralement propulsé par les données ouvertes (Open Data). Il regroupe sur une interface claire les observations actuelles et les prévisions locales pour les 34 965 communes de France métropolitaine, d’Outre-mer et d’Europe.',
     sections: [
       {
-        heading: 'D’où proviennent les données affichées sur le site ?',
-        body: 'Cette page centrale réunit en un seul point les principales bases publiques : les modèles numériques AROME (maille fine 1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF (IFS 9 km), l’imagerie radar RainViewer, les relevés hydrologiques Vigicrues (SCHAPI), les prédictions de marées du SHOM, le suivi des nappes du BRGM, les données satellitaires NASA FIRMS / GIBS et les réanalyses climatiques Copernicus ERA5.',
+        heading: 'Site 100 % gratuit, sans publicité nuisible et fondé sur les données ouvertes (Open Data)',
+        body: 'Instant Météo France garantit un accès entièrement gratuit et sans aucune publicité intrusive pouvant nuire à la visibilité des cartes ou des bulletins. Cette plateforme s’appuie sur les données ouvertes publiques (Open Data) : les modèles numériques AROME (maille fine 1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF (IFS 9 km), l’imagerie radar RainViewer, les relevés hydrologiques Vigicrues (SCHAPI), les prédictions de marées du SHOM, le suivi des nappes du BRGM, les données satellitaires NASA FIRMS / GIBS et les réanalyses climatiques Copernicus ERA5.',
       },
       {
         heading: 'Adaptation automatique au relief et à l’altitude de chaque commune',
@@ -121,9 +121,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
           'Les relevés de température, de vent et de pression sont actualisés toutes les 10 à 15 minutes, tandis que l’imagerie radar suit le déplacement des averses par pas de 5 minutes.',
       },
       {
-        question: 'L’accès aux cartes et aux prévisions nécessite-t-il un compte ?',
+        question: 'Le site est-il vraiment gratuit, sans publicité gênante et en données ouvertes ?',
         answer:
-          'Non, l’ensemble des cartes, des bulletins communaux et des outils de suivi est consultable librement et gratuitement, sans création de compte ni abonnement.',
+          'Oui, l’ensemble des cartes, des bulletins communaux et des outils de suivi est 100 % gratuit, sans création de compte, sans publicité permettant de nuire à la visibilité du site, et repose sur les données ouvertes (Open Data) officielles.',
       },
     ],
   },
@@ -132,9 +132,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'direct',
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Météo en direct par commune — Observations actuelles | Instant Météo',
+    title: 'Météo en direct par commune — Gratuit, sans pub & données ouvertes | Instant Météo',
     description:
-      'Relevés météo en direct dans votre commune : température sous abri, température ressentie, rafales de vent, humidité, pression et risque d’averse dans l’heure.',
+      'Relevés météo en direct gratuits et sans publicité nuisible dans votre commune : température, ressenti, vent, radar pluie et données ouvertes (Open Data).',
     h1: 'Observations météo en direct par commune',
     sectionTitle: 'Lecture des relevés actuels et du diagnostic heure par heure',
     breadcrumbName: 'Météo en Direct',
@@ -1626,7 +1626,29 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
           'Instant Weer',
         ],
         description: brand.homeDescription,
+        isAccessibleForFree: true,
         inLanguage: brand.inLanguage,
+      },
+      {
+        '@type': 'WebApplication',
+        '@id': `${BASE_SITE_URL}/#webapp-${locale}`,
+        name: brand.brandFull,
+        url: localizedHomeUrl,
+        applicationCategory: 'WeatherApplication',
+        operatingSystem: 'All',
+        isAccessibleForFree: true,
+        description:
+          'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data Météo-France, ECMWF, Vigicrues, SHOM).',
+        featureList: [
+          'Site météo 100 % gratuit sans abonnement',
+          'Sans publicité permettant de nuire à la visibilité et à la lisibilité du site',
+          'Données ouvertes publiques (Open Data Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)',
+        ],
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'EUR',
+        },
       },
       {
         '@type': 'Organization',
@@ -1648,6 +1670,7 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
         name: seoData.title,
         headline: seoData.h1,
         description: seoData.description,
+        isAccessibleForFree: true,
         isPartOf: { '@id': `${BASE_SITE_URL}/#website-${locale}` },
         about: { '@id': `${BASE_SITE_URL}/#organization` },
         inLanguage: brand.inLanguage,

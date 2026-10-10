@@ -13,20 +13,23 @@ import {
   Radio,
   Sliders,
   Search,
-  Globe,
-  MapPin,
   Clock,
-  CheckCircle2,
-  Sparkles
+  Sparkles,
+  CloudRainWind,
+  ArrowDownUp,
+  Droplets
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
   MOUNTAIN_MASSIFS,
   MountainMassif,
   AspectDirection,
+  EuropeanMountainRegion,
   calculateAltitudePhysics,
   calculateMultiAspectAnalysis,
   calculateElevationStages,
+  calculateContinuousSnowAndLpnAnalysis,
+  fetchLiveSkiResortConditions,
   buildDynamicMountainProfileFromLocation,
   searchAndBuildWorldMountainStation
 } from '../services/mountainWeatherService';
@@ -37,30 +40,45 @@ interface MountainWeatherViewProps {
   isLightMode?: boolean;
 }
 
+const REGION_TABS: Array<{ id: 'ALL' | 'LOCAL' | EuropeanMountainRegion; label: string }> = [
+  { id: 'ALL', label: '🌍 Toutes Stations (Europe & Monde)' },
+  { id: 'LOCAL', label: '📍 Ma Localité' },
+  { id: 'FRANCE_ALPES_NORD', label: '🇫🇷 Alpes du Nord' },
+  { id: 'FRANCE_ALPES_SUD', label: '🇫🇷 Alpes du Sud' },
+  { id: 'FRANCE_PYRENEES', label: '🇫🇷 Pyrénées' },
+  { id: 'FRANCE_VOSGES_JURA_MASSIF_CENTRAL', label: '🇫🇷 Vosges / Jura / Auvergne / Corse' },
+  { id: 'SUISSE', label: '🇨🇭 Suisse' },
+  { id: 'AUTRICHE_ALLEMAGNE', label: '🇦🇹🇩🇪 Autriche & Allemagne' },
+  { id: 'ITALIE', label: '🇮🇹 Italie (Dolomites & Aoste)' },
+  { id: 'ESPAGNE_ANDORRE', label: '🇦🇩🇪🇸 Andorre & Espagne' },
+  { id: 'SCANDINAVIE_EUROPE_EST', label: '🇳🇴🇸🇪 Scandinavie & Europe Est' },
+  { id: 'MONDE', label: '🏔️ Amériques, Japon & NZ' }
+];
+
 export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
   station,
   weather,
   isLightMode = false
 }) => {
-  // Génère automatiquement le profil montagne de la localité active de l'utilisateur
   const activeStationProfile = useMemo(
     () => buildDynamicMountainProfileFromLocation(station, weather),
     [station, weather]
   );
 
   const [customSearchedMassifs, setCustomSearchedMassifs] = useState<MountainMassif[]>([]);
+  const [liveOverrides, setLiveOverrides] = useState<Record<string, MountainMassif>>({});
   const [selectedMassifId, setSelectedMassifId] = useState<string>(MOUNTAIN_MASSIFS[0].id);
-  const [regionFilter, setRegionFilter] = useState<'ALL' | 'FRANCE' | 'WORLD' | 'LOCAL'>('ALL');
+  const [regionFilter, setRegionFilter] = useState<'ALL' | 'LOCAL' | EuropeanMountainRegion>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [isSyncingLive, setIsSyncingLive] = useState<boolean>(false);
   const [selectedAspect, setSelectedAspect] = useState<AspectDirection>('N');
 
-  // Liste combinée : Localité active + Stations recherchées + Massifs France & Monde
   const allMassifs = useMemo(() => {
-    return [activeStationProfile, ...customSearchedMassifs, ...MOUNTAIN_MASSIFS];
-  }, [activeStationProfile, customSearchedMassifs]);
+    const baseList = [activeStationProfile, ...customSearchedMassifs, ...MOUNTAIN_MASSIFS];
+    return baseList.map((m) => liveOverrides[m.id] || m);
+  }, [activeStationProfile, customSearchedMassifs, liveOverrides]);
 
-  // Si la localité active est en montagne (>= 500m), on la sélectionne automatiquement au changement de ville
   useEffect(() => {
     if ((station.altitude || 0) >= 500 || station.isMountain) {
       setSelectedMassifId(activeStationProfile.id);
@@ -71,9 +89,29 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     return allMassifs.find((m) => m.id === selectedMassifId) || activeStationProfile || MOUNTAIN_MASSIFS[0];
   }, [allMassifs, selectedMassifId, activeStationProfile]);
 
+  // Synchronisation automatique en continu avec Open-Meteo pour la station sélectionnée
+  useEffect(() => {
+    let isMounted = true;
+    if (selectedMassif.isLiveCustomStation || liveOverrides[selectedMassif.id]) {
+      return;
+    }
+    setIsSyncingLive(true);
+    fetchLiveSkiResortConditions(selectedMassif)
+      .then((updated) => {
+        if (isMounted) {
+          setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsSyncingLive(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedMassif.id]);
+
   const [customAltitude, setCustomAltitude] = useState<number>(2200);
 
-  // Ajuste l'altitude du simulateur quand on change de massif
   useEffect(() => {
     const defaultTarget = Math.min(
       selectedMassif.altitudePeak,
@@ -86,10 +124,14 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
   }, [selectedMassif.id]);
 
   const physics = useMemo(() => {
-    return calculateAltitudePhysics(weather, station.altitude || 200, customAltitude);
-  }, [weather, station.altitude, customAltitude]);
+    return calculateAltitudePhysics(weather, station.altitude || 200, customAltitude, selectedMassif);
+  }, [weather, station.altitude, customAltitude, selectedMassif]);
 
-  // Analyse complète et vérifiée des 8 versants (N, NE, E, SE, S, SW, W, NW) à l'altitude choisie
+  // Giga Analyse en continu des niveaux de neige par altitude + Limite Pluie-Neige adaptée
+  const { lpnAnalysis, continuousBands } = useMemo(() => {
+    return calculateContinuousSnowAndLpnAnalysis(selectedMassif, weather);
+  }, [selectedMassif, weather]);
+
   const versantsAnalysis = useMemo(() => {
     return calculateMultiAspectAnalysis(selectedMassif, customAltitude, weather);
   }, [selectedMassif, customAltitude, weather]);
@@ -98,7 +140,6 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     return versantsAnalysis.find((v) => v.aspect === selectedAspect) || versantsAnalysis[0];
   }, [versantsAnalysis, selectedAspect]);
 
-  // Profil étagé sur 4 niveaux d'altitude (Base, Forêt, Subalpin, Sommet)
   const elevationStages = useMemo(() => {
     return calculateElevationStages(selectedMassif, weather, station.altitude || 200);
   }, [selectedMassif, weather, station.altitude]);
@@ -112,7 +153,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
       if (results.length > 0) {
         setCustomSearchedMassifs((prev) => {
           const existingIds = new Set(results.map((r) => r.id));
-          return [...results, ...prev.filter((p) => !existingIds.has(p.id))].slice(0, 10);
+          return [...results, ...prev.filter((p) => !existingIds.has(p.id))].slice(0, 12);
         });
         setSelectedMassifId(results[0].id);
       }
@@ -122,13 +163,25 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
   };
 
   const filteredMassifs = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return allMassifs.filter((m) => {
-      if (regionFilter === 'LOCAL') return m.isLiveCustomStation;
-      if (regionFilter === 'FRANCE') return m.country.includes('France') && !m.isLiveCustomStation;
-      if (regionFilter === 'WORLD') return !m.country.includes('France') && !m.isLiveCustomStation;
-      return true;
+      const matchesRegion =
+        regionFilter === 'ALL'
+          ? true
+          : regionFilter === 'LOCAL'
+            ? Boolean(m.isLiveCustomStation)
+            : m.euroRegion === regionFilter;
+
+      if (!matchesRegion) return false;
+      if (!q) return true;
+      return (
+        m.name.toLowerCase().includes(q) ||
+        m.range.toLowerCase().includes(q) ||
+        m.country.toLowerCase().includes(q) ||
+        m.department.toLowerCase().includes(q)
+      );
     });
-  }, [allMassifs, regionFilter]);
+  }, [allMassifs, regionFilter, searchQuery]);
 
   const getBeraBadgeColor = (level: number) => {
     switch (level) {
@@ -148,6 +201,10 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
   };
 
   const beraStyle = getBeraBadgeColor(selectedMassif.beraRiskLevel);
+  const maxSnowInBands = useMemo(
+    () => Math.max(50, ...continuousBands.map((b) => Math.max(b.snowDepthUbacCm, b.snowDepthMeanCm))),
+    [continuousBands]
+  );
 
   return (
     <div className="space-y-6">
@@ -161,42 +218,46 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
               <Mountain className="w-4 h-4" />
-              <span>Observatoire Mondial de Nivologie, Reliefs & Analyse Multi-Versants (N, NE, E, SE, S, SW, W, NW)</span>
+              <span>Observatoire Européen & Mondial des Stations de Ski • Nivologie Continue & Limite Pluie-Neige</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-              Météo Haute Montagne, Stations Mondiales & Étude par Versant
+              Toutes les Stations de Ski d'Europe : Niveaux de Neige Réels par Altitude & Limite Pluie-Neige
             </h2>
             <p className={`text-xs sm:text-sm max-w-3xl leading-relaxed ${isLightMode ? 'text-slate-600' : 'text-slate-300'}`}>
-              Analyse nivologique et thermodynamique vérifiée dans <strong>toutes les stations et localités de France et du Monde</strong> : bilan radiatif par versant (Ubac/Adret), transport éolien (plaques à vent sous le vent vs érosion au vent), étagement hypsométrique et hypoxie.
+              Analyse nivologique en continu tous les 200 m d'altitude pour <strong>l'ensemble des stations de ski d'Europe</strong> (France, Suisse, Autriche, Italie, Espagne, Andorre, Scandinavie, Europe de l'Est) et du Monde. Limites pluie-neige (LPN) calculées selon l'emplacement topographique (effet d'isothermie en massif interne) et les températures prévues.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto shrink-0">
             <div className="px-3.5 py-2 rounded-xl bg-sky-500/15 border border-sky-500/30 text-center">
               <div className="text-[10px] uppercase tracking-wider text-sky-300 font-bold">Isotherme 0°C</div>
-              <div className="text-base sm:text-lg font-black text-white">{selectedMassif.isoZeroAltitudeM} m</div>
+              <div className="text-base sm:text-lg font-black text-white">{lpnAnalysis.isoZeroM} m</div>
             </div>
             <div className="px-3.5 py-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">Limite Pluie-Neige</div>
-              <div className="text-base sm:text-lg font-black text-white">{selectedMassif.rainSnowLimitM} m</div>
+              <div className="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">LPN Active / Isothermie</div>
+              <div className="text-base sm:text-lg font-black text-white">
+                {lpnAnalysis.effectiveLpnM} m <span className="text-xs text-indigo-300">({lpnAnalysis.isothermyLpnM} m)</span>
+              </div>
             </div>
             <div className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">Vent Crête ({selectedMassif.ridgeWindDirectionDeg}°)</div>
-              <div className="text-base sm:text-lg font-black text-white">{selectedMassif.ridgeWindGustKmh} km/h</div>
+              <div className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">Neige Sommet / Base</div>
+              <div className="text-base sm:text-lg font-black text-white">
+                {selectedMassif.snowDepthTopCm} / {selectedMassif.snowDepthBottomCm} cm
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Barre de Recherche Mondiale de Station de Montagne / Sommet / Localité */}
-        <div className="mt-5 pt-4 border-t border-slate-700/40 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          <form onSubmit={handleSearchWorldMountain} className="flex-1 flex items-center gap-2">
+        {/* Barre de Recherche Européenne & Mondiale de Station de Ski / Sommet */}
+        <div className="mt-5 pt-4 border-t border-slate-700/40 space-y-3">
+          <form onSubmit={handleSearchWorldMountain} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-sky-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher n'importe quelle station, sommet ou ville du monde (ex: Val d'Isère, Zermatt, Banff, Niseko, Bariloche, Annecy...)"
+                placeholder="Filtrer ou rechercher n'importe quelle station de ski d'Europe ou du monde (ex: Val Thorens, Tignes, Chamonix, Zermatt, Verbier, St. Anton, Sölden, Cortina, Baqueira, Åre...)"
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-sky-400"
               />
             </div>
@@ -205,22 +266,17 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               disabled={isSearching}
               className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs sm:text-sm transition shrink-0 cursor-pointer"
             >
-              {isSearching ? 'Calcul...' : 'Analyser ce Relief'}
+              {isSearching ? 'Calcul en cours...' : 'Rechercher Station / Sommet'}
             </button>
           </form>
 
-          {/* Filtres Géographiques */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-            {[
-              { id: 'ALL', label: '🌍 Tous (France & Monde)' },
-              { id: 'LOCAL', label: `📍 Ma Localité (${station.name})` },
-              { id: 'FRANCE', label: '🇫🇷 Massifs Français (10)' },
-              { id: 'WORLD', label: '🏔️ Grands Massifs Mondiaux (8)' }
-            ].map((tab) => (
+          {/* Filtres par Massifs Européens */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            {REGION_TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
-                  setRegionFilter(tab.id as any);
+                  setRegionFilter(tab.id);
                   if (tab.id === 'LOCAL') setSelectedMassifId(activeStationProfile.id);
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition cursor-pointer ${
@@ -236,19 +292,20 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
         </div>
       </div>
 
-      {/* Sélecteur de Massifs & Localités */}
+      {/* Sélecteur de Stations de Ski Européennes & Mondiales */}
       <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
             <Compass className="w-4 h-4 text-sky-400" />
-            <span>Sélectionner votre Station, Massif ou Localité ({filteredMassifs.length} disponibles)</span>
+            <span>Sélectionner un Domaine Skiable ou Massif ({filteredMassifs.length} domaines affichés)</span>
           </h3>
-          <span className="text-[11px] text-slate-400">
-            Cliquez sur une localité pour recalculer les 8 versants
+          <span className="text-[11px] text-sky-400 flex items-center gap-1.5">
+            <Radio className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+            <span>{isSyncingLive ? 'Synchronisation télémétrique en direct...' : 'Télémétrie Nivôse / SLF / Open-Meteo active'}</span>
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
           {filteredMassifs.map((m) => {
             const isSelected = m.id === selectedMassif.id;
             const badge = getBeraBadgeColor(m.beraRiskLevel);
@@ -275,11 +332,225 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
                   <span>{m.altitudeBase}m → {m.altitudePeak}m</span>
-                  <span className="font-bold text-sky-300">❄️ {m.snowDepthTopCm} cm</span>
+                  <span className="font-bold text-sky-300">❄️ {m.snowDepthBottomCm}–{m.snowDepthTopCm} cm</span>
                 </div>
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* BLOC 1 : GIGA ANALYSE EN CONTINU DES NIVEAUX RÉELS DE NEIGE EN FONCTION DE L'ALTITUDE & LIMITE PLUIE-NEIGE ADAPTÉE */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0F172A] border border-sky-500/30 shadow-xl space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
+              <ArrowDownUp className="w-4 h-4" />
+              <span>Giga Analyse Nivologique en Continu • Profil Hypsométrique Tous les 200 m & Limite Pluie-Neige (LPN)</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
+              Niveaux Réels de Neige par Altitude & Diagnostic Limite Pluie-Neige — {selectedMassif.name}
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Régime topographique : <strong className="text-sky-300">{lpnAnalysis.topographicRegime}</strong> • Gradient vertical : <strong className="text-white">-{lpnAnalysis.lapseRateCPer100m}°C / 100m</strong> • Humidité : <strong className="text-white">{lpnAnalysis.relativeHumidityPct}%</strong>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1.5 rounded-xl bg-sky-500/15 border border-sky-500/40 text-xs font-black text-sky-300">
+              Temp. Base ({selectedMassif.altitudeBase}m) : {lpnAnalysis.baseTempC > 0 ? `+${lpnAnalysis.baseTempC}` : lpnAnalysis.baseTempC}°C
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/40 text-xs font-black text-indigo-300">
+              Temp. Sommet ({selectedMassif.altitudePeak}m) : {lpnAnalysis.peakTempC > 0 ? `+${lpnAnalysis.peakTempC}` : lpnAnalysis.peakTempC}°C
+            </span>
+          </div>
+        </div>
+
+        {/* Explication Physique & Métriques de la Limite Pluie-Neige (LPN) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-7 p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                <CloudRainWind className="w-4 h-4" />
+                <span>Analyse Thermodynamique de la Limite Pluie-Neige (LPN) selon l'Emplacement</span>
+              </div>
+              <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                Abaissement isothermique : -{lpnAnalysis.isothermyDropM} m sous l'Iso 0°C
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {lpnAnalysis.physicalExplanation}
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                <div className="text-[10px] uppercase text-slate-400">Isotherme 0°C (T=0°C)</div>
+                <div className="text-base font-black text-amber-400 mt-0.5">{lpnAnalysis.isoZeroM} m</div>
+                <div className="text-[10px] text-slate-500">Début de fusion</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                <div className="text-[10px] uppercase text-slate-400">Iso Tw = 0°C (Humide)</div>
+                <div className="text-base font-black text-cyan-400 mt-0.5">{lpnAnalysis.wetBulbZeroM} m</div>
+                <div className="text-[10px] text-slate-500">Thermomètre mouillé</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-sky-500/40">
+                <div className="text-[10px] uppercase text-sky-300 font-bold">LPN Active Station</div>
+                <div className="text-base font-black text-white mt-0.5">{lpnAnalysis.effectiveLpnM} m</div>
+                <div className="text-[10px] text-sky-400">Tenue au sol</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-indigo-500/40">
+                <div className="text-[10px] uppercase text-indigo-300 font-bold">LPN sous Forte Averse</div>
+                <div className="text-base font-black text-indigo-300 mt-0.5">{lpnAnalysis.isothermyLpnM} m</div>
+                <div className="text-[10px] text-slate-500">Effet d'isothermie</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Évolution 24h de la Limite Pluie-Neige et des Températures Prévues */}
+          <div className="lg:col-span-5 p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+            <div className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              <span>Évolution 24h de la Limite Pluie-Neige & T° Prévues</span>
+            </div>
+            <div className="space-y-2">
+              {lpnAnalysis.timeline24h.map((slot, i) => (
+                <div
+                  key={i}
+                  className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/90 flex items-center justify-between gap-2 text-xs"
+                >
+                  <div>
+                    <div className="font-bold text-white">{slot.slotLabel}</div>
+                    <div className="text-[11px] text-sky-300">{slot.snowLineStatus}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-black text-white">
+                      LPN <span className="text-sky-400">{slot.lpnM} m</span>{' '}
+                      <span className="text-[10px] text-slate-400">(Iso {slot.isoZeroM}m)</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">
+                      Base: {slot.tempAtBaseC > 0 ? `+${slot.tempAtBaseC}` : slot.tempAtBaseC}°C • 2000m: {slot.tempAt2000mC > 0 ? `+${slot.tempAt2000mC}` : slot.tempAt2000mC}°C
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tableau / Graphe Continu des Niveaux Réels de Neige par Tranche d'Altitude */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+              <Snowflake className="w-4 h-4" />
+              <span>Profil Vertical Continu de l'Enneigement (Du Sommet {selectedMassif.altitudePeak}m à la Vallée)</span>
+            </h4>
+            <span className="text-[11px] text-slate-400">
+              Cliquez sur un palier d'altitude pour cibler l'analyse des 8 versants sur cette cote
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 bg-slate-900/90 text-[10px] uppercase tracking-wider text-slate-400">
+                  <th className="py-2.5 px-3">Altitude & Étage</th>
+                  <th className="py-2.5 px-3">T° Air / Tw Humide</th>
+                  <th className="py-2.5 px-3">Phase Précipitation</th>
+                  <th className="py-2.5 px-3 min-w-[200px]">Niveau de Neige Réel (Moyenne / Ubac / Adret)</th>
+                  <th className="py-2.5 px-3">Fraîche 24h</th>
+                  <th className="py-2.5 px-3">Densité</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/70">
+                {continuousBands.map((band) => {
+                  const barWidthPct = Math.min(100, Math.round((band.snowDepthMeanCm / maxSnowInBands) * 100));
+                  const ubacWidthPct = Math.min(100, Math.round((band.snowDepthUbacCm / maxSnowInBands) * 100));
+                  const isNearCustom = Math.abs(band.altitudeM - customAltitude) <= 120;
+
+                  return (
+                    <tr
+                      key={band.altitudeM}
+                      onClick={() => setCustomAltitude(band.altitudeM)}
+                      className={`transition cursor-pointer ${
+                        isNearCustom
+                          ? 'bg-sky-500/15 hover:bg-sky-500/20'
+                          : 'hover:bg-slate-900/70'
+                      }`}
+                    >
+                      <td className="py-2.5 px-3 font-mono font-bold text-white whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-sky-300">
+                            {band.altitudeM} m
+                          </span>
+                          <span className="font-sans text-[11px] text-slate-300 font-semibold">
+                            {band.label}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span className={`font-black ${band.airTempC <= 0 ? 'text-sky-400' : 'text-amber-300'}`}>
+                          {band.airTempC > 0 ? `+${band.airTempC}` : band.airTempC}°C
+                        </span>
+                        <span className="text-slate-400 text-[11px] ml-1.5">
+                          (Tw {band.wetBulbTempC > 0 ? `+${band.wetBulbTempC}` : band.wetBulbTempC}°C)
+                        </span>
+                      </td>
+
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            band.precipPhase.includes('poudreuse')
+                              ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
+                              : band.precipPhase.includes('Neige humide')
+                                ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                                : band.precipPhase.includes('Transition')
+                                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                  : 'bg-slate-800 border-slate-700 text-slate-400'
+                          }`}
+                        >
+                          {band.precipPhase}
+                        </span>
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-black text-white">{band.snowDepthMeanCm} cm moy.</span>
+                            <span className="text-[10px] text-slate-400">
+                              Nord (Ubac): <strong className="text-sky-300">{band.snowDepthUbacCm} cm</strong> • Sud (Adret): <strong className="text-amber-300">{band.snowDepthAdretCm} cm</strong>
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden relative">
+                            <div
+                              className="h-full bg-sky-500/35 rounded-full absolute left-0 top-0"
+                              style={{ width: `${ubacWidthPct}%` }}
+                            />
+                            <div
+                              className="h-full bg-gradient-to-r from-sky-400 to-indigo-400 rounded-full relative"
+                              style={{ width: `${barWidthPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3 font-bold whitespace-nowrap">
+                        {band.freshSnow24hCm > 0 ? (
+                          <span className="text-emerald-400">+{band.freshSnow24hCm} cm</span>
+                        ) : (
+                          <span className="text-slate-500">0 cm</span>
+                        )}
+                      </td>
+
+                      <td className="py-2.5 px-3 text-[11px] text-slate-300 whitespace-nowrap font-mono">
+                        {band.snowDepthMeanCm > 0 ? `${band.snowDensityKgM3} kg/m³` : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -468,7 +739,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <div className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                  {selectedMassif.range} • {selectedMassif.department}
+                  {selectedMassif.country} • {selectedMassif.range} • {selectedMassif.department}
                 </div>
                 <h3 className="text-xl font-black text-white mt-0.5">
                   {selectedMassif.name} ({selectedMassif.altitudeBase}m – {selectedMassif.altitudePeak}m)
@@ -494,7 +765,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             {/* Coupe Hypsométrique sur 4 Étages d'Altitude */}
             <div className="space-y-2.5">
               <div className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center justify-between">
-                <span>Coupe Atmosphérique & Hypsométrique (4 Étages d'Altitude)</span>
+                <span>Coupe Atmosphérique & Hypsométrique (4 Étages Clés)</span>
                 <span className="text-[11px] text-slate-400">Calcul barométrique & adiabatique réel</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -533,33 +804,6 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </div>
             </div>
 
-            {/* Snow Depths & Quality */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Neige Sommet</div>
-                <div className="text-lg font-black text-sky-400 mt-1">{selectedMassif.snowDepthTopCm} cm</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Vers {selectedMassif.altitudePeak} m</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Neige Base</div>
-                <div className="text-lg font-black text-sky-400 mt-1">{selectedMassif.snowDepthBottomCm} cm</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Vers {selectedMassif.altitudeBase} m</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Neige Fraîche 24h</div>
-                <div className="text-lg font-black text-emerald-400 mt-1">+{selectedMassif.freshSnow24hCm} cm</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Chutes récentes</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Vent en Crête</div>
-                <div className="text-lg font-black text-indigo-300 mt-1">{selectedMassif.ridgeWindGustKmh} km/h</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Dir. {selectedMassif.ridgeWindDirectionDeg}°</div>
-              </div>
-            </div>
-
             {/* Quality badge & Nivôse station info */}
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-2 border-t border-slate-800 text-slate-400">
               <div className="flex items-center gap-2">
@@ -582,7 +826,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
                 <Sliders className="w-4 h-4" />
-                <span>Simulateur d'Altitude & Hypoxie Réel</span>
+                <span>Simulateur d'Altitude, Tw & Hypoxie Réel</span>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-sky-500/20 text-sky-400 border border-sky-500/30">
                 {customAltitude} m
@@ -590,7 +834,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Déplacez le curseur d'altitude pour mettre à jour simultanément les 8 versants ci-dessus, la température sous abri, le refroidissement éolien (Wind Chill) et l'oxygène disponible.
+              Déplacez le curseur d'altitude pour mettre à jour simultanément les 8 versants, la température sous abri, la température humide (Wet-Bulb Tw) et l'oxygène disponible.
             </p>
 
             {/* Altitude Slider */}
@@ -617,12 +861,17 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 <div className="flex items-center gap-2.5">
                   <ThermometerSnowflake className="w-5 h-5 text-sky-400" />
                   <div>
-                    <div className="text-xs font-bold text-slate-300">Température sous abri</div>
-                    <div className="text-[10px] text-slate-500">Gradient standard -0.65°C/100m</div>
+                    <div className="text-xs font-bold text-slate-300">Température sous abri & Humide (Tw)</div>
+                    <div className="text-[10px] text-slate-500">Gradient -{physics.lapseRateCPer100m}°C/100m • Tw Stull</div>
                   </div>
                 </div>
-                <div className={`text-lg font-black ${physics.tempAtAltitude <= 0 ? 'text-sky-400' : 'text-white'}`}>
-                  {physics.tempAtAltitude > 0 ? `+${physics.tempAtAltitude}` : physics.tempAtAltitude} °C
+                <div className="text-right">
+                  <div className={`text-base font-black ${physics.tempAtAltitude <= 0 ? 'text-sky-400' : 'text-white'}`}>
+                    {physics.tempAtAltitude > 0 ? `+${physics.tempAtAltitude}` : physics.tempAtAltitude} °C
+                  </div>
+                  <div className="text-[10px] text-cyan-400 font-bold">
+                    Tw : {physics.wetBulbAtAltitude > 0 ? `+${physics.wetBulbAtAltitude}` : physics.wetBulbAtAltitude} °C
+                  </div>
                 </div>
               </div>
 
@@ -683,19 +932,19 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
 
             {/* Presence of Snow at this elevation */}
             <div className={`p-3 rounded-xl border flex items-center gap-3 ${
-              customAltitude >= physics.lpn
+              customAltitude >= lpnAnalysis.effectiveLpnM
                 ? 'bg-sky-950/30 border-sky-800/50 text-sky-300'
                 : 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
             }`}>
               <Snowflake className="w-5 h-5 shrink-0" />
               <div className="text-xs leading-relaxed">
-                {customAltitude >= physics.lpn ? (
+                {customAltitude >= lpnAnalysis.effectiveLpnM ? (
                   <span>
-                    À <strong>{customAltitude} m</strong>, vous êtes au-dessus de la limite pluie-neige ({physics.lpn} m). Précipitations solides (neige ou grésil).
+                    À <strong>{customAltitude} m</strong>, vous êtes au-dessus de la limite pluie-neige ({lpnAnalysis.effectiveLpnM} m). Précipitations solides (neige).
                   </span>
                 ) : (
                   <span>
-                    À <strong>{customAltitude} m</strong>, vous êtes en dessous de la limite pluie-neige ({physics.lpn} m). Précipitations liquides en cas d'averse.
+                    À <strong>{customAltitude} m</strong>, vous êtes sous la limite pluie-neige standard ({lpnAnalysis.effectiveLpnM} m ; {lpnAnalysis.isothermyLpnM} m sous forte averse).
                   </span>
                 )}
               </div>

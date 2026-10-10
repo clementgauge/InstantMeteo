@@ -96,10 +96,24 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   }, [selectedBeach]);
 
   const filteredBeaches = useMemo(() => {
-    if (coastFilter === 'ALL') return allSpots;
-    if (coastFilter === 'LOCAL') return allSpots.filter((b) => b.isLiveCustomSpot);
-    return allSpots.filter((b) => b.coastline === coastFilter);
-  }, [allSpots, coastFilter]);
+    const q = searchQuery.trim().toLowerCase();
+    return allSpots.filter((b) => {
+      const matchesCoast =
+        coastFilter === 'ALL'
+          ? true
+          : coastFilter === 'LOCAL'
+            ? Boolean(b.isLiveCustomSpot)
+            : b.coastline === coastFilter;
+      if (!matchesCoast) return false;
+      if (!q) return true;
+      return (
+        b.name.toLowerCase().includes(q) ||
+        b.department.toLowerCase().includes(q) ||
+        b.coastline.toLowerCase().includes(q) ||
+        (b.country || '').toLowerCase().includes(q)
+      );
+    });
+  }, [allSpots, coastFilter, searchQuery]);
 
   const handleSearchCoastalLocality = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,13 +210,13 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-400">
               <Waves className="w-4 h-4" />
-              <span>Observatoire Marin & Littoral Universel • Toutes Communes Côtières, Ports, Îles & Plages</span>
+              <span>Observatoire Balnéaire & Marin Universel • France, Europe & Monde</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-              Météo Marine, Marées SHOM, Houle & Température de l'Eau
+              Stations Balnéaires (France, Europe & Monde), Marées SHOM, Houle & Température de l'Eau
             </h2>
             <p className={`text-xs sm:text-sm max-w-3xl leading-relaxed ${isLightMode ? 'text-slate-600' : 'text-slate-300'}`}>
-              Chaque commune littorale de France (Manche, Bretagne, Atlantique, Méditerranée, Corse, Outre-Mer) et du Monde dispose ici de son bulletin marin dédié en temps réel : houle primaire vs mer du vent, courants côtiers, marées SHOM et scores nautiques.
+              L'ensemble des stations balnéaires de <strong>France</strong> (Manche, Bretagne, Atlantique, Méditerranée, Corse, Outre-Mer), d'<strong>Europe</strong> (Espagne, Baléares, Canaries, Portugal, Italie, Sardaigne, Grèce, Croatie, Mer du Nord) et du <strong>Monde</strong> sont recherchables en direct avec houle, température de l'eau (SST) et marées SHOM.
             </p>
           </div>
 
@@ -233,7 +247,7 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher n'importe quelle commune côtière, plage, île ou port (ex: Cancale, Pornic, Collioure, Cassis, Calvi, Nazaré...)"
+                placeholder="Rechercher n'importe quelle station balnéaire de France, d'Europe ou du Monde (ex: Deauville, Biarritz, Cassis, Calvi, Majorque, Marbella, Algarve, Nazaré, Capri, Mykonos, Miami, Bali...)"
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400"
               />
             </div>
@@ -249,13 +263,16 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
           {/* Filtres Façades Maritimes */}
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: 'ALL', label: '🌊 Toutes Façades' },
+              { id: 'ALL', label: '🌊 Toutes Stations (France, Europe & Monde)' },
               { id: 'LOCAL', label: `📍 Mon Littoral (${station.name})` },
-              { id: 'Manche & Mer du Nord', label: 'Manche & Nord' },
-              { id: 'Bretagne & Celtique', label: 'Bretagne' },
-              { id: 'Océan Atlantique', label: 'Atlantique' },
-              { id: 'Mer Méditerranée & Corse', label: 'Méditerranée & Corse' },
-              { id: 'Outre-Mer & Monde', label: 'Outre-Mer & Monde' }
+              { id: 'Manche & Mer du Nord', label: '🇫🇷 Manche & Nord' },
+              { id: 'Bretagne & Celtique', label: '🇫🇷 Bretagne' },
+              { id: 'Océan Atlantique', label: '🇫🇷 Atlantique' },
+              { id: 'Mer Méditerranée & Corse', label: '🇫🇷 Méditerranée & Corse' },
+              { id: 'Europe — Espagne & Portugal', label: '🇪🇸🇵🇹 Espagne & Portugal' },
+              { id: 'Europe — Italie, Grèce & Adriatique', label: '🇮🇹🇬🇷🇭🇷 Italie, Grèce & Croatie' },
+              { id: 'Europe — Nord, UK & Baltique', label: '🇧🇪🇬🇧 Europe du Nord & UK' },
+              { id: 'Outre-Mer & Monde', label: '🌴 Outre-Mer & Monde' }
             ].map((tab) => (
               <button
                 key={tab.id}

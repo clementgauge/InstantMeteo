@@ -30,7 +30,6 @@ import {
   refreshDailyStreak, 
   registerVisitedLocation, 
   checkAndUnlockWeatherConditions, 
-  claimAmazonBonus, 
   getLeaderboard, 
   getMultiplier, 
   resetPlayerPoints,
@@ -70,7 +69,6 @@ import {
   Gamepad2
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
-import { AMAZON_AFFILIATE_LINKS } from '../config/affiliateLinks';
 
 interface CompetitiveGamingViewProps {
   currentStation: LocationPoint;
@@ -438,15 +436,6 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
     } else {
       showToast(`Vous avez déjà enregistré votre position réelle (${deviceGpsLocation.name}) !`, 0);
     }
-  };
-
-  // Claim Amazon partner bonus
-  const handleClaimAmazonBonus = async () => {
-    if (!profile) return;
-    const res = claimAmazonBonus(profile);
-    setProfile(res.profile);
-    showToast('Bonus Découverte Équipement Amazon validé !', res.points);
-    await syncWithD1(res.profile);
   };
 
   // Leaderboard data (Cloudflare D1 priority if connected, local fallback otherwise)
@@ -954,36 +943,36 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
           </button>
         </div>
 
-        {/* Amazon Partner Bonus */}
+        {/* Arcade & Quiz Météo Challenge */}
         <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 space-y-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 text-amber-400">
-              <Gift className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 text-emerald-400">
+              <Gamepad2 className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-xs text-white">Bonus Matériel Météo</h3>
-              <p className="text-[11px] text-slate-400">Consultez les équipements météo</p>
+              <h3 className="font-bold text-xs text-white">Jeux &amp; Quiz Météo</h3>
+              <p className="text-[11px] text-slate-400">Testez vos connaissances météo</p>
             </div>
           </div>
 
           <div className="bg-slate-900 p-2.5 rounded-md border border-slate-800 text-xs">
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Bonus Réclamés :</span>
-            <span className="font-bold text-amber-300 text-xs">{profile.amazonBonusesClaimed} bonus</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Mode Arcade &amp; Défis :</span>
+            <span className="font-bold text-emerald-300 text-xs">Quiz, Duel &amp; Mini-Jeux</span>
             <span className="text-slate-400 block text-[10px] mt-0.5">
-              +50 pts bonus par découverte
+              Entraînez-vous sur les phénomènes climatiques
             </span>
           </div>
 
-          <a
-            href={AMAZON_AFFILIATE_LINKS.QXMCOV_WEATHER_STATION}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            onClick={handleClaimAmazonBonus}
-            className="w-full flex items-center justify-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 text-xs transition cursor-pointer"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            <span>Découvrir sur Amazon (+50 pts)</span>
-          </a>
+          {onOpenWeatherGame && (
+            <button
+              type="button"
+              onClick={onOpenWeatherGame}
+              className="w-full flex items-center justify-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 text-xs transition cursor-pointer"
+            >
+              <Gamepad2 className="h-3.5 w-3.5" />
+              <span>Lancer les Jeux Météo</span>
+            </button>
+          )}
         </div>
       </div>
 

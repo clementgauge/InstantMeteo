@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- Primary SEO Meta Tags -->
-    <title>Instant Météo France — Prévisions locales et suivi en temps réel</title>
-    <meta name="title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
-    <meta name="description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <title>Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes</title>
+    <meta name="title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
+    <meta name="description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
     <meta name="author" content="Instant Météo France" />
     <meta name="publisher" content="Instant Météo France" />
     <meta name="application-name" content="Instant Météo" />
@@ -62,8 +62,8 @@
     <meta property="og:site_name" content="Instant Météo France" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta property="og:title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
-    <meta property="og:description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <meta property="og:title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
+    <meta property="og:description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
     <meta property="og:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
     <meta property="og:image:alt" content="Instant Météo France - Prévisions et radar des pluies" />
     <meta property="og:image:width" content="512" />
@@ -72,8 +72,8 @@
     <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta name="twitter:title" content="Instant Météo France — Prévisions locales et suivi en temps réel" />
-    <meta name="twitter:description" content="Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département." />
+    <meta name="twitter:title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
+    <meta name="twitter:description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
     <meta name="twitter:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
 
     <!-- Favicons & App Manifest -->
@@ -112,8 +112,24 @@
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
             "name": "Instant Météo France",
             "alternateName": ["Instant Météo", "InstantMeteoFrance"],
-            "description": "Consultez la météo en France pour les 34 965 communes : observations actuelles, prévisions heure par heure, radar des pluies et suivi par département.",
+            "description": "Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes de France.",
+            "isAccessibleForFree": true,
             "inLanguage": "fr-FR"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#webapp",
+            "name": "Instant Météo France",
+            "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+            "applicationCategory": "WeatherApplication",
+            "operatingSystem": "All",
+            "isAccessibleForFree": true,
+            "description": "Application météo en direct 100 % gratuite, sans publicité nuisant à la visibilité et à la lisibilité du site, fondée sur les données ouvertes (Open Data Météo-France, ECMWF, Vigicrues, SHOM).",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "EUR"
+            }
           }
         ]
       }
@@ -126,9 +142,6 @@
 
     <!-- Leaflet CSS for Interactive Maps & Radar -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-
-    <!-- Google AdSense Monetization Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544" crossorigin="anonymous"></script>
 
     <!-- Instant Theme Initializer -->
     <script>

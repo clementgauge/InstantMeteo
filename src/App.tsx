@@ -954,6 +954,7 @@ function WeatherApp() {
                   anomaly={anomaly}
                   seniorMode={seniorMode}
                   simplifiedMode={simplifiedMode}
+                  onToggleSimplifiedMode={handleToggleSimplifiedMode}
                   tempUnit={tempUnit}
                   isUsingCachedData={isUsingCachedData}
                   cachedAt={cachedAtTime}

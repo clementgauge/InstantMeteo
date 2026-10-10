@@ -46,10 +46,10 @@ export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand>
     ogLocale: 'fr_FR',
     inLanguage: 'fr-FR',
     dir: 'ltr',
-    homeTitle: 'Instant Météo France — Prévisions Météo en Direct, Radar Pluie & Vigilances',
-    homeH1: 'Prévisions météo en France et suivi en temps réel',
+    homeTitle: 'Instant Météo France — Météo en direct gratuite, sans pub & données ouvertes',
+    homeH1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes',
     homeDescription:
-      'Consultez la météo en direct sur les 34 965 communes de France : observations temps réel, prévisions heure par heure, radar de pluie Doppler et carte des vigilances départementales.',
+      'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes de France.',
     homeBreadcrumb: 'Accueil Météo France',
   },
   en: {
@@ -63,10 +63,10 @@ export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand>
     ogLocale: 'en_US',
     inLanguage: 'en',
     dir: 'ltr',
-    homeTitle: 'Instant Weather — Live Weather Forecasts, Rain Radar & Warnings in France',
-    homeH1: 'Instant Weather — Live Weather Forecasts and Real-Time Tracking in France',
+    homeTitle: 'Instant Weather — Free Live Weather, Ad-Free Visibility & Open Data in France',
+    homeH1: 'Instant Weather — Free Live Weather Forecasts, Ad-Free & Open Data in France',
     homeDescription:
-      'Instant Weather (Instant Météo France): check live weather across all 34,965 municipalities in France with real-time observations, hourly forecasts, HD Doppler rain radar and weather warnings.',
+      '100% free weather portal with no intrusive ads harming site visibility, powered by official Open Data across all 34,965 municipalities in France.',
     homeBreadcrumb: 'Instant Weather Home',
   },
   de: {
@@ -262,10 +262,10 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Weather — Live Weather Forecasts, Rain Radar & Warnings in France',
+    title: 'Instant Weather — Free Live Weather, Ad-Free Visibility & Open Data in France',
     description:
-      'Instant Weather (Instant Météo France): check live weather across all 34,965 municipalities in France with current observations, hourly forecasts, Doppler rain radar and severe weather warnings.',
-    h1: 'Instant Weather — Live Weather Forecasts and Real-Time Tracking in France',
+      '100% free weather portal with no intrusive ads harming site visibility, powered by official Open Data across all 34,965 municipalities in France.',
+    h1: 'Instant Weather — Free Live Weather Forecasts, Ad-Free & Open Data in France',
     sectionTitle: 'Meteorological Data Sources and Portal Architecture',
     breadcrumbName: 'Instant Weather Home',
     tabId: 'realtime',
