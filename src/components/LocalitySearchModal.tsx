@@ -19,6 +19,7 @@ import { LocationPoint } from '../types/weather';
 import { searchLocalities, getLocalityFromCoordinates } from '../services/openMeteoService';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
+import { MOUNTAIN_VILLAGES_CATALOG } from '../data/mountainVillagesCatalog';
 
 interface LocalitySearchModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
   const [results, setResults] = useState<LocationPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [category, setCategory] = useState<FilterCategory>('ALL');
+  const [mountainMassifFilter, setMountainMassifFilter] = useState<string>('ALL');
   const [gpsLoading, setGpsLoading] = useState(false);
   const [recentLocations, setRecentLocations] = useState<LocationPoint[]>([]);
   
@@ -100,27 +102,37 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
   useEffect(() => {
     const timer = setTimeout(() => {
       performSearch(searchQuery);
-    }, 280);
+    }, 240);
     return () => clearTimeout(timer);
-  }, [searchQuery, category]);
+  }, [searchQuery, category, mountainMassifFilter]);
 
   const performSearch = async (query: string) => {
     setIsLoading(true);
     try {
       let data: LocationPoint[] = [];
       const trimmed = query.trim().toLowerCase();
+      const norm = (s: string) =>
+        s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[-']/g, ' ');
+      const normQuery = norm(trimmed);
+
+      const allLocalCatalog = [...MOUNTAIN_VILLAGES_CATALOG, ...FRENCH_STATIONS, ...WORLD_STATIONS];
+
       if (!trimmed) {
-        if (category === 'WORLD') {
-          data = [...WORLD_STATIONS];
+        if (category === 'MOUNTAIN') {
+          data = [...MOUNTAIN_VILLAGES_CATALOG, ...FRENCH_STATIONS.filter(d => (d.altitude ?? 0) >= 650 || d.isMountain)];
+        } else if (category === 'WORLD') {
+          data = [...WORLD_STATIONS, ...MOUNTAIN_VILLAGES_CATALOG.filter(m => m.isWorldLocation)];
         } else {
-          data = [...FRENCH_STATIONS, ...WORLD_STATIONS];
+          data = [...MOUNTAIN_VILLAGES_CATALOG.slice(0, 45), ...FRENCH_STATIONS, ...WORLD_STATIONS];
         }
       } else {
-        const localMatches = [...FRENCH_STATIONS, ...WORLD_STATIONS].filter(s => 
-          s.name.toLowerCase().includes(trimmed) || 
-          s.department.toLowerCase().includes(trimmed) ||
-          (s.region && s.region.toLowerCase().includes(trimmed)) ||
-          (s.country && s.country.toLowerCase().includes(trimmed))
+        const localMatches = allLocalCatalog.filter(s => 
+          norm(s.name).includes(normQuery) || 
+          norm(s.department).includes(normQuery) ||
+          (s.region && norm(s.region).includes(normQuery)) ||
+          (s.climateZone && norm(s.climateZone).includes(normQuery)) ||
+          (s.country && norm(s.country).includes(normQuery)) ||
+          (s.postalCode && s.postalCode.startsWith(trimmed))
         );
         const remoteMatches = await searchLocalities(query);
         data = [...localMatches, ...remoteMatches];
@@ -128,7 +140,19 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
 
       // Filter by category
       if (category === 'MOUNTAIN') {
-        data = data.filter(d => (d.altitude ?? 0) >= 800 || d.isMountain);
+        data = data.filter(d => (d.altitude ?? 0) >= 650 || d.isMountain);
+        if (mountainMassifFilter !== 'ALL') {
+          data = data.filter(d => {
+            const info = `${d.department} ${d.region} ${d.climateZone || ''} ${d.country || ''}`.toLowerCase();
+            if (mountainMassifFilter === 'ALPES_NORD') return info.includes('74') || info.includes('73') || info.includes('38') || info.includes('savoie') || info.includes('isère') || info.includes('mont-blanc') || info.includes('vanoise') || info.includes('aravis') || info.includes('oisans') || info.includes('vercors');
+            if (mountainMassifFilter === 'ALPES_SUD') return info.includes('05') || info.includes('04') || info.includes('06') || info.includes('84') || info.includes('26') || info.includes('hautes-alpes') || info.includes('ubaye') || info.includes('queyras') || info.includes('mercantour') || info.includes('écrins');
+            if (mountainMassifFilter === 'PYRENEES') return info.includes('64') || info.includes('65') || info.includes('31') || info.includes('09') || info.includes('66') || info.includes('11') || info.includes('pyrénées') || info.includes('ariège') || info.includes('andorre');
+            if (mountainMassifFilter === 'MASSIF_CENTRAL') return info.includes('63') || info.includes('15') || info.includes('48') || info.includes('43') || info.includes('12') || info.includes('07') || info.includes('30') || info.includes('42') || info.includes('sancy') || info.includes('cantal') || info.includes('aubrac') || info.includes('cévennes') || info.includes('lozère');
+            if (mountainMassifFilter === 'VOSGES_JURA_CORSE') return info.includes('88') || info.includes('68') || info.includes('67') || info.includes('39') || info.includes('25') || info.includes('01') || info.includes('2a') || info.includes('2b') || info.includes('vosges') || info.includes('jura') || info.includes('corse') || info.includes('doubs');
+            if (mountainMassifFilter === 'EUROPE') return d.isWorldLocation || (d.country && d.country !== 'France');
+            return true;
+          });
+        }
       } else if (category === 'FRANCE') {
         data = data.filter(d => d.isFrench || d.country === 'France');
       } else if (category === 'WORLD') {
@@ -139,13 +163,15 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
         data = data.filter(d => (d.altitude ?? 0) <= 50);
       }
 
-      // Deduplicate results by unique ID
-      const seenIds = new Set<string>();
+      // Deduplicate results by unique ID or identical name+coords
+      const seenKeys = new Set<string>();
       const deduplicated = data.filter(item => {
-        if (seenIds.has(item.id)) {
+        const coordKey = `${norm(item.name)}-${Math.round(item.latitude * 50)}-${Math.round(item.longitude * 50)}`;
+        if (seenKeys.has(item.id) || seenKeys.has(coordKey)) {
           return false;
         }
-        seenIds.add(item.id);
+        seenKeys.add(item.id);
+        seenKeys.add(coordKey);
         return true;
       });
 
@@ -237,10 +263,10 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
             </div>
             <div>
               <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
-                Recherche de Localités (France & Monde)
+                Recherche de Communes, Villages &amp; Stations de Montagne
               </h2>
               <p className="text-xs text-slate-400">
-                Accédez à toutes les 34 965 communes françaises, sommets & villes du monde à toute altitude
+                34 965 communes, villages, hameaux d'altitude, stations de ski &amp; sommets (sans noms de rues)
               </p>
             </div>
           </div>
@@ -278,7 +304,7 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
                 id="locality-search-input"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tapez un nom de ville, village, code postal (74400), sommet (Mont Blanc, Everest)..."
+                placeholder="Chercher un village, commune, hameau de montagne, station de ski, code postal (ex: Saint-Véran, Bonneval, 74400)..."
                 className={`w-full rounded-2xl border border-slate-700 bg-slate-950 pl-11 pr-10 text-white placeholder-slate-500 shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 ${
                   seniorMode ? 'py-3.5 text-base' : 'py-3 text-sm'
                 }`}
@@ -397,12 +423,12 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
               onClick={() => setCategory('MOUNTAIN')}
               className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                 category === 'MOUNTAIN'
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/25'
+                  : 'bg-slate-800 text-amber-300 hover:bg-slate-700 border border-amber-500/30'
               }`}
             >
-              <Mountain className="h-3.5 w-3.5 text-amber-400" />
-              <span>🏔️ Montagne & Altitude (&gt; 800m)</span>
+              <Mountain className={`h-3.5 w-3.5 ${category === 'MOUNTAIN' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span>🏔️ Villages &amp; Stations de Montagne ({MOUNTAIN_VILLAGES_CATALOG.length}+)</span>
             </button>
             <button
               onClick={() => setCategory('WORLD')}
@@ -438,6 +464,36 @@ export const LocalitySearchModal: React.FC<LocalitySearchModalProps> = ({
               <span>🌊 Littoral & Plaines</span>
             </button>
           </div>
+
+          {/* Sub-filters for Mountain Villages by Massif */}
+          {category === 'MOUNTAIN' && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-800/80">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 mr-1">
+                Massif :
+              </span>
+              {[
+                { id: 'ALL', label: '🏔️ Tous les Massifs' },
+                { id: 'ALPES_NORD', label: '❄️ Alpes du Nord (74/73/38)' },
+                { id: 'ALPES_SUD', label: '☀️ Alpes du Sud (05/04/06)' },
+                { id: 'PYRENEES', label: '🐻 Pyrénées (64/65/31/09/66)' },
+                { id: 'MASSIF_CENTRAL', label: '🌋 Auvergne, Cantal & Cévennes' },
+                { id: 'VOSGES_JURA_CORSE', label: '🌲 Vosges, Jura & Corse' },
+                { id: 'EUROPE', label: '🇨🇭🇦🇹🇮🇹 Suisse, Autriche & Italie' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setMountainMassifFilter(m.id)}
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition cursor-pointer ${
+                    mountainMassifFilter === m.id
+                      ? 'bg-amber-500/25 border border-amber-400 text-amber-200'
+                      : 'bg-slate-950/80 border border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Results List */}

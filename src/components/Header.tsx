@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { MOUNTAIN_VILLAGES_CATALOG } from '../data/mountainVillagesCatalog';
 import { AppLogo } from './AppLogo';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
@@ -435,13 +436,45 @@ export const Header: React.FC<HeaderProps> = ({
                     setStationDropdownOpen(false);
                     onOpenSearchModal();
                   }}
-                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2 text-xs font-bold text-white shadow cursor-pointer active:scale-98"
+                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 p-2.5 text-xs font-bold text-white shadow-md cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Recherche avancée (34 965 communes)</span>
+                  <span>Villages, Montagne &amp; 34 965 communes</span>
                 </button>
+                <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400">
+                  🏔️ Villages &amp; Stations de Montagne
+                </div>
+                <div className="space-y-0.5 mb-2">
+                  {MOUNTAIN_VILLAGES_CATALOG.slice(0, 8).map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onSelectStation(st);
+                        setStationDropdownOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs transition cursor-pointer active:scale-98 ${
+                        st.id === currentStation.id ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-slate-200 hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="truncate">
+                        <div className="font-semibold">🏔️ {st.name}</div>
+                        <div className={`text-[9px] ${st.id === currentStation.id ? 'text-slate-800' : 'text-amber-300/80'}`}>{st.department} • {st.altitude} m</div>
+                      </div>
+                      {st.id === currentStation.id && <Check className="h-3.5 w-3.5 text-slate-950 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-sky-400 border-t border-slate-800 pt-1.5">
+                  📍 Grandes Villes &amp; Repères
+                </div>
                 <div className="space-y-0.5">
-                  {FRENCH_STATIONS.slice(0, 16).map((st) => (
+                  {FRENCH_STATIONS.slice(0, 14).map((st) => (
                     <button
                       key={st.id}
                       type="button"
@@ -474,10 +507,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onOpenSearchModal}
-            className="flex-1 flex items-center gap-2 bg-[#0c1424] border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-300 transition active:scale-98 text-left shadow-sm cursor-pointer"
+            className="flex-1 flex items-center gap-2 bg-gradient-to-r from-[#0e1a30] to-[#0c1424] border border-sky-500/35 rounded-2xl px-3.5 py-2.5 text-xs text-slate-200 hover:border-sky-400 hover:text-white transition active:scale-98 text-left shadow-md shadow-sky-950/30 cursor-pointer"
           >
-            <Search className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="truncate">Rechercher une ville...</span>
+            <Search className="h-4 w-4 text-sky-400 shrink-0" />
+            <span className="truncate font-semibold">Village, montagne, commune...</span>
           </button>
         </div>
 
@@ -697,14 +730,51 @@ export const Header: React.FC<HeaderProps> = ({
                     setStationDropdownOpen(false);
                     onOpenSearchModal();
                   }}
-                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow hover:bg-blue-500 transition cursor-pointer active:scale-98"
+                  className="w-full mb-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 p-2.5 text-xs font-bold text-white shadow hover:from-blue-500 hover:to-sky-400 transition cursor-pointer active:scale-98"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Recherche avancée (34 965 communes & Monde)</span>
+                  <span>Villages de Montagne &amp; 34 965 communes</span>
                 </button>
 
+                <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-400 border-b border-slate-800">
+                  🏔️ Villages &amp; Stations d'Altitude
+                </div>
+                <div className="mt-1 mb-2 space-y-0.5">
+                  {MOUNTAIN_VILLAGES_CATALOG.slice(0, 8).map((station) => {
+                    const isSelected = station.id === currentStation.id;
+                    return (
+                      <button
+                        key={station.id}
+                        type="button"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onSelectStation(station);
+                          setStationDropdownOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs transition cursor-pointer active:scale-98 ${
+                          isSelected
+                            ? 'bg-amber-500 text-slate-950 font-bold'
+                            : 'text-slate-200 hover:bg-slate-800'
+                        }`}
+                      >
+                        <div>
+                          <div className="font-semibold">🏔️ {station.name}</div>
+                          <div className={`text-[10px] ${isSelected ? 'text-slate-800' : 'text-amber-300/80'}`}>
+                            {station.department} — {station.altitude} m
+                          </div>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 shrink-0 text-slate-950" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                  Stations Favorites & Repères
+                  Stations Favorites &amp; Repères
                 </div>
                 <div className="mt-1 space-y-0.5">
                   {FRENCH_STATIONS.slice(0, 18).map((station) => {

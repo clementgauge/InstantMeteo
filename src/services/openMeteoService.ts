@@ -15,6 +15,7 @@ import {
 } from '../types/weather';
 import { getNormalsForStation, getThreeHourSlotNormal } from '../data/climateNormals';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { MOUNTAIN_VILLAGES_CATALOG } from '../data/mountainVillagesCatalog';
 import { 
   getThermalTierForTemp, 
   getCompassDirection, 
@@ -366,93 +367,124 @@ const FAMOUS_LANDMARKS_AND_DISTRICTS: LocationPoint[] = [
   }
 ];
 
+const STREET_NAME_REGEX = /^(?:\d+\s*(?:bis|ter)?\s*,?\s*)?(?:rue|avenue|av\.|boulevard|bd\.|impasse|allée|allee|chemin|route\s+d[eé]partementale|route\s+nationale|route\s+de|chaussée|chaussee|faubourg|passage|square|lotissement|résidence|residence|voie|quai|cours|rond-point|place\s+de\s+la\s+mairie|place\s+de\s+l'[eé]glise)\b/i;
+
+const MOUNTAIN_DEPT_DEFAULT_ALTITUDE: Record<string, number> = {
+  '05': 1350,
+  '73': 1320,
+  '74': 1150,
+  '04': 1080,
+  '65': 1050,
+  '09': 980,
+  '66': 1120,
+  '48': 1060,
+  '15': 1040,
+  '43': 960,
+  '63': 920,
+  '38': 980,
+  '06': 950,
+  '64': 860,
+  '31': 820,
+  '39': 920,
+  '25': 940,
+  '88': 840,
+  '68': 860,
+  '07': 850,
+  '12': 820,
+  '2A': 780,
+  '2B': 840,
+  '01': 820
+};
+
+function isStreetOrHouseAddress(name: string, banType?: string): boolean {
+  if (banType === 'street' || banType === 'housenumber') return true;
+  const trimmed = name.trim();
+  if (/^\d+\s+[a-zA-ZÀ-ÿ]/.test(trimmed)) return true;
+  if (STREET_NAME_REGEX.test(trimmed)) return true;
+  return false;
+}
+
+function normalizeSearchText(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-']/g, ' ')
+    .trim();
+}
+
 /**
- * Search any locality, address, monument in France (35,000 communes, addresses, landmarks) and Worldwide
- * using French BAN API + Open-Meteo Geocoding API + Local curated directory
+ * Search any locality, commune, village, mountain hamlet or ski station in France (34,965 communes + hameaux/villages de montagne) and Worldwide.
+ * Strictly excludes street names and house numbers.
  */
 export async function searchLocalities(query: string): Promise<LocationPoint[]> {
   const cleanQuery = query.trim();
   if (!cleanQuery || cleanQuery.length < 2) {
-    return FRENCH_STATIONS.slice(0, 15);
+    return [...MOUNTAIN_VILLAGES_CATALOG.slice(0, 12), ...FRENCH_STATIONS.slice(0, 15)];
   }
 
-  const normalizedQuery = cleanQuery.toLowerCase();
+  const normalizedQuery = normalizeSearchText(cleanQuery);
 
-  // 0. Check famous landmarks and district shortcuts
-  const landmarkMatches = FAMOUS_LANDMARKS_AND_DISTRICTS.filter(l =>
-    l.name.toLowerCase().includes(normalizedQuery) ||
-    l.department.toLowerCase().includes(normalizedQuery) ||
-    (l.postalCode && l.postalCode.startsWith(cleanQuery))
+  // 0. Check mountain villages & ski stations catalog first (highest priority for mountain villages)
+  const mountainMatches = MOUNTAIN_VILLAGES_CATALOG.filter(m =>
+    normalizeSearchText(m.name).includes(normalizedQuery) ||
+    normalizeSearchText(m.department).includes(normalizedQuery) ||
+    normalizeSearchText(m.region).includes(normalizedQuery) ||
+    (m.climateZone && normalizeSearchText(m.climateZone).includes(normalizedQuery)) ||
+    (m.postalCode && m.postalCode.startsWith(cleanQuery))
   );
-  
-  // 1. Check local catalog matches
+
+  // 1. Check local French stations catalog matches
   const localMatches = FRENCH_STATIONS.filter(s => 
-    s.name.toLowerCase().includes(normalizedQuery) ||
-    s.department.toLowerCase().includes(normalizedQuery) ||
-    s.region.toLowerCase().includes(normalizedQuery) ||
-    (s.country && s.country.toLowerCase().includes(normalizedQuery)) ||
+    normalizeSearchText(s.name).includes(normalizedQuery) ||
+    normalizeSearchText(s.department).includes(normalizedQuery) ||
+    normalizeSearchText(s.region).includes(normalizedQuery) ||
+    (s.country && normalizeSearchText(s.country).includes(normalizedQuery)) ||
     (s.postalCode && s.postalCode.startsWith(cleanQuery))
   );
 
-  try {
-    // 2. Concurrently query French BAN Address API (for precise addresses/monuments) and Open-Meteo Geocoding
-    const banUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanQuery)}&limit=10`;
-    const openMeteoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanQuery)}&count=20&language=fr&format=json`;
+  // 2. Check famous landmarks (excluding any street addresses)
+  const landmarkMatches = FAMOUS_LANDMARKS_AND_DISTRICTS.filter(l =>
+    !isStreetOrHouseAddress(l.name) && (
+      normalizeSearchText(l.name).includes(normalizedQuery) ||
+      normalizeSearchText(l.department).includes(normalizedQuery) ||
+      (l.postalCode && l.postalCode.startsWith(cleanQuery))
+    )
+  );
 
-    const [banRes, openMeteoRes] = await Promise.all([
-      fetch(banUrl, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+  try {
+    const isPostalPrefix = /^\d{2,5}$/.test(cleanQuery);
+    const gouvCommunesUrl = isPostalPrefix && cleanQuery.length === 5
+      ? `https://geo.api.gouv.fr/communes?codePostal=${encodeURIComponent(cleanQuery)}&fields=nom,code,codesPostaux,centre,departement,region,population&boost=population&limit=25`
+      : isPostalPrefix && cleanQuery.length >= 2 && cleanQuery.length <= 3
+        ? `https://geo.api.gouv.fr/communes?codeDepartement=${encodeURIComponent(cleanQuery.slice(0, 2))}&fields=nom,code,codesPostaux,centre,departement,region,population&boost=population&limit=25`
+        : `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(cleanQuery)}&fields=nom,code,codesPostaux,centre,departement,region,population&boost=population&limit=25`;
+
+    // Query ONLY municipality (communes/villages) and locality (lieux-dits, hameaux, villages de montagne, cols) — NEVER street or housenumber!
+    const banMunicipalityUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanQuery)}&type=municipality&limit=15`;
+    const banLocalityUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanQuery)}&type=locality&limit=20`;
+    const openMeteoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanQuery)}&count=30&language=fr&format=json`;
+
+    const [gouvRes, banMuniRes, banLocRes, openMeteoRes] = await Promise.all([
+      fetch(gouvCommunesUrl, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+      fetch(banMunicipalityUrl, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+      fetch(banLocalityUrl, { signal: AbortSignal.timeout(3000) }).catch(() => null),
       fetch(openMeteoUrl, { signal: AbortSignal.timeout(3500) }).catch(() => null)
     ]);
 
-    const apiResults: LocationPoint[] = [...landmarkMatches];
+    const apiResults: LocationPoint[] = [];
 
-    // Parse BAN results (Addresses, Streets, Monuments, Communes in France)
-    if (banRes && banRes.ok) {
-      const banData = await banRes.json().catch(() => null);
-      if (banData && Array.isArray(banData.features)) {
-        banData.features.forEach((feat: any) => {
-          const coords = feat.geometry?.coordinates;
-          const props = feat.properties;
-          if (coords && coords.length >= 2 && props) {
-            const lon = coords[0];
-            const lat = coords[1];
-            const name = props.label || props.name || cleanQuery;
-            const dept = props.context || `${props.postcode || ''} ${props.city || ''}`.trim() || 'France';
-            const city = props.city || name;
-            
-            apiResults.push({
-              id: `ban-${props.id || Math.random().toString(36).substring(2, 9)}`,
-              name,
-              department: dept,
-              region: props.city || 'France',
-              country: 'France',
-              countryCode: 'FR',
-              latitude: Math.round(lat * 10000) / 10000,
-              longitude: Math.round(lon * 10000) / 10000,
-              altitude: 120, // default plain estimate, auto-refined on select
-              climateZone: 'Tempéré Océanique',
-              allTimeRecordMax: 41.0,
-              allTimeRecordMin: -15.0,
-              allTimeRecordRain24h: 100,
-              isFrench: true,
-              isMountain: false,
-              isHighAltitude: false,
-              isWorldLocation: false,
-              postalCode: props.postcode
-            });
-          }
-        });
-      }
-    }
-
-    // Parse Open-Meteo Geocoding results
+    // Parse Open-Meteo Geocoding results first so we have an elevation lookup map for coordinates
+    const openMeteoPoints: LocationPoint[] = [];
     if (openMeteoRes && openMeteoRes.ok) {
       const data = await openMeteoRes.json().catch(() => null);
       if (data && Array.isArray(data.results)) {
         data.results.forEach((item: any) => {
+          if (!item || !item.name || isStreetOrHouseAddress(item.name)) return;
+          // Filter out non-locality feature codes like airports or railway stops if needed, keep P* (populated places, villages, hamlets) & MT/PK/PASS (mountains, peaks, cols)
           const isFrench = item.country_code === 'FR' || item.country === 'France';
           const altitude = Math.round(item.elevation ?? 0);
-          const isMountain = altitude >= 800;
+          const isMountain = altitude >= 700;
           const isHighAltitude = altitude >= 1500;
           
           const deptName = item.admin2 || item.admin1 || (isFrench ? "France" : item.country || "Monde");
@@ -473,7 +505,7 @@ export async function searchLocalities(query: string): Promise<LocationPoint[]> 
               ? (item.latitude < 45 ? "Méditerranéen / Sud" : "Océanique / Tempéré")
               : `${countryName} (${altitude} m)`;
 
-          apiResults.push({
+          openMeteoPoints.push({
             id: `geo-${item.id || Math.random().toString(36).substring(2, 9)}`,
             name: item.name,
             department: deptName,
@@ -499,18 +531,146 @@ export async function searchLocalities(query: string): Promise<LocationPoint[]> 
       }
     }
 
-    // Merge without duplicates based on coords
-    const combined: LocationPoint[] = [...localMatches];
-    for (const r of apiResults) {
-      if (!combined.some(c => Math.abs(c.latitude - r.latitude) < 0.005 && Math.abs(c.longitude - r.longitude) < 0.005)) {
-        combined.push(r);
+    const resolveBestAltitude = (lat: number, lon: number, deptCode?: string): number => {
+      // Check if Open-Meteo or Mountain Catalog has a nearby point with exact elevation
+      const nearCatalog = MOUNTAIN_VILLAGES_CATALOG.find(
+        m => Math.abs(m.latitude - lat) < 0.03 && Math.abs(m.longitude - lon) < 0.03
+      );
+      if (nearCatalog) return nearCatalog.altitude;
+
+      const nearGeo = openMeteoPoints.find(
+        p => Math.abs(p.latitude - lat) < 0.04 && Math.abs(p.longitude - lon) < 0.04
+      );
+      if (nearGeo && nearGeo.altitude > 0) return nearGeo.altitude;
+
+      if (deptCode && MOUNTAIN_DEPT_DEFAULT_ALTITUDE[deptCode]) {
+        return MOUNTAIN_DEPT_DEFAULT_ALTITUDE[deptCode];
+      }
+      return 180;
+    };
+
+    // Parse Official French Communes & Villages (geo.api.gouv.fr/communes)
+    if (gouvRes && gouvRes.ok) {
+      const communes = await gouvRes.json().catch(() => null);
+      if (Array.isArray(communes)) {
+        communes.forEach((c: any) => {
+          const coords = c.centre?.coordinates;
+          if (!coords || coords.length < 2 || !c.nom) return;
+          const lon = coords[0];
+          const lat = coords[1];
+          const deptCode = c.departement?.code || (c.codesPostaux?.[0]?.slice(0, 2) ?? '');
+          const deptLabel = c.departement ? `${c.departement.code} - ${c.departement.nom}` : deptCode || 'France';
+          const regionLabel = c.region?.nom || 'France';
+          const postal = c.codesPostaux?.[0] || '';
+          const estAlt = resolveBestAltitude(lat, lon, deptCode);
+          const isMtn = estAlt >= 700 || Boolean(MOUNTAIN_DEPT_DEFAULT_ALTITUDE[deptCode]);
+          const stage = getBioclimaticStage(estAlt);
+
+          apiResults.push({
+            id: `commune-${c.code || Math.random().toString(36).substring(2, 9)}`,
+            name: c.nom,
+            department: postal ? `${deptLabel} (${postal})` : deptLabel,
+            region: regionLabel,
+            country: 'France',
+            countryCode: 'FR',
+            latitude: Math.round(lat * 10000) / 10000,
+            longitude: Math.round(lon * 10000) / 10000,
+            altitude: estAlt,
+            climateZone: `${stage} (${estAlt} m)`,
+            allTimeRecordMax: estAlt > 1500 ? 28.0 : 40.5,
+            allTimeRecordMin: estAlt > 1500 ? -28.0 : -18.0,
+            allTimeRecordRain24h: 115,
+            isFrench: true,
+            isMountain: isMtn,
+            isHighAltitude: estAlt >= 1500,
+            isWorldLocation: false,
+            postalCode: postal
+          });
+        });
       }
     }
 
-    return combined;
+    // Parse BAN Municipalities & Mountain Hamlets/Localities (strictly NO streets or house numbers)
+    const parseBanFeatures = (features: any[], isHamletLocality: boolean) => {
+      if (!Array.isArray(features)) return;
+      features.forEach((feat: any) => {
+        const coords = feat.geometry?.coordinates;
+        const props = feat.properties;
+        if (!coords || coords.length < 2 || !props) return;
+        if (isStreetOrHouseAddress(props.name || props.label || '', props.type)) return;
+
+        const lon = coords[0];
+        const lat = coords[1];
+        const rawName = props.name || props.city || cleanQuery;
+        const city = props.city || '';
+        const displayName = isHamletLocality && city && normalizeSearchText(rawName) !== normalizeSearchText(city)
+          ? `${rawName} (${city})`
+          : rawName;
+        const deptCode = (props.postcode || '').slice(0, 2);
+        const dept = props.context || `${props.postcode || ''} ${city}`.trim() || 'France';
+        const estAlt = resolveBestAltitude(lat, lon, deptCode);
+        const isMtn = estAlt >= 700 || Boolean(MOUNTAIN_DEPT_DEFAULT_ALTITUDE[deptCode]);
+        const stage = getBioclimaticStage(estAlt);
+
+        apiResults.push({
+          id: `ban-loc-${props.id || Math.random().toString(36).substring(2, 9)}`,
+          name: displayName,
+          department: dept,
+          region: city || 'France',
+          country: 'France',
+          countryCode: 'FR',
+          latitude: Math.round(lat * 10000) / 10000,
+          longitude: Math.round(lon * 10000) / 10000,
+          altitude: estAlt,
+          climateZone: `${stage} (${estAlt} m)`,
+          allTimeRecordMax: estAlt > 1500 ? 28.0 : 41.0,
+          allTimeRecordMin: estAlt > 1500 ? -28.0 : -16.0,
+          allTimeRecordRain24h: 110,
+          isFrench: true,
+          isMountain: isMtn,
+          isHighAltitude: estAlt >= 1500,
+          isWorldLocation: false,
+          postalCode: props.postcode
+        });
+      });
+    };
+
+    if (banMuniRes && banMuniRes.ok) {
+      const muniData = await banMuniRes.json().catch(() => null);
+      if (muniData?.features) parseBanFeatures(muniData.features, false);
+    }
+
+    if (banLocRes && banLocRes.ok) {
+      const locData = await banLocRes.json().catch(() => null);
+      if (locData?.features) parseBanFeatures(locData.features, true);
+    }
+
+    // Append Open-Meteo Geocoding results and Landmarks
+    apiResults.push(...openMeteoPoints, ...landmarkMatches);
+
+    // Merge without duplicates based on coordinates + name, prioritizing Mountain Villages & Local Stations
+    const combined: LocationPoint[] = [];
+    const pushUnique = (item: LocationPoint) => {
+      if (isStreetOrHouseAddress(item.name)) return;
+      const exists = combined.some(
+        c =>
+          (Math.abs(c.latitude - item.latitude) < 0.006 && Math.abs(c.longitude - item.longitude) < 0.006) ||
+          (normalizeSearchText(c.name) === normalizeSearchText(item.name) && c.postalCode && item.postalCode && c.postalCode === item.postalCode)
+      );
+      if (!exists) {
+        combined.push(item);
+      }
+    };
+
+    mountainMatches.forEach(pushUnique);
+    localMatches.forEach(pushUnique);
+    apiResults.forEach(pushUnique);
+
+    return combined.slice(0, 60);
   } catch (error) {
     console.warn("Geocoding API error, returning local matches", error);
-    return localMatches.length > 0 ? localMatches : FRENCH_STATIONS.slice(0, 10);
+    const fallback = [...mountainMatches, ...localMatches];
+    return fallback.length > 0 ? fallback : [...MOUNTAIN_VILLAGES_CATALOG.slice(0, 10), ...FRENCH_STATIONS.slice(0, 10)];
   }
 }
 

@@ -124,146 +124,276 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   const selectedDayAnomalyTMin = Math.round((selectedDay.tempMin - currentMonthNormal.tMin) * 10) / 10;
   const selectedDayAnomalyTMax = Math.round((selectedDay.tempMax - currentMonthNormal.tMax) * 10) / 10;
 
-  // Streamlined view for Simplified Mode
+  // =========================================================================
+  // MODE SIMPLIFIÉ : BLOC ULTRA-COMPACT ET PROPORTIONNÉ (ZÉRO ESPACE VIDE EN DESSOUS)
+  // =========================================================================
   if (simplifiedMode) {
     return (
-      <div id="grand-day-week-detailed-card" className="rounded-md border border-slate-800 bg-slate-950 p-4 sm:p-5 space-y-4">
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-sky-400">
-            <Clock className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>Déroulé 24h Heure par Heure</span>
-              <span className="rounded bg-sky-950/60 px-2 py-0.5 text-[10px] font-semibold text-sky-300 border border-sky-800/50">
-                Mode Simplifié
-              </span>
-            </h2>
-            <p className="text-xs text-slate-400">
-              Défilement horizontal de la météo des 24 prochaines heures
-            </p>
-          </div>
-        </div>
-
-        {/* 24-Hour Scrollable Slider */}
-        <div className="flex gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-700">
-          {next24Hours.map((h, i) => {
-            const tier = getThermalTierForTemp(h.temperature);
-            const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
-            return (
-              <div
-                key={i}
-                className="min-w-[140px] rounded-md border border-slate-800 bg-slate-900/60 p-2.5 flex flex-col justify-between space-y-2 flex-shrink-0 transition hover:border-slate-700 hover:bg-slate-900"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">{h.hourLabel}</span>
-                  <span title={richWeather.detailedLabel}>
-                    <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
-                  </span>
-                </div>
-
-                <div>
-                  <div className="text-base font-bold text-white">{formatTemp(h.temperature)}</div>
-                  <span className="text-[10px] text-slate-400 block truncate" title={richWeather.detailedLabel}>
-                    {richWeather.shortLabel}
-                  </span>
-                </div>
-
-                <div className={`px-1.5 py-0.5 rounded text-[9px] font-semibold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
-                  {tier.iconEmoji} {tier.name.split('/')[0]}
-                </div>
-
-                <div className="space-y-1 pt-1 border-t border-slate-800 text-[10px]">
-                  {/* Rain Risk & Volume */}
-                  <div className="flex justify-between text-sky-300">
-                    <span>Pluie</span>
-                    <span className="font-semibold">{h.rainMm} mm ({h.precipitationProbability}%)</span>
-                  </div>
-
-                  {/* Wind */}
-                  <div className="flex justify-between text-slate-400">
-                    <span>Vent</span>
-                    <span>{h.windSpeed} km/h</span>
-                  </div>
-                </div>
+      <div id="grand-day-week-detailed-card" className="rounded-2xl border border-slate-700/80 bg-gradient-to-b from-[#0d182e]/95 via-[#091224]/95 to-[#070e1c]/95 p-3.5 sm:p-4 shadow-xl space-y-3 motion-card-enter">
+        {/* En-tête épuré et fidèle avec sélecteur d'onglet direct */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/25 to-blue-600/20 border border-sky-400/40 text-sky-400 shadow-lg shadow-sky-500/10">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-black text-white tracking-tight">
+                  Déroulé 24h Heure par Heure
+                </h2>
+                <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-sky-500/20 text-sky-300 border-sky-400/40">
+                  Mode Simplifié
+                </span>
               </div>
-            );
-          })}
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                Défilement horizontal de la météo des 24 prochaines heures
+              </p>
+            </div>
+          </div>
+
+          {/* Sélecteur de vue : 24h Heure par Heure / Semaine 7 Jours / Courbe */}
+          <div className="flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800/90 text-xs font-bold gap-1 self-start sm:self-auto shadow-inner">
+            <button
+              onClick={() => setActiveTab('day')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                activeTab === 'day'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              <span>24h</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('week')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                activeTab === 'week'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span>7 Jours</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('curve')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                activeTab === 'curve'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>Courbe</span>
+            </button>
+          </div>
         </div>
+
+        {/* Vue 1 : Déroulé 24h Heure par Heure (Taille ajustée aux cartes, zéro espace vide sous les blocs) */}
+        {activeTab === 'day' && (
+          <div className="w-full">
+            <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain snap-x">
+              {next24Hours.map((h, i) => {
+                const tier = getThermalTierForTemp(h.temperature);
+                const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
+                const isRainy = (h.rainMm ?? 0) > 0.1 || (h.precipitationProbability ?? 0) >= 45;
+                return (
+                  <div
+                    key={i}
+                    className={`snap-start min-w-[144px] sm:min-w-[150px] rounded-2xl border p-3 flex flex-col justify-between space-y-2 flex-shrink-0 transition-all duration-200 ${
+                      i === 0
+                        ? 'border-sky-400/70 bg-gradient-to-b from-sky-950/60 via-slate-900/90 to-slate-950 shadow-lg shadow-sky-500/15 ring-1 ring-sky-400/30'
+                        : isRainy
+                          ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/35 to-slate-900/80 hover:border-blue-400/60'
+                          : 'border-slate-800/90 bg-gradient-to-b from-slate-900/80 to-slate-950/90 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                        i === 0 ? 'bg-sky-500 text-slate-950' : 'bg-slate-950/80 text-white border border-slate-800'
+                      }`}>
+                        {i === 0 ? 'Direct' : h.hourLabel}
+                      </span>
+                      <span title={richWeather.detailedLabel}>
+                        <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-baseline justify-between">
+                        <div className="text-lg font-black text-white font-mono tabular-nums">{formatTemp(h.temperature)}</div>
+                        {h.feelsLike !== undefined && (
+                          <span className="text-[10px] font-semibold text-sky-300 font-mono">
+                            Ress. {formatTempSimple(h.feelsLike)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-medium text-slate-300 block truncate mt-0.5" title={richWeather.detailedLabel}>
+                        {richWeather.shortLabel}
+                      </span>
+                    </div>
+
+                    <div className={`px-2 py-0.5 rounded-lg text-[9px] font-bold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
+                      {tier.iconEmoji} {tier.name.split('/')[0]}
+                    </div>
+
+                    <div className="space-y-1 pt-1.5 border-t border-slate-800/80 text-[10px]">
+                      <div className="flex justify-between text-sky-300">
+                        <span>Pluie</span>
+                        <span className="font-bold font-mono">{h.rainMm} mm ({h.precipitationProbability}%)</span>
+                      </div>
+                      <div className="flex justify-between text-slate-300">
+                        <span>Vent</span>
+                        <span className="font-semibold text-teal-300 font-mono">
+                          {h.windSpeed} km/h
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Vue 2 : Semaine 7 Jours dans le Mode Simplifié */}
+        {activeTab === 'week' && (
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+              {daily.slice(0, 7).map((d, dIdx) => {
+                const isToday = dIdx === 0;
+                const richW = getRichWeatherInfo(d.weatherCode, true, d.precipitationSumMm ?? d.rainMm ?? 0);
+                return (
+                  <button
+                    key={dIdx}
+                    onClick={() => {
+                      setSelectedDayIdx(dIdx);
+                      if (onOpenDayAnalyzer) onOpenDayAnalyzer(dIdx);
+                    }}
+                    className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      isToday
+                        ? 'border-sky-500/50 bg-sky-950/30 hover:border-sky-400'
+                        : 'border-slate-800/90 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-black text-white truncate">
+                        {isToday ? "Aujourd'hui" : d.dayLabel}
+                      </span>
+                      <DynamicSkyHeroArt weatherCode={d.weatherCode} isDay={true} size="xs" />
+                    </div>
+                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{richW.shortLabel}</div>
+                    <div className="mt-2 flex items-center justify-between text-xs font-black font-mono">
+                      <span className="text-blue-300">{formatTempSimple(d.tempMin)}</span>
+                      <div className="flex-1 mx-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-400 opacity-85" />
+                      <span className="text-amber-300">{formatTempSimple(d.tempMax)}</span>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[10px] text-sky-300 font-mono">
+                      <span>💧 {d.precipitationProbability}%</span>
+                      <span>{d.precipitationSumMm ?? d.rainMm ?? 0} mm</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Vue 3 : Courbe Thermique dans le Mode Simplifié */}
+        {activeTab === 'curve' && (
+          <div className="h-44 w-full pt-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={next24Hours.map(h => ({ hour: h.hourLabel, temp: h.temperature, rain: h.rainMm }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
+                <YAxis stroke="#94a3b8" fontSize={10} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '11px' }}
+                  labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                />
+                <Area type="monotone" dataKey="temp" stroke="#0284C7" strokeWidth={2} fill="#0284C7" fillOpacity={0.15} name="Température (°C)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div id="grand-day-week-detailed-card" className="rounded-md border border-slate-800 bg-slate-950 p-4 sm:p-5 space-y-5">
-      {/* Header with 3 main view tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+    <div id="grand-day-week-detailed-card" className="rounded-2xl border border-slate-700/80 bg-gradient-to-b from-[#0d182e]/95 via-[#091224]/95 to-[#070e1c]/95 p-3.5 sm:p-5 shadow-2xl space-y-4 sm:space-y-5 motion-card-enter">
+      {/* Header with 4 main view tabs — Hyper-attractive on Mobile & Simple Mode with 100% of data */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-slate-800/90 pb-3.5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-sky-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/25 to-blue-600/20 border border-sky-400/40 text-sky-400 shadow-lg shadow-sky-500/10">
             <Calendar className="h-5 w-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-white">
-                Prévisions Heure par Heure — Journée &amp; Semaine
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h2 className="text-sm sm:text-lg font-black text-white tracking-tight">
+                Prévisions Heure par Heure &amp; 7 Jours
               </h2>
-              <span className="rounded bg-sky-950/60 px-2 py-0.5 text-[10px] font-semibold text-sky-300 border border-sky-800/50">
-                24h / 7 Jours / Courbe
+              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
+                simplifiedMode
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+                  : 'bg-sky-500/20 text-sky-300 border-sky-400/40'
+              }`}>
+                {simplifiedMode ? '✨ Vue Visuelle Clarifiée • 100% Données' : '24h • 7 Jours • Courbe • 168h'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Station : <strong className="text-slate-200">{station.name}</strong> ({station.altitude} m) • Journée, journées suivantes, courbe &amp; tendance
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+              Station : <strong className="text-slate-200">{station.name}</strong> ({station.altitude} m) • Toutes les données horaires et quotidiennes
             </p>
           </div>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex flex-wrap rounded-md bg-slate-900 p-1 border border-slate-800 self-start md:self-auto gap-1">
+        {/* View Switcher Tabs - Grid on mobile so all 4 tabs are thumb-friendly & visible without scrolling */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap rounded-xl bg-slate-950/90 p-1 border border-slate-800/90 w-full md:w-auto gap-1 shadow-inner">
           <button
             onClick={() => setActiveTab('day')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
               activeTab === 'day'
-                ? 'bg-[#0284C7] text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
             }`}
           >
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-3.5 w-3.5 shrink-0" />
             <span>Aujourd'hui (24h)</span>
           </button>
           
           <button
             onClick={() => setActiveTab('week')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
               activeTab === 'week'
-                ? 'bg-[#0284C7] text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
             }`}
           >
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
             <span>Semaine 7 Jours</span>
           </button>
 
           <button
             onClick={() => setActiveTab('curve')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
               activeTab === 'curve'
-                ? 'bg-[#0284C7] text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
             }`}
           >
-            <TrendingUp className="h-3.5 w-3.5" />
+            <TrendingUp className="h-3.5 w-3.5 shrink-0" />
             <span>Courbe &amp; Tendance</span>
           </button>
 
           <button
             onClick={() => setActiveTab('all168h')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
               activeTab === 'all168h'
-                ? 'bg-[#0284C7] text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
             }`}
           >
-            <Layers className="h-3.5 w-3.5" />
+            <Layers className="h-3.5 w-3.5 shrink-0" />
             <span>Matrice 168h</span>
           </button>
         </div>
@@ -314,61 +444,155 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
               <span className="text-xs text-slate-400">Défilement horizontal</span>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain">
+            <div className="flex gap-2.5 overflow-x-auto pb-2.5 pt-1 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain snap-x">
               {next24Hours.map((h, i) => {
                 const tier = getThermalTierForTemp(h.temperature);
                 const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
                 const rainRisk = getRainRiskExplanation(h.precipitationProbability, h.rainMm, 1);
+                const isRainy = (h.rainMm ?? 0) > 0.1 || (h.precipitationProbability ?? 0) >= 45;
                 return (
                   <div
                     key={i}
-                    className="min-w-[145px] rounded-md border border-slate-800 bg-slate-900/60 p-2.5 flex flex-col justify-between space-y-2 flex-shrink-0 transition hover:border-slate-700 hover:bg-slate-900"
+                    className={`snap-start min-w-[152px] rounded-2xl border p-3 flex flex-col justify-between space-y-2 flex-shrink-0 transition-all duration-200 ${
+                      i === 0
+                        ? 'border-sky-400/70 bg-gradient-to-b from-sky-950/60 via-slate-900/90 to-slate-950 shadow-lg shadow-sky-500/15 ring-1 ring-sky-400/30'
+                        : isRainy
+                          ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/35 to-slate-900/80 hover:border-blue-400/60'
+                          : 'border-slate-800/90 bg-gradient-to-b from-slate-900/80 to-slate-950/90 hover:border-slate-700'
+                    }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{h.hourLabel}</span>
+                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                        i === 0 ? 'bg-sky-500 text-slate-950' : 'bg-slate-950/80 text-white border border-slate-800'
+                      }`}>
+                        {i === 0 ? 'Direct' : h.hourLabel}
+                      </span>
                       <span title={richWeather.detailedLabel}>
                         <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
                       </span>
                     </div>
 
                     <div>
-                      <div className="text-base font-bold text-white">{formatTemp(h.temperature)}</div>
-                      <span className="text-[10px] text-slate-400 block truncate" title={richWeather.detailedLabel}>
+                      <div className="flex items-baseline justify-between">
+                        <div className="text-lg font-black text-white font-mono tabular-nums">{formatTemp(h.temperature)}</div>
+                        {h.feelsLike !== undefined && (
+                          <span className="text-[10px] font-semibold text-sky-300 font-mono">
+                            Ress. {formatTempSimple(h.feelsLike)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-medium text-slate-300 block truncate mt-0.5" title={richWeather.detailedLabel}>
                         {richWeather.shortLabel}
                       </span>
                     </div>
 
                     {/* Micro-Trend Tag if present */}
                     {h.trendTag && (
-                      <div className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-950 border border-slate-800 text-sky-300 truncate" title={h.trendText}>
+                      <div className="px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-slate-950/90 border border-slate-800 text-sky-300 truncate" title={h.trendText}>
                         {h.trendTag}
                       </div>
                     )}
 
-                    <div className={`px-1.5 py-0.5 rounded text-[9px] font-semibold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
+                    <div className={`px-2 py-0.5 rounded-lg text-[9px] font-bold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
                       {tier.iconEmoji} {tier.name.split('/')[0]}
                     </div>
 
-                    <div className="space-y-1 pt-1 border-t border-slate-800 text-[10px]">
+                    <div className="space-y-1.5 pt-1.5 border-t border-slate-800/80 text-[10px]">
+                      {/* Rain Risk & Volume with mini bar */}
+                      <div title={rainRisk.combinedExplanation}>
+                        <div className="flex justify-between text-sky-300">
+                          <span>💧 Pluie</span>
+                          <span className="font-bold font-mono">{h.rainMm} mm ({h.precipitationProbability}%)</span>
+                        </div>
+                        <div className="mt-0.5 h-1 w-full rounded-full bg-slate-950 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-sky-400 to-blue-500"
+                            style={{ width: `${Math.max(4, h.precipitationProbability ?? 0)}%` }}
+                          />
+                        </div>
+                      </div>
+
                       {/* Cloud Cover */}
                       <div className="flex justify-between text-slate-300" title={`Couverture nuageuse: ${h.cloudCover}% (${Math.round((h.cloudCover ?? 40) / 12.5)}/8 octas)`}>
-                        <span className="text-slate-400">Nuages</span>
-                        <span className="font-semibold text-slate-200">☁️ {h.cloudCover ?? 30}% ({Math.round((h.cloudCover ?? 30) / 12.5)}/8)</span>
+                        <span className="text-slate-400">☁️ Nuages</span>
+                        <span className="font-semibold text-slate-200 font-mono">{h.cloudCover ?? 30}% ({Math.round((h.cloudCover ?? 30) / 12.5)}/8)</span>
                       </div>
 
-                      {/* Rain Risk & Volume */}
-                      <div className="flex justify-between text-sky-300" title={rainRisk.combinedExplanation}>
-                        <span>Pluie</span>
-                        <span className="font-semibold">{h.rainMm} mm ({h.precipitationProbability}%)</span>
+                      {/* Wind & Gusts */}
+                      <div className="flex justify-between text-slate-300">
+                        <span className="text-slate-400">💨 Vent</span>
+                        <span className="font-semibold text-teal-300 font-mono">
+                          {h.windSpeed} <span className="text-[9px] text-slate-400">(raf.{h.windGust ?? Math.round(h.windSpeed * 1.3)})</span> {h.windDirectionCompass}
+                        </span>
                       </div>
 
-                      {/* Wind */}
-                      <div className="flex justify-between text-slate-400">
-                        <span>Vent</span>
-                        <span>{h.windSpeed} km/h {h.windDirectionCompass}</span>
-                      </div>
+                      {isElevationOver100m && (
+                        <div className="flex justify-between text-indigo-300 pt-0.5 border-t border-slate-800/60 font-mono text-[9px]">
+                          <span>🏔️ Iso 0°C</span>
+                          <span className="font-bold text-white">
+                            {h.isotherm0Meters ?? Math.round(Math.max(station.altitude ?? 0, (station.altitude ?? 0) + (h.temperature / 0.0065)))} m
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Aperçu Rapide 7 Jours directement visible sous le 24h (Idéal Mobile & Mode Simple) */}
+          <div className="rounded-2xl border border-slate-800/90 bg-slate-950/70 p-3 sm:p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-sky-400" />
+                <h4 className="text-xs sm:text-sm font-black text-white">
+                  Synthèse des 7 Prochains Jours (J+0 à J+6)
+                </h4>
+              </div>
+              <button
+                onClick={() => setActiveTab('week')}
+                className="text-[11px] font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
+              >
+                <span>Détail 24h par jour</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+              {daily.slice(0, 7).map((d, dIdx) => {
+                const isToday = dIdx === 0;
+                const richW = getRichWeatherInfo(d.weatherCode, true, d.precipitationSumMm ?? d.rainMm ?? 0);
+                return (
+                  <button
+                    key={dIdx}
+                    onClick={() => {
+                      setSelectedDayIdx(dIdx);
+                      setActiveTab('week');
+                    }}
+                    className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      isToday
+                        ? 'border-sky-500/50 bg-sky-950/30 hover:border-sky-400'
+                        : 'border-slate-800/90 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-black text-white truncate">
+                        {isToday ? "Aujourd'hui" : d.dayLabel}
+                      </span>
+                      <DynamicSkyHeroArt weatherCode={d.weatherCode} isDay={true} size="xs" />
+                    </div>
+                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{richW.shortLabel}</div>
+                    <div className="mt-2 flex items-center justify-between text-xs font-black font-mono">
+                      <span className="text-blue-300">{formatTempSimple(d.tempMin)}</span>
+                      <div className="flex-1 mx-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-400 opacity-85" />
+                      <span className="text-amber-300">{formatTempSimple(d.tempMax)}</span>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[10px] text-sky-300 font-mono">
+                      <span>💧 {d.precipitationProbability}%</span>
+                      <span>{d.precipitationSumMm ?? d.rainMm ?? 0} mm</span>
+                    </div>
+                  </button>
                 );
               })}
             </div>
@@ -625,8 +849,8 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                       </span>
                     </div>
 
-                    <div className="my-2 text-2xl text-center" title={richWeather.detailedLabel}>
-                      {richWeather.emoji}
+                    <div className="my-2 flex justify-center" title={richWeather.detailedLabel}>
+                      <DynamicSkyHeroArt weatherCode={d.weatherCode} isDay={true} size="sm" />
                     </div>
 
                     <div>
@@ -883,7 +1107,9 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-white">{h.hourLabel}</span>
-                        <span className="text-lg" title={richWeather.detailedLabel}>{richWeather.emoji}</span>
+                        <span title={richWeather.detailedLabel}>
+                          <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
+                        </span>
                       </div>
 
                       <div>

@@ -449,8 +449,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* ========================================================================= */}
       {/* 2. SECOND ROW: PRÉVISIONS HEURE PAR HEURE (8 COLS) + SOLEIL & LUNE (4 COLS) */}
       {/* ========================================================================= */}
-      <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
-        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col [&>div]:flex-1 min-w-0 scroll-mt-28">
+      <div className="hidden sm:grid grid-cols-12 gap-4 items-start">
+        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col min-w-0 scroll-mt-28">
           <GrandDayAndWeekDetailedForecastCard
             station={station}
             weather={weather}
