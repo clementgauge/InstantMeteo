@@ -2,9 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Gamepad2, X, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 import paratonnerreHtml from '../../public/paratonnerre.html?raw';
 
+import { LocationPoint, CurrentWeather } from '../types/weather';
+
 interface WeatherGameModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentStation?: LocationPoint;
+  currentWeather?: CurrentWeather | null;
+  onOpenCompetitiveTab?: () => void;
 }
 
 export const WeatherGameModal: React.FC<WeatherGameModalProps> = ({ isOpen, onClose }) => {

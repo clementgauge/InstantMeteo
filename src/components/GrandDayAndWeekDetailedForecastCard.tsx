@@ -130,192 +130,90 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   if (simplifiedMode) {
     return (
       <div id="grand-day-week-detailed-card" className="rounded-2xl border border-slate-700/80 bg-gradient-to-b from-[#0d182e]/95 via-[#091224]/95 to-[#070e1c]/95 p-3.5 sm:p-4 shadow-xl space-y-3 motion-card-enter">
-        {/* En-tête épuré et fidèle avec sélecteur d'onglet direct */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800/80 pb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/25 to-blue-600/20 border border-sky-400/40 text-sky-400 shadow-lg shadow-sky-500/10">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-black text-white tracking-tight">
-                  Déroulé 24h Heure par Heure
-                </h2>
-                <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-sky-500/20 text-sky-300 border-sky-400/40">
-                  Mode Simplifié
-                </span>
-              </div>
-              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                Défilement horizontal de la météo des 24 prochaines heures
-              </p>
-            </div>
+        {/* En-tête épuré et fidèle */}
+        <div className="flex items-center gap-3 border-b border-slate-800/80 pb-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/25 to-blue-600/20 border border-sky-400/40 text-sky-400 shadow-lg shadow-sky-500/10">
+            <Clock className="h-5 w-5" />
           </div>
-
-          {/* Sélecteur de vue : 24h Heure par Heure / Semaine 7 Jours / Courbe */}
-          <div className="flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800/90 text-xs font-bold gap-1 self-start sm:self-auto shadow-inner">
-            <button
-              onClick={() => setActiveTab('day')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                activeTab === 'day'
-                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5" />
-              <span>24h</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('week')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                activeTab === 'week'
-                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              <span>7 Jours</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('curve')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                activeTab === 'curve'
-                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>Courbe</span>
-            </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-black text-white tracking-tight">
+                Déroulé 24h Heure par Heure
+              </h2>
+              <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-sky-500/20 text-sky-300 border-sky-400/40">
+                Mode Simplifié
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+              Défilement horizontal de la météo des 24 prochaines heures
+            </p>
           </div>
         </div>
 
-        {/* Vue 1 : Déroulé 24h Heure par Heure (Taille ajustée aux cartes, zéro espace vide sous les blocs) */}
-        {activeTab === 'day' && (
-          <div className="w-full">
-            <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain snap-x">
-              {next24Hours.map((h, i) => {
-                const tier = getThermalTierForTemp(h.temperature);
-                const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
-                const isRainy = (h.rainMm ?? 0) > 0.1 || (h.precipitationProbability ?? 0) >= 45;
-                return (
-                  <div
-                    key={i}
-                    className={`snap-start min-w-[144px] sm:min-w-[150px] rounded-2xl border p-3 flex flex-col justify-between space-y-2 flex-shrink-0 transition-all duration-200 ${
-                      i === 0
-                        ? 'border-sky-400/70 bg-gradient-to-b from-sky-950/60 via-slate-900/90 to-slate-950 shadow-lg shadow-sky-500/15 ring-1 ring-sky-400/30'
-                        : isRainy
-                          ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/35 to-slate-900/80 hover:border-blue-400/60'
-                          : 'border-slate-800/90 bg-gradient-to-b from-slate-900/80 to-slate-950/90 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
-                        i === 0 ? 'bg-sky-500 text-slate-950' : 'bg-slate-950/80 text-white border border-slate-800'
-                      }`}>
-                        {i === 0 ? 'Direct' : h.hourLabel}
-                      </span>
-                      <span title={richWeather.detailedLabel}>
-                        <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
-                      </span>
-                    </div>
+        {/* Déroulé 24h Heure par Heure (Taille ajustée aux cartes, zéro espace vide sous les blocs) */}
+        <div className="w-full">
+          <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain snap-x">
+            {next24Hours.map((h, i) => {
+              const tier = getThermalTierForTemp(h.temperature);
+              const richWeather = getRichWeatherInfo(h.weatherCode, h.isDay, h.rainMm, h.windGust);
+              const isRainy = (h.rainMm ?? 0) > 0.1 || (h.precipitationProbability ?? 0) >= 45;
+              return (
+                <div
+                  key={i}
+                  className={`snap-start min-w-[144px] sm:min-w-[150px] rounded-2xl border p-3 flex flex-col justify-between space-y-2 flex-shrink-0 transition-all duration-200 ${
+                    i === 0
+                      ? 'border-sky-400/70 bg-gradient-to-b from-sky-950/60 via-slate-900/90 to-slate-950 shadow-lg shadow-sky-500/15 ring-1 ring-sky-400/30'
+                      : isRainy
+                        ? 'border-blue-500/40 bg-gradient-to-b from-blue-950/35 to-slate-900/80 hover:border-blue-400/60'
+                        : 'border-slate-800/90 bg-gradient-to-b from-slate-900/80 to-slate-950/90 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                      i === 0 ? 'bg-sky-500 text-slate-950' : 'bg-slate-950/80 text-white border border-slate-800'
+                    }`}>
+                      {i === 0 ? 'Direct' : h.hourLabel}
+                    </span>
+                    <span title={richWeather.detailedLabel}>
+                      <DynamicSkyHeroArt weatherCode={h.weatherCode} isDay={h.isDay ?? true} size="xs" />
+                    </span>
+                  </div>
 
-                    <div>
-                      <div className="flex items-baseline justify-between">
-                        <div className="text-lg font-black text-white font-mono tabular-nums">{formatTemp(h.temperature)}</div>
-                        {h.feelsLike !== undefined && (
-                          <span className="text-[10px] font-semibold text-sky-300 font-mono">
-                            Ress. {formatTempSimple(h.feelsLike)}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-300 block truncate mt-0.5" title={richWeather.detailedLabel}>
-                        {richWeather.shortLabel}
-                      </span>
-                    </div>
-
-                    <div className={`px-2 py-0.5 rounded-lg text-[9px] font-bold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
-                      {tier.iconEmoji} {tier.name.split('/')[0]}
-                    </div>
-
-                    <div className="space-y-1 pt-1.5 border-t border-slate-800/80 text-[10px]">
-                      <div className="flex justify-between text-sky-300">
-                        <span>Pluie</span>
-                        <span className="font-bold font-mono">{h.rainMm} mm ({h.precipitationProbability}%)</span>
-                      </div>
-                      <div className="flex justify-between text-slate-300">
-                        <span>Vent</span>
-                        <span className="font-semibold text-teal-300 font-mono">
-                          {h.windSpeed} km/h
+                  <div>
+                    <div className="flex items-baseline justify-between">
+                      <div className="text-lg font-black text-white font-mono tabular-nums">{formatTemp(h.temperature)}</div>
+                      {h.feelsLike !== undefined && (
+                        <span className="text-[10px] font-semibold text-sky-300 font-mono">
+                          Ress. {formatTempSimple(h.feelsLike)}
                         </span>
-                      </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-medium text-slate-300 block truncate mt-0.5" title={richWeather.detailedLabel}>
+                      {richWeather.shortLabel}
+                    </span>
+                  </div>
+
+                  <div className={`px-2 py-0.5 rounded-lg text-[9px] font-bold truncate border ${tier.tailwindBg} ${tier.tailwindBorder} ${tier.tailwindText}`}>
+                    {tier.iconEmoji} {tier.name.split('/')[0]}
+                  </div>
+
+                  <div className="space-y-1 pt-1.5 border-t border-slate-800/80 text-[10px]">
+                    <div className="flex justify-between text-sky-300">
+                      <span>Pluie</span>
+                      <span className="font-bold font-mono">{h.rainMm} mm ({h.precipitationProbability}%)</span>
+                    </div>
+                    <div className="flex justify-between text-slate-300">
+                      <span>Vent</span>
+                      <span className="font-semibold text-teal-300 font-mono">
+                        {h.windSpeed} km/h
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-
-        {/* Vue 2 : Semaine 7 Jours dans le Mode Simplifié */}
-        {activeTab === 'week' && (
-          <div className="w-full">
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-              {daily.slice(0, 7).map((d, dIdx) => {
-                const isToday = dIdx === 0;
-                const richW = getRichWeatherInfo(d.weatherCode, true, d.precipitationSumMm ?? d.rainMm ?? 0);
-                return (
-                  <button
-                    key={dIdx}
-                    onClick={() => {
-                      setSelectedDayIdx(dIdx);
-                      if (onOpenDayAnalyzer) onOpenDayAnalyzer(dIdx);
-                    }}
-                    className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer flex flex-col justify-between ${
-                      isToday
-                        ? 'border-sky-500/50 bg-sky-950/30 hover:border-sky-400'
-                        : 'border-slate-800/90 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-black text-white truncate">
-                        {isToday ? "Aujourd'hui" : d.dayLabel}
-                      </span>
-                      <DynamicSkyHeroArt weatherCode={d.weatherCode} isDay={true} size="xs" />
-                    </div>
-                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{richW.shortLabel}</div>
-                    <div className="mt-2 flex items-center justify-between text-xs font-black font-mono">
-                      <span className="text-blue-300">{formatTempSimple(d.tempMin)}</span>
-                      <div className="flex-1 mx-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-400 opacity-85" />
-                      <span className="text-amber-300">{formatTempSimple(d.tempMax)}</span>
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between text-[10px] text-sky-300 font-mono">
-                      <span>💧 {d.precipitationProbability}%</span>
-                      <span>{d.precipitationSumMm ?? d.rainMm ?? 0} mm</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Vue 3 : Courbe Thermique dans le Mode Simplifié */}
-        {activeTab === 'curve' && (
-          <div className="h-44 w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={next24Hours.map(h => ({ hour: h.hourLabel, temp: h.temperature, rain: h.rainMm }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '11px' }}
-                  labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                />
-                <Area type="monotone" dataKey="temp" stroke="#0284C7" strokeWidth={2} fill="#0284C7" fillOpacity={0.15} name="Température (°C)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        </div>
       </div>
     );
   }
