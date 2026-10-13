@@ -852,8 +852,7 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
 
   const moon = calculateMoonPhase(now);
   const synodicPeriod = 29.530588853;
-  const cycleDays = moon.daysIntoCycle ?? moon.moonAgeDays ?? 15;
-  const ageWithLag = (cycleDays - 1.5 + synodicPeriod) % synodicPeriod;
+  const ageWithLag = (moon.daysIntoCycle - 1.5 + synodicPeriod) % synodicPeriod;
   const phaseAngle = (ageWithLag / (synodicPeriod / 2)) * 2 * Math.PI;
   const syzygyFactor = Math.cos(phaseAngle);
 
@@ -861,7 +860,7 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
   const tideCoefficient = Math.max(20, Math.min(118, baseCoeff));
 
   const portLagMinutes = Math.round(((spot.latitude - 43.0) * 38) + ((spot.longitude + 4.5) * 24));
-  const lunarTransitMinutes = Math.round((cycleDays / synodicPeriod) * 1440);
+  const lunarTransitMinutes = Math.round((moon.daysIntoCycle / synodicPeriod) * 1440);
   const firstHighWaterMin = ((240 + lunarTransitMinutes + portLagMinutes) % 745 + 745) % 745;
 
   const currentMinutesOfDay = now.getHours() * 60 + now.getMinutes();

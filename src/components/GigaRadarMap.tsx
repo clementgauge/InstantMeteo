@@ -729,9 +729,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     }).addTo(map);
 
     // Ensure radar overlays remain on top
-    if (satelliteOverlayRef.current && (satelliteOverlayRef.current as any).bringToFront) (satelliteOverlayRef.current as any).bringToFront();
-    if (radarOverlayRef.current && (radarOverlayRef.current as any).bringToFront) (radarOverlayRef.current as any).bringToFront();
-    if (labelsLayerRef.current && (labelsLayerRef.current as any).bringToFront) (labelsLayerRef.current as any).bringToFront();
+    if (satelliteOverlayRef.current) satelliteOverlayRef.current.bringToFront();
+    if (radarOverlayRef.current) radarOverlayRef.current.bringToFront();
+    if (labelsLayerRef.current) (labelsLayerRef.current as L.TileLayer).bringToFront();
   }, [baseMap]);
 
   // 5. Update Radar and Satellite Overlays with maxNativeZoom to enable infinite smooth zoom

@@ -7,14 +7,11 @@ export type EuropeanMountainRegion =
   | 'FRANCE_ALPES_SUD'
   | 'FRANCE_PYRENEES'
   | 'FRANCE_AUTRES'
-  | 'FRANCE_VOSGES_JURA_MASSIF_CENTRAL'
   | 'SUISSE'
   | 'AUTRICHE'
-  | 'AUTRICHE_ALLEMAGNE'
   | 'ITALIE'
   | 'ESPAGNE_ANDORRE'
   | 'EUROPE_NORD_EST'
-  | 'SCANDINAVIE_EUROPE_EST'
   | 'MONDE';
 
 export interface MountainMassif {
