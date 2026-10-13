@@ -837,24 +837,24 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </div>
             </div>
 
-            {/* Row 5A: Indices Plein Air + Sécurité Extérieure côte à côte */}
+            {/* Suivi des Aurores Boréales à GAUCHE & Indices Plein Air à DROITE */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
-              <div className="xl:col-span-8 flex [&>div]:flex-1">
-                <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
-              </div>
-              <div className="xl:col-span-4 flex [&>div]:flex-1">
-                <ImouWeatherSecurityBanner
-                  weather={weather}
+              <div className="xl:col-span-6 flex [&>div]:flex-1">
+                <AuroraNightSkyCard
                   station={station}
-                  seniorMode={seniorMode}
+                  weather={weather}
                 />
+              </div>
+              <div className="xl:col-span-6 flex [&>div]:flex-1">
+                <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
               </div>
             </div>
 
-            {/* Row 5B: Observatoire des Aurores Boréales & Ciel Nocturne */}
-            <AuroraNightSkyCard
-              station={station}
+            {/* Sécurité Extérieure */}
+            <ImouWeatherSecurityBanner
               weather={weather}
+              station={station}
+              seniorMode={seniorMode}
             />
           </div>
 

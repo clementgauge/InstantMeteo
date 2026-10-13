@@ -129,7 +129,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   // =========================================================================
   if (simplifiedMode) {
     return (
-      <div id="grand-day-week-detailed-card" className="rounded-2xl border border-slate-700/80 bg-gradient-to-b from-[#0d182e]/95 via-[#091224]/95 to-[#070e1c]/95 p-3.5 sm:p-4 shadow-xl space-y-3 motion-card-enter">
+      <div id="grand-day-week-detailed-card" className="h-full rounded-2xl border border-slate-700/80 bg-gradient-to-b from-[#0d182e]/95 via-[#091224]/95 to-[#070e1c]/95 p-3.5 sm:p-4 shadow-xl flex flex-col justify-between space-y-3 motion-card-enter">
         {/* En-tête épuré et fidèle */}
         <div className="flex items-center gap-3 border-b border-slate-800/80 pb-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/25 to-blue-600/20 border border-sky-400/40 text-sky-400 shadow-lg shadow-sky-500/10">

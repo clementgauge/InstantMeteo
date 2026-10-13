@@ -141,7 +141,7 @@ export const AuroraNightSkyCard: React.FC<AuroraNightSkyCardProps> = ({
   return (
     <div
       id="realtime-aurora-night-sky"
-      className="rounded-2xl border border-slate-800/90 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-4 sm:p-5 shadow-xl space-y-4"
+      className="rounded-2xl border border-slate-800/90 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-4 sm:p-5 shadow-xl space-y-4 h-full flex flex-col justify-between"
     >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3.5">

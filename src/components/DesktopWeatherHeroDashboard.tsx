@@ -449,8 +449,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* ========================================================================= */}
       {/* 2. SECOND ROW: PRÉVISIONS HEURE PAR HEURE (8 COLS) + SOLEIL & LUNE (4 COLS) */}
       {/* ========================================================================= */}
-      <div className="hidden sm:grid grid-cols-12 gap-4 items-start">
-        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col min-w-0 scroll-mt-28">
+      <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
+        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col min-w-0 h-full scroll-mt-28 [&>div]:h-full">
           <GrandDayAndWeekDetailedForecastCard
             station={station}
             weather={weather}
@@ -482,7 +482,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           const dayDelta = eph.dayLengthChangeMinutes ?? 0;
 
           return (
-            <div className="col-span-12 xl:col-span-4 rounded-2xl border border-slate-800/90 bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between motion-card-enter space-y-2.5">
+            <div className="col-span-12 xl:col-span-4 rounded-2xl border border-slate-800/90 bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between h-full motion-card-enter space-y-2.5">
               {/* En-tête Compact Soleil & Lune */}
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                 <div className="flex items-center gap-2 min-w-0">
