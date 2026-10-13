@@ -58,7 +58,6 @@ import { UnifiedHourly48hTrend } from '../components/UnifiedHourly48hTrend';
 import { WeatherGauge } from '../components/WeatherGauge';
 import { AnomalyBadge } from '../components/AnomalyBadge';
 import { AltitudeMeteorologyCard } from '../components/AltitudeMeteorologyCard';
-import { EphemerisCard } from '../components/EphemerisCard';
 import { OutdoorIndicesCard } from '../components/OutdoorIndicesCard';
 import { PollenRealtimeTrackerCard } from '../components/PollenRealtimeTrackerCard';
 import { DeepWeatherConditionsCard } from '../components/DeepWeatherConditionsCard';
@@ -825,28 +824,25 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </div>
           </div>
 
-          {/* CHAPITRE 3 : ASTRONOMIE VÉRIFIÉE, AURORES BORÉALES & VIE QUOTIDIENNE */}
+          {/* CHAPITRE 3 : AURORES BORÉALES, INDICES DE VIE & SÉCURITÉ */}
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/35 text-[10px] font-black text-purple-300 uppercase tracking-wider">
-                  Astronomie, Aurores Boréales &amp; Plein Air
+                  Aurores Boréales &amp; Plein Air
                 </span>
                 <h3 className="text-sm sm:text-base font-black text-white">
-                  Éphéméride Solaire &amp; Lunaire Vérifiée, Aurores Boréales (Kp) &amp; Indices Quotidiens
+                  Indices Plein Air &amp; Observatoire des Aurores Boréales (Kp)
                 </h3>
               </div>
             </div>
 
-            {/* Row 5A: Éphéméride + Indices Plein Air + Sécurité Extérieure côte à côte */}
+            {/* Row 5A: Indices Plein Air + Sécurité Extérieure côte à côte */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
-              <div className="xl:col-span-4 flex [&>div]:flex-1">
-                <EphemerisCard weather={{ ...weather, isDay: effectiveIsDay, solarEphemeris: liveEphemeris }} seniorMode={seniorMode} />
-              </div>
-              <div className="xl:col-span-5 flex [&>div]:flex-1">
+              <div className="xl:col-span-8 flex [&>div]:flex-1">
                 <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
               </div>
-              <div className="xl:col-span-3 flex [&>div]:flex-1">
+              <div className="xl:col-span-4 flex [&>div]:flex-1">
                 <ImouWeatherSecurityBanner
                   weather={weather}
                   station={station}
