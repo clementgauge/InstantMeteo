@@ -101,6 +101,9 @@ export interface MountainAltitudeMetrics {
   isothermStatusLabel?: string; // Libellé diagnostique précis
   thermalInversionStrength?: 'Nulle' | 'Modérée' | 'Forte (Lac d\'air froid en vallée)';
   slopeWarmingBonusC?: number; // Gain thermique sur les adrets ensoleillés
+  freezingLevelHeight?: number;
+  snowDepth?: number;
+  snowfall?: number;
 }
 
 export interface PastHourObservation {
@@ -262,6 +265,7 @@ export interface MoonPhaseData {
   phaseCode: 'new_moon' | 'waxing_crescent' | 'first_quarter' | 'waxing_gibbous' | 'full_moon' | 'waning_gibbous' | 'last_quarter' | 'waning_crescent';
   illuminationPercent: number;
   moonAgeDays: number;
+  daysIntoCycle?: number;
   moonSign: string;
   tideType: 'Vives-Eaux (Forts coefficients)' | 'Mortes-Eaux (Faibles coefficients)' | 'Moyennes';
   moonrise?: string;
@@ -948,7 +952,10 @@ export interface CurrentWeather {
   isotherm0Meters?: number;
   snowRainLimitMeters?: number;
   snowDepthCm?: number;
+  snowDepth?: number;
+  snowfall?: number;
   snowFresh24hCm?: number;
+  freezingLevelHeight?: number;
   altitudeMetrics?: MountainAltitudeMetrics;
   solarEphemeris?: SolarEphemeris;
   moonPhase?: MoonPhaseData;
