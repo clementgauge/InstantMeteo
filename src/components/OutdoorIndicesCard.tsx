@@ -34,18 +34,18 @@ export const OutdoorIndicesCard: React.FC<OutdoorIndicesCardProps> = ({
   if (!indices) return null;
 
   return (
-    <div id="outdoor-indices-card" className="rounded-xl border border-slate-800 bg-slate-900/90 p-5 sm:p-6 shadow-xl backdrop-blur h-full flex flex-col justify-between">
+    <div id="outdoor-indices-card" className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-xl backdrop-blur h-full flex flex-col justify-between">
       {/* Header & Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">
             <Compass className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-base sm:text-lg">
+            <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
               Indices d'Activités & Confort Plein Air
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Évaluations biométéorologiques pour sports, loisirs, agriculture et énergie
             </p>
           </div>

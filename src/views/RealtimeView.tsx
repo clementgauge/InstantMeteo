@@ -254,21 +254,21 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* 4 Profils Météo Spécialisés : Chaîne Météo Classique, Agro-Météo, Aviation, Météo Pro (Masqués en Mode Simple) */}
       {!simplifiedMode && (
         <div className="w-full">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-1 rounded-xl bg-slate-900/95 border border-slate-800/90 shadow-md">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800/90 shadow-sm">
             <button
               id="realtime-tab-classic"
               onClick={() => setActiveProfileTab('classic')}
               className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'classic'
                   ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-400/50'
-                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
+                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
                   activeProfileTab === 'classic'
                     ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                    : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
                 }`}>
                   <Tv className="h-3.5 w-3.5" />
                 </div>
@@ -277,14 +277,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                     Chaîne Météo (Classique)
                   </div>
                   <div className={`text-[10px] truncate leading-tight ${
-                    activeProfileTab === 'classic' ? 'text-blue-100 font-medium' : 'text-slate-400'
+                    activeProfileTab === 'classic' ? 'text-blue-100 font-medium' : 'text-slate-500 dark:text-slate-400'
                   }`}>
                     Vue générale &amp; prévisions
                   </div>
                 </div>
               </div>
               <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'classic' ? 'bg-white' : 'bg-slate-700'
+                activeProfileTab === 'classic' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
@@ -294,14 +294,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'agriculture'
                   ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
+                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
                   activeProfileTab === 'agriculture'
                     ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                 }`}>
                   <Sprout className="h-3.5 w-3.5" />
                 </div>
@@ -310,14 +310,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                     Agro-Météo
                   </div>
                   <div className={`text-[10px] truncate leading-tight ${
-                    activeProfileTab === 'agriculture' ? 'text-emerald-100 font-medium' : 'text-slate-400'
+                    activeProfileTab === 'agriculture' ? 'text-emerald-100 font-medium' : 'text-slate-500 dark:text-slate-400'
                   }`}>
                     Sols, ET0, gelées &amp; ΔT
                   </div>
                 </div>
               </div>
               <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'agriculture' ? 'bg-white' : 'bg-slate-700'
+                activeProfileTab === 'agriculture' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
@@ -327,14 +327,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'aviation'
                   ? 'bg-sky-600 text-white shadow-sm ring-1 ring-sky-400/50'
-                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
+                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
                   activeProfileTab === 'aviation'
                     ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-sky-500/10 border-sky-500/20 text-sky-400'
+                    : 'bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/20 text-sky-600 dark:text-sky-400'
                 }`}>
                   <Plane className="h-3.5 w-3.5" />
                 </div>
@@ -343,14 +343,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                     Météo Aviation
                   </div>
                   <div className={`text-[10px] truncate leading-tight ${
-                    activeProfileTab === 'aviation' ? 'text-sky-100 font-medium' : 'text-slate-400'
+                    activeProfileTab === 'aviation' ? 'text-sky-100 font-medium' : 'text-slate-500 dark:text-slate-400'
                   }`}>
                     METAR, VFR/IFR &amp; vent piste
                   </div>
                 </div>
               </div>
               <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'aviation' ? 'bg-white' : 'bg-slate-700'
+                activeProfileTab === 'aviation' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
@@ -360,14 +360,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'pro'
                   ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400/50'
-                  : 'bg-slate-950/50 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700/70'
+                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
                   activeProfileTab === 'pro'
                     ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                    : 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
                 }`}>
                   <Activity className="h-3.5 w-3.5" />
                 </div>
@@ -831,21 +831,21 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/35 text-[10px] font-black text-purple-300 uppercase tracking-wider">
                   Aurores Boréales &amp; Plein Air
                 </span>
-                <h3 className="text-sm sm:text-base font-black text-white">
-                  Indices Plein Air &amp; Observatoire des Aurores Boréales (Kp)
+                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                  Suivi des Aurores Boréales (Kp) &amp; Indices Plein Air
                 </h3>
               </div>
             </div>
 
             {/* Suivi des Aurores Boréales à GAUCHE & Indices Plein Air à DROITE */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
-              <div className="xl:col-span-6 flex [&>div]:flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+              <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
                 <AuroraNightSkyCard
                   station={station}
                   weather={weather}
                 />
               </div>
-              <div className="xl:col-span-6 flex [&>div]:flex-1">
+              <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
                 <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
               </div>
             </div>
@@ -979,64 +979,64 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         <div id="realtime-more-forecast" className="xl:col-span-7 grid grid-cols-2 lg:grid-cols-4 gap-2 scroll-mt-28">
           <button
             onClick={() => onNavigateTab && onNavigateTab('vigilance')}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-rose-500/30 bg-slate-900/90 hover:border-rose-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-rose-300 dark:border-rose-500/30 bg-white dark:bg-slate-900/90 hover:border-rose-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
-            <div className="rounded-lg bg-rose-500/15 p-1.5 text-rose-400 border border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition shrink-0">
+            <div className="rounded-lg bg-rose-50 dark:bg-rose-500/15 p-1.5 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 group-hover:bg-rose-600 group-hover:text-white transition shrink-0">
               <ShieldAlert className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-black text-white group-hover:text-rose-400 truncate leading-tight">Vigilances &amp; Alertes</h4>
-              <p className="text-[9px] text-slate-400 truncate leading-tight">Matrice des 12 risques</p>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 truncate leading-tight">Vigilances &amp; Alertes</h4>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 truncate leading-tight">Matrice des 12 risques</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('thirtyDays')}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-blue-500/30 bg-slate-900/90 hover:border-blue-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-blue-300 dark:border-blue-500/30 bg-white dark:bg-slate-900/90 hover:border-blue-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
-            <div className="rounded-lg bg-blue-500/15 p-1.5 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-500/15 p-1.5 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
               <Calendar className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-black text-white group-hover:text-blue-400 truncate leading-tight">Prévisions 30 Jours</h4>
-              <p className="text-[9px] text-slate-400 truncate leading-tight">Calendrier jour par jour</p>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate leading-tight">Prévisions 30 Jours</h4>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 truncate leading-tight">Calendrier jour par jour</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('eightMonths')}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-indigo-500/30 bg-slate-900/90 hover:border-indigo-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-indigo-300 dark:border-indigo-500/30 bg-white dark:bg-slate-900/90 hover:border-indigo-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
-            <div className="rounded-lg bg-indigo-500/15 p-1.5 text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition shrink-0">
+            <div className="rounded-lg bg-indigo-50 dark:bg-indigo-500/15 p-1.5 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 group-hover:bg-indigo-600 group-hover:text-white transition shrink-0">
               <Globe className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-black text-white group-hover:text-indigo-400 truncate leading-tight">Tendances 8 Mois</h4>
-              <p className="text-[9px] text-slate-400 truncate leading-tight">24 Décades • 240 Jours</p>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate leading-tight">Tendances 8 Mois</h4>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 truncate leading-tight">24 Décades • 240 Jours</p>
             </div>
           </button>
 
           <button
             onClick={() => onNavigateTab && onNavigateTab('radar')}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-cyan-500/30 bg-slate-900/90 hover:border-cyan-400 transition text-left group shadow-sm cursor-pointer min-w-0"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-cyan-300 dark:border-cyan-500/30 bg-white dark:bg-slate-900/90 hover:border-cyan-400 transition text-left group shadow-sm cursor-pointer min-w-0"
           >
-            <div className="rounded-lg bg-cyan-500/15 p-1.5 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition shrink-0">
+            <div className="rounded-lg bg-cyan-50 dark:bg-cyan-500/15 p-1.5 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition shrink-0">
               <Radar className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-black text-white group-hover:text-cyan-400 truncate leading-tight">Giga Radar de Pluie</h4>
-              <p className="text-[9px] text-slate-400 truncate leading-tight">ARAMIS &amp; Satellite HD</p>
+              <h4 className="text-xs font-black text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 truncate leading-tight">Giga Radar de Pluie</h4>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 truncate leading-tight">ARAMIS &amp; Satellite HD</p>
             </div>
           </button>
         </div>
 
         {/* Quick Action & Install Banner (Desktop only so mobile never shows a duplicate install bar) */}
-        <div id="realtime-download" className="hidden sm:flex xl:col-span-5 rounded-xl border border-slate-800 bg-slate-900/90 px-2.5 py-1.5 items-center justify-between gap-2 shadow-sm scroll-mt-28">
+        <div id="realtime-download" className="hidden sm:flex xl:col-span-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-2.5 py-1.5 items-center justify-between gap-2 shadow-sm scroll-mt-28">
           <div className="flex items-center gap-2 min-w-0">
             <img src="/icon-192.png" alt="Logo Instant Météo" className="h-7 w-7 rounded-lg border border-blue-500/30 object-cover shrink-0" />
             <div className="min-w-0">
-              <span className="text-xs font-black text-white block truncate leading-tight">App Instant Météo</span>
-              <span className="text-[9px] text-slate-400 block truncate leading-tight">Application PWA</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white block truncate leading-tight">App Instant Météo</span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400 block truncate leading-tight">Application PWA</span>
             </div>
           </div>
 

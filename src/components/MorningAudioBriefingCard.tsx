@@ -142,24 +142,24 @@ export const MorningAudioBriefingCard: React.FC<MorningAudioBriefingCardProps> =
   };
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
       <div className="space-y-4">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3.5">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800/80 pb-3.5">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs text-sky-400 font-medium">
+            <div className="flex items-center gap-2 text-xs text-sky-600 dark:text-sky-400 font-medium">
               <Volume2 className="h-3.5 w-3.5 shrink-0" />
               <span>Synthèse vocale francophone</span>
               {isPlaying && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="text-emerald-400 font-semibold">Lecture en cours</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Lecture en cours</span>
                 </>
               )}
             </div>
-            <h3 className="text-base font-bold text-white tracking-tight">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               Bulletin Audio de {station.name}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Point complet sur le direct, l&apos;écart avec hier, la pluie dans les 3h, le vent, l&apos;UV et la tendance de demain.
             </p>
           </div>

@@ -59,7 +59,7 @@ export const WeatherGauge: React.FC<WeatherGaugeProps> = ({
   return (
     <div
       id={id || `gauge-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-      className={`group relative overflow-hidden rounded-2xl border border-slate-800/90 bg-gradient-to-b from-[#0d182c]/95 to-[#091120]/95 p-3.5 sm:p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 hover:shadow-sky-950/30 motion-hover-lift flex flex-col justify-between ${
+      className={`group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-gradient-to-b dark:from-[#0d182c]/95 dark:to-[#091120]/95 p-3.5 sm:p-4 shadow-lg transition-all duration-300 hover:border-sky-500/40 hover:shadow-sky-950/30 motion-hover-lift flex flex-col justify-between ${
         seniorMode ? 'p-5 ring-1 ring-slate-700' : ''
       }`}
     >
@@ -68,33 +68,33 @@ export const WeatherGauge: React.FC<WeatherGaugeProps> = ({
 
       <div>
         <div className="flex items-center justify-between gap-1.5">
-          <span className={`font-bold text-slate-200 tracking-tight leading-snug ${seniorMode ? 'text-base' : 'text-[11px] sm:text-xs'}`}>
+          <span className={`font-bold text-slate-800 dark:text-slate-200 tracking-tight leading-snug ${seniorMode ? 'text-base' : 'text-[11px] sm:text-xs'}`}>
             {title}
           </span>
-          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-white/10 ${bgGradient} shadow-inner`}>
+          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 ${bgGradient} shadow-inner`}>
             <Icon className={`h-3.5 w-3.5 shrink-0 ${colorClass}`} />
           </div>
         </div>
 
         <div className="mt-2.5 flex items-baseline justify-between gap-1.5 flex-wrap">
           <div className="flex items-baseline gap-1">
-            <span className={`font-black tracking-tight text-white font-mono tabular-nums leading-none ${seniorMode ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}>
+            <span className={`font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-none ${seniorMode ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}>
               {value}
             </span>
-            <span className={`font-bold text-slate-400 font-mono tabular-nums ${seniorMode ? 'text-base' : 'text-[10px] sm:text-xs'}`}>
+            <span className={`font-bold text-slate-500 dark:text-slate-400 font-mono tabular-nums ${seniorMode ? 'text-base' : 'text-[10px] sm:text-xs'}`}>
               {unit}
             </span>
           </div>
 
           {subValue && (
-            <span className={`inline-flex items-center rounded-lg bg-slate-950/80 border border-slate-800 px-1.5 py-0.5 font-bold text-right ${colorClass} ${seniorMode ? 'text-xs' : 'text-[9px] sm:text-[10px]'}`}>
+            <span className={`inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 px-1.5 py-0.5 font-bold text-right ${colorClass} ${seniorMode ? 'text-xs' : 'text-[9px] sm:text-[10px]'}`}>
               {subValue}
             </span>
           )}
         </div>
 
         {/* Visual Progress Bar */}
-        <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-950/90 border border-slate-800/80 overflow-hidden p-[1px]">
+        <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800/80 overflow-hidden p-[1px]">
           <div
             className={`h-full rounded-full bg-gradient-to-r ${barGradient} transition-all duration-700`}
             style={{ width: `${Math.round(progressPct)}%` }}
@@ -102,7 +102,7 @@ export const WeatherGauge: React.FC<WeatherGaugeProps> = ({
         </div>
       </div>
 
-      <p className={`mt-2.5 border-t border-slate-800/70 pt-2 text-slate-400 ${seniorMode ? 'text-xs sm:text-sm leading-relaxed text-slate-300' : 'text-[10px] sm:text-[11px] leading-snug line-clamp-2 sm:line-clamp-none'}`}>
+      <p className={`mt-2.5 border-t border-slate-100 dark:border-slate-800/70 pt-2 text-slate-600 dark:text-slate-400 ${seniorMode ? 'text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300' : 'text-[10px] sm:text-[11px] leading-snug line-clamp-2 sm:line-clamp-none'}`}>
         {description}
       </p>
     </div>

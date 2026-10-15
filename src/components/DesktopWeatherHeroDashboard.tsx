@@ -169,7 +169,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       <div className="grid grid-cols-12 gap-4 items-stretch">
         <div
           id="realtime-radiography"
-          className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card motion-card-enter motion-stagger-1 relative overflow-hidden rounded-xl border border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
+          className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card motion-card-enter motion-stagger-1 relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
         >
           {/* Photographic Panorama of Selected City / Landscape with Ken Burns Motion */}
           <img
@@ -450,7 +450,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
       {/* 2. SECOND ROW: PRÉVISIONS HEURE PAR HEURE (8 COLS) + SOLEIL & LUNE (4 COLS) */}
       {/* ========================================================================= */}
       <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
-        <div id="realtime-forecast-week" className="col-span-12 xl:col-span-8 flex flex-col min-w-0 h-full scroll-mt-28 [&>div]:h-full">
+        <div id="realtime-forecast-week" className="col-span-12 lg:col-span-8 flex flex-col min-w-0 h-full scroll-mt-28 [&>div]:h-full">
           <GrandDayAndWeekDetailedForecastCard
             station={station}
             weather={weather}
@@ -482,22 +482,22 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           const dayDelta = eph.dayLengthChangeMinutes ?? 0;
 
           return (
-            <div className="col-span-12 xl:col-span-4 rounded-2xl border border-slate-800/90 bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between h-full motion-card-enter space-y-2.5">
+            <div className="col-span-12 lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between h-full motion-card-enter space-y-2">
               {/* En-tête Compact Soleil & Lune */}
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 border ${
                     isSunUp
-                      ? 'bg-amber-500/15 border-amber-400/30 text-amber-400'
-                      : 'bg-indigo-500/15 border-indigo-400/30 text-indigo-300'
+                      ? 'bg-amber-500/15 border-amber-400/30 text-amber-500 dark:text-amber-400'
+                      : 'bg-indigo-500/15 border-indigo-400/30 text-indigo-600 dark:text-indigo-300'
                   }`}>
                     {isSunUp ? <Sun className="h-4 w-4 motion-sun-spin" /> : <Moon className="h-4 w-4 motion-moon-float" />}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-black text-white tracking-tight truncate">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
                       Soleil &amp; Cycle Lunaire
                     </h3>
-                    <div className="text-[10px] text-slate-400 font-mono tabular-nums truncate">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tabular-nums truncate">
                       {isSunUp
                         ? `Jour (${eph.currentLocalTimeFormatted || currentTime}) • Élév. +${eph.currentSolarElevationDeg}°`
                         : `Nuit (${eph.currentLocalTimeFormatted || currentTime}) • Élév. ${eph.currentSolarElevationDeg}°`}
@@ -506,16 +506,16 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                 </div>
                 <span className={`text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                   dayDelta >= 0
-                    ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25'
-                    : 'text-amber-300 bg-amber-500/10 border-amber-500/25'
+                    ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                    : 'text-amber-700 dark:text-amber-300 bg-amber-500/15 border-amber-500/30'
                 }`}>
                   {dayDelta > 0 ? `+${dayDelta}` : dayDelta} min/j
                 </span>
               </div>
 
               {/* Arc Dynamique Diurne / Nocturne Compact */}
-              <div className="h-16 relative flex items-center justify-center rounded-xl bg-slate-950/70 border border-slate-800/70 px-2 pt-1 pb-0.5 overflow-hidden">
-                <svg viewBox="0 0 160 54" className="w-full h-full overflow-visible">
+              <div className="flex-1 min-h-[68px] relative flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/70 px-2 pt-1 pb-0.5 overflow-hidden">
+                <svg viewBox="0 0 160 54" className="w-full h-full overflow-visible max-h-[80px]">
                   <defs>
                     <linearGradient id="sunArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.95" />
@@ -532,22 +532,22 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                   {/* Étoiles scintillantes la nuit */}
                   {!isSunUp && (
                     <g>
-                      <circle cx="28" cy="12" r="0.8" fill="#e0e7ff" className="motion-star-twinkle" />
-                      <circle cx="54" cy="7" r="1.0" fill="#fef08a" className="motion-star-twinkle-delayed" />
-                      <circle cx="80" cy="5" r="0.75" fill="#bae6fd" className="motion-star-twinkle" />
-                      <circle cx="108" cy="8" r="0.9" fill="#e0e7ff" className="motion-star-twinkle-delayed" />
-                      <circle cx="132" cy="14" r="0.8" fill="#fef08a" className="motion-star-twinkle" />
+                      <circle cx="28" cy="12" r="0.8" fill="#818cf8" className="motion-star-twinkle" />
+                      <circle cx="54" cy="7" r="1.0" fill="#facc15" className="motion-star-twinkle-delayed" />
+                      <circle cx="80" cy="5" r="0.75" fill="#38bdf8" className="motion-star-twinkle" />
+                      <circle cx="108" cy="8" r="0.9" fill="#818cf8" className="motion-star-twinkle-delayed" />
+                      <circle cx="132" cy="14" r="0.8" fill="#facc15" className="motion-star-twinkle" />
                     </g>
                   )}
 
                   {/* Ligne d'horizon */}
-                  <line x1="8" y1="44" x2="152" y2="44" stroke="#1e293b" strokeWidth="1.1" />
+                  <line x1="8" y1="44" x2="152" y2="44" className="sun-night-horizon-line stroke-slate-200 dark:stroke-[#1e293b]" strokeWidth="1.1" />
 
                   {/* Trajectoire de référence en pointillés */}
                   <path
                     d="M 15 44 Q 80 4 145 44"
                     fill="none"
-                    stroke={isSunUp ? '#334155' : '#1e293b'}
+                    className="sun-night-arc-track stroke-slate-300 dark:stroke-[#334155]"
                     strokeWidth="1.5"
                     strokeDasharray="3 3"
                   />
@@ -568,13 +568,13 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                   <circle cx="145" cy="44" r="2.4" fill={isSunUp ? '#fb923c' : '#38bdf8'} />
 
                   {/* Heures sur l'arc */}
-                  <text x="15" y="52" textAnchor="start" fill="#94a3b8" fontSize="6.2" fontFamily="monospace">
+                  <text x="15" y="52" textAnchor="start" className="fill-slate-500 dark:fill-[#94a3b8]" fontSize="6.2" fontFamily="monospace">
                     {eph.sunrise}
                   </text>
-                  <text x="80" y="52" textAnchor="middle" fill="#64748b" fontSize="5.8" fontFamily="monospace">
+                  <text x="80" y="52" textAnchor="middle" className="fill-slate-500 dark:fill-[#64748b]" fontSize="5.8" fontFamily="monospace">
                     {isSunUp ? `Midi ${eph.solarNoon}` : `Nuit`}
                   </text>
-                  <text x="145" y="52" textAnchor="end" fill="#94a3b8" fontSize="6.2" fontFamily="monospace">
+                  <text x="145" y="52" textAnchor="end" className="fill-slate-500 dark:fill-[#94a3b8]" fontSize="6.2" fontFamily="monospace">
                     {eph.sunset}
                   </text>
 
@@ -588,30 +588,30 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                     <g>
                       <circle cx={orbCx} cy={orbCy} r="9" fill="#6366f1" opacity="0.28" className="motion-orb-breathe" />
                       <circle cx={orbCx} cy={orbCy} r="4.8" fill="#e0e7ff" stroke="#38bdf8" strokeWidth="1.2" />
-                      <circle cx={orbCx + 1.5} cy={orbCy - 1} r="3.6" fill="#091122" />
+                      <circle cx={orbCx + 1.5} cy={orbCy - 1} r="3.6" className="moon-cutout fill-slate-50 dark:fill-[#091122]" />
                     </g>
                   )}
                 </svg>
               </div>
 
               {/* Repères Clés : Lever / Durée / Coucher */}
-              <div className="grid grid-cols-3 items-center text-center text-xs font-mono tabular-nums bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/70">
+              <div className="grid grid-cols-3 items-center text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800/70">
                 <div>
-                  <span className="text-slate-400 text-[9px] block">Lever</span>
-                  <span className="font-bold text-amber-300 text-[11px]">{eph.sunrise}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[9px] block">Lever</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-300 text-[11px]">{eph.sunrise}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[9px] block">Jour</span>
-                  <span className="font-bold text-white text-[11px]">{eph.dayLengthFormatted}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[9px] block">Jour</span>
+                  <span className="font-bold text-slate-900 dark:text-white text-[11px]">{eph.dayLengthFormatted}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 text-[9px] block">Coucher</span>
-                  <span className="font-bold text-orange-300 text-[11px]">{eph.sunset}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[9px] block">Coucher</span>
+                  <span className="font-bold text-orange-600 dark:text-orange-300 text-[11px]">{eph.sunset}</span>
                 </div>
               </div>
 
               {/* Section Lunaire Compacte */}
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xl select-none motion-moon-float shrink-0" aria-hidden="true">
                     {phaseCode === 'new_moon'
@@ -631,16 +631,16 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                                   : '🌘'}
                   </span>
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-white truncate block">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
                       {moon?.phaseName || 'Lune'}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono tabular-nums block">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tabular-nums block">
                       {illum}% éclairée • Âge {moon?.moonAgeDays ?? 14}j
                     </span>
                   </div>
                 </div>
 
-                <div className="text-right text-[10px] text-slate-400 font-mono tabular-nums shrink-0">
+                <div className="text-right text-[10px] text-slate-500 dark:text-slate-400 font-mono tabular-nums shrink-0">
                   <div>Lev. {moon?.moonrise || '--'}</div>
                   <div>Couch. {moon?.moonset || '--'}</div>
                 </div>

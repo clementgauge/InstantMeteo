@@ -147,23 +147,23 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
         {/* Title with cyan rain icon */}
         <div className="flex items-center gap-2 mb-2">
           <CloudRain className="w-5 h-5 text-sky-400" />
-          <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+          <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
             Pluie dans l'heure
           </h3>
         </div>
 
-        {/* Dark Card Frame (Matching all other dark cards) */}
-        <div className="flex-1 bg-[#0c1424] rounded-2xl border border-slate-800 shadow-lg p-4 sm:p-5 flex flex-col justify-between">
+        {/* Card Frame */}
+        <div className="flex-1 bg-white dark:bg-[#0c1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg p-4 sm:p-5 flex flex-col justify-between">
           {/* Header row: Status + Button METTRE À JOUR */}
           <div className="flex items-center justify-between gap-2">
-            <span className="text-base sm:text-[17px] font-bold text-slate-100">
+            <span className="text-base sm:text-[17px] font-bold text-slate-800 dark:text-slate-100">
               {rainSummaryText}
             </span>
 
             <button
               type="button"
               onClick={handleUpdate}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 active:scale-95 text-sky-300 text-xs font-black tracking-wide uppercase transition shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/30 border border-sky-300 dark:border-sky-500/40 active:scale-95 text-sky-700 dark:text-sky-300 text-xs font-black tracking-wide uppercase transition shadow-sm cursor-pointer"
             >
               <span>METTRE À JOUR</span>
               <RefreshCw className={`w-3 h-3 ${isUpdating ? 'animate-spin' : ''}`} />
@@ -171,7 +171,7 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
           </div>
 
           {/* Time range: Start (ex: 14 : 55) and End (ex: 15 : 55) */}
-          <div className="flex items-center justify-between text-sky-400 font-bold text-sm mt-4 px-1">
+          <div className="flex items-center justify-between text-sky-600 dark:text-sky-400 font-bold text-sm mt-4 px-1">
             <span>{timeLabels.startTime}</span>
             <span>{timeLabels.endTime}</span>
           </div>
@@ -181,12 +181,12 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
             {rainSlots.map((slot) => (
               <div 
                 key={slot.key} 
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 transition shadow-inner"
+                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 transition shadow-inner"
               >
                 {/* Diagonal slashed droplet for 'none', blue droplets for rain */}
                 {slot.level === 'none' ? (
-                  <div className="relative w-6 h-6 flex items-center justify-center text-slate-500">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-slate-700/60 stroke-slate-500 stroke-1">
+                  <div className="relative w-6 h-6 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-slate-300 dark:fill-slate-700/60 stroke-slate-400 dark:stroke-slate-500 stroke-1">
                       <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
                     </svg>
                     <div className="absolute w-5 h-0.5 bg-slate-400 rotate-45 rounded-full" />
@@ -205,7 +205,7 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
           {/* 6 Interval Time Labels (5 min, 10 min, 20 min, 30 min, 40 min, 50 min) */}
           <div className="grid grid-cols-6 gap-1.5 sm:gap-2 mt-2 text-center">
             {rainSlots.map((slot) => (
-              <span key={slot.key} className="text-[11px] font-semibold text-slate-400 leading-tight">
+              <span key={slot.key} className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">
                 {slot.label}
               </span>
             ))}
@@ -214,41 +214,41 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
       </div>
 
       {/* ========================================================= */}
-      {/* CARD 2 : COMPARAISON AUX NORMALES (Fond noir / dark)      */}
+      {/* CARD 2 : COMPARAISON AUX NORMALES                         */}
       {/* ========================================================= */}
       <div className="flex flex-col">
         {/* Title with cyan chart icon */}
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-sky-400" />
-          <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+          <TrendingUp className="w-5 h-5 text-sky-500 dark:text-sky-400" />
+          <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
             Comparaison aux normales
           </h3>
         </div>
 
-        {/* Dark Card Frame (Matching all other dark cards) */}
-        <div className="flex-1 bg-[#0c1424] rounded-2xl border border-slate-800 shadow-lg p-4 sm:p-5 flex flex-col justify-between">
+        {/* Card Frame */}
+        <div className="flex-1 bg-white dark:bg-[#0c1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg p-4 sm:p-5 flex flex-col justify-between">
           {/* Dual Blocks Container */}
           <div className="grid grid-cols-2 gap-3">
             {/* Left Block: Minimale du jour */}
-            <div className="bg-slate-900/90 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between border border-slate-800 shadow-inner">
+            <div className="bg-slate-50 dark:bg-slate-900/90 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between border border-slate-200 dark:border-slate-800 shadow-inner">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="text-[13px] font-bold text-slate-200 leading-tight">Minimale</div>
-                  <div className="text-[11px] text-slate-400 font-medium">du jour</div>
+                  <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 leading-tight">Minimale</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">du jour</div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-sky-400 tracking-tight">
+                <div className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400 tracking-tight">
                   {climateComparison.actualMin}°
                 </div>
               </div>
 
               {/* Ecart with colored pill */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800">
-                <span className="text-xs font-semibold text-slate-400">Écart</span>
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Écart</span>
                 <span 
                   className={`px-2 py-0.5 rounded-full text-xs font-black border ${
                     climateComparison.diffMin >= 0 
-                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' 
-                      : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                      ? 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40' 
+                      : 'bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-500/40'
                   }`}
                 >
                   {climateComparison.diffMinStr}
@@ -257,25 +257,25 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
             </div>
 
             {/* Right Block: Maximale du jour */}
-            <div className="bg-slate-900/90 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between border border-slate-800 shadow-inner">
+            <div className="bg-slate-50 dark:bg-slate-900/90 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between border border-slate-200 dark:border-slate-800 shadow-inner">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="text-[13px] font-bold text-slate-200 leading-tight">Maximale</div>
-                  <div className="text-[11px] text-slate-400 font-medium">du jour</div>
+                  <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 leading-tight">Maximale</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">du jour</div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-rose-400 tracking-tight">
+                <div className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
                   {climateComparison.actualMax}°
                 </div>
               </div>
 
               {/* Ecart with colored pill */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800">
-                <span className="text-xs font-semibold text-slate-400">Écart</span>
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Écart</span>
                 <span 
                   className={`px-2 py-0.5 rounded-full text-xs font-black border ${
                     climateComparison.diffMax >= 0 
-                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' 
-                      : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                      ? 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40' 
+                      : 'bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-500/40'
                   }`}
                 >
                   {climateComparison.diffMaxStr}
@@ -285,7 +285,7 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
           </div>
 
           {/* Subtitle Explanatory Text */}
-          <div className="mt-4 pt-2 text-center text-xs text-slate-400 leading-relaxed font-medium border-t border-slate-800/60">
+          <div className="mt-4 pt-2 text-center text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium border-t border-slate-200 dark:border-slate-800/60">
             Écarts avec les moyennes de températures minimales et maximales du mois de{' '}
             <strong className="font-bold text-slate-200">{currentMonthName}</strong> sur{' '}
             <strong className="font-bold text-slate-200">{cityName}</strong>

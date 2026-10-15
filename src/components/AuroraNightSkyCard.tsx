@@ -141,21 +141,21 @@ export const AuroraNightSkyCard: React.FC<AuroraNightSkyCardProps> = ({
   return (
     <div
       id="realtime-aurora-night-sky"
-      className="rounded-2xl border border-slate-800/90 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 p-4 sm:p-5 shadow-xl space-y-4 h-full flex flex-col justify-between"
+      className="rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/30 p-4 sm:p-5 shadow-xl space-y-4 h-full flex flex-col justify-between"
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                 NOAA SWPC • Météo Spatiale &amp; Astronomie • {station.name} ({station.latitude.toFixed(1)}°)
               </span>
             </div>
-            <h3 className="text-sm sm:text-base font-black text-white">
+            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
               Suivi des Aurores Boréales &amp; Qualité du Ciel Nocturne
             </h3>
           </div>

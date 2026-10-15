@@ -238,11 +238,14 @@ function WeatherApp() {
       document.documentElement.classList.add('theme-light');
       document.documentElement.classList.remove('dark');
       document.body.classList.add('theme-light');
+      document.body.classList.remove('dark');
       document.body.style.backgroundColor = 'transparent';
       document.body.style.color = '#0f172a';
     } else {
       document.documentElement.classList.remove('theme-light');
+      document.documentElement.classList.add('dark');
       document.body.classList.remove('theme-light');
+      document.body.classList.add('dark');
       document.body.style.backgroundColor = '';
       document.body.style.color = '';
     }

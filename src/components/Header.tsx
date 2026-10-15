@@ -274,24 +274,24 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-    <header ref={headerRef} className="relative z-40 rounded-t-2xl border border-slate-800/90 bg-gradient-to-b from-[#0d182e]/95 to-[#091224]/95 backdrop-blur-md px-3 py-2.5 sm:px-4 lg:px-5 sm:py-3 shadow-lg">
+    <header ref={headerRef} className="relative z-40 rounded-t-2xl border border-slate-200 dark:border-slate-800/90 bg-white/95 dark:bg-gradient-to-b dark:from-[#0d182e]/95 dark:to-[#091224]/95 backdrop-blur-md px-3 py-2.5 sm:px-4 lg:px-5 sm:py-3 shadow-lg">
       {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HEADER - Pixel-perfect match with reference design       */}
       {/* ========================================================================= */}
       <div className="block sm:hidden w-full space-y-3 px-1 pt-0.5 pb-1">
         {/* Native Mobile Status Bar (Heure réelle, wifi réel, vraie batterie si disponible) */}
-        <div className="flex items-center justify-between text-xs text-white font-semibold px-2 pt-0.5 pb-1 select-none">
+        <div className="flex items-center justify-between text-xs text-slate-800 dark:text-white font-semibold px-2 pt-0.5 pb-1 select-none">
           <span className="font-bold tracking-tight">{realClock}</span>
           <div className="flex items-center gap-2">
             {/* Cellular Signal Icon */}
-            <svg className={`w-3.5 h-3 ${isOnline ? 'text-white' : 'text-slate-500'} fill-current`} viewBox="0 0 17 12">
+            <svg className={`w-3.5 h-3 ${isOnline ? 'text-slate-800 dark:text-white' : 'text-slate-500'} fill-current`} viewBox="0 0 17 12">
               <rect x="0" y="8" width="2.5" height="4" rx="0.5" />
               <rect x="4" y="5.5" width="2.5" height="6.5" rx="0.5" />
               <rect x="8" y="3" width="2.5" height="9" rx="0.5" />
               <rect x="12" y="0.5" width="2.5" height="11.5" rx="0.5" />
             </svg>
             {/* Wi-Fi Icon (Verte/Blanche si en ligne, rouge si hors-ligne) */}
-            <svg className={`w-3.5 h-3.5 ${isOnline ? 'text-white' : 'text-rose-400'} stroke-current fill-none`} viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+            <svg className={`w-3.5 h-3.5 ${isOnline ? 'text-slate-800 dark:text-white' : 'text-rose-400'} stroke-current fill-none`} viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
               <path d="M5 12.55a11 11 0 0 1 14.08 0" />
               <path d="M1.42 9a16 16 0 0 1 21.16 0" />
               <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
@@ -300,12 +300,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Vraie Batterie système si disponible */}
             {batteryLevel !== null ? (
               <div className="flex items-center gap-1">
-                <span className="text-[10px] font-medium text-slate-200">{batteryLevel}%</span>
+                <span className="text-[10px] font-medium text-slate-600 dark:text-slate-200">{batteryLevel}%</span>
                 <div className="flex items-center">
-                  <div className="w-5 h-2.5 rounded-sm border border-white p-[1px] flex items-center relative">
+                  <div className="w-5 h-2.5 rounded-sm border border-slate-500 dark:border-white p-[1px] flex items-center relative">
                     <div 
                       className={`h-full rounded-[1px] transition-all ${
-                        isCharging ? 'bg-emerald-400' : batteryLevel <= 20 ? 'bg-rose-500' : 'bg-white'
+                        isCharging ? 'bg-emerald-500' : batteryLevel <= 20 ? 'bg-rose-500' : 'bg-slate-800 dark:bg-white'
                       }`} 
                       style={{ width: `${Math.max(10, Math.min(100, batteryLevel))}%` }} 
                     />
@@ -313,7 +313,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-slate-900 leading-none">⚡</span>
                     )}
                   </div>
-                  <div className="w-[1.5px] h-1 bg-white rounded-r-sm" />
+                  <div className="w-[1.5px] h-1 bg-slate-500 dark:bg-white rounded-r-sm" />
                 </div>
               </div>
             ) : null}
@@ -332,11 +332,11 @@ export const Header: React.FC<HeaderProps> = ({
               </svg>
             </div>
             <div className="notranslate">
-              <div className="text-base font-black tracking-tight leading-none text-white flex items-center gap-1">
+              <div className="text-base font-black tracking-tight leading-none text-slate-900 dark:text-white flex items-center gap-1">
                 <span>{brand.word1}</span>
-                <span className="text-sky-400 font-black">{brand.word2}</span>
+                <span className="text-sky-500 dark:text-sky-400 font-black">{brand.word2}</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
                 {brand.tagline}
               </p>
             </div>

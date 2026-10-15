@@ -77,14 +77,14 @@ export const TodayVsYesterdayCard: React.FC<TodayVsYesterdayCardProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-800/80 pb-3.5">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-5 shadow-md flex flex-col justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3.5">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-indigo-400 font-medium">
+          <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 font-medium">
             <History className="h-3.5 w-3.5 shrink-0" />
             <span>Comparateur 24h · {station.name}</span>
           </div>
-          <h3 className="text-base font-bold text-white tracking-tight">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
             Aujourd&apos;hui vs Hier à {comparison.currentHourLabel}
           </h3>
         </div>
@@ -102,16 +102,16 @@ export const TodayVsYesterdayCard: React.FC<TodayVsYesterdayCardProps> = ({
       </div>
 
       {/* Structured 5-Column Telemetry Grid with Hairline Dividers */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80 pt-3.5 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80 pt-3.5 text-xs">
         <div className="pr-3 py-1">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>Température</span>
-            <span className={`font-mono tabular-nums font-bold ${comparison.deltaTemp > 0 ? 'text-amber-400' : comparison.deltaTemp < 0 ? 'text-sky-400' : 'text-slate-300'}`}>
+            <span className={`font-mono tabular-nums font-bold ${comparison.deltaTemp > 0 ? 'text-amber-600 dark:text-amber-400' : comparison.deltaTemp < 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'}`}>
               {comparison.deltaTemp > 0 ? `+${comparison.deltaTemp}°` : `${comparison.deltaTemp}°`}
             </span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between font-mono tabular-nums">
-            <span className="text-base font-extrabold text-white">{formatTemp(weather.temperature)}</span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{formatTemp(weather.temperature)}</span>
             <span className="text-[11px] text-slate-500">Hier {formatTemp(comparison.yTemp)}</span>
           </div>
         </div>

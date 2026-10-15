@@ -51,12 +51,12 @@ export const PollenRealtimeTrackerCard: React.FC<PollenRealtimeTrackerCardProps>
   return (
     <div
       id="gauge-pollen"
-      className={`rounded-xl border border-slate-800/90 bg-[#0a1220]/95 p-4 sm:p-5 shadow-md transition-colors duration-200 hover:border-slate-700 hover:bg-[#0d1729] flex flex-col justify-between ${
+      className={`rounded-xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-4 sm:p-5 shadow-md transition-colors duration-200 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col justify-between ${
         seniorMode ? 'p-6 ring-1 ring-slate-700' : ''
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`font-semibold text-slate-300 tracking-tight ${seniorMode ? 'text-base' : 'text-xs sm:text-sm'}`}>
+        <span className={`font-semibold text-slate-800 dark:text-slate-300 tracking-tight ${seniorMode ? 'text-base' : 'text-xs sm:text-sm'}`}>
           Taux de Pollen
         </span>
         <Flower2 className={`h-4 w-4 shrink-0 ${overallColor.text}`} />
@@ -77,7 +77,7 @@ export const PollenRealtimeTrackerCard: React.FC<PollenRealtimeTrackerCardProps>
           <path
             d="M 24 98 A 86 86 0 0 1 196 98"
             fill="none"
-            stroke="#1e293b"
+            className="stroke-slate-200 dark:stroke-[#1e293b]"
             strokeWidth="16"
             strokeLinecap="round"
           />

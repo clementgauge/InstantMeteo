@@ -75,7 +75,7 @@ export const LiveMeteoFranceVigilanceCard: React.FC<LiveMeteoFranceVigilanceCard
     <div
       id="realtime-mini-vigilance-card"
       onClick={onClick}
-      className="rounded-2xl border border-slate-800 bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-amber-500/50 transition shadow-lg group h-full"
+      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1424] p-3 flex flex-col justify-between overflow-hidden relative cursor-pointer active:scale-98 hover:border-amber-500/50 transition shadow-lg group h-full"
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-1 mb-2">
@@ -88,17 +88,17 @@ export const LiveMeteoFranceVigilanceCard: React.FC<LiveMeteoFranceVigilanceCard
             )}
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance Météo-France</div>
-            <div className="text-[9px] text-slate-400 truncate">{sourceLabel}</div>
+            <div className="text-[11px] font-bold text-slate-900 dark:text-white truncate leading-tight">Vigilance Météo-France</div>
+            <div className="text-[9px] text-slate-500 dark:text-slate-400 truncate">{sourceLabel}</div>
           </div>
         </div>
-        <div className="w-5 h-5 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white shrink-0">
+        <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white shrink-0">
           <ChevronRight className="h-3 w-3" />
         </div>
       </div>
 
       {/* Vignette Carte Météo-France & Statut */}
-      <div className="relative w-full h-28 rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90 p-2 flex items-center justify-between">
+      <div className="relative w-full h-28 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/90 p-2 flex items-center justify-between">
         {/* Silhouette de la carte de France avec départements et couleur officielle */}
         <div className="relative w-20 h-24 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
