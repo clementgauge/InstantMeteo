@@ -98,15 +98,15 @@ export const PollenRealtimeTrackerCard: React.FC<PollenRealtimeTrackerCardProps>
           </text>
 
           <g transform={`translate(110, 98) rotate(${needleAngleDeg})`}>
-            <polygon points="-3,0 0,-68 3,0" fill="#ffffff" />
-            <circle cx="0" cy="-68" r="3.5" fill={overallColor.hex} stroke="#ffffff" strokeWidth="1.5" />
+            <polygon points="-3,0 0,-68 3,0" className="fill-slate-800 dark:fill-white" />
+            <circle cx="0" cy="-68" r="3.5" fill={overallColor.hex} className="stroke-slate-800 dark:stroke-white" strokeWidth="1.5" />
           </g>
 
-          <circle cx="110" cy="98" r="6.5" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
+          <circle cx="110" cy="98" r="6.5" className="fill-slate-100 dark:fill-[#0f172a] stroke-slate-400 dark:stroke-white" strokeWidth="2" />
         </svg>
 
         <div className="flex items-baseline gap-1.5 -mt-1 font-mono tabular-nums">
-          <span className={`font-extrabold tracking-tight text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
+          <span className={`font-extrabold tracking-tight text-slate-900 dark:text-white ${seniorMode ? 'text-2xl' : 'text-lg'}`}>
             {pollen.overallRiskIndex}/5
           </span>
           <span className={`text-xs font-semibold ${overallColor.text}`}>

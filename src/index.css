@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Strict horizontal bounds to prevent entire page from shifting or revealing empty dark side gaps */
 html, body {
   width: 100%;
@@ -84,8 +86,8 @@ html.theme-light #root,
 }
 
 /* 1. All primary cards and containers: crisp white with subtle border and elevation */
-.theme-light [class*="bg-[#0"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
-.theme-light [class*="bg-[#1"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-[#0"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-[#0284"]):not([class*="bg-[#00"]):not([class*="bg-[#0d94"]):not([class*="bg-[#065f"]),
+.theme-light [class*="bg-[#1"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-[#1e3a"]):not([class*="bg-[#16a3"]),
 .theme-light [class*="bg-[#2"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="from-[#0"]:not(.scenic-hero-card):not(.scenic-hero-card *):not(button[class*="from-blue-"]):not(button[class*="from-sky-"]):not(button[class*="from-emerald-"]):not(button[class*="from-amber-"]),
 .theme-light [class*="from-[#1"]:not(.scenic-hero-card):not(.scenic-hero-card *),
@@ -129,6 +131,21 @@ html.theme-light #root,
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03) !important;
 }
 
+/* Explicit preservation of active blue action tabs in light mode */
+.theme-light [class*="bg-[#0284C7]"],
+.theme-light [class*="bg-[#0284c7]"],
+.theme-light .bg-\[\#0284C7\],
+.theme-light .bg-\[\#0284c7\] {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+.theme-light [class*="bg-[#0284C7]"] *,
+.theme-light [class*="bg-[#0284c7]"] *,
+.theme-light .bg-\[\#0284C7\] *,
+.theme-light .bg-\[\#0284c7\] * {
+  color: #ffffff !important;
+}
+
 /* 2. Secondary soft cards, sub-tiles, metric chips and timeline items: off-white #f8fafc */
 .theme-light [class*="bg-slate-850"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-800"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="alert"]):not([class*="p-0.5"]):not([class*="h-2.5"]),
@@ -137,16 +154,24 @@ html.theme-light #root,
 .theme-light [class*="bg-slate-900/50"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-900/60"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-900/70"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-900/75"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-900/80"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-900/90"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-900/95"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-900/98"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/30"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/40"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/50"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-950/55"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/60"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/70"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-950/75"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/80"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="bg-slate-950/85"]:not(.scenic-hero-card):not(.scenic-hero-card *),
-.theme-light [class*="bg-slate-950/90"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
+.theme-light [class*="bg-slate-950/88"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-950/90"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-950/95"]:not(.scenic-hero-card):not(.scenic-hero-card *),
+.theme-light [class*="bg-slate-950/98"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
@@ -242,10 +267,10 @@ html.theme-light #root,
 }
 
 /* 8. Typography hierarchy (except inside solid buttons and badges) */
-.theme-light [class*="text-white"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-600"]):not([class*="bg-sky-600"]):not([class*="bg-emerald-600"]):not([class*="bg-rose-600"]):not([class*="bg-amber-600"]):not([class*="bg-indigo-600"]):not([class*="bg-purple-600"]):not([class*="from-blue-"]):not([class*="from-sky-"]):not([class*="bg-black/"]):not(button[class*="bg-blue-"]):not(button[class*="bg-sky-"]):not(button[class*="bg-indigo-"]):not(button[class*="bg-emerald-"]):not(button[class*="bg-rose-"]):not(button[class*="bg-purple-"]):not(.badge-white),
-.theme-light [class*="text-slate-50"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-600"]):not([class*="bg-sky-600"]),
-.theme-light [class*="text-slate-100"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-600"]):not([class*="bg-sky-600"]),
-.theme-light [class*="text-slate-200"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
+.theme-light [class*="text-white"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-indigo-"]):not([class*="bg-purple-"]):not([class*="bg-cyan-"]):not([class*="bg-teal-"]):not([class*="bg-red-"]):not([class*="bg-lime-"]):not([class*="bg-[#0284"]):not([class*="from-blue-"]):not([class*="from-sky-"]):not([class*="from-cyan-"]):not([class*="from-emerald-"]):not([class*="bg-black/"]):not(button[class*="bg-"]):not(.badge-white),
+.theme-light [class*="text-slate-50"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]),
+.theme-light [class*="text-slate-100"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]),
+.theme-light [class*="text-slate-200"]:not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-blue-"]):not([class*="bg-sky-"]) {
   color: #0f172a !important;
 }
 
@@ -426,6 +451,38 @@ html.theme-light #root,
   color: #6b21a8 !important;
 }
 
+.theme-light [class*="bg-cyan-950"],
+.theme-light [class*="bg-cyan-500/10"],
+.theme-light [class*="bg-cyan-500/20"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0e7490 !important;
+}
+
+.theme-light [class*="bg-teal-950"],
+.theme-light [class*="bg-teal-500/10"],
+.theme-light [class*="bg-teal-500/20"] {
+  background-color: #f0fdfa !important;
+  border-color: #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+.theme-light [class*="bg-lime-950"],
+.theme-light [class*="bg-lime-500/10"],
+.theme-light [class*="bg-lime-500/20"] {
+  background-color: #f7fee7 !important;
+  border-color: #d9f99d !important;
+  color: #3f6212 !important;
+}
+
+.theme-light [class*="bg-yellow-950"],
+.theme-light [class*="bg-yellow-500/10"],
+.theme-light [class*="bg-yellow-500/20"] {
+  background-color: #fefce8 !important;
+  border-color: #fef08a !important;
+  color: #854d0e !important;
+}
+
 /* 12. Hover transitions on cards and list rows */
 .theme-light [class*="hover:bg-slate-800"]:hover:not(.scenic-hero-card *):not(button[class*="from-"]):not(button[class*="bg-blue-"]),
 .theme-light [class*="hover:bg-slate-900"]:hover:not(.scenic-hero-card *):not(button[class*="from-"]):not(button[class*="bg-blue-"]),
@@ -477,7 +534,7 @@ html.theme-light #root,
 }
 
 /* 16. Charts & SVG Visualizers in Light Mode */
-.theme-light svg text {
+.theme-light svg text:not([fill*="#"]):not([fill*="rgb"]):not([class*="fill-"]):not([fill="red"]):not([fill="green"]):not([fill="white"]) {
   fill: #334155 !important;
 }
 .theme-light svg line[class*="stroke-slate-800"],

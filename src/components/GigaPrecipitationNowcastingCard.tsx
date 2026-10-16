@@ -102,50 +102,50 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
   const hydricBalance = Number((totalExpected24hMm - et0).toFixed(1));
 
   return (
-    <div id="giga-precipitation-nowcasting-card" className="rounded-xl border border-cyan-500/40 bg-slate-900/95 p-6 shadow-2xl backdrop-blur sm:p-8 space-y-6">
+    <div id="giga-precipitation-nowcasting-card" className="rounded-2xl border border-cyan-500/30 dark:border-cyan-500/40 bg-white dark:bg-slate-900/95 p-6 shadow-2xl backdrop-blur sm:p-8 space-y-6">
       {/* Header & Mode Tabs */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-800 pb-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
         <div className="flex items-center gap-3.5">
           <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-xl shadow-cyan-500/20 border border-cyan-400/40 shrink-0">
             <CloudRain className="h-7 w-7" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-3 py-0.5 text-xs font-black uppercase tracking-wider">
+              <span className="rounded-full bg-cyan-50 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/40 px-3 py-0.5 text-xs font-black uppercase tracking-wider">
                 Moteur Pluviométrique Ultra-Précis
               </span>
-              <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300 font-bold">
-                Radar Doppler & AROME 1.3km • {station.name}
+              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">
+                Radar Doppler &amp; AROME 1.3km • {station.name}
               </span>
             </div>
-            <h3 className={`font-black text-white ${seniorMode ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>
-              Prévisions Précipitations & Nowcasting Chirurgical (&lt; 3h & &lt; 24h)
+            <h3 className={`font-black text-slate-900 dark:text-white ${seniorMode ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>
+              Prévisions Précipitations &amp; Nowcasting Chirurgical (&lt; 3h &amp; &lt; 24h)
             </h3>
           </div>
         </div>
 
         {/* Horizon Selector Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 self-start lg:self-auto">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 self-start lg:self-auto shadow-inner">
           <button
             id="tab-nowcast-3h"
             onClick={() => setActiveHorizon('3h')}
-            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 cursor-pointer ${
               activeHorizon === '3h'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/80 dark:hover:bg-slate-900'
             }`}
           >
             <Radar className="h-4 w-4" />
-            <span>Nowcasting &lt; 3 Heures (5 & 15 min)</span>
+            <span>Nowcasting &lt; 3 Heures (5 &amp; 15 min)</span>
           </button>
 
           <button
             id="tab-nowcast-24h"
             onClick={() => setActiveHorizon('24h')}
-            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 cursor-pointer ${
               activeHorizon === '24h'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/80 dark:hover:bg-slate-900'
             }`}
           >
             <Clock className="h-4 w-4" />
@@ -155,10 +155,10 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
           <button
             id="tab-nowcast-models"
             onClick={() => setActiveHorizon('models')}
-            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-black transition flex items-center gap-2 cursor-pointer ${
               activeHorizon === 'models'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/80 dark:hover:bg-slate-900'
             }`}
           >
             <Layers className="h-4 w-4" />
@@ -174,14 +174,14 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
         <div className="space-y-6">
           {/* Granular Timeline : 0-60 min (5min) & 60-180 min (15min) */}
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Radar className="h-4 w-4 text-cyan-400" />
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Radar className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                 Chronologie par Créneau • Cliquez sur une case pour inspecter la microphysique
               </h4>
-              <div className="flex flex-wrap items-center gap-2.5 text-[11px]">
-                <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-slate-800 border border-slate-700"></span> Sec</span>
-                <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-sky-800"></span> Bruine</span>
+              <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-slate-600 dark:text-slate-300">
+                <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700"></span> Sec</span>
+                <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-sky-500 dark:bg-sky-800"></span> Bruine</span>
                 <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-cyan-500"></span> Modéré</span>
                 <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-blue-600"></span> Fort</span>
                 <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span> Violent/Orage</span>
@@ -191,11 +191,11 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
             {/* 0 to 60 Minutes (12 slots of 5 min) */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                <span className="text-xs font-bold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
                   Prochaine Heure (0 à 60 minutes) • Précision chirurgicale par palier de 5 min
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">12 intervalles</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">12 intervalles</span>
               </div>
 
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-1.5">
@@ -206,8 +206,8 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
                       key={i}
                       onClick={() => setSelectedSlotIndex(isSelected ? null : i)}
                       className={`rounded-xl border p-2 text-center transition cursor-pointer flex flex-col items-center justify-between min-h-[76px] ${
-                        isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-105' : 'hover:scale-[1.02]'
-                      } ${slot.rainRateMmH > 0 ? slot.colorClass : 'bg-slate-950 text-slate-400 border-slate-800/80 hover:border-slate-700'}`}
+                        isSelected ? 'ring-2 ring-cyan-500 dark:ring-cyan-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 scale-105' : 'hover:scale-[1.02]'
+                      } ${slot.rainRateMmH > 0 ? slot.colorClass : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'}`}
                     >
                       <span className="text-[11px] font-black">{slot.timeLabel}</span>
                       <span className="text-[9px] opacity-80">+{slot.minutes}m</span>
@@ -228,11 +228,11 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
             {/* 60 to 180 Minutes (8 slots of 15 min) */}
             <div className="pt-2">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
                   Heures 2 et 3 (60 à 180 minutes) • Paliers de 15 min
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">8 intervalles</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">8 intervalles</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
@@ -244,8 +244,8 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
                       key={actualIdx}
                       onClick={() => setSelectedSlotIndex(isSelected ? null : actualIdx)}
                       className={`rounded-xl border p-2.5 text-center transition cursor-pointer flex flex-col items-center justify-between min-h-[82px] ${
-                        isSelected ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-950 scale-105' : 'hover:scale-[1.02]'
-                      } ${slot.rainRateMmH > 0 ? slot.colorClass : 'bg-slate-950 text-slate-400 border-slate-800/80 hover:border-slate-700'}`}
+                        isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 scale-105' : 'hover:scale-[1.02]'
+                      } ${slot.rainRateMmH > 0 ? slot.colorClass : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'}`}
                     >
                       <span className="text-xs font-black">{slot.timeLabel}</span>
                       <span className="text-[10px] opacity-80">+{slot.minutes}m</span>
@@ -266,17 +266,17 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
 
           {/* Slot Detail Inspection Inspector Card */}
           {activeSelectedSlot && (
-            <div className="rounded-2xl border border-cyan-400/60 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-3">
+            <div className="rounded-2xl border border-cyan-500/40 dark:border-cyan-400/60 bg-gradient-to-r from-slate-50 via-cyan-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40">
                     <Activity className="h-5 w-5" />
                   </div>
                   <div>
-                    <h5 className="font-black text-white text-base">
+                    <h5 className="font-black text-slate-900 dark:text-white text-base">
                       Détail Chirurgical du Créneau {activeSelectedSlot.timeLabel} (+{activeSelectedSlot.minutes} min)
                     </h5>
-                    <span className="text-xs text-cyan-300 font-bold">
+                    <span className="text-xs text-cyan-700 dark:text-cyan-300 font-bold">
                       {activeSelectedSlot.intensityLabel}
                     </span>
                   </div>
@@ -284,35 +284,35 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
 
                 <button
                   onClick={() => setSelectedSlotIndex(null)}
-                  className="rounded-lg bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:text-white self-start sm:self-auto"
+                  className="rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-1 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white self-start sm:self-auto cursor-pointer"
                 >
                   Fermer l'inspection
                 </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-xs">
-                <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Intensité Instantanée</span>
-                  <span className="text-base font-black text-cyan-300 mt-0.5 block">{activeSelectedSlot.rainRateMmH} mm/h</span>
-                  <span className="text-[10px] text-slate-400">Cumul sur créneau : {activeSelectedSlot.accumulatedMm} mm</span>
+                <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Intensité Instantanée</span>
+                  <span className="text-base font-black text-cyan-600 dark:text-cyan-300 mt-0.5 block">{activeSelectedSlot.rainRateMmH} mm/h</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Cumul sur créneau : {activeSelectedSlot.accumulatedMm} mm</span>
                 </div>
 
-                <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Réflectivité Radar</span>
-                  <span className="text-base font-black text-purple-300 mt-0.5 block">{activeSelectedSlot.radarDbz} dBZ</span>
-                  <span className="text-[10px] text-slate-400">Écho Doppler modélisé</span>
+                <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Réflectivité Radar</span>
+                  <span className="text-base font-black text-purple-600 dark:text-purple-300 mt-0.5 block">{activeSelectedSlot.radarDbz} dBZ</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Écho Doppler modélisé</span>
                 </div>
 
-                <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Microphysique</span>
-                  <span className="text-base font-black text-blue-300 mt-0.5 block">{activeSelectedSlot.microphysicsPhase}</span>
-                  <span className="text-[10px] text-slate-400">Probabilité : {activeSelectedSlot.probabilityPct}%</span>
+                <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Microphysique</span>
+                  <span className="text-base font-black text-blue-600 dark:text-blue-300 mt-0.5 block">{activeSelectedSlot.microphysicsPhase}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Probabilité : {activeSelectedSlot.probabilityPct}%</span>
                 </div>
 
-                <div className="rounded-xl bg-slate-950/90 p-3 border border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Vent au Sol & Rafales</span>
-                  <span className="text-base font-black text-emerald-300 mt-0.5 block">{activeSelectedSlot.windSpeedKmh} km/h</span>
-                  <span className="text-[10px] text-slate-400">Rafales max : {activeSelectedSlot.windGustKmh} km/h</span>
+                <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Vent au Sol &amp; Rafales</span>
+                  <span className="text-base font-black text-emerald-600 dark:text-emerald-300 mt-0.5 block">{activeSelectedSlot.windSpeedKmh} km/h</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Rafales max : {activeSelectedSlot.windGustKmh} km/h</span>
                 </div>
               </div>
             </div>
@@ -320,15 +320,15 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
 
           {/* Microphysics & Cloud Physics Diagnostic Matrix */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="rounded-2xl bg-slate-950/80 p-4 border border-slate-800">
-              <div className="flex items-center gap-2 text-cyan-400 font-bold mb-1">
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/80 p-4 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-bold mb-1">
                 <Waves className="h-4 w-4" />
                 <span className="uppercase text-[10px] tracking-wider">Microphysique des Gouttes</span>
               </div>
-              <span className="text-white font-black text-sm block">
+              <span className="text-slate-900 dark:text-white font-black text-sm block">
                 {nowcasting?.dominantPrecipType || 'Sec'}
               </span>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
                 {currentPrecip > 4
                   ? "Grosses gouttes de convection (> 2.5 mm). Risque de ruissellement immédiat."
                   : currentPrecip > 0.5
@@ -337,28 +337,28 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-950/80 p-4 border border-slate-800">
-              <div className="flex items-center gap-2 text-blue-400 font-bold mb-1">
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/80 p-4 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold mb-1">
                 <Navigation className="h-4 w-4" />
-                <span className="uppercase text-[10px] tracking-wider">Vitesse & Cap des Cellules</span>
+                <span className="uppercase text-[10px] tracking-wider">Vitesse &amp; Cap des Cellules</span>
               </div>
-              <span className="text-cyan-300 font-black text-sm block">
+              <span className="text-cyan-700 dark:text-cyan-300 font-black text-sm block">
                 {nowcasting?.cellVelocityKmh ? `${nowcasting.cellVelocityKmh} km/h vers le ${nowcasting.cellDirectionLabel}` : 'Vitesse modérée'}
               </span>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
                 Balayage continu par le flux synoptique. Pas de blocage stationnaire identifié.
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-950/80 p-4 border border-slate-800">
-              <div className="flex items-center gap-2 text-amber-400 font-bold mb-1">
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/80 p-4 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold mb-1">
                 <Zap className="h-4 w-4" />
-                <span className="uppercase text-[10px] tracking-wider">Instabilité Convective & CAPE</span>
+                <span className="uppercase text-[10px] tracking-wider">Instabilité Convective &amp; CAPE</span>
               </div>
-              <span className="text-amber-300 font-black text-sm block">
+              <span className="text-amber-600 dark:text-amber-300 font-black text-sm block">
                 {nowcasting?.capeConvectiveJkg ?? 50} J/kg • LI {nowcasting?.liftedIndex ?? 2.5}
               </span>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
                 Risque de grêle : {nowcasting?.hailRiskPercent ?? 0}% • Isothermie neige : {nowcasting?.isothermieRisk ? 'Alerte Isothermie' : 'Nul'}
               </p>
             </div>
@@ -367,69 +367,70 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
       )}
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* HORIZON 2 : PRÉVISIONS DÉTAILLÉES 24 HEURES (DURÉES & CUMULS AU MILLIMÈTRE) */}
       {/* ========================================================================= */}
       {activeHorizon === '24h' && (
         <div className="space-y-6">
           {/* Daily Precipitation Key Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <span className="text-xs text-slate-400 block font-bold">Cumul Total Prévu 24h</span>
-              <span className="text-2xl font-black text-cyan-300 mt-1 block">{totalExpected24hMm} mm</span>
-              <span className="text-[11px] text-slate-400 mt-0.5 block">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400 block font-bold">Cumul Total Prévu 24h</span>
+              <span className="text-2xl font-black text-cyan-700 dark:text-cyan-300 mt-1 block">{totalExpected24hMm} mm</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Équivalent à {totalExpected24hMm} Litres / m²
               </span>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <span className="text-xs text-slate-400 block font-bold">Durée Totale de Pluie</span>
-              <span className="text-2xl font-black text-blue-300 mt-1 block">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400 block font-bold">Durée Totale de Pluie</span>
+              <span className="text-2xl font-black text-blue-700 dark:text-blue-300 mt-1 block">
                 {totalRainHoursMinutesFormatted}
               </span>
-              <span className="text-[11px] text-slate-400 mt-0.5 block">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Sur les 24 heures de la journée
               </span>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <span className="text-xs text-slate-400 block font-bold">Bilan Hydrique (P - ET0)</span>
-              <span className={`text-2xl font-black mt-1 block ${hydricBalance >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400 block font-bold">Bilan Hydrique (P - ET0)</span>
+              <span className={`text-2xl font-black mt-1 block ${hydricBalance >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                 {hydricBalance > 0 ? `+${hydricBalance}` : hydricBalance} mm
               </span>
-              <span className="text-[11px] text-slate-400 mt-0.5 block">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Évapotranspiration : {et0} mm/j
               </span>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <span className="text-xs text-slate-400 block font-bold">Infiltration des Sols</span>
-              <span className="text-2xl font-black text-emerald-400 mt-1 block">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400 block font-bold">Infiltration des Sols</span>
+              <span className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1 block">
                 {totalExpected24hMm > 25 ? 'Saturation / Ruissellement' : '100% Absorbé'}
               </span>
-              <span className="text-[11px] text-slate-400 mt-0.5 block">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Capacité au champ préservée
               </span>
             </div>
           </div>
 
           {/* 24-Hour Hourly Precipitation & Rain Duration Chart */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-cyan-400" />
-                Chronologie 00h - 24h : Quantités (mm/h) & Probabilité (%)
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                Chronologie 00h - 24h : Quantités (mm/h) &amp; Probabilité (%)
               </h4>
-              <span className="text-xs text-slate-400">Barres cyan = millimètres • Infobulle = durées précises</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Barres cyan = millimètres • Infobulle = durées précises</span>
             </div>
 
             <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hourly24hData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.3} />
                   <XAxis dataKey="hour" stroke="#64748b" tick={{ fontSize: 10 }} />
                   <YAxis stroke="#64748b" tick={{ fontSize: 10 }} unit="mm" />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', color: '#ffffff' }}
                     labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
                     formatter={(val: any, name: string) => [
                       name === 'rainMm' ? `${val} mm` : `${val} min`,
@@ -443,10 +444,10 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
           </div>
 
           {/* Hour by Hour Durations & Rain Windows Table */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/90 p-4 overflow-x-auto">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/90 p-4 overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-bold">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold">
                   <th className="pb-2">Créneau Horaire</th>
                   <th className="pb-2">Intensité Prévue</th>
                   <th className="pb-2">Durée de Pluie estimée</th>
@@ -454,26 +455,26 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
                   <th className="pb-2">Nature du Précipitant</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {hourly24hData.slice(0, 12).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-900/50">
-                    <td className="py-2.5 font-bold text-white">{row.hour}</td>
-                    <td className="py-2.5 font-bold text-cyan-300">{row.rainMm > 0 ? `${row.rainMm} mm` : '0 mm'}</td>
-                    <td className="py-2.5 text-slate-300">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <td className="py-2.5 font-bold text-slate-900 dark:text-white">{row.hour}</td>
+                    <td className="py-2.5 font-bold text-cyan-700 dark:text-cyan-300">{row.rainMm > 0 ? `${row.rainMm} mm` : '0 mm'}</td>
+                    <td className="py-2.5 text-slate-700 dark:text-slate-300">
                       {row.durationMinutes > 0 ? (
-                        <span className="rounded-md bg-blue-950 px-2 py-0.5 text-blue-300 font-bold border border-blue-800">
+                        <span className="rounded-md bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800">
                           {row.durationMinutes} minutes
                         </span>
                       ) : (
-                        <span className="text-slate-500">Temps Sec</span>
+                        <span className="text-slate-400 dark:text-slate-500">Temps Sec</span>
                       )}
                     </td>
                     <td className="py-2.5">
-                      <span className={row.proba > 40 ? 'text-cyan-400 font-bold' : 'text-slate-400'}>
+                      <span className={row.proba > 40 ? 'text-cyan-700 dark:text-cyan-400 font-bold' : 'text-slate-500 dark:text-slate-400'}>
                         {row.proba}%
                       </span>
                     </td>
-                    <td className="py-2.5 text-slate-400">
+                    <td className="py-2.5 text-slate-600 dark:text-slate-400">
                       {row.rainMm > 4 ? "Forte averse" : row.rainMm > 1 ? "Pluie continue" : row.rainMm > 0 ? "Bruine légère" : "Ciel sec"}
                     </td>
                   </tr>
@@ -489,78 +490,78 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
       {/* ========================================================================= */}
       {activeHorizon === 'models' && (
         <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-5">
             <div className="flex items-center gap-2 mb-2">
-              <Layers className="h-4 w-4 text-cyan-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-wider">
+              <Layers className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+              <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
                 Synthèse du Consensus Numérique Multi-Modèles
               </h4>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               {nowcasting?.multiModelComparison?.consensusSummary || "Excellente concordance entre modèles haute résolution."}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* AROME 1.3km */}
-            <div className="rounded-2xl border border-cyan-500/40 bg-slate-950/90 p-4 space-y-3">
+            <div className="rounded-2xl border border-cyan-500/30 dark:border-cyan-500/40 bg-white dark:bg-slate-950/90 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
+                <span className="rounded-full bg-cyan-50 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
                   AROME 1.3 km
                 </span>
-                <span className="text-[10px] text-slate-400 font-bold">Météo-France</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Météo-France</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Heure de début prévue</span>
-                <span className="text-white font-black text-base">{nowcasting?.multiModelComparison?.aromeOnsetFormatted || 'Temps sec'}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Heure de début prévue</span>
+                <span className="text-slate-900 dark:text-white font-black text-base">{nowcasting?.multiModelComparison?.aromeOnsetFormatted || 'Temps sec'}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Cumul attendu sur 3h</span>
-                <span className="text-cyan-300 font-black text-xl">{nowcasting?.multiModelComparison?.arome3hTotalMm ?? 0} mm</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Cumul attendu sur 3h</span>
+                <span className="text-cyan-700 dark:text-cyan-300 font-black text-xl">{nowcasting?.multiModelComparison?.arome3hTotalMm ?? 0} mm</span>
               </div>
-              <p className="text-[11px] text-slate-400 border-t border-slate-800 pt-2">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
                 Modèle maille fine référence pour la convection, les orages et le relief.
               </p>
             </div>
 
             {/* ECMWF IFS 9km */}
-            <div className="rounded-2xl border border-blue-500/40 bg-slate-950/90 p-4 space-y-3">
+            <div className="rounded-2xl border border-blue-500/30 dark:border-blue-500/40 bg-white dark:bg-slate-950/90 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
+                <span className="rounded-full bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
                   ECMWF IFS 9 km
                 </span>
-                <span className="text-[10px] text-slate-400 font-bold">CEPMMT Europe</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">CEPMMT Europe</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Heure de début prévue</span>
-                <span className="text-white font-black text-base">{nowcasting?.multiModelComparison?.ecmwfOnsetFormatted || 'Temps sec'}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Heure de début prévue</span>
+                <span className="text-slate-900 dark:text-white font-black text-base">{nowcasting?.multiModelComparison?.ecmwfOnsetFormatted || 'Temps sec'}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Cumul attendu sur 3h</span>
-                <span className="text-blue-300 font-black text-xl">{nowcasting?.multiModelComparison?.ecmwf3hTotalMm ?? 0} mm</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Cumul attendu sur 3h</span>
+                <span className="text-blue-700 dark:text-blue-300 font-black text-xl">{nowcasting?.multiModelComparison?.ecmwf3hTotalMm ?? 0} mm</span>
               </div>
-              <p className="text-[11px] text-slate-400 border-t border-slate-800 pt-2">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
                 Modèle déterministe européen de référence mondiale pour les dynamiques synoptiques.
               </p>
             </div>
 
             {/* GFS 22km */}
-            <div className="rounded-2xl border border-purple-500/40 bg-slate-950/90 p-4 space-y-3">
+            <div className="rounded-2xl border border-purple-500/30 dark:border-purple-500/40 bg-white dark:bg-slate-950/90 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
+                <span className="rounded-full bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-500/40 px-2.5 py-0.5 text-[11px] font-black uppercase">
                   GFS 22 km
                 </span>
-                <span className="text-[10px] text-slate-400 font-bold">NOAA NCEP</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">NOAA NCEP</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Heure de début prévue</span>
-                <span className="text-white font-black text-base">{nowcasting?.multiModelComparison?.gfsOnsetFormatted || 'Temps sec'}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Heure de début prévue</span>
+                <span className="text-slate-900 dark:text-white font-black text-base">{nowcasting?.multiModelComparison?.gfsOnsetFormatted || 'Temps sec'}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs block">Cumul attendu sur 3h</span>
-                <span className="text-purple-300 font-black text-xl">{nowcasting?.multiModelComparison?.gfs3hTotalMm ?? 0} mm</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs block">Cumul attendu sur 3h</span>
+                <span className="text-purple-700 dark:text-purple-300 font-black text-xl">{nowcasting?.multiModelComparison?.gfs3hTotalMm ?? 0} mm</span>
               </div>
-              <p className="text-[11px] text-slate-400 border-t border-slate-800 pt-2">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
                 Modèle américain global, utile pour vérifier la cohérence d'ensemble.
               </p>
             </div>

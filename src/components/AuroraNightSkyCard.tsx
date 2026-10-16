@@ -169,20 +169,20 @@ export const AuroraNightSkyCard: React.FC<AuroraNightSkyCardProps> = ({
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left: Kp Gauge & Geomagnetic Solar Wind (7 cols) */}
-        <div className="lg:col-span-7 rounded-xl bg-slate-950/90 border border-slate-800 p-4 space-y-3.5">
+        <div className="lg:col-span-7 rounded-xl bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 p-4 space-y-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
               <span>Activité Géomagnétique Planétaire (Indice Kp)</span>
             </span>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
               Seuil latitude : ±{metrics.minRequiredLat}°
             </span>
           </div>
 
           {/* Kp 0-9 Bar */}
           <div className="space-y-1.5">
-            <div className="h-3 w-full rounded-full bg-slate-900 border border-slate-800 overflow-hidden flex p-0.5 gap-0.5">
+            <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden flex p-0.5 gap-0.5">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((lvl) => {
                 const active = metrics.kpIndex >= lvl - 0.5;
                 const barColor =
@@ -197,13 +197,13 @@ export const AuroraNightSkyCard: React.FC<AuroraNightSkyCardProps> = ({
                   <div
                     key={lvl}
                     className={`flex-1 h-full rounded-sm transition-all ${
-                      active ? barColor : 'bg-slate-800/60'
+                      active ? barColor : 'bg-slate-200 dark:bg-slate-800/60'
                     }`}
                   />
                 );
               })}
             </div>
-            <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+            <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
               <span>Kp 0-3 : Calme</span>
               <span>Kp 4-5 : Actif (Nord Europe)</span>
               <span>Kp 7-9 : Tempête (Visible en France)</span>
@@ -211,69 +211,69 @@ export const AuroraNightSkyCard: React.FC<AuroraNightSkyCardProps> = ({
           </div>
 
           <div className="grid grid-cols-3 gap-2.5 pt-1">
-            <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2.5">
-              <div className="text-[10px] text-slate-400">Vent Solaire</div>
-              <div className="text-sm sm:text-base font-black text-white mt-0.5">
+            <div className="rounded-lg bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 shadow-sm">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Vent Solaire</div>
+              <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-0.5">
                 {metrics.solarWindKms} km/s
               </div>
-              <div className="text-[10px] text-slate-500">Flux coronal DSCOVR</div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">Flux coronal DSCOVR</div>
             </div>
 
-            <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2.5">
-              <div className="text-[10px] text-slate-400">Champ Magnétique Bz</div>
+            <div className="rounded-lg bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 shadow-sm">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Champ Magnétique Bz</div>
               <div
                 className={`text-sm sm:text-base font-black mt-0.5 ${
-                  metrics.imfBzNt < 0 ? 'text-emerald-400' : 'text-slate-200'
+                  metrics.imfBzNt < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'
                 }`}
               >
                 {metrics.imfBzNt > 0 ? `+${metrics.imfBzNt}` : metrics.imfBzNt} nT
               </div>
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 {metrics.imfBzNt < -5 ? 'Orientation Sud propice' : 'Bouclier stable'}
               </div>
             </div>
 
-            <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2.5">
-              <div className="text-[10px] text-slate-400">Probabilité à {station.name}</div>
-              <div className="text-sm sm:text-base font-black text-emerald-400 mt-0.5">
+            <div className="rounded-lg bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 shadow-sm">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Probabilité à {station.name}</div>
+              <div className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                 {metrics.effectiveAuroraVisPct}%
               </div>
-              <div className="text-[10px] text-slate-500 truncate">{metrics.hemisphereLabel}</div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{metrics.hemisphereLabel}</div>
             </div>
           </div>
         </div>
 
         {/* Right: Night Sky Transparency & Stargazing (5 cols) */}
-        <div className="lg:col-span-5 rounded-xl bg-slate-950/90 border border-slate-800 p-4 flex flex-col justify-between space-y-3">
+        <div className="lg:col-span-5 rounded-xl bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 p-4 flex flex-col justify-between space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
               <Eye className="h-3.5 w-3.5" />
               <span>Indice d&apos;Observation Nocturne &amp; Étoiles</span>
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-black">
+            <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-500/15 border border-sky-300 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs font-black">
               {metrics.stargazingScore} / 100
             </span>
           </div>
 
-          <p className="text-xs text-slate-300 leading-relaxed">{metrics.stargazingLabel}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{metrics.stargazingLabel}</p>
 
           <div className="grid grid-cols-2 gap-2.5 text-xs">
-            <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2.5">
-              <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                <Cloud className="h-3 w-3 text-sky-400" />
+            <div className="rounded-lg bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 shadow-sm">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <Cloud className="h-3 w-3 text-sky-500 dark:text-sky-400" />
                 <span>Nébulosité Totale</span>
               </div>
-              <div className="font-black text-white text-sm mt-0.5">{metrics.cloudTotal}%</div>
-              <div className="text-[10px] text-slate-500">Voiles d&apos;altitude : {metrics.cloudHigh}%</div>
+              <div className="font-black text-slate-900 dark:text-white text-sm mt-0.5">{metrics.cloudTotal}%</div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">Voiles d&apos;altitude : {metrics.cloudHigh}%</div>
             </div>
 
-            <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2.5">
-              <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                <Moon className="h-3 w-3 text-amber-300" />
+            <div className="rounded-lg bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 shadow-sm">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <Moon className="h-3 w-3 text-amber-500 dark:text-amber-300" />
                 <span>Pollution Lumineuse Lune</span>
               </div>
-              <div className="font-black text-white text-sm mt-0.5">{metrics.moonIllum}%</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="font-black text-slate-900 dark:text-white text-sm mt-0.5">{metrics.moonIllum}%</div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 {metrics.moonIllum < 35 ? 'Ciel noir profond' : 'Clarté lunaire présente'}
               </div>
             </div>

@@ -117,53 +117,53 @@ export const TodayVsYesterdayCard: React.FC<TodayVsYesterdayCardProps> = ({
         </div>
 
         <div className=" sm:px-3 py-1">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>Ressenti</span>
-            <span className={`font-mono tabular-nums font-bold ${comparison.deltaFeels > 0 ? 'text-amber-400' : comparison.deltaFeels < 0 ? 'text-sky-400' : 'text-slate-300'}`}>
+            <span className={`font-mono tabular-nums font-bold ${comparison.deltaFeels > 0 ? 'text-amber-600 dark:text-amber-400' : comparison.deltaFeels < 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'}`}>
               {comparison.deltaFeels > 0 ? `+${comparison.deltaFeels}°` : `${comparison.deltaFeels}°`}
             </span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between font-mono tabular-nums">
-            <span className="text-base font-extrabold text-white">{formatTemp(weather.feelsLike)}</span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{formatTemp(weather.feelsLike)}</span>
             <span className="text-[11px] text-slate-500">Hier {formatTemp(comparison.yFeels)}</span>
           </div>
         </div>
 
         <div className="pr-3 sm:px-3 py-1">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>Humidité</span>
-            <span className="font-mono tabular-nums font-bold text-blue-400">
+            <span className="font-mono tabular-nums font-bold text-blue-600 dark:text-blue-400">
               {comparison.deltaHum > 0 ? `+${comparison.deltaHum}%` : `${comparison.deltaHum}%`}
             </span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between font-mono tabular-nums">
-            <span className="text-base font-extrabold text-white">{weather.humidity}%</span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{weather.humidity}%</span>
             <span className="text-[11px] text-slate-500">Hier {comparison.yHum}%</span>
           </div>
         </div>
 
         <div className="sm:px-3 py-1">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>Vent</span>
-            <span className="font-mono tabular-nums font-bold text-cyan-400">
+            <span className="font-mono tabular-nums font-bold text-cyan-600 dark:text-cyan-400">
               {comparison.deltaWind > 0 ? `+${comparison.deltaWind}` : `${comparison.deltaWind}`}
             </span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between font-mono tabular-nums">
-            <span className="text-base font-extrabold text-white">{Math.round(weather.windSpeed)} <span className="text-[10px] font-normal">km/h</span></span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{Math.round(weather.windSpeed)} <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">km/h</span></span>
             <span className="text-[11px] text-slate-500">Hier {comparison.yWind}</span>
           </div>
         </div>
 
         <div className="col-span-2 sm:col-span-1 sm:pl-3 py-1">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>Pression</span>
-            <span className="font-mono tabular-nums font-bold text-indigo-400">
+            <span className="font-mono tabular-nums font-bold text-indigo-600 dark:text-indigo-400">
               {comparison.deltaPress > 0 ? `+${comparison.deltaPress}` : `${comparison.deltaPress}`}
             </span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between font-mono tabular-nums">
-            <span className="text-base font-extrabold text-white">{Math.round(weather.pressure)} <span className="text-[10px] font-normal">hPa</span></span>
+            <span className="text-base font-extrabold text-slate-900 dark:text-white">{Math.round(weather.pressure)} <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">hPa</span></span>
             <span className="text-[11px] text-slate-500">Hier {comparison.yPress}</span>
           </div>
         </div>

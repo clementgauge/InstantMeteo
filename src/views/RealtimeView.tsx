@@ -689,16 +689,16 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/35 text-[10px] font-black text-sky-300 uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/20 border border-sky-300 dark:border-sky-500/35 text-[10px] font-black text-sky-700 dark:text-sky-300 uppercase tracking-wider">
                   Synthèse Vocale &amp; Évolution 24h
                 </span>
-                <h3 className="text-sm sm:text-base font-black text-white">
+                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
                   Bulletin Audio Intelligent &amp; Comparateur Aujourd'hui vs Hier
                 </h3>
               </div>
               <button
                 onClick={() => setIsShareCardModalOpen(true)}
-                className="text-xs font-bold text-sky-400 hover:text-sky-300 underline cursor-pointer hidden sm:inline"
+                className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline cursor-pointer hidden sm:inline"
               >
                 Générer une image météo à partager →
               </button>
@@ -729,14 +729,14 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           <div id="realtime-indicators" className="scroll-mt-28 space-y-3">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/35 text-[10px] font-black text-emerald-300 uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/35 text-[10px] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                   7 Capteurs Temps Réel • Santé &amp; Atmosphère
                 </span>
-                <h3 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-sm sm:text-base'}`}>
+                <h3 className={`font-black text-slate-900 dark:text-white ${seniorMode ? 'text-2xl' : 'text-sm sm:text-base'}`}>
                   Indicateurs Temps Réel, Qualité de l'Air &amp; Jauge Pollen
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-emerald-400 hidden sm:inline">Relevé complet en direct</span>
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hidden sm:inline">Relevé complet en direct</span>
             </div>
 
             {/* Grille Bento 2 colonnes sur mobile pour un rendu ultra-attractif et compact sans perdre aucune donnée */}
@@ -862,10 +862,10 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0 space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/35 text-[10px] font-black text-cyan-300 uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/35 text-[10px] font-black text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
                   Suivi Pluie Minute par Minute
                 </span>
-                <h3 className="text-sm sm:text-base font-black text-white">
+                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
                   Nowcasting Chirurgical des Précipitations (&lt; 3h &amp; 24h)
                 </h3>
               </div>

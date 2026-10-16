@@ -12,11 +12,19 @@ import {
   Thermometer,
   Zap,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Footprints,
+  Bike,
+  Palmtree,
+  Sprout,
+  SunMedium,
+  Compass,
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
-import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from '../types/weather';
+import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly, OutdoorActivityIndices } from '../types/weather';
 import { getClientGeographicBackdrop, fetchCityRealPhoto } from '../utils/geoBackdrops';
-import { calculateSolarEphemeris, calculateMoonPhase, getStationLiveClock } from '../services/ephemerisService';
+import { calculateSolarEphemeris, calculateMoonPhase, getStationLiveClock, calculateOutdoorIndices } from '../services/ephemerisService';
 import { getRichWeatherInfo } from '../utils/weatherIcons';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 import { GrandDayAndWeekDetailedForecastCard } from './GrandDayAndWeekDetailedForecastCard';
@@ -74,6 +82,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
     station.altitude
   );
   const [cityPhotoUrl, setCityPhotoUrl] = useState<string>(initialGeoBackdrop);
+  const [activeOutdoorTab, setActiveOutdoorTab] = useState<'hiking' | 'cycling' | 'beach' | 'agri' | 'solar'>('hiking');
+  const [simplifiedRightTab, setSimplifiedRightTab] = useState<'sun' | 'activity'>('sun');
 
   useEffect(() => {
     let isMounted = true;
@@ -463,7 +473,7 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           />
         </div>
 
-        {/* Right Column of Row 2: Soleil & Lune (Astronomie Vérifiée & Temps Réel) */}
+        {/* Right Column of Row 2: Soleil & Lune + Indices d'Activité (Aligned with Hourly block) */}
         {(() => {
           const eph = liveEphemeris;
           const moon = liveMoonPhase || weather.moonPhase;
@@ -480,9 +490,10 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
           const illum = moon?.illuminationPercent ?? 50;
           const phaseCode = moon?.phaseCode || 'first_quarter';
           const dayDelta = eph.dayLengthChangeMinutes ?? 0;
+          const outdoor = weather.outdoorIndices || calculateOutdoorIndices(weather, station);
 
-          return (
-            <div className="col-span-12 lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between h-full motion-card-enter space-y-2">
+          const renderSunMoonContent = () => (
+            <>
               {/* En-tête Compact Soleil & Lune */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2">
                 <div className="flex items-center gap-2 min-w-0">
@@ -514,8 +525,8 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               </div>
 
               {/* Arc Dynamique Diurne / Nocturne Compact */}
-              <div className="flex-1 min-h-[68px] relative flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/70 px-2 pt-1 pb-0.5 overflow-hidden">
-                <svg viewBox="0 0 160 54" className="w-full h-full overflow-visible max-h-[80px]">
+              <div className="flex-1 min-h-[64px] relative flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/70 px-2 pt-1 pb-0.5 overflow-hidden">
+                <svg viewBox="0 0 160 54" className="w-full h-full overflow-visible max-h-[76px]">
                   <defs>
                     <linearGradient id="sunArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.95" />
@@ -644,6 +655,280 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                   <div>Lev. {moon?.moonrise || '--'}</div>
                   <div>Couch. {moon?.moonset || '--'}</div>
                 </div>
+              </div>
+            </>
+          );
+
+          const renderActivityContent = () => (
+            <>
+              {/* En-tête Indices d'Activité */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 border bg-emerald-500/15 border-emerald-400/30 text-emerald-600 dark:text-emerald-400">
+                    <Compass className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
+                      Indices d'Activité
+                    </h3>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                      Plein air, sport &amp; météo à {station.name}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Score Pill */}
+                {activeOutdoorTab === 'hiking' && (
+                  <span className={`text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                    outdoor.hiking.score >= 75
+                      ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                      : outdoor.hiking.score >= 50
+                        ? 'text-sky-700 dark:text-sky-300 bg-sky-500/15 border-sky-500/30'
+                        : 'text-amber-700 dark:text-amber-300 bg-amber-500/15 border-amber-500/30'
+                  }`}>
+                    {outdoor.hiking.score}/100 • {outdoor.hiking.status}
+                  </span>
+                )}
+                {activeOutdoorTab === 'cycling' && (
+                  <span className={`text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                    outdoor.cycling.score >= 75
+                      ? 'text-blue-700 dark:text-blue-300 bg-blue-500/15 border-blue-500/30'
+                      : 'text-amber-700 dark:text-amber-300 bg-amber-500/15 border-amber-500/30'
+                  }`}>
+                    {outdoor.cycling.score}/100 • {outdoor.cycling.status}
+                  </span>
+                )}
+                {activeOutdoorTab === 'beach' && (
+                  <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 text-amber-700 dark:text-amber-300 bg-amber-500/15 border-amber-500/30">
+                    {outdoor.beachSea.score}/100 • {outdoor.beachSea.uvRisk}
+                  </span>
+                )}
+                {activeOutdoorTab === 'agri' && (
+                  <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 text-lime-700 dark:text-lime-300 bg-lime-500/15 border-lime-500/30">
+                    ETP {outdoor.gardeningAgriculture.et0Evapotranspiration} mm/j
+                  </span>
+                )}
+                {activeOutdoorTab === 'solar' && (
+                  <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full border shrink-0 text-yellow-700 dark:text-yellow-300 bg-yellow-500/15 border-yellow-500/30">
+                    Eff. {outdoor.solarEnergy.efficiencyScore}%
+                  </span>
+                )}
+              </div>
+
+              {/* 5 Tab Selector Buttons */}
+              <div className="flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-950/80 p-1 border border-slate-200 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setActiveOutdoorTab('hiking')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition shrink-0 cursor-pointer ${
+                    activeOutdoorTab === 'hiking'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Footprints className="h-3 w-3" />
+                  <span>Rando</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveOutdoorTab('cycling')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition shrink-0 cursor-pointer ${
+                    activeOutdoorTab === 'cycling'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Bike className="h-3 w-3" />
+                  <span>Vélo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveOutdoorTab('beach')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition shrink-0 cursor-pointer ${
+                    activeOutdoorTab === 'beach'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Palmtree className="h-3 w-3" />
+                  <span>Plage</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveOutdoorTab('agri')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition shrink-0 cursor-pointer ${
+                    activeOutdoorTab === 'agri'
+                      ? 'bg-lime-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Sprout className="h-3 w-3" />
+                  <span>Jardin</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveOutdoorTab('solar')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition shrink-0 cursor-pointer ${
+                    activeOutdoorTab === 'solar'
+                      ? 'bg-yellow-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <SunMedium className="h-3 w-3" />
+                  <span>Solaire</span>
+                </button>
+              </div>
+
+              {/* Dynamic Body of Active Tab */}
+              {activeOutdoorTab === 'hiking' && (
+                <div className="space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="grid grid-cols-3 gap-1.5 text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800/70">
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Orages</span>
+                      <span className={`font-bold text-[11px] ${outdoor.hiking.riskThunderstorm === 'Élevé' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                        {outdoor.hiking.riskThunderstorm}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Vent Crêtes</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">{outdoor.hiking.windAtRidgeKmh} km/h</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Plafond</span>
+                      <span className="font-bold text-sky-600 dark:text-sky-300 text-[11px]">{outdoor.hiking.cloudBaseMeters} m</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2 px-0.5">
+                    💡 {outdoor.hiking.advice}
+                  </p>
+                </div>
+              )}
+
+              {activeOutdoorTab === 'cycling' && (
+                <div className="space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800/70">
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Impact du Vent</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">{outdoor.cycling.windImpact}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Stress Thermique</span>
+                      <span className="font-bold text-blue-600 dark:text-blue-300 text-[11px]">{outdoor.cycling.heatStress}</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2 px-0.5">
+                    💡 {outdoor.cycling.advice}
+                  </p>
+                </div>
+              )}
+
+              {activeOutdoorTab === 'beach' && (
+                <div className="space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800/70">
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Indice UV Réel</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400 text-[11px]">{weather.uvIndex} ({outdoor.beachSea.uvRisk})</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Brise Marine</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">{outdoor.beachSea.thermalBreezeKmh} km/h</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2 px-0.5">
+                    💡 {outdoor.beachSea.advice}
+                  </p>
+                </div>
+              )}
+
+              {activeOutdoorTab === 'agri' && (
+                <div className="space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800/70">
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Pulvérisation</span>
+                      <span className="font-bold text-lime-700 dark:text-lime-300 text-[11px] truncate block">{outdoor.gardeningAgriculture.sprayWindow}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Risque Gel Sol</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">{outdoor.gardeningAgriculture.frostRiskGround}</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2 px-0.5">
+                    💡 {outdoor.gardeningAgriculture.advice}
+                  </p>
+                </div>
+              )}
+
+              {activeOutdoorTab === 'solar' && (
+                <div className="space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono tabular-nums bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800/70">
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Potentiel 1 kWc</span>
+                      <span className="font-bold text-yellow-600 dark:text-yellow-400 text-[11px]">{outdoor.solarEnergy.pvOutputPotentialKwhPerKwp} kWh</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 block">Soleil Estimé</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">~{outdoor.solarEnergy.sunHoursEstimated} h</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2 px-0.5">
+                    💡 {outdoor.solarEnergy.advice}
+                  </p>
+                </div>
+              )}
+            </>
+          );
+
+          // If simplifiedMode is active:
+          if (simplifiedMode) {
+            return (
+              <div className="col-span-12 lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between h-full motion-card-enter space-y-2.5">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSimplifiedRightTab('sun')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        simplifiedRightTab === 'sun'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      ☀️ Soleil &amp; Lune
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSimplifiedRightTab('activity')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        simplifiedRightTab === 'activity'
+                          ? 'bg-emerald-600 text-white shadow-sm font-black'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🏃 Indices d'Activité
+                    </button>
+                  </div>
+
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">
+                    {simplifiedRightTab === 'sun' ? `${eph.dayLengthFormatted} jour` : `Score ${outdoor.hiking.score}/100`}
+                  </span>
+                </div>
+
+                {simplifiedRightTab === 'sun' ? renderSunMoonContent() : renderActivityContent()}
+              </div>
+            );
+          }
+
+          // Full Standard Mode: Stack both cards inside the column with flex-1 each so their total height aligns flush with GrandDayAndWeekDetailedForecastCard!
+          return (
+            <div className="col-span-12 lg:col-span-4 flex flex-col gap-3.5 h-full min-w-0">
+              {/* Card 1: Soleil & Cycle Lunaire */}
+              <div className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between motion-card-enter space-y-2">
+                {renderSunMoonContent()}
+              </div>
+
+              {/* Card 2: Indices d'Activité Plein Air */}
+              <div className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-[#0a1220]/95 p-3.5 sm:p-4 shadow-lg flex flex-col justify-between motion-card-enter space-y-2.5">
+                {renderActivityContent()}
               </div>
             </div>
           );
