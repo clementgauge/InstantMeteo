@@ -1,57 +1,1029 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/direct</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/direct?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/direct" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/radar</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/radar?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/radar" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/vigilances</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/vigilances" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/nuages</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/nuages?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/nuages" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/14-jours</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/14-jours" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/montagne</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/montagne?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/montagne" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/plages</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/plages?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/plages" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/secheresse-incendie" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/cours-d-eau" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/sports</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/bulletins</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/bulletins" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/archives</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/archives?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/archives" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/monde-catastrophes" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/climat</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.80</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/climat?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/climat" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/communaute</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.75</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/communaute?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/communaute" />
   </url>
   <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/competition</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/competition?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/competition" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/paris</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/paris?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/paris" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/lyon</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/lyon?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/lyon" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/marseille</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/marseille?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/marseille" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/toulouse</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/toulouse" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/nice</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/nice?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/nice" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/nantes</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/nantes?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/nantes" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/montpellier</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/montpellier" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/strasbourg</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/strasbourg" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/bordeaux</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/bordeaux" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/lille</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/lille?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/lille" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/rennes</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/rennes?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/rennes" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/grenoble</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/grenoble" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/dijon</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/dijon?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/dijon" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/brest</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/brest?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/brest" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/clermont-ferrand" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/reims</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/reims?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/reims" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/rouen</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/rouen?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/rouen" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/tours</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/tours?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/tours" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/perpignan</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/perpignan" />
+  </url>
+  <url>
+    <loc>https://instantmeteo.instantmeteofr.workers.dev/caen</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.90</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
+    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
+    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=de" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=it" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=nl" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=ar" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=ja" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=ru" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/caen?hl=uk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/caen" />
   </url>
 </urlset>

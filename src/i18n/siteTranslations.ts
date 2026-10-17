@@ -1078,17 +1078,17 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'competition',
     path: '/competition',
     canonicalUrl: `${BASE_SITE_URL}/competition`,
-    title: 'Weather Quiz, Forecast Challenges & 3D Game | Instant Weather',
+    title: 'Weather Quiz & Forecast Challenges | Instant Weather',
     description:
-      'Test your meteorology skills with the weather quiz, forecast challenges and the Paratonnerre 3D weather defense game.',
-    h1: 'Weather Quiz, Forecaster Leaderboard and 3D Weather Game',
+      'Test your meteorology skills with the weather quiz and forecast challenges: predict temperatures and precipitation to climb the leaderboard.',
+    h1: 'Weather Quiz & Forecaster Leaderboard',
     sectionTitle: 'Rules of the Forecast Challenge and Educational Quizzes',
-    breadcrumbName: 'Quiz & Weather Game',
+    breadcrumbName: 'Quiz & Weather Challenges',
     tabId: 'competitive',
     changefreq: 'daily',
     priority: '0.75',
     introParagraph:
-      'Learn to decode the atmosphere while competing with other enthusiasts: take educational meteorology quizzes, make forecast predictions or play the 3D Paratonnerre storm defense game.',
+      'Learn to decode the atmosphere while competing with other enthusiasts: take educational meteorology quizzes and make forecast predictions where precision is rewarded.',
     sections: [
       {
         heading: 'Forecast challenges: step into the shoes of a meteorologist',
@@ -1115,9 +1115,9 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
           'Not at all: questions feature multiple difficulty levels with clear explanations after each answer.',
       },
       {
-        question: 'How do I launch the 3D weather game?',
+        question: 'How do I save my score on the leaderboard?',
         answer:
-          'Click the gamepad icon in the top header or inside the Competitive tab to launch Paratonnerre 3D immediately.',
+          'Simply pick a nickname before starting: your points are automatically saved and synchronized with the national ranking.',
       },
     ],
   },
@@ -1166,10 +1166,6 @@ const FR_TO_EN_EXACT: Record<string, string> = {
   'Position ': 'GPS ',
   'GPS': 'GPS',
   'Ma Position GPS': 'My GPS Location',
-  'Jeu Météo': 'Weather Game',
-  'Jeu Météo 3D': '3D Weather Game',
-  'Jeu': 'Game',
-  'Jouer au jeu météo 3D Paratonnerre': 'Play Paratonnerre 3D Weather Game',
   'Vidéos': 'Videos',
   'Appli': 'App',
   "Télécharger l'application": 'Download the App',

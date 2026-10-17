@@ -42,6 +42,11 @@ import {
   getIsothermComprehensiveDiagnostic
 } from '../utils/isothermCalculations';
 import {
+  saveWeatherToIndexedDB,
+  getWeatherFromIndexedDB,
+  getLatestAnyWeatherFromIndexedDB
+} from '../utils/offlineWeatherDb';
+import {
   getRichWeatherInfo,
   getRainRiskExplanation,
   getDetailedCloudCover,
@@ -1258,8 +1263,24 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 }> {
   const cacheKey = `meteo_cache_${station.id}_${station.latitude.toFixed(3)}_${station.longitude.toFixed(3)}`;
 
-  // Si l'utilisateur est hors-ligne, afficher immédiatement la dernière météo enregistrée en cache
+  // Si l'utilisateur est hors-ligne ou réseau coupé : consultation instantanée via IndexedDB puis localStorage
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    const idbEntry = await getWeatherFromIndexedDB(cacheKey, station.id).catch(() => null);
+    if (idbEntry && idbEntry.data) {
+      return {
+        ...idbEntry.data,
+        isFromCache: true,
+        cachedAt: idbEntry.savedAtFormatted || new Date(idbEntry.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+    }
+    const globalIdb = await getLatestAnyWeatherFromIndexedDB().catch(() => null);
+    if (globalIdb && globalIdb.data) {
+      return {
+        ...globalIdb.data,
+        isFromCache: true,
+        cachedAt: globalIdb.savedAtFormatted || new Date(globalIdb.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+    }
     const offlineEntry = getOfflineCachedData<{
       current: CurrentWeather;
       hourly: HourlyForecast[];
@@ -2512,9 +2533,26 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     const result = { current, hourly, daily, anomaly };
     setCachedData(cacheKey, result, station.id);
+    saveWeatherToIndexedDB(cacheKey, station, result).catch(() => {});
     return { ...result, isFromCache: false };
   } catch (error) {
-    console.error("Fetch weather error, recovering last cached weather or fallback dataset", error);
+    console.warn("Fetch weather error, recovering last cached weather from IndexedDB", error);
+    const idbEntry = await getWeatherFromIndexedDB(cacheKey, station.id).catch(() => null);
+    if (idbEntry && idbEntry.data) {
+      return {
+        ...idbEntry.data,
+        isFromCache: true,
+        cachedAt: idbEntry.savedAtFormatted || new Date(idbEntry.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+    }
+    const globalIdb = await getLatestAnyWeatherFromIndexedDB().catch(() => null);
+    if (globalIdb && globalIdb.data) {
+      return {
+        ...globalIdb.data,
+        isFromCache: true,
+        cachedAt: globalIdb.savedAtFormatted || new Date(globalIdb.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+    }
     const offlineEntry = getOfflineCachedData<{
       current: CurrentWeather;
       hourly: HourlyForecast[];

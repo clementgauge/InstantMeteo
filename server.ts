@@ -1837,9 +1837,7 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
 // ROBOTS.TXT & SITEMAP.XML
 // -------------------------------------------------------------
 app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
-  const gamePath = path.join(process.cwd(), 'public', 'paratonnerre.html');
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.sendFile(gamePath);
+  res.redirect(301, '/');
 });
 
 app.get(['/manifest.webmanifest', '/manifest.json'], (req, res) => {
@@ -1901,8 +1899,6 @@ const FILE_FEATURE_DESCRIPTIONS: Record<string, string> = {
   'InstallAppModal.tsx': '📱 Installation de l’application PWA avec le logo officiel sur Téléphone (Android & iOS) et PC',
   'PWAInstallNotificationBanner.tsx': '💻 Notification d’installation PWA avec logo officiel et bouton OK mémorisé par version',
   'Instant-Meteo.apk': '📦 Package APK Android natif signé v1 + v2 universel (sans erreur d’analyse du package)',
-  'WeatherGameModal.tsx': '🎮 Jeu Paratonnerre 3D — Les gardiens de l’orage (chargement direct intégré)',
-  'paratonnerre.html': '🎮 Moteur 3D du jeu Paratonnerre — Les gardiens de l’orage',
   'UpdateNotificationPrompt.tsx': '⚡ Notification de mise à jour avec détail exact des nouveautés déployées',
   'appUpdateCheckerService.ts': '🔄 Détection temps réel des mises à jour et journal détaillé des modifications',
   'Header.tsx': '🧭 Barre de navigation supérieure, recherche rapide et sélecteur de station',
@@ -2034,12 +2030,11 @@ app.get(['/version.json', '/api/version'], (req, res) => {
       version: '2.5.0',
       buildId: 'build-20261006-250',
       updatedAt: new Date().toISOString(),
-      title: 'APK Android signé v2, Zones Météo Mondiales & Jeu 3D',
-      changelog: 'Correction APK Android sur Brave/Chrome, météo par zones pour le Royaume-Uni et le monde, et réparation du jeu Paratonnerre 3D.',
+      title: 'APK Android signé v2 & Zones Météo Mondiales',
+      changelog: 'Correction APK Android sur Brave/Chrome, météo par zones pour le Royaume-Uni et le monde.',
       changes: [
         '📱 APK Android signé v1 + v2 compatible Brave, Chrome et Firefox',
         '🇬🇧 Météo en direct par zones pour le Royaume-Uni et tous les pays',
-        '🎮 Chargement direct du jeu Paratonnerre 3D',
       ],
     });
   }

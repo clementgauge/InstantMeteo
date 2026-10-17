@@ -29,6 +29,10 @@
     <link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/" />
     <link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/" />
     <link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
+    <link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
     <link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=de" />
     <link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=es" />
     <link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=it" />
@@ -111,11 +115,27 @@
             "@type": "WebSite",
             "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-            "name": "Instant Météo France",
-            "alternateName": ["Instant Météo", "InstantMeteoFrance"],
-            "description": "Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes de France.",
+            "name": "Instant Météo France & International",
+            "alternateName": ["Instant Météo", "InstantMeteo", "InstantMeteoFrance", "Instant Weather"],
+            "description": "Portail météo mondial 100 % gratuit et sans publicité intrusive. Prévisions précises, radar des précipitations HD, bulletins BERA montagne et suivi temps réel.",
             "isAccessibleForFree": true,
-            "inLanguage": "fr-FR"
+            "inLanguage": ["fr-FR", "en-US", "de-DE", "es-ES", "it-IT", "pt-PT", "nl-NL"],
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://instantmeteo.instantmeteofr.workers.dev/?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization",
+            "name": "Instant Météo France",
+            "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+            "logo": "https://instantmeteo.instantmeteofr.workers.dev/icon-512.png",
+            "knowsLanguage": ["fr", "en", "de", "es", "it", "pt", "nl", "ar", "zh", "ja", "ru", "uk"],
+            "sameAs": [
+              "https://instantmeteo.instantmeteofr.workers.dev"
+            ]
           },
           {
             "@type": "WebApplication",
@@ -123,14 +143,52 @@
             "name": "Instant Météo France",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
             "applicationCategory": "WeatherApplication",
-            "operatingSystem": "All",
+            "operatingSystem": "All (Web, Android PWA, iOS)",
             "isAccessibleForFree": true,
-            "description": "Application météo en direct 100 % gratuite, sans publicité nuisant à la visibilité et à la lisibilité du site, fondée sur les données ouvertes (Open Data Météo-France, ECMWF, Vigicrues, SHOM).",
+            "description": "Application météo mondiale 100 % gratuite, sans publicité, avec mode hors-ligne complet (IndexedDB), radar de pluie haute résolution et observatoire nivologique certifié.",
             "offers": {
               "@type": "Offer",
               "price": "0",
               "priceCurrency": "EUR"
             }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Comment consulter la météo gratuitement et sans publicité sur Instant Météo ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Instant Météo est un service météorologique 100 % gratuit et sans aucune publicité commerciale. Il agrège en direct les données ouvertes (Open Data) de Météo-France, ECMWF, GFS, ICON et des radars nationaux pour plus de 34 965 communes et stations mondiales."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Comment fonctionne la consultation des prévisions météo hors-ligne sans connexion internet ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Grâce au Service Worker et au stockage local sécurisé IndexedDB, Instant Météo enregistre automatiquement vos dernières prévisions complètes (relevés horaires, tendances à 14 jours, radar et nivologie). En cas de perte totale de réseau, l'application continue de s'ouvrir et affiche les dernières données certifiées enregistrées."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Comment sont mesurés et fiabilisés les niveaux de neige et le risque d'avalanche en montagne ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "L'Observatoire Montagne d'Instant Météo interroge en temps réel les balises Nivôse officielles (Météo-France, SLF Suisse, AEMET) ainsi que les modèles haute résolution AROME et ECMWF pour vérifier simultanément les hauteurs de neige au sommet et en bas de station, l'isotherme 0°C, la limite pluie-neige thermo-dynamique et le bulletin BERA."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "L'application Instant Météo est-elle disponible à l'international et en plusieurs langues ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui, Instant Météo prend en charge plus de 20 langues et localités internationales (français, anglais, allemand, espagnol, italien, portugais, néerlandais, arabe, chinois, japonais, etc.) avec indexation géographique et géocodage mondial instantané."
+                }
+              }
+            ]
           }
         ]
       }

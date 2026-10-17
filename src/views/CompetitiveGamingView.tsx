@@ -65,8 +65,7 @@ import {
   Terminal, 
   X,
   Code,
-  Crown,
-  Gamepad2
+  Crown
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 
@@ -77,7 +76,6 @@ interface CompetitiveGamingViewProps {
   seniorMode?: boolean;
   onOpenSearchModal?: () => void;
   onOpenAdminPanel?: () => void;
-  onOpenWeatherGame?: () => void;
 }
 
 export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
@@ -86,8 +84,7 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   onNavigateToTab,
   seniorMode = false,
   onOpenSearchModal,
-  onOpenAdminPanel,
-  onOpenWeatherGame
+  onOpenAdminPanel
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(() => loadPlayerProfile());
   const [pseudoInput, setPseudoInput] = useState<string>('');
@@ -488,17 +485,6 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
               <span>Démarrer l'aventure (+100 pts offerts)</span>
               <ChevronRight className="h-4 w-4" />
             </button>
-
-            {onOpenWeatherGame && (
-              <button
-                type="button"
-                onClick={onOpenWeatherGame}
-                className="w-full flex items-center justify-center gap-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 transition cursor-pointer text-xs shadow-md"
-              >
-                <Gamepad2 className="h-4 w-4" />
-                <span>Jouer au Jeu de Météo (Arcade, Quiz &amp; .zip)</span>
-              </button>
-            )}
           </form>
 
           {/* Live Network connection indicator */}
@@ -819,16 +805,6 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {onOpenWeatherGame && (
-              <button
-                onClick={onOpenWeatherGame}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition cursor-pointer shadow-sm"
-                title="Lancer le Jeu de Météo"
-              >
-                <Gamepad2 className="h-3.5 w-3.5" />
-                <span>Jouer au Jeu de Météo</span>
-              </button>
-            )}
             <button
               onClick={() => setIsResetConfirmOpen(true)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-medium transition border border-slate-800 cursor-pointer"
@@ -943,41 +919,38 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
           </button>
         </div>
 
-        {/* Arcade & Quiz Météo Challenge */}
+        {/* Trophées & Badges Atmosphériques */}
         <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 space-y-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 text-emerald-400">
-              <Gamepad2 className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 text-amber-400">
+              <Award className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-xs text-white">Jeux &amp; Quiz Météo</h3>
-              <p className="text-[11px] text-slate-400">Testez vos connaissances météo</p>
+              <h3 className="font-bold text-xs text-white">Trophées &amp; Badges</h3>
+              <p className="text-[11px] text-slate-400">Progression météorologique</p>
             </div>
           </div>
 
           <div className="bg-slate-900 p-2.5 rounded-md border border-slate-800 text-xs">
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Mode Arcade &amp; Défis :</span>
-            <span className="font-bold text-emerald-300 text-xs">Quiz, Duel &amp; Mini-Jeux</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Trophées Débloqués :</span>
+            <span className="font-bold text-amber-300 text-xs">{profile.unlockedWeatherIds.length} / {WEATHER_BADGES_CATALOG.length} Phénomène(s)</span>
             <span className="text-slate-400 block text-[10px] mt-0.5">
-              Entraînez-vous sur les phénomènes climatiques
+              Débloquez des points en observant des aléas réels
             </span>
           </div>
 
-          {onOpenWeatherGame && (
-            <button
-              type="button"
-              onClick={onOpenWeatherGame}
-              className="w-full flex items-center justify-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 text-xs transition cursor-pointer"
-            >
-              <Gamepad2 className="h-3.5 w-3.5" />
-              <span>Lancer les Jeux Météo</span>
-            </button>
-          )}
+          <a
+            href="#weather-badges-catalog"
+            className="w-full flex items-center justify-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 text-xs transition cursor-pointer"
+          >
+            <Award className="h-3.5 w-3.5" />
+            <span>Consulter les Trophées</span>
+          </a>
         </div>
       </div>
 
       {/* 3. Weather Conditions & Badges Catalog */}
-      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-5 space-y-3">
+      <div id="weather-badges-catalog" className="rounded-lg border border-slate-800 bg-[#0F172A] p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 text-amber-400">

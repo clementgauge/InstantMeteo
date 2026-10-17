@@ -68,12 +68,11 @@
       "version": "2.5.0",
       "buildId": "build-20261006-250",
       "updatedAt": "2026-10-06T17:12:00.000Z",
-      "title": "Zones Météo Mondiales, Jeu Paratonnerre 3D & Journal de mise à jour",
-      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, réparation du jeu 3D et journal de mise à jour détaillé en temps réel.",
+      "title": "Zones Météo Mondiales & Journal de mise à jour",
+      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
       "changes": [
         "🇬🇧 Données météo en direct par zones régionales pour le Royaume-Uni (11 zones) et tous les pays du monde",
         "🗺️ Bascule automatique de la carte sur le pays de la ville sélectionnée (France, Royaume-Uni, Espagne, etc.)",
-        "🎮 Correction du chargement du jeu Paratonnerre 3D — Les gardiens de l'orage",
         "⚡ Détail exact des nouveautés affiché dans la notification de mise à jour"
       ]
     },

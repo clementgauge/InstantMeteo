@@ -84,7 +84,6 @@ import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
-import { WeatherGameModal } from './components/WeatherGameModal';
 import { updateDocumentSeo } from './utils/seoVerification';
 import {
   getTabIdForPath,
@@ -260,7 +259,6 @@ function WeatherApp() {
   const [isPseudoModalOpen, setIsPseudoModalOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
-  const [isWeatherGameOpen, setIsWeatherGameOpen] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const p = loadPlayerProfile();
@@ -880,7 +878,6 @@ function WeatherApp() {
           onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
-          onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
         />
       </div>
 
@@ -939,6 +936,24 @@ function WeatherApp() {
           </div>
         ) : (
           <div id={`page-${activeTab}`} key={`${activeTab}-${currentStation.id}`} className="scroll-mt-28 space-y-5 motion-view-enter">
+            {/* Offline IndexedDB Status Alert Banner */}
+            {isUsingCachedData && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs sm:text-sm shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                  <span>
+                    <strong>Mode Hors-Ligne (Connexion perdue)</strong> — Prévisions météo récupérées depuis le stockage local sécurisé <strong>IndexedDB</strong> {cachedAtTime ? `(enregistrées à ${cachedAtTime})` : ''}.
+                  </span>
+                </div>
+                <button
+                  onClick={() => loadStationData(currentStation, true)}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 border border-amber-500/50 text-amber-100 text-xs font-bold transition shrink-0 cursor-pointer"
+                >
+                  Réessayer la synchronisation
+                </button>
+              </div>
+            )}
+
             {/* Direct on-screen weather alert notification banner */}
             <DirectAlertBanner
               station={currentStation}
@@ -1125,7 +1140,6 @@ function WeatherApp() {
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
                 onNavigateToTab={(tab) => setActiveTab(tab as any)}
                 onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-                onOpenWeatherGame={() => setIsWeatherGameOpen(true)}
               />
             )}
 
@@ -1718,15 +1732,6 @@ function WeatherApp() {
       <PageBlockCustomizerModal
         isOpen={isPageBlockCustomizerOpen}
         onClose={() => setIsPageBlockCustomizerOpen(false)}
-      />
-
-      {/* Interactive Weather Game Modal (Arcade 2D, Duel, Quiz & .zip Runner) */}
-      <WeatherGameModal
-        isOpen={isWeatherGameOpen}
-        onClose={() => setIsWeatherGameOpen(false)}
-        currentStation={currentStation}
-        currentWeather={weather}
-        onOpenCompetitiveTab={() => setActiveTab('competitive')}
       />
     </div>
   );

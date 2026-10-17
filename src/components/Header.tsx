@@ -30,7 +30,6 @@ import {
   Bell,
   Sun,
   Moon,
-  Gamepad2,
   Download
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
@@ -85,7 +84,6 @@ interface HeaderProps {
   onTriggerSecretCode?: (code: string) => boolean;
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
-  onOpenWeatherGame?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -129,8 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
   isAdmin = false,
   onTriggerSecretCode,
   showFloatingBubble,
-  onToggleFloatingBubble,
-  onOpenWeatherGame
+  onToggleFloatingBubble
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -530,21 +527,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Radar</span>
           </button>
 
-          {/* 2. Jeu Météo (Logo Manette uniquement) */}
-          {onOpenWeatherGame && (
-            <button
-              onClick={onOpenWeatherGame}
-              className="flex flex-col items-center justify-center active:scale-95 transition cursor-pointer shrink-0"
-              title="Jouer au Jeu de Météo"
-              aria-label="Jouer au Jeu de Météo"
-            >
-              <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-600/30 border border-emerald-200 dark:border-emerald-400/60 shadow-md flex items-center justify-center text-emerald-600 dark:text-emerald-300">
-                <Gamepad2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
-              </div>
-            </button>
-          )}
-
-          {/* 3. Vidéos */}
+          {/* 2. Vidéos */}
           <a
             href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
             target="_blank"
@@ -653,13 +636,13 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* DESKTOP EXCLUSIVE HEADER - Single line compact layout with Gamepad icon   */}
+      {/* DESKTOP EXCLUSIVE HEADER - Single line compact layout                    */}
       {/* ========================================================================= */}
       <div className="hidden sm:flex w-full flex-nowrap items-center justify-between gap-2">
         {/* Brand & Logo (Compact to keep everything on 1 single line) */}
         <AppLogo size="sm" showSubtitle={false} className="shrink-0" />
 
-        {/* Right: All Actions, Search, Gamepad, Social Links & Settings on ONE line */}
+        {/* Right: All Actions, Search, Social Links & Settings on ONE line */}
         <div className="flex flex-nowrap items-center gap-1 lg:gap-1.5 min-w-0">
           {/* Direct GPS Geolocation Button */}
           {onLocateGps && (
@@ -812,24 +795,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
-
-          {/* Gamepad Icon Button — Jouer au Jeu de Météo (Logo uniquement) */}
-          {onOpenWeatherGame && (
-            <button
-              id="header-weather-game-btn"
-              type="button"
-              onClick={onOpenWeatherGame}
-              title="Jouer au Jeu de Météo (Arcade, Duel & Jeu .zip)"
-              aria-label="Jouer au Jeu de Météo"
-              className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
-                themeMode === 'light'
-                  ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-400'
-                  : 'border-emerald-500/50 bg-emerald-950/60 text-emerald-400 hover:border-emerald-400 hover:bg-emerald-900/70 hover:text-white'
-              }`}
-            >
-              <Gamepad2 className="h-3.5 w-3.5 shrink-0" />
-            </button>
-          )}
 
           {/* Instagram Official Page Link */}
           <a

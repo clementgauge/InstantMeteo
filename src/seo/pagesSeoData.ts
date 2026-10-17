@@ -372,10 +372,10 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'montagne',
     path: '/montagne',
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Météo des montagnes et enneigement des massifs | Instant Météo',
+    title: 'Météo Montagne & Enneigement Temps Réel : Hauteurs de Neige Vérifiées & Bulletins BERA | Instant Météo',
     description:
-      'Météo montagne dans les Alpes, Pyrénées, Massif Central, Vosges, Jura et Corse : enneigement, limite pluie-neige, isotherme 0°C, vent sur les crêtes et avalanches.',
-    h1: 'Météo en montagne et état de l’enneigement',
+      'Météo montagne en direct : niveaux réels de neige vérifiés par balise Nivôse, isotherme 0°C, limite pluie-neige thermodynamique, risque d\'avalanche BERA et stations de ski (Alpes, Pyrénées, Massif Central, Jura, Vosges, Corse, Europe).',
+    h1: 'Météo en montagne, niveaux réels de neige et bulletins d’avalanche BERA',
     sectionTitle: 'Paramètres d’altitude pour les stations de ski et la randonnée',
     breadcrumbName: 'Météo Montagne',
     tabId: 'mountain',
@@ -1548,27 +1548,37 @@ export function generateHreflangLinksHtml(canonicalUrl: string): string {
 }
 
 /**
- * Génère le Sitemap XML complet (sans balise <lastmod> fixe périmée)
- * incluant les entrées <url><loc> pour chacune des 18 pages dans toutes les langues (fr, en, de, es, it, pt, nl, ar, zh-CN, ja, ru, uk)
- * ainsi que la grappe réciproque complète xhtml:link hreflang pour Google.
+ * Génère le Sitemap XML officiel, complet et 100% conforme aux spécifications Google & sitemaps.org :
+ * - Uniquement des URLs canoniques dans les balises <loc> (aucune URL avec paramètre ?hl= qui déclencherait une erreur de non-canonique dans Google Search Console)
+ * - Balises <lastmod> dynamiques au format ISO YYYY-MM-DD
+ * - Balises <changefreq> et <priority> adaptées au rythme de mise à jour de chaque section
+ * - Grappe complète de balises <xhtml:link rel="alternate" hreflang="..."> pour toutes les langues prises en charge + x-default
+ * - Intègre les 18 sections thématiques principales + les 20 grandes agglomérations métropolitaines
  */
 export function generateSitemapXml(): string {
   const routes = Object.values(SEO_PAGES_MAP);
+  const todayDate = new Date().toISOString().split('T')[0];
   const urlEntries: string[] = [];
 
   for (const page of routes) {
+    const canonical = page.canonicalUrl;
     const hreflangTags = [
-      ...SITEMAP_HREFLANG_LOCALES.map(
+      ...SUPPORTED_HREFLANG_LOCALES.map(
         ({ hreflang, param }) =>
-          `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${page.canonicalUrl}${param}" />`
+          `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${canonical}${param}" />`
       ),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${page.canonicalUrl}" />`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${canonical}" />`,
     ].join('\n');
 
-    for (const langVariant of SITEMAP_LANGUAGE_PARAMS) {
-      const locUrl = `${page.canonicalUrl}${langVariant.param}`;
-      urlEntries.push(`  <url>\n    <loc>${locUrl}</loc>\n${hreflangTags}\n  </url>`);
-    }
+    urlEntries.push(
+      `  <url>\n` +
+      `    <loc>${canonical}</loc>\n` +
+      `    <lastmod>${todayDate}</lastmod>\n` +
+      `    <changefreq>${page.changefreq || 'daily'}</changefreq>\n` +
+      `    <priority>${page.priority || '0.80'}</priority>\n` +
+      `${hreflangTags}\n` +
+      `  </url>`
+    );
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries.join('\n')}\n</urlset>\n`;

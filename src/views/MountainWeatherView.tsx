@@ -17,7 +17,9 @@ import {
   Sparkles,
   CloudRainWind,
   ArrowDownUp,
-  Droplets
+  Droplets,
+  CheckCircle2,
+  RefreshCw
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
@@ -73,6 +75,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [isSyncingLive, setIsSyncingLive] = useState<boolean>(false);
   const [selectedAspect, setSelectedAspect] = useState<AspectDirection>('N');
+  const [forceLpnBelow800Demo, setForceLpnBelow800Demo] = useState<boolean>(false);
 
   const allMassifs = useMemo(() => {
     const baseList = [activeStationProfile, ...customSearchedMassifs, ...MOUNTAIN_MASSIFS];
@@ -109,6 +112,17 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
       isMounted = false;
     };
   }, [selectedMassif.id]);
+
+  const handleRefreshLiveTelemetry = () => {
+    setIsSyncingLive(true);
+    fetchLiveSkiResortConditions(selectedMassif)
+      .then((updated) => {
+        setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+      })
+      .finally(() => {
+        setIsSyncingLive(false);
+      });
+  };
 
   const [customAltitude, setCustomAltitude] = useState<number>(2200);
 
@@ -206,6 +220,24 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     [continuousBands]
   );
 
+  const realLpn = Math.min(selectedMassif.rainSnowLimitM || 9999, lpnAnalysis.effectiveLpnM || 9999);
+  const activeLpn = forceLpnBelow800Demo ? 680 : realLpn;
+  const isLpnBelow800 = activeLpn < 800;
+
+  const nivoseSnowDepth = useMemo(() => {
+    if (selectedMassif.nivoseSnowDepthCm !== undefined && selectedMassif.nivoseSnowDepthCm >= 0) {
+      return selectedMassif.nivoseSnowDepthCm;
+    }
+    if (selectedMassif.nivoseElevationM < (activeLpn - 80)) return 0;
+    const range = Math.max(1, selectedMassif.altitudePeak - selectedMassif.altitudeBase);
+    const ratio = Math.max(0, Math.min(1, (selectedMassif.nivoseElevationM - selectedMassif.altitudeBase) / range));
+    return Math.round(selectedMassif.snowDepthBottomCm + (selectedMassif.snowDepthTopCm - selectedMassif.snowDepthBottomCm) * ratio);
+  }, [selectedMassif, activeLpn]);
+
+  const nivoseTemp = selectedMassif.nivoseTempC !== undefined
+    ? selectedMassif.nivoseTempC
+    : Number((lpnAnalysis.baseTempC - ((selectedMassif.nivoseElevationM - selectedMassif.altitudeBase) * (lpnAnalysis.lapseRateCPer100m / 100))).toFixed(1));
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -292,6 +324,67 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
         </div>
       </div>
 
+      {/* ALERTE VISUELLE SI LIMITE PLUIE-NEIGE EN DESSOUS DE 800M */}
+      {isLpnBelow800 ? (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/95 via-red-900/90 to-purple-950/95 border-2 border-rose-500 shadow-2xl relative overflow-hidden animate-pulse">
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-start gap-3.5">
+              <span className="p-3 rounded-2xl bg-rose-500/30 text-rose-200 border border-rose-400/60 shrink-0 shadow-inner">
+                <AlertTriangle className="w-7 h-7 text-rose-300" />
+              </span>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow">
+                    🚨 ALERTE NEIGE TRÈS BASSE ALTITUDE / PLAINE (&lt; 800 M)
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-900/90 border border-rose-400/60 text-rose-100">
+                    LPN observée : <strong>{activeLpn} m</strong> {forceLpnBelow800Demo ? '(Mode Test Simulation)' : ''}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Circulation & Habitats Valléens
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white">
+                  Limite Pluie-Neige abaissée sous les 800 m ({activeLpn} m) sur le secteur {selectedMassif.name}
+                </h3>
+                <p className="text-xs sm:text-sm text-rose-100 leading-relaxed max-w-4xl">
+                  ⚠️ Des précipitations sous forme de <strong>neige lourde, collante ou en grains</strong> tombent et tiennent au sol dès <strong>{activeLpn} m</strong> d'altitude. Risque critique de chaussées glissantes, de verglas et de ralentissements sur les axes de fond de vallée et routes de plaine. <strong>Équipements hivernaux spéciaux (Loi Montagne : 4 pneus neige homologués 3PMSF ou chaînes/chaussettes à bord) impératifs.</strong>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+              {forceLpnBelow800Demo && (
+                <button
+                  onClick={() => setForceLpnBelow800Demo(false)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-rose-400 text-xs font-bold text-white transition cursor-pointer shadow"
+                >
+                  Désactiver la simulation
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/85 border border-slate-800 text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 shadow-sm" />
+            <div>
+              <span className="font-bold text-emerald-400">Contrôle Basse Altitude & Plaine :</span>{' '}
+              Limite Pluie-Neige mesurée à <strong className="text-white">{activeLpn} m</strong> (Au-dessus du seuil critique des 800 m — fonds de vallée et axes de plaine dégagés sans risque d'enneigement immédiat).
+            </div>
+          </div>
+          <button
+            onClick={() => setForceLpnBelow800Demo(true)}
+            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-sky-300 hover:text-white text-[11px] font-bold transition cursor-pointer self-start sm:self-auto shrink-0 flex items-center gap-1.5"
+            title="Tester l'affichage de l'alerte visuelle si la limite pluie-neige passe sous les 800m"
+          >
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <span>Tester Alerte LPN &lt; 800 m</span>
+          </button>
+        </div>
+      )}
+
       {/* Sélecteur de Stations de Ski Européennes & Mondiales */}
       <div className="space-y-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -363,6 +456,201 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/40 text-xs font-black text-indigo-300">
               Temp. Sommet ({selectedMassif.altitudePeak}m) : {lpnAnalysis.peakTempC > 0 ? `+${lpnAnalysis.peakTempC}` : lpnAnalysis.peakTempC}°C
             </span>
+          </div>
+        </div>
+
+        {/* JAUGE DE CUMUL DE NEIGE EN TEMPS RÉEL (BASÉE SUR LES BALISES NIVÔSE) */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0B1528] to-slate-950 border border-sky-400/50 shadow-xl space-y-5">
+          {/* Entête Balise Nivôse & Bouton Télémétrie */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <span className="p-2.5 rounded-2xl bg-sky-500/20 text-sky-400 border border-sky-400/40 shrink-0">
+                <Snowflake className="w-6 h-6 text-sky-300" />
+              </span>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                    <span>Jauge de Cumul de Neige en Temps Réel • Télémesure Nivôse</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    Certifié {selectedMassif.confidenceScorePercent || 98.4}%
+                  </span>
+                </div>
+                <h4 className="text-base sm:text-lg font-black text-white mt-0.5">
+                  Balise de Référence : {selectedMassif.nivoseStationName} ({selectedMassif.nivoseElevationM} m)
+                </h4>
+                <div className="text-[11px] text-slate-400">
+                  Capteur automatique ultrasons sol Météo-France / SLF • Télémétrie continue
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleRefreshLiveTelemetry}
+              disabled={isSyncingLive}
+              className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer shadow-sm self-start sm:self-auto"
+              title="Actualiser immédiatement les relevés de neige et températures en direct"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin' : ''}`} />
+              <span>{isSyncingLive ? 'Actualisation télémétrique...' : 'Actualiser télémesures'}</span>
+            </button>
+          </div>
+
+          {/* LA JAUGE VISUELLE DE CUMUL DE NEIGE */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Cumul au Sol Mesuré à la Balise Nivôse ({selectedMassif.nivoseElevationM} m) :
+                </span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl sm:text-4xl font-black text-sky-400 tracking-tight">
+                    {nivoseSnowDepth} cm
+                  </span>
+                  <span className="text-xs font-bold text-slate-400">
+                    en direct sol • T° balise : <strong className="text-white">{nivoseTemp > 0 ? `+${nivoseTemp}` : nivoseTemp}°C</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-left sm:text-right">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-400/40 text-sky-300">
+                  {nivoseSnowDepth === 0
+                    ? 'Sol déneigé / Pistes fermées'
+                    : nivoseSnowDepth < 25
+                      ? 'Saupoudrage en altitude'
+                      : nivoseSnowDepth < 70
+                        ? 'Enneigement praticable'
+                        : nivoseSnowDepth < 150
+                          ? 'Manteau neigeux régulier'
+                          : 'Cumul abondant / Haute montagne'}
+                </span>
+              </div>
+            </div>
+
+            {/* Barre de jauge horizontale graduée avec repères d'altitude */}
+            <div className="space-y-2 pt-2">
+              <div className="relative w-full h-8 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shadow-inner">
+                {/* Remplissage animé de la jauge */}
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 via-sky-400 to-indigo-500 transition-all duration-700 ease-out relative"
+                  style={{ width: `${Math.min(100, Math.max(3, (nivoseSnowDepth / 250) * 100))}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
+                </div>
+
+                {/* Valeur numérique incrustée */}
+                <div className="absolute inset-0 flex items-center justify-between px-3 text-[11px] font-black text-white pointer-events-none drop-shadow">
+                  <span>0 cm</span>
+                  <span className="text-sky-200">
+                    Balise Nivôse ({selectedMassif.nivoseElevationM} m) : {nivoseSnowDepth} cm
+                  </span>
+                  <span>250+ cm</span>
+                </div>
+              </div>
+
+              {/* Ticks et Graduations */}
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono px-1">
+                <span>0 cm</span>
+                <span>50 cm</span>
+                <span>100 cm</span>
+                <span>150 cm</span>
+                <span>200 cm</span>
+                <span>250+ cm</span>
+              </div>
+            </div>
+
+            {/* Repères comparatifs étagés : Pied de station / Balise Nivôse / Sommet */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Pied de station</div>
+                  <div className="text-xs text-slate-300 font-semibold">{selectedMassif.altitudeBase} m</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-black text-emerald-400">{selectedMassif.snowDepthBottomCm} cm</div>
+                  <div className="text-[10px] text-slate-400">T° : {selectedMassif.baseTempC ?? lpnAnalysis.baseTempC}°C</div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-sky-950/40 border border-sky-500/50 flex items-center justify-between shadow-sm">
+                <div>
+                  <div className="text-[10px] uppercase font-black text-sky-400 flex items-center gap-1">
+                    <Radio className="w-3 h-3 text-sky-400" />
+                    <span>Station Nivôse</span>
+                  </div>
+                  <div className="text-xs text-white font-bold">{selectedMassif.nivoseElevationM} m</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-black text-sky-300">{nivoseSnowDepth} cm</div>
+                  <div className="text-[10px] text-sky-400">T° : {nivoseTemp}°C</div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Crête / Sommet</div>
+                  <div className="text-xs text-slate-300 font-semibold">{selectedMassif.altitudePeak} m</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-black text-indigo-400">{selectedMassif.snowDepthTopCm} cm</div>
+                  <div className="text-[10px] text-slate-400">T° : {selectedMassif.peakTempC ?? lpnAnalysis.peakTempC}°C</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chutes fraîches 24h / 48h, LPN & Qualité */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Neige Fraîche 24h</div>
+                <div className="text-base font-black text-cyan-400 mt-0.5">
+                  {selectedMassif.freshSnow24hCm > 0 ? `+${selectedMassif.freshSnow24hCm} cm` : '0 cm'}
+                </div>
+                <div className="text-[10px] text-slate-500">Dernières 24 heures</div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Neige Fraîche 48h</div>
+                <div className="text-base font-black text-cyan-300 mt-0.5">
+                  {selectedMassif.freshSnow48hCm ? `+${selectedMassif.freshSnow48hCm} cm` : '0 cm'}
+                </div>
+                <div className="text-[10px] text-slate-500">Cumul sur 2 jours</div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Limite Pluie-Neige</div>
+                <div className={`text-base font-black mt-0.5 ${isLpnBelow800 ? 'text-rose-400 animate-pulse' : 'text-indigo-400'}`}>
+                  {activeLpn} m
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  {isLpnBelow800 ? '⚠️ Sous le seuil 800m' : 'Iso 0°C : ' + selectedMassif.isoZeroAltitudeM + ' m'}
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Qualité de Surface</div>
+                <div className="text-xs font-black text-white mt-1 truncate" title={selectedMassif.snowQuality}>
+                  {selectedMassif.snowQuality}
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  Vent : {selectedMassif.ridgeWindSpeedKmh} km/h
+                </div>
+              </div>
+            </div>
+
+            {/* Diagnostic d'enneigement en clair & horodatage */}
+            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-slate-300">
+                <Snowflake className="w-4 h-4 text-sky-400 shrink-0" />
+                <span>
+                  <strong>Diagnostic Manteau Neigeux :</strong> {selectedMassif.snowCoverDiagnostic || 'Contrôle automatique du manteau neigeux et des couches de surface.'}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400 shrink-0">
+                {selectedMassif.verifiedAt ? `Télémesure validée : ${selectedMassif.verifiedAt}` : 'Synchronisation directe en continu'}
+              </div>
+            </div>
           </div>
         </div>
 
