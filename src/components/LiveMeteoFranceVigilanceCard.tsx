@@ -5,104 +5,36 @@ import { LocationPoint } from '../types/weather';
 interface LiveMeteoFranceVigilanceCardProps {
   station: LocationPoint;
   onClick?: () => void;
-  isLightMode?: boolean;
-}
-
-const DEPT_NAME_MAP: Record<string, string> = {
-  'pas-de-calais': '62', 'nord': '59', 'somme': '80', 'oise': '60', 'aisne': '02',
-  'paris': '75', 'seine-maritime': '76', 'calvados': '14', 'manche': '50', 'orne': '61',
-  'finistère': '29', 'finistere': '29', 'côtes-d\'armor': '22', 'cotes-d\'armor': '22', 'morbihan': '56', 'ille-et-vilaine': '35',
-  'loire-atlantique': '44', 'maine-et-loire': '49', 'vendée': '85', 'vendee': '85', 'sarthe': '72', 'mayenne': '53',
-  'gironde': '33', 'pyrénées-atlantiques': '64', 'landes': '40', 'dordogne': '24', 'lot-et-garonne': '47',
-  'rhône': '69', 'isère': '38', 'loire': '42', 'haute-savoie': '74', 'savoie': '73', 'puy-de-dôme': '63',
-  'haute-garonne': '31', 'hérault': '34', 'gard': '30', 'aude': '11', 'pyrénées-orientales': '66',
-  'bouches-du-rhône': '13', 'var': '83', 'alpes-maritimes': '06', 'vaucluse': '84',
-  'bas-rhin': '67', 'haut-rhin': '68', 'moselle': '57', 'meurthe-et-moselle': '54',
-  'corse-du-sud': '2A', 'haute-corse': '2B'
-};
-
-function extractDept(st: LocationPoint): string {
-  if (st.department) {
-    const num = st.department.match(/\b(\d{2,3}|2A|2B)\b/i);
-    if (num) return num[1].toUpperCase();
-    const clean = st.department.trim().toLowerCase();
-    if (clean.includes('pas-de-calais') || clean.includes('pas de calais') || clean.includes('artois')) return '62';
-    if (DEPT_NAME_MAP[clean]) return DEPT_NAME_MAP[clean];
-    for (const [name, code] of Object.entries(DEPT_NAME_MAP)) {
-      if (clean.includes(name)) return code;
-    }
-  }
-  const cleanName = (st.name || '').toLowerCase();
-  if (
-    cleanName.includes('calais') || cleanName.includes('arras') || cleanName.includes('lens') || 
-    cleanName.includes('boulogne') || cleanName.includes('béthune') || cleanName.includes('bethune') ||
-    cleanName.includes('saint-omer') || cleanName.includes('st-omer') || cleanName.includes('touquet') ||
-    cleanName.includes('berck') || cleanName.includes('bruay') || cleanName.includes('liévain') ||
-    cleanName.includes('hénin') || cleanName.includes('montreuil')
-  ) {
-    return '62';
-  }
-  if (typeof st.latitude === 'number' && typeof st.longitude === 'number') {
-    if (st.latitude >= 50.05 && st.latitude <= 51.05 && st.longitude >= 1.55 && st.longitude <= 3.20) {
-      return '62';
-    }
-  }
-  if (cleanName.includes('lille') || cleanName.includes('dunkerque') || cleanName.includes('valenciennes') || cleanName.includes('roubaix') || cleanName.includes('douai')) {
-    return '59';
-  }
-  if (cleanName.includes('nantes') || cleanName.includes('saint-nazaire')) {
-    return '44';
-  }
-  return '75';
 }
 
 export const LiveMeteoFranceVigilanceCard: React.FC<LiveMeteoFranceVigilanceCardProps> = ({
   station,
-  onClick,
-  isLightMode = false
+  onClick
 }) => {
-  const currentDept = extractDept(station);
-  const isDept62 = currentDept === '62';
-  const [vigilanceLevel, setVigilanceLevel] = useState<'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE'>(isDept62 ? 'JAUNE' : 'VERT');
-  const [phenomenonLabel, setPhenomenonLabel] = useState<string>(isDept62 ? 'Vigilance Jaune Orages' : '');
-  const [sourceLabel, setSourceLabel] = useState<string>('Météo-France / MeteoAlarm');
+  const [vigilanceLevel, setVigilanceLevel] = useState<'VERT' | 'JAUNE' | 'ORANGE' | 'ROUGE'>('VERT');
+  const [sourceLabel, setSourceLabel] = useState<string>('Météo-France');
 
   useEffect(() => {
     let isMounted = true;
-    const dept = extractDept(station);
-    if (dept === '62') {
-      setVigilanceLevel('JAUNE');
-      setPhenomenonLabel('Vigilance Jaune Orages');
-    }
-
     fetch('/api/vigilance-meteofrance')
       .then(res => res.json())
       .then(res => {
         if (isMounted && res && res.success) {
           if (res.source) setSourceLabel(res.source);
-          const deptStatus = res.departmentAlerts?.[dept] || res.data?.vignettes?.[dept];
-          const details = res.departmentDetails?.[dept];
-
-          if (dept === '62') {
-            setVigilanceLevel(deptStatus && deptStatus !== 'VERT' ? deptStatus : 'JAUNE');
-            setPhenomenonLabel(details?.label || 'Vigilance Jaune Orages');
-          } else if (deptStatus) {
+          // Si données du département de la station
+          const dept = station.department?.match(/\b(\d{2,3})\b/)?.[1] || '75';
+          const deptStatus = res.data?.vignettes?.[dept] || res.departmentAlerts?.[dept];
+          if (deptStatus) {
             setVigilanceLevel(deptStatus);
-            if (details?.label) setPhenomenonLabel(details.label);
           }
         }
       })
-      .catch(() => {
-        if (dept === '62') {
-          setVigilanceLevel('JAUNE');
-          setPhenomenonLabel('Vigilance Jaune Orages');
-        }
-      });
+      .catch(() => {});
 
     return () => {
       isMounted = false;
     };
-  }, [station.department, station.name]);
+  }, [station.department]);
 
   const levelColors = {
     VERT: {
@@ -192,18 +124,18 @@ export const LiveMeteoFranceVigilanceCard: React.FC<LiveMeteoFranceVigilanceCard
         </div>
 
         {/* Légende & Statut départemental */}
-        <div className="flex flex-col justify-center space-y-1 pl-2 border-l border-slate-200 dark:border-slate-800/80 flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${levelColors.bg.replace('/20', '')} shadow-sm shrink-0`} />
-            <span className="text-[10px] font-bold text-slate-900 dark:text-white truncate">
-              {phenomenonLabel || levelColors.label}
+        <div className="flex flex-col justify-center space-y-1.5 pl-1.5 border-l border-slate-800/80 flex-1 min-w-0">
+          <div className="flex items-center gap-1">
+            <span className={`w-2 h-2 rounded-full ${levelColors.bg.replace('/20', '')}`} />
+            <span className="text-[10px] font-bold text-white truncate">
+              {levelColors.label}
             </span>
           </div>
-          <div className="text-[9px] text-slate-600 dark:text-slate-300 leading-tight truncate">
-            {station.department || station.name}
+          <div className="text-[9px] text-slate-300 leading-tight">
+            Secteur {station.name}
           </div>
-          <div className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold truncate">
-            Flux Météo-France / MeteoAlarm 24h
+          <div className="text-[8px] text-emerald-400 font-medium">
+            Flux Météo-France 24h
           </div>
         </div>
       </div>

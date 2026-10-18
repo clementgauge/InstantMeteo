@@ -1,11 +1,8 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
-import { LocationPoint } from '../types/weather';
-import { getRegionalPaletteForStation } from '../utils/regionalThemePalette';
 
 interface AtmosphereBackgroundProps {
   theme: AtmosphereThemeConfig;
-  station?: LocationPoint;
   seniorMode?: boolean;
   isLightMode?: boolean;
 }
@@ -24,14 +21,8 @@ interface Particle {
   rotationSpeed?: number;
 }
 
-export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ 
-  theme, 
-  station, 
-  seniorMode, 
-  isLightMode = false 
-}) => {
+export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({ theme, seniorMode, isLightMode = false }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const regionalPalette = useMemo(() => getRegionalPaletteForStation(station), [station?.department, station?.name, station?.country]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -246,12 +237,11 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
     if (theme.particleType === 'rain' || theme.particleType === 'thunder' || theme.particleType === 'mist') {
       return 'linear-gradient(180deg, #e2e8f0 0%, #edf2f7 40%, #f8fafc 100%)';
     }
-    // Regional territory custom gradient (Bretagne with Loire-Atlantique, Quebec fleurdelise, Pas-de-Calais, etc.)
-    return regionalPalette.lightBgGradient;
+    // Default crisp daylight azure
+    return 'linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 35%, #f6f9fc 70%, #f8fafc 100%)';
   };
 
   const getLightModeGlowPrimary = () => {
-    if (regionalPalette.glowLightPrimary) return regionalPalette.glowLightPrimary;
     if (theme.timeOfDay === 'DAWN') return 'rgba(253, 186, 116, 0.45)';
     if (theme.timeOfDay === 'DUSK') return 'rgba(244, 114, 182, 0.35)';
     if (theme.season === 'WINTER') return 'rgba(186, 230, 254, 0.55)';
@@ -261,7 +251,6 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
   };
 
   const getLightModeGlowSecondary = () => {
-    if (regionalPalette.glowLightSecondary) return regionalPalette.glowLightSecondary;
     if (theme.timeOfDay === 'DAWN') return 'rgba(254, 205, 211, 0.35)';
     if (theme.timeOfDay === 'DUSK') return 'rgba(216, 180, 254, 0.3)';
     if (theme.season === 'WINTER') return 'rgba(224, 242, 254, 0.45)';
