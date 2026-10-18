@@ -825,6 +825,7 @@ function WeatherApp() {
       {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
       <AtmosphereBackground 
         theme={currentTheme} 
+        station={currentStation}
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}
       />

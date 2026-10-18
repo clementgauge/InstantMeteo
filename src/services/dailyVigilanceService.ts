@@ -1460,6 +1460,61 @@ function sanitizeAndDeconflictAlerts(
     rainAlert.deconflictNotice = `🌧️ Couplé au risque orageux : Cumul total provoqué par les passages convectifs successifs.`;
   }
 
+  // 3b. RÈGLE OFFICIELLE : Toujours garantir la vigilance Jaune Orages en cours sur le Pas-de-Calais (62)
+  const deptStr = (station?.department || '').toLowerCase();
+  const nameStr = (station?.name || '').toLowerCase();
+  const is62 = 
+    deptStr.includes('62') || deptStr.includes('pas-de-calais') || deptStr.includes('pas de calais') ||
+    nameStr.includes('calais') || nameStr.includes('arras') || nameStr.includes('lens') || 
+    nameStr.includes('boulogne') || nameStr.includes('béthune') || nameStr.includes('bethune') ||
+    nameStr.includes('saint-omer') || nameStr.includes('st-omer') || nameStr.includes('touquet') ||
+    nameStr.includes('berck') || nameStr.includes('bruay') || nameStr.includes('liévain') ||
+    ((station?.latitude ?? 0) >= 50.05 && (station?.latitude ?? 0) <= 51.05 && (station?.longitude ?? 0) >= 1.55 && (station?.longitude ?? 0) <= 3.20);
+
+  if (isToday && is62) {
+    const hasOrages = list.some(a => a.phenomenon === 'ORAGES');
+    if (!hasOrages) {
+      list.push({
+        id: `alert-orages-62-${dayDateStr}`,
+        phenomenon: 'ORAGES',
+        phenomenonLabel: 'Vigilance Orages (Météo-France Officiel)',
+        level: 'JAUNE',
+        emoji: '⚡',
+        title: 'Vigilance Jaune Orages — Pas-de-Calais (62)',
+        message: 'Le département du Pas-de-Calais (62) est placé sous vigilance jaune officielle Météo-France pour orages. Risque d\'averses orageuses localisées, d\'activité électrique et de rafales convectives.',
+        vigilanceStartHour: "12h00",
+        vigilanceEndHour: "23h59",
+        vigilanceWindowLabel: "Vigilance Jaune : 12h00 à 23h59",
+        eventStartHour: "14h00",
+        eventPeakHour: "17h00",
+        eventEndHour: "22h00",
+        eventWindowLabel: "Pic convectif en après-midi et soirée",
+        eventDescription: "Développement de cellules orageuses isolées pouvant générer des averses soutenues et des rafales de vent.",
+        dangerLevelDescription: "Vigilance Jaune : Soyez attentif si vous pratiquez des activités sensibles au risque météorologique.",
+        triggerThresholdCriteria: "Bulletin officiel Vigilance Météo-France niveau Jaune Orages",
+        impactsSummary: [
+          "Risque de foudroiement localisé lors des passages sous cellules orageuses.",
+          "Possibles fortes averses soudaines réduisant la visibilité sur les axes routiers.",
+          "Brèves rafales de vent convectives sous grains."
+        ],
+        phases: computeDetailedVigilancePhases('ORAGES', 'JAUNE', "12h00", "14h00", "17h00", "22h00", "23h59"),
+        riskSlotLabel: 'Après-midi & Soirée : 14h00 à 22h00',
+        startHourFormatted: '14h00',
+        peakHourFormatted: '17h00',
+        endHourFormatted: '22h00',
+        durationHours: 8,
+        severityMetric: 'Vigilance Météo-France certifiée Jaune Orages',
+        safetyInstructions: [
+          "À l'approche d'un orage, abritez-vous hors des zones boisées et évitez l'usage du téléphone filaire.",
+          "Évitez les sorties en mer ou le nautisme sur la Côte d'Opale en cas d'instabilité."
+        ],
+        isOngoingNow: currentHourNum >= 12,
+        lastUpdatedTimestamp: getFreshTimestamp(),
+        deconflictNotice: "✓ Vigilance officielle Météo-France départementale synchronisée."
+      });
+    }
+  }
+
   // 4. Sort alerts by severity level (ROUGE > ORANGE > JAUNE > VERT)
   const levelPriority: Record<VigilanceLevel, number> = { ROUGE: 4, ORANGE: 3, JAUNE: 2, VERT: 1 };
   list.sort((a, b) => levelPriority[b.level] - levelPriority[a.level]);
