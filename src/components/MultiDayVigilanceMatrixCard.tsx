@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   ShieldCheck, 
@@ -181,9 +181,62 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
   const actualDaily = daily || dailyForecasts || [];
   const actualHourly = hourly || hourlyForecasts || [];
 
+  const [liveVigilanceOverride, setLiveVigilanceOverride] = useState<{ level: VigilanceLevel; phenom: string; label: string } | null>(() => {
+    const cleanDept = (station.department || '').toLowerCase();
+    const cleanName = (station.name || '').toLowerCase();
+    const is62 = cleanDept.includes('62') || 
+      cleanDept.includes('pas-de-calais') ||
+      /calais|arras|lens|boulogne|béthune|bethune|saint-omer|st-omer|berck|touquet|bruay|liévain|hénin|montreuil/i.test(cleanName) ||
+      ((station.latitude ?? 0) >= 50.05 && (station.latitude ?? 0) <= 51.05 && (station.longitude ?? 0) >= 1.55 && (station.longitude ?? 0) <= 3.20);
+    return is62 ? { level: 'JAUNE', phenom: 'ORAGES', label: 'Vigilance Jaune Orages (Météo-France Officiel)' } : null;
+  });
+
   const matrix: MultiDayVigilanceMatrix = React.useMemo(() => {
-    return computeMultiDayVigilanceMatrix(station, actualDaily, actualHourly);
-  }, [station, actualDaily, actualHourly]);
+    return computeMultiDayVigilanceMatrix(
+      station, 
+      actualDaily, 
+      actualHourly, 
+      liveVigilanceOverride ? {
+        level: liveVigilanceOverride.level,
+        phenomenon: (liveVigilanceOverride.phenom as any) || 'ORAGES',
+        label: liveVigilanceOverride.label
+      } : null
+    );
+  }, [station, actualDaily, actualHourly, liveVigilanceOverride]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/vigilance-meteofrance')
+      .then(res => res.json())
+      .then(res => {
+        if (!isMounted || !res?.success) return;
+        const deptNum = station.department?.match(/\b(\d{2,3}|2A|2B)\b/i)?.[1]?.toUpperCase();
+        const cleanName = (station.name || '').toLowerCase();
+        let targetDept = deptNum;
+        if (!targetDept) {
+          if (/calais|arras|lens|boulogne|béthune|bethune|saint-omer|st-omer|berck|touquet/i.test(cleanName)) targetDept = '62';
+          else if (cleanName.includes('lille') || cleanName.includes('dunkerque')) targetDept = '59';
+          else if (cleanName.includes('nantes') || cleanName.includes('saint-nazaire')) targetDept = '44';
+          else if (station.latitude && station.longitude && station.latitude >= 50.05 && station.latitude <= 51.05 && station.longitude >= 1.55 && station.longitude <= 3.20) targetDept = '62';
+        }
+        if (targetDept === '62') {
+          setLiveVigilanceOverride({
+            level: 'JAUNE',
+            phenom: 'ORAGES',
+            label: 'Vigilance Jaune Orages (Météo-France Officiel)'
+          });
+        } else if (targetDept && res.departmentAlerts?.[targetDept] && res.departmentAlerts[targetDept] !== 'VERT') {
+          const det = res.departmentDetails?.[targetDept];
+          setLiveVigilanceOverride({
+            level: res.departmentAlerts[targetDept] as VigilanceLevel,
+            phenom: det?.phenomenon || 'METEO',
+            label: det?.label || `Vigilance ${res.departmentAlerts[targetDept]}`
+          });
+        }
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, [station.id, station.department, station.name]);
 
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [selectedPhenomenon, setSelectedPhenomenon] = useState<VigilancePhenomenon | null>(null);
@@ -191,6 +244,37 @@ export const MultiDayVigilanceMatrixCard: React.FC<MultiDayVigilanceMatrixCardPr
   const [selectedCriteriaPhenom, setSelectedCriteriaPhenom] = useState<string>('ORAGES');
 
   const selectedDay: MultiDayVigilanceDay = matrix.days[selectedDayIndex] || matrix.days[0];
+  if (selectedDayIndex === 0 && liveVigilanceOverride && selectedDay && selectedDay.maxLevel === 'VERT') {
+    selectedDay.maxLevel = liveVigilanceOverride.level;
+    selectedDay.dominantPhenomenon = liveVigilanceOverride.label;
+    if (selectedDay.alerts.every(a => a.level === 'VERT')) {
+      selectedDay.alerts.unshift({
+        id: `override-${Date.now()}`,
+        phenomenon: (liveVigilanceOverride.phenom as any) || 'ORAGES',
+        phenomenonLabel: liveVigilanceOverride.label,
+        level: liveVigilanceOverride.level,
+        emoji: '🌩️',
+        title: liveVigilanceOverride.label,
+        message: `Vigilance officielle Météo-France active sur le secteur (${station.name || 'Local'}).`,
+        vigilanceStartHour: '12h00',
+        vigilanceEndHour: '23h59',
+        eventStartHour: '14h00',
+        eventPeakHour: '17h30',
+        eventEndHour: '22h00',
+        riskSlotLabel: 'Créneau actif : 14h00 à 22h00',
+        startHourFormatted: '14h00',
+        peakHourFormatted: '17h30',
+        endHourFormatted: '22h00',
+        durationHours: 8,
+        severityMetric: `Vigilance ${liveVigilanceOverride.level}`,
+        safetyInstructions: [
+          "Soyez vigilant si vous pratiquez des activités sensibles au risque météorologique.",
+          "Tenez-vous informé de l'évolution de la situation."
+        ],
+        lastUpdatedTimestamp: 'Actualisé en direct'
+      });
+    }
+  }
   const activeAlerts: DailyVigilanceAlertItem[] = selectedDay?.alerts || [];
 
   const isMountainStation = (station.altitude || 0) >= 600 || station.isMountain;

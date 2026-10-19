@@ -63,7 +63,7 @@ export const FRENCH_REGIONS: FrenchRegionData[] = [
       name: "Roc'h Ruz (Monts d'Arrée)",
       altitude: 385
     },
-    departments: ["22 - Côtes-d'Armor", "29 - Finistère", "35 - Ille-et-Vilaine", "56 - Morbihan"],
+    departments: ["22 - Côtes-d'Armor", "29 - Finistère", "35 - Ille-et-Vilaine", "44 - Loire-Atlantique", "56 - Morbihan"],
     climateDescription: "Océanique franc tempéré et venteux, faibles amplitudes thermiques, passages perturbés atlantiques réguliers.",
     color: "#06b6d4",
     bgGradient: "from-cyan-600 to-blue-950"

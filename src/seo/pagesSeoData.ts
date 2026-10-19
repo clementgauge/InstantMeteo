@@ -1241,9 +1241,110 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     recordMin: -19.6,
     recordRain24h: 75.0,
   },
+  {
+    slug: 'calais',
+    path: '/calais',
+    cityName: 'Calais',
+    stationId: 'calais-marck',
+    deptCode: '62',
+    department: '62 - Pas-de-Calais',
+    region: 'Hauts-de-France',
+    altitude: 3,
+    climateZone: "Océanique tempéré du littoral de la Manche (Côte d'Opale)",
+    recordMax: 39.9,
+    recordMin: -16.0,
+    recordRain24h: 76.5,
+  },
+  {
+    slug: 'arras',
+    path: '/arras',
+    cityName: 'Arras',
+    stationId: 'arras-roclincourt',
+    deptCode: '62',
+    department: '62 - Pas-de-Calais',
+    region: 'Hauts-de-France',
+    altitude: 72,
+    climateZone: "Océanique dégradé des plaines de l'Artois",
+    recordMax: 41.7,
+    recordMin: -19.5,
+    recordRain24h: 82.0,
+  },
+  {
+    slug: 'boulogne-sur-mer',
+    path: '/boulogne-sur-mer',
+    cityName: 'Boulogne-sur-Mer',
+    stationId: 'boulogne-sur-mer',
+    deptCode: '62',
+    department: '62 - Pas-de-Calais',
+    region: 'Hauts-de-France',
+    altitude: 73,
+    climateZone: "Hyper-océanique de la Côte d'Opale",
+    recordMax: 39.6,
+    recordMin: -13.6,
+    recordRain24h: 88.0,
+  },
+  {
+    slug: 'le-touquet',
+    path: '/le-touquet',
+    cityName: 'Le Touquet-Paris-Plage',
+    stationId: 'le-touquet-paris-plage',
+    deptCode: '62',
+    department: '62 - Pas-de-Calais',
+    region: 'Hauts-de-France',
+    altitude: 5,
+    climateZone: 'Océanique maritime dunaire',
+    recordMax: 39.9,
+    recordMin: -15.6,
+    recordRain24h: 94.2,
+  },
 ];
 
 const MAJOR_CITY_SEO_MAP_EN: Record<string, PageSeoMetadata> = {};
+
+export function buildCitySeoConfigEn(city: MajorCitySeoConfig): PageSeoMetadata {
+  return {
+    slug: city.slug,
+    path: city.path,
+    canonicalUrl: `${BASE_SITE_URL}${city.path}`,
+    title: `${city.cityName} Weather Live (${city.deptCode}) — 14-Day Forecast & Rain Radar | Instant Weather`,
+    description: `Live weather in ${city.cityName} (${city.department}, ${city.region}, France): current temperature, 48-hour hourly forecast, 14-day outlook, HD Doppler rain radar and weather warnings.`,
+    h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
+    sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
+    breadcrumbName: `${city.cityName} Weather`,
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '0.90',
+    introParagraph: `Track real-time weather in ${city.cityName} (${city.department}, ${city.region}, elevation ${city.altitude} m). View current temperature, wind chill / heat index, next-hour Doppler rain radar nowcasting, 48-hour hourly trends and 14-day forecasts.`,
+    sections: [
+      {
+        heading: `Local climate characteristics of ${city.cityName} (${city.region})`,
+        body: `Located at ${city.altitude} meters elevation in ${city.department}, ${city.cityName} experiences a ${city.climateZone} climate regime. High-resolution AROME (1.3 km) and ECMWF IFS models calibrate local forecasts for urban and topographic effects.`,
+      },
+      {
+        heading: `Rain radar and 3-hour precipitation nowcasting in ${city.cityName}`,
+        body: `Surgical 5-minute precipitation nowcasting and live Doppler radar track approaching rain bands, showers and thunderstorm cells across ${city.cityName}.`,
+      },
+      {
+        heading: `Historical climate records in ${city.cityName}`,
+        body: `Official station archives for ${city.cityName} record an all-time high temperature of +${city.recordMax}°C, an all-time low of ${city.recordMin}°C and a 24-hour rainfall record of ${city.recordRain24h} mm.`,
+      },
+    ],
+    faq: [
+      {
+        question: `What is the current weather in ${city.cityName} today?`,
+        answer: `Check the live telemetry card at the top of this page for ${city.cityName}: current temperature, feels-like index, humidity, wind gusts, barometric pressure and hourly trend.`,
+      },
+      {
+        question: `Will it rain in the next hour in ${city.cityName}?`,
+        answer: `The Precipitation Nowcasting module analyzes live Doppler radar echoes in 5-minute steps to indicate exact rain start and end times in ${city.cityName}.`,
+      },
+      {
+        question: `What is the 7-day and 14-day weather forecast for ${city.cityName}?`,
+        answer: `The daily forecast table provides minimum and maximum temperatures, precipitation probabilities, wind gusts and UV index day by day for ${city.cityName}.`,
+      },
+    ],
+  };
+}
 
 for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
   SEO_PAGES_MAP[city.path] = {
@@ -1289,48 +1390,7 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
     ],
   };
 
-  MAJOR_CITY_SEO_MAP_EN[city.path] = {
-    slug: city.slug,
-    path: city.path,
-    canonicalUrl: `${BASE_SITE_URL}${city.path}`,
-    title: `${city.cityName} Weather Live (${city.deptCode}) — 14-Day Forecast & Rain Radar | Instant Weather`,
-    description: `Live weather in ${city.cityName} (${city.department}, ${city.region}, France): current temperature, 48-hour hourly forecast, 14-day outlook, HD Doppler rain radar and weather warnings.`,
-    h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
-    sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
-    breadcrumbName: `${city.cityName} Weather`,
-    tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.90',
-    introParagraph: `Track real-time weather in ${city.cityName} (${city.department}, ${city.region}, elevation ${city.altitude} m). View current temperature, wind chill / heat index, next-hour Doppler rain radar nowcasting, 48-hour hourly trends and 14-day forecasts.`,
-    sections: [
-      {
-        heading: `Local climate characteristics of ${city.cityName} (${city.region})`,
-        body: `Located at ${city.altitude} meters elevation in ${city.department}, ${city.cityName} experiences a ${city.climateZone} climate regime. High-resolution AROME (1.3 km) and ECMWF IFS models calibrate local forecasts for urban and topographic effects.`,
-      },
-      {
-        heading: `Rain radar and 3-hour precipitation nowcasting in ${city.cityName}`,
-        body: `Surgical 5-minute precipitation nowcasting and live Doppler radar track approaching rain bands, showers and thunderstorm cells across ${city.cityName}.`,
-      },
-      {
-        heading: `Historical climate records in ${city.cityName}`,
-        body: `Official station archives for ${city.cityName} record an all-time high temperature of +${city.recordMax}°C, an all-time low of ${city.recordMin}°C and a 24-hour rainfall record of ${city.recordRain24h} mm.`,
-      },
-    ],
-    faq: [
-      {
-        question: `What is the current weather in ${city.cityName} today?`,
-        answer: `Check the live telemetry card at the top of this page for ${city.cityName}: current temperature, feels-like index, humidity, wind gusts, barometric pressure and hourly trend.`,
-      },
-      {
-        question: `Will it rain in the next hour in ${city.cityName}?`,
-        answer: `The Precipitation Nowcasting module analyzes live Doppler radar echoes in 5-minute steps to indicate exact rain start and end times in ${city.cityName}.`,
-      },
-      {
-        question: `What is the 7-day and 14-day weather forecast for ${city.cityName}?`,
-        answer: `The daily forecast table provides minimum and maximum temperatures, precipitation probabilities, wind gusts and UV index day by day for ${city.cityName}.`,
-      },
-    ],
-  };
+  MAJOR_CITY_SEO_MAP_EN[city.path] = buildCitySeoConfigEn(city);
 }
 
 export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoConfig | null {
@@ -1344,7 +1404,37 @@ export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoCon
   if (cleanPath.startsWith('/meteo-')) {
     cleanPath = '/' + cleanPath.slice('/meteo-'.length);
   }
-  return MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.path === cleanPath) || null;
+  const match = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.path === cleanPath || c.slug === cleanPath.slice(1));
+  if (match) return match;
+
+  const slug = cleanPath.slice(1).trim();
+  const reservedSlugs = [
+    'direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours',
+    'climat', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau',
+    'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes',
+    'communaute', 'competition', 'api', 'manifest.json', 'robots.txt', 'sitemap.xml'
+  ];
+  if (slug && !reservedSlugs.includes(slug) && !slug.includes('.')) {
+    const words = slug.split(/[-_]+/).filter(Boolean);
+    if (words.length > 0) {
+      const cityName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return {
+        slug,
+        path: '/' + slug,
+        cityName,
+        stationId: slug,
+        deptCode: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62' : 'FR',
+        department: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62 - Pas-de-Calais' : 'France & International',
+        region: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? 'Hauts-de-France' : 'France',
+        altitude: 45,
+        climateZone: 'Océanique tempéré',
+        recordMax: 40.0,
+        recordMin: -15.0,
+        recordRain24h: 75.0
+      };
+    }
+  }
+  return null;
 }
 
 export function getMajorCityPathForStationId(stationId?: string, stationName?: string): string | null {
@@ -1449,11 +1539,65 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
     '/jeu-meteo': '/competition',
   };
 
-  const resolvedPath = map[cleanPath]
+  let resolvedPath = map[cleanPath]
     ? cleanPath
     : aliases[cleanPath] && map[aliases[cleanPath]]
       ? aliases[cleanPath]
-      : '/';
+      : '';
+
+  if (!resolvedPath) {
+    const cityCfg = getMajorCityConfigFromPath(cleanPath);
+    if (cityCfg) {
+      if (!SEO_PAGES_MAP[cityCfg.path]) {
+        SEO_PAGES_MAP[cityCfg.path] = {
+          slug: cityCfg.slug,
+          path: cityCfg.path,
+          canonicalUrl: `${BASE_SITE_URL}${cityCfg.path}`,
+          title: `Météo ${cityCfg.cityName} (${cityCfg.deptCode}) en Direct — Prévisions 14 Jours & Radar Pluie | Instant Météo`,
+          description: `Consultez la météo à ${cityCfg.cityName} (${cityCfg.department}, ${cityCfg.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
+          h1: `Météo ${cityCfg.cityName} (${cityCfg.deptCode}) — Observations en direct et prévisions à 14 jours`,
+          sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cityCfg.cityName}`,
+          breadcrumbName: `Météo ${cityCfg.cityName}`,
+          tabId: 'realtime',
+          changefreq: 'always',
+          priority: '0.90',
+          introParagraph: `Suivez en temps réel la météo à ${cityCfg.cityName} (${cityCfg.department}, région ${cityCfg.region}, altitude ${cityCfg.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
+          sections: [
+            {
+              heading: `Spécificités climatiques de ${cityCfg.cityName} (${cityCfg.region})`,
+              body: `Située à ${cityCfg.altitude} mètres d'altitude dans le département ${cityCfg.department}, la commune de ${cityCfg.cityName} bénéficie d'un suivi haute résolution AROME et ECMWF actualisé en continu.`,
+            },
+            {
+              heading: `Suivi des précipitations et radar de pluie sur ${cityCfg.cityName}`,
+              body: `Le nowcasting chirurgical (< 3h) et le radar des pluies permettent d'anticiper minute par minute le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${cityCfg.cityName}.`,
+            },
+            {
+              heading: `Records climatiques à la station de référence de ${cityCfg.cityName}`,
+              body: `D'après les relevés climatiques officiels, le record de chaleur s'établit à +${cityCfg.recordMax}°C, le record de froid à ${cityCfg.recordMin}°C et le cumul maximal en 24h à ${cityCfg.recordRain24h} mm.`,
+            },
+          ],
+          faq: [
+            {
+              question: `Quel temps fait-il actuellement à ${cityCfg.cityName} ?`,
+              answer: `Consultez la météo en direct en haut de cette page pour ${cityCfg.cityName} : température, ressenti au vent, humidité, rafales et pression atmosphérique.`,
+            },
+            {
+              question: `Va-t-il pleuvoir dans l'heure à ${cityCfg.cityName} ?`,
+              answer: `Le module Pluie dans l'heure analyse les échos radar Doppler en direct toutes les 5 minutes pour ${cityCfg.cityName}.`,
+            },
+            {
+              question: `Quelles sont les prévisions météo à 14 jours pour ${cityCfg.cityName} ?`,
+              answer: `Le tableau de prévisions quotidiennes détaille les températures, probabilités de précipitations et vent jour par jour pour ${cityCfg.cityName}.`,
+            },
+          ],
+        };
+        MAJOR_CITY_SEO_MAP_EN[cityCfg.path] = buildCitySeoConfigEn(cityCfg);
+      }
+      resolvedPath = cityCfg.path;
+    } else {
+      resolvedPath = '/';
+    }
+  }
 
   const baseSeo = map[resolvedPath] || SEO_PAGES_MAP[resolvedPath] || SEO_PAGES_MAP['/'];
   if (locale === 'fr' || locale === 'en') {

@@ -17,15 +17,22 @@ import {
   Maximize2,
   CheckCircle2,
   AlertTriangle,
-  Map
+  Map,
+  Snowflake,
+  CloudRain,
+  ThermometerSnowflake
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 
 export type ThematicMapType = 
+  | 'frostRisk'
+  | 'rainHazard'
+  | 'heatwaveRisk'
+  | 'coldSnapRisk'
+  | 'stormsLightning'
   | 'airQuality'
   | 'uvIndex'
   | 'fireRisk'
-  | 'stormsLightning'
   | 'pressureIsobars'
   | 'seaTemperature';
 
@@ -72,6 +79,75 @@ const REGIONAL_REFERENCE_POINTS = [
 ];
 
 export const THEMATIC_MAPS_CONFIG = {
+  frostRisk: {
+    title: 'Probabilité de Gel & Risque Arboricole',
+    subtitle: 'Seuils sous abri (0°C, -2°C, -5°C), gelée blanche au sol vs gelée noire et protection vergers',
+    icon: Snowflake,
+    color: 'sky',
+    source: 'Modèles haute résolution AROME/ECMWF & Réseau Agrométéo INRAE',
+    scale: [
+      { color: '#10b981', label: 'Hors gel (Tmin > 3°C)' },
+      { color: '#38bdf8', label: 'Gelée blanche au sol (0°C à 2°C)' },
+      { color: '#6366f1', label: 'Gelée modérée (-1°C à -3°C, risque arboricole)' },
+      { color: '#7c3aed', label: 'Gelée sévère (< -3°C, destruction bourgeons)' }
+    ]
+  },
+  rainHazard: {
+    title: 'Risque de Pluie & Intensité des Précipitations',
+    subtitle: 'Dégradé météorologique officiel des cumuls et intensités horaires (mm/h et L/m²)',
+    icon: CloudRain,
+    color: 'blue',
+    source: 'Réseau Radar Météo-France ARAMIS & Analyse Pluviométrique Haute Précision',
+    scale: [
+      { color: '#10b981', label: 'Temps sec (0 mm)' },
+      { color: '#86efac', label: 'Pluie faible / Crachin (< 1 mm/h)' },
+      { color: '#fde047', label: 'Pluie modérée (1 à 3 mm/h)' },
+      { color: '#fb923c', label: 'Fortes pluies (3 à 8 mm/h)' },
+      { color: '#ef4444', label: 'Pluie très soutenue (8 à 20 mm/h)' },
+      { color: '#c026d3', label: 'Pluie torrentielle (> 20 mm/h)' }
+    ]
+  },
+  heatwaveRisk: {
+    title: 'Risque de Canicule & Stress Thermique',
+    subtitle: 'Biométéorologie officielle : couples Tmin / Tmax 3 jours consécutifs et seuils départementaux IBM/DJ',
+    icon: Flame,
+    color: 'orange',
+    source: 'Santé Publique France & Météo-France Dispositif National Canicule',
+    scale: [
+      { color: '#10b981', label: 'Normal (Tmin < 19°C, Tmax < 30°C)' },
+      { color: '#eab308', label: 'Chaleur estivale (Tmax 30-33°C)' },
+      { color: '#f97316', label: 'Pic de chaleur / Alerte Jaune (1 à 2 jours)' },
+      { color: '#ef4444', label: 'Canicule avérée / Alerte Orange (3 jours consécutifs)' },
+      { color: '#7f1d1d', label: 'Canicule extrême / Alerte Rouge (>40°C)' }
+    ]
+  },
+  coldSnapRisk: {
+    title: 'Risque de Vague de Froid & Grand Froid National',
+    subtitle: 'Critères Météo-France : Indice Thermique National (ITN) et journées sans dégel généralisées',
+    icon: ShieldAlert,
+    color: 'cyan',
+    source: 'Météo-France Indice Thermique National (ITN) & Modèles Climatologiques',
+    scale: [
+      { color: '#10b981', label: 'Douceur / Normal' },
+      { color: '#60a5fa', label: 'Fraîcheur hivernale standard' },
+      { color: '#06b6d4', label: 'Grand froid localisé (Tmin < -3°C, ressenti < -8°C)' },
+      { color: '#1d4ed8', label: 'Vague de froid nationale (ITN < -2°C, 3j sans dégel)' },
+      { color: '#1e1b4b', label: 'Grand froid exceptionnel (ITN < -5°C)' }
+    ]
+  },
+  stormsLightning: {
+    title: 'Vigilance Orages & Impacts de Foudre',
+    subtitle: 'Densité convective, énergie potentielle CAPE et cellules orageuses',
+    icon: Zap,
+    color: 'purple',
+    source: 'Réseau Détection Foudre ARAMIS & Analyse Convective ECMWF/GFS',
+    scale: [
+      { color: '#3b82f6', label: 'Atmosphère stable (CAPE < 300 J/kg)' },
+      { color: '#8b5cf6', label: 'Instable modéré (CAPE 300-1000 J/kg)' },
+      { color: '#f59e0b', label: 'Orages probables (CAPE 1000-2000 J/kg)' },
+      { color: '#ef4444', label: 'Orages violents / Grêle (CAPE > 2000 J/kg)' }
+    ]
+  },
   airQuality: {
     title: 'Qualité de l\'Air & Polluants (ATMO)',
     subtitle: 'Indices officiels ATMO, particules fines PM2.5, PM10, Ozone O3 et NO2',
@@ -112,19 +188,6 @@ export const THEMATIC_MAPS_CONFIG = {
       { color: '#f97316', label: 'Sévère (IFM 20-35)' },
       { color: '#ef4444', label: 'Très Sévère (IFM 35-50)' },
       { color: '#991b1b', label: 'Extrême (IFM > 50, Massifs fermés)' }
-    ]
-  },
-  stormsLightning: {
-    title: 'Vigilance Orages & Impacts de Foudre',
-    subtitle: 'Densité convective, énergie potentielle CAPE et cellules orageuses',
-    icon: Zap,
-    color: 'purple',
-    source: 'Réseau Détection Foudre ARAMIS & Analyse Convective ECMWF/GFS',
-    scale: [
-      { color: '#3b82f6', label: 'Atmosphère stable (CAPE < 300 J/kg)' },
-      { color: '#8b5cf6', label: 'Instable modéré (CAPE 300-1000 J/kg)' },
-      { color: '#f59e0b', label: 'Orages probables (CAPE 1000-2000 J/kg)' },
-      { color: '#ef4444', label: 'Orages violents / Grêle (CAPE > 2000 J/kg)' }
     ]
   },
   pressureIsobars: {

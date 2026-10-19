@@ -139,14 +139,14 @@ const FRENCH_REGIONS: RegionInfo[] = [
   },
   {
     id: 'bretagne',
-    name: 'Bretagne',
-    shortName: '⛵ Bretagne',
-    center: [48.2, -2.9],
+    name: 'Bretagne (incluant Loire-Atlantique 44)',
+    shortName: '⛵ Bretagne (BZH)',
+    center: [47.9, -2.6],
     zoom: 8,
-    bounds: [[47.2, -4.9], [48.9, -1.0]],
-    climate: 'Hyper-océanique venteux & très tempéré',
+    bounds: [[46.8, -5.2], [48.9, -1.0]],
+    climate: 'Hyper-océanique venteux, tempéré & maritime',
     highestPeak: 'Roc\'h Ruz (385 m)',
-    departments: '22, 29, 35, 56'
+    departments: '22, 29, 35, 44 (Loire-Atlantique), 56'
   },
   {
     id: 'normandie',

@@ -69,6 +69,17 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
   const [radarZoom, setRadarZoom] = useState<number>(5.2);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const calcCityTemp = (targetName: string, lat: number, alt: number, defaultOffset: number = 0) => {
+    if (station.name?.toLowerCase().includes(targetName.toLowerCase())) {
+      return Math.round(weather.temperature);
+    }
+    const baseT = weather.temperature ?? 15;
+    const sLat = station.latitude || 48.8;
+    const sAlt = station.altitude || 50;
+    const est = baseT - ((alt - sAlt) * 0.0065) - ((lat - sLat) * 0.55) + defaultOffset;
+    return Math.round(est);
+  };
+
   // Key Regional Reference Points Across France (matching exact positions in Météo-France official maps)
   const regionalPoints: RegionalStationPoint[] = useMemo(() => [
     {
@@ -77,7 +88,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '59',
       x: 57,
       y: 11,
-      temp: 21,
+      temp: calcCityTemp('Lille', 50.62, 45),
       condition: 'sun-cloud',
       weatherDesc: 'Éclaircies'
     },
@@ -87,7 +98,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '29',
       x: 16,
       y: 33,
-      temp: 20,
+      temp: calcCityTemp('Brest', 48.39, 90),
       condition: 'sun-cloud',
       weatherDesc: 'Voilé'
     },
@@ -97,7 +108,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '76',
       x: 46,
       y: 23,
-      temp: 20,
+      temp: calcCityTemp('Rouen', 49.44, 150),
       condition: 'sun-cloud',
       weatherDesc: 'Nuages & soleil'
     },
@@ -107,7 +118,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '75',
       x: 53,
       y: 28,
-      temp: Math.round(station.id?.includes('paris') ? weather.temperature : 20),
+      temp: calcCityTemp('Paris', 48.85, 75),
       condition: 'sun-cloud',
       weatherDesc: 'Éclaircies durables'
     },
@@ -117,7 +128,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '78',
       x: 50,
       y: 31,
-      temp: Math.round(station.name?.toLowerCase().includes('versailles') ? weather.temperature : 20),
+      temp: calcCityTemp('Versailles', 48.80, 130),
       condition: 'sun-cloud',
       weatherDesc: 'Nuageux & éclaircies'
     },
@@ -127,7 +138,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '67',
       x: 85,
       y: 29,
-      temp: 20,
+      temp: calcCityTemp('Strasbourg', 48.57, 150),
       condition: 'sun-cloud',
       weatherDesc: 'Partiellement ensoleillé'
     },
@@ -178,7 +189,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
       departmentCode: '69',
       x: 70,
       y: 57,
-      temp: Math.round(station.name?.toLowerCase().includes('lyon') ? weather.temperature : 19),
+      temp: calcCityTemp('Lyon', 45.76, 170),
       condition: 'sun-cloud',
       weatherDesc: 'Éclaircies et passages nuageux'
     },
@@ -466,7 +477,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
             <span className="font-bold">Chamonix-Mont-B... (74)</span>
             <AlertTriangle className="h-3.5 w-3.5 text-amber-300 animate-bounce" />
             <span>🌧️</span>
-            <span className="font-black text-sm">13°</span>
+            <span className="font-black text-sm">{calcCityTemp('Chamonix', 45.92, 1035)}°</span>
           </button>
 
           {/* Versailles (78) */}
@@ -479,7 +490,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
           >
             <span className="font-bold">Versailles (78)</span>
             <span>⛅</span>
-            <span className="font-black text-sm">20°</span>
+            <span className="font-black text-sm">{calcCityTemp('Versailles', 48.80, 130)}°</span>
           </button>
 
           {/* Lyon (69) */}
@@ -492,7 +503,7 @@ export const MeteoFranceNationalRadarCard: React.FC<MeteoFranceNationalRadarCard
           >
             <span className="font-bold">Lyon (69)</span>
             <span>⛅</span>
-            <span className="font-black text-sm">19°</span>
+            <span className="font-black text-sm">{calcCityTemp('Lyon', 45.76, 170)}°</span>
           </button>
 
           {/* Current Selected Station if not in default */}

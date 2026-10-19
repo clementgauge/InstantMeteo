@@ -2396,23 +2396,90 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         ? Math.round(dayHourlyList.reduce((acc, h) => acc + (h.cloudCover || 0), 0) / dayHourlyList.length) 
         : (dailyData.weather_code?.[srcDailyIdx] <= 1 ? 15 : 60);
 
-      const totalDaySnowfallCm = Number(dayHourlyList.reduce((acc, h) => acc + (h.snowfallCm || 0), 0).toFixed(1));
+      // =========================================================================
+      // SYNTHÈSE SCIENTIFIQUE DE LA MÉTÉO DOMINANTE DU JOUR (DIURNE & INTENSITÉ)
+      // ET STRICTE VÉRIFICATION SCIENTIFIQUE DU SEUIL DE NEIGE (HONNÊTETÉ ABSOLUE)
+      // =========================================================================
+      const dayHoursDiurnal = dayHourlyList.filter(h => {
+        const hourNum = parseInt(h.hourLabel.replace('h', ''), 10);
+        return hourNum >= 7 && hourNum <= 21;
+      });
+      const hoursToAnalyze = dayHoursDiurnal.length >= 8 ? dayHoursDiurnal : dayHourlyList;
+
+      // 1. Analyse thermique scientifique pour la neige au sol
+      // Règle physique stricte : pas de neige si T > 2.5°C ou si le bulbe humide Tw > 0.8°C ou si alt << LPN
+      const minTempDuringRain = dayHourlyList.filter(h => h.rainMm > 0.05).map(h => h.temperature);
+      const minRainTemp = minTempDuringRain.length > 0 ? Math.min(...minTempDuringRain) : tMin;
+      const isScientificallyColdEnoughForSnow = (
+        rainSum > 0 &&
+        (
+          (tMax <= 2.2 && minRainTemp <= 1.2) ||
+          (alt >= (snowLimitDay - 100) && minRainTemp <= 1.8) ||
+          (wetBulbDay <= 0.5 && minRainTemp <= 2.0)
+        )
+      );
+
+      // Si les températures sont trop douces (ex: 4°C, 7°C, 10°C), AUCUN indicateur neige n'est toléré (honnêteté scientifique garantie)
+      let totalDaySnowfallCm = 0;
+      if (isScientificallyColdEnoughForSnow) {
+        totalDaySnowfallCm = Number(dayHourlyList.reduce((acc, h) => acc + (h.snowfallCm || 0), 0).toFixed(1));
+        if (totalDaySnowfallCm === 0 && rainSum > 0) {
+          totalDaySnowfallCm = Number((rainSum * (minRainTemp <= -2 ? 1.3 : 0.9)).toFixed(1));
+        }
+      }
+
+      // 2. Détermination de la météo la plus présente de la journée (phénomène dominant)
       let dailyWCode = dailyData.weather_code?.[srcDailyIdx] ?? 0;
-      const liquidRainCodesList = [51, 53, 55, 61, 63, 65, 80, 81, 82];
-      if (rainSum > 0 && (tMean <= 1.5 || tMax <= 2.0 || totalDaySnowfallCm > 0)) {
-        if (liquidRainCodesList.includes(dailyWCode) || dailyWCode === 0) {
-          dailyWCode = totalDaySnowfallCm >= 10 ? 75 : totalDaySnowfallCm >= 3 ? 73 : 71;
+      const stormHours = dayHourlyList.filter(h => [95, 96, 99].includes(h.weatherCode) || (h.thunderstormProbability || 0) >= 50);
+      const rainHours = dayHourlyList.filter(h => h.rainMm >= 0.1 || [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(h.weatherCode));
+      const maxHourlyRainMm = dayHourlyList.reduce((max, h) => Math.max(max, h.rainMm || 0), 0);
+
+      if (stormHours.length > 0 || (dailyWCode >= 95 && dailyWCode <= 99)) {
+        // Orages avérés
+        dailyWCode = stormHours.some(h => h.weatherCode === 99) || maxHourlyRainMm >= 10 ? 99 : 95;
+      } else if (isScientificallyColdEnoughForSnow && totalDaySnowfallCm > 0) {
+        // Vraie neige vérifiée par conditions froides
+        dailyWCode = totalDaySnowfallCm >= 10 ? 75 : totalDaySnowfallCm >= 3 ? 73 : 71;
+      } else if (rainSum >= 0.8 || rainHours.length >= 3) {
+        // Précipitations liquides dominantes : échelonnage scientifique selon intensité réelle
+        if (maxHourlyRainMm >= 5.0 || rainSum >= 15) {
+          dailyWCode = 65; // Pluie forte continue / soutenue
+        } else if (maxHourlyRainMm >= 1.8 || rainSum >= 4.0) {
+          dailyWCode = 63; // Pluie modérée
+        } else if (rainHours.length >= 5 || rainSum >= 1.5) {
+          dailyWCode = 61; // Pluie faible régulière
+        } else {
+          dailyWCode = 80; // Averses passagères avec éclaircies
         }
-      } else if (rainSum < 0.3 && dailyWCode <= 1) {
-        // Préserver le temps ensoleillé officiel sauf ciel totalement bouché sans soleil
-        if (dayCloudCoverMean >= 85 && sunshineH < 2.5) {
-          dailyWCode = 3; // Ciel couvert
-        } else if (dayCloudCoverMean >= 65 && sunshineH < 5) {
-          dailyWCode = 2; // Éclaircies et passages nuageux
+      } else if (rainSum > 0.1 || rainHours.length >= 1) {
+        // Faibles ondées ou bruine / crachin
+        dailyWCode = 51; // Bruine légère
+      } else {
+        // Temps sec : sélection selon la couverture nuageuse diurne dominante
+        const diurnalClouds = hoursToAnalyze.map(h => h.cloudCover ?? 30);
+        const meanDiurnalCloud = diurnalClouds.length > 0 
+          ? Math.round(diurnalClouds.reduce((a, b) => a + b, 0) / diurnalClouds.length)
+          : dayCloudCoverMean;
+
+        const fogHours = hoursToAnalyze.filter(h => [45, 48].includes(h.weatherCode));
+        if (fogHours.length >= 3 && sunshineH < 3) {
+          dailyWCode = 45; // Brouillard
+        } else if (meanDiurnalCloud >= 85 || sunshineH < 2.0) {
+          dailyWCode = 3; // Ciel couvert dense
+        } else if (meanDiurnalCloud >= 50 || sunshineH < 6.0) {
+          dailyWCode = 2; // Belles éclaircies & passages nuageux
+        } else if (meanDiurnalCloud >= 20) {
+          dailyWCode = 1; // Ciel principalement ensoleillé / peu nuageux
+        } else {
+          dailyWCode = 0; // Plein soleil / ciel parfaitement dégagé
         }
-      } else if (rainSum >= 0.5 && dailyWCode <= 2) {
-        // En cas de pluie constatée, attribuer un code de pluie réel cohérent
-        dailyWCode = rainSum >= 6 ? 63 : rainSum >= 2 ? 61 : 51;
+      }
+
+      // Si le code initial d'Open-Meteo indiquait de la neige MAIS que les températures sont trop douces (tMean > 2.5°C ou tMax > 3°C),
+      // forcer la conversion honnête en pluie liquide
+      if ([71, 73, 75, 77, 85, 86, 68, 69].includes(dailyWCode) && !isScientificallyColdEnoughForSnow) {
+        dailyWCode = rainSum >= 6 ? 63 : rainSum >= 1.5 ? 61 : 80;
+        totalDaySnowfallCm = 0;
       }
 
       let rainTimingSummary = "Temps sec stable sur l'ensemble de la journée.";
@@ -2422,8 +2489,8 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
           const firstH = wetHours[0].hourLabel;
           const lastH = wetHours[wetHours.length - 1].hourLabel;
           const peakH = wetHours.reduce((max, h) => (h.rainMm > max.rainMm ? h : max), wetHours[0]);
-          if (totalDaySnowfallCm > 0 || tMean <= 1.5) {
-            rainTimingSummary = `Passages neigeux entre ${firstH} et ${lastH} (cumul estimé : ${totalDaySnowfallCm > 0 ? totalDaySnowfallCm : Number((rainSum * 0.9).toFixed(1))} cm de neige, pic vers ${peakH.hourLabel}).`;
+          if (totalDaySnowfallCm > 0 && isScientificallyColdEnoughForSnow) {
+            rainTimingSummary = `Passages neigeux entre ${firstH} et ${lastH} (cumul estimé : ${totalDaySnowfallCm} cm de neige, pic vers ${peakH.hourLabel}).`;
           } else {
             rainTimingSummary = `Passages pluvieux entre ${firstH} et ${lastH} (pic de ${peakH.rainMm} mm = ${peakH.rainMm} L/m² vers ${peakH.hourLabel}).`;
           }
