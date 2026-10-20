@@ -1,6 +1,6 @@
 {
   "name": "Instant Météo",
-  "description": "Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes.",
+  "description": "Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

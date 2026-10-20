@@ -84,9 +84,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo France — Météo en direct gratuite, sans pub & données ouvertes',
+    title: 'Instant Météo France & Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat & Prévisions 14 jours',
     description:
-      'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes.',
+      'Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier.',
     h1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes',
     sectionTitle: 'Sources météorologiques en données ouvertes (Open Data) et fonctionnement du portail',
     breadcrumbName: 'Accueil Météo France',

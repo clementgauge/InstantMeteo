@@ -7,14 +7,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- Primary SEO Meta Tags -->
-    <title>Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes</title>
-    <meta name="title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
-    <meta name="description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
+    <title>Instant Météo France &amp; Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat &amp; Prévisions 14 jours</title>
+    <meta name="title" content="Instant Météo France &amp; Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat &amp; Prévisions 14 jours" />
+    <meta name="description" content="Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier." />
+    <meta name="keywords" content="météo france, météo en direct gratuite, radar pluie direct, radar précipitations hd, relevés infoclimat, station static infoclimat, température tmin tmax, pluie 00h, ensoleillement direct, prévisions météo 14 jours, cartes des seuils, gel canicule vent orages, météo monde gratuite sans pub" />
     <meta name="author" content="Instant Météo France" />
     <meta name="publisher" content="Instant Météo France" />
     <meta name="application-name" content="Instant Météo" />
     <meta name="apple-mobile-web-app-title" content="Instant Météo" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="language" content="French" />
     <meta name="geo.region" content="FR" />
     <meta name="geo.placename" content="France" />
@@ -64,21 +67,21 @@
 
     <!-- Open Graph / Facebook / Discord / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Instant Météo France" />
+    <meta property="og:site_name" content="Instant Météo France &amp; International" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta property="og:title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
-    <meta property="og:description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
+    <meta property="og:title" content="Instant Météo France &amp; Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat &amp; Prévisions 14 jours" />
+    <meta property="og:description" content="Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier." />
     <meta property="og:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
-    <meta property="og:image:alt" content="Instant Météo France - Prévisions et radar des pluies" />
+    <meta property="og:image:alt" content="Instant Météo France - Prévisions, relevés Infoclimat et radar des pluies" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
 
     <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta name="twitter:title" content="Instant Météo France — Météo en direct gratuite, sans pub &amp; données ouvertes" />
-    <meta name="twitter:description" content="Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes." />
+    <meta name="twitter:title" content="Instant Météo France &amp; Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat &amp; Prévisions 14 jours" />
+    <meta name="twitter:description" content="Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier." />
     <meta name="twitter:image" content="https://instantmeteo.instantmeteofr.workers.dev/icon-512.png" />
 
     <!-- Favicons & App Manifest -->
@@ -140,17 +143,57 @@
           {
             "@type": "WebApplication",
             "@id": "https://instantmeteo.instantmeteofr.workers.dev/#webapp",
-            "name": "Instant Météo France",
+            "name": "Instant Météo France & Monde",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
             "applicationCategory": "WeatherApplication",
             "operatingSystem": "All (Web, Android PWA, iOS)",
             "isAccessibleForFree": true,
-            "description": "Application météo mondiale 100 % gratuite, sans publicité, avec mode hors-ligne complet (IndexedDB), radar de pluie haute résolution et observatoire nivologique certifié.",
+            "description": "Application météo mondiale 100 % gratuite, sans publicité, avec radar de pluie HD en direct, relevés de stations Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), cartes des seuils et mode hors-ligne complet (IndexedDB).",
+            "featureList": [
+              "Radar des précipitations haute résolution en direct RainViewer",
+              "Relevés de stations officielles Météo-France et réseau secondaire StatIC Infoclimat",
+              "Suivi en temps réel des températures Tmin et Tmax de la journée en cours",
+              "Cumuls de pluie depuis 00h00 avec intensité instantanée",
+              "Ensoleillement effectif cumulé depuis le lever et flux de rayonnement solaire",
+              "Cartes mondiales et françaises des seuils de gel, canicule, rafales et foudre",
+              "Prévisions communales pour les 34 965 communes françaises et les capitales mondiales",
+              "Mode hors-ligne certifié sans publicité intrusive"
+            ],
             "offers": {
               "@type": "Offer",
               "price": "0",
               "priceCurrency": "EUR"
             }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Accueil Météo",
+                "item": "https://instantmeteo.instantmeteofr.workers.dev/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Météo en Direct & Relevés Infoclimat",
+                "item": "https://instantmeteo.instantmeteofr.workers.dev/direct"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Radar Pluie HD & Précipitations",
+                "item": "https://instantmeteo.instantmeteofr.workers.dev/radar"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Cartes des Seuils & Vigilances",
+                "item": "https://instantmeteo.instantmeteofr.workers.dev/vigilances"
+              }
+            ]
           },
           {
             "@type": "FAQPage",
@@ -166,18 +209,26 @@
               },
               {
                 "@type": "Question",
-                "name": "Comment fonctionne la consultation des prévisions météo hors-ligne sans connexion internet ?",
+                "name": "Comment sont mesurés et comparés les relevés du jour (Tmin, Tmax, pluie et soleil) d'Infoclimat ?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Grâce au Service Worker et au stockage local sécurisé IndexedDB, Instant Météo enregistre automatiquement vos dernières prévisions complètes (relevés horaires, tendances à 14 jours, radar et nivologie). En cas de perte totale de réseau, l'application continue de s'ouvrir et affiche les dernières données certifiées enregistrées."
+                  "text": "Instant Météo affiche en continu les températures minimales (Tmin) et maximales (Tmax) enregistrées sous abri normalisé depuis minuit, le cumul de précipitations tombées depuis 00h00 et la durée d'ensoleillement effectif. L'utilisateur peut comparer en 1 clic les mesures du réseau principal d'État (SYNOP / Météo-France) et du réseau secondaire partenaire des passionnés (StatIC Infoclimat)."
                 }
               },
               {
                 "@type": "Question",
-                "name": "Comment sont mesurés et fiabilisés les niveaux de neige et le risque d'avalanche en montagne ?",
+                "name": "Quelles sont les cartes de seuils et de risques de la journée disponibles pour la France et le Monde ?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "L'Observatoire Montagne d'Instant Météo interroge en temps réel les balises Nivôse officielles (Météo-France, SLF Suisse, AEMET) ainsi que les modèles haute résolution AROME et ECMWF pour vérifier simultanément les hauteurs de neige au sommet et en bas de station, l'isotherme 0°C, la limite pluie-neige thermo-dynamique et le bulletin BERA."
+                  "text": "La suite de cartes interactives permet de visualiser en direct les seuils critiques : probabilité et intensité du gel (< 0°C, < -2°C, < -5°C), seuils de canicule (> 30°C, > 35°C), radar des pluies et cumuls du jour, rafales de vent (> 60 km/h, > 80 km/h), risque orageux convectif et qualité de l'air ATMO, à l'échelle française et mondiale."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Comment fonctionne la consultation des prévisions météo hors-ligne sans connexion internet ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Grâce au Service Worker et au stockage local sécurisé IndexedDB, Instant Météo enregistre automatiquement vos dernières prévisions complètes (relevés horaires, tendances à 14 jours, radar et nivologie). En cas de perte totale de réseau, l'application continue de s'ouvrir et affiche les dernières données certifiées enregistrées."
                 }
               },
               {

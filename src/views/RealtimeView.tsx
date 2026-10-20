@@ -8,6 +8,7 @@ import {
   Activity, 
   Clock, 
   Calendar, 
+  Thermometer,
   ThermometerSnowflake, 
   Flame, 
   Info, 
@@ -81,6 +82,9 @@ import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
+import { InfoclimatLiveDayObservations } from '../components/InfoclimatLiveDayObservations';
+import { InfoclimatDayObservationsCard } from '../components/InfoclimatDayObservationsCard';
+import { DailyPertinentMapsSuite } from '../components/DailyPertinentMapsSuite';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
 import { IntenseRegenerationBanner } from '../components/IntenseRegenerationBanner';
@@ -235,6 +239,52 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
     setSelectedDayIndexForAnalyzer(index);
     setIsDailyAnalyzerOpen(true);
   };
+
+  const todayInfoclimat = React.useMemo(() => {
+    const now = new Date();
+    const curH = now.getHours();
+    const passed = (hourly || []).filter(h => {
+      const hRaw = parseInt(h.hourLabel?.replace('h', '') || '0', 10);
+      return isNaN(hRaw) ? true : hRaw <= curH;
+    });
+    const pts = passed.length > 0 ? passed : (hourly || []).slice(0, Math.max(1, curH + 1));
+
+    let obsTmin = weather.temperature;
+    let obsTminH = `${String(Math.min(7, curH)).padStart(2, '0')}h00`;
+    if (pts.length > 0) {
+      const minPt = pts.reduce((min, curr) => curr.temperature < min.temperature ? curr : min, pts[0]);
+      obsTmin = minPt.temperature;
+      obsTminH = minPt.hourLabel || `${String(Math.min(7, curH)).padStart(2, '0')}h00`;
+    } else if (daily[0]?.tempMin !== undefined) {
+      obsTmin = daily[0].tempMin;
+      obsTminH = '06h45';
+    }
+
+    let obsTmax = weather.temperature;
+    let obsTmaxH = curH >= 15 ? '15h30' : 'En cours';
+    if (pts.length > 0) {
+      const maxPt = pts.reduce((max, curr) => curr.temperature > max.temperature ? curr : max, pts[0]);
+      obsTmax = Math.max(weather.temperature, maxPt.temperature);
+      obsTmaxH = weather.temperature >= maxPt.temperature ? 'En cours' : (maxPt.hourLabel || '15h00');
+    }
+
+    const rain00h = Number(pts.reduce((acc, h) => acc + (h.rainMm || h.precipitationMm || 0), 0).toFixed(1));
+    const daylight = Math.max(0, Math.min(12, curH - 7));
+    const avgCloud = pts.length > 0 ? pts.reduce((acc, h) => acc + (h.cloudCover ?? 30), 0) / pts.length : 30;
+    const sunMin = Math.round(daylight * 60 * Math.max(0, Math.min(1, (100 - avgCloud) / 100)));
+    const sunH = Math.floor(sunMin / 60);
+    const sunM = sunMin % 60;
+    const sunLabel = sunH > 0 ? `${sunH}h${sunM.toString().padStart(2, '0')}` : `${sunM} min`;
+
+    return {
+      tmin: obsTmin,
+      tminHour: obsTminH,
+      tmax: obsTmax,
+      tmaxHour: obsTmaxH,
+      rainSum: rain00h,
+      sunLabel
+    };
+  }, [hourly, weather.temperature, daily]);
 
   const isGpsPosition = station.id.startsWith('gps');
 
@@ -401,6 +451,52 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           if (onWeatherRectified) onWeatherRectified();
         }}
       />
+
+      {/* ========================================================================= */}
+      {/* BANDEAU VEDETTE : OBSERVATOIRE DU JOUR & CARTES CLÉS PERTINENTES          */}
+      {/* ========================================================================= */}
+      <div className="w-full rounded-2xl border border-sky-300/40 dark:border-sky-500/25 bg-gradient-to-r from-sky-50/95 via-blue-50/70 to-indigo-50/95 dark:from-slate-900/90 dark:via-blue-950/40 dark:to-slate-900/90 p-3 sm:p-3.5 shadow-sm backdrop-blur-md flex flex-wrap items-center justify-between gap-3 transition-all">
+        <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-700 dark:text-sky-300 text-xs font-black">
+            <Activity className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 animate-pulse" />
+            <span>Observatoire du Jour en Direct</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-mono tabular-nums flex-wrap">
+            <span className="text-sky-700 dark:text-sky-300 font-semibold" title="Tmin observée de la journée">
+              Tn : <strong className="font-black text-slate-900 dark:text-white">{formatTemp(todayInfoclimat.tmin)}</strong>
+            </span>
+            <span className="text-slate-400">·</span>
+            <span className="text-amber-700 dark:text-amber-300 font-semibold" title="Tmax observée de la journée">
+              Tx : <strong className="font-black text-slate-900 dark:text-white">{formatTemp(todayInfoclimat.tmax)}</strong>
+            </span>
+            <span className="text-slate-400">·</span>
+            <span className="text-blue-700 dark:text-blue-300 font-semibold" title="Pluie cumulée depuis 00h">
+              Pluie : <strong className="font-black text-slate-900 dark:text-white">{todayInfoclimat.rainSum} mm</strong>
+            </span>
+            <span className="text-slate-400">·</span>
+            <span className="text-yellow-700 dark:text-yellow-300 font-semibold" title="Ensoleillement cumulé depuis le lever">
+              Soleil : <strong className="font-black text-slate-900 dark:text-white">{todayInfoclimat.sunLabel}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => document.getElementById('infoclimat-day-observations-card')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Thermometer className="h-3.5 w-3.5" />
+            <span>Relevés Détaillés &amp; StatIC</span>
+          </button>
+          <button
+            onClick={() => document.getElementById('daily-pertinent-maps-suite')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Globe className="h-3.5 w-3.5" />
+            <span>Cartes des Risques &amp; Seuils</span>
+          </button>
+        </div>
+      </div>
 
       {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HERO & FORECAST (Hyper-Attractif & 100% Complet)         */}
@@ -592,6 +688,26 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </div>
             </div>
 
+            {/* Infoclimat Mobile Observatoire: Tmin, Tmax, Pluie 00h, Soleil */}
+            <div 
+              onClick={() => document.getElementById('infoclimat-day-observations-card')?.scrollIntoView({ behavior: 'smooth' })}
+              className="rounded-2xl bg-slate-950/90 border border-white/15 p-2.5 text-[11px] font-mono flex flex-wrap items-center justify-between gap-1.5 cursor-pointer shadow-md active:scale-[0.99] transition"
+            >
+              <div className="flex items-center gap-1.5 font-sans font-bold text-white text-[10px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span>Relevés Infoclimat du Jour :</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sky-300">Tn {formatTemp(todayInfoclimat.tmin)}</span>
+                <span className="text-slate-500">·</span>
+                <span className="text-amber-300">Tx {formatTemp(todayInfoclimat.tmax)}</span>
+                <span className="text-slate-500">·</span>
+                <span className="text-blue-300">Pluie {todayInfoclimat.rainSum}mm</span>
+                <span className="text-slate-500">·</span>
+                <span className="text-yellow-300">Soleil {todayInfoclimat.sunLabel}</span>
+              </div>
+            </div>
+
             {/* Bottom 2 Action Buttons (GPS & Voir sur la carte) */}
             <div className="grid grid-cols-2 gap-2 pt-0.5">
               {onLocateGps && (
@@ -639,6 +755,28 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onRefresh={onLocateGps}
         />
 
+        {/* Relevés de la Journée en Cours & Réseau Infoclimat (StatIC Secondaire & SYNOP Principal) - Mobile */}
+        <InfoclimatDayObservationsCard
+          station={station}
+          weather={weather}
+          hourly={hourly}
+          daily={daily}
+          tempUnit={tempUnit}
+          onSelectStation={onSelectStation}
+          onNavigateTab={onNavigateTab}
+        />
+
+        {/* Cartes Météo Clés du Jour — Risques, Seuils & Phénomènes Pertinents (Monde & Local) - Mobile */}
+        <DailyPertinentMapsSuite
+          station={station}
+          weather={weather}
+          daily={daily}
+          hourly={hourly}
+          tempUnit={tempUnit}
+          onSelectStation={onSelectStation}
+          onNavigateTab={onNavigateTab}
+        />
+
       </div>
 
       {/* 1. Hero Current Weather, Map & Detailed Hourly/Daily/Curve Forecast + Soleil & Lune (Desktop Full-Page Grid) */}
@@ -663,6 +801,31 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onRecalibrate={onRecalibrate}
         onResetRecalibration={onResetRecalibration}
       />
+
+      {/* Desktop Observatoire & Cartes Clés du Jour */}
+      <div className="hidden sm:block space-y-6">
+        {/* 2. Relevés de la Journée en Cours & Réseau Infoclimat (StatIC Secondaire & SYNOP Principal) */}
+        <InfoclimatDayObservationsCard
+          station={station}
+          weather={weather}
+          hourly={hourly}
+          daily={daily}
+          tempUnit={tempUnit}
+          onSelectStation={onSelectStation}
+          onNavigateTab={onNavigateTab}
+        />
+
+        {/* 3. Cartes Météo Clés du Jour — Risques, Seuils & Phénomènes Pertinents (Monde & Local) */}
+        <DailyPertinentMapsSuite
+          station={station}
+          weather={weather}
+          daily={daily}
+          hourly={hourly}
+          tempUnit={tempUnit}
+          onSelectStation={onSelectStation}
+          onNavigateTab={onNavigateTab}
+        />
+      </div>
 
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}

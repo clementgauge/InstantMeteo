@@ -871,22 +871,22 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-theme-mode-btn"
               onClick={onToggleThemeMode}
-              title={themeMode === 'light' ? "Passer en Mode Noir (Design sombre)" : "Passer en Mode Blanc (Design clair)"}
-              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+              title={themeMode === 'light' ? "Activer le Mode Nuit Anti-Éblouissement (recommandé pour reposer les yeux)" : "Activer le Mode Jour Doux (anti-éblouissement)"}
+              className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
                 themeMode === 'light'
-                  ? 'border-amber-300 bg-amber-50 text-amber-900 font-black shadow-sm hover:bg-amber-100'
-                  : 'border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+                  ? 'border-amber-300 bg-amber-50 text-amber-950 font-black shadow-sm hover:bg-amber-100'
+                  : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
               }`}
             >
               {themeMode === 'light' ? (
                 <>
-                  <Sun className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <span>Blanc</span>
+                  <Sun className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                  <span>Jour Doux</span>
                 </>
               ) : (
                 <>
                   <Moon className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                  <span>Noir</span>
+                  <span>Nuit Confort</span>
                 </>
               )}
             </button>

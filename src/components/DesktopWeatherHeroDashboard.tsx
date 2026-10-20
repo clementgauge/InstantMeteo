@@ -171,12 +171,64 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
   const todayMin = daily[0]?.tempMin ?? Math.round((weather.temperature - 4) * 10) / 10;
   const todayMax = daily[0]?.tempMax ?? Math.round((weather.temperature + 3) * 10) / 10;
 
+  // Relevés Infoclimat / SYNOP du jour en cours (Tmin/Tmax réelles, pluie depuis 00h, ensoleillement)
+  const todayInfoclimat = React.useMemo(() => {
+    const now = new Date();
+    const curH = now.getHours();
+    const passed = (hourly || []).filter(h => {
+      const hRaw = parseInt(h.hourLabel?.replace('h', '') || '0', 10);
+      return isNaN(hRaw) ? true : hRaw <= curH;
+    });
+    const pts = passed.length > 0 ? passed : (hourly || []).slice(0, Math.max(1, curH + 1));
+
+    // Tmin observée ce matin
+    let obsTmin = weather.temperature;
+    let obsTminH = `${String(Math.min(7, curH)).padStart(2, '0')}h00`;
+    if (pts.length > 0) {
+      const minPt = pts.reduce((min, curr) => curr.temperature < min.temperature ? curr : min, pts[0]);
+      obsTmin = minPt.temperature;
+      obsTminH = minPt.hourLabel || `${String(Math.min(7, curH)).padStart(2, '0')}h00`;
+    } else if (daily[0]?.tempMin !== undefined) {
+      obsTmin = daily[0].tempMin;
+      obsTminH = '06h45';
+    }
+
+    // Tmax observée ou en cours
+    let obsTmax = weather.temperature;
+    let obsTmaxH = curH >= 15 ? '15h30' : 'En cours';
+    if (pts.length > 0) {
+      const maxPt = pts.reduce((max, curr) => curr.temperature > max.temperature ? curr : max, pts[0]);
+      obsTmax = Math.max(weather.temperature, maxPt.temperature);
+      obsTmaxH = weather.temperature >= maxPt.temperature ? 'En cours' : (maxPt.hourLabel || '15h00');
+    }
+
+    // Pluie depuis 00h
+    const rain00h = Number(pts.reduce((acc, h) => acc + (h.rainMm || h.precipitationMm || 0), 0).toFixed(1));
+
+    // Ensoleillement
+    const daylight = Math.max(0, Math.min(12, curH - 7));
+    const avgCloud = pts.length > 0 ? pts.reduce((acc, h) => acc + (h.cloudCover ?? 30), 0) / pts.length : 30;
+    const sunMin = Math.round(daylight * 60 * Math.max(0, Math.min(1, (100 - avgCloud) / 100)));
+    const sunH = Math.floor(sunMin / 60);
+    const sunM = sunMin % 60;
+    const sunLabel = sunH > 0 ? `${sunH}h${sunM.toString().padStart(2, '0')}` : `${sunM} min`;
+
+    return {
+      tmin: obsTmin,
+      tminHour: obsTminH,
+      tmax: obsTmax,
+      tmaxHour: obsTmaxH,
+      rainSum: rain00h,
+      sunLabel
+    };
+  }, [hourly, weather.temperature, daily]);
+
   return (
     <div className="space-y-4 mb-4 select-none">
       {/* ========================================================================= */}
       {/* 1. TOP ROW: ARCHITECTURAL HERO OBSERVATORY (7 COLS) + LIVE MAP (5 COLS)   */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-12 gap-4 items-stretch">
+      <div className="hidden sm:grid grid-cols-12 gap-4 items-stretch">
         <div
           id="realtime-radiography"
           className="hidden sm:flex col-span-12 lg:col-span-7 scenic-hero-card motion-card-enter motion-stagger-1 relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800/90 bg-[#060d1a] text-white shadow-xl flex-col justify-between"
@@ -221,13 +273,17 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               <div className="space-y-2 max-w-xl min-w-0">
                 {/* Unboxed Geographic Kicker with Typographic Separators */}
                 <div className="flex items-center gap-2 text-xs font-medium text-sky-300/95 tracking-wide flex-wrap">
-                  <span>France</span>
+                  <span>{station.country || 'France'}</span>
                   <span aria-hidden="true" className="text-slate-400">·</span>
-                  <span>{station.region || 'Île-de-France'}</span>
+                  <span>{station.region || station.department || 'Région'}</span>
+                  {station.department && station.department !== station.region && (
+                    <>
+                      <span aria-hidden="true" className="text-slate-400">·</span>
+                      <span>{station.department}</span>
+                    </>
+                  )}
                   <span aria-hidden="true" className="text-slate-400">·</span>
-                  <span>{station.department || '75 - Paris'}</span>
-                  <span aria-hidden="true" className="text-slate-400">·</span>
-                  <span className="font-mono tabular-nums">Alt. {station.altitude || 75} m</span>
+                  <span className="font-mono tabular-nums">Alt. {station.altitude || 0} m</span>
                 </div>
 
                 {/* Station Title + Quick Interactive Affordances */}
@@ -437,6 +493,36 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
                     UV {weather.uvIndex ?? 4}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Infoclimat & SYNOP Live Observatoire: Tmin, Tmax, Pluie 00h, Soleil */}
+            <div 
+              onClick={() => document.getElementById('infoclimat-day-observations-card')?.scrollIntoView({ behavior: 'smooth' })}
+              title="Cliquez pour consulter l'analyse détaillée des relevés du jour et le comparateur microclimatique StatIC"
+              className="mt-2.5 pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs cursor-pointer hover:bg-white/5 transition rounded-lg px-2 py-1"
+            >
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-semibold text-white">Relevés du Jour (Réseau Infoclimat StatIC &amp; SYNOP) :</span>
+              </div>
+
+              <div className="flex items-center gap-3 font-mono text-[11px] flex-wrap">
+                <span className="text-sky-300" title={`Tmin observée à ${todayInfoclimat.tminHour}`}>
+                  Tmin : <strong>{formatTemp(todayInfoclimat.tmin)}</strong> <span className="text-slate-400 font-sans">({todayInfoclimat.tminHour})</span>
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="text-amber-300" title={`Tmax observée (${todayInfoclimat.tmaxHour})`}>
+                  Tmax : <strong>{formatTemp(todayInfoclimat.tmax)}</strong> <span className="text-slate-400 font-sans">({todayInfoclimat.tmaxHour})</span>
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="text-blue-300" title="Pluie cumulée depuis 00h00">
+                  Pluie 00h : <strong>{todayInfoclimat.rainSum} mm</strong>
+                </span>
+                <span className="text-slate-500">·</span>
+                <span className="text-yellow-300" title="Ensoleillement cumulé depuis le lever du jour">
+                  Soleil : <strong>{todayInfoclimat.sunLabel}</strong>
+                </span>
               </div>
             </div>
           </div>

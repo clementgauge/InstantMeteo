@@ -125,10 +125,9 @@ html.theme-light #root,
 .theme-light [class*="from-teal-950"]:not(.scenic-hero-card):not(.scenic-hero-card *),
 .theme-light [class*="to-teal-950"]:not(.scenic-hero-card):not(.scenic-hero-card *) {
   background-color: #ffffff !important;
-  background-image: none !important;
   color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03) !important;
 }
 
 /* Explicit preservation of active blue action tabs in light mode */

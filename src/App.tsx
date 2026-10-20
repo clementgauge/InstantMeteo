@@ -238,15 +238,15 @@ function WeatherApp() {
       document.documentElement.classList.remove('dark');
       document.body.classList.add('theme-light');
       document.body.classList.remove('dark');
-      document.body.style.backgroundColor = 'transparent';
+      document.body.style.backgroundColor = '#f1f5f9';
       document.body.style.color = '#0f172a';
     } else {
       document.documentElement.classList.remove('theme-light');
       document.documentElement.classList.add('dark');
       document.body.classList.remove('theme-light');
       document.body.classList.add('dark');
-      document.body.style.backgroundColor = '';
-      document.body.style.color = '';
+      document.body.style.backgroundColor = '#070e1c';
+      document.body.style.color = '#f8fafc';
     }
   }, [themeMode]);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
