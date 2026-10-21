@@ -22,6 +22,7 @@ import {
   Radar, 
   TrendingUp, 
   Navigation, 
+  SlidersHorizontal,
   CheckCircle2, 
   Split, 
   Globe, 
@@ -84,7 +85,6 @@ import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigil
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
 import { InfoclimatLiveDayObservations } from '../components/InfoclimatLiveDayObservations';
 import { InfoclimatDayObservationsCard } from '../components/InfoclimatDayObservationsCard';
-import { DailyPertinentMapsSuite } from '../components/DailyPertinentMapsSuite';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
 import { IntenseRegenerationBanner } from '../components/IntenseRegenerationBanner';
@@ -489,11 +489,11 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             <span>Relevés Détaillés &amp; StatIC</span>
           </button>
           <button
-            onClick={() => document.getElementById('daily-pertinent-maps-suite')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
           >
-            <Globe className="h-3.5 w-3.5" />
-            <span>Cartes des Risques &amp; Seuils</span>
+            <Map className="h-3.5 w-3.5" />
+            <span>Grand Radar des Pluies</span>
           </button>
         </div>
       </div>
@@ -765,18 +765,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onSelectStation={onSelectStation}
           onNavigateTab={onNavigateTab}
         />
-
-        {/* Cartes Météo Clés du Jour — Risques, Seuils & Phénomènes Pertinents (Monde & Local) - Mobile */}
-        <DailyPertinentMapsSuite
-          station={station}
-          weather={weather}
-          daily={daily}
-          hourly={hourly}
-          tempUnit={tempUnit}
-          onSelectStation={onSelectStation}
-          onNavigateTab={onNavigateTab}
-        />
-
       </div>
 
       {/* 1. Hero Current Weather, Map & Detailed Hourly/Daily/Curve Forecast + Soleil & Lune (Desktop Full-Page Grid) */}
@@ -814,17 +802,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onSelectStation={onSelectStation}
           onNavigateTab={onNavigateTab}
         />
-
-        {/* 3. Cartes Météo Clés du Jour — Risques, Seuils & Phénomènes Pertinents (Monde & Local) */}
-        <DailyPertinentMapsSuite
-          station={station}
-          weather={weather}
-          daily={daily}
-          hourly={hourly}
-          tempUnit={tempUnit}
-          onSelectStation={onSelectStation}
-          onNavigateTab={onNavigateTab}
-        />
       </div>
 
       {/* ========================================================================= */}
@@ -848,45 +825,103 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             />
           </div>
 
-          {/* CHAPITRE 1 : BRIEFING MATINAL AUDIO (SYNTHÈSE VOCALE) & COMPARATEUR AUJOURD'HUI VS HIER */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/20 border border-sky-300 dark:border-sky-500/35 text-[10px] font-black text-sky-700 dark:text-sky-300 uppercase tracking-wider">
-                  Synthèse Vocale &amp; Évolution 24h
+          {/* Bannière d'état Mode Simple / Mode Expert */}
+          {simplifiedMode ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 text-xs shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-sm shrink-0 border border-emerald-500/30">
+                  ⚡
                 </span>
-                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                  Bulletin Audio Intelligent &amp; Comparateur Aujourd'hui vs Hier
-                </h3>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-white text-xs sm:text-sm">Mode Simple Actif (Essentiel Épuré)</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Léger &amp; Rapide</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-0.5">
+                    Les 4 blocs avancés (<strong>Bulletin Audio de {station.name}</strong>, <strong>Aujourd'hui vs Hier</strong>, <strong>Aurores Boréales</strong> et <strong>Indices Plein Air</strong>) sont exclusifs au <strong>Mode Expert</strong>.
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={() => setIsShareCardModalOpen(true)}
-                className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline cursor-pointer hidden sm:inline"
-              >
-                Générer une image météo à partager →
-              </button>
+              {onToggleSimplifiedMode && (
+                <button
+                  type="button"
+                  onClick={onToggleSimplifiedMode}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs shadow-md shadow-indigo-600/30 transition active:scale-95 shrink-0 cursor-pointer self-start sm:self-auto"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <span>Activer le Mode Expert</span>
+                </button>
+              )}
             </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-indigo-950/50 via-slate-900 to-purple-950/40 border border-indigo-500/40 text-xs shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300 font-black text-sm shrink-0 border border-indigo-400/30">
+                  🔬
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-white text-xs sm:text-sm">Mode Expert Actif (Complet &amp; Approfondi)</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">4 Blocs Débloqués</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 mt-0.5">
+                    Affichage complet : Bulletin Audio, Comparateur 24h, Suivi des Aurores Boréales et Confort Plein Air.
+                  </p>
+                </div>
+              </div>
+              {onToggleSimplifiedMode && (
+                <button
+                  type="button"
+                  onClick={onToggleSimplifiedMode}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition active:scale-95 shrink-0 cursor-pointer self-start sm:self-auto"
+                >
+                  <span>Passer en Mode Simple</span>
+                </button>
+              )}
+            </div>
+          )}
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
-              <div className="xl:col-span-6 flex [&>div]:flex-1">
-                <MorningAudioBriefingCard
-                  station={station}
-                  weather={weather}
-                  daily={daily}
-                  hourly={hourly}
-                  tempUnit={tempUnit}
-                  onOpenShareCard={() => setIsShareCardModalOpen(true)}
-                />
+          {/* CHAPITRE 1 : BRIEFING MATINAL AUDIO (SYNTHÈSE VOCALE) & COMPARATEUR AUJOURD'HUI VS HIER (Mode Expert uniquement) */}
+          {!simplifiedMode && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-[10px] font-black text-indigo-300 uppercase tracking-wider">
+                    🔬 Mode Expert • Synthèse Vocale &amp; Évolution 24h
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                    Bulletin Audio de {station.name} &amp; Aujourd'hui vs Hier
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsShareCardModalOpen(true)}
+                  className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 underline cursor-pointer hidden sm:inline"
+                >
+                  Générer une image météo à partager →
+                </button>
               </div>
-              <div className="xl:col-span-6 flex [&>div]:flex-1">
-                <TodayVsYesterdayCard
-                  station={station}
-                  weather={weather}
-                  tempUnit={tempUnit}
-                />
+
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
+                <div className="xl:col-span-6 flex [&>div]:flex-1">
+                  <MorningAudioBriefingCard
+                    station={station}
+                    weather={weather}
+                    daily={daily}
+                    hourly={hourly}
+                    tempUnit={tempUnit}
+                    onOpenShareCard={() => setIsShareCardModalOpen(true)}
+                  />
+                </div>
+                <div className="xl:col-span-6 flex [&>div]:flex-1">
+                  <TodayVsYesterdayCard
+                    station={station}
+                    weather={weather}
+                    tempUnit={tempUnit}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* CHAPITRE 2 : LES 7 JAUGES & INDICATEURS SYNOPTIQUES (Humidité, Vent, UV, AQI, Pression, Pluie, Pollen) */}
           <div id="realtime-indicators" className="scroll-mt-28 space-y-3">
@@ -987,39 +1022,41 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </div>
           </div>
 
-          {/* CHAPITRE 3 : AURORES BORÉALES, INDICES DE VIE & SÉCURITÉ */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/35 text-[10px] font-black text-purple-300 uppercase tracking-wider">
-                  Aurores Boréales &amp; Plein Air
-                </span>
-                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                  Suivi des Aurores Boréales (Kp) &amp; Indices Plein Air
-                </h3>
+          {/* CHAPITRE 3 : AURORES BORÉALES, INDICES DE VIE & SÉCURITÉ (Mode Expert uniquement) */}
+          {!simplifiedMode && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-[10px] font-black text-indigo-300 uppercase tracking-wider">
+                    🔬 Mode Expert • Ciel Nocturne &amp; Activités
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                    Suivi des Aurores Boréales &amp; Indices d'Activités Plein Air
+                  </h3>
+                </div>
               </div>
-            </div>
 
-            {/* Suivi des Aurores Boréales à GAUCHE & Indices Plein Air à DROITE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
-              <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
-                <AuroraNightSkyCard
-                  station={station}
-                  weather={weather}
-                />
+              {/* Suivi des Aurores Boréales à GAUCHE & Indices Plein Air à DROITE */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+                <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
+                  <AuroraNightSkyCard
+                    station={station}
+                    weather={weather}
+                  />
+                </div>
+                <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
+                  <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
+                </div>
               </div>
-              <div className="lg:col-span-6 flex [&>div]:flex-1 [&>div]:w-full">
-                <OutdoorIndicesCard weather={weather} station={station} seniorMode={seniorMode} />
-              </div>
-            </div>
 
-            {/* Sécurité Extérieure */}
-            <ImouWeatherSecurityBanner
-              weather={weather}
-              station={station}
-              seniorMode={seniorMode}
-            />
-          </div>
+              {/* Sécurité Extérieure */}
+              <ImouWeatherSecurityBanner
+                weather={weather}
+                station={station}
+                seniorMode={seniorMode}
+              />
+            </div>
+          )}
 
           {/* CHAPITRE 4 : PRÉCIPITATIONS CHIRURGICALES & NOWCASTING (< 3h & < 24h) */}
           <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0 space-y-2.5">

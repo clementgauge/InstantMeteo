@@ -516,7 +516,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => setIsMenuDrawerOpen(true)}
-                title="Ouvrir le sommaire complet des 20 modules"
+                title="Consulter les 20 modules et cartes météo"
                 className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition active:scale-95 shrink-0 cursor-pointer"
               >
                 <Layers className="h-3.5 w-3.5" />

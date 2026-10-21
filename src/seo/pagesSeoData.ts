@@ -84,21 +84,25 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo France & Monde — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat & Prévisions 14 jours',
+    title: 'Instant Météo (instant meteo, instantmeteo) — Météo en direct gratuite, Radar Pluie HD, Relevés Infoclimat & Prévisions 14 jours',
     description:
-      'Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier.',
-    h1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes',
+      'Site météo 100 % gratuit et sans pub : trouvez instant météo, instant meteo ou instantmeteo pour votre commune (ex. instant météo versailles ou météo france). Radar de pluie HD, relevés Infoclimat et prévisions 14 jours.',
+    h1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes — Instant Météo',
     sectionTitle: 'Sources météorologiques en données ouvertes (Open Data) et fonctionnement du portail',
     breadcrumbName: 'Accueil Météo France',
     tabId: 'realtime',
     changefreq: 'always',
     priority: '1.0',
     introParagraph:
-      'Instant Météo France est un portail météorologique 100 % gratuit, garanti sans publicité permettant de nuire à la visibilité et à la lisibilité du site, et intégralement propulsé par les données ouvertes (Open Data). Il regroupe sur une interface claire les observations actuelles et les prévisions locales pour les 34 965 communes de France métropolitaine, d’Outre-mer et d’Europe.',
+      'Bienvenue sur Instant Météo (aussi recherché sous les formes instant meteo, instantmeteo ou instant-meteo). Notre portail est accessible directement sur Google que vous saisissiez instant météo, instant meteo, instantmeteo, instant météo versailles ou même simplement météo france. Garanti 100 % gratuit et sans aucune publicité intrusive, il regroupe sur une interface moderne et reposante pour les yeux les observations actuelles et prévisions locales pour les 34 965 communes de France métropolitaine, d’Outre-mer et du monde entier.',
     sections: [
       {
         heading: 'Site 100 % gratuit, sans publicité nuisible et fondé sur les données ouvertes (Open Data)',
         body: 'Instant Météo France garantit un accès entièrement gratuit et sans aucune publicité intrusive pouvant nuire à la visibilité des cartes ou des bulletins. Cette plateforme s’appuie sur les données ouvertes publiques (Open Data) : les modèles numériques AROME (maille fine 1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF (IFS 9 km), l’imagerie radar RainViewer, les relevés hydrologiques Vigicrues (SCHAPI), les prédictions de marées du SHOM, le suivi des nappes du BRGM, les données satellitaires NASA FIRMS / GIBS et les réanalyses climatiques Copernicus ERA5.',
+      },
+      {
+        heading: 'Comment trouver Instant Météo sur Google (orthographes et requêtes fréquentes)',
+        body: 'Vous pouvez retrouver immédiatement notre plateforme sur Google en tapant instant météo, instant meteo (sans accent), instantmeteo (en un seul mot), ou avec votre commune comme instant météo versailles. Le site apparaît également lors de recherches courantes comme météo france en direct gratuit et sans publicité.',
       },
       {
         heading: 'Adaptation automatique au relief et à l’altitude de chaque commune',
@@ -110,6 +114,11 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       },
     ],
     faq: [
+      {
+        question: 'Comment trouver notre site sur Google avec différentes orthographes ?',
+        answer:
+          'Vous pouvez trouver notre site sur Google en tapant indifféremment instant météo, instant meteo, instantmeteo, instant météo versailles ou même simplement météo france. Toutes ces requêtes mènent directement à notre portail météo 100 % gratuit et sans pub.',
+      },
       {
         question: 'Comment rechercher les prévisions météo de mon village ou de mon quartier ?',
         answer:
@@ -1769,6 +1778,14 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
           brand.brandFull,
           brand.brandUpper,
           'Instant Météo',
+          'instant météo',
+          'instant meteo',
+          'instantmeteo',
+          'instant-meteo',
+          'instant météo versailles',
+          'instant meteo versailles',
+          'météo france',
+          'meteo france',
           'Instant Météo France',
           'Instant Weather',
           'Instant Weather France',

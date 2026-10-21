@@ -47,7 +47,6 @@ import { PWAInstallNotificationBanner } from './components/PWAInstallNotificatio
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
 import { BottomNavigationDock, NavTabId } from './components/BottomNavigationDock';
-import { PageSectionSidebar, SidebarSectionItem } from './components/PageSectionSidebar';
 import { TimeOfDay, Season, AtmosphereMode } from './types/atmosphere';
 import { calculateTimeOfDay, calculateSeason, getAtmosphereTheme, isChristmasEventActive, setChristmasEventOverride } from './utils/atmosphereTheme';
 import { FranceMapView } from './views/FranceMapView';
@@ -651,71 +650,6 @@ function WeatherApp() {
     { id: 'watercourses', category: 'DIRECT', label: '17. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
-  const genericPageSection = (label: string, icon: any): SidebarSectionItem[] => [
-    { id: `page-${activeTab}`, label, icon },
-  ];
-
-  const pageSidebarTitle = navItems.find((item) => item.id === activeTab)?.label.replace(/^\d+\.\s*/, '') || 'Météo';
-
-  const pageSections: SidebarSectionItem[] = activeTab === 'realtime'
-    ? [
-        { id: 'realtime-radiography', label: 'Radiographie météo & Station', icon: Sun },
-        { id: 'realtime-forecast-week', label: 'Prévisions jour & semaine', icon: Calendar },
-        { id: 'realtime-indicators', label: 'Indicateurs & Précision Météorologique', icon: Gauge },
-        { id: 'realtime-precipitation', label: 'Précipitations & Radar Direct', icon: CloudRain },
-        { id: 'realtime-certified-precision', label: 'Observatoire de référence (Expert)', icon: Sliders },
-        { id: 'realtime-deep-conditions', label: 'Conditions météorologiques approfondies', icon: Layers },
-        { id: 'realtime-more-forecast', label: 'Accès autres prévisions', icon: Split },
-        { id: 'realtime-download', label: "Télécharger l'application", icon: FileText },
-      ]
-    : activeTab === 'cloudNephology'
-      ? genericPageSection('Observatoire des nuages 48h', Cloud)
-      : activeTab === 'vigilance'
-        ? genericPageSection('Vigilances & alertes', ShieldAlert)
-        : activeTab === 'scenarios14d'
-          ? genericPageSection('Scénarios à 14 jours', Split)
-          : activeTab === 'bulletin'
-            ? genericPageSection('Bulletins de prévisions', FileText)
-            : activeTab === 'eightMonths'
-              ? genericPageSection('Tendances 8 mois', Globe)
-              : activeTab === 'radar'
-                ? genericPageSection('Radar Précipitations, Feux NASA & Vents', CloudRain)
-                : activeTab === 'historicalTrends'
-                  ? genericPageSection('Évolution 2000 & Temps Réel 1min', History)
-                  : activeTab === 'sportsActivities'
-                    ? [
-                        { id: 'sports-score-section', label: 'Index de Sortie & Tenue', icon: ShieldAlert },
-                        { id: 'sports-disciplines-section', label: 'Disciplines & Créneaux', icon: TrendingUp },
-                        { id: 'route-weather-calculator-section', label: "Météo d'Itinéraire & Trajets", icon: Compass },
-                      ]
-                    : activeTab === 'worldDisasters'
-                      ? genericPageSection('Monde & Catastrophes 24h', Radio)
-                      : activeTab === 'weatherArchive'
-                        ? genericPageSection('Archives Journalières Météo', Calendar)
-                        : activeTab === 'competitive'
-                          ? [
-                              { id: 'competitive-header-hero', label: 'Profil, Points & Flammes', icon: Sparkles },
-                              { id: 'competitive-geo-section', label: 'Géolocalisation Physique Lieux', icon: Navigation },
-                              { id: 'competitive-trophies-section', label: 'Trophées Météo Débloqués', icon: Trophy },
-                              { id: 'competitive-leaderboard-section', label: 'Classement Général Chasseurs', icon: BarChart3 },
-                            ]
-                          : activeTab === 'discussionGroup'
-                            ? [
-                                { id: 'discussion-header-hero', label: 'Observatoire Citoyen & Salon', icon: MessageSquare },
-                                { id: 'discussion-channels-bar', label: 'Salons Thématiques', icon: Hash },
-                                { id: 'discussion-messages-feed', label: 'Fil de Discussion en Direct', icon: MessageSquare },
-                                { id: 'discussion-composer-section', label: 'Poster une Observation', icon: Send },
-                              ]
-                            : activeTab === 'mountain'
-                              ? genericPageSection('Météo Montagne & Nivologie (BERA)', Mountain)
-                              : activeTab === 'beaches'
-                                ? genericPageSection('Météo des Plages & Littoral (SHOM)', Waves)
-                                : activeTab === 'droughtFire'
-                                  ? genericPageSection('Vigi Sécheresse & Incendie (VigiEau / Météo des Forêts)', Flame)
-                                  : activeTab === 'watercourses'
-                                    ? genericPageSection('Vigie Cours d\'Eau & Vigicrues', Droplets)
-                                    : genericPageSection('Stations & Sommets de France', Map);
-
   // Quick navigation helper
   const currentNavIndex = navItems.findIndex(item => item.id === activeTab);
   const handlePrevTab = () => {
@@ -882,28 +816,11 @@ function WeatherApp() {
         />
       </div>
 
-      {/* Full-Page Collapsible Left Sidebar Rail & Mobile Drawer — Placed at root level so it stays in the foreground above header, bottom dock, and page */}
-      <PageSectionSidebar
-        title={pageSidebarTitle}
-        sections={pageSections}
-        currentStation={currentStation}
-        isChristmasActive={isChristmasActive}
-        onTriggerSecretCode={handleTriggerSecretCode}
-        onLocateGps={handleLocateGps}
-        activeTab={activeTab}
-        onSelectTab={(tabId) => setActiveTab(tabId)}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
-        onOpenNotifications={() => setIsNotificationModalOpen(true)}
-        onOpenAtmosphere={() => setIsAtmosphereModalOpen(true)}
-        activeAlertCount={activeAlertCount}
-        isLightMode={themeMode === 'light'}
-      />
-
-      {/* Main Container - Optimized for expansive wide screen comfort with left rail spacing */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-5 xl:px-6 lg:pl-[76px] py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
+      {/* Main Container - Expansive wide screen layout without left sidebar */}
+      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
 
         <section className="min-w-0 w-full">
-        {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA mais masqué visuellement pour l'utilisateur) */}
+        {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA) */}
         {(() => {
           const activeRoutePath = getPathForTabId(activeTab, currentPath);
           const activePageSeo = getSeoDataForPath(activeRoutePath, getNativeSiteLanguage());
@@ -911,14 +828,17 @@ function WeatherApp() {
             <div className="sr-only">
               <div>
                 <h1>
-                  {activePageSeo.h1}
+                  {activePageSeo.h1} — Instant Météo (instant meteo, instantmeteo)
                 </h1>
+                <p>
+                  Bienvenue sur Instant Météo (aussi recherché sous instant meteo, instantmeteo ou instant-meteo). Retrouvez les prévisions météo en direct gratuites et sans publicité pour {currentStation.name} et 34 965 communes. Vous pouvez trouver notre site directement sur Google en tapant instant météo, instant meteo, instantmeteo, instant météo versailles ou même simplement météo france.
+                </p>
                 <p>
                   {activePageSeo.description}
                 </p>
               </div>
               <div>
-                <span>📍 {currentStation.name} ({currentStation.altitude ?? 0} m)</span>
+                <span>📍 {currentStation.name} ({currentStation.altitude ?? 0} m) — Météo {currentStation.name} en direct, radar de pluie haute définition et prévisions 14 jours.</span>
               </div>
             </div>
           );

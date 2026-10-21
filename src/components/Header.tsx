@@ -354,7 +354,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <SlidersHorizontal className="h-3 w-3 shrink-0" />
-                <span>{simplifiedMode ? 'Simple' : 'Expert'}</span>
+                <span>{simplifiedMode ? 'Mode : Simple' : 'Mode : Expert'}</span>
               </button>
             )}
 
@@ -861,8 +861,8 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <SlidersHorizontal className={`h-3 w-3 shrink-0 ${simplifiedMode ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
-              <span>{simplifiedMode ? 'Simplifié' : 'Expert'}</span>
+              <SlidersHorizontal className={`h-3 w-3 shrink-0 ${simplifiedMode ? 'text-emerald-500 dark:text-emerald-400' : 'text-indigo-500 dark:text-indigo-400'}`} />
+              <span>{simplifiedMode ? 'Mode : Simple' : 'Mode : Expert'}</span>
             </button>
           )}
 
