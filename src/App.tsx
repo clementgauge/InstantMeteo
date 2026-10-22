@@ -83,7 +83,7 @@ import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
-import { updateDocumentSeo } from './utils/seoVerification';
+import { updateDocumentSeo, updateDocumentSeoForStation } from './utils/seoVerification';
 import {
   getTabIdForPath,
   getSeoDataForPath,
@@ -98,11 +98,21 @@ function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
     try {
       if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryCity = urlParams.get('ville') || urlParams.get('q') || urlParams.get('city') || urlParams.get('station');
+        if (queryCity) {
+          const matchByQuery = FRENCH_STATIONS.find((s) => 
+            s.name.toLowerCase().includes(queryCity.toLowerCase()) || 
+            s.id.toLowerCase().includes(queryCity.toLowerCase())
+          );
+          if (matchByQuery) return matchByQuery;
+        }
+
         const cityCfg = getMajorCityConfigFromPath(window.location.pathname);
         if (cityCfg) {
           const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
           if (matched) {
-            return { ...matched, name: cityCfg.cityName };
+            return { ...matched, name: cityCfg.cityName, postalCode: cityCfg.postalCode || matched.postalCode };
           }
         }
       }
@@ -156,13 +166,17 @@ function WeatherApp() {
     return typeof window !== 'undefined' ? window.location.pathname : '/';
   });
 
-  // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page
+  // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page et de commune
   useEffect(() => {
-    updateDocumentSeo(activeTab, true);
+    if (activeTab === 'realtime') {
+      updateDocumentSeoForStation(currentStation, false);
+    } else {
+      updateDocumentSeo(activeTab, true);
+    }
     if (typeof window !== 'undefined') {
       setCurrentPath(window.location.pathname);
     }
-  }, [activeTab]);
+  }, [activeTab, currentStation]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -172,11 +186,25 @@ function WeatherApp() {
         const cityCfg = getMajorCityConfigFromPath(p);
         if (cityCfg) {
           const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
-          if (matched) {
-            setCurrentStation({ ...matched, name: cityCfg.cityName });
-          }
+          const st = matched 
+            ? { ...matched, name: cityCfg.cityName, postalCode: cityCfg.postalCode || matched.postalCode }
+            : {
+                id: cityCfg.stationId || cityCfg.slug,
+                name: cityCfg.cityName,
+                department: cityCfg.department,
+                region: cityCfg.region,
+                latitude: 48.8566,
+                longitude: 2.3522,
+                altitude: cityCfg.altitude || 50,
+                climateZone: cityCfg.climateZone || 'Tempéré',
+                allTimeRecordMax: cityCfg.recordMax || 40,
+                allTimeRecordMin: cityCfg.recordMin || -15,
+                allTimeRecordRain24h: cityCfg.recordRain24h || 75,
+                postalCode: cityCfg.postalCode
+              };
+          setCurrentStation(st);
           setActiveTab('realtime');
-          updateDocumentSeo(cityCfg.path, false);
+          updateDocumentSeoForStation(st, false);
           return;
         }
         const tabFromPath = getTabIdForPath(p) as NavTabId;
@@ -532,8 +560,8 @@ function WeatherApp() {
       if (window.location.pathname !== nextPath) {
         setCurrentPath(nextPath);
         window.history.pushState(null, '', `${nextPath}${window.location.search || ''}`);
-        updateDocumentSeo(nextPath, false);
       }
+      updateDocumentSeoForStation(st, false);
     }
   };
 

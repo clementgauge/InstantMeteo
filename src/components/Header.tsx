@@ -384,6 +384,28 @@ export const Header: React.FC<HeaderProps> = ({
               <span>DIRECT</span>
             </div>
 
+            {/* Mode Jour / Nuit Toggle (Icône seule Soleil / Lune sans texte) */}
+            {onToggleThemeMode && (
+              <button
+                type="button"
+                id="mobile-header-theme-mode-btn"
+                onClick={onToggleThemeMode}
+                title={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
+                aria-label={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
+                className={`relative w-8 h-8 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer shadow-md ${
+                  themeMode === 'light'
+                    ? 'border-amber-300 bg-amber-50 text-amber-600'
+                    : 'border-slate-800 bg-slate-900 text-sky-400'
+                }`}
+              >
+                {themeMode === 'light' ? (
+                  <Sun className="h-4 w-4 text-amber-500" />
+                ) : (
+                  <Moon className="h-4 w-4 text-sky-400" />
+                )}
+              </button>
+            )}
+
             {/* Notification Bell Circle with Red Badge Dot */}
             <button
               onClick={onOpenNotificationsModal}
@@ -866,28 +888,24 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Mode Blanc / Mode Noir Toggle */}
+          {/* Mode Jour / Nuit Toggle (Icône seule Soleil / Lune sans texte) */}
           {onToggleThemeMode && (
             <button
               id="header-theme-mode-btn"
+              type="button"
               onClick={onToggleThemeMode}
-              title={themeMode === 'light' ? "Activer le Mode Nuit Anti-Éblouissement (recommandé pour reposer les yeux)" : "Activer le Mode Jour Doux (anti-éblouissement)"}
-              className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-[11px] leading-tight font-black transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+              title={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
+              aria-label={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
+              className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
                 themeMode === 'light'
-                  ? 'border-amber-300 bg-amber-50 text-amber-950 font-black shadow-sm hover:bg-amber-100'
-                  : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+                  ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                  : 'border-slate-700 bg-slate-900 text-sky-400 hover:border-slate-500 hover:bg-slate-800'
               }`}
             >
               {themeMode === 'light' ? (
-                <>
-                  <Sun className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                  <span>Jour Doux</span>
-                </>
+                <Sun className="h-4 w-4 text-amber-500 transition-transform duration-300 hover:rotate-45" />
               ) : (
-                <>
-                  <Moon className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                  <span>Nuit Confort</span>
-                </>
+                <Moon className="h-4 w-4 text-sky-400 transition-transform duration-300 hover:-rotate-12" />
               )}
             </button>
           )}

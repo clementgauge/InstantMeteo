@@ -1801,10 +1801,18 @@ function escapeHtmlAttr(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: string = 'fr'): string {
+function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: string = 'fr', queryParams?: Record<string, any>): string {
   const locale = normalizeSupportedLocale(lang);
   const brand = getSiteBrandForLocale(locale);
-  const pageSeo = getSeoDataForPath(reqPath, locale);
+
+  // Détection d'une commune demandée par paramètre d'URL (?ville=paris ou ?q=versailles ou ?station=marseille)
+  let effectivePath = reqPath;
+  const requestedLocality = (queryParams?.ville || queryParams?.city || queryParams?.q || queryParams?.station) as string | undefined;
+  if (requestedLocality && typeof requestedLocality === 'string' && (reqPath === '/' || reqPath === '/direct')) {
+    effectivePath = `/${requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`;
+  }
+
+  const pageSeo = getSeoDataForPath(effectivePath, locale);
   let html = rawHtml;
 
   // 0. Attribut lang et dir sur <html>
@@ -1922,7 +1930,7 @@ function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Re
     const reqLang = normalizeSupportedLocale(
       (req.query.hl as string) || (req.query.lang as string)
     );
-    content = renderPageHtml(content, req.path, isGoogle, reqLang);
+    content = renderPageHtml(content, req.path, isGoogle, reqLang, req.query);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.send(content);
@@ -2214,7 +2222,7 @@ async function startServer() {
           const reqLang = normalizeSupportedLocale(
             (req.query.hl as string) || (req.query.lang as string)
           );
-          html = renderPageHtml(html, req.path, isGoogle, reqLang);
+          html = renderPageHtml(html, req.path, isGoogle, reqLang, req.query);
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           return res.send(html);
         } catch (e) {

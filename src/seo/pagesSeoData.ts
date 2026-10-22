@@ -958,6 +958,7 @@ export interface MajorCitySeoConfig {
   slug: string;
   path: string;
   cityName: string;
+  postalCode?: string;
   stationId: string;
   deptCode: string;
   department: string;
@@ -974,6 +975,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'paris',
     path: '/paris',
     cityName: 'Paris',
+    postalCode: '75000',
     stationId: 'paris-montsouris',
     deptCode: '75',
     department: '75 - Paris',
@@ -988,6 +990,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'lyon',
     path: '/lyon',
     cityName: 'Lyon',
+    postalCode: '69000',
     stationId: 'lyon-bron',
     deptCode: '69',
     department: '69 - Rhône',
@@ -1002,6 +1005,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'marseille',
     path: '/marseille',
     cityName: 'Marseille',
+    postalCode: '13000',
     stationId: 'marseille-marignane',
     deptCode: '13',
     department: '13 - Bouches-du-Rhône',
@@ -1016,6 +1020,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'toulouse',
     path: '/toulouse',
     cityName: 'Toulouse',
+    postalCode: '31000',
     stationId: 'toulouse-blagnac',
     deptCode: '31',
     department: '31 - Haute-Garonne',
@@ -1030,6 +1035,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'nice',
     path: '/nice',
     cityName: 'Nice',
+    postalCode: '06000',
     stationId: 'nice-cote-dazur',
     deptCode: '06',
     department: '06 - Alpes-Maritimes',
@@ -1044,6 +1050,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'nantes',
     path: '/nantes',
     cityName: 'Nantes',
+    postalCode: '44000',
     stationId: 'nantes-atlantique',
     deptCode: '44',
     department: '44 - Loire-Atlantique',
@@ -1058,6 +1065,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'montpellier',
     path: '/montpellier',
     cityName: 'Montpellier',
+    postalCode: '34000',
     stationId: 'montpellier-frejorgues',
     deptCode: '34',
     department: '34 - Hérault',
@@ -1072,6 +1080,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'strasbourg',
     path: '/strasbourg',
     cityName: 'Strasbourg',
+    postalCode: '67000',
     stationId: 'strasbourg-entzheim',
     deptCode: '67',
     department: '67 - Bas-Rhin',
@@ -1086,6 +1095,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'bordeaux',
     path: '/bordeaux',
     cityName: 'Bordeaux',
+    postalCode: '33000',
     stationId: 'bordeaux-merignac',
     deptCode: '33',
     department: '33 - Gironde',
@@ -1100,6 +1110,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'lille',
     path: '/lille',
     cityName: 'Lille',
+    postalCode: '59000',
     stationId: 'lille-lesquin',
     deptCode: '59',
     department: '59 - Nord',
@@ -1114,6 +1125,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'rennes',
     path: '/rennes',
     cityName: 'Rennes',
+    postalCode: '35000',
     stationId: 'rennes-st-jacques',
     deptCode: '35',
     department: '35 - Ille-et-Vilaine',
@@ -1128,6 +1140,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'grenoble',
     path: '/grenoble',
     cityName: 'Grenoble',
+    postalCode: '38000',
     stationId: 'grenoble-saint-geoirs',
     deptCode: '38',
     department: '38 - Isère',
@@ -1142,6 +1155,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'dijon',
     path: '/dijon',
     cityName: 'Dijon',
+    postalCode: '21000',
     stationId: 'dijon-longvic',
     deptCode: '21',
     department: "21 - Côte-d'Or",
@@ -1156,6 +1170,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'brest',
     path: '/brest',
     cityName: 'Brest',
+    postalCode: '29200',
     stationId: 'brest-guipavas',
     deptCode: '29',
     department: '29 - Finistère',
@@ -1170,6 +1185,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'clermont-ferrand',
     path: '/clermont-ferrand',
     cityName: 'Clermont-Ferrand',
+    postalCode: '63000',
     stationId: 'clermont-ferrand',
     deptCode: '63',
     department: '63 - Puy-de-Dôme',
@@ -1184,6 +1200,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'reims',
     path: '/reims',
     cityName: 'Reims',
+    postalCode: '51100',
     stationId: 'reims-prunay',
     deptCode: '51',
     department: '51 - Marne',
@@ -1198,6 +1215,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'rouen',
     path: '/rouen',
     cityName: 'Rouen',
+    postalCode: '76000',
     stationId: 'rouen-boos',
     deptCode: '76',
     department: '76 - Seine-Maritime',
@@ -1212,6 +1230,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'tours',
     path: '/tours',
     cityName: 'Tours',
+    postalCode: '37000',
     stationId: 'tours-val-de-loire',
     deptCode: '37',
     department: '37 - Indre-et-Loire',
@@ -1223,9 +1242,25 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     recordRain24h: 80.0,
   },
   {
+    slug: 'versailles',
+    path: '/versailles',
+    cityName: 'Versailles',
+    postalCode: '78000',
+    stationId: 'versailles-satory',
+    deptCode: '78',
+    department: '78 - Yvelines',
+    region: 'Île-de-France',
+    altitude: 132,
+    climateZone: 'Océanique dégradé francilien',
+    recordMax: 41.5,
+    recordMin: -20.2,
+    recordRain24h: 78.0,
+  },
+  {
     slug: 'perpignan',
     path: '/perpignan',
     cityName: 'Perpignan',
+    postalCode: '66000',
     stationId: 'perpignan-rivesaltes',
     deptCode: '66',
     department: '66 - Pyrénées-Orientales',
@@ -1240,6 +1275,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'caen',
     path: '/caen',
     cityName: 'Caen',
+    postalCode: '14000',
     stationId: 'caen-carpiquet',
     deptCode: '14',
     department: '14 - Calvados',
@@ -1254,6 +1290,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'calais',
     path: '/calais',
     cityName: 'Calais',
+    postalCode: '62100',
     stationId: 'calais-marck',
     deptCode: '62',
     department: '62 - Pas-de-Calais',
@@ -1268,6 +1305,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'arras',
     path: '/arras',
     cityName: 'Arras',
+    postalCode: '62000',
     stationId: 'arras-roclincourt',
     deptCode: '62',
     department: '62 - Pas-de-Calais',
@@ -1282,6 +1320,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'boulogne-sur-mer',
     path: '/boulogne-sur-mer',
     cityName: 'Boulogne-sur-Mer',
+    postalCode: '62200',
     stationId: 'boulogne-sur-mer',
     deptCode: '62',
     department: '62 - Pas-de-Calais',
@@ -1296,6 +1335,7 @@ export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
     slug: 'le-touquet',
     path: '/le-touquet',
     cityName: 'Le Touquet-Paris-Plage',
+    postalCode: '62520',
     stationId: 'le-touquet-paris-plage',
     deptCode: '62',
     department: '62 - Pas-de-Calais',
@@ -1356,19 +1396,25 @@ export function buildCitySeoConfigEn(city: MajorCitySeoConfig): PageSeoMetadata 
 }
 
 for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
-  SEO_PAGES_MAP[city.path] = {
+  const postal = city.postalCode || (city.deptCode ? `${city.deptCode}000` : '');
+  const cityWithPostal = postal ? `${city.cityName} ${postal}` : city.cityName;
+  const cityTitle = `Météo ${cityWithPostal} — Prévisions en Direct & Radar Pluie | Instant Météo`;
+  const cityH1 = `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`;
+  const cityDesc = `Consultez la météo à ${cityWithPostal} (${city.department}, ${city.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`;
+
+  const cityConfig: PageSeoMetadata = {
     slug: city.slug,
     path: city.path,
     canonicalUrl: `${BASE_SITE_URL}${city.path}`,
-    title: `Météo ${city.cityName} (${city.deptCode}) en Direct — Prévisions 14 Jours & Radar Pluie | Instant Météo`,
-    description: `Consultez la météo à ${city.cityName} (${city.department}, ${city.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
-    h1: `Météo ${city.cityName} (${city.deptCode}) — Observations en direct et prévisions à 14 jours`,
+    title: cityTitle,
+    description: cityDesc,
+    h1: cityH1,
     sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${city.cityName}`,
     breadcrumbName: `Météo ${city.cityName}`,
     tabId: 'realtime',
     changefreq: 'always',
-    priority: '0.90',
-    introParagraph: `Suivez en temps réel la météo à ${city.cityName} (${city.department}, région ${city.region}, altitude ${city.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
+    priority: '0.95',
+    introParagraph: `Suivez en temps réel la météo à ${cityWithPostal} (${city.department}, région ${city.region}, altitude ${city.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
     sections: [
       {
         heading: `Spécificités climatiques de ${city.cityName} (${city.region})`,
@@ -1385,7 +1431,7 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
     ],
     faq: [
       {
-        question: `Quel temps fait-il aujourd'hui à ${city.cityName} (${city.deptCode}) ?`,
+        question: `Quel temps fait-il aujourd'hui à ${cityWithPostal} ?`,
         answer: `Consultez en haut de cette page le relevé en direct pour ${city.cityName} : température actuelle, ressenti, humidité, rafales de vent, pression atmosphérique et évolution heure par heure.`,
       },
       {
@@ -1393,13 +1439,122 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
         answer: `Le module Prévisions Précipitations & Nowcasting analyse les échos radar en temps réel par pas de 5 minutes pour indiquer l'heure exacte du début et de la fin de la pluie à ${city.cityName}.`,
       },
       {
-        question: `Quelles sont les prévisions météo à 7 et 14 jours pour ${city.cityName} ?`,
+        question: `Quelles sont les prévisions météo à 7 et 14 jours pour ${cityWithPostal} ?`,
         answer: `Le tableau quotidien détaille pour chaque journée à ${city.cityName} les températures minimales et maximales, le cumul de pluie attendu, la vitesse du vent et l'indice UV.`,
       },
     ],
   };
 
+  SEO_PAGES_MAP[city.path] = cityConfig;
+  // Enregistrer les alias d'URLs fréquents (ex: /meteo-paris, /meteo-paris-75000, /paris-75000)
+  SEO_PAGES_MAP[`/meteo-${city.slug}`] = cityConfig;
+  if (postal) {
+    SEO_PAGES_MAP[`/meteo-${city.slug}-${postal}`] = cityConfig;
+    SEO_PAGES_MAP[`/${city.slug}-${postal}`] = cityConfig;
+  }
+
   MAJOR_CITY_SEO_MAP_EN[city.path] = buildCitySeoConfigEn(city);
+}
+
+export function extractPostalCodeFromStation(station: { name?: string; department?: string; postalCode?: string; id?: string }): string {
+  if (station.postalCode && /^\d{5}$/.test(station.postalCode.trim())) {
+    // Si la station concerne Paris, afficher 75000 par défaut comme demandé
+    if (station.name && station.name.toLowerCase().includes('paris') && station.postalCode.startsWith('75')) {
+      return '75000';
+    }
+    return station.postalCode.trim();
+  }
+  if (station.name) {
+    const lower = station.name.toLowerCase();
+    if (lower.includes('paris')) return '75000';
+    if (lower.includes('versailles')) return '78000';
+    if (lower.includes('marseille')) return '13000';
+    if (lower.includes('lyon')) return '69000';
+    if (lower.includes('toulouse')) return '31000';
+    if (lower.includes('nice')) return '06000';
+    if (lower.includes('bordeaux')) return '33000';
+    if (lower.includes('lille')) return '59000';
+    if (lower.includes('calais')) return '62100';
+    if (lower.includes('arras')) return '62000';
+  }
+  if (station.department) {
+    const deptMatch = station.department.match(/^(\d{2,3})/);
+    if (deptMatch) {
+      const code = deptMatch[1];
+      if (code === '75') return '75000';
+      if (code.length === 2) return `${code}000`;
+      if (code.length === 3) return `${code}00`;
+    }
+  }
+  return '';
+}
+
+export function getLocalityCleanName(stationName: string): string {
+  if (!stationName) return 'France';
+  let clean = stationName.split('(')[0].trim();
+  const knownPrefixes = [
+    'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier',
+    'Strasbourg', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Toulon', 'Saint-Étienne',
+    'Le Havre', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Brest', 'Tours', 'Versailles',
+    'Calais', 'Boulogne-sur-Mer', 'Arras', 'Perpignan', 'Caen', 'Rouen', 'Chamonix'
+  ];
+  for (const kp of knownPrefixes) {
+    if (clean.toLowerCase().startsWith(kp.toLowerCase()) && (clean.length === kp.length || clean[kp.length] === '-' || clean[kp.length] === ' ')) {
+      return kp;
+    }
+  }
+  return clean;
+}
+
+export function getLocalitySeoData(station: { name: string; department?: string; region?: string; postalCode?: string; altitude?: number }): PageSeoMetadata {
+  const cleanName = getLocalityCleanName(station.name);
+  const zip = extractPostalCodeFromStation(station);
+  const displayLocality = zip ? `${cleanName} ${zip}` : cleanName;
+  const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const path = `/${slug}`;
+  
+  return {
+    slug,
+    path,
+    canonicalUrl: `${BASE_SITE_URL}${path}`,
+    title: `Météo ${displayLocality} — Prévisions en Direct & Radar Pluie | Instant Météo`,
+    description: `Consultez la météo à ${displayLocality} en direct : température, ressenti, prévisions heure par heure, radar pluie HD et tendance à 14 jours. 100% gratuit et sans pub.`,
+    h1: `Météo ${displayLocality} — Observations en direct et prévisions à 14 jours`,
+    sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cleanName}`,
+    breadcrumbName: `Météo ${cleanName}`,
+    tabId: 'realtime',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph: `Suivez en temps réel la météo à ${displayLocality}${station.department ? ` (${station.department})` : ''}. Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
+    sections: [
+      {
+        heading: `Spécificités météo et climat à ${cleanName}`,
+        body: `Retrouvez les prévisions météorologiques locales pour ${cleanName} actualisées en continu à partir des modèles haute résolution AROME de Météo-France et IFS du centre européen ECMWF.`,
+      },
+      {
+        heading: `Radar des pluies et suivi des averses en direct à ${cleanName}`,
+        body: `Anticipez le passage des averses, perturbations et cellules orageuses au-dessus de ${cleanName} grâce à la couverture radar Doppler réactualisée toutes les 5 minutes.`,
+      },
+      {
+        heading: `Prévisions à 7 et 14 jours pour ${cleanName}`,
+        body: `Consultez l'évolution des températures minimales et maximales, les cumuls de pluie attendus, la direction du vent et les indices UV pour préparer vos journées à ${cleanName}.`,
+      },
+    ],
+    faq: [
+      {
+        question: `Quel temps fait-il actuellement à ${displayLocality} ?`,
+        answer: `Consultez le thermomètre en direct pour ${cleanName} : température sous abri, ressenti au vent, vitesse des rafales, humidité relative et pression atmosphérique.`,
+      },
+      {
+        question: `Va-t-il pleuvoir dans l'heure à ${cleanName} ?`,
+        answer: `Le radar haute résolution surveille en temps réel les précipitations à ${cleanName} et indique l'imminence d'une averse dans les 60 prochaines minutes.`,
+      },
+      {
+        question: `Quelles sont les prévisions pour les prochains jours à ${cleanName} ?`,
+        answer: `Le tableau de prévisions quotidiennes vous donne la tendance détaillée jour par jour jusqu'à 14 jours pour ${cleanName}.`,
+      },
+    ],
+  };
 }
 
 export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoConfig | null {
@@ -1413,7 +1568,14 @@ export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoCon
   if (cleanPath.startsWith('/meteo-')) {
     cleanPath = '/' + cleanPath.slice('/meteo-'.length);
   }
-  const match = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.path === cleanPath || c.slug === cleanPath.slice(1));
+  // Enlève un éventuel code postal à 5 chiffres en fin de slug (ex: /paris-75000 -> /paris)
+  const slugWithoutZip = cleanPath.replace(/-\d{5}$/, '');
+  const match = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => 
+    c.path === cleanPath || 
+    c.slug === cleanPath.slice(1) ||
+    c.path === slugWithoutZip ||
+    c.slug === slugWithoutZip.slice(1)
+  );
   if (match) return match;
 
   const slug = cleanPath.slice(1).trim();
@@ -1424,17 +1586,25 @@ export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoCon
     'communaute', 'competition', 'api', 'manifest.json', 'robots.txt', 'sitemap.xml'
   ];
   if (slug && !reservedSlugs.includes(slug) && !slug.includes('.')) {
-    const words = slug.split(/[-_]+/).filter(Boolean);
+    // Extraction d'un éventuel code postal (5 chiffres à la fin ou 2 chiffres)
+    const zipMatch = slug.match(/[-_](\d{5})$/);
+    const extractedZip = zipMatch ? zipMatch[1] : '';
+    const slugNamePart = zipMatch ? slug.replace(/[-_]\d{5}$/, '') : slug;
+    const words = slugNamePart.split(/[-_]+/).filter(Boolean);
     if (words.length > 0) {
       const cityName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const isParis = cityName.toLowerCase() === 'paris';
+      const postalCode = extractedZip || (isParis ? '75000' : '');
+      const deptCode = postalCode ? postalCode.slice(0, 2) : (slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62' : 'FR');
       return {
         slug,
         path: '/' + slug,
         cityName,
+        postalCode: postalCode || `${deptCode}000`,
         stationId: slug,
-        deptCode: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62' : 'FR',
-        department: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62 - Pas-de-Calais' : 'France & International',
-        region: slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? 'Hauts-de-France' : 'France',
+        deptCode,
+        department: deptCode === '62' ? '62 - Pas-de-Calais' : (isParis ? '75 - Paris' : 'France & International'),
+        region: deptCode === '62' ? 'Hauts-de-France' : (isParis ? 'Île-de-France' : 'France'),
         altitude: 45,
         climateZone: 'Océanique tempéré',
         recordMax: 40.0,
@@ -1558,18 +1728,20 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
     const cityCfg = getMajorCityConfigFromPath(cleanPath);
     if (cityCfg) {
       if (!SEO_PAGES_MAP[cityCfg.path]) {
+        const postal = cityCfg.postalCode || (cityCfg.deptCode ? `${cityCfg.deptCode}000` : '');
+        const cityWithPostal = postal ? `${cityCfg.cityName} ${postal}` : cityCfg.cityName;
         SEO_PAGES_MAP[cityCfg.path] = {
           slug: cityCfg.slug,
           path: cityCfg.path,
           canonicalUrl: `${BASE_SITE_URL}${cityCfg.path}`,
-          title: `Météo ${cityCfg.cityName} (${cityCfg.deptCode}) en Direct — Prévisions 14 Jours & Radar Pluie | Instant Météo`,
-          description: `Consultez la météo à ${cityCfg.cityName} (${cityCfg.department}, ${cityCfg.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
-          h1: `Météo ${cityCfg.cityName} (${cityCfg.deptCode}) — Observations en direct et prévisions à 14 jours`,
+          title: `Météo ${cityWithPostal} — Prévisions en Direct & Radar Pluie | Instant Météo`,
+          description: `Consultez la météo à ${cityWithPostal} (${cityCfg.department}, ${cityCfg.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
+          h1: `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`,
           sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cityCfg.cityName}`,
           breadcrumbName: `Météo ${cityCfg.cityName}`,
           tabId: 'realtime',
           changefreq: 'always',
-          priority: '0.90',
+          priority: '0.95',
           introParagraph: `Suivez en temps réel la météo à ${cityCfg.cityName} (${cityCfg.department}, région ${cityCfg.region}, altitude ${cityCfg.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
           sections: [
             {
@@ -1709,11 +1881,19 @@ export function generateHreflangLinksHtml(canonicalUrl: string): string {
  * - Intègre les 18 sections thématiques principales + les 20 grandes agglomérations métropolitaines
  */
 export function generateSitemapXml(): string {
-  const routes = Object.values(SEO_PAGES_MAP);
+  const seenUrls = new Set<string>();
+  const uniquePages: PageSeoMetadata[] = [];
+  for (const page of Object.values(SEO_PAGES_MAP)) {
+    if (page && page.canonicalUrl && !seenUrls.has(page.canonicalUrl)) {
+      seenUrls.add(page.canonicalUrl);
+      uniquePages.push(page);
+    }
+  }
+
   const todayDate = new Date().toISOString().split('T')[0];
   const urlEntries: string[] = [];
 
-  for (const page of routes) {
+  for (const page of uniquePages) {
     const canonical = page.canonicalUrl;
     const hreflangTags = [
       ...SUPPORTED_HREFLANG_LOCALES.map(

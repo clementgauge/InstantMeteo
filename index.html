@@ -49,7 +49,7 @@
     <link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/" />
     <!--SEO_HREFLANG_END-->
 
-    <!-- Synchronisation immédiate de l'URL canonique avant hydratation -->
+    <!-- Synchronisation immédiate de l'URL canonique et du titre dynamique avant hydratation -->
     <script>
       (function() {
         try {
@@ -60,6 +60,28 @@
           var link = document.getElementById('dynamic-canonical-link');
           if (link) {
             link.setAttribute('href', canonicalHref);
+          }
+
+          // Détection immédiate d'une commune pour afficher le titre Météo [Ville] [Code Postal]
+          var params = new URLSearchParams(window.location.search || '');
+          var queryCity = params.get('ville') || params.get('q') || params.get('city') || params.get('station');
+          var slug = (queryCity || cleanPath.replace(/^\/(?:meteo-)?/, '')).toLowerCase();
+          var reserved = ['direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours', 'climat', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau', 'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes', 'communaute', 'competition', 'api'];
+
+          if (slug && reserved.indexOf(slug) === -1 && slug.indexOf('.') === -1) {
+            var isParis = slug.indexOf('paris') !== -1;
+            var isVersailles = slug.indexOf('versailles') !== -1;
+            var isMarseille = slug.indexOf('marseille') !== -1;
+            var isLyon = slug.indexOf('lyon') !== -1;
+            var isToulouse = slug.indexOf('toulouse') !== -1;
+            var isNice = slug.indexOf('nice') !== -1;
+            var isBordeaux = slug.indexOf('bordeaux') !== -1;
+            var isLille = slug.indexOf('lille') !== -1;
+
+            var cityName = isParis ? 'Paris' : (isVersailles ? 'Versailles' : (isMarseille ? 'Marseille' : (isLyon ? 'Lyon' : (isToulouse ? 'Toulouse' : (isNice ? 'Nice' : (isBordeaux ? 'Bordeaux' : (isLille ? 'Lille' : slug.charAt(0).toUpperCase() + slug.slice(1).replace(/[-_]\d+$/, ''))))))));
+            var postal = isParis ? '75000' : (isVersailles ? '78000' : (isMarseille ? '13000' : (isLyon ? '69000' : (isToulouse ? '31000' : (isNice ? '06000' : (isBordeaux ? '33000' : (isLille ? '59000' : '')))))));
+            var label = postal ? cityName + ' ' + postal : cityName;
+            document.title = 'Météo ' + label + ' — Prévisions en Direct & Radar Pluie | Instant Météo';
           }
         } catch (e) {}
       })();

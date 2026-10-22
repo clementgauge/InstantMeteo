@@ -2,11 +2,13 @@ import {
   getSeoDataForPath,
   getPathForTabId,
   generatePageJsonLd,
+  getLocalitySeoData,
   PageSeoMetadata,
   SUPPORTED_HREFLANG_LOCALES,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../seo/pagesSeoData';
 import { getActiveSiteLocale, getSiteBrandForLocale } from '../i18n/siteTranslations';
+import { LocationPoint } from '../types/weather';
 
 export function initDynamicGoogleVerification(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -191,3 +193,89 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
 
   return pageSeo;
 }
+
+/**
+ * Met à jour dynamiquement toutes les balises SEO (title, description, OpenGraph, JSON-LD)
+ * dès qu'une commune ou station est sélectionnée par l'utilisateur ou chargée depuis l'URL.
+ * Garantit que la page affiche fidèlement le titre : "Météo [Ville] [Code Postal]"
+ * Exemple : "Météo Paris 75000 — Prévisions en Direct & Radar Pluie | Instant Météo"
+ */
+export function updateDocumentSeoForStation(station: LocationPoint, syncHistory = false): PageSeoMetadata {
+  const activeLocale = getActiveSiteLocale();
+  const brand = getSiteBrandForLocale(activeLocale);
+  const pageSeo = getLocalitySeoData(station);
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return pageSeo;
+  }
+
+  try {
+    // 1. Titre spécifique de la ville : Météo [Ville] [Code Postal]
+    document.title = pageSeo.title;
+
+    // 2. Balises meta Title & Description
+    const setMetaByName = (name: string, content: string) => {
+      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = name;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    setMetaByName('title', pageSeo.title);
+    setMetaByName('description', pageSeo.description);
+    setMetaByName('application-name', brand.brandName);
+    setMetaByName('apple-mobile-web-app-title', brand.brandName);
+
+    // 3. OpenGraph Tags
+    const setOgTag = (property: string, content: string) => {
+      let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    };
+
+    setOgTag('og:title', pageSeo.title);
+    setOgTag('og:description', pageSeo.description);
+    setOgTag('og:site_name', brand.brandName);
+    setOgTag('og:url', pageSeo.canonicalUrl);
+
+    // 4. Twitter Cards
+    setMetaByName('twitter:title', pageSeo.title);
+    setMetaByName('twitter:description', pageSeo.description);
+
+    // 5. Canonical
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonical) {
+      canonical.href = pageSeo.canonicalUrl;
+    }
+
+    // 6. JSON-LD Schema.org
+    let jsonLdScript = document.getElementById('seo-page-jsonld');
+    if (!jsonLdScript) {
+      jsonLdScript = document.createElement('script');
+      jsonLdScript.id = 'seo-page-jsonld';
+      jsonLdScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(jsonLdScript);
+    }
+    jsonLdScript.textContent = generatePageJsonLd(pageSeo, activeLocale);
+
+    // 7. Synchronisation éventuelle de l'URL sans rechargement
+    if (syncHistory && typeof window.history !== 'undefined') {
+      const cleanSlug = pageSeo.path;
+      if (window.location.pathname !== cleanSlug) {
+        window.history.replaceState({ stationId: station.id, path: cleanSlug }, '', `${cleanSlug}${window.location.search || ''}`);
+      }
+    }
+  } catch (err) {
+    console.error('Erreur mise à jour SEO station DOM:', err);
+  }
+
+  return pageSeo;
+}
+
