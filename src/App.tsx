@@ -29,6 +29,7 @@ import { FRENCH_STATIONS } from './data/frenchStations';
 import { fetchWeatherData, getLocalityFromCoordinates, getFallbackWeatherData } from './services/openMeteoService';
 import { getRichWeatherInfo } from './utils/weatherIcons';
 import { Header } from './components/Header';
+import { SmartwatchRoundView } from './components/SmartwatchRoundView';
 import { DossierExportModal } from './components/DossierExportModal';
 import { LocalitySearchModal } from './components/LocalitySearchModal';
 import { MultiStationComparatorModal } from './components/MultiStationComparatorModal';
@@ -254,6 +255,57 @@ function WeatherApp() {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
         localStorage.setItem('instant_meteo_theme_mode', next);
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  // Mode Montre Connectée Ronde (Wear OS / Pixel Watch / Galaxy Watch)
+  const [isWatchMode, setIsWatchMode] = useState<boolean>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.matchMedia && window.matchMedia('(shape: round)').matches) return true;
+        if (window.innerWidth <= 420 && window.innerHeight <= 420 && Math.abs(window.innerWidth - window.innerHeight) <= 30) return true;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('watch') === 'true' || urlParams.get('round') === 'true') return true;
+        const saved = localStorage.getItem('instant_meteo_watch_mode');
+        if (saved !== null) return saved === 'true';
+      }
+    } catch (_) {}
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const roundQuery = window.matchMedia('(shape: round)');
+    const handleRoundChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setIsWatchMode(true);
+      }
+    };
+    try {
+      roundQuery.addEventListener('change', handleRoundChange);
+    } catch (_) {
+      try {
+        (roundQuery as any).addListener(handleRoundChange);
+      } catch (_) {}
+    }
+    return () => {
+      try {
+        roundQuery.removeEventListener('change', handleRoundChange);
+      } catch (_) {
+        try {
+          (roundQuery as any).removeListener(handleRoundChange);
+        } catch (_) {}
+      }
+    };
+  }, []);
+
+  const handleToggleWatchMode = () => {
+    setIsWatchMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('instant_meteo_watch_mode', String(next));
       } catch (_) {}
       return next;
     });
@@ -803,6 +855,8 @@ function WeatherApp() {
           onToggleSimplifiedMode={handleToggleSimplifiedMode}
           themeMode={themeMode}
           onToggleThemeMode={handleToggleThemeMode}
+          isWatchMode={isWatchMode}
+          onToggleWatchMode={handleToggleWatchMode}
           onOpenAndroidModal={() => setIsInstallModalOpen(true)}
           onOpenDossierModal={() => setIsDossierModalOpen(true)}
           onOpenSearchModal={() => setIsSearchModalOpen(true)}
@@ -856,10 +910,10 @@ function WeatherApp() {
             <div className="sr-only">
               <div>
                 <h1>
-                  {activePageSeo.h1} — Instant Météo (instant meteo, instantmeteo)
+                  {activePageSeo.h1} — Instant Météo France · Météo France · Météo Direct · Instant Meteo
                 </h1>
                 <p>
-                  Bienvenue sur Instant Météo (aussi recherché sous instant meteo, instantmeteo ou instant-meteo). Retrouvez les prévisions météo en direct gratuites et sans publicité pour {currentStation.name} et 34 965 communes. Vous pouvez trouver notre site directement sur Google en tapant instant météo, instant meteo, instantmeteo, instant météo versailles ou même simplement météo france.
+                  Bienvenue sur Instant Météo France. Retrouvez les prévisions météo en direct gratuites et sans publicité pour {currentStation.name} et 34 965 communes. Vous pouvez trouver notre site directement sur Google en tapant Instant Météo France, Météo France, Météo Direct, Instant Meteo ou météo {currentStation.name}.
                 </p>
                 <p>
                   {activePageSeo.description}
@@ -1682,6 +1736,27 @@ function WeatherApp() {
         isOpen={isPageBlockCustomizerOpen}
         onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
+
+      {/* Mode Montre Connectée Ronde (Wear OS, Google Pixel Watch, Samsung Galaxy Watch) */}
+      {isWatchMode && (
+        <SmartwatchRoundView
+          currentStation={currentStation}
+          weather={weather}
+          hourly={hourly}
+          daily={daily}
+          onSelectStation={handleSelectStationWithSeo}
+          onRefresh={handleRefresh}
+          onLocateGps={handleLocateGps}
+          themeMode={themeMode}
+          onToggleThemeMode={handleToggleThemeMode}
+          onCloseWatchMode={() => {
+            setIsWatchMode(false);
+            try {
+              localStorage.setItem('instant_meteo_watch_mode', 'false');
+            } catch (_) {}
+          }}
+        />
+      )}
     </div>
   );
 }

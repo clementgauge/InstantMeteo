@@ -37,19 +37,19 @@ export interface LocalizedSiteBrand {
 export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand> = {
   fr: {
     code: 'fr',
-    brandName: 'Instant Météo',
+    brandName: 'Instant Météo France',
     brandFull: 'Instant Météo France',
-    brandUpper: 'INSTANT MÉTÉO',
+    brandUpper: 'INSTANT MÉTÉO FRANCE',
     word1: 'INSTANT',
     word2: 'MÉTÉO',
-    tagline: 'Radar Doppler HD & Prévisions Temps Réel',
+    tagline: 'Météo France · Météo Direct · Instant Meteo',
     ogLocale: 'fr_FR',
     inLanguage: 'fr-FR',
     dir: 'ltr',
-    homeTitle: 'Instant Météo France — Météo en direct gratuite, sans pub & données ouvertes',
-    homeH1: 'Prévisions météo en France gratuites, sans publicité intrusive et en données ouvertes',
+    homeTitle: 'Instant Météo France — Météo France en Direct & Radar Pluie HD | Météo Direct',
+    homeH1: 'Instant Météo France — Prévisions météo en France gratuites, Météo France et Météo Direct',
     homeDescription:
-      'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data) pour les 34 965 communes de France.',
+      'Site météo 100 % gratuit et sans pub : Instant Météo France, Météo France, Météo Direct et Instant Meteo pour les 34 965 communes de France.',
     homeBreadcrumb: 'Accueil Météo France',
   },
   en: {
