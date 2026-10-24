@@ -50,19 +50,19 @@ L.Icon.Default.mergeOptions({
 // Coordonnées géographiques harmonisées des 13 grandes régions de France métropolitaine
 // Placées au cœur visuel de chaque région pour une répartition équilibrée type carte TV Météo-France sans chevauchement
 const FRANCE_REGIONS: RegionWeather[] = [
-  { id: 'hdf', name: 'Hauts-de-France', shortLabel: 'Lille', capitalName: 'Lille', capitalStationId: 'lille-lesquin', lat: 50.32, lon: 2.85, currentCode: 1, afternoonCode: 2, tomorrowCode: 1, currentTemp: 17, afternoonTemp: 19, tomorrowTemp: 18 },
-  { id: 'nor', name: 'Normandie', shortLabel: 'Caen', capitalName: 'Caen', capitalStationId: 'caen-carpiquet', lat: 49.15, lon: -0.45, currentCode: 2, afternoonCode: 2, tomorrowCode: 1, currentTemp: 18, afternoonTemp: 20, tomorrowTemp: 19 },
-  { id: 'idf', name: 'Île-de-France', shortLabel: 'Paris', capitalName: 'Paris', capitalStationId: 'paris-montsouris', lat: 48.86, lon: 2.35, currentCode: 0, afternoonCode: 1, tomorrowCode: 0, currentTemp: 21, afternoonTemp: 23, tomorrowTemp: 22 },
-  { id: 'ges', name: 'Grand Est', shortLabel: 'Strasbourg', capitalName: 'Strasbourg', capitalStationId: 'strasbourg-entzheim', lat: 48.62, lon: 6.45, currentCode: 1, afternoonCode: 1, tomorrowCode: 2, currentTemp: 20, afternoonTemp: 22, tomorrowTemp: 21 },
-  { id: 'bre', name: 'Bretagne', shortLabel: 'Rennes', capitalName: 'Rennes', capitalStationId: 'rennes-saint-jacques', lat: 48.18, lon: -3.15, currentCode: 2, afternoonCode: 3, tomorrowCode: 2, currentTemp: 17, afternoonTemp: 19, tomorrowTemp: 18 },
-  { id: 'pdl', name: 'Pays de la Loire', shortLabel: 'Nantes', capitalName: 'Nantes', capitalStationId: 'nantes-atlantique', lat: 47.22, lon: -1.45, currentCode: 0, afternoonCode: 1, tomorrowCode: 0, currentTemp: 20, afternoonTemp: 22, tomorrowTemp: 21 },
-  { id: 'cvl', name: 'Centre-Val de Loire', shortLabel: 'Orléans', capitalName: 'Bourges', capitalStationId: 'bourges', lat: 47.35, lon: 1.75, currentCode: 0, afternoonCode: 1, tomorrowCode: 0, currentTemp: 21, afternoonTemp: 23, tomorrowTemp: 22 },
-  { id: 'bfc', name: 'Bourgogne-Franche-Comté', shortLabel: 'Dijon', capitalName: 'Dijon', capitalStationId: 'dijon-longvic', lat: 47.15, lon: 5.15, currentCode: 0, afternoonCode: 1, tomorrowCode: 1, currentTemp: 20, afternoonTemp: 22, tomorrowTemp: 21 },
-  { id: 'naq', name: 'Nouvelle-Aquitaine', shortLabel: 'Bordeaux', capitalName: 'Bordeaux', capitalStationId: 'bordeaux-merignac', lat: 45.05, lon: -0.45, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 23, afternoonTemp: 25, tomorrowTemp: 24 },
-  { id: 'ara', name: 'Auvergne-Rhône-Alpes', shortLabel: 'Lyon', capitalName: 'Lyon', capitalStationId: 'lyon-bron', lat: 45.55, lon: 4.65, currentCode: 0, afternoonCode: 0, tomorrowCode: 1, currentTemp: 23, afternoonTemp: 25, tomorrowTemp: 24 },
-  { id: 'occ', name: 'Occitanie', shortLabel: 'Toulouse', capitalName: 'Toulouse', capitalStationId: 'toulouse-blagnac', lat: 43.62, lon: 1.85, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 24, afternoonTemp: 26, tomorrowTemp: 25 },
-  { id: 'pac', name: "Provence-Alpes-Côte d'Azur", shortLabel: 'Marseille', capitalName: 'Marseille', capitalStationId: 'marseille-marignane', lat: 43.65, lon: 5.95, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 25, afternoonTemp: 27, tomorrowTemp: 26 },
-  { id: 'cor', name: 'Corse', shortLabel: 'Ajaccio', capitalName: 'Ajaccio', capitalStationId: 'ajaccio-campo-dell-oro', lat: 42.15, lon: 9.15, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 24, afternoonTemp: 26, tomorrowTemp: 25 },
+  { id: 'hdf', name: 'Hauts-de-France', shortLabel: 'Lille', capitalName: 'Lille', capitalStationId: 'lille-lesquin', lat: 50.32, lon: 2.85, currentCode: 1, afternoonCode: 2, tomorrowCode: 1, currentTemp: 13, afternoonTemp: 15, tomorrowTemp: 14 },
+  { id: 'nor', name: 'Normandie', shortLabel: 'Caen', capitalName: 'Caen', capitalStationId: 'caen-carpiquet', lat: 49.15, lon: -0.45, currentCode: 2, afternoonCode: 2, tomorrowCode: 1, currentTemp: 14, afternoonTemp: 16, tomorrowTemp: 15 },
+  { id: 'idf', name: 'Île-de-France', shortLabel: 'Paris', capitalName: 'Paris', capitalStationId: 'paris-montsouris', lat: 48.86, lon: 2.35, currentCode: 1, afternoonCode: 2, tomorrowCode: 1, currentTemp: 14, afternoonTemp: 16, tomorrowTemp: 15 },
+  { id: 'ges', name: 'Grand Est', shortLabel: 'Strasbourg', capitalName: 'Strasbourg', capitalStationId: 'strasbourg-entzheim', lat: 48.62, lon: 6.45, currentCode: 1, afternoonCode: 1, tomorrowCode: 2, currentTemp: 13, afternoonTemp: 15, tomorrowTemp: 14 },
+  { id: 'bre', name: 'Bretagne', shortLabel: 'Rennes', capitalName: 'Rennes', capitalStationId: 'rennes-saint-jacques', lat: 48.18, lon: -3.15, currentCode: 2, afternoonCode: 3, tomorrowCode: 2, currentTemp: 14, afternoonTemp: 16, tomorrowTemp: 15 },
+  { id: 'pdl', name: 'Pays de la Loire', shortLabel: 'Nantes', capitalName: 'Nantes', capitalStationId: 'nantes-atlantique', lat: 47.22, lon: -1.45, currentCode: 1, afternoonCode: 1, tomorrowCode: 1, currentTemp: 15, afternoonTemp: 17, tomorrowTemp: 16 },
+  { id: 'cvl', name: 'Centre-Val de Loire', shortLabel: 'Orléans', capitalName: 'Bourges', capitalStationId: 'bourges', lat: 47.35, lon: 1.75, currentCode: 1, afternoonCode: 1, tomorrowCode: 1, currentTemp: 14, afternoonTemp: 16, tomorrowTemp: 15 },
+  { id: 'bfc', name: 'Bourgogne-Franche-Comté', shortLabel: 'Dijon', capitalName: 'Dijon', capitalStationId: 'dijon-longvic', lat: 47.15, lon: 5.15, currentCode: 1, afternoonCode: 1, tomorrowCode: 1, currentTemp: 13, afternoonTemp: 15, tomorrowTemp: 14 },
+  { id: 'naq', name: 'Nouvelle-Aquitaine', shortLabel: 'Bordeaux', capitalName: 'Bordeaux', capitalStationId: 'bordeaux-merignac', lat: 45.05, lon: -0.45, currentCode: 1, afternoonCode: 1, tomorrowCode: 1, currentTemp: 16, afternoonTemp: 18, tomorrowTemp: 17 },
+  { id: 'ara', name: 'Auvergne-Rhône-Alpes', shortLabel: 'Lyon', capitalName: 'Lyon', capitalStationId: 'lyon-bron', lat: 45.55, lon: 4.65, currentCode: 1, afternoonCode: 1, tomorrowCode: 1, currentTemp: 14, afternoonTemp: 17, tomorrowTemp: 15 },
+  { id: 'occ', name: 'Occitanie', shortLabel: 'Toulouse', capitalName: 'Toulouse', capitalStationId: 'toulouse-blagnac', lat: 43.62, lon: 1.85, currentCode: 0, afternoonCode: 1, tomorrowCode: 1, currentTemp: 17, afternoonTemp: 20, tomorrowTemp: 18 },
+  { id: 'pac', name: "Provence-Alpes-Côte d'Azur", shortLabel: 'Marseille', capitalName: 'Marseille', capitalStationId: 'marseille-marignane', lat: 43.65, lon: 5.95, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 18, afternoonTemp: 21, tomorrowTemp: 19 },
+  { id: 'cor', name: 'Corse', shortLabel: 'Ajaccio', capitalName: 'Ajaccio', capitalStationId: 'ajaccio-campo-dell-oro', lat: 42.15, lon: 9.15, currentCode: 0, afternoonCode: 0, tomorrowCode: 0, currentTemp: 19, afternoonTemp: 21, tomorrowTemp: 20 },
 ];
 
 // Zones météo du Royaume-Uni & Angleterre (Met Office Official Regions)
@@ -519,8 +519,21 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   useEffect(() => {
     let isCancelled = false;
     const baseRegions = mapScope === 'world' ? WORLD_MACRO_ZONES : countryProfile.regions;
+    const cacheStorageKey = `instant_meteo_regions_cache_${countryProfile.labelFr}_${mapScope}`;
 
-    setRegionsData(baseRegions);
+    // Tentative de restauration immédiate depuis le stockage local (zéro latence et offline fluide)
+    let initialRegions = baseRegions;
+    try {
+      const cached = localStorage.getItem(cacheStorageKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length === baseRegions.length) {
+          initialRegions = parsed;
+        }
+      }
+    } catch (_) {}
+
+    setRegionsData(initialRegions);
 
     const fetchLiveRegions = async () => {
       try {
@@ -553,6 +566,9 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
             };
           });
           setRegionsData(updated);
+          try {
+            localStorage.setItem(cacheStorageKey, JSON.stringify(updated));
+          } catch (_) {}
         }
       } catch {
         // Retain fallback data smoothly

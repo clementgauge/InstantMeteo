@@ -83,8 +83,8 @@ import { AviationWeatherCard } from '../components/AviationWeatherCard';
 import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
-import { InfoclimatLiveDayObservations } from '../components/InfoclimatLiveDayObservations';
-import { InfoclimatDayObservationsCard } from '../components/InfoclimatDayObservationsCard';
+import { RemarkableWeatherHighlightCard } from '../components/RemarkableWeatherHighlightCard';
+import { calculatePhysicalIsotherm0 } from '../utils/isothermCalculations';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
 import { IntenseRegenerationBanner } from '../components/IntenseRegenerationBanner';
@@ -308,17 +308,17 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             <button
               id="realtime-tab-classic"
               onClick={() => setActiveProfileTab('classic')}
-              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'classic'
-                  ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-400/50'
-                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
+                  ? 'bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-300/60'
+                  : 'bg-white dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-blue-900/30 hover:border-blue-400 dark:hover:border-blue-700/60'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
                   activeProfileTab === 'classic'
-                    ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
+                    ? 'bg-white/20 border-white/30 text-white'
+                    : 'bg-blue-50 dark:bg-blue-500/15 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400'
                 }`}>
                   <Tv className="h-3.5 w-3.5" />
                 </div>
@@ -333,25 +333,25 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   </div>
                 </div>
               </div>
-              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'classic' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
+              <span className={`hidden sm:inline-block h-2 w-2 rounded-full shrink-0 ${
+                activeProfileTab === 'classic' ? 'bg-white animate-pulse' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
             <button
               id="realtime-tab-agriculture"
               onClick={() => setActiveProfileTab('agriculture')}
-              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'agriculture'
-                  ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
+                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-green-700 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-300/60'
+                  : 'bg-white dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 border border-slate-200 dark:border-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-700/60'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
                   activeProfileTab === 'agriculture'
-                    ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    ? 'bg-white/20 border-white/30 text-white'
+                    : 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                 }`}>
                   <Sprout className="h-3.5 w-3.5" />
                 </div>
@@ -366,25 +366,25 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   </div>
                 </div>
               </div>
-              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'agriculture' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
+              <span className={`hidden sm:inline-block h-2 w-2 rounded-full shrink-0 ${
+                activeProfileTab === 'agriculture' ? 'bg-white animate-pulse' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
             <button
               id="realtime-tab-aviation"
               onClick={() => setActiveProfileTab('aviation')}
-              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'aviation'
-                  ? 'bg-sky-600 text-white shadow-sm ring-1 ring-sky-400/50'
-                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
+                  ? 'bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 text-white shadow-lg shadow-cyan-500/30 ring-1 ring-cyan-300/60'
+                  : 'bg-white dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/30 border border-slate-200 dark:border-cyan-900/30 hover:border-cyan-400 dark:hover:border-cyan-700/60'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
                   activeProfileTab === 'aviation'
-                    ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/20 text-sky-600 dark:text-sky-400'
+                    ? 'bg-white/20 border-white/30 text-white'
+                    : 'bg-sky-50 dark:bg-sky-500/15 border-sky-200 dark:border-sky-500/30 text-sky-600 dark:text-sky-400'
                 }`}>
                   <Plane className="h-3.5 w-3.5" />
                 </div>
@@ -399,25 +399,25 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   </div>
                 </div>
               </div>
-              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'aviation' ? 'bg-white' : 'bg-slate-400 dark:bg-slate-700'
+              <span className={`hidden sm:inline-block h-2 w-2 rounded-full shrink-0 ${
+                activeProfileTab === 'aviation' ? 'bg-white animate-pulse' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
 
             <button
               id="realtime-tab-pro"
               onClick={() => setActiveProfileTab('pro')}
-              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-left transition cursor-pointer min-w-0 ${
+              className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition cursor-pointer min-w-0 ${
                 activeProfileTab === 'pro'
-                  ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400/50'
-                  : 'bg-white dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700/70'
+                  ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-700 text-white shadow-lg shadow-purple-500/30 ring-1 ring-purple-300/60'
+                  : 'bg-white dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-purple-900/30 hover:border-purple-400 dark:hover:border-purple-700/60'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
                   activeProfileTab === 'pro'
-                    ? 'bg-white/15 border-white/25 text-white'
-                    : 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                    ? 'bg-white/20 border-white/30 text-white'
+                    : 'bg-indigo-50 dark:bg-indigo-500/15 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
                 }`}>
                   <Activity className="h-3.5 w-3.5" />
                 </div>
@@ -428,12 +428,12 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   <div className={`text-[10px] truncate leading-tight ${
                     activeProfileTab === 'pro' ? 'text-indigo-100 font-medium' : 'text-slate-400'
                   }`}>
-                    CAPE, cisaillement &amp; AROME
+                    SYNOP, radiosondages &amp; CAPE
                   </div>
                 </div>
               </div>
-              <span className={`hidden sm:inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                activeProfileTab === 'pro' ? 'bg-white' : 'bg-slate-700'
+              <span className={`hidden sm:inline-block h-2 w-2 rounded-full shrink-0 ${
+                activeProfileTab === 'pro' ? 'bg-white animate-pulse' : 'bg-slate-400 dark:bg-slate-700'
               }`} />
             </button>
           </div>
@@ -453,48 +453,61 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       />
 
       {/* ========================================================================= */}
-      {/* BANDEAU VEDETTE : OBSERVATOIRE DU JOUR & CARTES CLÉS PERTINENTES          */}
+      {/* BANDEAU VEDETTE : DIRECT MÉTÉO & SURVEILLANCE ATMOSPHÉRIQUE               */}
       {/* ========================================================================= */}
-      <div className="w-full rounded-2xl border border-sky-300/40 dark:border-sky-500/25 bg-gradient-to-r from-sky-50/95 via-blue-50/70 to-indigo-50/95 dark:from-slate-900/90 dark:via-blue-950/40 dark:to-slate-900/90 p-3 sm:p-3.5 shadow-sm backdrop-blur-md flex flex-wrap items-center justify-between gap-3 transition-all">
+      <div className="w-full rounded-2xl border border-sky-400/30 dark:border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 dark:from-slate-900/95 dark:via-sky-950/40 dark:to-slate-900/95 p-3 sm:p-3.5 shadow-lg backdrop-blur-md flex flex-wrap items-center justify-between gap-3 transition-all">
         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-700 dark:text-sky-300 text-xs font-black">
-            <Activity className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 animate-pulse" />
-            <span>Observatoire du Jour en Direct</span>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 text-emerald-700 dark:text-emerald-300 text-xs font-black shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Flux Météo en Direct</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono tabular-nums flex-wrap">
-            <span className="text-sky-700 dark:text-sky-300 font-semibold" title="Tmin observée de la journée">
-              Tn : <strong className="font-black text-slate-900 dark:text-white">{formatTemp(todayInfoclimat.tmin)}</strong>
+          <div className="flex items-center gap-2.5 text-xs font-mono tabular-nums flex-wrap">
+            <span className="text-cyan-700 dark:text-cyan-300 font-bold flex items-center gap-1" title="Vitesse et rafales">
+              <Wind className="h-3.5 w-3.5 text-cyan-500" />
+              <span>Vent : <strong className="font-black text-slate-900 dark:text-white">{Math.round(weather.windSpeed)} km/h</strong></span>
+              <span className="text-amber-600 dark:text-amber-400 text-[11px] font-semibold">(raf. {Math.round(weather.windGust || weather.windSpeed * 1.35)} km/h)</span>
             </span>
             <span className="text-slate-400">·</span>
-            <span className="text-amber-700 dark:text-amber-300 font-semibold" title="Tmax observée de la journée">
-              Tx : <strong className="font-black text-slate-900 dark:text-white">{formatTemp(todayInfoclimat.tmax)}</strong>
+            <span className="text-sky-700 dark:text-sky-300 font-bold flex items-center gap-1" title="Isotherme 0°C calculé">
+              <ThermometerSnowflake className="h-3.5 w-3.5 text-sky-500" />
+              <span>Iso 0°C : <strong className="font-black text-slate-900 dark:text-white">{calculatePhysicalIsotherm0({ stationAltitude: station.altitude ?? 80, temperature: weather.temperature, precipitationMm: 0 })} m</strong></span>
             </span>
             <span className="text-slate-400">·</span>
-            <span className="text-blue-700 dark:text-blue-300 font-semibold" title="Pluie cumulée depuis 00h">
-              Pluie : <strong className="font-black text-slate-900 dark:text-white">{todayInfoclimat.rainSum} mm</strong>
-            </span>
-            <span className="text-slate-400">·</span>
-            <span className="text-yellow-700 dark:text-yellow-300 font-semibold" title="Ensoleillement cumulé depuis le lever">
-              Soleil : <strong className="font-black text-slate-900 dark:text-white">{todayInfoclimat.sunLabel}</strong>
+            <span className="text-amber-700 dark:text-amber-300 font-bold flex items-center gap-1" title="Indice UV maximal">
+              <Sun className="h-3.5 w-3.5 text-amber-500" />
+              <span>UV : <strong className="font-black text-slate-900 dark:text-white">{weather.uvIndex ?? 3}</strong></span>
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => document.getElementById('infoclimat-day-observations-card')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
+            onClick={() => document.getElementById('remarkable-weather-highlight-card')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer"
+            title="Consulter les coups de vent, rafales et limites pluie-neige"
           >
-            <Thermometer className="h-3.5 w-3.5" />
-            <span>Relevés Détaillés &amp; StatIC</span>
+            <Sparkles className="h-3.5 w-3.5 text-slate-950" />
+            <span>Indicateurs Remarquables (Vent &amp; Neige)</span>
           </button>
           <button
             onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-xs font-black shadow-md shadow-cyan-500/20 transition active:scale-95 cursor-pointer"
           >
-            <Map className="h-3.5 w-3.5" />
-            <span>Grand Radar des Pluies</span>
+            <CloudRain className="h-3.5 w-3.5 text-cyan-200" />
+            <span>Radar des Pluies HD</span>
           </button>
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('auraAI')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-700 hover:to-sky-700 text-white text-xs font-black shadow-md shadow-purple-500/20 transition active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
+              <span>IA AURA</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -688,23 +701,19 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </div>
             </div>
 
-            {/* Infoclimat Mobile Observatoire: Tmin, Tmax, Pluie 00h, Soleil */}
+            {/* Indicateur Remarquable Mobile: Rafales & Alerte Neige/Vent */}
             <div 
-              onClick={() => document.getElementById('infoclimat-day-observations-card')?.scrollIntoView({ behavior: 'smooth' })}
-              className="rounded-2xl bg-slate-950/90 border border-white/15 p-2.5 text-[11px] font-mono flex flex-wrap items-center justify-between gap-1.5 cursor-pointer shadow-md active:scale-[0.99] transition"
+              onClick={() => document.getElementById('remarkable-weather-highlight-card')?.scrollIntoView({ behavior: 'smooth' })}
+              className="rounded-2xl bg-slate-950/90 border border-amber-500/30 p-2.5 text-[11px] font-mono flex flex-wrap items-center justify-between gap-1.5 cursor-pointer shadow-md active:scale-[0.99] transition"
             >
               <div className="flex items-center gap-1.5 font-sans font-bold text-white text-[10px]">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                <span>Relevés Infoclimat du Jour :</span>
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                <span>Indicateurs Remarquables :</span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sky-300">Tn {formatTemp(todayInfoclimat.tmin)}</span>
+              <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                <span className="text-amber-300 font-bold">💨 Rafales {weather.windGust ?? Math.round((weather.windSpeed ?? 15) * 1.35)} km/h</span>
                 <span className="text-slate-500">·</span>
-                <span className="text-amber-300">Tx {formatTemp(todayInfoclimat.tmax)}</span>
-                <span className="text-slate-500">·</span>
-                <span className="text-blue-300">Pluie {todayInfoclimat.rainSum}mm</span>
-                <span className="text-slate-500">·</span>
-                <span className="text-yellow-300">Soleil {todayInfoclimat.sunLabel}</span>
+                <span className="text-sky-300 font-bold">❄️ Isotherme 0°C {calculatePhysicalIsotherm0({ stationAltitude: station.altitude ?? 80, temperature: weather.temperature, precipitationMm: 0 })}m</span>
               </div>
             </div>
 
@@ -755,8 +764,8 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onRefresh={onLocateGps}
         />
 
-        {/* Relevés de la Journée en Cours & Réseau Infoclimat (StatIC Secondaire & SYNOP Principal) - Mobile */}
-        <InfoclimatDayObservationsCard
+        {/* Indicateurs Remarquables (Coups de Vent & Neige en Plaine / Hors Saison) - Mobile */}
+        <RemarkableWeatherHighlightCard
           station={station}
           weather={weather}
           hourly={hourly}
@@ -790,10 +799,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onResetRecalibration={onResetRecalibration}
       />
 
-      {/* Desktop Observatoire & Cartes Clés du Jour */}
+      {/* Desktop Observatoire & Indicateurs Remarquables (Coups de Vent & Neige en Plaine) */}
       <div className="hidden sm:block space-y-6">
-        {/* 2. Relevés de la Journée en Cours & Réseau Infoclimat (StatIC Secondaire & SYNOP Principal) */}
-        <InfoclimatDayObservationsCard
+        <RemarkableWeatherHighlightCard
           station={station}
           weather={weather}
           hourly={hourly}

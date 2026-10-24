@@ -2600,10 +2600,33 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
 
     const result = { current, hourly, daily, anomaly };
     setCachedData(cacheKey, result, station.id);
+    try {
+      localStorage.setItem(`instant_meteo_last_station_${station.id}`, JSON.stringify({
+        data: result,
+        savedAt: Date.now(),
+        savedAtFormatted: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      }));
+    } catch (_) {}
     saveWeatherToIndexedDB(cacheKey, station, result).catch(() => {});
     return { ...result, isFromCache: false };
   } catch (error) {
-    console.warn("Fetch weather error, recovering last cached weather from IndexedDB", error);
+    console.warn("Fetch weather error, recovering station-specific cache:", error);
+    // 1. Recherche prioritaire dans le stockage local spécifique à cette station
+    try {
+      const localStationCache = localStorage.getItem(`instant_meteo_last_station_${station.id}`);
+      if (localStationCache) {
+        const parsed = JSON.parse(localStationCache);
+        if (parsed && parsed.data) {
+          return {
+            ...parsed.data,
+            isFromCache: true,
+            cachedAt: parsed.savedAtFormatted || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          };
+        }
+      }
+    } catch (_) {}
+
+    // 2. Recherche spécifique dans IndexedDB pour cette station uniquement (pas de pollution par d'autres villes)
     const idbEntry = await getWeatherFromIndexedDB(cacheKey, station.id).catch(() => null);
     if (idbEntry && idbEntry.data) {
       return {
@@ -2612,14 +2635,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         cachedAt: idbEntry.savedAtFormatted || new Date(idbEntry.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       };
     }
-    const globalIdb = await getLatestAnyWeatherFromIndexedDB().catch(() => null);
-    if (globalIdb && globalIdb.data) {
-      return {
-        ...globalIdb.data,
-        isFromCache: true,
-        cachedAt: globalIdb.savedAtFormatted || new Date(globalIdb.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      };
-    }
+
     const offlineEntry = getOfflineCachedData<{
       current: CurrentWeather;
       hourly: HourlyForecast[];
@@ -2633,6 +2649,8 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       });
       return { ...offlineEntry.data, isFromCache: true, cachedAt };
     }
+
+    // 3. Fallback réaliste calculé d'après les normales climatiques 1991-2020 du mois et de l'heure actuelle
     const fallback = getFallbackWeatherData(station);
     return {
       ...fallback,
@@ -2649,15 +2667,15 @@ export function getFallbackWeatherData(station: LocationPoint): {
   anomaly: ClimateAnomaly;
 } {
   const alt = station.altitude ?? 0;
-  const isSouth = station.latitude < 45.0;
-  const lapse = (alt / 1000) * 6.5;
-  const tempBase = Number(((isSouth ? 23.4 : 19.8) - lapse).toFixed(1));
   const normals = getNormalsForStation(station.id, station.latitude, station.altitude, station.name, station.country, station.longitude);
   const currentMonthIndex = new Date().getMonth();
   const currentHour = new Date().getHours();
   const monthNormal = normals.monthly[currentMonthIndex];
   const slotNormal = getThreeHourSlotNormal(station.id, station.latitude, station.altitude, currentMonthIndex, currentHour, station.name, station.country, station.longitude);
-  const delta = Math.round((tempBase - slotNormal.slotNormalTemp) * 10) / 10;
+  
+  // Température de base fidèle calculée à partir de la normale climatique du créneau de 3h actuel et de l'altitude réelle
+  const tempBase = Number(slotNormal.slotNormalTemp.toFixed(1));
+  const delta = 0.0;
 
   const isotherm = Math.round(Math.max(alt, alt + (tempBase / 0.0065)));
 

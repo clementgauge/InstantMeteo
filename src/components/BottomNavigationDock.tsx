@@ -42,6 +42,7 @@ import { isPageVisible } from '../services/displayPreferencesService';
 
 export type NavTabId = 
   | 'realtime' 
+  | 'auraAI'
   | 'cloudNephology'
   | 'vigilance' 
   | 'mountain'
@@ -146,6 +147,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   // Quick primary actions on the dock (filtrés dynamiquement par préférences de l'utilisateur)
   const allDockItems: { id: NavTabId; label: string; icon: any; shortLabel: string; badge?: string }[] = [
     { id: 'realtime', label: 'Temps Réel', shortLabel: 'Direct', icon: Sun },
+    { id: 'auraAI', label: 'IA Météo AURA', shortLabel: 'IA AURA ✨', icon: Sparkles, badge: 'IA' },
     { id: 'cloudNephology', label: 'Nuages & Néphologie', shortLabel: 'Nuages', icon: Cloud, badge: '48h' },
     { id: 'vigilance', label: 'Vigilances', shortLabel: 'Alertes', icon: ShieldAlert, badge: '5m' },
     { id: 'scenarios14d', label: '14 Jours', shortLabel: '14 Jours', icon: Split },
@@ -172,6 +174,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       categoryName: '⚡ Direct, Alertes & Précipitations',
       items: [
         { id: 'realtime', label: '1. Temps Réel & Observatoire Direct', icon: Sun, desc: 'Conditions actuelles, thermo-hygrométrie, vent et relevé de la station' },
+        { id: 'auraAI', label: '✨ IA Météo AURA (Conversationnelle)', icon: Sparkles, desc: 'Intelligence artificielle atmosphérique et conversationnelle propulsée par InstantMétéo' },
         { id: 'cloudNephology', label: '2. Observatoire Néphologique & Nuages 48h', icon: Cloud, desc: 'Sondage vertical 0-12000m, décomposition par étage, LCL, base/sommet, givrage & atlas OMM' },
         { id: 'vigilance', label: '3. Vigilances & Alertes Multi-Jours', icon: ShieldAlert, desc: 'Matrice 12 risques actualisée toutes les 5 min' },
         { id: 'radar', label: '4. Radar Précipitations, Feux NASA & Vents Open-Meteo', icon: CloudRain, desc: 'Radar Doppler légal, imagerie feux de forêt NASA FIRMS et vecteurs vents Open-Meteo' },
@@ -218,6 +221,81 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       items: cat.items.filter(it => isPageVisible(it.id))
     }))
     .filter(cat => cat.items.length > 0);
+
+  const getDockItemStyle = (id: string, isActive: boolean) => {
+    if (isActive) {
+      switch (id) {
+        case 'realtime':
+          return 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/35 border border-amber-300 font-black';
+        case 'auraAI':
+          return 'bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 text-white shadow-lg shadow-purple-500/35 border border-sky-400 font-black';
+        case 'cloudNephology':
+          return 'bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-sky-500/35 border border-sky-400 font-black';
+        case 'vigilance':
+          return 'bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 text-white shadow-lg shadow-rose-500/35 border border-rose-300 font-black';
+        case 'scenarios14d':
+          return 'bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white shadow-lg shadow-indigo-500/35 border border-indigo-400 font-black';
+        case 'bulletin':
+          return 'bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/35 border border-cyan-300 font-black';
+        case 'radar':
+          return 'bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/35 border border-cyan-300 font-black';
+        case 'mountain':
+          return 'bg-gradient-to-r from-slate-700 via-cyan-800 to-blue-900 text-white shadow-lg shadow-cyan-500/35 border border-cyan-400 font-black';
+        case 'beaches':
+          return 'bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-lg shadow-teal-500/35 border border-teal-300 font-black';
+        case 'droughtFire':
+          return 'bg-gradient-to-r from-orange-600 via-amber-600 to-red-600 text-white shadow-lg shadow-orange-500/35 border border-amber-300 font-black';
+        case 'watercourses':
+          return 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/35 border border-cyan-300 font-black';
+        default:
+          return 'bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 text-white shadow-lg shadow-blue-500/35 border border-blue-400 font-black';
+      }
+    }
+
+    if (isLightMode) {
+      return 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 border border-slate-200/80';
+    }
+
+    switch (id) {
+      case 'realtime':
+        return 'bg-slate-900/80 hover:bg-amber-950/40 text-slate-300 hover:text-amber-300 border border-slate-800/80 hover:border-amber-500/40';
+      case 'auraAI':
+        return 'bg-slate-900/80 hover:bg-purple-950/40 text-slate-300 hover:text-purple-300 border border-slate-800/80 hover:border-purple-500/40';
+      case 'cloudNephology':
+        return 'bg-slate-900/80 hover:bg-sky-950/40 text-slate-300 hover:text-sky-300 border border-slate-800/80 hover:border-sky-500/40';
+      case 'vigilance':
+        return 'bg-slate-900/80 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-800/80 hover:border-rose-500/40';
+      case 'radar':
+        return 'bg-slate-900/80 hover:bg-cyan-950/40 text-slate-300 hover:text-cyan-300 border border-slate-800/80 hover:border-cyan-500/40';
+      case 'mountain':
+        return 'bg-slate-900/80 hover:bg-cyan-950/40 text-slate-300 hover:text-cyan-300 border border-slate-800/80 hover:border-cyan-500/40';
+      case 'beaches':
+        return 'bg-slate-900/80 hover:bg-teal-950/40 text-slate-300 hover:text-teal-300 border border-slate-800/80 hover:border-teal-500/40';
+      case 'droughtFire':
+        return 'bg-slate-900/80 hover:bg-orange-950/40 text-slate-300 hover:text-orange-300 border border-slate-800/80 hover:border-orange-500/40';
+      default:
+        return 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700';
+    }
+  };
+
+  const getDockIconColor = (id: string, isActive: boolean) => {
+    if (isActive) return id === 'realtime' ? 'text-slate-950' : 'text-white';
+    if (isLightMode) return 'text-slate-600';
+    switch (id) {
+      case 'realtime': return 'text-amber-400';
+      case 'auraAI': return 'text-purple-400';
+      case 'cloudNephology': return 'text-sky-400';
+      case 'vigilance': return 'text-rose-400';
+      case 'scenarios14d': return 'text-indigo-400';
+      case 'bulletin': return 'text-blue-400';
+      case 'radar': return 'text-cyan-400';
+      case 'mountain': return 'text-sky-300';
+      case 'beaches': return 'text-teal-400';
+      case 'droughtFire': return 'text-orange-400';
+      case 'watercourses': return 'text-blue-400';
+      default: return 'text-slate-400';
+    }
+  };
 
   return (
     <>
@@ -485,16 +563,12 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                     key={item.id}
                     id={`dock-tab-${item.id}`}
                     onClick={() => onSelectTab(item.id)}
-                    className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all relative shrink-0 active:scale-95 ${
-                      isActive
-                        ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/40 border border-blue-400/40'
-                        : isLightMode 
-                          ? 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 border border-slate-200/80' 
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700'
+                    className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs transition-all relative shrink-0 active:scale-95 ${
+                      getDockItemStyle(item.id, isActive)
                     } ${seniorMode ? 'py-2 px-3 text-sm' : ''}`}
                   >
                     <div className="relative">
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : (isLightMode ? 'text-slate-500' : 'text-slate-400')}`} />
+                      <Icon className={`h-4 w-4 shrink-0 transition-colors ${getDockIconColor(item.id, isActive)}`} />
                       {item.badge && !isActive && (
                         <span className="absolute -top-1.5 -right-2 px-1 py-0.2 text-[8px] font-extrabold bg-amber-500 text-slate-950 rounded-full leading-tight">
                           {item.badge}

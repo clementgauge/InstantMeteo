@@ -130,6 +130,19 @@ export const DayWeatherOverviewCard: React.FC<DayWeatherOverviewCardProps> = ({
       };
     }
     if ([71, 73, 75, 77, 85, 86].includes(code)) {
+      // Contrôle scientifique physique strict : aucun indicateur neige si les températures sont trop douces (> 2.2°C)
+      const isTooMildForSnow = (todayDaily?.tempMax ?? weather.temperature) > 2.2;
+      if (isTooMildForSnow) {
+        return {
+          label: 'Passages Pluvieux',
+          sub: 'Averses liquides (températures trop douces pour la neige au sol)',
+          icon: <CloudRain className="h-10 w-10 sm:h-12 sm:w-12 text-sky-400" />,
+          accentBg: 'from-sky-600/25 to-blue-950/40',
+          borderColor: 'border-sky-500/40',
+          textColor: 'text-sky-300',
+          badge: 'Pluvieux'
+        };
+      }
       return {
         label: 'Chutes de Neige',
         sub: 'Flocons cotonneux et froid marqué',

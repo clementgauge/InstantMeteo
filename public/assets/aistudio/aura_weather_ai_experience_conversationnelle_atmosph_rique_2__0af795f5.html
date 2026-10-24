@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AURA WEATHER AI — Intelligence Atmosphérique & Conversationnelle</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <!-- Chart.js pour la génération optionnelle à la demande -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+          },
+          colors: {
+            aura: {
+              gold: '#F59E0B',
+              ice: '#38BDF8',
+              storm: '#818CF8',
+              emerald: '#34D399',
+              dark: '#07090E',
+              glass: 'rgba(15, 23, 42, 0.65)',
+              border: 'rgba(255, 255, 255, 0.12)'
+            }
+          },
+          animation: {
+            'float-slow': 'float 8s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 3s infinite alternate',
+            'shimmer': 'shimmer 2.5s infinite linear',
+            'wave-bar': 'waveBar 1.2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-8px) rotate(0.5deg)' },
+            },
+            pulseGlow: {
+              '0%': { opacity: '0.4', filter: 'blur(30px)' },
+              '100%': { opacity: '0.8', filter: 'blur(50px)' },
+            },
+            shimmer: {
+              '0%': { transform: 'translateX(-100%)' },
+              '100%': { transform: 'translateX(100%)' },
+            },
+            waveBar: {
+              '0%': { height: '20%' },
+              '100%': { height: '100%' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #05070B;
+      color: #F3F4F6;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .glass-panel {
+      background: rgba(13, 18, 30, 0.65);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-input {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .glass-input:focus-within {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.08);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .frost-border {
+      box-shadow: inset 0 0 70px rgba(186, 230, 253, 0.22);
+      pointer-events: none;
+    }
+
+    .sound-bar {
+      width: 3px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #38BDF8, #818CF8);
+      animation: waveBar 1.2s ease-in-out infinite alternate;
+    }
+    .sound-bar:nth-child(2) { animation-delay: 0.2s; }
+    .sound-bar:nth-child(3) { animation-delay: 0.4s; }
+    .sound-bar:nth-child(4) { animation-delay: 0.1s; }
+    .sound-bar:nth-child(5) { animation-delay: 0.3s; }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between font-sans antialiased text-slate-100 selection:bg-sky-500/30">
+
+  <!-- ATMOSPHERIC BACKGROUND CANVAS ENGINE -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <canvas id="weatherCanvas" class="w-full h-full block"></canvas>
+    <div id="ambientGlow1" class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-amber-500/15 blur-[130px] transition-all duration-1000 ease-out pointer-events-none"></div>
+    <div id="ambientGlow2" class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[650px] h-[650px] rounded-full bg-sky-500/15 blur-[160px] transition-all duration-1000 ease-out pointer-events-none"></div>
+    <div id="frostOverlay" class="absolute inset-0 frost-border opacity-0 transition-opacity duration-1000"></div>
+  </div>
+
+  <!-- HEADER NAVBAR -->
+  <header class="relative z-20 px-6 py-4 flex items-center justify-between border-b border-white/10 glass-panel">
+    <div class="flex items-center space-x-3">
+      <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500/20 to-amber-500/20 border border-white/20 shadow-lg shadow-sky-500/10">
+        <i id="auraLogoIcon" class="fa-solid fa-sun-cloud text-amber-400 text-lg transition-transform duration-500"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="font-serif text-xl tracking-wide font-semibold text-white">AURA</h1>
+          <span class="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">Weather AI</span>
+        </div>
+        <p id="currentAtmosphereLabel" class="text-xs text-slate-400">Atmosphère : <span class="text-amber-300 font-medium">Clair & Tempéré</span></p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center space-x-3">
+      <button id="audioToggleBtn" title="Activer l'ambiance audio" class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center space-x-2 text-xs font-medium text-slate-300 hover:text-white">
+        <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400"></i>
+        <span class="hidden sm:inline">Soundscape</span>
+      </button>
+
+      <button id="openKeyModalBtn" title="Configurer Clé Gemini API" class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-medium text-slate-300 hover:text-white flex items-center space-x-1.5">
+        <i class="fa-solid fa-key text-amber-400/80"></i>
+        <span class="hidden sm:inline" id="keyStatusLabel">Clé API</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CHAT CONTAINER -->
+  <main class="relative z-10 flex-1 overflow-hidden flex flex-col justify-between max-w-4xl w-full mx-auto px-4 sm:px-6 py-4">
+    
+    <!-- Chat Stream -->
+    <div id="chatStream" class="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 py-4">
+      
+      <!-- Welcome Message -->
+      <div class="flex items-start space-x-3 animate-float-slow">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-400/30 to-sky-400/30 border border-white/20 flex items-center justify-center shrink-0 shadow-md">
+          <i class="fa-solid fa-sparkles text-amber-300 text-xs"></i>
+        </div>
+        <div class="glass-panel p-5 rounded-2xl rounded-tl-sm max-w-xl space-y-3">
+          <p class="text-sm sm:text-base leading-relaxed text-slate-200">
+            Bonjour ! Je suis <span class="font-serif font-semibold text-amber-300 text-lg">AURA</span>, votre assistant météo conversationnel.
+          </p>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Dites-moi simplement bonjour, posez-moi une question sur une ville spécifique (Paris, Tokyo, New York...), ou demandez-moi un graphique si vous souhaitez visualiser l'évolution du temps !
+          </p>
+
+          <!-- Quick Chips -->
+          <div class="pt-2 flex flex-wrap gap-2">
+            <button class="chip-btn text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
+              <i class="fa-solid fa-hand text-amber-400 text-[10px]"></i>
+              <span>Salut ! Comment vas-tu ?</span>
+            </button>
+            <button class="chip-btn text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
+              <i class="fa-solid fa-cloud-sun text-amber-400 text-[10px]"></i>
+              <span>Météo à Tokyo aujourd'hui ?</span>
+            </button>
+            <button class="chip-btn text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
+              <i class="fa-solid fa-chart-line text-sky-400 text-[10px]"></i>
+              <span>Fais-moi un graphique de température à Marseille</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Thinking Indicator -->
+    <div id="thinkingOrbing" class="hidden my-2 flex items-center justify-center space-x-3 py-2">
+      <div class="flex items-center space-x-1.5 h-5">
+        <div class="sound-bar h-full"></div>
+        <div class="sound-bar h-full"></div>
+        <div class="sound-bar h-full"></div>
+        <div class="sound-bar h-full"></div>
+        <div class="sound-bar h-full"></div>
+      </div>
+      <span class="text-xs text-sky-300 font-medium tracking-wide uppercase">AURA écoute l'atmosphère...</span>
+    </div>
+
+    <!-- USER INPUT DOCK -->
+    <div class="relative mt-2 mb-2">
+      <form id="chatForm" class="glass-input rounded-2xl p-2 flex items-center space-x-2 shadow-2xl relative z-10">
+        <button type="button" id="voiceBtn" title="Parler à AURA" class="p-3 rounded-xl hover:bg-white/10 text-slate-400 hover:text-sky-300 transition-colors flex items-center justify-center shrink-0">
+          <i id="voiceIcon" class="fa-solid fa-microphone text-base"></i>
+        </button>
+
+        <input type="text" id="userInput" placeholder="Dis salut ou pose une question météo (ex: Paris, Tokyo, graphe)..." autocomplete="off" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm sm:text-base px-2 font-normal">
+
+        <button type="submit" id="sendBtn" class="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-sky-500 hover:from-amber-400 hover:to-sky-400 text-slate-950 font-semibold transition-all shadow-md flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-arrow-up text-sm"></i>
+        </button>
+      </form>
+    </div>
+
+  </main>
+
+  <!-- API KEY MODAL -->
+  <div id="keyModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-md w-full space-y-5 border border-white/20 transform scale-95 transition-transform duration-300" id="keyModalCard">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <h2 class="text-lg font-semibold text-white">Clé API Google Gemini</h2>
+        </div>
+        <button id="closeKeyModalBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Vous pouvez saisir votre clé API Gemini pour des réponses IA en direct. Sans clé, AURA utilise son moteur de conversation & de données météo par ville dynamique.
+      </p>
+      <div class="space-y-2">
+        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-400/50">
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button id="clearKeyBtn" class="px-4 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors">Effacer</button>
+        <button id="saveKeyBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-sky-500 text-slate-950 font-semibold text-xs hover:opacity-90 transition-opacity">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    /* 1. ATMOSPHERIC CANVAS ENGINE */
+    const canvas = document.getElementById('weatherCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const WEATHER_STATES = {
+      SUNNY: { name: 'Soleil & Douceur', particleType: 'sunbeams', glow1: 'rgba(245, 158, 11, 0.25)', glow2: 'rgba(251, 146, 60, 0.15)', icon: 'fa-sun text-amber-400' },
+      RAINY: { name: 'Averses / Pluie', particleType: 'rain', glow1: 'rgba(56, 189, 248, 0.2)', glow2: 'rgba(99, 102, 241, 0.15)', icon: 'fa-cloud-showers-heavy text-sky-400' },
+      SNOWY: { name: 'Neige / Froid', particleType: 'snow', glow1: 'rgba(186, 230, 253, 0.25)', glow2: 'rgba(147, 197, 253, 0.15)', icon: 'fa-snowflake text-sky-200' },
+      STORMY: { name: 'Orageux & Vent', particleType: 'storm', glow1: 'rgba(129, 140, 248, 0.25)', glow2: 'rgba(168, 85, 247, 0.2)', icon: 'fa-cloud-bolt text-indigo-400' }
+    };
+
+    let currentState = WEATHER_STATES.SUNNY;
+    let particles = [];
+    let lightningFlash = 0;
+
+    function initParticles() {
+      particles = [];
+      const count = currentState.particleType === 'rain' ? 120 : currentState.particleType === 'snow' ? 100 : currentState.particleType === 'storm' ? 180 : 50;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          length: Math.random() * 20 + 10,
+          speed: Math.random() * 8 + 4,
+          radius: Math.random() * 3 + 1,
+          opacity: Math.random() * 0.7 + 0.3,
+          velX: (Math.random() - 0.5) * 1.5,
+          velY: Math.random() * 2 + 0.5,
+          angle: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function setAtmosphere(stateKey) {
+      if (!WEATHER_STATES[stateKey]) return;
+      currentState = WEATHER_STATES[stateKey];
+      document.getElementById('currentAtmosphereLabel').innerHTML = `Atmosphère : <span class="font-medium text-amber-300">${currentState.name}</span>`;
+      document.getElementById('auraLogoIcon').className = `fa-solid ${currentState.icon} text-lg transition-transform duration-500`;
+      document.getElementById('ambientGlow1').style.backgroundColor = currentState.glow1;
+      document.getElementById('ambientGlow2').style.backgroundColor = currentState.glow2;
+      document.getElementById('frostOverlay').style.opacity = stateKey === 'SNOWY' ? '1' : '0';
+      initParticles();
+    }
+
+    function renderCanvas() {
+      ctx.clearRect(0, 0, width, height);
+
+      if (currentState === WEATHER_STATES.STORMY && Math.random() < 0.008) {
+        lightningFlash = Math.random() * 0.4 + 0.2;
+      }
+      if (lightningFlash > 0) {
+        ctx.fillStyle = `rgba(224, 231, 255, ${lightningFlash})`;
+        ctx.fillRect(0, 0, width, height);
+        lightningFlash -= 0.03;
+      }
+
+      particles.forEach(p => {
+        ctx.beginPath();
+        if (currentState.particleType === 'rain' || currentState.particleType === 'storm') {
+          ctx.strokeStyle = `rgba(186, 230, 253, ${p.opacity})`;
+          ctx.lineWidth = 1.2;
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + p.velX, p.y + p.length);
+          ctx.stroke();
+          p.y += p.speed;
+          p.x += p.velX;
+          if (p.y > height) { p.y = -10; p.x = Math.random() * width; }
+        } else if (currentState.particleType === 'snow') {
+          ctx.fillStyle = `rgba(240, 249, 255, ${p.opacity})`;
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.velY;
+          p.x += Math.sin(p.angle) * 0.5;
+          p.angle += 0.02;
+          if (p.y > height) { p.y = -5; p.x = Math.random() * width; }
+        } else {
+          ctx.fillStyle = `rgba(251, 191, 36, ${p.opacity * 0.5})`;
+          ctx.arc(p.x, p.y, p.radius * 1.2, 0, Math.PI * 2);
+          ctx.fill();
+          p.y -= p.velY * 0.3;
+          p.x += Math.cos(p.angle) * 0.3;
+          if (p.y < 0) { p.y = height + 5; p.x = Math.random() * width; }
+        }
+      });
+      requestAnimationFrame(renderCanvas);
+    }
+    initParticles();
+    renderCanvas();
+
+    /* 2. AUDIO SYNTHESIS */
+    let audioCtx = null;
+    let isAudioMuted = true;
+    function playChime() {
+      if (isAudioMuted) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {}
+    }
+
+    document.getElementById('audioToggleBtn').addEventListener('click', () => {
+      isAudioMuted = !isAudioMuted;
+      document.getElementById('audioIcon').className = isAudioMuted ? 'fa-solid fa-volume-xmark text-slate-400' : 'fa-solid fa-volume-high text-sky-400';
+    });
+
+    /* 3. API KEY MODAL */
+    let apiKey = localStorage.getItem('AURA_GEMINI_KEY') || '';
+    const keyModal = document.getElementById('keyModal');
+    const keyModalCard = document.getElementById('keyModalCard');
+
+    document.getElementById('openKeyModalBtn').addEventListener('click', () => {
+      keyModal.classList.remove('opacity-0', 'pointer-events-none');
+      keyModalCard.classList.remove('scale-95');
+      document.getElementById('geminiApiKeyInput').value = apiKey;
+    });
+    document.getElementById('closeKeyModalBtn').addEventListener('click', () => {
+      keyModal.classList.add('opacity-0', 'pointer-events-none');
+      keyModalCard.classList.add('scale-95');
+    });
+    document.getElementById('saveKeyBtn').addEventListener('click', () => {
+      apiKey = document.getElementById('geminiApiKeyInput').value.trim();
+      localStorage.setItem('AURA_GEMINI_KEY', apiKey);
+      keyModal.classList.add('opacity-0', 'pointer-events-none');
+      keyModalCard.classList.add('scale-95');
+    });
+    document.getElementById('clearKeyBtn').addEventListener('click', () => {
+      apiKey = '';
+      localStorage.removeItem('AURA_GEMINI_KEY');
+      document.getElementById('geminiApiKeyInput').value = '';
+    });
+
+    /* 4. METEOROLOGICAL CITY DATABASE & ENGINE */
+    const CITY_DATABASE = {
+      'paris': { name: 'Paris, FR', baseTemp: 15, condition: 'Éclaircies & Temps doux', icon: 'fa-cloud-sun', temps: [11, 13, 16, 18, 16, 14, 12], rain: [10, 15, 30, 20, 10, 5, 5], wind: [12, 15, 18, 22, 15, 10, 8], state: 'SUNNY' },
+      'marseille': { name: 'Marseille, FR', baseTemp: 22, condition: 'Grand Soleil & Brise', icon: 'fa-sun', temps: [16, 18, 22, 24, 23, 20, 18], rain: [0, 0, 5, 10, 0, 0, 0], wind: [25, 30, 40, 35, 28, 20, 15], state: 'SUNNY' },
+      'lyon': { name: 'Lyon, FR', baseTemp: 18, condition: 'Ciel voilé', icon: 'fa-cloud-sun', temps: [12, 14, 19, 21, 18, 15, 13], rain: [5, 10, 20, 15, 10, 5, 0], wind: [10, 12, 15, 18, 14, 10, 8], state: 'SUNNY' },
+      'bordeaux': { name: 'Bordeaux, FR', baseTemp: 19, condition: 'Nuages & Douceur', icon: 'fa-cloud-sun', temps: [13, 15, 20, 21, 19, 16, 14], rain: [15, 20, 35, 25, 15, 10, 5], wind: [14, 16, 20, 25, 18, 12, 10], state: 'SUNNY' },
+      'lille': { name: 'Lille, FR', baseTemp: 13, condition: 'Averses sporadiques', icon: 'fa-cloud-showers-heavy', temps: [9, 11, 14, 15, 13, 11, 10], rain: [30, 45, 70, 60, 40, 20, 15], wind: [18, 22, 28, 30, 24, 18, 15], state: 'RAINY' },
+      'tokyo': { name: 'Tokyo, JP', baseTemp: 17, condition: 'Averses passagères', icon: 'fa-cloud-rain', temps: [12, 14, 18, 19, 17, 15, 13], rain: [20, 40, 80, 65, 30, 20, 10], wind: [15, 18, 22, 20, 16, 12, 10], state: 'RAINY' },
+      'new york': { name: 'New York, US', baseTemp: 16, condition: 'Ciel Dégagé', icon: 'fa-sun', temps: [10, 12, 17, 18, 16, 13, 11], rain: [5, 10, 15, 10, 5, 0, 0], wind: [16, 20, 25, 22, 18, 14, 12], state: 'SUNNY' },
+      'london': { name: 'Londres, UK', baseTemp: 13, condition: 'Brume & Bruine', icon: 'fa-cloud-rain', temps: [9, 11, 14, 15, 13, 11, 10], rain: [40, 60, 75, 80, 50, 30, 20], wind: [20, 24, 32, 28, 22, 16, 14], state: 'RAINY' },
+      'londres': { name: 'Londres, UK', baseTemp: 13, condition: 'Brume & Bruine', icon: 'fa-cloud-rain', temps: [9, 11, 14, 15, 13, 11, 10], rain: [40, 60, 75, 80, 50, 30, 20], wind: [20, 24, 32, 28, 22, 16, 14], state: 'RAINY' },
+      'montreal': { name: 'Montréal, CA', baseTemp: 8, condition: 'Vent frais & Nuages', icon: 'fa-snowflake', temps: [3, 5, 9, 10, 8, 5, 3], rain: [10, 20, 30, 40, 20, 10, 5], wind: [22, 28, 35, 30, 25, 20, 18], state: 'SNOWY' },
+      'dubai': { name: 'Dubaï, AE', baseTemp: 34, condition: 'Chaleur Intense & Soleil', icon: 'fa-sun', temps: [28, 30, 35, 37, 36, 33, 30], rain: [0, 0, 0, 0, 0, 0, 0], wind: [12, 14, 18, 20, 16, 12, 10], state: 'SUNNY' },
+      'sydney': { name: 'Sydney, AU', baseTemp: 23, condition: 'Soleil & Mer calme', icon: 'fa-sun', temps: [18, 20, 24, 25, 23, 21, 19], rain: [5, 5, 10, 15, 5, 0, 0], wind: [15, 18, 24, 22, 18, 14, 12], state: 'SUNNY' }
+    };
+
+    function detectCity(text) {
+      const lower = text.toLowerCase();
+      for (let key in CITY_DATABASE) {
+        if (lower.includes(key)) return CITY_DATABASE[key];
+      }
+      // If city isn't listed, generate a realistic procedural profile based on text hash
+      const matchedWord = lower.match(/à ([a-zà-ÿ]+)/i) || lower.match(/pour ([a-zà-ÿ]+)/i) || lower.match(/de ([a-zà-ÿ]+)/i);
+      if (matchedWord && matchedWord[1] && matchedWord[1].length > 2) {
+        const cityName = matchedWord[1].charAt(0).toUpperCase() + matchedWord[1].slice(1);
+        let hash = 0;
+        for (let i = 0; i < cityName.length; i++) hash = cityName.charCodeAt(i) + ((hash << 5) - hash);
+        const base = 12 + Math.abs(hash % 15);
+        return {
+          name: `${cityName}`,
+          baseTemp: base,
+          condition: base > 20 ? 'Ensoleillé' : base > 12 ? 'Partiellement nuageux' : 'Brumeux & Frais',
+          icon: base > 20 ? 'fa-sun' : base > 12 ? 'fa-cloud-sun' : 'fa-cloud',
+          temps: [base-4, base-2, base+3, base+5, base+2, base-1, base-3],
+          rain: [10, 15, 25, 30, 15, 10, 5],
+          wind: [10, 14, 20, 18, 15, 12, 8],
+          state: base > 20 ? 'SUNNY' : 'RAINY'
+        };
+      }
+      return null;
+    }
+
+    function isGreetingOnly(text) {
+      const lower = text.toLowerCase().trim().replace(/[^a-zà-ÿ\s]/g, '');
+      const greetings = ['slt', 'salut', 'bonjour', 'hello', 'coucou', 'hey', 'bonsoir', 'ca va', 'comment vas tu', 'comment ca va', 'merci', 'super', 'cool', 'au revoir', 'bye'];
+      return greetings.some(g => lower === g || lower.startsWith(g + ' ') || lower.endsWith(' ' + g)) && !isGraphRequested(text) && !detectCity(text);
+    }
+
+    function isGraphRequested(text) {
+      const lower = text.toLowerCase();
+      const graphKeywords = ['graphe', 'graphique', 'courbe', 'histogramme', 'chart', 'evolution', 'évolution', 'schéma', 'tracer', 'trace', 'diagramme', 'tendance'];
+      return graphKeywords.some(kw => lower.includes(kw));
+    }
+
+    /* 5. CHAT STREAM ENGINE */
+    const chatStream = document.getElementById('chatStream');
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
+    const thinkingOrbing = document.getElementById('thinkingOrbing');
+
+    function appendUserMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'flex justify-end items-start space-x-3';
+      div.innerHTML = `
+        <div class="glass-panel p-4 rounded-2xl rounded-tr-sm bg-sky-500/10 border-sky-400/20 max-w-xl text-sm sm:text-base text-slate-100 shadow-md">
+          <p>${escapeHTML(text)}</p>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user text-slate-300 text-xs"></i>
+        </div>
+      `;
+      chatStream.appendChild(div);
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    function appendAuraResponse(data) {
+      playChime();
+      const div = document.createElement('div');
+      div.className = 'flex items-start space-x-3';
+      
+      let cardHTML = '';
+      if (data.card) {
+        cardHTML = `
+          <div class="mt-3 p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="text-2xl text-amber-400"><i class="fa-solid ${data.card.icon}"></i></div>
+              <div>
+                <div class="text-sm font-semibold text-white">${data.card.location}</div>
+                <div class="text-xs text-slate-400">${data.card.condition}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xl font-bold text-amber-300">${data.card.temp}</div>
+              <div class="text-[10px] text-slate-400">Ressenti ${data.card.feelsLike}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      let chartHTML = '';
+      let chartId = null;
+      if (data.chart) {
+        chartId = 'chart_' + Math.random().toString(36).substr(2, 9);
+        chartHTML = `
+          <div class="mt-4 p-4 rounded-xl bg-black/50 border border-white/10 space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
+              <span class="font-semibold text-sky-300"><i class="fa-solid fa-chart-line mr-1.5"></i> ${data.chart.title}</span>
+              <span class="text-[10px] uppercase font-mono text-slate-400">Données ${data.chart.cityName}</span>
+            </div>
+            <div class="relative w-full h-48 sm:h-52">
+              <canvas id="${chartId}"></canvas>
+            </div>
+          </div>
+        `;
+      }
+
+      div.innerHTML = `
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-400/30 to-sky-400/30 border border-white/20 flex items-center justify-center shrink-0 shadow-md">
+          <i class="fa-solid fa-sparkles text-amber-300 text-xs"></i>
+        </div>
+        <div class="glass-panel p-5 rounded-2xl rounded-tl-sm max-w-xl w-full space-y-3">
+          <div class="text-sm sm:text-base leading-relaxed text-slate-200 space-y-2">${formatMarkdown(data.text)}</div>
+          ${cardHTML}
+          ${chartHTML}
+        </div>
+      `;
+
+      chatStream.appendChild(div);
+      chatStream.scrollTop = chatStream.scrollHeight;
+
+      // Render Chart ONLY if requested
+      if (data.chart && chartId) {
+        setTimeout(() => {
+          const ctxChart = document.getElementById(chartId).getContext('2d');
+          new Chart(ctxChart, {
+            type: data.chart.type || 'line',
+            data: data.chart.data,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                  titleColor: '#F59E0B',
+                  bodyColor: '#F3F4F6',
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  borderWidth: 1
+                }
+              },
+              scales: {
+                x: {
+                  grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                  ticks: { color: '#94A3B8', font: { size: 10 } }
+                },
+                y: {
+                  grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                  ticks: { color: '#94A3B8', font: { size: 10 } }
+                }
+              }
+            }
+          });
+        }, 100);
+      }
+    }
+
+    async function processQuery(query) {
+      thinkingOrbing.classList.remove('hidden');
+      chatStream.scrollTop = chatStream.scrollHeight;
+
+      const cityData = detectCity(query) || CITY_DATABASE['paris'];
+      const wantsGraph = isGraphRequested(query);
+      const isGreeting = isGreetingOnly(query);
+
+      // Adjust atmosphere
+      setAtmosphere(cityData.state);
+
+      if (apiKey) {
+        try {
+          const systemPrompt = isGreeting 
+            ? "Tu es AURA, un assistant météo poli et chaleureux. L'utilisateur te dit simplement bonjour ou te salue. Réponds avec courtoisie, demande comment tu peux l'aider aujourd'hui, sans donner de données météo brutes non demandées." 
+            : `Tu es AURA, un assistant météo conversationnel élégant. L'utilisateur pose une question concernant ${cityData.name}. Réponds avec pertinence en intégrant le contexte (température moyenne : ${cityData.baseTemp}°C, condition : ${cityData.condition}). ${wantsGraph ? "Mentionne que le graphique a été généré ci-dessous." : "NE propose PAS de graphique sauf si explicitement demandé."}`;
+
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: query }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
+          const json = await res.json();
+          const reply = json.candidates?.[0]?.content?.parts?.[0]?.text || "Je suis à votre écoute ! Comment puis-je vous renseigner aujourd'hui ?";
+          thinkingOrbing.classList.add('hidden');
+
+          appendAuraResponse({ 
+            text: reply, 
+            card: isGreeting ? null : { location: cityData.name, temp: `${cityData.baseTemp}°C`, feelsLike: `${cityData.baseTemp-1}°C`, condition: cityData.condition, icon: cityData.icon },
+            chart: wantsGraph ? generateChartData(query, cityData) : null 
+          });
+        } catch(e) {
+          thinkingOrbing.classList.add('hidden');
+          appendAuraResponse(getSimulatedResponse(query, cityData, wantsGraph, isGreeting));
+        }
+      } else {
+        setTimeout(() => {
+          thinkingOrbing.classList.add('hidden');
+          appendAuraResponse(getSimulatedResponse(query, cityData, wantsGraph, isGreeting));
+        }, 800);
+      }
+    }
+
+    /* CHART GENERATOR BASED ON SPECIFIC CITY */
+    function generateChartData(query, city) {
+      const lower = query.toLowerCase();
+      if (lower.includes('pluie') || lower.includes('précipitation')) {
+        return {
+          title: `Précipitations sur 24h à ${city.name} (%)`,
+          cityName: city.name,
+          type: 'bar',
+          data: {
+            labels: ['06h', '09h', '12h', '15h', '18h', '21h', '00h'],
+            datasets: [{
+              label: 'Risque de pluie (%)',
+              data: city.rain,
+              backgroundColor: 'rgba(56, 189, 248, 0.6)',
+              borderColor: '#38BDF8',
+              borderWidth: 1,
+              borderRadius: 6
+            }]
+          }
+        };
+      }
+      if (lower.includes('vent') || lower.includes('rafale')) {
+        return {
+          title: `Vitesse du vent à ${city.name} (km/h)`,
+          cityName: city.name,
+          type: 'line',
+          data: {
+            labels: ['06h', '09h', '12h', '15h', '18h', '21h', '00h'],
+            datasets: [{
+              label: 'Vent (km/h)',
+              data: city.wind,
+              borderColor: '#818CF8',
+              backgroundColor: 'rgba(129, 140, 248, 0.15)',
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2
+            }]
+          }
+        };
+      }
+      return {
+        title: `Courbe de Température à ${city.name} (°C)`,
+        cityName: city.name,
+        type: 'line',
+        data: {
+          labels: ['06h', '09h', '12h', '15h', '18h', '21h', '00h'],
+          datasets: [{
+            label: 'Température (°C)',
+            data: city.temps,
+            borderColor: '#F59E0B',
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2.5
+          }]
+        }
+      };
+    }
+
+    /* POLITE & DYNAMIC RESPONSE FALLBACK */
+    function getSimulatedResponse(query, city, wantsGraph, isGreeting) {
+      const lower = query.toLowerCase();
+
+      // 1. POLITE GREETINGS
+      if (isGreeting) {
+        if (lower.includes('merci')) {
+          return { text: "C'est un plaisir ! N'hésitez pas si vous avez d'autres questions sur le temps ou une ville en particulier.", card: null, chart: null };
+        }
+        if (lower.includes('ca va') || lower.includes('comment vas')) {
+          return { text: "Je vais très bien, merci ! L'atmosphère est sereine. Que puis-je faire pour vous aujourd'hui ?", card: null, chart: null };
+        }
+        return { 
+          text: "Bonjour ! Comment puis-je vous aider aujourd'hui ? Vous pouvez me demander le temps qu'il fait à Paris, Tokyo ou dans n'importe quelle ville, ou me demander un graphique d'évolution !", 
+          card: null, 
+          chart: null 
+        };
+      }
+
+      // 2. GRAPH REQUESTED
+      if (wantsGraph) {
+        return {
+          text: `Voici le graphique détaillé des prévisions pour **${city.name}**. Vous pouvez observer l'évolution au fil de la journée ci-dessous.`,
+          card: { location: city.name, temp: `${city.baseTemp}°C`, feelsLike: `${city.baseTemp-1}°C`, condition: city.condition, icon: city.icon },
+          chart: generateChartData(query, city)
+        };
+      }
+
+      // 3. STYLE / CLOTHING ADVICE
+      if (lower.includes('tenue') || lower.includes('habiller') || lower.includes('porter')) {
+        const advice = city.baseTemp > 25 
+          ? "Prévoyez des vêtements très légers et fluides, sans oublier vos lunettes de soleil !" 
+          : city.baseTemp > 15 
+          ? "Un manteau léger ou une veste de mi-saison avec un pull léger sera parfait." 
+          : "Couvrez-vous bien avec un manteau chaud, une écharpe et éventuellement un bonnet.";
+        return {
+          text: `Pour votre journée à **${city.name}** (${city.baseTemp}°C), ${advice}`,
+          card: { location: city.name, temp: `${city.baseTemp}°C`, feelsLike: `${city.baseTemp-1}°C`, condition: city.condition, icon: 'fa-shirt' },
+          chart: null
+        };
+      }
+
+      // 4. GENERAL WEATHER QUERY
+      return {
+        text: `À **${city.name}**, le temps est actuellement **${city.condition.toLowerCase()}** avec une température de **${city.baseTemp}°C**. La journée s'annonce agréablement stable.`,
+        card: { location: city.name, temp: `${city.baseTemp}°C`, feelsLike: `${city.baseTemp-1}°C`, condition: city.condition, icon: city.icon },
+        chart: null
+      };
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = userInput.value.trim();
+      if (!val) return;
+      appendUserMessage(val);
+      userInput.value = '';
+      processQuery(val);
+    });
+
+    document.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip-btn');
+      if (chip) {
+        const text = chip.querySelector('span').innerText;
+        appendUserMessage(text);
+        processQuery(text);
+      }
+    });
+
+    const voiceBtn = document.getElementById('voiceBtn');
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SpeechRecognition();
+      rec.lang = 'fr-FR';
+      rec.onresult = (e) => {
+        const txt = e.results[0][0].transcript;
+        userInput.value = txt;
+        appendUserMessage(txt);
+        processQuery(txt);
+      };
+      voiceBtn.addEventListener('click', () => { try { rec.start(); } catch(e){ rec.stop(); } });
+    } else {
+      voiceBtn.style.display = 'none';
+    }
+
+    function formatMarkdown(str) {
+      return str
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-amber-300">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="text-sky-200">$1</em>');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+    }
+  </script>
+</body>
+</html>

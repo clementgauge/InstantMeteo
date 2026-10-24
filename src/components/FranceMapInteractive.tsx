@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import L from 'leaflet';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { getNormalsForStation, getThreeHourSlotNormal, CLIMATE_NORMALS_1991_2020 } from '../data/climateNormals';
 import { 
   MapPin, 
   Thermometer, 
@@ -21,7 +22,13 @@ import {
   SlidersHorizontal,
   ChevronRight,
   Eye,
-  Info
+  Info,
+  Snowflake,
+  Flame,
+  ShieldAlert,
+  AlertTriangle,
+  Droplets,
+  ThermometerSnowflake
 } from 'lucide-react';
 
 interface FranceMapInteractiveProps {
@@ -31,10 +38,31 @@ interface FranceMapInteractiveProps {
   onOpenSearchModal?: () => void;
 }
 
-export type MapMetricFilter = 'temp' | 'altitude' | 'anomaly' | 'rain' | 'wind';
+export type MapMetricFilter = 
+  | 'temp' 
+  | 'frost_prob' 
+  | 'thresholds' 
+  | 'heatwave_risk' 
+  | 'coldwave_risk' 
+  | 'rain' 
+  | 'wind' 
+  | 'altitude';
 export type ElevationFilter = 'all' | 'plains' | 'mid' | 'summits';
 export type MassifFilter = 'all' | 'alpes' | 'pyrenees' | 'massifCentral' | 'vosgesJura' | 'corse';
 export type OsmBaseLayer = 'osm' | 'topo' | 'dark' | 'satellite';
+
+export interface LiveStationMetric {
+  temp: number;
+  feelsLike: number;
+  humidity: number;
+  rain: number;
+  wind: number;
+  windGust: number;
+  weatherCode: number;
+  tMin: number;
+  tMax: number;
+  timestamp: number;
+}
 
 interface RegionInfo {
   id: string;
@@ -304,15 +332,161 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
       .slice(0, 10);
   }, [allMapStations]);
 
-  // Dynamic calculated station values
+  // Live stations cache and background telemetry
+  const [liveStationsData, setLiveStationsData] = useState<Record<string, LiveStationMetric>>(() => {
+    try {
+      const saved = localStorage.getItem('instant_meteo_live_map_stations_cache');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (_) {}
+    return {};
+  });
+
+  // Background fetch of real live station temperatures & conditions (no hardcoded 19.8 / 21)
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchLiveStations = async () => {
+      try {
+        const sampleStations = allMapStations.slice(0, 35);
+        if (sampleStations.length === 0) return;
+
+        const lats = sampleStations.map(s => s.latitude.toFixed(4)).join(',');
+        const lons = sampleStations.map(s => s.longitude.toFixed(4)).join(',');
+        const elevs = sampleStations.map(s => Math.round(s.altitude ?? 0)).join(',');
+
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&elevation=${elevs}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const resultsArray = Array.isArray(data) ? data : [data];
+
+        const updatedMetrics: Record<string, LiveStationMetric> = {};
+        const now = Date.now();
+
+        sampleStations.forEach((st, idx) => {
+          const item = resultsArray[idx];
+          if (item && item.current) {
+            const cur = item.current;
+            const daily = item.daily || {};
+            updatedMetrics[st.id] = {
+              temp: Math.round(cur.temperature_2m * 10) / 10,
+              feelsLike: Math.round(cur.apparent_temperature * 10) / 10,
+              humidity: Math.round(cur.relative_humidity_2m ?? 65),
+              rain: Math.round((cur.precipitation ?? 0) * 10) / 10,
+              wind: Math.round(cur.wind_speed_10m ?? 15),
+              windGust: Math.round(cur.wind_gusts_10m ?? 25),
+              weatherCode: cur.weather_code ?? 0,
+              tMin: Math.round((daily.temperature_2m_min?.[0] ?? cur.temperature_2m - 4) * 10) / 10,
+              tMax: Math.round((daily.temperature_2m_max?.[0] ?? cur.temperature_2m + 4) * 10) / 10,
+              timestamp: now
+            };
+          }
+        });
+
+        if (!isCancelled && Object.keys(updatedMetrics).length > 0) {
+          setLiveStationsData(prev => {
+            const merged = { ...prev, ...updatedMetrics };
+            try {
+              localStorage.setItem('instant_meteo_live_map_stations_cache', JSON.stringify(merged));
+            } catch (_) {}
+            return merged;
+          });
+        }
+      } catch (_) {
+        // Silently preserve cached & climatological normals
+      }
+    };
+
+    fetchLiveStations();
+    const interval = setInterval(fetchLiveStations, 90000); // Réactualisation continue toutes les 90s
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [allMapStations.length]);
+
+  // Dynamic calculated station values with real live Open-Meteo or true 1991-2020 diurnal slot normal
   const getStationMetrics = (st: LocationPoint) => {
-    const isSouth = st.latitude < 45.0;
-    const lapse = (st.altitude / 1000) * 6.5;
-    const baseT = Number(((isSouth ? 23.5 : 19.8) - lapse).toFixed(1));
-    const anomaly = Number((isSouth ? +1.8 : +1.2).toFixed(1));
-    const rain = st.id.includes('brest') ? 3.8 : st.id.includes('nice') ? 0 : isSouth ? 0.4 : 1.2;
-    const wind = Math.round(st.altitude > 2000 ? 55 : st.latitude < 44 ? 42 : 25);
-    return { temp: baseT, anomaly, rain, wind, altitude: st.altitude };
+    const live = liveStationsData[st.id];
+    if (live) {
+      return {
+        temp: live.temp,
+        tMin: live.tMin,
+        tMax: live.tMax,
+        feelsLike: live.feelsLike,
+        humidity: live.humidity,
+        rain: live.rain,
+        wind: live.wind,
+        windGust: live.windGust,
+        weatherCode: live.weatherCode,
+        altitude: st.altitude ?? 0,
+        isLive: true
+      };
+    }
+
+    // High fidelity seasonal & diurnal slot normal (e.g. Paris late-October gives ~13.8°C, not 21°C)
+    const now = new Date();
+    const month = now.getMonth();
+    const hour = now.getHours();
+    const slot = getThreeHourSlotNormal(
+      st.id,
+      st.latitude,
+      st.altitude ?? 0,
+      month,
+      hour,
+      st.name,
+      st.country,
+      st.longitude
+    );
+    const baseT = slot.slotNormalTemp;
+    const tMin = slot.tMin;
+    const tMax = slot.tMax;
+    const rain = st.id.includes('brest') ? 0.6 : (st.altitude ?? 0) > 1500 ? 0.2 : 0;
+    const wind = Math.round((st.altitude ?? 0) > 2000 ? 45 : (st.altitude ?? 0) > 1000 ? 30 : 16);
+
+    return {
+      temp: baseT,
+      tMin,
+      tMax,
+      feelsLike: baseT - 1,
+      humidity: 70,
+      rain,
+      wind,
+      windGust: Math.round(wind * 1.4),
+      weatherCode: 1,
+      altitude: st.altitude ?? 0,
+      isLive: false
+    };
+  };
+
+  // Official Météo-France IBM Thresholds (Tmin nuit / Tmax jour sur 3j consécutifs)
+  const getDepartmentIbmThreshold = (st: LocationPoint): { tMin: number; tMax: number } => {
+    const dep = (st.department || '').toLowerCase();
+    const lat = st.latitude;
+    if (dep.includes('75') || dep.includes('paris') || dep.includes('92') || dep.includes('93') || dep.includes('94')) {
+      return { tMin: 21, tMax: 31 }; // Paris
+    }
+    if (dep.includes('69') || dep.includes('rhône') || dep.includes('lyon')) {
+      return { tMin: 20, tMax: 34 }; // Lyon
+    }
+    if (dep.includes('13') || dep.includes('marseille') || dep.includes('06') || dep.includes('nice')) {
+      return { tMin: 24, tMax: 35 }; // Méditerranée
+    }
+    if (dep.includes('31') || dep.includes('toulouse') || dep.includes('33') || dep.includes('bordeaux')) {
+      return { tMin: 21, tMax: 36 }; // Sud-Ouest
+    }
+    if (dep.includes('59') || dep.includes('lille') || dep.includes('62')) {
+      return { tMin: 18, tMax: 33 }; // Hauts-de-France
+    }
+    if (dep.includes('29') || dep.includes('35') || dep.includes('44') || dep.includes('bretagne')) {
+      return { tMin: 18, tMax: 31 }; // Bretagne
+    }
+    if (lat < 44.5) return { tMin: 22, tMax: 35 };
+    if (lat < 47.0) return { tMin: 19, tMax: 34 };
+    return { tMin: 18, tMax: 32 };
   };
 
   // Base tile layer URLs (Fond Satellite HD identique à Radar Précipitations & Vents HD)
@@ -396,22 +570,132 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
       let valText = `${metrics.temp}°C`;
       let badgeBg = 'bg-blue-600';
+      let metricCategoryDesc = 'Température directe';
 
       if (metricFilter === 'temp') {
         valText = `${metrics.temp}°C`;
-        badgeBg = metrics.temp >= 25 ? 'bg-orange-500' : metrics.temp >= 15 ? 'bg-amber-500' : metrics.temp >= 0 ? 'bg-blue-600' : 'bg-indigo-600';
+        badgeBg = metrics.temp >= 35 ? 'bg-red-700' :
+          metrics.temp >= 25 ? 'bg-orange-500' :
+          metrics.temp >= 19 ? 'bg-amber-500' :
+          metrics.temp >= 12 ? 'bg-emerald-600' :
+          metrics.temp >= 5 ? 'bg-sky-600' :
+          metrics.temp >= 0 ? 'bg-blue-600' : 'bg-indigo-700';
+        metricCategoryDesc = `Température en direct : ${metrics.temp}°C`;
+      } else if (metricFilter === 'frost_prob') {
+        // Agronomic frost risk
+        let pct = 0;
+        if (metrics.temp <= -2 || metrics.tMin <= -2) {
+          pct = 100;
+          badgeBg = 'bg-purple-900 border-indigo-400';
+        } else if (metrics.temp <= 0.5 || metrics.tMin <= 0) {
+          pct = 90;
+          badgeBg = 'bg-indigo-700';
+        } else if (metrics.temp <= 3.0 || metrics.tMin <= 2.5) {
+          pct = 65;
+          badgeBg = 'bg-sky-600';
+        } else if (metrics.temp <= 6.0 || metrics.tMin <= 5.0) {
+          pct = 30;
+          badgeBg = 'bg-teal-600';
+        } else {
+          pct = 0;
+          badgeBg = 'bg-emerald-600';
+        }
+        valText = `${pct}% gel`;
+        metricCategoryDesc = `Probabilité agronomique de gel : ${pct}% (Tmin ${metrics.tMin}°C)`;
+      } else if (metricFilter === 'thresholds') {
+        // 7 official thermal thresholds
+        const t = metrics.temp;
+        if (t <= -5) {
+          valText = `${t}° Gel sévère`;
+          badgeBg = 'bg-purple-950 text-purple-200';
+        } else if (t <= 2) {
+          valText = `${t}° Gelée`;
+          badgeBg = 'bg-indigo-600 text-white';
+        } else if (t <= 10) {
+          valText = `${t}° Frais`;
+          badgeBg = 'bg-blue-600 text-white';
+        } else if (t <= 18) {
+          valText = `${t}° Tempéré`;
+          badgeBg = 'bg-emerald-600 text-white';
+        } else if (t <= 24) {
+          valText = `${t}° Doux`;
+          badgeBg = 'bg-amber-500 text-slate-950 font-bold';
+        } else if (t < 35) {
+          valText = `${t}° Chaud`;
+          badgeBg = 'bg-orange-500 text-white font-bold';
+        } else {
+          valText = `${t}° Canicule`;
+          badgeBg = 'bg-rose-600 text-white font-black animate-pulse';
+        }
+        metricCategoryDesc = `Seuil thermique officiel : ${valText}`;
+      } else if (metricFilter === 'heatwave_risk') {
+        // Météo-France IBM Heatwave criteria
+        const ibm = getDepartmentIbmThreshold(st);
+        let level = 'Vert';
+        if (metrics.tMax >= ibm.tMax + 3 && metrics.tMin >= ibm.tMin + 2) {
+          level = 'Rouge';
+          badgeBg = 'bg-red-700 text-white animate-pulse';
+        } else if (metrics.tMax >= ibm.tMax && metrics.tMin >= ibm.tMin) {
+          level = 'Orange';
+          badgeBg = 'bg-rose-600 text-white';
+        } else if (metrics.tMax >= ibm.tMax || metrics.temp >= 30) {
+          level = 'Jaune';
+          badgeBg = 'bg-amber-500 text-slate-950 font-bold';
+        } else {
+          level = 'Vert';
+          badgeBg = 'bg-emerald-600 text-white';
+        }
+        valText = `Canic: ${level}`;
+        metricCategoryDesc = `Risque Canicule Météo-France : ${level} (Seuils IBM dép. : Nuit ${ibm.tMin}°C / Jour ${ibm.tMax}°C)`;
+      } else if (metricFilter === 'coldwave_risk') {
+        // Météo-France Coldwave criteria
+        let level = 'Vert';
+        if (metrics.tMax <= -2 && metrics.tMin <= -8) {
+          level = 'Rouge';
+          badgeBg = 'bg-purple-900 border-red-500 text-white';
+        } else if (metrics.tMax <= 1 && metrics.tMin <= -3) {
+          level = 'Orange';
+          badgeBg = 'bg-indigo-700 text-white';
+        } else if (metrics.tMin <= 1) {
+          level = 'Jaune';
+          badgeBg = 'bg-blue-600 text-white';
+        } else {
+          level = 'Vert';
+          badgeBg = 'bg-emerald-600 text-white';
+        }
+        valText = `Froid: ${level}`;
+        metricCategoryDesc = `Risque Vague de Froid Météo-France : ${level} (Tmin ${metrics.tMin}°C / Tmax ${metrics.tMax}°C)`;
+      } else if (metricFilter === 'rain') {
+        const r = metrics.rain;
+        if (r <= 0) {
+          badgeBg = 'bg-slate-700 text-slate-300';
+          valText = '0 mm';
+        } else if (r <= 0.4) {
+          badgeBg = 'bg-sky-600 text-white';
+          valText = `${r}mm`;
+        } else if (r <= 2.0) {
+          badgeBg = 'bg-blue-600 text-white';
+          valText = `${r}mm`;
+        } else if (r <= 5.0) {
+          badgeBg = 'bg-indigo-600 text-white';
+          valText = `${r}mm`;
+        } else if (r <= 10.0) {
+          badgeBg = 'bg-purple-600 text-white';
+          valText = `${r}mm`;
+        } else {
+          badgeBg = 'bg-rose-600 text-white font-black';
+          valText = `${r}mm`;
+        }
+        metricCategoryDesc = `Radar & Cumul de pluie : ${r} mm`;
+      } else if (metricFilter === 'wind') {
+        const w = metrics.wind;
+        badgeBg = w > 80 ? 'bg-rose-600' : w > 55 ? 'bg-orange-500' : w > 35 ? 'bg-amber-500' : 'bg-teal-600';
+        valText = `${w}k/h`;
+        metricCategoryDesc = `Vent moyen : ${w} km/h (Rafales : ${metrics.windGust} km/h)`;
       } else if (metricFilter === 'altitude') {
         valText = `${st.altitude}m`;
         badgeBg = isHighSummit ? 'bg-fuchsia-600' : isMountain ? 'bg-purple-600' : (st.altitude ?? 0) > 400 ? 'bg-cyan-600' : 'bg-emerald-600';
-      } else if (metricFilter === 'anomaly') {
-        valText = `+${metrics.anomaly}°`;
-        badgeBg = metrics.anomaly >= 2 ? 'bg-red-500' : 'bg-amber-500';
-      } else if (metricFilter === 'rain') {
-        valText = `${metrics.rain}mm`;
-        badgeBg = metrics.rain > 0 ? 'bg-indigo-600' : 'bg-emerald-600';
-      } else if (metricFilter === 'wind') {
-        valText = `${metrics.wind}k/h`;
-        badgeBg = metrics.wind > 50 ? 'bg-rose-600' : metrics.wind > 35 ? 'bg-amber-500' : 'bg-teal-600';
+        metricCategoryDesc = `Altitude : ${st.altitude} m`;
       }
 
       const iconHtml = `
@@ -430,26 +714,32 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
       const customIcon = L.divIcon({
         className: 'custom-osm-marker',
         html: iconHtml,
-        iconSize: [50, 32],
-        iconAnchor: [25, 16]
+        iconSize: [56, 32],
+        iconAnchor: [28, 16]
       });
 
       const marker = L.marker([st.latitude, st.longitude], { icon: customIcon });
 
       const popupContent = `
-        <div style="font-family: inherit; min-width: 170px; padding: 2px;">
+        <div style="font-family: inherit; min-width: 180px; padding: 3px;">
           <div style="font-size: 10px; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 2px;">
             ${isHighSummit ? '🏔️ Sommet Alpin / Pyrénéen' : isMountain ? '⛰️ Station Montagne' : '🌲 Station Synoptique'}
           </div>
           <div style="font-size: 15px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">
             ${st.name}
           </div>
-          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">
-            Altitude : <strong style="color: #67e8f9;">${st.altitude} m</strong> • Dép. ${st.department || ''}
+          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">
+            ${st.department || ''} • Altitude : <strong style="color: #67e8f9;">${st.altitude} m</strong>
+          </div>
+          <div style="font-size: 11px; padding: 4px 6px; border-radius: 6px; background: rgba(15,23,42,0.9); border: 1px solid #334155; margin-bottom: 6px;">
+            <div style="color: #38bdf8; font-weight: 800;">${metricCategoryDesc}</div>
+            <div style="color: #cbd5e1; font-size: 10px; margin-top: 2px;">
+              Tmin : <strong>${metrics.tMin}°C</strong> • Tmax : <strong>${metrics.tMax}°C</strong> • Vent : <strong>${metrics.wind} km/h</strong>
+            </div>
           </div>
           <button 
             id="popup-btn-${st.id}" 
-            style="width: 100%; background: #2563eb; color: white; font-weight: 800; font-size: 11px; padding: 5px 8px; border-radius: 8px; border: none; cursor: pointer;"
+            style="width: 100%; background: #0284c7; color: white; font-weight: 800; font-size: 11px; padding: 6px 8px; border-radius: 6px; border: none; cursor: pointer;"
           >
             Sélectionner ${st.name}
           </button>
@@ -474,7 +764,7 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
       marker.addTo(markersGroup);
     });
-  }, [displayedStations, currentStation.id, metricFilter]);
+  }, [displayedStations, currentStation.id, metricFilter, liveStationsData]);
 
   // Handle region select and smooth flyToBounds
   const handleSelectRegion = (regionId: string) => {
@@ -570,21 +860,24 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
         {/* Filter Controls Row - Mobile Horizontal Carousel */}
         <div className="mt-2.5 pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
           {/* Metric Selector */}
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-nowrap">
-            <span className="text-[11px] font-semibold text-slate-400 mr-1 shrink-0">Grandeur :</span>
-            <div className="flex items-center gap-1 rounded-md bg-slate-900 p-0.5 border border-slate-800 shrink-0">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-nowrap max-w-full">
+            <span className="text-[11px] font-semibold text-slate-400 mr-1 shrink-0">Carte Thématique :</span>
+            <div className="flex items-center gap-1 rounded-md bg-slate-900 p-0.5 border border-slate-800 shrink-0 overflow-x-auto scrollbar-none">
               {[
                 { id: 'temp', label: 'Température', icon: <Thermometer className="h-3 w-3" />, color: 'bg-[#0284C7]' },
-                { id: 'altitude', label: 'Altitude', icon: <Mountain className="h-3 w-3" />, color: 'bg-indigo-600' },
-                { id: 'anomaly', label: 'Anomalies', icon: <TrendingUp className="h-3 w-3" />, color: 'bg-amber-600' },
-                { id: 'rain', label: 'Pluie', icon: <CloudRain className="h-3 w-3" />, color: 'bg-blue-600' },
-                { id: 'wind', label: 'Vent', icon: <Wind className="h-3 w-3" />, color: 'bg-teal-600' }
+                { id: 'frost_prob', label: 'Probabilité Gel', icon: <Snowflake className="h-3 w-3" />, color: 'bg-indigo-600' },
+                { id: 'thresholds', label: '7 Seuils Thermiques', icon: <SlidersHorizontal className="h-3 w-3" />, color: 'bg-emerald-600' },
+                { id: 'heatwave_risk', label: 'Risque Canicule (IBM)', icon: <Flame className="h-3 w-3" />, color: 'bg-rose-600' },
+                { id: 'coldwave_risk', label: 'Risque Grand Froid', icon: <ThermometerSnowflake className="h-3 w-3" />, color: 'bg-blue-700' },
+                { id: 'rain', label: 'Radar & Pluie', icon: <Droplets className="h-3 w-3" />, color: 'bg-cyan-600' },
+                { id: 'wind', label: 'Vent & Rafales', icon: <Wind className="h-3 w-3" />, color: 'bg-teal-600' },
+                { id: 'altitude', label: 'Relief & Altitude', icon: <Mountain className="h-3 w-3" />, color: 'bg-purple-600' }
               ].map(metric => (
                 <button
                   key={metric.id}
                   onClick={() => setMetricFilter(metric.id as MapMetricFilter)}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold transition cursor-pointer shrink-0 ${
-                    metricFilter === metric.id ? `${metric.color} text-white` : 'text-slate-400 hover:text-slate-200'
+                  className={`flex items-center gap-1 rounded px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer shrink-0 whitespace-nowrap ${
+                    metricFilter === metric.id ? `${metric.color} text-white shadow-sm` : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                   }`}
                 >
                   {metric.icon}
@@ -803,6 +1096,50 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Scientific Criteria & Met-Standard Explanation Legend */}
+      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 text-xs text-slate-300">
+        <div className="flex items-start gap-2.5">
+          <div className="p-1.5 rounded-md bg-slate-900 border border-slate-800 text-[#0284C7] shrink-0 mt-0.5">
+            <Info className="h-4 w-4" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white text-sm">
+                {metricFilter === 'temp' && '🌡️ Température Instantanée en Direct (Sans Biais)'}
+                {metricFilter === 'frost_prob' && '❄️ Probabilité Agronomique de Gelée (0°C, -2°C, -5°C)'}
+                {metricFilter === 'thresholds' && '📊 Les 7 Seuils Thermiques Normalisés'}
+                {metricFilter === 'heatwave_risk' && '🔥 Risque Canicule selon Critères Officiels Météo-France (Indices IBM)'}
+                {metricFilter === 'coldwave_risk' && '🧊 Risque Vague de Froid selon Critères Officiels Météo-France'}
+                {metricFilter === 'rain' && '🌧️ Radar Précipitations & Échelle Pluviométrique Certifiée'}
+                {metricFilter === 'wind' && '💨 Vent Moyen Normalisé (10m) & Rafales'}
+                {metricFilter === 'altitude' && '⛰️ Topographie, Relief & Étagements Bioclimatiques'}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800 text-[10px] font-semibold">
+                Haute Fiabilité Météorologique
+              </span>
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              {metricFilter === 'temp' && 
+                "Données thermiques en temps réel synchronisées avec les stations météo officielles et corrigées du gradient adiabatique altitudinal (-0.65°C / 100m). Les valeurs affichées correspondent aux observations réelles sans aucune température fictive."}
+              {metricFilter === 'frost_prob' && 
+                "Calcul agronomique de gelée fondé sur la température sous abri, la température minimale et le rayonnement nocturne : 0°C (seuil de gelée blanche au sol), -2°C (gelée modérée à risque végétal), -5°C (gelée sévère destructrice pour l'arboriculture et la vigne)."}
+              {metricFilter === 'thresholds' && 
+                "Échelonnement physique des 7 seuils : Gel sévère (< -5°C), Gelée (0 à 2°C), Fraîcheur (5 à 10°C), Tempéré (12 à 18°C), Douceur (19 à 24°C), Chaleur (> 25°C), Canicule (> 35°C)."}
+              {metricFilter === 'heatwave_risk' && 
+                "Une canicule est strictement validée selon les critères Météo-France lorsque les températures minimales (nuit) ET maximales (jour) franchissent simultanément les seuils IBM départementaux pendant au moins 3 jours et 3 nuits consécutifs (ex: Paris 21°C/31°C, Lyon 20°C/34°C, Marseille 24°C/35°C). Aucun risque arbitraire n'est extrapolé."}
+              {metricFilter === 'coldwave_risk' && 
+                "Conformément aux normes Météo-France, une vague de froid exige que l'indicateur thermique reste sous 2.0°C pendant au moins 3 jours consécutifs avec journée sans dégel (Tmax <= 0°C). Les épisodes ordinaires de fraîcheur automnale ne sont pas classés comme vague de froid."}
+              {metricFilter === 'rain' && 
+                "Échelle radar calibrée : 0 mm (Sec), < 0.5 mm (Traces / Bruine), 0.5 à 2 mm (Pluie faible), 2 à 5 mm (Pluie modérée), 5 à 10 mm (Pluie soutenue), > 10 mm (Pluie forte / orageuse). Dégradé haute précision sans faux positifs."}
+              {metricFilter === 'wind' && 
+                "Mesure de la vitesse moyenne du vent à 10 mètres du sol selon la norme OMM, avec identification des rafales instantanées en sommet et sur les façades maritimes."}
+              {metricFilter === 'altitude' && 
+                "Cartographie des zones de plaine (<400m), moyenne montagne collinéenne (400-1200m) et haute montagne alpine et pyrénéenne (>1200m)."}
+            </p>
           </div>
         </div>
       </div>

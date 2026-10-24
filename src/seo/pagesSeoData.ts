@@ -281,6 +281,62 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
+  '/ia-meteo': {
+    slug: 'ia-meteo',
+    path: '/ia-meteo',
+    canonicalUrl: `${BASE_SITE_URL}/ia-meteo`,
+    title: 'AURA Weather AI — Intelligence Atmosphérique & Conversationnelle | Instant Météo',
+    description:
+      'Interrogez AURA, l’intelligence artificielle météo conversationnelle propulsée par les données certifiées d’Instant Météo : température exacte, vent, pluie, neige et graphiques.',
+    h1: 'AURA Weather AI : Intelligence Atmosphérique Conversationnelle',
+    sectionTitle: 'Questions en langage naturel, analyses météorologiques et graphiques sur mesure',
+    breadcrumbName: 'IA Météo AURA',
+    tabId: 'auraAI',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph:
+      'AURA Weather AI est votre assistant atmosphérique intelligent. Connecté en direct aux serveurs haute résolution d’Instant Météo, il analyse le temps de votre commune, détecte les coups de vent, surveille les isothermes neige et génère des graphiques précis à la demande.',
+    sections: [
+      {
+        heading: 'Données météorologiques 100 % certifiées InstantMétéo',
+        body: 'Contrairement aux modèles de langage généralistes qui inventent parfois des chiffres, AURA s’appuie exclusivement sur les relevés en direct, les modélisations numériques AROME et les radars Doppler officiels.',
+      },
+      {
+        heading: 'Interaction vocale et textuelle fluide',
+        body: 'Posez vos questions par écrit ou au micro en toute simplicité pour planifier vos activités, vos trajets ou votre tenue vestimentaire.',
+      },
+    ],
+    faq: [
+      {
+        question: 'D’où proviennent les données utilisées par AURA ?',
+        answer: 'Toutes les observations proviennent directement de votre station sélectionnée sur Instant Météo et des flux officiels ouverts Open Data.',
+      },
+      {
+        question: 'Puis-je demander des graphiques à AURA ?',
+        answer: 'Oui, demandez simplement un graphique de température, de vent ou de pluie pour visualiser l’évolution sur les prochaines heures.',
+      },
+    ],
+  },
+
+  '/aura': {
+    slug: 'aura',
+    path: '/aura',
+    canonicalUrl: `${BASE_SITE_URL}/ia-meteo`,
+    title: 'AURA Weather AI — Intelligence Atmosphérique & Conversationnelle | Instant Météo',
+    description:
+      'Interrogez AURA, l’intelligence artificielle météo conversationnelle propulsée par les données certifiées d’Instant Météo.',
+    h1: 'AURA Weather AI : Intelligence Atmosphérique Conversationnelle',
+    sectionTitle: 'Questions en langage naturel, analyses météorologiques et graphiques sur mesure',
+    breadcrumbName: 'IA Météo AURA',
+    tabId: 'auraAI',
+    changefreq: 'always',
+    priority: '0.90',
+    introParagraph:
+      'AURA Weather AI est votre assistant atmosphérique intelligent connecté en direct à Instant Météo.',
+    sections: [],
+    faq: [],
+  },
+
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
@@ -1824,6 +1880,7 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
   }
 
   const tabToPath: Record<string, string> = {
+    auraAI: '/ia-meteo',
     vigilance: '/vigilances',
     cloudNephology: '/nuages',
     scenarios14d: '/14-jours',

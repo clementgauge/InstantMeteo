@@ -72,6 +72,7 @@ import { MountainWeatherView } from './views/MountainWeatherView';
 import { BeachWeatherView } from './views/BeachWeatherView';
 import { DroughtAndFireView } from './views/DroughtAndFireView';
 import { WatercoursesView } from './views/WatercoursesView';
+import { AuraWeatherAiView } from './views/AuraWeatherAiView';
 import { PseudoModal } from './components/PseudoModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
@@ -247,7 +248,7 @@ function WeatherApp() {
       const saved = localStorage.getItem('instant_meteo_theme_mode');
       if (saved === 'light' || saved === 'dark') return saved;
     } catch (_) {}
-    return 'dark';
+    return 'light'; // Fond d'appli clair par défaut avec palette régionale
   });
 
   const handleToggleThemeMode = () => {
@@ -965,7 +966,7 @@ function WeatherApp() {
               seniorMode={seniorMode}
             />
 
-            {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
+            {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
               <div className="space-y-4">
                 <RealtimeView
                   station={currentStation}
@@ -1212,6 +1213,22 @@ function WeatherApp() {
                   seniorMode={seniorMode}
                 />
               </div>
+            )}
+
+            {activeTab === 'auraAI' && (
+              <AuraWeatherAiView
+                currentStation={currentStation}
+                weather={weather}
+                hourly={hourly}
+                daily={daily}
+                tempUnit={tempUnit}
+                onSelectStation={handleSelectStationWithSeo}
+                onBackToMain={() => {
+                  setActiveTab('realtime');
+                  setCurrentPath('/');
+                  window.history.pushState(null, '', '/');
+                }}
+              />
             )}
 
             {/* Recommandations de sites partenaires - Observatoire Climatique Mondial & Cin-Scope */}

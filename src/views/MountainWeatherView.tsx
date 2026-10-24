@@ -92,24 +92,31 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     return allMassifs.find((m) => m.id === selectedMassifId) || activeStationProfile || MOUNTAIN_MASSIFS[0];
   }, [allMassifs, selectedMassifId, activeStationProfile]);
 
-  // Synchronisation automatique en continu avec Open-Meteo pour la station sélectionnée
+  // Synchronisation automatique en continu (polling continu toutes les 60s) avec Open-Meteo
   useEffect(() => {
     let isMounted = true;
-    if (selectedMassif.isLiveCustomStation || liveOverrides[selectedMassif.id]) {
-      return;
-    }
-    setIsSyncingLive(true);
-    fetchLiveSkiResortConditions(selectedMassif)
-      .then((updated) => {
-        if (isMounted) {
-          setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
-        }
-      })
-      .finally(() => {
-        if (isMounted) setIsSyncingLive(false);
-      });
+    const fetchConditions = () => {
+      setIsSyncingLive(true);
+      fetchLiveSkiResortConditions(selectedMassif)
+        .then((updated) => {
+          if (isMounted) {
+            setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+          }
+        })
+        .finally(() => {
+          if (isMounted) setIsSyncingLive(false);
+        });
+    };
+
+    // Actualisation immédiate à la sélection
+    fetchConditions();
+
+    // Réactualisation continue en arrière-plan toutes les 60 secondes sans intervention de l'utilisateur
+    const interval = setInterval(fetchConditions, 60000);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, [selectedMassif.id]);
 
@@ -394,7 +401,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
           </h3>
           <span className="text-[11px] text-sky-400 flex items-center gap-1.5">
             <Radio className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
-            <span>{isSyncingLive ? 'Synchronisation télémétrique en direct...' : 'Télémétrie Nivôse / SLF / Open-Meteo active'}</span>
+            <span>{isSyncingLive ? 'Synchronisation télémétrique en direct...' : 'Télémétrie réactualisée en direct (flux automatique continu 60s)'}</span>
           </span>
         </div>
 

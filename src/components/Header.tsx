@@ -552,8 +552,25 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Row 3: Quick Action Circles (Radar, Jeu, Vidéos, Premium, Langue, Paramètres) on a single compact line */}
+        {/* Row 3: Quick Action Circles (IA AURA, Radar, Vidéos, Premium, Langue, Paramètres) on a single compact line */}
         <div className="flex items-center justify-between gap-1 px-0.5 pt-1 overflow-x-auto no-scrollbar">
+          {/* 0. IA AURA */}
+          {onSelectTab && (
+            <button
+              onClick={() => onSelectTab('auraAI')}
+              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
+              title="Ouvrir l'IA Météo AURA conversationnelle"
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500/25 to-sky-500/25 border border-amber-400/60 shadow-md flex items-center justify-center text-amber-500 dark:text-amber-300 relative">
+                <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
+                <span className="absolute -top-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-black bg-gradient-to-r from-amber-500 to-sky-500 text-slate-950">
+                  IA
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-amber-500 dark:text-amber-300">IA AURA</span>
+            </button>
+          )}
+
           {/* 1. Radar */}
           <button
             onClick={() => {
@@ -836,6 +853,19 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* IA Météo AURA Desktop Quick Access */}
+          {onSelectTab && (
+            <button
+              id="header-aura-ai-btn"
+              onClick={() => onSelectTab('auraAI')}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-purple-500/20 hover:from-amber-500/30 hover:via-sky-500/30 hover:to-purple-500/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+              title="Ouvrir l'IA Météo AURA — Assistant Météorologique Spatialisé"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+              <span>IA Météo AURA</span>
+            </button>
+          )}
 
           {/* Instagram Official Page Link */}
           <a

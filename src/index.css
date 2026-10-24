@@ -69,10 +69,10 @@ html, body {
 }
 
 /* ========================================================================= */
-/* MODE BLANC / LIGHT THEME DESIGN                                           */
+/* MODE FOND NATUREL ÉQUILIBRÉ / JUSTE MILIEU AVEC ACCENTS DE VALEURS         */
 /* ========================================================================= */
 html.theme-light {
-  background-color: #f6f8fa !important;
+  background-color: #eef2f6 !important;
   color: #0f172a !important;
 }
 
@@ -85,7 +85,7 @@ html.theme-light #root,
   color: #0f172a !important;
 }
 
-/* 1. All primary cards and containers: crisp white with subtle border and elevation */
+/* 1. All primary cards and containers: soft clean white with clear delineation */
 .theme-light [class*="bg-[#0"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-[#0284"]):not([class*="bg-[#00"]):not([class*="bg-[#0d94"]):not([class*="bg-[#065f"]),
 .theme-light [class*="bg-[#1"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *):not([class*="bg-[#1e3a"]):not([class*="bg-[#16a3"]),
 .theme-light [class*="bg-[#2"]:not([class*="bg-black/"]):not(.scenic-hero-card):not(.scenic-hero-card *),
@@ -127,7 +127,34 @@ html.theme-light #root,
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
-  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03) !important;
+  box-shadow: 0 2px 10px -1px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Accentuation et mise en valeur forte des éléments clés en mode clair */
+.theme-light .text-sky-400 {
+  color: #0284c7 !important;
+  font-weight: 700;
+}
+.theme-light .text-cyan-400,
+.theme-light .text-cyan-300 {
+  color: #0891b2 !important;
+  font-weight: 700;
+}
+.theme-light .text-emerald-400,
+.theme-light .text-emerald-300 {
+  color: #059669 !important;
+  font-weight: 700;
+}
+.theme-light .text-amber-400,
+.theme-light .text-amber-300 {
+  color: #d97706 !important;
+  font-weight: 700;
+}
+.theme-light .text-rose-400,
+.theme-light .text-rose-300,
+.theme-light .text-red-400 {
+  color: #e11d48 !important;
+  font-weight: 800;
 }
 
 /* Explicit preservation of active blue action tabs in light mode */
