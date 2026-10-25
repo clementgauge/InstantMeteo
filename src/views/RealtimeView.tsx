@@ -763,17 +763,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           tempUnit={tempUnit}
           onRefresh={onLocateGps}
         />
-
-        {/* Indicateurs Remarquables (Coups de Vent & Neige en Plaine / Hors Saison) - Mobile */}
-        <RemarkableWeatherHighlightCard
-          station={station}
-          weather={weather}
-          hourly={hourly}
-          daily={daily}
-          tempUnit={tempUnit}
-          onSelectStation={onSelectStation}
-          onNavigateTab={onNavigateTab}
-        />
       </div>
 
       {/* 1. Hero Current Weather, Map & Detailed Hourly/Daily/Curve Forecast + Soleil & Lune (Desktop Full-Page Grid) */}
@@ -831,6 +820,19 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               tempUnit={tempUnit}
               onOpenDayAnalyzer={handleOpenDayAnalyzer}
             />
+
+            {/* Indicateurs Remarquables (Coups de Vent & Neige en Plaine) - Relegué sous les prévisions heure par heure */}
+            <div className="mt-4">
+              <RemarkableWeatherHighlightCard
+                station={station}
+                weather={weather}
+                hourly={hourly}
+                daily={daily}
+                tempUnit={tempUnit}
+                onSelectStation={onSelectStation}
+                onNavigateTab={onNavigateTab}
+              />
+            </div>
           </div>
 
           {/* Bannière d'état Mode Simple / Mode Expert */}

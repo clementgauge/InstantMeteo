@@ -41,7 +41,7 @@ import {
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { getNormalsForStation } from '../data/climateNormals';
 import { getThermalTierForTemp } from '../utils/thermalTiers';
-import { getRichWeatherInfo, getRainRiskExplanation, getDetailedCloudCover, getOctasFromPercent } from '../utils/weatherIcons';
+import { getRichWeatherInfo, getRainRiskExplanation, getDetailedCloudCover, getOctasFromPercent, getHonestDayWeather } from '../utils/weatherIcons';
 import { DynamicSkyHeroArt } from './DynamicSkyHeroArt';
 
 interface GrandDayAndWeekDetailedForecastCardProps {
@@ -129,7 +129,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
   // =========================================================================
   if (simplifiedMode) {
     return (
-      <div id="grand-day-week-detailed-card" className="h-full rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-gradient-to-b dark:from-[#0d182e]/95 dark:via-[#091224]/95 dark:to-[#070e1c]/95 p-3.5 sm:p-4 shadow-xl flex flex-col justify-between space-y-3 motion-card-enter">
+      <div id="grand-day-week-detailed-card" className="h-full rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-gradient-to-b dark:from-[#0d182e]/95 dark:via-[#091224]/95 dark:to-[#070e1c]/95 p-3.5 sm:p-5 shadow-xl flex flex-col justify-between space-y-4 motion-card-enter">
         {/* En-tête épuré et fidèle */}
         <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 dark:bg-gradient-to-br dark:from-sky-500/25 dark:to-blue-600/20 border border-sky-300 dark:border-sky-400/40 text-sky-600 dark:text-sky-400 shadow-sm">
@@ -138,20 +138,27 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight">
-                Déroulé 24h Heure par Heure
+                Déroulé 24h &amp; Tendances 7 Jours
               </h2>
               <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-400/40">
                 Mode Simplifié
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Défilement horizontal de la météo des 24 prochaines heures
+              Défilement heure par heure + prévisions 7 jours avec icônes honnêtes et contrastes thermiques
             </p>
           </div>
         </div>
 
-        {/* Déroulé 24h Heure par Heure (Taille ajustée aux cartes, zéro espace vide sous les blocs) */}
+        {/* Déroulé 24h Heure par Heure */}
         <div className="w-full">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-sky-500" />
+              <span>Aujourd'hui &bull; Heure par Heure</span>
+            </span>
+            <span className="text-[11px] text-slate-400">Glissez horizontalement</span>
+          </div>
           <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 touch-pan-x overscroll-x-contain snap-x">
             {next24Hours.map((h, i) => {
               const tier = getThermalTierForTemp(h.temperature);
@@ -207,6 +214,100 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                       <span className="font-semibold text-teal-700 dark:text-teal-300 font-mono">
                         {h.windSpeed} km/h
                       </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SECTION TENDANCES 7 JOURS EN MODE SIMPLIFIÉ (CLARTÉ, ZÉRO DÉPRIME, ICÔNES HONNÊTES) */}
+        <div className="w-full pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                Tendances de la Semaine (7 Jours)
+              </h3>
+            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+              Icônes calibrées &bull; Météo honnête
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+            {daily.slice(0, 7).map((d, dIdx) => {
+              const isToday = dIdx === 0;
+              const honest = getHonestDayWeather(d);
+              const minTier = getThermalTierForTemp(d.tempMin);
+              const maxTier = getThermalTierForTemp(d.tempMax);
+              const rainMm = d.precipitationSumMm ?? d.rainMm ?? 0;
+
+              return (
+                <div
+                  key={dIdx}
+                  className={`rounded-2xl border p-3 flex flex-col justify-between transition relative shadow-sm ${
+                    isToday
+                      ? 'border-sky-400/80 bg-sky-50/70 dark:bg-slate-900/90 ring-1 ring-sky-400/30'
+                      : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-950/90 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                        isToday
+                          ? 'bg-sky-500 text-white'
+                          : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300'
+                      }`}>
+                        {isToday ? "Aujourd'hui" : d.dayLabel}
+                      </span>
+                      {honest.isBriefShower && (
+                        <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded" title="Ondée très brève sans gâcher la journée">
+                          ⚡ Ondée
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="my-2 flex justify-center" title={honest.label}>
+                      <DynamicSkyHeroArt weatherCode={honest.weatherCode} isDay={true} size="sm" />
+                    </div>
+
+                    <div className="text-center">
+                      <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block truncate" title={honest.label}>
+                        {honest.shortLabel}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    {/* Thermal min / max */}
+                    <div className="flex items-baseline justify-between font-mono">
+                      <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+                        {formatTempSimple(d.tempMin)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-600">&bull;</span>
+                      <span className="text-sm font-black text-amber-600 dark:text-amber-400">
+                        {formatTempSimple(d.tempMax)}
+                      </span>
+                    </div>
+
+                    {/* Honest Rain Badge */}
+                    <div className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center justify-between border ${
+                      rainMm > 2.5 && !honest.isBriefShower
+                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
+                        : honest.isBriefShower
+                        ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30'
+                        : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20'
+                    }`}>
+                      <span>💧 {rainMm > 0 ? `${rainMm} mm` : 'Sec'}</span>
+                      <span className="text-[9px] opacity-80">{d.precipitationProbability}%</span>
+                    </div>
+
+                    {/* Wind max */}
+                    <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-400">
+                      <span>Vent max :</span>
+                      <span className="font-semibold text-teal-600 dark:text-teal-400">{d.windGustMax ?? d.windSpeedMax} km/h</span>
                     </div>
                   </div>
                 </div>
@@ -718,8 +819,9 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                 const isToday = dIdx === 0;
                 const minTier = getThermalTierForTemp(d.tempMin);
                 const maxTier = getThermalTierForTemp(d.tempMax);
-                const richWeather = getRichWeatherInfo(d.weatherCode, true, d.precipitationSumMm ?? d.rainMm ?? 0);
-                const rainRisk = getRainRiskExplanation(d.precipitationProbability, d.precipitationSumMm ?? d.rainMm ?? 0, d.precipitationHours ?? 1);
+                const honestWeather = getHonestDayWeather(d);
+                const rainMm = d.precipitationSumMm ?? d.rainMm ?? 0;
+                const rainRisk = getRainRiskExplanation(d.precipitationProbability, rainMm, d.precipitationHours ?? 1);
                 return (
                   <button
                     key={dIdx}
@@ -742,13 +844,13 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                       <div className="font-bold text-slate-900 dark:text-white text-xs">
                         {isToday ? "Aujourd'hui" : d.dayLabel}
                       </div>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5" title={richWeather.detailedLabel}>
-                        {richWeather.shortLabel}
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5" title={honestWeather.label}>
+                        {honestWeather.shortLabel}
                       </span>
                     </div>
 
-                    <div className="my-2 flex justify-center" title={richWeather.detailedLabel}>
-                      <DynamicSkyHeroArt weatherCode={d.weatherCode} isDay={true} size="sm" />
+                    <div className="my-2 flex justify-center" title={honestWeather.label}>
+                      <DynamicSkyHeroArt weatherCode={honestWeather.weatherCode} isDay={true} size="sm" />
                     </div>
 
                     <div>
@@ -778,10 +880,18 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
                         <span className="font-semibold text-slate-800 dark:text-slate-200">☁️ {d.cloudCoverMean ?? 40}%</span>
                       </div>
 
-                      {/* Rain Risk Badge */}
-                      <div className="mt-1.5 flex items-center justify-between text-[10px] font-semibold text-sky-600 dark:text-sky-300 bg-sky-50 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-sky-200 dark:border-slate-800" title={rainRisk.combinedExplanation}>
+                      {/* Honest Rain Risk Badge */}
+                      <div className={`mt-1.5 flex items-center justify-between text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                        honestWeather.isBriefShower
+                          ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40'
+                          : rainMm > 2.5
+                          ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-slate-800'
+                          : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                      }`} title={rainRisk.combinedExplanation}>
                         <span>{d.precipitationProbability}%</span>
-                        <span>{d.precipitationSumMm ?? d.rainMm ?? 0} mm</span>
+                        <span className="truncate ml-1 font-mono">
+                          {honestWeather.isBriefShower ? `${rainMm}mm (ondée)` : `${rainMm} mm`}
+                        </span>
                       </div>
 
                       <div className="mt-2 pt-1 border-t border-slate-200 dark:border-slate-800 text-[9px] text-slate-500 dark:text-slate-400 truncate">

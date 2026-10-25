@@ -143,45 +143,57 @@ export function calculateReliableFeelsLike(
   solarRadiationWm2?: number,
   apiApparentTemp?: number | null
 ): number {
-  const dp = calculateExactDewPoint(temperature, relativeHumidity);
+  const hum = Math.min(100, Math.max(5, relativeHumidity));
+  const dp = calculateExactDewPoint(temperature, hum);
   const e = calculateVaporPressureHpa(dp);
   const vMs = Math.max(0, windSpeedKmH) / 3.6;
   const q = solarRadiationWm2 ?? 0;
+  const solarFactor = q > 50 ? Math.min(2.5, (q / 1000) * 2.8) : 0;
 
-  // 1. Si nous sommes en plein régime froid et venté (T <= 10°C)
+  let calculated: number;
+
+  // 1. Régime Froid (T <= 10°C) : Formule officielle conjointe JAG/TI Windchill
   if (temperature <= 10) {
     const wc = calculateExactWindChill(temperature, windSpeedKmH);
-    // Légère atténuation solaire si plein soleil diurne
-    const solarWarming = q > 300 ? Math.min(2.0, (q / 1000) * 2.5) : 0;
-    const finalColdFeels = Math.min(temperature, wc + solarWarming);
-    return Number(finalColdFeels.toFixed(1));
-  }
-
-  // 2. Si nous sommes en régime de chaleur et humidité (T >= 24°C et e >= 14 hPa)
-  if (temperature >= 24) {
-    const humidex = calculateExactHumidex(temperature, relativeHumidity, dp);
-    const windCooling = Math.min(3.5, 0.45 * Math.sqrt(vMs));
-    const solarRadiationBonus = q > 200 ? Math.min(3.0, (q / 800) * 2.5) : 0;
-    
-    // Le ressenti thermique chaud est amplifié par l'humidité et le rayonnement, atténué par la ventilation
-    const warmFeels = humidex - windCooling + solarRadiationBonus;
-    return Number(Math.max(temperature - 2, warmFeels).toFixed(1));
-  }
-
-  // 3. Zone tempérée (10°C < T < 24°C) : Formule de Steadman (Bureau of Meteorology / BoM)
+    // Atténuation douce par l'ensoleillement direct sur la peau
+    calculated = Math.min(temperature + 1.0, wc + (solarFactor * 0.7));
+  } 
+  // 2. Régime Chaud (T >= 24°C) : Modèle combiné Humidex Canadien & Heat Index US
+  else if (temperature >= 24) {
+    const humidex = calculateExactHumidex(temperature, hum, dp);
+    const windCooling = Math.min(3.5, 0.40 * Math.sqrt(vMs));
+    // En été, humidité et rayonnement amplifient la sensation d'étouffement, tandis que la brise rafraîchit
+    const warmFeels = humidex - windCooling + (solarFactor * 0.9);
+    calculated = Math.max(temperature - 3.5, warmFeels);
+  } 
+  // 3. Zone Tempérée (10°C < T < 24°C) : Formule bioclimatique de Steadman (BoM Australia)
   // AT = T + 0.33 * e - 0.70 * v - 4.00 (+ rayonnement solaire)
-  const solarFactor = q > 0 ? (0.70 * q) / 1000 : 0;
-  const steadmanAt = temperature + (0.33 * e) - (0.70 * vMs) - 4.00 + solarFactor;
-
-  // Si l'API Open-Meteo fournit déjà une valeur de haute résolution cohérente, l'harmoniser
-  if (typeof apiApparentTemp === 'number' && !isNaN(apiApparentTemp)) {
-    // Vérification de sécurité pour éviter toute aberration numérique API
-    if (Math.abs(apiApparentTemp - temperature) <= 18) {
-      return Number(apiApparentTemp.toFixed(1));
+  else {
+    const steadmanAt = temperature + (0.33 * e) - (0.70 * vMs) - 4.00 + solarFactor;
+    
+    // Raccordement continu aux frontières pour éviter toute discontinuité
+    if (temperature < 12) {
+      // Transition douce avec le Windchill à 10°C
+      const wcAt10 = calculateExactWindChill(10, windSpeedKmH);
+      const ratio = (temperature - 10) / 2;
+      calculated = (wcAt10 * (1 - ratio)) + (steadmanAt * ratio);
+    } else if (temperature > 22) {
+      // Transition douce avec l'Humidex à 24°C
+      const humidexAt24 = calculateExactHumidex(24, hum, dp) - Math.min(3.5, 0.40 * Math.sqrt(vMs));
+      const ratio = (temperature - 22) / 2;
+      calculated = (steadmanAt * (1 - ratio)) + (humidexAt24 * ratio);
+    } else {
+      calculated = steadmanAt;
     }
   }
 
-  return Number(steadmanAt.toFixed(1));
+  // Si l'API fournit une valeur apparent_temperature, on l'utilise en pondération douce (25%) avec notre physique locale (75%)
+  if (typeof apiApparentTemp === 'number' && !isNaN(apiApparentTemp) && Math.abs(apiApparentTemp - temperature) <= 18) {
+    const blended = (calculated * 0.75) + (apiApparentTemp * 0.25);
+    return Number(blended.toFixed(1));
+  }
+
+  return Number(calculated.toFixed(1));
 }
 
 /**

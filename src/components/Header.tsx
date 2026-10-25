@@ -79,6 +79,7 @@ interface HeaderProps {
   onOpenVigilanceTab?: () => void;
   onOpenRadarTab?: () => void;
   onSelectTab?: (tabId: any) => void;
+  onOpenAuraModal?: () => void;
   onOpenNotificationsModal?: () => void;
   activeAlertCount?: number;
   onOpenPageBlockCustomizer?: () => void;
@@ -125,6 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenVigilanceTab,
   onOpenRadarTab,
   onSelectTab,
+  onOpenAuraModal,
   onOpenNotificationsModal,
   activeAlertCount = 0,
   onOpenPageBlockCustomizer,
@@ -555,9 +557,9 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Row 3: Quick Action Circles (IA AURA, Radar, Vidéos, Premium, Langue, Paramètres) on a single compact line */}
         <div className="flex items-center justify-between gap-1 px-0.5 pt-1 overflow-x-auto no-scrollbar">
           {/* 0. IA AURA */}
-          {onSelectTab && (
+          {(onOpenAuraModal || onSelectTab) && (
             <button
-              onClick={() => onSelectTab('auraAI')}
+              onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
               className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
               title="Ouvrir l'IA Météo AURA conversationnelle"
             >
@@ -855,10 +857,10 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* IA Météo AURA Desktop Quick Access */}
-          {onSelectTab && (
+          {(onOpenAuraModal || onSelectTab) && (
             <button
               id="header-aura-ai-btn"
-              onClick={() => onSelectTab('auraAI')}
+              onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
               className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-purple-500/20 hover:from-amber-500/30 hover:via-sky-500/30 hover:to-purple-500/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0"
               title="Ouvrir l'IA Météo AURA — Assistant Météorologique Spatialisé"
             >

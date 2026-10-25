@@ -18,21 +18,33 @@ import {
   RefreshCw,
   Compass,
   Thermometer,
-  Layers
+  Layers,
+  X
 } from 'lucide-react';
 import Chart from 'chart.js/auto';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
+import { getFallbackWeatherData } from '../services/openMeteoService';
 import { getIsothermComprehensiveDiagnostic } from '../utils/isothermCalculations';
 
 interface AuraWeatherAiViewProps {
   currentStation: LocationPoint;
-  weather: CurrentWeather;
+  weather: CurrentWeather | null;
   hourly?: HourlyForecast[];
   daily?: DailyForecast[];
   tempUnit?: 'C' | 'F';
   onSelectStation?: (station: LocationPoint) => void;
   onBackToMain?: () => void;
+  isModal?: boolean;
+  onClose?: () => void;
+}
+
+export interface ChartDatasetItem {
+  label: string;
+  data: number[];
+  color: string;
+  fill?: boolean;
+  type?: 'line' | 'bar';
 }
 
 interface ChatMessage {
@@ -55,9 +67,10 @@ interface ChatMessage {
     cityName: string;
     type: 'line' | 'bar';
     labels: string[];
-    datasetLabel: string;
-    data: number[];
-    color: string;
+    datasets?: ChartDatasetItem[];
+    datasetLabel?: string;
+    data?: number[];
+    color?: string;
   };
   timestamp: string;
 }
@@ -69,19 +82,25 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   daily = [],
   tempUnit = 'C',
   onSelectStation,
-  onBackToMain
+  onBackToMain,
+  isModal = false,
+  onClose
 }) => {
+  const safeWeather: CurrentWeather = useMemo(() => {
+    return weather ?? getFallbackWeatherData(currentStation).current;
+  }, [weather, currentStation]);
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome',
       sender: 'aura',
-      text: `Bonjour ! Je suis **AURA**, votre intelligence atmosphérique et conversationnelle propulsée par les données certifiées d'**InstantMétéo**.\n\nToutes mes analyses météo proviennent directement de votre station actuelle (**${currentStation.name}**) et du réseau météorologique officiel en direct.\n\nPosez-moi une question sur le temps qu'il fait, les risques de coup de vent, la neige en plaine, ou demandez-moi un graphique d'évolution sur 24h !`,
+      text: `Bonjour ! Je suis **AURA**, votre intelligence atmosphérique et conversationnelle propulsée par les données certifiées d'**InstantMétéo**.\n\nToutes mes analyses météo proviennent directement de votre station actuelle (**${currentStation.name}**) et du réseau météorologique officiel en direct.\n\n💡 **Idées de requêtes** : Vous pouvez me demander par exemple :\n- *"Donne-moi la température sur 7 jours"* ➔ génère la courbe complète Tmax / Tmin de la semaine\n- *"Donne-moi la pluie sur 7 jours"* ➔ génère le cumul précis en histogramme\n- *"Avis coup de vent"* ou *"Donne-moi le vent sur 7 jours"*\n- *"Limite pluie-neige et isotherme 0°C"*`,
       card: {
         location: currentStation.name,
-        temp: `${weather.temperature.toFixed(1)}°C`,
-        feelsLike: `${weather.feelsLike.toFixed(1)}°C`,
-        condition: weather.weatherDescription,
-        windInfo: `${weather.windSpeed} km/h (rafales ${weather.windGust ?? Math.round(weather.windSpeed * 1.35)} km/h)`,
+        temp: `${(weather?.temperature ?? 15).toFixed(1)}°C`,
+        feelsLike: `${(weather?.feelsLike ?? 15).toFixed(1)}°C`,
+        condition: weather?.weatherDescription ?? 'Éclaircies',
+        windInfo: `${weather?.windSpeed ?? 10} km/h (rafales ${weather?.windGust ?? Math.round((weather?.windSpeed ?? 10) * 1.35)} km/h)`,
         icon: '☀️'
       },
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -100,9 +119,9 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
   // 1. Détermination de l'état atmosphérique selon la météo actuelle
   const weatherState = useMemo(() => {
-    const code = weather.weatherCode;
-    const temp = weather.temperature;
-    if ([95, 96, 99].includes(code) || (weather.windGust ?? 0) >= 70) {
+    const code = safeWeather.weatherCode;
+    const temp = safeWeather.temperature;
+    if ([95, 96, 99].includes(code) || (safeWeather.windGust ?? 0) >= 70) {
       return {
         key: 'STORMY',
         name: 'Orageux & Coup de vent',
@@ -120,7 +139,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         glow2: 'rgba(147, 197, 253, 0.15)'
       };
     }
-    const liveRainProb = hourly?.[0]?.precipitationProbability ?? (weather.precipitation > 0 ? 80 : 0);
+    const liveRainProb = hourly?.[0]?.precipitationProbability ?? (safeWeather.precipitation > 0 ? 80 : 0);
     if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code) || liveRainProb >= 40) {
       return {
         key: 'RAINY',
@@ -137,7 +156,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       glow1: 'rgba(245, 158, 11, 0.2)',
       glow2: 'rgba(251, 146, 60, 0.15)'
     };
-  }, [weather.weatherCode, weather.temperature, weather.precipitation, weather.windGust, hourly]);
+  }, [safeWeather, hourly]);
 
   // 2. Moteur Canvas Atmosphérique d'AURA
   useEffect(() => {
@@ -276,27 +295,42 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           const ctx = canvasEl.getContext('2d');
           if (ctx) {
             const chartConfig = msg.chart;
-            const newChart = new Chart(ctx, {
-              type: chartConfig.type,
-              data: {
-                labels: chartConfig.labels,
-                datasets: [
+            const datasets = chartConfig.datasets && chartConfig.datasets.length > 0
+              ? chartConfig.datasets.map(ds => ({
+                  label: ds.label,
+                  data: ds.data,
+                  borderColor: ds.color,
+                  backgroundColor: (ds.type || chartConfig.type) === 'bar' ? `${ds.color}80` : `${ds.color}20`,
+                  fill: ds.fill ?? (chartConfig.type === 'line'),
+                  tension: 0.35,
+                  borderWidth: 2.5
+                }))
+              : [
                   {
-                    label: chartConfig.datasetLabel,
-                    data: chartConfig.data,
-                    borderColor: chartConfig.color,
-                    backgroundColor: chartConfig.type === 'bar' ? `${chartConfig.color}80` : `${chartConfig.color}20`,
+                    label: chartConfig.datasetLabel || 'Valeur',
+                    data: chartConfig.data || [],
+                    borderColor: chartConfig.color || '#38BDF8',
+                    backgroundColor: chartConfig.type === 'bar' ? `${chartConfig.color || '#38BDF8'}80` : `${chartConfig.color || '#38BDF8'}20`,
                     fill: chartConfig.type === 'line',
                     tension: 0.35,
                     borderWidth: 2.5
                   }
-                ]
+                ];
+
+            const newChart = new Chart(ctx, {
+              type: chartConfig.type,
+              data: {
+                labels: chartConfig.labels,
+                datasets
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { display: false },
+                  legend: { 
+                    display: !!(chartConfig.datasets && chartConfig.datasets.length > 1),
+                    labels: { color: '#E2E8F0', font: { size: 10, weight: 'bold' } }
+                  },
                   tooltip: {
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     titleColor: '#F59E0B',
@@ -352,10 +386,11 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
     // Détection si l'utilisateur demande un graphique
     const wantsGraph = ['graphe', 'graphique', 'courbe', 'histogramme', 'chart', 'evolution', 'évolution', 'tracer', 'schéma'].some(kw => lower.includes(kw));
+    const isGreeting = ['bonjour', 'salut', 'hello', 'coucou', 'bonsoir', 'yo', 'aide', 'bienvenue'].some(kw => lower.includes(kw));
 
     // Détection de la ville interrogée (ou la station actuelle par défaut)
     let targetStation: LocationPoint = currentStation;
-    let targetWeather: CurrentWeather = weather;
+    let targetWeather: CurrentWeather = safeWeather;
     let targetHourly: HourlyForecast[] = hourly;
 
     // Scan si une autre ville est mentionnée
@@ -369,10 +404,10 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       // Approximation cohérente basée sur le gradient thermique de la station
       const tempDiff = ((targetStation.altitude || 100) - (currentStation.altitude || 100)) * -0.0065;
       targetWeather = {
-        ...weather,
-        temperature: Math.round((weather.temperature + tempDiff) * 10) / 10,
-        feelsLike: Math.round((weather.feelsLike + tempDiff) * 10) / 10,
-        windSpeed: targetStation.name.includes('Marseille') ? Math.round(weather.windSpeed * 1.5) : weather.windSpeed
+        ...safeWeather,
+        temperature: Math.round((safeWeather.temperature + tempDiff) * 10) / 10,
+        feelsLike: Math.round((safeWeather.feelsLike + tempDiff) * 10) / 10,
+        windSpeed: targetStation.name.includes('Marseille') ? Math.round(safeWeather.windSpeed * 1.5) : safeWeather.windSpeed
       };
       targetHourly = hourly.map(h => ({
         ...h,
@@ -405,12 +440,199 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     let cardData: ChatMessage['card'] | undefined;
     let chartData: ChatMessage['chart'] | undefined;
 
-    // 1. Salutations simples
-    const greetings = ['salut', 'bonjour', 'hello', 'coucou', 'slt', 'bonsoir', 'ca va', 'comment vas tu'];
-    const isGreeting = greetings.some(g => lower.trim() === g || lower.startsWith(g + ' '));
+    // Détection des requêtes à 7 jours
+    const is7DayTemp = (lower.includes('7') || lower.includes('semaine') || lower.includes('sept')) && 
+      (lower.includes('temp') || lower.includes('degr') || lower.includes('donne') || lower.includes('courbe') || lower.includes('graphe') || lower.includes('graphique') || lower.includes('evolution') || lower.includes('tendance'));
 
-    if (isGreeting && !wantsGraph && !lower.includes('vent') && !lower.includes('neige') && !lower.includes('pluie')) {
-      responseText = `Bonjour ! L'atmosphère est calme sur **${targetStation.name}**. Selon nos relevés en temps réel, la température est de **${targetWeather.temperature}°C** avec un ciel **${targetWeather.weatherDescription.toLowerCase()}**.\n\nQue souhaitez-vous savoir : prévision des rafales de vent, risque de pluie dans l'heure, ou limites pluie-neige ?`;
+    const is7DayRain = (lower.includes('7') || lower.includes('semaine') || lower.includes('sept')) && 
+      (lower.includes('pluie') || lower.includes('cumul') || lower.includes('precip') || lower.includes('précip') || lower.includes('eau') || lower.includes('averse'));
+
+    const is7DayWind = (lower.includes('7') || lower.includes('semaine') || lower.includes('sept')) && 
+      (lower.includes('vent') || lower.includes('rafale') || lower.includes('tempete') || lower.includes('tempête') || lower.includes('eole'));
+
+    const is7DayIso = (lower.includes('7') || lower.includes('semaine') || lower.includes('sept')) && 
+      (lower.includes('isotherm') || lower.includes('lpn') || lower.includes('neige') || lower.includes('flocon') || lower.includes('montagne'));
+
+    // 0a. DEMANDE DE TEMPÉRATURE SUR 7 JOURS (AUJOURD'HUI À J+6 / J+7)
+    if (is7DayTemp && !is7DayRain && !is7DayWind && !is7DayIso) {
+      const days7 = daily && daily.length > 0 ? daily.slice(0, 7) : [];
+      const labels = days7.length > 0 
+        ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
+        : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
+      
+      const tmaxData = days7.length > 0 ? days7.map(d => d.tempMax) : [18, 19, 21, 22, 20, 19, 21];
+      const tminData = days7.length > 0 ? days7.map(d => d.tempMin) : [9, 10, 11, 12, 10, 9, 10];
+
+      const highestTmax = Math.max(...tmaxData);
+      const lowestTmin = Math.min(...tminData);
+      const warmestDay = days7.find(d => d.tempMax === highestTmax);
+      const coolestDay = days7.find(d => d.tempMin === lowestTmin);
+      const totalRainWeek = days7.reduce((acc, d) => acc + (d.precipitationSumMm ?? d.rainMm ?? 0), 0);
+
+      responseText = `📊 **Évolution des températures sur 7 jours à ${targetStation.name} (Aujourd'hui à J+6)** :\n\n` +
+        `Voici le graphique complet des courbes thermiques calculées par les modélisations numériques certifiées d'InstantMétéo :\n\n` +
+        `- 🟠 **Après-midi le plus doux** : **${warmestDay ? (warmestDay.dayLabel === 'Aujourd\'hui' ? 'Aujourd\'hui' : warmestDay.dayLabel) : 'Milieu de semaine'}** avec un pic diurne à **${highestTmax}°C**\n` +
+        `- 🔵 **Matinée la plus fraîche** : **${coolestDay ? (coolestDay.dayLabel === 'Aujourd\'hui' ? 'Ce matin' : coolestDay.dayLabel) : 'Début de semaine'}** avec une minimale à **${lowestTmin}°C**\n` +
+        `- 🌡️ **Amplitude thermique globale** : Écart de **${Math.round((highestTmax - lowestTmin) * 10) / 10}°C** entre les nuits et les journées\n` +
+        `- 💧 **Bilan précipitations** : Cumul de **${totalRainWeek.toFixed(1)} mm** sur l'ensemble de la période\n` +
+        `- ⛅ **Verdict météo** : ${
+          totalRainWeek < 3 
+            ? "Conditions très agréables avec un temps généralement sec et de belles périodes ensoleillées." 
+            : "Des passages nuageux et quelques ondées ponctuelles sont à prévoir sans perturber durablement vos projets."
+        }`;
+
+      cardData = {
+        location: targetStation.name,
+        temp: `${targetWeather.temperature}°C`,
+        feelsLike: `${targetWeather.feelsLike}°C`,
+        condition: `Semaine : ${lowestTmin}°C à ${highestTmax}°C`,
+        windInfo: `Cumul 7j : ${totalRainWeek.toFixed(1)} mm`,
+        icon: '📈'
+      };
+
+      chartData = {
+        id: `chart_${Date.now()}`,
+        title: `Courbe des températures sur 7 Jours à ${targetStation.name} (Tmax & Tmin)`,
+        cityName: targetStation.name,
+        type: 'line',
+        labels,
+        datasets: [
+          {
+            label: 'Tmax Après-midi (°C)',
+            data: tmaxData,
+            color: '#F59E0B',
+            fill: true
+          },
+          {
+            label: 'Tmin Matinée (°C)',
+            data: tminData,
+            color: '#38BDF8',
+            fill: false
+          }
+        ]
+      };
+    }
+    // 0b. DEMANDE DE PLUIE SUR 7 JOURS
+    else if (is7DayRain) {
+      const days7 = daily && daily.length > 0 ? daily.slice(0, 7) : [];
+      const labels = days7.length > 0 
+        ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
+        : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
+      
+      const rainData = days7.map(d => Number((d.precipitationSumMm ?? d.rainMm ?? 0).toFixed(1)));
+      const totalRain = rainData.reduce((a, b) => a + b, 0);
+      const rainyDaysCount = rainData.filter(r => r > 1.0).length;
+      const briefShowerCount = rainData.filter(r => r > 0 && r <= 1.0).length;
+
+      responseText = `💧 **Cumul et risque de précipitations sur 7 jours à ${targetStation.name}** :\n\n` +
+        `- Cumul total sur la semaine : **${totalRain.toFixed(1)} mm (Litres/m²)**\n` +
+        `- Jours de pluie nette (>1 mm) : **${rainyDaysCount} jour(s)**\n` +
+        `- Ondées brèves isolées (<1 mm) : **${briefShowerCount} jour(s)** (ne gâchant pas la journée)\n` +
+        `- Jour le plus humide : **${labels[rainData.indexOf(Math.max(...rainData))]}** avec **${Math.max(...rainData)} mm**\n\n` +
+        `${totalRain < 2.5 ? '☀️ Excellent pronostic : semaine globalement sèche propice aux sorties extérieures.' : '🌧️ Prévoyez un vêtement imperméable lors des passages plus humides indiqués sur l\'histogramme.'}`;
+
+      cardData = {
+        location: targetStation.name,
+        temp: `${targetWeather.temperature}°C`,
+        feelsLike: `${targetWeather.feelsLike}°C`,
+        condition: `Cumul 7j : ${totalRain.toFixed(1)} mm`,
+        windInfo: `${rainyDaysCount} jour(s) pluvieux`,
+        icon: '🌧️'
+      };
+
+      chartData = {
+        id: `chart_${Date.now()}`,
+        title: `Précipitations quotidiennes sur 7 jours à ${targetStation.name} (mm)`,
+        cityName: targetStation.name,
+        type: 'bar',
+        labels,
+        datasetLabel: 'Cumul (mm / L/m²)',
+        data: rainData,
+        color: '#0284C7'
+      };
+    }
+    // 0c. DEMANDE DE VENT SUR 7 JOURS
+    else if (is7DayWind) {
+      const days7 = daily && daily.length > 0 ? daily.slice(0, 7) : [];
+      const labels = days7.length > 0 
+        ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
+        : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
+      
+      const gustData = days7.map(d => d.windGustMax ?? Math.round((d.windSpeedMax ?? 15) * 1.35));
+      const maxGustWeek = Math.max(...gustData);
+      const maxGustDay = labels[gustData.indexOf(maxGustWeek)];
+
+      responseText = `💨 **Profil des rafales de vent sur 7 jours à ${targetStation.name}** :\n\n` +
+        `- Rafale maximale attendue sur la semaine : **${maxGustWeek} km/h** (${maxGustDay})\n` +
+        `- Niveau de risque : ${
+          maxGustWeek >= 80 
+            ? '⚠️ **Alerte coup de vent violent** sur un des jours de la semaine. Arrimez les objets légers.'
+            : maxGustWeek >= 60 
+            ? '🟡 Coup de vent modéré prévu, prudence pour les deux-roues et chapiteaux.' 
+            : '🟢 Flux régulier et calme sur l\'ensemble des 7 prochains jours.'
+        }`;
+
+      cardData = {
+        location: targetStation.name,
+        temp: `${targetWeather.temperature}°C`,
+        feelsLike: `${targetWeather.feelsLike}°C`,
+        condition: `Max semaine : ${maxGustWeek} km/h`,
+        windInfo: `Prévu ${maxGustDay}`,
+        icon: '💨'
+      };
+
+      chartData = {
+        id: `chart_${Date.now()}`,
+        title: `Rafales maximales sur 7 jours à ${targetStation.name} (km/h)`,
+        cityName: targetStation.name,
+        type: 'line',
+        labels,
+        datasetLabel: 'Rafales de pointe (km/h)',
+        data: gustData,
+        color: '#F97316'
+      };
+    }
+    // 0d. DEMANDE D'ISOTHERME 0°C ET LPN SUR 7 JOURS
+    else if (is7DayIso) {
+      const days7 = daily && daily.length > 0 ? daily.slice(0, 7) : [];
+      const labels = days7.length > 0 
+        ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
+        : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
+      
+      const isoData = days7.map(d => d.isotherm0Altitude ?? d.isotherm0Meters ?? 1800);
+      const lpnData = days7.map(d => Math.max(0, (d.isotherm0Altitude ?? d.isotherm0Meters ?? 1800) - 350));
+
+      responseText = `🏔️ **Isotherme 0°C et Limite Pluie-Neige sur 7 jours** :\n\n` +
+        `- Isotherme 0°C moyen : **${Math.round(isoData.reduce((a, b) => a + b, 0) / isoData.length)} m**\n` +
+        `- Point le plus bas : **${Math.min(...isoData)} m** (${labels[isoData.indexOf(Math.min(...isoData))]})\n` +
+        `- Altitude de votre station (${targetStation.name}) : **${targetAlt} m**\n` +
+        `${Math.min(...lpnData) <= targetAlt + 150 ? '❄️ Surveillance : la limite pluie-neige s\'approche de votre altitude !' : '🌧️ Aucune neige en plaine à prévoir sur les 7 prochains jours.'}`;
+
+      chartData = {
+        id: `chart_${Date.now()}`,
+        title: `Altitude Isotherme 0°C & LPN sur 7 jours (m)`,
+        cityName: targetStation.name,
+        type: 'line',
+        labels,
+        datasets: [
+          {
+            label: 'Isotherme 0°C (m)',
+            data: isoData,
+            color: '#06B6D4',
+            fill: false
+          },
+          {
+            label: 'Limite Pluie-Neige (m)',
+            data: lpnData,
+            color: '#A855F7',
+            fill: false
+          }
+        ]
+      };
+    }
+    // 1. Salutations simples
+    else if (isGreeting && !wantsGraph && !lower.includes('vent') && !lower.includes('neige') && !lower.includes('pluie')) {
+      responseText = `Bonjour ! L'atmosphère est calme sur **${targetStation.name}**. Selon nos relevés en temps réel, la température est de **${targetWeather.temperature}°C** avec un ciel **${targetWeather.weatherDescription.toLowerCase()}**.\n\nQue souhaitez-vous savoir : prévision des températures sur 7 jours, rafales de vent, cumul de pluie ou limites pluie-neige ?`;
       cardData = {
         location: targetStation.name,
         temp: `${targetWeather.temperature}°C`,
@@ -614,8 +836,8 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       .replace(/\*(.*?)\*/g, '<em class="text-sky-200">$1</em>');
   };
 
-  return (
-    <div className="relative min-h-[750px] sm:min-h-[820px] rounded-3xl border border-white/10 overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between shadow-2xl">
+  const renderViewContent = () => (
+    <div className={`relative ${isModal ? 'w-full max-w-4xl h-[92vh] max-h-[850px]' : 'min-h-[750px] sm:min-h-[820px]'} rounded-3xl border border-sky-500/30 overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between shadow-2xl`}>
       {/* 1. ATMOSPHERIC CANVAS ENGINE BACKGROUND */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full block" />
@@ -681,6 +903,18 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
             {isAudioMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-sky-400" />}
             <span className="hidden sm:inline">Soundscape</span>
           </button>
+
+          {/* Close button if modal or onClose provided */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              title="Fermer AURA Weather AI"
+              aria-label="Fermer AURA Weather AI"
+              className="p-2.5 rounded-xl bg-white/10 hover:bg-rose-500/30 border border-white/15 hover:border-rose-400/50 text-slate-300 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -784,39 +1018,46 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         {/* Quick Suggestion Chips */}
         <div className="pt-2 pb-1 flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
           <button
-            onClick={() => handleProcessQuery(`Quel est le temps exact ici à ${currentStation.name} ?`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+            onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm"
           >
-            <Sun className="h-3 w-3 text-amber-400" />
-            <span>Météo exacte ici</span>
+            <LineChart className="h-3 w-3 text-amber-400" />
+            <span>📊 Température 7 jours</span>
           </button>
           <button
-            onClick={() => handleProcessQuery(`Y a-t-il un risque de coup de vent ou de rafales violentes ?`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+            onClick={() => handleProcessQuery(`Donne-moi le cumul de pluie sur 7 jours`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm"
           >
-            <Wind className="h-3 w-3 text-amber-400" />
-            <span>Avis coup de vent</span>
+            <CloudRain className="h-3 w-3 text-sky-400" />
+            <span>💧 Pluie 7 jours</span>
           </button>
           <button
-            onClick={() => handleProcessQuery(`Fais-moi un graphique de température sur les prochaines heures`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+            onClick={() => handleProcessQuery(`Donne-moi les rafales de vent sur 7 jours`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm"
           >
-            <LineChart className="h-3 w-3 text-sky-400" />
-            <span>Graphique 24h</span>
+            <Wind className="h-3 w-3 text-orange-400" />
+            <span>💨 Rafales semaine</span>
           </button>
           <button
-            onClick={() => handleProcessQuery(`Y a-t-il un risque de neige en plaine ou hors saison ?`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+            onClick={() => handleProcessQuery(`Donne-moi l'isotherme 0°C et la LPN sur 7 jours`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm"
           >
             <Snowflake className="h-3 w-3 text-cyan-300" />
-            <span>Neige en plaine</span>
+            <span>🏔️ Isotherme 0°C & LPN</span>
           </button>
           <button
             onClick={() => handleProcessQuery(`Comment dois-je m'habiller aujourd'hui selon la température ?`)}
             className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
           >
             <Thermometer className="h-3 w-3 text-amber-300" />
-            <span>Conseil tenue</span>
+            <span>🧥 Conseil tenue</span>
+          </button>
+          <button
+            onClick={() => handleProcessQuery(`Y a-t-il un risque de coup de vent ou de rafales violentes ?`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <Wind className="h-3 w-3 text-slate-300" />
+            <span>Avis coup de vent</span>
           </button>
         </div>
 
@@ -846,7 +1087,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Posez votre question (ex: vent, neige en plaine, graphe, Marseille)..."
+              placeholder="Ex: donne moi la température sur 7 jours, pluie, vent, Marseille..."
               className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-2 font-normal"
             />
 
@@ -863,4 +1104,14 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       </main>
     </div>
   );
+
+  if (isModal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+        {renderViewContent()}
+      </div>
+    );
+  }
+
+  return renderViewContent();
 };

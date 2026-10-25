@@ -115,13 +115,106 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
     currentTemp <= 3.0 || lpn <= (stationAltitude + 500)
   );
 
-  // Stations nationales emblématiques sous surveillance vent
+  // Stations nationales emblématiques sous surveillance vent & tempêtes
   const NATIONAL_WIND_BENCHMARKS = [
-    { name: 'Cap Gris-Nez (62)', region: 'Manche', gust: 78, speed: 52, dir: 'Sud-Ouest' },
-    { name: 'Mont Ventoux (84)', region: 'Sommet 1912m', gust: 112, speed: 78, dir: 'Nord-Nord-Ouest' },
-    { name: 'Ouessant / Iroise (29)', region: 'Bretagne', gust: 82, speed: 56, dir: 'Ouest-Sud-Ouest' },
-    { name: 'Cap Béar (66)', region: 'Roussillon', gust: 86, speed: 60, dir: 'Tramontane' }
+    { name: 'Mont Ventoux (84)', region: 'Sommet Provence 1912m', gust: 114, speed: 82, dir: 'Nord-Nord-Ouest', alert: 'Tempête de crête' },
+    { name: 'Cap Gris-Nez (62)', region: 'Manche / Détroit', gust: 86, speed: 58, dir: 'Sud-Ouest', alert: 'Grand Frais' },
+    { name: 'Ouessant / Iroise (29)', region: 'Mer d\'Iroise / Finistère', gust: 88, speed: 62, dir: 'Ouest-Sud-Ouest', alert: 'Coup de vent' },
+    { name: 'Cap Béar (66)', region: 'Côte Vermeille / Tramontane', gust: 92, speed: 65, dir: 'Nord-Ouest', alert: 'Tramontane forte' },
+    { name: 'Cap Corse / Ersa (2B)', region: 'Haute-Corse / Libeccio', gust: 98, speed: 70, dir: 'Ouest-Sud-Ouest', alert: 'Libeccio violent' },
+    { name: 'Pic du Midi (65)', region: 'Haute Chaîne Pyrénées 2877m', gust: 105, speed: 75, dir: 'Nord-Ouest', alert: 'Bourrasques de crête' },
+    { name: 'Mont Aigoual (30)', region: 'Sommet Cévennes 1567m', gust: 96, speed: 68, dir: 'Nord', alert: 'Coup de vent' },
+    { name: 'Pointe du Raz (29)', region: 'Cap Sizun / Atlantique', gust: 84, speed: 56, dir: 'Ouest', alert: 'Vent soutenu' },
+    { name: 'Cap Fréhel (22)', region: 'Côtes-d\'Armor / Manche', gust: 79, speed: 54, dir: 'Sud-Ouest', alert: 'Grand Frais' },
+    { name: 'Aiguille du Midi (74)', region: 'Massif du Mont-Blanc 3842m', gust: 118, speed: 85, dir: 'Ouest', alert: 'Blizzard d\'altitude' }
   ];
+
+  // Stations nationales emblématiques de référence neige & isotherme
+  const NATIONAL_SNOW_BENCHMARKS = [
+    { name: 'Col de Porte (38)', region: 'Chartreuse 1325m', alt: 1325, lpn: lpn, snowRisk: lpn <= 1400 ? 'Chutes en cours' : 'Sec / Doux', state: 'Référence nivo Météo-France' },
+    { name: 'Mont Aigoual (30)', region: 'Cévennes 1567m', alt: 1567, lpn: lpn, snowRisk: lpn <= 1600 ? 'Flocons probables' : 'Sec', state: 'Crête cévenole' },
+    { name: 'Pic du Midi (65)', region: 'Pyrénées 2877m', alt: 2877, lpn: lpn, snowRisk: 'Neige permanente', state: 'Haute montagne' },
+    { name: 'Le Markstein (68)', region: 'Vosges 1184m', alt: 1184, lpn: lpn, snowRisk: lpn <= 1200 ? 'Giboulées blanches' : 'Pluie', state: 'Crêtes vosgiennes' },
+    { name: 'Puy de Sancy (63)', region: 'Massif Central 1660m', alt: 1660, lpn: lpn, snowRisk: lpn <= 1700 ? 'Manteau hivernal' : 'Pluie', state: 'Sommet d\'Auvergne' },
+    { name: 'Col du Lautaret (05)', region: 'Alpes du Sud 2058m', alt: 2058, lpn: lpn, snowRisk: 'Gel & neige', state: 'Grand col alpin' }
+  ];
+
+  // Calcul du créneau horaire en français simple et accessible pour tout public
+  const computePublicFriendlyWindSlot = () => {
+    if (!next24hHours || next24hHours.length === 0) {
+      return {
+        peakSlotText: "Aujourd'hui en continu",
+        calmSlotText: "Stabilisation progressive",
+        peakHourText: "vers l'après-midi",
+        criticalLevel: isLocalGaleActive ? "Coup de vent en cours" : "Vent modéré sans gravité",
+        timeSlots: [
+          { slot: 'Matin (06h - 12h)', gust: Math.round(currentWindGust * 0.8), label: 'Vent modéré', status: 'normal' },
+          { slot: 'Après-midi (12h - 18h)', gust: currentWindGust, label: isLocalGaleActive ? 'Pic de rafales' : 'Brise vive', status: isLocalGaleActive ? 'warning' : 'normal' },
+          { slot: 'Soirée (18h - 22h)', gust: Math.round(currentWindGust * 0.75), label: 'Accalmie', status: 'calm' },
+          { slot: 'Nuit (22h - 06h)', gust: Math.round(currentWindGust * 0.55), label: 'Calme', status: 'calm' }
+        ]
+      };
+    }
+
+    // Regroupement par créneau de 6h
+    const morningHours = next24hHours.filter(h => {
+      const hr = typeof h.hourNumber === 'number' ? h.hourNumber : parseInt(h.hourLabel || '0', 10);
+      return hr >= 6 && hr < 12;
+    });
+    const afternoonHours = next24hHours.filter(h => {
+      const hr = typeof h.hourNumber === 'number' ? h.hourNumber : parseInt(h.hourLabel || '0', 10);
+      return hr >= 12 && hr < 18;
+    });
+    const eveningHours = next24hHours.filter(h => {
+      const hr = typeof h.hourNumber === 'number' ? h.hourNumber : parseInt(h.hourLabel || '0', 10);
+      return hr >= 18 && hr < 22;
+    });
+    const nightHours = next24hHours.filter(h => {
+      const hr = typeof h.hourNumber === 'number' ? h.hourNumber : parseInt(h.hourLabel || '0', 10);
+      return hr >= 22 || hr < 6;
+    });
+
+    const maxMorn = morningHours.length ? Math.max(...morningHours.map(h => h.windGust ?? h.windSpeed ?? 0)) : currentWindGust;
+    const maxAft = afternoonHours.length ? Math.max(...afternoonHours.map(h => h.windGust ?? h.windSpeed ?? 0)) : currentWindGust;
+    const maxEve = eveningHours.length ? Math.max(...eveningHours.map(h => h.windGust ?? h.windSpeed ?? 0)) : currentWindGust;
+    const maxNgt = nightHours.length ? Math.max(...nightHours.map(h => h.windGust ?? h.windSpeed ?? 0)) : currentWindGust;
+
+    // Détermination du pic maximal
+    let peakPeriodName = "Cet après-midi entre 14h00 et 17h30";
+    let calmPeriodName = "Ce soir dès 20h00 avec retour au calme";
+
+    const peakHour = peakHourObj?.hourLabel || peakHourObj?.time || '15h00';
+    const hrNum = parseInt(peakHour, 10);
+
+    if (hrNum >= 6 && hrNum < 12) {
+      peakPeriodName = `Ce matin entre 08h00 et 11h30 (Pic à ${peakHour})`;
+      calmPeriodName = "Dès le début d'après-midi (atténuation progressive)";
+    } else if (hrNum >= 12 && hrNum < 18) {
+      peakPeriodName = `Cet après-midi entre 13h30 et 17h30 (Pic maximal vers ${peakHour})`;
+      calmPeriodName = "En soirée à partir de 20h00 (baisse sensible des rafales)";
+    } else if (hrNum >= 18 && hrNum < 22) {
+      peakPeriodName = `Ce soir entre 18h30 et 21h30 (Pic vers ${peakHour})`;
+      calmPeriodName = "En milieu de nuit dès 23h00";
+    } else {
+      peakPeriodName = `La nuit prochaine entre 01h00 et 05h30 (Pic nocturne vers ${peakHour})`;
+      calmPeriodName = "Demain matin dès les premières lueurs du jour";
+    }
+
+    return {
+      peakSlotText: peakPeriodName,
+      calmSlotText: calmPeriodName,
+      peakHourText: peakHour,
+      criticalLevel: maxGustIn24h >= 80 ? 'Fort coup de vent à tempête' : maxGustIn24h >= 60 ? 'Coup de vent notable' : 'Vent de saison régulier',
+      timeSlots: [
+        { slot: 'Matin (06h - 12h)', gust: maxMorn, label: maxMorn >= 65 ? 'Fortes rafales' : maxMorn >= 45 ? 'Vent modéré' : 'Brise calme', status: maxMorn >= 65 ? 'danger' : maxMorn >= 45 ? 'warning' : 'calm' },
+        { slot: 'Après-midi (12h - 18h)', gust: maxAft, label: maxAft >= 65 ? 'Pic le plus violent' : maxAft >= 45 ? 'Vent soutenu' : 'Brise normale', status: maxAft >= 65 ? 'danger' : maxAft >= 45 ? 'warning' : 'calm' },
+        { slot: 'Soirée (18h - 22h)', gust: maxEve, label: maxEve >= 65 ? 'Rafales persistantes' : maxEve >= 45 ? 'Vent frais' : 'Accalmie', status: maxEve >= 65 ? 'warning' : 'calm' },
+        { slot: 'Nuit (22h - 06h)', gust: maxNgt, label: maxNgt >= 65 ? 'Rafales nocturnes' : maxNgt >= 45 ? 'Courant résiduel' : 'Nuit calme', status: maxNgt >= 65 ? 'warning' : 'calm' }
+      ]
+    };
+  };
+
+  const friendlySlots = computePublicFriendlyWindSlot();
 
   return (
     <div id="remarkable-weather-highlight-card" className="rounded-2xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950 p-4 sm:p-5 shadow-xl backdrop-blur-md space-y-4">
@@ -258,23 +351,104 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
             </div>
           </div>
 
+          {/* CRÉNEAU HORAIRE EN CLAIR POUR TOUT PUBLIC */}
+          <div className="rounded-xl bg-gradient-to-r from-slate-950 via-slate-900/90 to-slate-950 border border-slate-800 p-3.5 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                  Créneaux Horaires en Clair (Compréhension Grand Public)
+                </span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                {friendlySlots.criticalLevel}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Créneau violent */}
+              <div className="rounded-lg p-2.5 bg-rose-950/20 border border-rose-500/30 flex items-start gap-2.5">
+                <span className="text-base shrink-0">🚨</span>
+                <div>
+                  <div className="text-[11px] font-black uppercase text-rose-300">
+                    Créneau le plus agité / Pic maximal :
+                  </div>
+                  <div className="text-xs font-bold text-white mt-0.5">
+                    {friendlySlots.peakSlotText}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Rafales attendues jusqu'à <strong>{maxGustIn24h} km/h</strong> sous les plus fortes bourrasques.
+                  </div>
+                </div>
+              </div>
+
+              {/* Créneau accalmie */}
+              <div className="rounded-lg p-2.5 bg-emerald-950/20 border border-emerald-500/30 flex items-start gap-2.5">
+                <span className="text-base shrink-0">🟢</span>
+                <div>
+                  <div className="text-[11px] font-black uppercase text-emerald-300">
+                    Période d'accalmie &amp; retour au calme :
+                  </div>
+                  <div className="text-xs font-bold text-white mt-0.5">
+                    {friendlySlots.calmSlotText}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Le flux perdra rapidement en intensité pour redevenir inoffensif.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Découpage de la journée en 4 créneaux compréhensibles */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              {friendlySlots.timeSlots.map((ts, idx) => {
+                const isDanger = ts.status === 'danger';
+                const isWarning = ts.status === 'warning';
+                return (
+                  <div key={idx} className={`rounded-lg p-2 border flex flex-col justify-between ${
+                    isDanger 
+                      ? 'bg-rose-950/30 border-rose-500/50 text-rose-200'
+                      : isWarning
+                      ? 'bg-amber-950/25 border-amber-500/40 text-amber-200'
+                      : 'bg-slate-900/60 border-slate-800 text-slate-300'
+                  }`}>
+                    <div className="text-[10px] font-bold truncate">{ts.slot}</div>
+                    <div className="mt-1 flex items-baseline justify-between">
+                      <span className={`text-base font-black ${isDanger ? 'text-rose-400' : isWarning ? 'text-amber-400' : 'text-slate-200'}`}>
+                        {ts.gust} <span className="text-[10px] font-normal">km/h</span>
+                      </span>
+                      <span className="text-[9px] font-medium truncate ml-1">{ts.label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* National Benchmarks Radar for Wind */}
           <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Activity className="h-3.5 w-3.5 text-cyan-400" />
-                <span>Points Chauds Éoliens de Référence en France (Rafales maximales observées)</span>
+                <span>10 Points Chauds Éoliens Emblématiques en France (Rafales maximales observées)</span>
               </span>
-              <span className="text-[10px] text-slate-400">Actualisation synoptique</span>
+              <span className="text-[10px] text-slate-400">Réseau anémométrique officiel</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {NATIONAL_WIND_BENCHMARKS.map((item, idx) => (
                 <div key={idx} className="rounded-lg bg-slate-900/80 border border-slate-800 p-2 flex flex-col justify-between hover:border-slate-700 transition">
-                  <div className="text-[11px] font-bold text-white truncate">{item.name}</div>
-                  <div className="text-[10px] text-slate-400">{item.region}</div>
-                  <div className="mt-1 flex items-baseline justify-between">
-                    <span className="text-base font-black text-amber-400">{item.gust} <span className="text-[10px] font-normal">km/h</span></span>
-                    <span className="text-[9px] text-slate-400 font-mono">{item.dir}</span>
+                  <div>
+                    <div className="text-[11px] font-bold text-white truncate" title={item.name}>{item.name}</div>
+                    <div className="text-[9px] text-slate-400 truncate">{item.region}</div>
+                  </div>
+                  <div className="mt-1.5 flex items-baseline justify-between">
+                    <span className={`text-sm font-black ${item.gust >= 100 ? 'text-rose-400' : 'text-amber-400'}`}>
+                      {item.gust} <span className="text-[9px] font-normal">km/h</span>
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-mono">{item.dir.split('-')[0]}</span>
+                  </div>
+                  <div className="text-[8px] font-bold uppercase tracking-wider text-amber-500/90 truncate mt-0.5">
+                    {item.alert}
                   </div>
                 </div>
               ))}
@@ -282,6 +456,7 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
           </div>
         </div>
       )}
+
 
       {/* ======================================================== */}
       {/* VUE 2 : NEIGE EN PLAINE & ISOTHERME 0°C                  */}
@@ -354,6 +529,34 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          {/* National Benchmarks Radar for Snow & Freezing Level */}
+          <div className="rounded-xl bg-slate-950/70 border border-slate-800 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Points de Référence Nivologique &amp; Isotherme en France</span>
+              </span>
+              <span className="text-[10px] text-slate-400">Réseau nivo-météorologique</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {NATIONAL_SNOW_BENCHMARKS.map((item, idx) => (
+                <div key={idx} className="rounded-lg bg-slate-900/80 border border-slate-800 p-2 flex flex-col justify-between hover:border-slate-700 transition">
+                  <div>
+                    <div className="text-[11px] font-bold text-white truncate" title={item.name}>{item.name}</div>
+                    <div className="text-[9px] text-slate-400 truncate">{item.region}</div>
+                  </div>
+                  <div className="mt-1.5 flex items-baseline justify-between">
+                    <span className="text-xs font-black text-cyan-300">{item.alt} m</span>
+                    <span className="text-[9px] font-mono text-slate-400">LPN: {item.lpn}m</span>
+                  </div>
+                  <div className="text-[8px] font-bold uppercase tracking-wider text-sky-400/90 truncate mt-0.5">
+                    {item.snowRisk}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

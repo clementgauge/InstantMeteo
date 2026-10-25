@@ -1,4 +1,4 @@
-import { HourlyForecast } from '../types/weather';
+import { HourlyForecast, DailyForecast } from '../types/weather';
 
 export interface WeatherCodeInfo {
   code: number;
@@ -793,5 +793,81 @@ export function computeHourlyTrend(
     trendFullText,
     trendEmoji,
     trendColorClass
+  };
+}
+
+/**
+ * Honest Day Weather Diagnostic
+ * Ensures daily forecast icons don't falsely display gloomy, depressing rain clouds (🌧️)
+ * when a day only has an isolated, brief 1-hour shower (cumul < 2.5 mm, duration <= 2h).
+ * Honestly specifies the exact rain amount in the telemetry badge ("0.8 mm (ondée brève 1h)")
+ * while displaying sunny intervals (⛅ / 🌤️) reflecting the dominant daytime weather.
+ */
+export interface HonestDayWeatherResult {
+  weatherCode: number;
+  label: string;
+  shortLabel: string;
+  emoji: string;
+  iconName: string;
+  isBriefShower: boolean;
+  honestRainNotice?: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+}
+
+export function getHonestDayWeather(day: DailyForecast): HonestDayWeatherResult {
+  const rawCode = day.weatherCode;
+  const rainMm = Number((day.precipitationSumMm ?? day.rainMm ?? 0).toFixed(1));
+  const prob = day.precipitationProbability ?? 0;
+  const hours = day.precipitationHours ?? 0;
+  const sun = day.sunshineHours ?? 0;
+  const cloud = day.cloudCoverMean ?? 50;
+
+  // Rain WMO codes: 51..57 (bruine), 61..67 (pluie continue), 80..82 (averses)
+  const isRainCode = (rawCode >= 51 && rawCode <= 67) || (rawCode >= 80 && rawCode <= 82);
+
+  // Criteria for an isolated/brief shower (ondée passagère) vs true rainy day:
+  // 1) Explicit duration <= 2h with reasonable cumul (<= 3.5 mm)
+  // 2) Or tiny cumul <= 2.0 mm with moderate probability
+  // 3) Or decent sunshine (sun >= 3.5h) or low cloud cover (< 72%) with cumul <= 2.5 mm
+  const isBriefShower = isRainCode && (
+    (hours > 0 && hours <= 2 && rainMm <= 3.5) ||
+    (hours === 0 && rainMm > 0 && rainMm <= 2.0 && prob < 75) ||
+    (rainMm <= 2.5 && (sun >= 3.5 || cloud < 72))
+  );
+
+  if (isBriefShower) {
+    const durationLabel = hours > 0 
+      ? `ondée brève ~${hours}h` 
+      : (rainMm < 1 ? 'ondée brève <1h' : 'ondée passagère');
+
+    return {
+      weatherCode: 2, // WMO Code 2: Éclaircies & passages nuageux (non déprimant !)
+      label: `Belles éclaircies avec brève ondée passagère (${rainMm} mm, ${durationLabel})`,
+      shortLabel: "Éclaircies (brève ondée)",
+      emoji: "⛅",
+      iconName: "CloudSun",
+      isBriefShower: true,
+      honestRainNotice: `${rainMm} mm (${durationLabel})`,
+      badgeBg: "bg-sky-500/10",
+      badgeText: "text-sky-300",
+      badgeBorder: "border-sky-500/30"
+    };
+  }
+
+  // Standard rich info for all other situations (clear, cloud, sustained rain, thunderstorm, snow)
+  const rich = getRichWeatherInfo(rawCode, true, rainMm);
+  return {
+    weatherCode: rich.code,
+    label: rich.label,
+    shortLabel: rich.shortLabel,
+    emoji: rich.emoji,
+    iconName: rich.iconName,
+    isBriefShower: false,
+    honestRainNotice: rainMm > 0 ? `${rainMm} mm` : undefined,
+    badgeBg: rich.badgeBg,
+    badgeText: rich.badgeText,
+    badgeBorder: rich.badgeBorder
   };
 }

@@ -330,6 +330,7 @@ function WeatherApp() {
     }
   }, [themeMode]);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
+  const [isAuraModalOpen, setIsAuraModalOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isComparatorModalOpen, setIsComparatorModalOpen] = useState<boolean>(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
@@ -893,6 +894,7 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
+          onOpenAuraModal={() => setIsAuraModalOpen(true)}
           onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
@@ -1213,22 +1215,6 @@ function WeatherApp() {
                   seniorMode={seniorMode}
                 />
               </div>
-            )}
-
-            {activeTab === 'auraAI' && (
-              <AuraWeatherAiView
-                currentStation={currentStation}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                tempUnit={tempUnit}
-                onSelectStation={handleSelectStationWithSeo}
-                onBackToMain={() => {
-                  setActiveTab('realtime');
-                  setCurrentPath('/');
-                  window.history.pushState(null, '', '/');
-                }}
-              />
             )}
 
             {/* Recommandations de sites partenaires - Observatoire Climatique Mondial & Cin-Scope */}
@@ -1753,6 +1739,20 @@ function WeatherApp() {
         isOpen={isPageBlockCustomizerOpen}
         onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
+
+      {/* Modal Dialogue IA Météo AURA (Conversation, Analyses & Graphiques Température/Pluie/Vent) */}
+      {isAuraModalOpen && (
+        <AuraWeatherAiView
+          currentStation={currentStation}
+          weather={weather}
+          hourly={hourly}
+          daily={daily}
+          tempUnit={tempUnit}
+          onSelectStation={handleSelectStationWithSeo}
+          onClose={() => setIsAuraModalOpen(false)}
+          isModal={true}
+        />
+      )}
 
       {/* Mode Montre Connectée Ronde (Wear OS, Google Pixel Watch, Samsung Galaxy Watch) */}
       {isWatchMode && (
