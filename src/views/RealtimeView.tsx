@@ -788,19 +788,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onResetRecalibration={onResetRecalibration}
       />
 
-      {/* Desktop Observatoire & Indicateurs Remarquables (Coups de Vent & Neige en Plaine) */}
-      <div className="hidden sm:block space-y-6">
-        <RemarkableWeatherHighlightCard
-          station={station}
-          weather={weather}
-          hourly={hourly}
-          daily={daily}
-          tempUnit={tempUnit}
-          onSelectStation={onSelectStation}
-          onNavigateTab={onNavigateTab}
-        />
-      </div>
-
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}
       {/* ========================================================================= */}
@@ -820,19 +807,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               tempUnit={tempUnit}
               onOpenDayAnalyzer={handleOpenDayAnalyzer}
             />
-
-            {/* Indicateurs Remarquables (Coups de Vent & Neige en Plaine) - Relegué sous les prévisions heure par heure */}
-            <div className="mt-4">
-              <RemarkableWeatherHighlightCard
-                station={station}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                tempUnit={tempUnit}
-                onSelectStation={onSelectStation}
-                onNavigateTab={onNavigateTab}
-              />
-            </div>
           </div>
 
           {/* Bannière d'état Mode Simple / Mode Expert */}
@@ -1307,6 +1281,19 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           tempUnit={tempUnit}
           onRecalibrate={onRecalibrate}
           onReset={onResetRecalibration}
+        />
+      </div>
+
+      {/* 5. BLOC INDICATEURS REMARQUABLES & ALERTES PHÉNOMÈNES (TOUT EN BAS DE LA PAGE) */}
+      <div id="realtime-remarkable-weather-bottom" className="w-full scroll-mt-28 pt-2">
+        <RemarkableWeatherHighlightCard
+          station={station}
+          weather={weather}
+          hourly={hourly}
+          daily={daily}
+          tempUnit={tempUnit}
+          onSelectStation={onSelectStation}
+          onNavigateTab={onNavigateTab}
         />
       </div>
 

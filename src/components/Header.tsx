@@ -324,117 +324,105 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Top Header Row: App Logo, Title, HD & DIRECT Pill, Notification Bell */}
-        <div className="flex items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2.5">
-            {/* App squircle icon with sun and cloud */}
-            <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-sky-500/20 border border-white/30 bg-gradient-to-br from-sky-400 via-blue-500 to-amber-300 flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 100 100" className="w-full h-full p-1" fill="none">
+        {/* Top Header Row: Logo, Compact Title, and Inline Action Controls on the same line */}
+        <div className="flex items-center justify-between gap-1.5 px-0.5">
+          {/* Logo & Compact Title */}
+          <div className="flex items-center gap-1.5 min-w-0 shrink">
+            <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl overflow-hidden shadow-md shadow-sky-500/20 border border-white/30 bg-gradient-to-br from-sky-400 via-blue-500 to-amber-300 flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 100 100" className="w-full h-full p-0.5" fill="none">
                 <circle cx="68" cy="36" r="22" fill="#f59e0b" />
                 <path d="M24 66h48c9 0 16-7 16-16 0-8-6-14.5-14-15.8-1-11.5-10.5-20.2-22-20.2-9.5 0-18 6-21 15.2-1.5-.6-3.4-.6-5-.6-9.5 0-17.5 8-17.5 17.5 0 9.5 8 19.9 15.5 19.9z" fill="#ffffff" />
                 <polygon points="49,52 40,68 49,68 41,84 62,64 51,64" fill="#ea580c" />
               </svg>
             </div>
-            <div className="notranslate">
-              <div className="text-base font-black tracking-tight leading-none text-slate-900 dark:text-white flex items-center gap-1">
+            <div className="notranslate truncate">
+              <div className="text-xs sm:text-sm font-black tracking-tight leading-tight text-slate-900 dark:text-white flex items-center gap-1">
                 <span>{brand.word1}</span>
                 <span className="text-sky-500 dark:text-sky-400 font-black">{brand.word2}</span>
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-normal mt-0.5 leading-none">
-                {brand.tagline}
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Bouton Mode Simple / Expert visible sur téléphone */}
+          {/* Inline Action Controls on the SAME SINGLE ROW */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* 1. Bouton Mode Simple / Expert */}
             {onToggleSimplifiedMode && (
               <button
                 type="button"
                 id="mobile-header-simplified-mode-btn"
                 onClick={onToggleSimplifiedMode}
-                title={simplifiedMode ? "Mode Simple actif — Appuyer pour passer en Mode Expert" : "Mode Expert actif — Appuyer pour passer en Mode Simple"}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
+                title={simplifiedMode ? "Mode Simple actif — Toucher pour Mode Expert" : "Mode Expert actif — Toucher pour Mode Simple"}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-black transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
                   simplifiedMode
-                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-emerald-500/20'
-                    : 'bg-indigo-600/30 border-indigo-400 text-indigo-200 shadow-indigo-500/20'
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                    : 'bg-indigo-600/30 border-indigo-400 text-indigo-200'
                 }`}
               >
-                <SlidersHorizontal className="h-3 w-3 shrink-0" />
-                <span>{simplifiedMode ? 'Mode : Simple' : 'Mode : Expert'}</span>
+                <SlidersHorizontal className="h-2.5 w-2.5 shrink-0" />
+                <span className="hidden xs:inline">{simplifiedMode ? 'Simple' : 'Expert'}</span>
               </button>
             )}
 
-            {/* Floating Weather Bubble Launcher */}
-            {onToggleFloatingBubble && (
-              <button
-                type="button"
-                onClick={onToggleFloatingBubble}
-                title={showFloatingBubble ? "Masquer la bulle météo" : "Afficher la bulle météo (détachable sur l'écran d'accueil)"}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-black transition active:scale-95 cursor-pointer shadow-sm ${
-                  showFloatingBubble
-                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sky-500/20'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <span>🫧</span>
-                <span className="hidden sm:inline">Bulle Écran</span>
-              </button>
-            )}
-
-            {/* HD & DIRECT Pill */}
-            <div className="hidden xs:flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-black tracking-wide shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span>DIRECT</span>
-            </div>
-
-            {/* Mode Jour / Nuit Toggle (Icône seule Soleil / Lune sans texte) */}
+            {/* 2. Mode Jour / Nuit Toggle (Blanc / Noir) */}
             {onToggleThemeMode && (
               <button
                 type="button"
                 id="mobile-header-theme-mode-btn"
                 onClick={onToggleThemeMode}
-                title={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
-                aria-label={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
-                className={`relative w-8 h-8 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer shadow-md ${
+                title={themeMode === 'light' ? "Passer en Mode Nuit (Noir)" : "Passer en Mode Jour (Blanc)"}
+                aria-label={themeMode === 'light' ? "Mode Nuit" : "Mode Jour"}
+                className={`relative w-7 h-7 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
                   themeMode === 'light'
                     ? 'border-amber-300 bg-amber-50 text-amber-600'
                     : 'border-slate-800 bg-slate-900 text-sky-400'
                 }`}
               >
                 {themeMode === 'light' ? (
-                  <Sun className="h-4 w-4 text-amber-500" />
+                  <Sun className="h-3.5 w-3.5 text-amber-500" />
                 ) : (
-                  <Moon className="h-4 w-4 text-sky-400" />
+                  <Moon className="h-3.5 w-3.5 text-sky-400" />
                 )}
               </button>
             )}
 
-            {/* Mode Montre Connectée Ronde */}
-            {onToggleWatchMode && (
-              <button
-                type="button"
-                id="mobile-header-smartwatch-mode-btn"
-                onClick={onToggleWatchMode}
-                title="Activer le cadran pour montre connectée ronde (Wear OS, Pixel Watch, Galaxy Watch)"
-                aria-label="Mode Montre Connectée Ronde"
-                className="relative w-8 h-8 rounded-full border border-slate-800 bg-slate-900 text-sky-400 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer shadow-md"
-              >
-                <Watch className="h-3.5 w-3.5" />
-              </button>
-            )}
-
-            {/* Notification Bell Circle with Red Badge Dot */}
+            {/* 3. Bouton Télécharger l'Appli */}
             <button
-              onClick={onOpenNotificationsModal}
-              title="Centre d'alertes"
-              className="relative w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-md"
+              type="button"
+              onClick={onOpenAndroidModal}
+              title="Télécharger l'application"
+              aria-label="Télécharger l'application"
+              className="relative w-7 h-7 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-400 hover:text-amber-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
             >
-              <Bell className="h-3.5 w-3.5" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 border border-slate-950" />
+              <Download className="h-3.5 w-3.5 text-amber-400" />
+            </button>
+
+            {/* 4. Bouton Choix de la Langue */}
+            <div className="shrink-0 flex items-center">
+              <GoogleTranslateWidget compact={true} />
+            </div>
+
+            {/* 5. Bouton Options (Paramètres) */}
+            <button
+              type="button"
+              id="mobile-header-options-btn"
+              onClick={() => setSettingsSidebarOpen(true)}
+              title="Ouvrir les Options et Paramètres"
+              aria-label="Options"
+              className="relative w-7 h-7 rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+            >
+              <Settings className="h-3.5 w-3.5" />
+            </button>
+
+            {/* 6. Notification Bell Circle */}
+            <button
+              type="button"
+              onClick={onOpenNotificationsModal}
+              title="Centre d'alertes météo"
+              aria-label="Alertes"
+              className="relative w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+            >
+              <Bell className="h-3 w-3" />
+              <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500 border border-slate-950" />
             </button>
           </div>
         </div>
@@ -543,107 +531,29 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Search Button (A droite de la selection de ville) */}
+          {/* Search Button (Au centre) */}
           <button
             type="button"
             onClick={onOpenSearchModal}
-            className="flex-1 flex items-center gap-2 bg-slate-100 hover:bg-slate-200/80 dark:bg-gradient-to-r dark:from-[#0e1a30] dark:to-[#0c1424] border border-slate-200 dark:border-sky-500/35 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-200 hover:border-sky-400 dark:hover:text-white transition active:scale-98 text-left shadow-sm cursor-pointer"
+            className="flex-1 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-gradient-to-r dark:from-[#0e1a30] dark:to-[#0c1424] border border-slate-200 dark:border-sky-500/35 rounded-2xl px-3 py-2 text-xs text-slate-800 dark:text-slate-200 hover:border-sky-400 dark:hover:text-white transition active:scale-98 text-left shadow-sm cursor-pointer min-w-0"
           >
-            <Search className="h-4 w-4 text-sky-500 dark:text-sky-400 shrink-0" />
-            <span className="truncate font-semibold">Village, montagne, commune...</span>
+            <Search className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0" />
+            <span className="truncate font-semibold text-[11px]">Recherche 34 965 communes...</span>
           </button>
-        </div>
 
-        {/* Row 3: Quick Action Circles (IA AURA, Radar, Vidéos, Premium, Langue, Paramètres) on a single compact line */}
-        <div className="flex items-center justify-between gap-1 px-0.5 pt-1 overflow-x-auto no-scrollbar">
-          {/* 0. IA AURA */}
+          {/* Bouton IA Météo AURA Rapide (A droite de la recherche) */}
           {(onOpenAuraModal || onSelectTab) && (
             <button
+              type="button"
+              id="mobile-header-aura-ai-btn"
               onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
-              className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-              title="Ouvrir l'IA Météo AURA conversationnelle"
+              className="flex items-center gap-1 px-2.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/25 via-sky-500/25 to-purple-500/25 border border-amber-400/60 shadow-md text-amber-300 font-extrabold text-[11px] transition active:scale-95 cursor-pointer shrink-0"
+              title="Ouvrir l'IA Météo AURA"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500/25 to-sky-500/25 border border-amber-400/60 shadow-md flex items-center justify-center text-amber-500 dark:text-amber-300 relative">
-                <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
-                <span className="absolute -top-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-black bg-gradient-to-r from-amber-500 to-sky-500 text-slate-950">
-                  IA
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-amber-500 dark:text-amber-300">IA AURA</span>
+              <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse shrink-0" />
+              <span>AURA</span>
             </button>
           )}
-
-          {/* 1. Radar */}
-          <button
-            onClick={() => {
-              if (onOpenRadarTab) onOpenRadarTab();
-              else if (onSelectTab) onSelectTab('radar');
-            }}
-            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-          >
-            <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-600/30 border border-blue-200 dark:border-blue-400/60 shadow-md flex items-center justify-center text-blue-600 dark:text-cyan-300">
-              <Radio className="h-4 w-4 text-blue-600 dark:text-cyan-300" />
-            </div>
-            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Radar</span>
-          </button>
-
-          {/* 2. Vidéos */}
-          <a
-            href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-          >
-            <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-600/30 border border-purple-200 dark:border-purple-400/60 shadow-md flex items-center justify-center text-purple-600 dark:text-purple-300">
-              <Play className="h-4 w-4 text-purple-600 dark:text-purple-300 fill-purple-600/30 dark:fill-purple-300/30 ml-0.5" />
-            </div>
-            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Vidéos</span>
-          </a>
-
-          {/* 3b. Discord Officiel */}
-          <a
-            id="mobile-header-discord-link"
-            href="https://discord.gg/MjFDekSbnt"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Rejoindre le serveur Discord officiel Instant Météo"
-            aria-label="Rejoindre le serveur Discord officiel Instant Météo"
-            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-          >
-            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-[#5865F2]/30 border border-indigo-200 dark:border-[#5865F2]/70 shadow-md flex items-center justify-center text-indigo-600 dark:text-indigo-300">
-              <svg className="h-4 w-4 fill-current text-[#5865F2] dark:text-[#7289da]" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
-              </svg>
-            </div>
-            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Discord</span>
-          </a>
-
-          {/* 4. Télécharger l'application */}
-          <button
-            onClick={onOpenAndroidModal}
-            title="Télécharger l'application"
-            aria-label="Télécharger l'application"
-            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-          >
-            <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-500/30 border border-amber-200 dark:border-amber-400/60 shadow-md flex items-center justify-center text-amber-600 dark:text-amber-300">
-              <Download className="h-4 w-4 text-amber-600 dark:text-amber-300" />
-            </div>
-            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Appli</span>
-          </button>
-
-          {/* 5. Choix de la langue (Traduction Google Translate) */}
-          <GoogleTranslateWidget variant="mobile-action" dropdownAlign="right" />
-
-          {/* 6. Paramètres */}
-          <button
-            onClick={() => setSettingsSidebarOpen(true)}
-            className="flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer shrink-0"
-          >
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#0c1424] border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm">
-              <Settings className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-            </div>
-            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Options</span>
-          </button>
         </div>
 
         {/* Row 4: Three Warning / Status Cards (Alertes & Push, Vigilance 5j, Radar HD) */}

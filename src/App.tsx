@@ -79,6 +79,7 @@ import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal'
 import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile } from './services/competitiveGameService';
 import { isPageVisible } from './services/displayPreferencesService';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
+import { BottomIconCarousel } from './components/BottomIconCarousel';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
@@ -1318,6 +1319,15 @@ function WeatherApp() {
             updateDocumentSeo(p, false);
           }}
         />
+
+        {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, AURA IA, Direct) */}
+        <div className="w-full max-w-7xl mx-auto px-2 pt-4">
+          <BottomIconCarousel
+            onOpenRadar={() => setActiveTab('radar')}
+            onOpenAura={() => setIsAuraModalOpen(true)}
+            onNavigateDirect={() => setActiveTab('realtime')}
+          />
+        </div>
         </section>
       </main>
 
@@ -1740,7 +1750,7 @@ function WeatherApp() {
         onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
 
-      {/* Modal Dialogue IA Météo AURA (Conversation, Analyses & Graphiques Température/Pluie/Vent) */}
+      {/* Modal Dialogue IA Météo AURA (Conversation, Analyses, Cartes 3D & Graphiques) */}
       {isAuraModalOpen && (
         <AuraWeatherAiView
           currentStation={currentStation}
@@ -1749,6 +1759,10 @@ function WeatherApp() {
           daily={daily}
           tempUnit={tempUnit}
           onSelectStation={handleSelectStationWithSeo}
+          onNavigateTab={(tab) => {
+            setActiveTab(tab as NavTabId);
+            setIsAuraModalOpen(false);
+          }}
           onClose={() => setIsAuraModalOpen(false)}
           isModal={true}
         />
