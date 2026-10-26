@@ -120,11 +120,19 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     };
   }, [selectedMassif.id]);
 
+  const [lastMountainRefreshedAt, setLastMountainRefreshedAt] = useState<string>('');
+
   const handleRefreshLiveTelemetry = () => {
     setIsSyncingLive(true);
     fetchLiveSkiResortConditions(selectedMassif)
       .then((updated) => {
         setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+        const timeStr = new Intl.DateTimeFormat('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }).format(new Date());
+        setLastMountainRefreshedAt(timeStr);
       })
       .finally(() => {
         setIsSyncingLive(false);
@@ -284,6 +292,20 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 {selectedMassif.snowDepthTopCm} / {selectedMassif.snowDepthBottomCm} cm
               </div>
             </div>
+            <button
+              onClick={handleRefreshLiveTelemetry}
+              disabled={isSyncingLive}
+              className="px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
+              title="Réactualiser en direct les conditions météo et niveaux de neige de la station"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin' : ''}`} />
+              <div className="text-left">
+                <div className="text-[11px] leading-tight font-black">Réactualiser</div>
+                <div className="text-[9px] text-sky-200 font-semibold leading-tight">
+                  {lastMountainRefreshedAt ? `À ${lastMountainRefreshedAt}` : 'En direct'}
+                </div>
+              </div>
+            </button>
           </div>
         </div>
 

@@ -1020,14 +1020,25 @@ export function calculateAltitudePhysics(
   const rh = weather.humidity ?? 70;
   // Gradient vertical adapté : plus faible en air humide saturé (-0.56°C/100m), plus fort en air sec (-0.68°C/100m)
   const lapseRatePerM = rh >= 82 ? 0.0057 : rh <= 45 ? 0.0068 : 0.0063;
-  const deltaAlt = targetAltitudeM - stationAltitudeM;
-  const tempAtAltitude = Number((weather.temperature - deltaAlt * lapseRatePerM).toFixed(1));
+  
+  // Utilise en priorité la température réelle vérifiée de la station de montagne (au pied ou au sommet)
+  const refTemp = massif?.baseTempC !== undefined 
+    ? massif.baseTempC 
+    : massif?.peakTempC !== undefined 
+      ? massif.peakTempC + (massif.altitudePeak - massif.altitudeBase) * lapseRatePerM
+      : weather.temperature;
+  const refAlt = massif?.baseTempC !== undefined 
+    ? massif.altitudeBase 
+    : stationAltitudeM;
+
+  const deltaAlt = targetAltitudeM - refAlt;
+  const tempAtAltitude = Number((refTemp - deltaAlt * lapseRatePerM).toFixed(1));
   const wetBulbAtAltitude = computeWetBulbTempStull(tempAtAltitude, rh);
 
   // Isotherme 0°C adapté selon la température prévue à la station et l'emplacement
   const rawIsoZero = weather.freezingLevelHeight
     ? Math.round(weather.freezingLevelHeight)
-    : Math.max(0, Math.round(stationAltitudeM + weather.temperature / lapseRatePerM));
+    : Math.max(0, Math.round(refAlt + refTemp / lapseRatePerM));
 
   // Ajustement selon l'effet de massif interne et l'humidité (Tw)
   const isInternalValley = massif?.topographicRegime?.includes('Massif Interne') ?? false;
@@ -1103,8 +1114,12 @@ export function calculateContinuousSnowAndLpnAnalysis(
 
   // Température de référence à la base de la station
   const isoZeroM = massif.isoZeroAltitudeM;
-  const baseTempC = Number(((isoZeroM - massif.altitudeBase) * lapseRatePerM).toFixed(1));
-  const peakTempC = Number(((isoZeroM - massif.altitudePeak) * lapseRatePerM).toFixed(1));
+  const baseTempC = massif.baseTempC !== undefined
+    ? massif.baseTempC
+    : Number(((isoZeroM - massif.altitudeBase) * lapseRatePerM).toFixed(1));
+  const peakTempC = massif.peakTempC !== undefined
+    ? massif.peakTempC
+    : Number(((isoZeroM - massif.altitudePeak) * lapseRatePerM).toFixed(1));
 
   const standardDrop = isDry ? 340 : 250;
   const isothermyBonus = (isInternal ? 160 : 80) + ((weather.precipitation || 0) > 1.5 ? 140 : 60);
@@ -1259,9 +1274,10 @@ export function calculateContinuousSnowAndLpnAnalysis(
  */
 export async function fetchLiveSkiResortConditions(massif: MountainMassif): Promise<MountainMassif> {
   try {
-    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&forecast_days=2`;
-    const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudeBase}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth&forecast_days=1`;
-    const nivoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.nivoseElevationM}&current=temperature_2m,snow_depth,snowfall&forecast_days=1`;
+    const ts = Date.now();
+    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&forecast_days=2&_ts=${ts}`;
+    const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudeBase}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth&forecast_days=1&_ts=${ts}`;
+    const nivoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.nivoseElevationM}&current=temperature_2m,snow_depth,snowfall&forecast_days=1&_ts=${ts}`;
 
     const [peakRes, baseRes, nivoseRes] = await Promise.all([
       fetch(peakUrl),

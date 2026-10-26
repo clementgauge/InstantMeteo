@@ -632,16 +632,20 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Universal Search Modal Launcher */}
+          {/* Universal Search Modal Launcher (Allongé & Spacieux) */}
           <button
             id="open-locality-search-btn"
             onClick={onOpenSearchModal}
-            title="Chercher une commune, un sommet ou une ville dans le monde"
-            className="flex items-center gap-1 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1.5 text-[11px] leading-tight font-bold text-blue-700 dark:text-blue-200 shadow transition hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-95 shrink-0 whitespace-nowrap cursor-pointer"
+            title="Chercher une commune, un sommet ou une ville dans le monde (34 965 communes)"
+            className="flex-1 min-w-[190px] max-w-sm lg:max-w-md xl:max-w-lg flex items-center justify-between gap-2 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/70 dark:bg-blue-950/40 px-3 py-1.5 text-[11px] xl:text-xs leading-tight font-semibold text-blue-800 dark:text-blue-200 shadow-sm transition hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-98 cursor-pointer text-left shrink"
           >
-            <Search className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="hidden 2xl:inline">Chercher commune / monde</span>
-            <span className="2xl:hidden">Rechercher</span>
+            <div className="flex items-center gap-2 truncate">
+              <Search className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="truncate">Rechercher 34 965 communes, sommets, monde...</span>
+            </div>
+            <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 rounded border border-blue-300 dark:border-blue-500/30 shrink-0">
+              Ctrl+K
+            </kbd>
           </button>
 
           {/* Quick Dropdown Picker */}
@@ -765,72 +769,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
-
-          {/* IA Météo AURA Desktop Quick Access */}
-          {(onOpenAuraModal || onSelectTab) && (
-            <button
-              id="header-aura-ai-btn"
-              onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-purple-500/20 hover:from-amber-500/30 hover:via-sky-500/30 hover:to-purple-500/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0"
-              title="Ouvrir l'IA Météo AURA — Assistant Météorologique Spatialisé"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-              <span>IA Météo AURA</span>
-            </button>
-          )}
-
-          {/* Instagram Official Page Link */}
-          <a
-            id="header-instagram-link"
-            href="https://www.instagram.com/instantmeteo_fr/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
-              themeMode === 'light'
-                ? 'border-pink-300 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:border-pink-400'
-                : 'border-pink-500/40 bg-slate-900/90 text-pink-400 hover:text-white hover:border-pink-400 hover:bg-pink-900/40'
-            }`}
-            title="Suivez la communauté officielle Instant Météo sur Instagram : @instantmeteo_fr"
-            aria-label="Page Instagram officielle Instant Météo"
-          >
-            <Instagram className="h-3.5 w-3.5 shrink-0" />
-          </a>
-
-          {/* YouTube Official Channel Link */}
-          <a
-            id="header-youtube-link"
-            href="https://www.youtube.com/@InstantM%C3%A9t%C3%A9o"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
-              themeMode === 'light'
-                ? 'border-slate-300 bg-slate-100 text-red-600 hover:bg-red-50 hover:border-red-300'
-                : 'border-slate-700/80 bg-slate-900/80 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-slate-800'
-            }`}
-            title="Chaîne YouTube Officielle Instant Météo : @InstantMétéo"
-            aria-label="Chaîne YouTube officielle Instant Météo"
-          >
-            <Youtube className="h-3.5 w-3.5 shrink-0" />
-          </a>
-
-          {/* Discord Official Server Link */}
-          <a
-            id="header-discord-link"
-            href="https://discord.gg/MjFDekSbnt"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex h-7 w-7 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
-              themeMode === 'light'
-                ? 'border-indigo-300 bg-indigo-50 text-[#5865F2] hover:bg-indigo-100 hover:border-indigo-400'
-                : 'border-[#5865F2]/50 bg-[#5865F2]/15 text-[#7289da] hover:text-white hover:border-[#5865F2] hover:bg-[#5865F2]/35'
-            }`}
-            title="Rejoindre le serveur Discord Officiel Instant Météo"
-            aria-label="Serveur Discord officiel Instant Météo"
-          >
-            <svg className="h-3.5 w-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
-            </svg>
-          </a>
 
           {/* Mode Simplifié Toggle */}
           {onToggleSimplifiedMode && (

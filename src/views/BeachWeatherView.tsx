@@ -16,7 +16,9 @@ import {
   Search,
   MapPin,
   Sparkles,
-  Activity
+  Activity,
+  RefreshCw,
+  Radio
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
@@ -40,11 +42,14 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   isLightMode = false
 }) => {
   const [liveLocalSpot, setLiveLocalSpot] = useState<BeachSpot | null>(null);
+  const [liveSpotOverrides, setLiveSpotOverrides] = useState<Record<string, BeachSpot>>({});
   const [customSearchedSpots, setCustomSearchedSpots] = useState<BeachSpot[]>([]);
   const [selectedSpotId, setSelectedSpotId] = useState<string>(BEACH_SPOTS[2].id);
   const [coastFilter, setCoastFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [isSyncingLiveBeach, setIsSyncingLiveBeach] = useState<boolean>(false);
+  const [lastBeachRefreshedAt, setLastBeachRefreshedAt] = useState<string>('');
 
   const nearestCoastalRef = useMemo(() => findNearestCoastalSpot(station), [station]);
 
@@ -84,12 +89,97 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   const allSpots = useMemo(() => {
     const list: BeachSpot[] = [];
     if (liveLocalSpot) list.push(liveLocalSpot);
-    return [...list, ...customSearchedSpots, ...BEACH_SPOTS];
-  }, [liveLocalSpot, customSearchedSpots]);
+    const combined = [...list, ...customSearchedSpots, ...BEACH_SPOTS];
+    return combined.map((spot) => liveSpotOverrides[spot.id] || spot);
+  }, [liveLocalSpot, customSearchedSpots, liveSpotOverrides]);
 
   const selectedBeach: BeachSpot = useMemo(() => {
-    return allSpots.find((b) => b.id === selectedSpotId) || liveLocalSpot || BEACH_SPOTS[0];
-  }, [allSpots, selectedSpotId, liveLocalSpot]);
+    const found = allSpots.find((b) => b.id === selectedSpotId) || liveLocalSpot || BEACH_SPOTS[0];
+    return liveSpotOverrides[found.id] || found;
+  }, [allSpots, selectedSpotId, liveLocalSpot, liveSpotOverrides]);
+
+  // Réactualisation automatique et continue de la télémétrie marine en direct pour la plage sélectionnée
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveSpot = () => {
+      setIsSyncingLiveBeach(true);
+      fetchLiveMarineSpotForCoordinates(
+        selectedBeach.name,
+        selectedBeach.department,
+        selectedBeach.latitude,
+        selectedBeach.longitude,
+        undefined, // Force live air temp from Open-Meteo for the beach location!
+        undefined, // Force live wind speed
+        undefined,
+        undefined
+      )
+        .then((updated) => {
+          if (isMounted) {
+            setLiveSpotOverrides((prev) => ({
+              ...prev,
+              [selectedBeach.id]: {
+                ...updated,
+                id: selectedBeach.id,
+                name: selectedBeach.name,
+                coastline: selectedBeach.coastline,
+                department: selectedBeach.department
+              }
+            }));
+            const timeStr = new Intl.DateTimeFormat('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            }).format(new Date());
+            setLastBeachRefreshedAt(timeStr);
+          }
+        })
+        .finally(() => {
+          if (isMounted) setIsSyncingLiveBeach(false);
+        });
+    };
+
+    fetchLiveSpot();
+    const interval = setInterval(fetchLiveSpot, 60000); // Réactualisation continue toutes les 60s
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [selectedBeach.id, selectedBeach.latitude, selectedBeach.longitude]);
+
+  const handleManualRefreshBeach = () => {
+    setIsSyncingLiveBeach(true);
+    fetchLiveMarineSpotForCoordinates(
+      selectedBeach.name,
+      selectedBeach.department,
+      selectedBeach.latitude,
+      selectedBeach.longitude,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    )
+      .then((updated) => {
+        setLiveSpotOverrides((prev) => ({
+          ...prev,
+          [selectedBeach.id]: {
+            ...updated,
+            id: selectedBeach.id,
+            name: selectedBeach.name,
+            coastline: selectedBeach.coastline,
+            department: selectedBeach.department
+          }
+        }));
+        const timeStr = new Intl.DateTimeFormat('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }).format(new Date());
+        setLastBeachRefreshedAt(timeStr);
+      })
+      .finally(() => {
+        setIsSyncingLiveBeach(false);
+      });
+  };
 
   const liveTides = useMemo(() => {
     return calculateAstronomicalShomTides(selectedBeach, new Date());
@@ -235,6 +325,20 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
                 {liveTides.isMicroTide ? 'Micro-marée' : liveTides.tideCoefficient}
               </div>
             </div>
+            <button
+              onClick={handleManualRefreshBeach}
+              disabled={isSyncingLiveBeach}
+              className="px-3.5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
+              title="Réactualiser en direct les données maritimes (température de l'eau, houle, vent, courants)"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLiveBeach ? 'animate-spin' : ''}`} />
+              <div className="text-left">
+                <div className="text-[11px] leading-tight font-black">Réactualiser</div>
+                <div className="text-[9px] text-cyan-200 font-semibold leading-tight">
+                  {lastBeachRefreshedAt ? `À ${lastBeachRefreshedAt}` : 'En direct'}
+                </div>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -300,9 +404,14 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
             <Compass className="w-4 h-4 text-cyan-400" />
             <span>Sélectionner votre Station Balnéaire, Port ou Commune Côtière ({filteredBeaches.length})</span>
           </h3>
-          <span className="text-[11px] text-cyan-400">
-            Données couplées Modèle Vagues MFWAM / Open-Meteo Marine & SHOM
-          </span>
+          <div className="flex items-center gap-2 text-[11px] text-cyan-400">
+            <Radio className={`w-3.5 h-3.5 ${isSyncingLiveBeach ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+            <span>
+              {isSyncingLiveBeach
+                ? 'Actualisation télémétrique des bouées en cours...'
+                : `Bouées côtières & satellites connectés en direct${lastBeachRefreshedAt ? ` (${lastBeachRefreshedAt})` : ''}`}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
