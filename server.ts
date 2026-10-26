@@ -466,7 +466,7 @@ Fournis une réponse au format JSON strict avec les clés suivantes :
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -508,7 +508,7 @@ Question de l'utilisateur : "${question}"
 Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrases en français.`;
 
     const resp = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -521,6 +521,65 @@ Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrase
       fallback: true, 
       answer: `Pour la station de ${station.name} (${weather.temperature}°C actuels), il est recommandé de suivre les consignes habituelles : aérer en matinée, boire de l'eau régulièrement et profiter des moments doux de la journée.` 
     });
+  }
+});
+
+// 1c. Moteur Conversationnel Haute Intelligence AURA Météo IA
+app.post('/api/aura/chat', async (req, res) => {
+  try {
+    const { message, station, weather, personaMode = 'standard' } = req.body || {};
+    if (!message) {
+      res.status(400).json({ error: 'Message requis' });
+      return;
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      res.json({ success: false, fallback: true, message: 'Gemini non configuré' });
+      return;
+    }
+
+    let personaDirective = 'Fournis une réponse fluide, chaleureuse, naturelle et captivante, accessible à tous avec des conseils pratiques de vie quotidienne, de plein air et vestimentaires.';
+    if (personaMode === 'expert') {
+      personaDirective = 'Agis comme un météorologue prévisionniste de haut niveau et physicien de l\'atmosphère. Intègre des explications synoptiques précises : gradients de pression, masses d\'air, advection thermique, flux d\'altitude, géopotentiel, humidité relative et indices de stabilité atmosphérique (CAPE, isotherme, LPN), tout en restant clair, élégant et passionnant.';
+    } else if (personaMode === 'health') {
+      personaDirective = 'Concentre ton analyse sur la santé humaine, le bio-confort et les personnes sensibles ou seniors : amplitudes thermiques, hydratation, risques respiratoires, qualité de l\'air, sensibilité articulaire liée à l\'humidité et aux variations barométriques, et protection solaire / UV.';
+    }
+
+    const systemPrompt = `Tu es AURA, l'Intelligence Artificielle Météorologique d'Instant Météo (France).
+Tu disposes d'une expertise scientifique pointue en météorologie, climatologie, géographie physique et prévisions numériques (modèles AROME, ARPEGE, ECMWF).
+
+Contexte en direct de la station courante :
+- Commune / Station : ${station?.name || 'France'} (${station?.department || ''}, altitude: ${station?.altitude || 100} m)
+- Température réelle : ${weather?.temperature ?? 18}°C (Ressenti bio-climatique : ${weather?.feelsLike ?? 18}°C)
+- Conditions météo : ${weather?.weatherDescription || 'Variable'}
+- Vent moyen : ${weather?.windSpeed ?? 15} km/h (Rafales : ${weather?.windGust ?? 25} km/h, direction: ${weather?.windDirection ?? 220}°)
+- Humidité relative : ${weather?.humidity ?? 65}%
+- Pression atmosphérique : ${weather?.pressure ?? 1015} hPa
+- Précipitations : ${weather?.precipitation ?? 0} mm (Indice UV : ${weather?.uvIndex ?? 3})
+
+Directive de persona (${personaMode}) : ${personaDirective}
+
+Consignes de formatage :
+1. Rédige en français soigné, structuré en Markdown propre (titres en gras, listes courtes avec puces claires, emojis pertinents comme 🌡️, 💨, 💧, 🧭, 🏔️, ☀️, ⚡).
+2. Si l'utilisateur mentionne une ville française spécifique ou compare deux villes (ex: Paris et Marseille), adapte ton analyse aux reliefs et climats de ces villes respectives.
+3. Sois concis, direct et percutant (2 à 4 paragraphes courts maximum, zéro remplissage).
+4. Ne sors jamais de ton rôle d'IA météorologique AURA d'Instant Météo.`;
+
+    const contents = [
+      { role: 'user', parts: [{ text: `${systemPrompt}\n\nQuestion de l'utilisateur : "${message}"` }] }
+    ];
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents
+    });
+
+    const answer = response.text || "Nos capteurs analysent la situation. Que souhaitez-vous approfondir ?";
+    res.json({ success: true, answer });
+  } catch (err: any) {
+    console.error('Erreur API AURA chat:', err);
+    res.json({ success: false, fallback: true, error: err.message });
   }
 });
 

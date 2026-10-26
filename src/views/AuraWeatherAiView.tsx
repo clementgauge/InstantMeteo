@@ -21,8 +21,14 @@ import {
   Layers,
   X,
   Camera,
+  Table as TableIcon,
   Activity,
-  Table as TableIcon
+  Copy,
+  Check,
+  Square,
+  Scale,
+  BookOpen,
+  HeartPulse
 } from 'lucide-react';
 import Chart from 'chart.js/auto';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
@@ -189,6 +195,43 @@ export function detectStationFromInput(query: string): LocationPoint | null {
   return null;
 }
 
+export function detectAllStationsFromInput(query: string): LocationPoint[] {
+  const clean = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const found: LocationPoint[] = [];
+  const addedIds = new Set<string>();
+
+  // 1. Dictionnaire rapide des agglomérations
+  for (const [cityName, stationId] of Object.entries(MAJOR_FRENCH_CITIES_MAP)) {
+    const regex = new RegExp(`\\b${cityName}\\b`, 'i');
+    if (regex.test(clean)) {
+      const match = FRENCH_STATIONS.find(s => s.id === stationId);
+      if (match && !addedIds.has(match.id)) {
+        found.push(match);
+        addedIds.add(match.id);
+      }
+    }
+  }
+
+  // 2. Recherche par nom des stations principales
+  if (found.length < 2) {
+    for (const s of FRENCH_STATIONS) {
+      if (addedIds.has(s.id)) continue;
+      const sNameNorm = s.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const firstWord = sNameNorm.split(/[-–,\s]/)[0];
+      if (firstWord.length >= 3) {
+        const regex = new RegExp(`\\b${firstWord}\\b`, 'i');
+        if (regex.test(clean)) {
+          found.push(s);
+          addedIds.add(s.id);
+          if (found.length >= 3) break;
+        }
+      }
+    }
+  }
+
+  return found;
+}
+
 export function computeRealisticStationWeather(
   targetStation: LocationPoint,
   baseStation: LocationPoint,
@@ -277,6 +320,13 @@ interface ChatMessage {
   id: string;
   sender: 'user' | 'aura';
   text: string;
+  comparison?: {
+    stationA: { name: string; temp: string; wind: string; condition: string; icon: string };
+    stationB: { name: string; temp: string; wind: string; condition: string; icon: string };
+    tempDiff: string;
+    windDiff: string;
+    summary: string;
+  };
   card?: {
     location: string;
     stationId?: string;
@@ -355,6 +405,48 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(true);
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [personaMode, setPersonaMode] = useState<'standard' | 'expert' | 'health'>('standard');
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [selectedChipCategory, setSelectedChipCategory] = useState<'villes' | 'graphes' | '3d' | 'comparer' | 'science'>('villes');
+
+  const handleSpeakMessage = (id: string, text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (speakingMessageId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/[#_\-`]/g, '')
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => setSpeakingMessageId(null);
+    utterance.onerror = () => setSpeakingMessageId(null);
+
+    setSpeakingMessageId(id);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleCopyMessage = (id: string, text: string) => {
+    const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(cleanText).then(() => {
+        setCopiedMessageId(id);
+        setTimeout(() => setCopiedMessageId(null), 2200);
+      }).catch(() => {});
+    }
+  };
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chatStreamRef = useRef<HTMLDivElement | null>(null);
@@ -613,7 +705,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   }, [messages]);
 
   // 6. MOTEUR LINGUISTIQUE NATUREL & DYNAMIQUE (DÉTECTION DES MOTS DE LA QUESTION)
-  const handleProcessQuery = (query: string) => {
+  const handleProcessQuery = async (query: string) => {
     if (!query.trim()) return;
 
     // Ajout du message de l'utilisateur
@@ -641,6 +733,8 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     let targetStationIcon: string = safeWeather.temperature >= 22 ? '☀️' : '⛅';
 
     const detectedStation = detectStationFromInput(query);
+    const detectedStations = detectAllStationsFromInput(query);
+
     if (detectedStation) {
       targetStation = detectedStation;
       const computed = computeRealisticStationWeather(
@@ -655,6 +749,17 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       targetDaily = computed.daily;
       targetStationIcon = computed.icon;
     }
+
+    // Détection du comparatif multi-villes (ex: "Compare Paris et Marseille")
+    const isComparisonQuery = detectedStations.length >= 2 && (
+      normalized.includes('compare') || 
+      normalized.includes('vs') || 
+      normalized.includes('diff') || 
+      normalized.includes('versus') || 
+      normalized.includes(' ou ') || 
+      normalized.includes('entre') ||
+      normalized.includes('comparatif')
+    );
 
     // B. Détection de la Modalité d'Affichage demandée (Carte 3D, Graphique, Tableau, Capture)
     const wants3DMap = ['3d', 'carte 3d', 'carte', 'map', 'territoire', 'france', 'spatial', 'relief', 'pays', 'hexagone'].some(kw => normalized.includes(kw));
@@ -676,6 +781,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const isGreeting = ['bonjour', 'salut', 'hello', 'coucou', 'bonsoir', 'aide'].some(kw => normalized.includes(kw));
     const isExplicitCityQuery = Boolean(
       detectedStation &&
+      !isComparisonQuery &&
       !wants3DMap &&
       !wantsSnapshot &&
       !isPast7Days &&
@@ -687,6 +793,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     // Variables de réponse
     let responseText = '';
     let cardData: ChatMessage['card'] | undefined;
+    let comparisonData: ChatMessage['comparison'] | undefined;
     let chartData: ChatMessage['chart'] | undefined;
     let map3DData: ChatMessage['map3D'] | undefined;
     let snapshotData: ChatMessage['snapshot'] | undefined;
@@ -695,9 +802,74 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const currentGust = targetWeather.windGust ?? Math.round(targetWeather.windSpeed * 1.35);
 
     // =========================================================================
+    // BRANCHE 0 : COMPARATEUR MULTI-VILLES EN TEMPS RÉEL
+    // =========================================================================
+    if (isComparisonQuery) {
+      const stA = detectedStations[0];
+      const stB = detectedStations[1];
+      const resA = computeRealisticStationWeather(stA, currentStation, safeWeather, hourly, daily);
+      const resB = computeRealisticStationWeather(stB, currentStation, safeWeather, hourly, daily);
+
+      const tA = resA.weather.temperature;
+      const tB = resB.weather.temperature;
+      const diffT = Math.abs(tA - tB).toFixed(1);
+      const warmer = tA > tB ? stA.name : (tB > tA ? stB.name : 'Égalité');
+
+      const wA = resA.weather.windSpeed;
+      const wB = resB.weather.windSpeed;
+      const diffW = Math.abs(wA - wB);
+      const windier = wA > wB ? stA.name : (wB > wA ? stB.name : 'Égalité');
+
+      const nextHours = (hourly.length > 0 ? hourly : resA.hourly).slice(0, 12);
+      const labels = nextHours.map(h => h.hourLabel || h.time || 'H');
+      const dataA = resA.hourly.slice(0, 12).map(h => h.temperature);
+      const dataB = resB.hourly.slice(0, 12).map(h => h.temperature);
+
+      responseText = `⚖️ **Analyse Comparative Météo : ${stA.name} vs ${stB.name}** :\n\n` +
+        `Voici le diagnostic synoptique comparé entre **${stA.name}** (${stA.department || 'France'}) et **${stB.name}** (${stB.department || 'France'}) :\n\n` +
+        `- 🌡️ **Températures réelles** : **${tA}°C** à ${stA.name} contre **${tB}°C** à ${stB.name} (Écart : **${diffT}°C** en faveur de **${warmer}**)\n` +
+        `- 💨 **Régime éolien** : **${wA} km/h** à ${stA.name} contre **${wB} km/h** à ${stB.name} (Secteur le plus venté : **${windier}**)\n` +
+        `- ☁️ **État du ciel** : ${resA.weather.weatherDescription} à ${stA.name} | ${resB.weather.weatherDescription} à ${stB.name}\n` +
+        `- 🧭 **Bioclimat** : Différence synoptique liée au gradient de latitude (${Math.abs(stA.latitude - stB.latitude).toFixed(1)}° d'écart) et à l'influence maritime ou continentale.\n\n` +
+        `Retrouvez ci-dessous la superposition directe des courbes thermiques pour les prochaines heures.`;
+
+      comparisonData = {
+        stationA: {
+          name: stA.name,
+          temp: `${tA}°C`,
+          wind: `${wA} km/h`,
+          condition: resA.weather.weatherDescription,
+          icon: resA.icon
+        },
+        stationB: {
+          name: stB.name,
+          temp: `${tB}°C`,
+          wind: `${wB} km/h`,
+          condition: resB.weather.weatherDescription,
+          icon: resB.icon
+        },
+        tempDiff: `${diffT}°C`,
+        windDiff: `${diffW} km/h`,
+        summary: `${warmer} est plus doux de ${diffT}°C`
+      };
+
+      chartData = {
+        id: `compare_${Date.now()}`,
+        title: `Comparatif thermique heure par heure (°C)`,
+        cityName: `${stA.name} vs ${stB.name}`,
+        type: 'line',
+        labels,
+        datasets: [
+          { label: `${stA.name} (${tA}°C)`, data: dataA, color: '#38BDF8', fill: false },
+          { label: `${stB.name} (${tB}°C)`, data: dataB, color: '#F59E0B', fill: false }
+        ]
+      };
+    }
+
+    // =========================================================================
     // BRANCHE 1 : DEMANDE DE CARTE 3D DU TERRITOIRE OU D'UN PAYS
     // =========================================================================
-    if (wants3DMap) {
+    else if (wants3DMap) {
       let metric3D: Map3DMetric = 'temperature';
       let metricName = 'Températures';
       if (isWindQuery) {
@@ -1170,9 +1342,10 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       };
     }
 
-    // QUESTION GÉNÉRALE
+    // QUESTION GÉNÉRALE OU EXPERTISE AVANCÉE
     else {
-      responseText = `À **${targetStation.name}**, les conditions météorologiques sont actuellement dominées par un ciel **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti bio-climatique **${targetWeather.feelsLike}°C**).\n\nLe vent souffle à **${targetWeather.windSpeed} km/h** avec des rafales maximales de **${currentGust} km/h**. L'humidité de l'air est à **${targetWeather.humidity ?? 65}%** et la pression atmosphérique atteint **${targetWeather.pressure ?? 1015} hPa**.\n\n💡 *Astuce : vous pouvez me demander "génère un graphe de la température", "donne moi la température sur 7 jours de aujourd'hui à j-7", ou "carte 3D de la France".*`;
+      // Diagnostic physique certifié de secours
+      responseText = `À **${targetStation.name}**, les conditions météorologiques sont actuellement dominées par un ciel **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti bio-climatique **${targetWeather.feelsLike}°C**).\n\nLe vent souffle à **${targetWeather.windSpeed} km/h** avec des rafales maximales de **${currentGust} km/h**. L'humidité de l'air est à **${targetWeather.humidity ?? 65}%** et la pression atmosphérique atteint **${targetWeather.pressure ?? 1015} hPa**.\n\n💡 *Astuce : vous pouvez me demander "compare Paris et Lyon", "donne moi la température sur 7 jours", "carte 3D de la France" ou une question scientifique comme "explique-moi la goutte froide".*`;
       cardData = {
         location: targetStation.name,
         temp: `${targetWeather.temperature}°C`,
@@ -1181,25 +1354,46 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
         icon: targetWeather.temperature > 18 ? '☀️' : '⛅'
       };
+
+      // Enrichissement par l'Intelligence Artificielle Gemini 3.8 Flash
+      try {
+        const response = await fetch('/api/aura/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: query,
+            station: targetStation,
+            weather: targetWeather,
+            personaMode
+          })
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData.success && resData.answer) {
+            responseText = resData.answer;
+          }
+        }
+      } catch (_) {
+        // En cas d'indisponibilité réseau, la réponse physique locale est maintenue
+      }
     }
 
-    setTimeout(() => {
-      setIsThinking(false);
-      playChime();
-      const auraMsg: ChatMessage = {
-        id: `aura_${Date.now()}`,
-        sender: 'aura',
-        text: responseText,
-        card: cardData,
-        chart: chartData,
-        map3D: map3DData,
-        snapshot: snapshotData,
-        table: tableData,
-        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages((prev) => [...prev, auraMsg]);
-      scrollToBottom();
-    }, 450);
+    setIsThinking(false);
+    playChime();
+    const auraMsg: ChatMessage = {
+      id: `aura_${Date.now()}`,
+      sender: 'aura',
+      text: responseText,
+      comparison: comparisonData,
+      card: cardData,
+      chart: chartData,
+      map3D: map3DData,
+      snapshot: snapshotData,
+      table: tableData,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages((prev) => [...prev, auraMsg]);
+    scrollToBottom();
   };
 
   // 7. Voice input (Web Speech API)
@@ -1290,13 +1484,50 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        {/* Action Controls & Persona Mode Switcher */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Persona Mode Switcher */}
+          <div className="flex items-center p-1 rounded-xl bg-white/5 border border-white/10 text-[11px]">
+            <button
+              onClick={() => setPersonaMode('standard')}
+              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
+                personaMode === 'standard' 
+                  ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Mode Grand Public : prévisions claires, confort et activités"
+            >
+              🌤️ Public
+            </button>
+            <button
+              onClick={() => setPersonaMode('expert')}
+              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
+                personaMode === 'expert' 
+                  ? 'bg-sky-500/30 text-sky-200 border border-sky-400/50 shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Mode Expert : analyse synoptique approfondie, gradients et physique"
+            >
+              🔬 Expert
+            </button>
+            <button
+              onClick={() => setPersonaMode('health')}
+              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
+                personaMode === 'health' 
+                  ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-500/50 shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Mode Santé : confort thermique, sensibilité météo, UV et qualité de l'air"
+            >
+              🌿 Santé
+            </button>
+          </div>
+
           {/* Soundscape audio toggle */}
           <button
             onClick={() => setIsAudioMuted(!isAudioMuted)}
             title={isAudioMuted ? 'Activer le carillon sonore atmosphérique' : 'Couper le son'}
-            className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 text-xs font-semibold cursor-pointer ${
+            className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
               !isAudioMuted 
                 ? 'bg-sky-500/20 text-sky-300 border-sky-400/40 shadow-sm' 
                 : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
@@ -1308,7 +1539,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           {isModal && onClose && (
             <button
               onClick={onClose}
-              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition cursor-pointer"
               title="Fermer la boîte de dialogue AURA"
             >
               <X className="h-4 w-4" />
@@ -1417,6 +1648,45 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                   </div>
                 )}
 
+                {/* Multi-City Comparison Card */}
+                {msg.comparison && (
+                  <div className="mt-3 p-4 rounded-xl bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-amber-950/40 border border-sky-400/30 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-xs font-black uppercase text-amber-300 flex items-center gap-1.5">
+                        <Scale className="h-3.5 w-3.5 text-amber-400" />
+                        Comparatif Télémétrique Direct
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 font-bold">
+                        {msg.comparison.summary}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Station A */}
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
+                        <div className="text-xs font-bold text-sky-300 flex items-center justify-between">
+                          <span>{msg.comparison.stationA.name}</span>
+                          <span className="text-base">{msg.comparison.stationA.icon}</span>
+                        </div>
+                        <div className="text-xl font-black text-white mt-1">{msg.comparison.stationA.temp}</div>
+                        <div className="text-[11px] text-slate-300 mt-0.5">{msg.comparison.stationA.condition}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationA.wind}</div>
+                      </div>
+
+                      {/* Station B */}
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
+                        <div className="text-xs font-bold text-amber-300 flex items-center justify-between">
+                          <span>{msg.comparison.stationB.name}</span>
+                          <span className="text-base">{msg.comparison.stationB.icon}</span>
+                        </div>
+                        <div className="text-xl font-black text-white mt-1">{msg.comparison.stationB.temp}</div>
+                        <div className="text-[11px] text-slate-300 mt-0.5">{msg.comparison.stationB.condition}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationB.wind}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Dynamic Chart.js Graphic */}
                 {msg.chart && (
                   <div className="mt-4 p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-2">
@@ -1454,8 +1724,57 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                   />
                 )}
 
-                <div className="text-[9px] text-slate-500 text-right">
-                  {msg.timestamp}
+                {/* Aura Message Utility Bar (TTS Voice Reader + Copy) */}
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                  {msg.sender === 'aura' ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSpeakMessage(msg.id, msg.text)}
+                        className={`px-2 py-0.5 rounded-lg border transition flex items-center gap-1 text-[10px] cursor-pointer font-medium ${
+                          speakingMessageId === msg.id
+                            ? 'bg-rose-500/25 text-rose-300 border-rose-400/50 animate-pulse'
+                            : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
+                        }`}
+                        title={speakingMessageId === msg.id ? "Arrêter la lecture" : "Écouter le bulletin oral"}
+                      >
+                        {speakingMessageId === msg.id ? (
+                          <>
+                            <Square className="h-3 w-3 fill-rose-400" />
+                            <span>Arrêter</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-3 w-3 text-sky-400" />
+                            <span>Écouter</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleCopyMessage(msg.id, msg.text)}
+                        className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 text-[10px] cursor-pointer"
+                        title="Copier le texte"
+                      >
+                        {copiedMessageId === msg.id ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-400" />
+                            <span className="text-emerald-300">Copié</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3 w-3 text-slate-400" />
+                            <span>Copier</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {msg.timestamp}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1476,78 +1795,237 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           </div>
         )}
 
-        {/* Quick Suggestion Chips */}
-        <div className="pt-2 pb-1 flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => handleProcessQuery(`Météo Paris`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <MapPin className="h-3 w-3 text-sky-400" />
-            <span>📍 Paris</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Météo Lyon`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <MapPin className="h-3 w-3 text-sky-400" />
-            <span>📍 Lyon</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Météo Marseille`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <MapPin className="h-3 w-3 text-sky-400" />
-            <span>📍 Marseille</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <LineChart className="h-3 w-3 text-amber-400" />
-            <span>📊 Température 7 jours</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <Activity className="h-3 w-3 text-sky-400" />
-            <span>📉 J-7 à Aujourd'hui</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la température`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <Compass className="h-3 w-3 text-purple-400" />
-            <span>🗺️ Carte 3D France</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Génère un graphe de la température de Paris`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <LineChart className="h-3 w-3 text-amber-300" />
-            <span>📈 Graphe Paris</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Donne-moi le cumul de pluie sur 7 jours`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <CloudRain className="h-3 w-3 text-blue-400" />
-            <span>💧 Pluie 7j</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Donne-moi les rafales de vent sur 7 jours`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-          >
-            <Wind className="h-3 w-3 text-orange-400" />
-            <span>💨 Rafales 7j</span>
-          </button>
-          <button
-            onClick={() => handleProcessQuery(`Fais une capture du radar`)}
-            className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer shrink-0"
-          >
-            <Camera className="h-3 w-3 text-sky-300" />
-            <span>📸 Capture Radar</span>
-          </button>
+        {/* Categorized Interactive Prompt Navigation */}
+        <div className="pt-2 pb-1 space-y-2">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 text-[11px]">
+            <button
+              onClick={() => setSelectedChipCategory('villes')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
+                selectedChipCategory === 'villes'
+                  ? 'bg-sky-500/25 text-sky-200 border border-sky-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <MapPin className="h-3 w-3 text-sky-400" />
+              <span>Villes & Bulletins</span>
+            </button>
+            <button
+              onClick={() => setSelectedChipCategory('graphes')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
+                selectedChipCategory === 'graphes'
+                  ? 'bg-amber-500/25 text-amber-200 border border-amber-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <LineChart className="h-3 w-3 text-amber-400" />
+              <span>Graphiques & Tendances</span>
+            </button>
+            <button
+              onClick={() => setSelectedChipCategory('3d')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
+                selectedChipCategory === '3d'
+                  ? 'bg-purple-500/25 text-purple-200 border border-purple-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <Compass className="h-3 w-3 text-purple-400" />
+              <span>Modélisation 3D & Radar</span>
+            </button>
+            <button
+              onClick={() => setSelectedChipCategory('comparer')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
+                selectedChipCategory === 'comparer'
+                  ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <Scale className="h-3 w-3 text-emerald-400" />
+              <span>Comparateur</span>
+            </button>
+            <button
+              onClick={() => setSelectedChipCategory('science')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
+                selectedChipCategory === 'science'
+                  ? 'bg-rose-500/25 text-rose-200 border border-rose-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              <BookOpen className="h-3 w-3 text-rose-400" />
+              <span>Science & Phénomènes</span>
+            </button>
+          </div>
+
+          {/* Dynamic Suggestion Chips */}
+          <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
+            {selectedChipCategory === 'villes' && (
+              <>
+                {['Paris', 'Lyon', 'Marseille', 'Nice', 'Brest', 'Bordeaux', 'Toulouse', 'Strasbourg', 'Nantes', 'Lille'].map((city) => (
+                  <button
+                    key={city}
+                    onClick={() => handleProcessQuery(`Météo ${city}`)}
+                    className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                  >
+                    <MapPin className="h-3 w-3 text-sky-400" />
+                    <span>📍 {city}</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {selectedChipCategory === 'graphes' && (
+              <>
+                <button
+                  onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <LineChart className="h-3 w-3 text-amber-400" />
+                  <span>📊 Températures 7 jours</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Activity className="h-3 w-3 text-sky-400" />
+                  <span>📉 Historique J-7 à Aujourd'hui</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Génère un graphe de la température de Paris`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <LineChart className="h-3 w-3 text-amber-300" />
+                  <span>📈 Graphe Paris</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Donne-moi le cumul de pluie sur 7 jours`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <CloudRain className="h-3 w-3 text-blue-400" />
+                  <span>💧 Pluie 7j</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Donne-moi les rafales de vent sur 7 jours`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Wind className="h-3 w-3 text-orange-400" />
+                  <span>💨 Rafales de vent 7j</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Donne-moi l'isotherme 0°C et la limite pluie-neige sur 7 jours`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Snowflake className="h-3 w-3 text-cyan-400" />
+                  <span>🏔️ Isotherme 0°C & LPN 7j</span>
+                </button>
+              </>
+            )}
+
+            {selectedChipCategory === '3d' && (
+              <>
+                <button
+                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la température`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Compass className="h-3 w-3 text-purple-400" />
+                  <span>🗺️ Carte 3D Températures</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant le vent et les rafales`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Wind className="h-3 w-3 text-orange-400" />
+                  <span>💨 Carte 3D Vent & Rafales</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la pluie`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <CloudRain className="h-3 w-3 text-blue-400" />
+                  <span>🌧️ Carte 3D Précipitations</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la neige et l'isotherme`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Snowflake className="h-3 w-3 text-cyan-400" />
+                  <span>❄️ Carte 3D Neige & Relief</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Fais une capture du radar`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Camera className="h-3 w-3 text-sky-300" />
+                  <span>📸 Capture Radar Doppler</span>
+                </button>
+              </>
+            )}
+
+            {selectedChipCategory === 'comparer' && (
+              <>
+                <button
+                  onClick={() => handleProcessQuery(`Compare Paris et Marseille`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Scale className="h-3 w-3 text-emerald-400" />
+                  <span>⚖️ Paris vs Marseille</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Compare Brest et Nice`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Scale className="h-3 w-3 text-emerald-400" />
+                  <span>⚖️ Brest vs Nice</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Compare Lyon et Bordeaux`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Scale className="h-3 w-3 text-emerald-400" />
+                  <span>⚖️ Lyon vs Bordeaux</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Compare Lille et Toulouse`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Scale className="h-3 w-3 text-emerald-400" />
+                  <span>⚖️ Lille vs Toulouse</span>
+                </button>
+              </>
+            )}
+
+            {selectedChipCategory === 'science' && (
+              <>
+                <button
+                  onClick={() => handleProcessQuery(`Explique-moi le phénomène de la goutte froide en météorologie`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <BookOpen className="h-3 w-3 text-rose-400" />
+                  <span>🔬 Qu'est-ce qu'une goutte froide ?</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Quelle est la différence entre le Mistral et la Tramontane ?`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Wind className="h-3 w-3 text-orange-400" />
+                  <span>💨 Mistral vs Tramontane</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Comment se forme un orage de supercellule ?`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Zap className="h-3 w-3 text-amber-400" />
+                  <span>⚡ Orage supercellulaire</span>
+                </button>
+                <button
+                  onClick={() => handleProcessQuery(`Pourquoi fait-il plus froid en altitude ?`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Thermometer className="h-3 w-3 text-cyan-400" />
+                  <span>🏔️ Gradient adiabatique d'altitude</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* USER INPUT DOCK */}
