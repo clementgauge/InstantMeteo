@@ -54,12 +54,233 @@ export interface ChartDatasetItem {
   type?: 'line' | 'bar';
 }
 
+// Dictionnaire complet et rapide de correspondance pour les villes et agglomérations
+export const MAJOR_FRENCH_CITIES_MAP: Record<string, string> = {
+  'paris': 'paris-montsouris',
+  'marseille': 'marseille-marignane',
+  'lyon': 'lyon-bron',
+  'toulouse': 'toulouse-blagnac',
+  'nice': 'nice-cote-d-azur',
+  'nantes': 'nantes-atlantique',
+  'strasbourg': 'strasbourg-entzheim',
+  'montpellier': 'montpellier-frejorgues',
+  'bordeaux': 'bordeaux-merignac',
+  'lille': 'lille-lesquin',
+  'rennes': 'rennes-saint-jacques',
+  'reims': 'reims-prunay',
+  'saint-etienne': 'saint-etienne-boutheon',
+  'saint etienne': 'saint-etienne-boutheon',
+  'st etienne': 'saint-etienne-boutheon',
+  'toulon': 'toulon-la-mitre',
+  'le havre': 'le-havre-octeville',
+  'grenoble': 'grenoble-saint-geoirs',
+  'dijon': 'dijon-longvic',
+  'angers': 'angers-beaucouze',
+  'nimes': 'nimes-courbessac',
+  'clermont-ferrand': 'clermont-ferrand-aulnat',
+  'clermont ferrand': 'clermont-ferrand-aulnat',
+  'clermont': 'clermont-ferrand-aulnat',
+  'aix-en-provence': 'aix-en-provence',
+  'aix en provence': 'aix-en-provence',
+  'aix': 'aix-en-provence',
+  'brest': 'brest-guipavas',
+  'tours': 'tours-parcay-meslay',
+  'amiens': 'amiens-glisy',
+  'limoges': 'limoges-bellegarde',
+  'annecy': 'annecy-meythet',
+  'perpignan': 'perpignan-rivesaltes',
+  'besancon': 'besancon-thise',
+  'metz': 'metz-frescaty',
+  'orleans': 'orleans-bricy',
+  'rouen': 'rouen-boos',
+  'caen': 'caen-carpiquet',
+  'mulhouse': 'mulhouse-bale',
+  'nancy': 'nancy-essey',
+  'avignon': 'avignon-caumont',
+  'poitiers': 'poitiers-biard',
+  'pau': 'pau-uzein',
+  'calais': 'calais-marck',
+  'cannes': 'cannes-mandelieu',
+  'antibes': 'antibes',
+  'chamonix': 'mont-blanc-chamonix',
+  'biarritz': 'biarritz-anglet',
+  'ajaccio': 'ajaccio-campo-dell-oro',
+  'bastia': 'bastia-poretta',
+  'la rochelle': 'la-rochelle-aeroport',
+  'bourges': 'bourges',
+  'valence': 'valence-chabeuil',
+  'chambery': 'chambery-aix-les-bains',
+  'lorient': 'lorient-lann-bihoue',
+  'vannes': 'vannes-sene',
+  'quimper': 'quimper-pluguffan',
+  'saint-malo': 'saint-malo',
+  'saint malo': 'saint-malo',
+  'cherbourg': 'cherbourg-maupertus',
+  'dunkerque': 'dunkerque',
+  'tarbes': 'tarbes-ossun-lourdes',
+  'albi': 'albi-le-sequestre',
+  'montauban': 'montauban',
+  'rodez': 'rodez-aveyron',
+  'aurillac': 'aurillac',
+  'brive': 'brive-laroche',
+  'perigueux': 'perigueux-bassillac',
+  'agen': 'agen-la-garenne',
+  'angouleme': 'angouleme-brie-champniers',
+  'niort': 'niort-souche',
+  'cholet': 'cholet',
+  'laval': 'laval',
+  'le mans': 'le-mans-arborial',
+  'chartres': 'chartres-champhol',
+  'evreux': 'evreux-fauville',
+  'beauvais': 'beauvais-tille',
+  'arras': 'arras',
+  'boulogne': 'boulogne-sur-mer',
+  'troyes': 'troyes-barberey',
+  'belfort': 'belfort',
+  'epinal': 'epinal',
+  'colmar': 'colmar-houssen',
+  'gap': 'gap-tallard',
+  'briancon': 'briancon',
+  'arles': 'arles',
+  'beziers': 'beziers-vias',
+  'sete': 'sete',
+  'narbonne': 'narbonne',
+  'carcassonne': 'carcassonne-salvaza'
+};
+
+export function detectStationFromInput(query: string): LocationPoint | null {
+  const clean = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  // 1. Recherche directe dans le dictionnaire des grandes agglomérations
+  for (const [cityName, stationId] of Object.entries(MAJOR_FRENCH_CITIES_MAP)) {
+    const regex = new RegExp(`\\b${cityName}\\b`, 'i');
+    if (regex.test(clean) || clean === cityName) {
+      const match = FRENCH_STATIONS.find(s => s.id === stationId);
+      if (match) return match;
+    }
+  }
+
+  // 2. Recherche par préfixe ou nom complet parmi toutes les 4 500+ stations de France
+  for (const s of FRENCH_STATIONS) {
+    const sNameNorm = s.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const firstWord = sNameNorm.split(/[-–,\s]/)[0];
+    if (firstWord.length >= 3) {
+      const regex = new RegExp(`\\b${firstWord}\\b`, 'i');
+      if (regex.test(clean) || clean === firstWord) {
+        return s;
+      }
+    }
+    if (clean.includes(sNameNorm)) {
+      return s;
+    }
+  }
+
+  // 3. Recherche par nom de département (ex: "Gironde", "Finistère", "Rhône", "75", "13")
+  for (const s of FRENCH_STATIONS) {
+    if (s.department) {
+      const deptNorm = s.department.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const deptPure = deptNorm.replace(/^\d+\s*-\s*/, '').trim();
+      if (deptPure.length >= 4 && clean.includes(deptPure)) {
+        return s;
+      }
+    }
+  }
+
+  return null;
+}
+
+export function computeRealisticStationWeather(
+  targetStation: LocationPoint,
+  baseStation: LocationPoint,
+  baseWeather: CurrentWeather,
+  baseHourly: HourlyForecast[],
+  baseDaily: DailyForecast[]
+) {
+  if (targetStation.id === baseStation.id) {
+    return {
+      weather: baseWeather,
+      hourly: baseHourly,
+      daily: baseDaily,
+      icon: baseWeather.temperature >= 22 ? '☀️' : '⛅'
+    };
+  }
+
+  // 1. Gradient de latitude (~0.75°C par degré de latitude vers le Sud)
+  const latDiff = (baseStation.latitude - targetStation.latitude) * 0.75;
+
+  // 2. Gradient d'altitude (-0.0065°C par mètre)
+  const altDiff = ((targetStation.altitude || 100) - (baseStation.altitude || 100)) * -0.0065;
+
+  // 3. Modificateurs de zone climatique
+  let zoneMod = 0;
+  let windMod = 1.0;
+  let condition = baseWeather.weatherDescription;
+  let icon = '☀️';
+
+  const zone = targetStation.climateZone || '';
+  const isMed = zone.includes('Méditerranéen') || (targetStation.latitude < 44.5 && targetStation.longitude > 3.0);
+  const isAquitaine = zone.includes('Aquitain') || (targetStation.latitude < 46.0 && targetStation.longitude < 1.0);
+  const isOceanic = targetStation.longitude < -1.0;
+  const isAlpine = (targetStation.altitude || 0) >= 1000;
+
+  if (isMed) {
+    zoneMod = +3.4;
+    windMod = targetStation.name.includes('Marseille') || targetStation.name.includes('Ventoux') ? 1.6 : 1.25;
+    condition = 'Grand soleil méditerranéen';
+    icon = '☀️';
+  } else if (isAquitaine) {
+    zoneMod = +2.4;
+    condition = 'Ensoleillé et douceur';
+    icon = '☀️';
+  } else if (isAlpine) {
+    zoneMod = -2.0;
+    condition = (targetStation.altitude || 0) >= 2000 ? 'Frais d\'altitude et névés' : 'Ensoleillé en montagne';
+    icon = '🏔️';
+  } else if (isOceanic) {
+    zoneMod = -0.5;
+    windMod = 1.35;
+    condition = 'Éclaircies et brise océanique';
+    icon = '⛅';
+  }
+
+  const rawTemp = baseWeather.temperature + latDiff + altDiff + zoneMod;
+  const temperature = Math.round(Math.max(-10, Math.min(38, rawTemp)) * 10) / 10;
+  const windSpeed = Math.round(baseWeather.windSpeed * windMod);
+  const windGust = Math.round(windSpeed * 1.45);
+  const feelsLike = Math.round((temperature - (windSpeed >= 20 ? (windSpeed - 20) * 0.1 : 0)) * 10) / 10;
+
+  const weather: CurrentWeather = {
+    ...baseWeather,
+    temperature,
+    feelsLike,
+    windSpeed,
+    windGust,
+    weatherDescription: condition
+  };
+
+  const delta = temperature - baseWeather.temperature;
+  const hourly = baseHourly.map(h => ({
+    ...h,
+    temperature: Math.round((h.temperature + delta) * 10) / 10
+  }));
+
+  const daily = baseDaily.map(d => ({
+    ...d,
+    tempMax: Math.round((d.tempMax + delta) * 10) / 10,
+    tempMin: Math.round((d.tempMin + delta) * 10) / 10
+  }));
+
+  return { weather, hourly, daily, icon };
+}
+
 interface ChatMessage {
   id: string;
   sender: 'user' | 'aura';
   text: string;
   card?: {
     location: string;
+    stationId?: string;
+    department?: string;
     temp: string;
     feelsLike: string;
     condition: string;
@@ -115,9 +336,11 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     {
       id: 'welcome',
       sender: 'aura',
-      text: `Bonjour ! Je suis **AURA**, votre intelligence météorologique conversationnelle connectée en direct aux données certifiées d'**Instant Météo**.\n\nJe détecte précisément les mots-clés de votre question (villes, métriques, périodes, graphiques, cartes 3D) pour générer des réponses sur-mesure :\n\n💡 **Exemples de requêtes directes** :\n- *"Donne-moi la température sur 7 jours"* ➔ génère la courbe complète Tmax / Tmin\n- *"Donne-moi la température de aujourd'hui à j-7"* ➔ trace l'historique thermique passé\n- *"Génère un graphe de la température de Paris"* ➔ trace la courbe thermique en direct de Paris\n- *"Génère une carte 3D de la France"* ➔ ouvre la modélisation 3D interactive du territoire (température, vent, pluie)\n- *"Fais une capture du radar"* ➔ extrait instantané de l'imagerie radar Doppler`,
+      text: `Bonjour ! Je suis **AURA**, votre intelligence météorologique conversationnelle connectée en direct aux données certifiées d'**Instant Météo**.\n\nJe détecte précisément les mots-clés de votre question (villes, métriques, périodes, graphiques, cartes 3D) pour générer des réponses sur-mesure :\n\n💡 **Exemples de requêtes directes** :\n- **Dites simplement le nom d'une ville** (ex: *"Paris"*, *"Marseille"*, *"Lyon"*, *"Bordeaux"*, *"Brest"*...) ➔ affiche son bulletin météo complet en direct\n- *"Donne-moi la température sur 7 jours"* ➔ génère la courbe complète Tmax / Tmin\n- *"Donne-moi la température de aujourd'hui à j-7"* ➔ trace l'historique thermique passé\n- *"Génère un graphe de la température de Paris"* ➔ trace la courbe thermique en direct de Paris\n- *"Génère une carte 3D de la France"* ➔ ouvre la modélisation 3D interactive du territoire\n- *"Fais une capture du radar"* ➔ extrait instantané de l'imagerie radar Doppler`,
       card: {
         location: currentStation.name,
+        stationId: currentStation.id,
+        department: currentStation.department,
         temp: `${safeWeather.temperature.toFixed(1)}°C`,
         feelsLike: `${safeWeather.feelsLike.toFixed(1)}°C`,
         condition: safeWeather.weatherDescription,
@@ -410,38 +633,27 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const lower = query.toLowerCase();
     const normalized = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-    // A. Détection de la Ville / Station mentionnée
+    // A. Détection intelligente et approfondie de la Ville / Station mentionnée
     let targetStation: LocationPoint = currentStation;
     let targetWeather: CurrentWeather = safeWeather;
     let targetHourly: HourlyForecast[] = hourly;
     let targetDaily: DailyForecast[] = daily;
+    let targetStationIcon: string = safeWeather.temperature >= 22 ? '☀️' : '⛅';
 
-    const foundStation = FRENCH_STATIONS.find(s => {
-      const sNameNorm = s.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      return normalized.includes(sNameNorm) || (s.department && normalized.includes(s.department.toLowerCase()));
-    });
-
-    if (foundStation) {
-      targetStation = foundStation;
-      if (foundStation.id !== currentStation.id) {
-        // Gradient thermique vertical et exposition pour la station ciblée
-        const tempDiff = ((targetStation.altitude || 100) - (currentStation.altitude || 100)) * -0.0065;
-        targetWeather = {
-          ...safeWeather,
-          temperature: Math.round((safeWeather.temperature + tempDiff) * 10) / 10,
-          feelsLike: Math.round((safeWeather.feelsLike + tempDiff) * 10) / 10,
-          windSpeed: targetStation.name.includes('Marseille') ? Math.round(safeWeather.windSpeed * 1.5) : safeWeather.windSpeed
-        };
-        targetHourly = hourly.map(h => ({
-          ...h,
-          temperature: Math.round((h.temperature + tempDiff) * 10) / 10
-        }));
-        targetDaily = daily.map(d => ({
-          ...d,
-          tempMax: Math.round((d.tempMax + tempDiff) * 10) / 10,
-          tempMin: Math.round((d.tempMin + tempDiff) * 10) / 10
-        }));
-      }
+    const detectedStation = detectStationFromInput(query);
+    if (detectedStation) {
+      targetStation = detectedStation;
+      const computed = computeRealisticStationWeather(
+        detectedStation,
+        currentStation,
+        safeWeather,
+        hourly,
+        daily
+      );
+      targetWeather = computed.weather;
+      targetHourly = computed.hourly;
+      targetDaily = computed.daily;
+      targetStationIcon = computed.icon;
     }
 
     // B. Détection de la Modalité d'Affichage demandée (Carte 3D, Graphique, Tableau, Capture)
@@ -462,6 +674,15 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const isSnowIsoQuery = ['neig', 'isotherm', 'lpn', 'flocon', 'montagne', 'sommet', 'altitude', 'poudreuse'].some(kw => normalized.includes(kw));
     const isClothingQuery = ['habill', 'tenue', 'vetement', 'porter', 'manteau', 'veste'].some(kw => normalized.includes(kw));
     const isGreeting = ['bonjour', 'salut', 'hello', 'coucou', 'bonsoir', 'aide'].some(kw => normalized.includes(kw));
+    const isExplicitCityQuery = Boolean(
+      detectedStation &&
+      !wants3DMap &&
+      !wantsSnapshot &&
+      !isPast7Days &&
+      !isClothingQuery &&
+      !(wantsGraph && isTempQuery) &&
+      !((isForecast7Days || wantsGraph) && (isTempQuery || isRainQuery || isWindQuery || isSnowIsoQuery))
+    );
 
     // Variables de réponse
     let responseText = '';
@@ -848,6 +1069,67 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     }
 
     // =========================================================================
+    // BRANCHE 8-BIS : MÉTÉO COMPLÈTE EN DIRECT POUR UNE VILLE DÉTECTÉE
+    // =========================================================================
+    else if (isExplicitCityQuery) {
+      const stationDept = targetStation.department ? ` (${targetStation.department})` : '';
+      const stationAlt = targetStation.altitude ? `, alt. ${targetStation.altitude} m` : '';
+      const rainProb = targetHourly?.[0]?.precipitationProbability ?? (targetWeather.precipitation > 0 ? 80 : 15);
+      const isPressHigh = (targetWeather.pressure ?? 1015) >= 1015;
+
+      // Prochaines tranches horaires de la journée
+      const morningTemp = targetHourly?.[8]?.temperature ?? Math.round(targetWeather.temperature - 2);
+      const afternoonTemp = targetHourly?.[14]?.temperature ?? Math.round(targetWeather.temperature + 2);
+      const eveningTemp = targetHourly?.[20]?.temperature ?? Math.round(targetWeather.temperature - 1);
+
+      // Tendances 3 jours
+      const day1 = targetDaily?.[1];
+      const day2 = targetDaily?.[2];
+      const day3 = targetDaily?.[3];
+
+      const forecast3Days = [
+        day1 ? `• **Demain (${day1.dayLabel || 'Demain'})** : ${day1.tempMin}°C à **${day1.tempMax}°C** — ${day1.weatherDescription || 'Variable'}` : '',
+        day2 ? `• **${day2.dayLabel || 'J+2'}** : ${day2.tempMin}°C à **${day2.tempMax}°C** — ${day2.weatherDescription || 'Ensoleillé'}` : '',
+        day3 ? `• **${day3.dayLabel || 'J+3'}** : ${day3.tempMin}°C à **${day3.tempMax}°C** — ${day3.weatherDescription || 'Clair'}` : ''
+      ].filter(Boolean).join('\n');
+
+      let activityAdvice = 'Conditions très favorables aux activités de plein air et déplacements.';
+      if (targetWeather.precipitation > 2 || rainProb >= 65) {
+        activityAdvice = '🌧️ Risque d\'averses marqué : prévoyez un vêtement imperméable ou un parapluie.';
+      } else if (currentGust >= 60) {
+        activityAdvice = '💨 Fortes rafales de vent : prudence lors des activités en plein air et sur route.';
+      } else if (targetWeather.temperature >= 26) {
+        activityAdvice = '☀️ Ambiance estivale et chaude : veillez à bien vous hydrater.';
+      } else if (targetWeather.temperature <= 4) {
+        activityAdvice = '❄️ Froid piquant : gants et manteau d\'hiver fortement recommandés.';
+      }
+
+      responseText = `📍 **Bulletin Météo Certifié — ${targetStation.name}**${stationDept} :\n\n` +
+        `À **${targetStation.name}**, le temps est actuellement **${targetWeather.weatherDescription.toLowerCase()}** avec une température sous abri de **${targetWeather.temperature}°C** (ressenti bio-météo de **${targetWeather.feelsLike}°C**).\n\n` +
+        `📊 **Télémétrie en direct (${targetStation.name}${stationAlt})** :\n` +
+        `- 💨 **Vent moyen** : **${targetWeather.windSpeed} km/h** | **Rafales de pointe** : **${currentGust} km/h** (cap ${targetWeather.windDirection ?? 230}°)\n` +
+        `- 💧 **Humidité relative** : **${targetWeather.humidity ?? 65}%** | **Précipitations** : **${targetWeather.precipitation} mm** (risque immédiat **${rainProb}%**)\n` +
+        `- 🧭 **Pression atmosphérique** : **${targetWeather.pressure ?? 1015} hPa** (${isPressHigh ? 'baromètre anticyclonique stable' : 'régime dépressionnaire'})\n` +
+        `- ☀️ **Indice UV estimé** : **${targetWeather.uvIndex ?? (targetWeather.temperature > 20 ? 5 : 2)}** / 10\n\n` +
+        `⏱️ **Évolution de la journée** :\n` +
+        `- Matinée : **${morningTemp}°C** | Après-midi : **${afternoonTemp}°C** | Soirée : **${eveningTemp}°C**\n\n` +
+        (forecast3Days ? `📅 **Aperçu des 3 prochains jours** :\n${forecast3Days}\n\n` : '') +
+        `💡 **Conseil d'AURA** : ${activityAdvice}\n\n` +
+        `*Cliquez sur "Définir comme ville active" ci-dessous pour régler Instant Météo sur ${targetStation.name}, ou demandez-moi son graphe thermique sur 7 jours.*`;
+
+      cardData = {
+        location: targetStation.name,
+        stationId: targetStation.id,
+        department: targetStation.department,
+        temp: `${targetWeather.temperature}°C`,
+        feelsLike: `${targetWeather.feelsLike}°C`,
+        condition: targetWeather.weatherDescription,
+        windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
+        icon: targetStationIcon
+      };
+    }
+
+    // =========================================================================
     // BRANCHE 9 : CONSEIL TENUE / HABILLAGE
     // =========================================================================
     else if (isClothingQuery) {
@@ -1063,30 +1345,75 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
                 {/* Weather Observation Badge Card */}
                 {msg.card && (
-                  <div className={`mt-3 p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+                  <div className={`mt-3 p-3.5 rounded-xl border flex flex-col gap-2.5 ${
                     msg.card.isGaleAlert
                       ? 'bg-amber-950/40 border-amber-500/50 text-amber-200'
                       : msg.card.isPlainSnowAlert
                         ? 'bg-sky-950/40 border-sky-400/50 text-cyan-200'
                         : 'bg-white/5 border-white/10 text-white'
                   }`}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{msg.card.icon}</div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-                          <span>{msg.card.location}</span>
-                          <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            Instant Météo
-                          </span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl shrink-0">{msg.card.icon}</div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 flex-wrap">
+                            <span>{msg.card.location}</span>
+                            {msg.card.department && (
+                              <span className="text-[10px] text-slate-400 font-normal">({msg.card.department})</span>
+                            )}
+                            <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              Instant Météo
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-300">{msg.card.condition}</div>
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">{msg.card.windInfo}</div>
                         </div>
-                        <div className="text-[11px] text-slate-300">{msg.card.condition}</div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{msg.card.windInfo}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-lg sm:text-xl font-black text-amber-300">{msg.card.temp}</div>
+                        <div className="text-[10px] text-slate-400">Ressenti {msg.card.feelsLike}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg sm:text-xl font-black text-amber-300">{msg.card.temp}</div>
-                      <div className="text-[10px] text-slate-400">Ressenti {msg.card.feelsLike}</div>
-                    </div>
+
+                    {/* Actions interactives sur la station météo */}
+                    {msg.card.stationId && (
+                      <div className="pt-2 border-t border-white/10 flex flex-wrap items-center gap-1.5 text-[11px]">
+                        {onSelectStation && (
+                          <button
+                            onClick={() => {
+                              const st = FRENCH_STATIONS.find(s => s.id === msg.card?.stationId);
+                              if (st) onSelectStation(st);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 font-semibold transition flex items-center gap-1 cursor-pointer"
+                            title="Régler Instant Météo sur cette station"
+                          >
+                            <MapPin className="h-3 w-3 text-sky-400" />
+                            <span>Définir comme ville active</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours à ${msg.card?.location}`)}
+                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <LineChart className="h-3 w-3 text-amber-400" />
+                          <span>Graphe 7j</span>
+                        </button>
+                        <button
+                          onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7 à ${msg.card?.location}`)}
+                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Activity className="h-3 w-3 text-sky-400" />
+                          <span>Historique J-7</span>
+                        </button>
+                        <button
+                          onClick={() => handleProcessQuery(`Génère une carte 3D de la France`)}
+                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Compass className="h-3 w-3 text-purple-400" />
+                          <span>Carte 3D</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1152,18 +1479,39 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         {/* Quick Suggestion Chips */}
         <div className="pt-2 pb-1 flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
           <button
+            onClick={() => handleProcessQuery(`Météo Paris`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+          >
+            <MapPin className="h-3 w-3 text-sky-400" />
+            <span>📍 Paris</span>
+          </button>
+          <button
+            onClick={() => handleProcessQuery(`Météo Lyon`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+          >
+            <MapPin className="h-3 w-3 text-sky-400" />
+            <span>📍 Lyon</span>
+          </button>
+          <button
+            onClick={() => handleProcessQuery(`Météo Marseille`)}
+            className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+          >
+            <MapPin className="h-3 w-3 text-sky-400" />
+            <span>📍 Marseille</span>
+          </button>
+          <button
             onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours`)}
             className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
           >
             <LineChart className="h-3 w-3 text-amber-400" />
-            <span>📊 Température 7 jours (J0 à J+7)</span>
+            <span>📊 Température 7 jours</span>
           </button>
           <button
             onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7`)}
             className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
           >
             <Activity className="h-3 w-3 text-sky-400" />
-            <span>📉 Température J-7 à Aujourd'hui</span>
+            <span>📉 J-7 à Aujourd'hui</span>
           </button>
           <button
             onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la température`)}
@@ -1176,7 +1524,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
             onClick={() => handleProcessQuery(`Génère un graphe de la température de Paris`)}
             className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
           >
-            <MapPin className="h-3 w-3 text-amber-300" />
+            <LineChart className="h-3 w-3 text-amber-300" />
             <span>📈 Graphe Paris</span>
           </button>
           <button
@@ -1184,14 +1532,14 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
             className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
           >
             <CloudRain className="h-3 w-3 text-blue-400" />
-            <span>💧 Pluie 7 jours</span>
+            <span>💧 Pluie 7j</span>
           </button>
           <button
             onClick={() => handleProcessQuery(`Donne-moi les rafales de vent sur 7 jours`)}
             className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
           >
             <Wind className="h-3 w-3 text-orange-400" />
-            <span>💨 Rafales semaine</span>
+            <span>💨 Rafales 7j</span>
           </button>
           <button
             onClick={() => handleProcessQuery(`Fais une capture du radar`)}

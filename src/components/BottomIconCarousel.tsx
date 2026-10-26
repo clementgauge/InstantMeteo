@@ -117,20 +117,23 @@ export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
     }
   ];
 
-  // Auto-scroll doux continu
+  // Auto-scroll doux et infini sans interruption
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     let animId: number;
-    const speed = 0.65; // pixels par frame
+    const speed = 0.75; // pixels par frame
 
     const step = () => {
       if (!isPaused && el) {
         el.scrollLeft += speed;
-        // Si on a atteint la moitié (les éléments sont dupliqués pour un défilement infini)
-        if (el.scrollLeft >= el.scrollWidth / 2) {
-          el.scrollLeft = 0;
+        const oneSetWidth = el.scrollWidth / 3;
+        // Défilement infini sans coupure : quand on dépasse un jeu complet, on recule d'exactement un jeu
+        if (el.scrollLeft >= oneSetWidth) {
+          el.scrollLeft -= oneSetWidth;
+        } else if (el.scrollLeft <= 0) {
+          el.scrollLeft += oneSetWidth;
         }
       }
       animId = requestAnimationFrame(step);
@@ -161,10 +164,10 @@ export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
-        className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth py-1 cursor-grab active:cursor-grabbing"
+        className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 cursor-grab active:cursor-grabbing"
       >
-        {/* Double jeu pour défilement infini sans coupure */}
-        {[...carouselItems, ...carouselItems].map((item, index) => (
+        {/* Triple jeu pour défilement infini parfait sans coupure */}
+        {[...carouselItems, ...carouselItems, ...carouselItems].map((item, index) => (
           <button
             key={`${item.id}-${index}`}
             type="button"
