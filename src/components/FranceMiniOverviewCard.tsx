@@ -9,7 +9,8 @@ import {
   ZoomOut,
   Layers,
   Flame,
-  Snowflake
+  Snowflake,
+  Mountain
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -497,7 +498,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
   const [regionsData, setRegionsData] = useState<RegionWeather[]>(countryProfile.regions);
   const [isExpandedPc, setIsExpandedPc] = useState<boolean>(false);
   const [mapScope, setMapScope] = useState<'country' | 'city' | 'world'>('country');
-  const [mapLayerStyle, setMapLayerStyle] = useState<'satellite' | 'dark'>('satellite');
+  const [mapLayerStyle, setMapLayerStyle] = useState<'relief' | 'satellite' | 'dark'>('relief');
   const [zoomVersion, setZoomVersion] = useState<number>(0);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -719,26 +720,29 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           touchZoom: true
         });
 
-        // Fond Satellite HD Esri World Imagery
-        const baseTileLayer = L.tileLayer(
-          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          {
-            maxNativeZoom: 18,
-            maxZoom: 19,
-            attribution: '© Esri, Maxar, Earthstar Geographics'
-          }
-        );
+        // Fond Relief 3D Ombré Shaded Relief Esri (Topographie et massifs de France)
+        const initialTileUrl = mapLayerStyle === 'relief'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
+          : mapLayerStyle === 'dark'
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+        const baseTileLayer = L.tileLayer(initialTileUrl, {
+          maxNativeZoom: 18,
+          maxZoom: 19,
+          attribution: '© Esri World Shaded Relief • Instant Météo'
+        });
         baseTileLayer.on('tileerror', () => {});
         baseTileLayer.addTo(map);
         tileLayerRef.current = baseTileLayer;
 
-        // Calque des frontières et côtes nettes pour sublimer le repérage visuel des régions
+        // Calque des frontières, départements et côtes nettes pour sublimer le repérage visuel
         const referenceLayer = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
           {
             maxNativeZoom: 18,
             maxZoom: 19,
-            opacity: 0.45
+            opacity: mapLayerStyle === 'relief' ? 0.75 : 0.5
           }
         );
         referenceLayer.on('tileerror', () => {});
@@ -812,15 +816,24 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
     };
   }, []);
 
-  // Changement de style de fond de carte (Satellite HD vs Sombre Cartographique)
+  // Changement de style de fond de carte (Relief 3D Ombré vs Satellite HD vs Sombre Cartographique)
   useEffect(() => {
     if (!tileLayerRef.current) return;
-    if (mapLayerStyle === 'dark') {
+    if (mapLayerStyle === 'relief') {
+      tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}');
+      if (labelsLayerRef.current) {
+        labelsLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}');
+        labelsLayerRef.current.setOpacity(0.75);
+      }
+    } else if (mapLayerStyle === 'dark') {
       tileLayerRef.current.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-      if (labelsLayerRef.current) labelsLayerRef.current.setOpacity(0);
+      if (labelsLayerRef.current) labelsLayerRef.current.setOpacity(0.2);
     } else {
       tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-      if (labelsLayerRef.current) labelsLayerRef.current.setOpacity(0.45);
+      if (labelsLayerRef.current) {
+        labelsLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}');
+        labelsLayerRef.current.setOpacity(0.55);
+      }
     }
   }, [mapLayerStyle]);
 
@@ -1280,11 +1293,20 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
           {/* Contrôles Zoom & Fond de carte */}
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/95 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
             <button
-              onClick={() => setMapLayerStyle(prev => (prev === 'satellite' ? 'dark' : 'satellite'))}
-              title="Basculer le fond de carte (Satellite HD / Sombre Pro)"
-              className="flex items-center justify-center h-6 w-6 rounded-md bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-900/40 text-slate-700 dark:text-slate-200 hover:text-sky-400 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+              onClick={() => setMapLayerStyle(prev => (prev === 'relief' ? 'satellite' : prev === 'satellite' ? 'dark' : 'relief'))}
+              title={`Fond de carte actuel : ${mapLayerStyle === 'relief' ? 'Relief 3D Ombré' : mapLayerStyle === 'satellite' ? 'Satellite HD' : 'Sombre'}. Cliquez pour changer.`}
+              className={`flex items-center gap-1 px-1.5 h-6 rounded-md font-bold text-[10px] transition cursor-pointer border ${
+                mapLayerStyle === 'relief'
+                  ? 'bg-gradient-to-r from-emerald-600 to-amber-600 text-white border-emerald-500 shadow-sm'
+                  : mapLayerStyle === 'satellite'
+                  ? 'bg-sky-600 text-white border-sky-500'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+              }`}
             >
-              <Layers className="h-3.5 w-3.5" />
+              {mapLayerStyle === 'relief' ? <Mountain className="h-3 w-3" /> : <Layers className="h-3 w-3" />}
+              <span className="hidden xs:inline">
+                {mapLayerStyle === 'relief' ? 'Relief 3D' : mapLayerStyle === 'satellite' ? 'Satellite' : 'Sombre'}
+              </span>
             </button>
             <button
               onClick={handleZoomIn}

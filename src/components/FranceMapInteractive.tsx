@@ -49,7 +49,7 @@ export type MapMetricFilter =
   | 'altitude';
 export type ElevationFilter = 'all' | 'plains' | 'mid' | 'summits';
 export type MassifFilter = 'all' | 'alpes' | 'pyrenees' | 'massifCentral' | 'vosgesJura' | 'corse';
-export type OsmBaseLayer = 'osm' | 'topo' | 'dark' | 'satellite';
+export type OsmBaseLayer = 'relief' | 'satellite' | 'topo' | 'dark' | 'osm';
 
 export interface LiveStationMetric {
   temp: number;
@@ -246,7 +246,7 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
   const [metricFilter, setMetricFilter] = useState<MapMetricFilter>('temp');
   const [elevationFilter, setElevationFilter] = useState<ElevationFilter>('all');
   const [massifFilter, setMassifFilter] = useState<MassifFilter>('all');
-  const [baseLayer, setBaseLayer] = useState<OsmBaseLayer>('osm');
+  const [baseLayer, setBaseLayer] = useState<OsmBaseLayer>('relief');
   const [selectedRegion, setSelectedRegion] = useState<string>('france');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -489,9 +489,14 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
     return { tMin: 18, tMax: 32 };
   };
 
-  // Base tile layer URLs (Fond Satellite HD identique à Radar Précipitations & Vents HD)
+  // Base tile layer URLs (Fond Relief 3D Ombré Shaded Relief, Satellite HD, Topographie, Sombre, OSM)
   const getTileLayerConfig = (layer: OsmBaseLayer) => {
     switch (layer) {
+      case 'relief':
+        return {
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
+          attribution: '© Esri World Shaded Relief • Modèle Numérique de Terrain'
+        };
       case 'topo':
         return {
           url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
@@ -502,8 +507,12 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
           url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
           attribution: '© CartoDB'
         };
-      case 'satellite':
       case 'osm':
+        return {
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          attribution: '© OpenStreetMap contributors'
+        };
+      case 'satellite':
       default:
         return {
           url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -536,6 +545,17 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
 
       (map as any)._currentTileLayer = tileLayer;
 
+      // Calque des contours géographiques et frontières nettes de la France
+      const bordersLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxNativeZoom: 18,
+          maxZoom: 19,
+          opacity: baseLayer === 'dark' ? 0.3 : 0.65
+        }
+      ).addTo(map);
+      (map as any)._currentBordersLayer = bordersLayer;
+
       const markersGroup = L.layerGroup().addTo(map);
       markersLayerGroupRef.current = markersGroup;
       mapInstanceRef.current = map;
@@ -543,6 +563,9 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
       const map = mapInstanceRef.current;
       if ((map as any)._currentTileLayer) {
         map.removeLayer((map as any)._currentTileLayer);
+      }
+      if ((map as any)._currentBordersLayer) {
+        map.removeLayer((map as any)._currentBordersLayer);
       }
       const tileConfig = getTileLayerConfig(baseLayer);
       const newTileLayer = L.tileLayer(tileConfig.url, {
@@ -552,6 +575,16 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
         subdomains: ['a', 'b', 'c']
       }).addTo(map);
       (map as any)._currentTileLayer = newTileLayer;
+
+      const bordersLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxNativeZoom: 18,
+          maxZoom: 19,
+          opacity: baseLayer === 'dark' ? 0.3 : 0.65
+        }
+      ).addTo(map);
+      (map as any)._currentBordersLayer = bordersLayer;
     }
   }, [baseLayer]);
 
@@ -956,17 +989,18 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
             {/* Left: Tile Layer Selector */}
             <div className="flex items-center gap-0.5 rounded-md bg-slate-950/95 p-0.5 border border-slate-800 shadow-md backdrop-blur pointer-events-auto overflow-x-auto scrollbar-none flex-nowrap">
               {[
-                { id: 'osm', label: 'Standard' },
-                { id: 'topo', label: 'Relief' },
-                { id: 'dark', label: 'Sombre' },
-                { id: 'satellite', label: 'Satellite' }
+                { id: 'relief', label: '🏔️ Relief 3D' },
+                { id: 'satellite', label: '🛰️ Satellite HD' },
+                { id: 'topo', label: '🗺️ Topo' },
+                { id: 'dark', label: '🌑 Sombre' },
+                { id: 'osm', label: 'Standard' }
               ].map(tile => (
                 <button
                   key={tile.id}
                   onClick={() => setBaseLayer(tile.id as OsmBaseLayer)}
                   className={`px-2 py-1 rounded text-[10px] font-semibold transition cursor-pointer whitespace-nowrap ${
                     baseLayer === tile.id
-                      ? 'bg-[#0284C7] text-white'
+                      ? 'bg-gradient-to-r from-emerald-600 to-sky-600 text-white font-bold shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >

@@ -28,7 +28,8 @@ import {
   Square,
   Scale,
   BookOpen,
-  HeartPulse
+  HeartPulse,
+  Mountain
 } from 'lucide-react';
 import Chart from 'chart.js/auto';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
@@ -762,7 +763,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     );
 
     // B. Détection de la Modalité d'Affichage demandée (Carte 3D, Graphique, Tableau, Capture)
-    const wants3DMap = ['3d', 'carte 3d', 'carte', 'map', 'territoire', 'france', 'spatial', 'relief', 'pays', 'hexagone'].some(kw => normalized.includes(kw));
+    const wants3DMap = ['3d', 'carte 3d', 'carte', 'map', 'territoire', 'france', 'spatial', 'relief', 'contour', 'contours', 'pays', 'hexagone'].some(kw => normalized.includes(kw));
     const wantsGraph = ['graphe', 'graphique', 'courbe', 'histogramme', 'chart', 'tracer', 'evolution', 'trace', 'schema', 'diagramme'].some(kw => normalized.includes(kw));
     const wantsTable = ['tableau', 'table', 'colonne', 'recapitulatif', 'liste', 'grille', 'synthese'].some(kw => normalized.includes(kw));
     const wantsSnapshot = ['capture', 'screenshot', 'apercu', 'photo', 'camera'].some(kw => normalized.includes(kw));
@@ -899,9 +900,14 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     // BRANCHE 1 : DEMANDE DE CARTE 3D DU TERRITOIRE OU D'UN PAYS
     // =========================================================================
     else if (wants3DMap) {
-      let metric3D: Map3DMetric = 'temperature';
-      let metricName = 'Températures';
-      if (isWindQuery) {
+      const isReliefQuery = ['relief', 'contour', 'contours', 'montagne', 'topograph', 'altitude', 'sommet'].some(kw => normalized.includes(kw));
+      let metric3D: Map3DMetric = isReliefQuery ? 'relief' : 'temperature';
+      let metricName = isReliefQuery ? 'Relief 3D Ombré & Vrais Contours' : 'Températures';
+
+      if (isReliefQuery) {
+        metric3D = 'relief';
+        metricName = 'Relief 3D Ombré & Vrais Contours';
+      } else if (isWindQuery) {
         metric3D = 'wind';
         metricName = 'Vent & Rafales';
       } else if (isRainQuery) {
@@ -912,7 +918,12 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         metricName = 'Isotherme 0°C & Limite Pluie-Neige';
       }
 
-      responseText = `🗺️ **Modélisation 3D Atmosphérique du Territoire Français (${metricName})** :\n\nVoici la carte 3D spatiale interactive générée en temps réel à partir du maillage de nos stations. Vous pouvez :\n- **Incliner et faire pivoter la caméra en 3D** avec les réglettes ou en déplaçant la scène\n- **Cliquer sur un sommet ou une agglomération** pour afficher la télémétrie complète\n- **Basculer à tout instant** entre Températures, Rafales de vent, Précipitations et Altimétrie neige.`;
+      responseText = `${greetingPrefix}🗺️ **Modélisation 3D du Territoire Français — ${metricName}** :\n\n` +
+        `Voici la carte 3D interactive générée en direct avec les **vrais contours géographiques de la France** (presqu'îles du Cotentin et de Crozon, baies du Mont-Saint-Michel et de Douarnenez, estuaires de la Loire et de la Gironde, arc méditerranéen et Corse) et son **relief topographique 3D ombré** :\n\n` +
+        `- 🏔️ **Étagements et massifs** : modélisation altitudinale des Alpes (Mont-Blanc 4809 m, Écrins 4102 m), Pyrénées (Vignemale 3298 m, Pic du Midi 2876 m), Massif Central (Sancy 1885 m), Jura (1720 m), Vosges (1424 m) et Corse (Monte Cinto 2706 m).\n` +
+        `- 🌊 **Hydrographie structurante** : cours des 5 grands fleuves français (Seine, Loire, Rhône, Garonne, Rhin).\n` +
+        `- 🧭 **Contrôles spatiaux 3D** : utilisez les curseurs ci-dessous pour incliner, faire pivoter ou zoomer en 3D, et cliquez sur n'importe quel sommet ou ville pour afficher sa télémétrie complète.\n\n` +
+        `Vous pouvez également basculer instantanément entre le **Relief 3D**, les **Températures**, le **Vent** et les **Précipitations**.`;
 
       map3DData = {
         metric: metric3D,
@@ -1956,6 +1967,13 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
             {selectedChipCategory === '3d' && (
               <>
+                <button
+                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant le relief et les vrais contours`)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/25 to-amber-500/25 hover:from-emerald-500/35 hover:to-amber-500/35 border border-emerald-400/50 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
+                >
+                  <Mountain className="h-3 w-3 text-emerald-400" />
+                  <span>🏔️ Carte Relief 3D &amp; Vrais Contours</span>
+                </button>
                 <button
                   onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la température`)}
                   className="text-[11px] px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
