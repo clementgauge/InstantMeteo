@@ -303,28 +303,21 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
                 </filter>
               </defs>
 
-              {/* CONTOUR RÉALISTE DE LA FRANCE MÉTROPOLITAINE */}
+              {/* CONTOUR RÉALISTE HAUTE PRÉCISION DE LA FRANCE MÉTROPOLITAINE */}
               <path
-                d="M 53 10
-                   C 57 12, 60 15, 62 17
-                   C 66 18, 71 21, 74 24
-                   C 77 26, 81 28, 83 31
-                   C 86 33, 89 36, 88 41
-                   C 87 45, 83 49, 82 52
-                   C 85 54, 87 58, 85 64
-                   C 83 69, 81 74, 80 77
-                   C 78 81, 73 83, 70 83
-                   C 66 83, 61 85, 56 86
-                   C 50 87, 44 88, 38 88
-                   C 32 87, 28 85, 27 82
-                   C 26 78, 28 73, 29 68
-                   C 28 62, 25 56, 24 51
-                   C 22 47, 18 44, 15 41
-                   C 10 39, 8 36, 11 34
-                   C 14 32, 19 35, 24 37
-                   C 29 38, 33 36, 36 34
-                   C 39 32, 41 28, 43 24
-                   C 45 20, 48 15, 53 10 Z"
+                d="M 53.2 8.8
+                   L 54.5 10.2 L 56.8 12.0 L 59.5 13.8 L 62.2 15.2 L 65.5 17.5 L 68.2 18.8 L 72.0 20.8
+                   L 75.8 22.0 L 78.5 22.8 L 81.2 24.2 L 83.8 25.5 L 85.5 27.2 L 86.8 29.5 L 85.2 32.8
+                   L 84.5 35.2 L 83.2 38.0 L 81.5 40.5 L 80.2 43.5 L 81.0 45.8 L 82.2 48.0 L 84.0 51.5
+                   L 84.5 53.8 L 85.2 57.5 L 86.5 63.0 L 85.8 67.5 L 86.8 72.0 L 88.0 76.2 L 87.8 78.5
+                   L 86.0 79.5 L 83.5 80.8 L 80.8 82.5 L 78.0 84.8 L 75.5 84.2 L 73.0 83.2 L 70.0 82.0
+                   L 66.8 82.5 L 63.5 84.0 L 59.8 86.2 L 57.5 87.5 L 54.0 87.8 L 49.0 87.5 L 43.5 87.5
+                   L 38.0 87.2 L 32.5 86.8 L 27.8 86.2 L 26.2 85.0 L 26.8 81.5 L 27.5 78.0 L 27.2 73.5
+                   L 27.8 70.0 L 26.5 67.2 L 24.5 65.5 L 24.2 62.5 L 25.5 60.0 L 24.5 57.5 L 22.8 54.5
+                   L 22.2 51.5 L 20.5 49.2 L 18.2 47.5 L 15.8 45.5 L 12.8 43.8 L 10.2 42.0 L 8.5 39.5
+                   L 7.8 37.5 L 9.2 35.8 L 12.0 35.0 L 14.8 35.2 L 18.5 34.2 L 21.8 34.5 L 24.8 33.8
+                   L 27.5 32.8 L 29.2 31.0 L 29.8 28.5 L 28.8 25.5 L 29.5 23.5 L 31.5 22.5 L 33.8 23.0
+                   L 36.8 25.5 L 39.2 24.5 L 42.5 21.5 L 45.5 18.8 L 47.2 16.5 L 49.0 13.5 L 51.5 11.2 Z"
                 fill={
                   metric === 'temperature'
                     ? "url(#franceThermalGrad)"
@@ -340,40 +333,76 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
                 className="transition-colors duration-500"
               />
 
-              {/* CORSE RÉALISTE */}
+              {/* CORSE RÉALISTE AVEC CAP CORSE ET RELIEFS */}
               <path
-                d="M 91 87
-                   C 93 88, 94 91, 93 94
-                   C 92 97, 89 97, 89 95
-                   C 88 92, 89 89, 91 87 Z"
+                d="M 92.5 84.5
+                   L 93.8 86.2 L 94.2 89.0 L 94.5 92.5 L 93.8 95.8 L 92.5 98.0 L 91.2 97.5
+                   L 90.0 95.5 L 88.8 93.2 L 89.2 90.5 L 89.8 87.8 L 91.0 85.5 Z"
                 fill={metric === 'temperature' ? "#F59E0B80" : "#38BDF850"}
                 stroke="#38BDF8"
                 strokeWidth="1.1"
               />
 
-              {/* RELIEFS MONTAGNEUX PRINCIPAUX (ALPES, PYRÉNÉES, MASSIF CENTRAL, JURA, VOSGES) */}
-              {/* 1. Alpes (Sud-Est) */}
-              <path
-                d="M 76 56 C 81 59, 83 67, 79 75 C 77 74, 75 66, 74 60 Z"
-                fill="rgba(255, 255, 255, 0.18)"
-                stroke="rgba(255, 255, 255, 0.4)"
-                strokeWidth="0.75"
-                filter="url(#reliefShadow)"
-              />
-              <text x="81" y="66" fill="#BAE6FD" fontSize="2.8" fontWeight="bold" opacity="0.85">Alpes</text>
+              {/* RELIEFS TOPOGRAPHIQUES 3D RÉALISTES & COUCHES HYPSOMÉTRIQUES */}
+              {/* 1. Alpes Françaises (Sud-Est : Mont-Blanc, Vanoise, Écrins, Mercantour) */}
+              <g filter="url(#reliefShadow)">
+                <path
+                  d="M 77 53 Q 83 50, 85 54 Q 86 63, 85 71 Q 81 78, 77 78 Q 74 72, 75 62 Z"
+                  fill="rgba(255, 255, 255, 0.20)"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="0.8"
+                />
+                {/* Crêtes Alpinistes Haute Altitude > 3000m */}
+                <path
+                  d="M 79 55 L 83 58 L 81 65 L 82 72 L 78 74"
+                  stroke="#FFFFFF"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  opacity="0.9"
+                />
+                <circle cx="83.8" cy="53.8" r="1.3" fill="#FFFFFF" stroke="#38BDF8" strokeWidth="0.5" />
+                <text x="79" y="52" fill="#FFFFFF" fontSize="2.2" fontWeight="bold">Mt-Blanc (4807m)</text>
+                <text x="83" y="66" fill="#BAE6FD" fontSize="2.5" fontWeight="bold">Alpes</text>
+              </g>
 
-              {/* 2. Pyrénées (Sud-Ouest) */}
-              <path
-                d="M 30 86 C 40 86, 50 86, 60 86 C 55 88, 38 88, 30 86 Z"
-                fill="rgba(255, 255, 255, 0.18)"
-                stroke="rgba(255, 255, 255, 0.4)"
-                strokeWidth="0.75"
-              />
-              <text x="40" y="85" fill="#BAE6FD" fontSize="2.6" fontWeight="bold" opacity="0.85">Pyrénées</text>
+              {/* 2. Pyrénées (Chaîne Frontalière Sud-Ouest) */}
+              <g filter="url(#reliefShadow)">
+                <path
+                  d="M 27 85 C 36 84, 46 84, 57 86 C 56 88, 45 88, 27 86 Z"
+                  fill="rgba(255, 255, 255, 0.20)"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="0.8"
+                />
+                {/* Ligne de Crête Pyrénéenne */}
+                <path
+                  d="M 28 85.5 L 36 85.2 L 44 85.4 L 52 86 L 56 86.8"
+                  stroke="#FFFFFF"
+                  strokeWidth="0.9"
+                  strokeLinecap="round"
+                  opacity="0.85"
+                />
+                <text x="39" y="84" fill="#BAE6FD" fontSize="2.4" fontWeight="bold">Pyrénées</text>
+              </g>
 
-              {/* 3. Massif Central (Centre-Sud) */}
-              <circle cx="52" cy="62" r="6" fill="rgba(255, 255, 255, 0.12)" stroke="rgba(255, 255, 255, 0.25)" strokeWidth="0.6" />
-              <text x="46" y="63" fill="#BAE6FD" fontSize="2.2" fontWeight="bold" opacity="0.7">Massif Central</text>
+              {/* 3. Massif Central (Volcans d'Auvergne, Cantal & Cévennes) */}
+              <g filter="url(#reliefShadow)">
+                <ellipse cx="53" cy="63" rx="7.5" ry="8.5" fill="rgba(255, 255, 255, 0.14)" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="0.7" />
+                <circle cx="52" cy="59" r="1.8" fill="rgba(255, 255, 255, 0.25)" stroke="#38BDF8" strokeWidth="0.5" />
+                <text x="46" y="64" fill="#BAE6FD" fontSize="2.2" fontWeight="bold" opacity="0.9">Massif Central</text>
+              </g>
+
+              {/* 4. Jura & Vosges (Nord-Est) */}
+              <g filter="url(#reliefShadow)">
+                {/* Jura */}
+                <path d="M 76 43 Q 79 46, 80 50" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" opacity="0.8" />
+                <text x="73" y="47" fill="#BAE6FD" fontSize="1.9" fontWeight="bold">Jura</text>
+                {/* Vosges */}
+                <path d="M 81 31 Q 82 35, 80 39" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" opacity="0.8" />
+                <text x="77" y="36" fill="#BAE6FD" fontSize="1.9" fontWeight="bold">Vosges</text>
+              </g>
+
+              {/* 5. Monts d'Arrée (Massif Armoricain Bretagne) */}
+              <path d="M 14 36 Q 19 37, 22 38" stroke="rgba(255,255,255,0.4)" strokeWidth="0.6" strokeLinecap="round" />
 
               {/* FLUX DE VENT (MISTRAL & TRAMONTANE) QUAND MÉTROLOGIE DU VENT ACTIVE */}
               {metric === 'wind' && (

@@ -829,10 +829,42 @@ function degToCompass(deg: number): string {
   return COMPASS_DIRS[idx];
 }
 
+export interface TideEvent {
+  type: 'PM' | 'BM';
+  time: string;
+  heightM: number;
+  label: string;
+}
+
+export interface CompleteShomTides {
+  isMicroTide: boolean;
+  tideHighTime: string;
+  tideLowTime: string;
+  tideCoefficient: number;
+  tideStatus: BeachSpot['tideStatus'];
+  tideType: string;
+  rangeMeters: number;
+  pm1: { time: string; heightM: number };
+  bm1: { time: string; heightM: number };
+  pm2: { time: string; heightM: number };
+  bm2: { time: string; heightM: number };
+  allEvents: TideEvent[];
+  isGrandeMaree: boolean;
+  isExceptionalGrandeMaree: boolean;
+  fishingWindow: { start: string; end: string; bestTime: string; advice: string };
+  windOrientation: {
+    type: 'Off-shore (Vent de terre)' | 'On-shore (Vent de mer)' | 'Cross-shore (Vent de travers)';
+    description: string;
+    surfingRating: 'Idéal (Plan d\'eau lissé)' | 'Clapot formé / Vagues hachées' | 'Latéral / Dérive';
+  };
+  marnageVelocityKmH: number;
+  risingDangerLevel: 'Normal' | 'Rapide' | 'Fulguant (Attention isolement par la marée)';
+}
+
 /**
- * Calcule en temps réel les marées astronomiques SHOM (Pleine Mer, Basse Mer, Coefficient 20-120, État Flot/Jusant)
+ * Calcule en temps réel les marées astronomiques SHOM (Pleine Mer 1 & 2, Basse Mer 1 & 2, Hauteurs en m, Coefficient 20-120, Grandes Marées)
  */
-export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new Date()) {
+export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new Date()): CompleteShomTides {
   const isMed =
     spot.coastline === 'Mer Méditerranée & Corse' ||
     spot.coastline === 'Europe — Italie, Grèce & Adriatique' ||
@@ -844,9 +876,29 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
       tideHighTime: 'Micro-marée (< 25 cm)',
       tideLowTime: 'Micro-marée (< 25 cm)',
       tideCoefficient: 0,
-      tideStatus: 'Marée négligeable (Méditerranée)' as const,
+      tideStatus: 'Marée négligeable (Méditerranée)',
       tideType: 'Régime micro-tidal méditerranéen',
-      rangeMeters: 0.2
+      rangeMeters: 0.2,
+      pm1: { time: '—', heightM: 0.4 },
+      bm1: { time: '—', heightM: 0.2 },
+      pm2: { time: '—', heightM: 0.4 },
+      bm2: { time: '—', heightM: 0.2 },
+      allEvents: [],
+      isGrandeMaree: false,
+      isExceptionalGrandeMaree: false,
+      fishingWindow: {
+        start: 'Toute la journée',
+        end: 'Toute la journée',
+        bestTime: 'Matinée',
+        advice: 'Bassin méditerranéen non soumis aux grandes marées d\'estran. Pêche côtière rocheuse possible en permanence.'
+      },
+      windOrientation: {
+        type: spot.windDirectionCompass.includes('N') ? 'Off-shore (Vent de terre)' : 'On-shore (Vent de mer)',
+        description: 'Flux côtier méditerranéen (brise thermique ou vent synoptique)',
+        surfingRating: 'Idéal (Plan d\'eau lissé)'
+      },
+      marnageVelocityKmH: 0.2,
+      risingDangerLevel: 'Normal'
     };
   }
 
@@ -865,12 +917,19 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
   const firstHighWaterMin = ((240 + lunarTransitMinutes + portLagMinutes) % 745 + 745) % 745;
 
   const currentMinutesOfDay = now.getHours() * 60 + now.getMinutes();
-  const highWater1 = firstHighWaterMin;
-  const highWater2 = (firstHighWaterMin + 745) % 1440;
-  const chosenHighMin = Math.abs(currentMinutesOfDay - highWater1) <= Math.abs(currentMinutesOfDay - highWater2)
-    ? highWater1
-    : highWater2;
-  const chosenLowMin = (chosenHighMin + 372) % 1440;
+
+  // Deux marées hautes (PM) et deux marées basses (BM) par jour lunaire (~745 min d'écart entre deux PM)
+  const pm1Min = firstHighWaterMin;
+  const bm1Min = (firstHighWaterMin + 372) % 1440;
+  const pm2Min = (firstHighWaterMin + 745) % 1440;
+  const bm2Min = (firstHighWaterMin + 1117) % 1440;
+
+  const chosenHighMin = Math.abs(currentMinutesOfDay - pm1Min) <= Math.abs(currentMinutesOfDay - pm2Min)
+    ? pm1Min
+    : pm2Min;
+  const chosenLowMin = Math.abs(currentMinutesOfDay - bm1Min) <= Math.abs(currentMinutesOfDay - bm2Min)
+    ? bm1Min
+    : bm2Min;
 
   const formatMin = (m: number) => {
     const clean = ((Math.round(m) % 1440) + 1440) % 1440;
@@ -881,7 +940,7 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
 
   const diffToHigh = ((chosenHighMin - currentMinutesOfDay + 720) % 745) - 372;
   let tideStatus: BeachSpot['tideStatus'] = 'Montante (Flot)';
-  if (Math.abs(diffToHigh) <= 22) {
+  if (Math.abs(diffToHigh) <= 25) {
     tideStatus = 'étale';
   } else if (diffToHigh < 0) {
     tideStatus = 'Descendante (Jusant)';
@@ -889,8 +948,98 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
     tideStatus = 'Montante (Flot)';
   }
 
-  const maxSpringRange = spot.id.includes('saint-malo') || spot.latitude >= 48.5 ? 12.6 : spot.coastline === 'Manche & Mer du Nord' ? 8.2 : 4.8;
-  const rangeMeters = Number(((tideCoefficient / 100) * maxSpringRange * 0.85).toFixed(1));
+  // Calcul physique du marnage et des hauteurs d'eau selon la baie ou côte
+  const isSaintMaloOrNormandy = spot.id.includes('saint-malo') || (spot.latitude >= 48.5 && spot.longitude >= -2.5 && spot.longitude <= 0.2);
+  const isChannel = spot.coastline === 'Manche & Mer du Nord';
+  const isBrittany = spot.coastline === 'Bretagne & Celtique';
+  
+  const maxSpringRange = isSaintMaloOrNormandy ? 13.2 : isChannel ? 8.5 : isBrittany ? 6.8 : 4.8;
+  const rangeMeters = Number(((tideCoefficient / 100) * maxSpringRange * 0.90).toFixed(1));
+
+  // Hauteurs d'eau au zéro des cartes marines (SHOM)
+  const chartDatumLowM = Number((0.6 + (1 - tideCoefficient / 120) * 1.4).toFixed(2));
+  const chartDatumHighM = Number((chartDatumLowM + rangeMeters).toFixed(2));
+  const chartDatumHigh2M = Number((chartDatumHighM + (Math.sin(phaseAngle) * 0.2)).toFixed(2));
+  const chartDatumLow2M = Number((chartDatumLowM + 0.15).toFixed(2));
+
+  // Construction des 4 événements journaliers triés chronologiquement
+  const rawEvents = [
+    { type: 'PM' as const, min: pm1Min, heightM: chartDatumHighM, label: 'Pleine Mer 1 (Matinée)' },
+    { type: 'BM' as const, min: bm1Min, heightM: chartDatumLowM, label: 'Basse Mer 1 (Matin/Midi)' },
+    { type: 'PM' as const, min: pm2Min, heightM: chartDatumHigh2M, label: 'Pleine Mer 2 (Après-midi/Soir)' },
+    { type: 'BM' as const, min: bm2Min, heightM: chartDatumLow2M, label: 'Basse Mer 2 (Soirée/Nuit)' }
+  ].sort((a, b) => a.min - b.min);
+
+  const allEvents: TideEvent[] = rawEvents.map((ev) => ({
+    type: ev.type,
+    time: formatMin(ev.min),
+    heightM: ev.heightM,
+    label: ev.label
+  }));
+
+  const isGrandeMaree = tideCoefficient >= 90;
+  const isExceptionalGrandeMaree = tideCoefficient >= 105;
+
+  // Fenêtre idéale de pêche à pied (de 2h avant la Basse Mer jusqu'à 45min après la Basse Mer)
+  const bestBmMin = chosenLowMin;
+  const fishingStartMin = (bestBmMin - 120 + 1440) % 1440;
+  const fishingEndMin = (bestBmMin + 45) % 1440;
+  const fishingWindow = {
+    start: formatMin(fishingStartMin),
+    end: formatMin(fishingEndMin),
+    bestTime: formatMin(bestBmMin),
+    advice: isGrandeMaree
+      ? `Grande Marée (Coeff ${tideCoefficient}) : Estran découvert exceptionnel ! Idéal pour la pêche aux coques, palourdes et couteaux. Remontez dès la renverse (${formatMin(fishingEndMin)}) pour ne pas vous faire encercler par les chenaux.`
+      : `Pêche à pied praticable de ${formatMin(fishingStartMin)} à ${formatMin(fishingEndMin)}. Munissez-vous d'un réglet et respectez les tailles minimales réglementaires.`
+  };
+
+  // Orientation du vent par rapport à la côte (Off-shore / On-shore / Cross-shore)
+  const windDir = spot.windDirectionCompass;
+  let windOrientationType: 'Off-shore (Vent de terre)' | 'On-shore (Vent de mer)' | 'Cross-shore (Vent de travers)' = 'On-shore (Vent de mer)';
+  let surfRating: 'Idéal (Plan d\'eau lissé)' | 'Clapot formé / Vagues hachées' | 'Latéral / Dérive' = 'Clapot formé / Vagues hachées';
+
+  if (spot.coastline === 'Océan Atlantique') {
+    // Côte Ouest : vents d'Est (E, ENE, ESE, SE) sont Off-shore
+    if (['E', 'ENE', 'ESE', 'NE', 'SE'].includes(windDir)) {
+      windOrientationType = 'Off-shore (Vent de terre)';
+      surfRating = 'Idéal (Plan d\'eau lissé)';
+    } else if (['W', 'WNW', 'WSW', 'SW', 'NW'].includes(windDir)) {
+      windOrientationType = 'On-shore (Vent de mer)';
+      surfRating = 'Clapot formé / Vagues hachées';
+    } else {
+      windOrientationType = 'Cross-shore (Vent de travers)';
+      surfRating = 'Latéral / Dérive';
+    }
+  } else if (spot.coastline === 'Manche & Mer du Nord') {
+    // Côte Nord : vents du Sud (S, SSE, SSW, SE, SW) sont Off-shore
+    if (['S', 'SSE', 'SSW', 'SE', 'SW'].includes(windDir)) {
+      windOrientationType = 'Off-shore (Vent de terre)';
+      surfRating = 'Idéal (Plan d\'eau lissé)';
+    } else if (['N', 'NNE', 'NNW', 'NE', 'NW'].includes(windDir)) {
+      windOrientationType = 'On-shore (Vent de mer)';
+      surfRating = 'Clapot formé / Vagues hachées';
+    } else {
+      windOrientationType = 'Cross-shore (Vent de travers)';
+      surfRating = 'Latéral / Dérive';
+    }
+  } else {
+    // Méditerranée : vents du Nord (Mistral, Tramontane) sont Off-shore
+    if (['N', 'NNW', 'NW', 'NNE'].includes(windDir)) {
+      windOrientationType = 'Off-shore (Vent de terre)';
+      surfRating = 'Idéal (Plan d\'eau lissé)';
+    } else {
+      windOrientationType = 'On-shore (Vent de mer)';
+      surfRating = 'Clapot formé / Vagues hachées';
+    }
+  }
+
+  // Vitesse de progression des eaux sur estran plat (Baie de Somme, Mont-Saint-Michel, Oléron)
+  const marnageVelocityKmH = Number((rangeMeters * (isSaintMaloOrNormandy ? 0.95 : 0.65)).toFixed(1));
+  const risingDangerLevel = isExceptionalGrandeMaree || (isGrandeMaree && isSaintMaloOrNormandy)
+    ? 'Fulguant (Attention isolement par la marée)'
+    : isGrandeMaree
+      ? 'Rapide'
+      : 'Normal';
 
   return {
     isMicroTide: false,
@@ -898,8 +1047,23 @@ export function calculateAstronomicalShomTides(spot: BeachSpot, now: Date = new 
     tideLowTime: formatMin(chosenLowMin),
     tideCoefficient,
     tideStatus,
-    tideType: tideCoefficient >= 95 ? 'Grande Vive-Eau' : tideCoefficient >= 70 ? 'Vive-Eau' : tideCoefficient >= 45 ? 'Marée Moyenne' : 'Morte-Eau',
-    rangeMeters
+    tideType: tideCoefficient >= 100 ? 'Très Grande Vive-Eau' : tideCoefficient >= 90 ? 'Grande Vive-Eau (Grande Marée)' : tideCoefficient >= 70 ? 'Vive-Eau' : tideCoefficient >= 45 ? 'Marée Moyenne' : 'Morte-Eau',
+    rangeMeters,
+    pm1: { time: formatMin(pm1Min), heightM: chartDatumHighM },
+    bm1: { time: formatMin(bm1Min), heightM: chartDatumLowM },
+    pm2: { time: formatMin(pm2Min), heightM: chartDatumHigh2M },
+    bm2: { time: formatMin(bm2Min), heightM: chartDatumLow2M },
+    allEvents,
+    isGrandeMaree,
+    isExceptionalGrandeMaree,
+    fishingWindow,
+    windOrientation: {
+      type: windOrientationType,
+      description: `${windOrientationType} secteur ${windDir} (${spot.windSpeedKnots} nds)`,
+      surfingRating: surfRating
+    },
+    marnageVelocityKmH,
+    risingDangerLevel
   };
 }
 

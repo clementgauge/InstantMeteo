@@ -49,7 +49,22 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [isSyncingLiveBeach, setIsSyncingLiveBeach] = useState<boolean>(false);
-  const [lastBeachRefreshedAt, setLastBeachRefreshedAt] = useState<string>('');
+  const [lastBeachRefreshedAt, setLastBeachRefreshedAt] = useState<string>(() => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(new Date());
+  });
+  const [secondsSinceBeachRefresh, setSecondsSinceBeachRefresh] = useState<number>(0);
+
+  // Compteur temps réel pour la réactualisation continue
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsSinceBeachRefresh((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const nearestCoastalRef = useMemo(() => findNearestCoastalSpot(station), [station]);
 
@@ -131,6 +146,7 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
               second: '2-digit'
             }).format(new Date());
             setLastBeachRefreshedAt(timeStr);
+            setSecondsSinceBeachRefresh(0);
           }
         })
         .finally(() => {
@@ -139,7 +155,7 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
     };
 
     fetchLiveSpot();
-    const interval = setInterval(fetchLiveSpot, 60000); // Réactualisation continue toutes les 60s
+    const interval = setInterval(fetchLiveSpot, 45000); // Réactualisation continue toutes les 45s
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -175,6 +191,7 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
           second: '2-digit'
         }).format(new Date());
         setLastBeachRefreshedAt(timeStr);
+        setSecondsSinceBeachRefresh(0);
       })
       .finally(() => {
         setIsSyncingLiveBeach(false);
@@ -325,20 +342,37 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
                 {liveTides.isMicroTide ? 'Micro-marée' : liveTides.tideCoefficient}
               </div>
             </div>
-            <button
-              onClick={handleManualRefreshBeach}
-              disabled={isSyncingLiveBeach}
-              className="px-3.5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
-              title="Réactualiser en direct les données maritimes (température de l'eau, houle, vent, courants)"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLiveBeach ? 'animate-spin' : ''}`} />
-              <div className="text-left">
-                <div className="text-[11px] leading-tight font-black">Réactualiser</div>
-                <div className="text-[9px] text-cyan-200 font-semibold leading-tight">
-                  {lastBeachRefreshedAt ? `À ${lastBeachRefreshedAt}` : 'En direct'}
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                </span>
+                <div className="text-left">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-cyan-400">Flux Marin Continu</div>
+                  <div className="text-[9px] text-cyan-200/80 font-medium">
+                    {secondsSinceBeachRefresh <= 1 ? "À l'instant" : `Il y a ${secondsSinceBeachRefresh}s`}
+                  </div>
                 </div>
               </div>
-            </button>
+
+              <button
+                onClick={handleManualRefreshBeach}
+                disabled={isSyncingLiveBeach}
+                className="px-3.5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
+                title="Forcer la réactualisation manuelle immédiate des données maritimes"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLiveBeach ? 'animate-spin' : ''}`} />
+                <div className="text-left">
+                  <div className="text-[11px] leading-tight font-black">
+                    {isSyncingLiveBeach ? 'Actualisation...' : 'Réactualiser'}
+                  </div>
+                  <div className="text-[9px] text-cyan-200 font-semibold leading-tight">
+                    {lastBeachRefreshedAt ? `À ${lastBeachRefreshedAt}` : 'En continu'}
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -556,16 +590,43 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
               </div>
             )}
 
-            {/* Astronomical SHOM Tides Card */}
-            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between">
+            {/* ALERTE & DÉTECTION GRANDE MARÉE (COEFF >= 90 & >= 100) */}
+            {liveTides.isGrandeMaree && (
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-950/50 via-rose-950/40 to-slate-900 border border-amber-500/50 text-amber-200 text-xs space-y-2 shadow-lg">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-black uppercase tracking-wider text-amber-300">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                    <span>Alerte Grande Marée • Coefficient {liveTides.tideCoefficient} (Vive-Eau Exceptionnelle)</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/25 border border-rose-500/40 text-rose-300">
+                    Marnage {liveTides.rangeMeters} m
+                  </span>
+                </div>
+                <p className="leading-relaxed text-slate-200 text-[11px] sm:text-xs">
+                  Le marnage est spectaculaire aujourd'hui sur le littoral. La mer se retire à perte de vue et <strong>remonte à une vitesse estimée à ~{liveTides.marnageVelocityKmH} km/h</strong>. Ne vous laissez jamais encercler par les chenaux secondaires qui se remplissent bien avant les bancs de sable.
+                </p>
+                <div className="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                  <span className="text-amber-300 font-bold">🎣 Fenêtre Pêche à Pied : de {liveTides.fishingWindow.start} à {liveTides.fishingWindow.end}</span>
+                  <span className="text-slate-300">🚨 En cas d'isolement : appelez le <strong>196 (CROSS)</strong> ou le 112</span>
+                </div>
+              </div>
+            )}
+
+            {/* Astronomical SHOM Tides Card - 4 Marées Journalières (PM1, BM1, PM2, BM2) */}
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-400">
                   <Anchor className="w-4 h-4" />
-                  <span>Annuaire des Marées SHOM (Calcul Astronomique Aujourd'hui)</span>
+                  <span>Annuaire des Marées SHOM • Horaires &amp; Hauteurs d'Eau (4 Marées / 24h)</span>
                 </div>
-                <span className="text-[11px] font-bold text-slate-400 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
-                  Régime semi-diurne
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-slate-300 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+                    {liveTides.isMicroTide ? 'Méditerranée' : `Coeff. ${liveTides.tideCoefficient} (${liveTides.tideType})`}
+                  </span>
+                </div>
               </div>
 
               {liveTides.isMicroTide ? (
@@ -573,37 +634,85 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
                   Bassin Méditerranéen : <strong>Micro-marée négligeable (&lt; 25 cm de marnage)</strong>. Les courants de marée sont quasi nuls. La hauteur d'eau dépend principalement des vents synoptiques et de la pression atmosphérique (surcote/décote).
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-                      <ArrowUpRight className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Pleine Mer (PM)</span>
+                <>
+                  {/* Tableau des 4 Marées Journalières */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-blue-500/30 text-center relative overflow-hidden">
+                      <div className="text-[9px] uppercase tracking-wider text-blue-300 font-bold flex items-center justify-center gap-1">
+                        <ArrowUpRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Pleine Mer 1 (PM1)</span>
+                      </div>
+                      <div className="text-xl font-black text-blue-400 mt-1">{liveTides.pm1.time}</div>
+                      <div className="text-[11px] font-black text-white mt-0.5">{liveTides.pm1.heightM} m</div>
+                      <div className="text-[9px] text-slate-400 mt-0.5">Haute Mer Matin</div>
                     </div>
-                    <div className="text-lg font-black text-blue-400 mt-1">{liveTides.tideHighTime}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">Haute mer</div>
-                  </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-                      <ArrowDownRight className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Basse Mer (BM)</span>
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-indigo-500/30 text-center relative overflow-hidden">
+                      <div className="text-[9px] uppercase tracking-wider text-indigo-300 font-bold flex items-center justify-center gap-1">
+                        <ArrowDownRight className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Basse Mer 1 (BM1)</span>
+                      </div>
+                      <div className="text-xl font-black text-indigo-400 mt-1">{liveTides.bm1.time}</div>
+                      <div className="text-[11px] font-black text-white mt-0.5">{liveTides.bm1.heightM} m</div>
+                      <div className="text-[9px] text-slate-400 mt-0.5">Basse Mer Midi</div>
                     </div>
-                    <div className="text-lg font-black text-indigo-400 mt-1">{liveTides.tideLowTime}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">Basse mer</div>
+
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-blue-500/30 text-center relative overflow-hidden">
+                      <div className="text-[9px] uppercase tracking-wider text-blue-300 font-bold flex items-center justify-center gap-1">
+                        <ArrowUpRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Pleine Mer 2 (PM2)</span>
+                      </div>
+                      <div className="text-xl font-black text-blue-400 mt-1">{liveTides.pm2.time}</div>
+                      <div className="text-[11px] font-black text-white mt-0.5">{liveTides.pm2.heightM} m</div>
+                      <div className="text-[9px] text-slate-400 mt-0.5">Haute Mer Soir</div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-indigo-500/30 text-center relative overflow-hidden">
+                      <div className="text-[9px] uppercase tracking-wider text-indigo-300 font-bold flex items-center justify-center gap-1">
+                        <ArrowDownRight className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Basse Mer 2 (BM2)</span>
+                      </div>
+                      <div className="text-xl font-black text-indigo-400 mt-1">{liveTides.bm2.time}</div>
+                      <div className="text-[11px] font-black text-white mt-0.5">{liveTides.bm2.heightM} m</div>
+                      <div className="text-[9px] text-slate-400 mt-0.5">Basse Mer Nuit</div>
+                    </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-400">Coeff. Marée</div>
-                    <div className="text-lg font-black text-cyan-400 mt-1">{liveTides.tideCoefficient}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{liveTides.tideType}</div>
+                  {/* Synthèse Dynamique Marnage & Orientation du Vent Côtier */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                    <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800 text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Phase en cours</div>
+                      <div className="text-xs font-black text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{liveTides.tideStatus}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">Marnage total : ~{liveTides.rangeMeters} m</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800 text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Orientation Vent Côtier</div>
+                      <div className="text-xs font-black text-cyan-300 mt-0.5 truncate">
+                        {liveTides.windOrientation.type.split(' (')[0]}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                        {liveTides.windOrientation.surfingRating}
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800 text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Pêche à Pied &amp; Estran</div>
+                      <div className="text-xs font-black text-amber-300 mt-0.5">
+                        {liveTides.fishingWindow.start} → {liveTides.fishingWindow.end}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">Pic à basse mer : {liveTides.fishingWindow.bestTime}</div>
+                    </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-400">État Actuel</div>
-                    <div className="text-xs font-black text-emerald-400 mt-2 truncate">{liveTides.tideStatus.split(' (')[0]}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">Marnage ~{liveTides.rangeMeters} m</div>
+                  {/* Consigne Sécurité et Règle des Douzièmes */}
+                  <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 text-[11px] text-slate-300 leading-relaxed">
+                    💡 <strong>Règle des douzièmes :</strong> Durant les 3e et 4e heures de marée montante ou descendante, la mer se déplace le plus vite (3/12e de sa hauteur par heure). Ne vous laissez pas surprendre par les chenaux d'estran.
                   </div>
-                </div>
+                </>
               )}
             </div>
 

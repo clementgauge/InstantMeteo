@@ -92,7 +92,24 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     return allMassifs.find((m) => m.id === selectedMassifId) || activeStationProfile || MOUNTAIN_MASSIFS[0];
   }, [allMassifs, selectedMassifId, activeStationProfile]);
 
-  // Synchronisation automatique en continu (polling continu toutes les 60s) avec Open-Meteo
+  const [lastMountainRefreshedAt, setLastMountainRefreshedAt] = useState<string>(() => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(new Date());
+  });
+  const [secondsSinceRefresh, setSecondsSinceRefresh] = useState<number>(0);
+
+  // Compteur de secondes temps réel pour visualiser la réactualisation continue
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsSinceRefresh((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Synchronisation automatique en continu (polling continu toutes les 45s) avec Open-Meteo
   useEffect(() => {
     let isMounted = true;
     const fetchConditions = () => {
@@ -101,6 +118,13 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
         .then((updated) => {
           if (isMounted) {
             setLiveOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+            const timeStr = new Intl.DateTimeFormat('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            }).format(new Date());
+            setLastMountainRefreshedAt(timeStr);
+            setSecondsSinceRefresh(0);
           }
         })
         .finally(() => {
@@ -111,16 +135,14 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     // Actualisation immédiate à la sélection
     fetchConditions();
 
-    // Réactualisation continue en arrière-plan toutes les 60 secondes sans intervention de l'utilisateur
-    const interval = setInterval(fetchConditions, 60000);
+    // Réactualisation continue en arrière-plan toutes les 45 secondes sans intervention
+    const interval = setInterval(fetchConditions, 45000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, [selectedMassif.id]);
-
-  const [lastMountainRefreshedAt, setLastMountainRefreshedAt] = useState<string>('');
 
   const handleRefreshLiveTelemetry = () => {
     setIsSyncingLive(true);
@@ -133,6 +155,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
           second: '2-digit'
         }).format(new Date());
         setLastMountainRefreshedAt(timeStr);
+        setSecondsSinceRefresh(0);
       })
       .finally(() => {
         setIsSyncingLive(false);
@@ -292,20 +315,37 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 {selectedMassif.snowDepthTopCm} / {selectedMassif.snowDepthBottomCm} cm
               </div>
             </div>
-            <button
-              onClick={handleRefreshLiveTelemetry}
-              disabled={isSyncingLive}
-              className="px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
-              title="Réactualiser en direct les conditions météo et niveaux de neige de la station"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin' : ''}`} />
-              <div className="text-left">
-                <div className="text-[11px] leading-tight font-black">Réactualiser</div>
-                <div className="text-[9px] text-sky-200 font-semibold leading-tight">
-                  {lastMountainRefreshedAt ? `À ${lastMountainRefreshedAt}` : 'En direct'}
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+                <div className="text-left">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Flux Continu Actif</div>
+                  <div className="text-[9px] text-emerald-200/80 font-medium">
+                    {secondsSinceRefresh <= 1 ? "À l'instant" : `Il y a ${secondsSinceRefresh}s`}
+                  </div>
                 </div>
               </div>
-            </button>
+
+              <button
+                onClick={handleRefreshLiveTelemetry}
+                disabled={isSyncingLive}
+                className="px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs transition shadow flex items-center gap-2 cursor-pointer shrink-0"
+                title="Forcer la réactualisation manuelle immédiate des conditions météo et niveaux de neige"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLive ? 'animate-spin' : ''}`} />
+                <div className="text-left">
+                  <div className="text-[11px] leading-tight font-black">
+                    {isSyncingLive ? 'Actualisation...' : 'Réactualiser'}
+                  </div>
+                  <div className="text-[9px] text-sky-200 font-semibold leading-tight">
+                    {lastMountainRefreshedAt ? `À ${lastMountainRefreshedAt}` : 'En continu'}
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 

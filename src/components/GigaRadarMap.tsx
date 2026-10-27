@@ -148,8 +148,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const radarEchoesGroupRef = useRef<L.LayerGroup | null>(null);
   const snowGroupRef = useRef<L.LayerGroup | null>(null);
 
-  // States: Standardisation Satellite HD pure (route et relief retirés du radar selon la demande utilisateur)
-  const [baseMap] = useState<'satellite'>('satellite');
+  // States: Sélection du fond cartographique et des couches météo
+  const [baseMap, setBaseMap] = useState<'hybrid' | 'dark' | 'topo' | 'satellite'>('hybrid');
   const [activeLayerMode, setActiveLayerMode] = useState<'radar' | 'snow' | 'wind' | 'satellite' | 'temperatures' | 'lightning' | 'multi'>('radar');
   
   // Layer visibility toggles in Multi-Spectre mode
@@ -718,23 +718,58 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       labelsLayerRef.current = null;
     }
 
-    // Fond cartographique Satellite HD exclusif (relief et routes supprimés à la demande)
+    // Configuration cartographique haute définition sélectionnable
     const baseMapConfigs = {
+      hybrid: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        maxNativeZoom: 18,
+        maxZoom: 19,
+        subdomains: 'abc',
+        attribution: '© Esri, Maxar, CartoDB'
+      },
+      dark: {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        maxNativeZoom: 19,
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '© CartoDB, OpenStreetMap'
+      },
+      topo: {
+        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        maxNativeZoom: 19,
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '© CartoDB, OpenStreetMap'
+      },
       satellite: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         maxNativeZoom: 18,
         maxZoom: 19,
-        subdomains: 'abc'
+        subdomains: 'abc',
+        attribution: '© Esri, Maxar'
       }
     };
 
-    const currentConfig = baseMapConfigs.satellite;
+    const currentConfig = baseMapConfigs[baseMap] || baseMapConfigs.hybrid;
     tileLayerRef.current = L.tileLayer(currentConfig.url, {
       maxNativeZoom: currentConfig.maxNativeZoom,
       maxZoom: currentConfig.maxZoom,
       subdomains: currentConfig.subdomains as any,
-      attribution: '© Esri, Maxar, Earthstar Geographics'
+      attribution: currentConfig.attribution
     }).addTo(map);
+
+    // Frontières administratives et noms de villes en surimpression nette sur Satellite Hybride
+    if (baseMap === 'hybrid') {
+      labelsLayerRef.current = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+        {
+          subdomains: 'abcd',
+          maxZoom: 19,
+          opacity: 0.95,
+          zIndex: 14
+        }
+      ).addTo(map);
+    }
 
     // Ensure radar overlays remain on top
     if (satelliteOverlayRef.current && (satelliteOverlayRef.current as any).bringToFront) (satelliteOverlayRef.current as any).bringToFront();
@@ -1678,10 +1713,28 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
         {/* Right: Base Map, GPS, Presets & Fullscreen */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Fond cartographique Satellite HD exclusif (relief et routes retirés) */}
-          <div className="flex items-center gap-1.5 rounded-xl bg-slate-950/95 px-3 py-1.5 border border-slate-800/90 shadow-xl backdrop-blur text-xs font-bold text-slate-200">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Satellite HD</span>
+          {/* Sélecteur de Fond Cartographique HD */}
+          <div className="flex items-center rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur text-xs">
+            {[
+              { id: 'hybrid', label: 'Hybride HD', title: 'Satellite HD avec frontières départementales et villes' },
+              { id: 'dark', label: 'Sombre', title: 'Radar Sombre Ultra-Contraste' },
+              { id: 'topo', label: 'Topo', title: 'Carte Topographique & Administrative' },
+              { id: 'satellite', label: 'Sat Pur', title: 'Satellite HD sans étiquettes' }
+            ].map((bm) => (
+              <button
+                key={bm.id}
+                type="button"
+                onClick={() => setBaseMap(bm.id as any)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                  baseMap === bm.id
+                    ? 'bg-cyan-500 text-slate-950 font-black shadow'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title={bm.title}
+              >
+                {bm.label}
+              </button>
+            ))}
           </div>
 
           {/* GPS Location Button */}

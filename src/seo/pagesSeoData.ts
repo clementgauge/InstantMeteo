@@ -189,10 +189,10 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'radar',
     path: '/radar',
     canonicalUrl: `${BASE_SITE_URL}/radar`,
-    title: 'Radar des pluies en direct en France | Instant Météo',
+    title: 'Radar Pluie HD en Direct France & Europe — Précipitations Haute Définition, Orages & Grêle | Instant Météo',
     description:
-      'Carte radar interactive des précipitations en direct : suivez le déplacement de la pluie, de la neige, des orages et des nuages en plein écran.',
-    h1: 'Radar des précipitations en direct',
+      'Radar de pluie haute résolution en direct : suivi Doppler minute par minute, cellules orageuses, grêle, neige et prévisions immédiates (Nowcasting) sur toute la France et l\'Europe avec fond satellite hybride et frontières départementales.',
+    h1: 'Radar des précipitations en direct HD — Pluie, orages et chutes de neige',
     sectionTitle: 'Fonctionnement du radar et lecture des échos de pluie',
     breadcrumbName: 'Radar Pluie en Direct',
     tabId: 'radar',
@@ -437,17 +437,17 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'montagne',
     path: '/montagne',
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Météo Montagne & Enneigement Temps Réel : Hauteurs de Neige Vérifiées & Bulletins BERA | Instant Météo',
+    title: 'Météo Montagne en Direct & Réactualisation Continue : Niveaux Neige Sommets, LPN & BERA | Instant Météo',
     description:
-      'Météo montagne en direct : niveaux réels de neige vérifiés par balise Nivôse, isotherme 0°C, limite pluie-neige thermodynamique, risque d\'avalanche BERA et stations de ski (Alpes, Pyrénées, Massif Central, Jura, Vosges, Corse, Europe).',
-    h1: 'Météo en montagne, niveaux réels de neige et bulletins d’avalanche BERA',
+      'Météo montagne avec réactualisation en continu 24/7 : niveaux réels de neige vérifiés par balise Nivôse, isotherme 0°C, limite pluie-neige (LPN), téléphériques, état des pistes et risques d\'avalanche BERA (Alpes, Pyrénées, Massif Central, Jura, Vosges, Europe).',
+    h1: 'Météo en montagne en continu, niveaux réels de neige et bulletins d’avalanche BERA',
     sectionTitle: 'Paramètres d’altitude pour les stations de ski et la randonnée',
     breadcrumbName: 'Météo Montagne',
     tabId: 'mountain',
     changefreq: 'hourly',
     priority: '0.85',
     introParagraph:
-      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les sept grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude, du fond de vallée jusqu’aux plus hauts sommets.',
+      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les sept grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude avec réactualisation continue 24/7, du fond de vallée jusqu’aux plus hauts sommets.',
     sections: [
       {
         heading: 'Isotherme 0 °C et limite pluie-neige en temps réel',
@@ -485,21 +485,21 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'plages',
     path: '/plages',
     canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Météo des plages, marées et température de l’eau | Instant Météo',
+    title: 'Météo des Plages, Marées SHOM & Grandes Marées : Horaires Pleine Mer, Température Eau & Vagues | Instant Météo',
     description:
-      'Météo du littoral et des plages de France : horaires et coefficients de marée, température de la mer, hauteur de la houle, vent côtier et indice UV.',
-    h1: 'Météo du littoral, horaires des marées et baignade',
-    sectionTitle: 'Informations marines pour la baignade et les sports nautiques',
+      'Météo des plages et marées SHOM en direct : horaires 4 marées (Pleine Mer 1 & 2, Basse Mer 1 & 2), coefficients et alertes Grandes Marées, pêche à pied, température de l’eau (SST), vagues, courants côtiers et sécurité baïnes sur toute la France et l\'Europe.',
+    h1: 'Météo des plages, annuaire des marées SHOM et alertes grandes marées',
+    sectionTitle: 'Informations marines pour la baignade, le surf et la pêche à pied',
     breadcrumbName: 'Météo des Plages',
     tabId: 'beaches',
     changefreq: 'hourly',
     priority: '0.85',
     introParagraph:
-      'De la Manche à la Méditerranée en passant par la côte Atlantique et la Corse, la page Météo des Plages réunit toutes les données marines utiles pour préparer une journée au bord de l’eau, une session de surf ou une sortie en plaisance.',
+      'De la Manche à la Méditerranée en passant par la côte Atlantique et la Corse, la page Météo des Plages réunit toutes les données marines utiles : annuaire SHOM complet (Pleine Mer, Basse Mer, coefficients et marnage), alertes Grandes Marées, température de l\'eau (SST), vagues et courants.',
     sections: [
       {
-        heading: 'Horaires de pleine mer, basse mer et coefficients de marée',
-        body: 'Consultez les heures exactes de marée haute et de marée basse ainsi que le coefficient du jour (de 20 à 120). Au-delà d’un coefficient de 90 (grandes marées), l’amplitude de marnage est importante et les courants de baïnes ou de chenaux se renforcent sensiblement.',
+        heading: 'Horaires des 4 marées, hauteurs d’eau en mètres et coefficients',
+        body: 'Consultez les heures exactes des 4 marées quotidiennes (deux pleines mers et deux basses mers) avec hauteurs d’eau au zéro hydrographique et coefficients SHOM (20 à 120). Dès le coefficient 90 (grandes marées), l’amplitude de marnage découvre de vastes estrans propices à la pêche à pied tout en accélérant la montée des eaux.',
       },
       {
         heading: 'Température de l’eau de baignade et état du plan d’eau',

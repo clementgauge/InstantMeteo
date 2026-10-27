@@ -778,7 +778,23 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const isRainQuery = ['plui', 'precip', 'averse', 'cumul', 'eau', 'goutte', 'parapluie'].some(kw => normalized.includes(kw));
     const isSnowIsoQuery = ['neig', 'isotherm', 'lpn', 'flocon', 'montagne', 'sommet', 'altitude', 'poudreuse'].some(kw => normalized.includes(kw));
     const isClothingQuery = ['habill', 'tenue', 'vetement', 'porter', 'manteau', 'veste'].some(kw => normalized.includes(kw));
-    const isGreeting = ['bonjour', 'salut', 'hello', 'coucou', 'bonsoir', 'aide'].some(kw => normalized.includes(kw));
+    const isGreeting = ['bonjour', 'salut', 'slt', 'hello', 'coucou', 'bonsoir', 'hey', 'yo', 'wesh', 'aide'].some(kw => {
+      const regex = new RegExp(`(^|\\s|[,!?.])${kw}($|\\s|[,!?.-])`, 'i');
+      return regex.test(normalized) || normalized.startsWith(kw);
+    });
+
+    const greetingPrefix = isGreeting
+      ? (normalized.includes('slt') || normalized.includes('salut') || normalized.includes('yo') || normalized.includes('wesh')
+          ? 'Salut ! '
+          : normalized.includes('bonsoir')
+            ? 'Bonsoir ! '
+            : normalized.includes('coucou')
+              ? 'Coucou ! '
+              : 'Bonjour ! ')
+      : '';
+
+    const isPureGreeting = isGreeting && !detectedStation && !wants3DMap && !wantsGraph && !wantsTable && !wantsSnapshot && !isTempQuery && !isWindQuery && !isRainQuery && !isSnowIsoQuery && !isClothingQuery && !isPast7Days && !isForecast7Days;
+
     const isExplicitCityQuery = Boolean(
       detectedStation &&
       !isComparisonQuery &&
@@ -802,9 +818,22 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const currentGust = targetWeather.windGust ?? Math.round(targetWeather.windSpeed * 1.35);
 
     // =========================================================================
-    // BRANCHE 0 : COMPARATEUR MULTI-VILLES EN TEMPS RÉEL
+    // BRANCHE 0-A : SALUTATIONS NATURELLES (BONJOUR, SALUT, SLT...)
     // =========================================================================
-    if (isComparisonQuery) {
+    if (isPureGreeting) {
+      responseText = `${greetingPrefix}Ravi de vous accueillir sur **Instant Météo** ! Je suis **AURA**, votre intelligence artificielle météorologique en temps réel.\n\n` +
+        `Je réponds directement et avec précision à chacune de vos questions météo :\n` +
+        `- 📍 **Météo d'une ville** : écrivez par exemple *"Météo de Paris"*, *"Quel temps à Marseille ?"* ou *"Température de Lyon"*\n` +
+        `- 📊 **Graphiques & Évolution** : demandez *"Donne moi la température sur 7 jours à Brest"* ou *"Génère un graphe de Bordeaux"*\n` +
+        `- 🗺️ **Cartes 3D & Relief** : tapez *"Carte 3D de la France"* ou *"Carte du vent"* pour explorer l'atmosphère en 3D\n` +
+        `- ⚖️ **Comparateur** : écrivez *"Compare Paris et Nice"* pour superposer leurs courbes thermiques en direct\n\n` +
+        `Quelle ville ou région souhaitez-vous observer ?`;
+    }
+
+    // =========================================================================
+    // BRANCHE 0-B : COMPARATEUR MULTI-VILLES EN TEMPS RÉEL
+    // =========================================================================
+    else if (isComparisonQuery) {
       const stA = detectedStations[0];
       const stB = detectedStations[1];
       const resA = computeRealisticStationWeather(stA, currentStation, safeWeather, hourly, daily);
@@ -1378,12 +1407,17 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       }
     }
 
+    let finalText = responseText;
+    if (greetingPrefix && !isPureGreeting && !finalText.toLowerCase().startsWith('bonjour') && !finalText.toLowerCase().startsWith('salut')) {
+      finalText = `${greetingPrefix}${finalText}`;
+    }
+
     setIsThinking(false);
     playChime();
     const auraMsg: ChatMessage = {
       id: `aura_${Date.now()}`,
       sender: 'aura',
-      text: responseText,
+      text: finalText,
       comparison: comparisonData,
       card: cardData,
       chart: chartData,
