@@ -94,6 +94,7 @@ import { MorningAudioBriefingCard } from '../components/MorningAudioBriefingCard
 import { ShareableWeatherCardModal } from '../components/ShareableWeatherCardModal';
 import { AuroraNightSkyCard } from '../components/AuroraNightSkyCard';
 import { isBlockVisible } from '../services/displayPreferencesService';
+import { SiteTrafficStatsBadge } from '../components/SiteTrafficStatsBadge';
 
 interface RealtimeViewProps {
   station: LocationPoint;
@@ -787,6 +788,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onRecalibrate={onRecalibrate}
         onResetRecalibration={onResetRecalibration}
       />
+
+      {/* Observatoire d'Audience & Statistiques de Fréquentation Instant Météo (24h, 7j, 30j, Temps Réel) */}
+      <SiteTrafficStatsBadge variant="hero" />
 
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}

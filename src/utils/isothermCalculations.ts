@@ -63,36 +63,50 @@ export function calculatePhysicalIsotherm0(params: IsothermCalculationParams): n
   const temp = params.temperature;
   const humidity = params.relativeHumidity ?? 65;
   const precip = params.precipitationMm ?? 0;
+  const isNight = params.isNight ?? false;
+  const month = params.month ?? new Date().getMonth();
+  const isWinterSeason = month >= 10 || month <= 2; // Nov à Mars
 
-  // 1. If Open-Meteo provides a valid model sounding freezing level height
+  // 1. If Open-Meteo sounding provides a valid model freezing level height (AROME/IFS/GFS vertical column integration)
   if (
     params.modelFreezingHeight !== undefined && 
     params.modelFreezingHeight !== null && 
     !isNaN(params.modelFreezingHeight) && 
-    params.modelFreezingHeight > 0
+    params.modelFreezingHeight >= 0
   ) {
     return Math.round(Math.min(5200, Math.max(0, params.modelFreezingHeight)));
   }
 
-  // 2. Physics-based standard atmospheric calculation
+  // 2. Physics-based thermodynamic calculation
   // Local moist vs dry lapse rate (°C per meter)
-  const isMoist = precip > 0.3 || humidity >= 85;
-  const lapseRate = isMoist ? 0.0055 : 0.0065; // ~0.55°C / 100m to 0.65°C / 100m
+  const isMoist = precip > 0.2 || humidity >= 82;
+  const standardLapseRate = isMoist ? 0.0055 : 0.0065; // ~0.55°C / 100m (saturé) à 0.65°C / 100m (sec)
+
+  // 3. Thermal inversion detection in valleys (lac d'air froid nocturne / hivernal sous anticyclone)
+  // Souvent en vallée alpine ou cuvette, il fait 0°C au fond alors que la masse d'air libre est à +6°C à 1200m
+  const isColdPoolSuspect = (isWinterSeason || isNight) && alt < 900 && temp <= 4 && precip < 0.2;
+  const inversionBonusMeters = isColdPoolSuspect ? Math.round((4 - Math.max(-5, temp)) * 180) : 0;
 
   if (temp <= 0) {
-    // If station is already at or below 0°C
-    // In standard atmosphere without strong inversion, 0°C level is below station
-    const seaLevelEstimatedTemp = temp + (alt * 0.0065);
+    // Si la station est sous 0°C
+    if (isColdPoolSuspect && inversionBonusMeters > 300) {
+      // Inversion de surface : la masse d'air synoptique au-dessus de la couche d'inversion est positive
+      const estimatedFreeAirIso = Math.round(alt + inversionBonusMeters);
+      return Math.min(3200, Math.max(0, estimatedFreeAirIso));
+    }
+
+    // Gradient synoptique standard vers le bas
+    const seaLevelEstimatedTemp = temp + (alt * standardLapseRate);
     if (seaLevelEstimatedTemp <= 0) {
-      // Entire air column down to sea level is freezing
+      // Masse d'air sous 0°C jusqu'au niveau de la mer
       return 0;
     }
-    // Zero isotherm exists between sea level and station altitude
-    return Math.round(Math.max(0, Math.min(alt, seaLevelEstimatedTemp / 0.0065)));
+    // L'isotherme 0°C s'établit entre le niveau de la mer et l'altitude de la station
+    return Math.round(Math.max(0, Math.min(alt, seaLevelEstimatedTemp / standardLapseRate)));
   }
 
-  // Positive temperature at station: 0°C isotherm is above station
-  const calculatedHeight = alt + (temp / lapseRate);
+  // Température positive à la station : l'isotherme 0°C se trouve en altitude au-dessus
+  const calculatedHeight = alt + (temp / standardLapseRate) + (isColdPoolSuspect ? Math.round(inversionBonusMeters * 0.4) : 0);
   return Math.round(Math.min(5200, Math.max(0, calculatedHeight)));
 }
 

@@ -1992,6 +1992,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       capeJkg: curCape,
       liftedIndex: curLiftedIndex,
       isotherm0Meters: isoDiag.isotherm0Meters,
+      freezingLevelHeight: isoDiag.isotherm0Meters,
       snowRainLimitMeters: isoDiag.snowRainLimitMeters,
       altitudeMetrics,
       solarEphemeris,

@@ -1035,9 +1035,17 @@ export function calculateAltitudePhysics(
   const tempAtAltitude = Number((refTemp - deltaAlt * lapseRatePerM).toFixed(1));
   const wetBulbAtAltitude = computeWetBulbTempStull(tempAtAltitude, rh);
 
-  // Isotherme 0°C adapté selon la température prévue à la station et l'emplacement
-  const rawIsoZero = weather.freezingLevelHeight
+  // Isotherme 0°C adapté selon la télémétrie réelle de l'atmosphère libre
+  const liveAtmosphericIso0 = (typeof weather.isotherm0Meters === 'number' && weather.isotherm0Meters >= 0)
+    ? Math.round(weather.isotherm0Meters)
+    : (typeof weather.freezingLevelHeight === 'number' && weather.freezingLevelHeight >= 0)
     ? Math.round(weather.freezingLevelHeight)
+    : (weather.altitudeMetrics?.isotherm0Altitude !== undefined && weather.altitudeMetrics.isotherm0Altitude >= 0)
+    ? Math.round(weather.altitudeMetrics.isotherm0Altitude)
+    : null;
+
+  const rawIsoZero = liveAtmosphericIso0 !== null
+    ? liveAtmosphericIso0
     : Math.max(0, Math.round(refAlt + refTemp / lapseRatePerM));
 
   // Ajustement selon l'effet de massif interne et l'humidité (Tw)
@@ -1055,7 +1063,12 @@ export function calculateAltitudePhysics(
     (isDryAir ? 100 : 0) +
     (precipMm >= 3 ? 180 : precipMm >= 0.8 ? 90 : 0);
 
-  const isoZero = massif?.isoZeroAltitudeM ?? rawIsoZero;
+  // PRIORITÉ ABSOLUE : La mesure météo en direct / radiosondage AROME l'emporte TOUJOURS sur les catalogues statiques
+  const isoZero = liveAtmosphericIso0 !== null
+    ? liveAtmosphericIso0
+    : (massif?.isRealTimeVerified && massif?.isoZeroAltitudeM)
+    ? massif.isoZeroAltitudeM
+    : rawIsoZero;
   const lpn = Math.max(0, isoZero - isothermyDrop);
 
   // Accélération orographique du vent avec l'altitude
@@ -1112,8 +1125,21 @@ export function calculateContinuousSnowAndLpnAnalysis(
   const lapseRatePer100m = rh >= 82 ? 0.56 : isDry ? 0.67 : 0.62;
   const lapseRatePerM = lapseRatePer100m / 100;
 
-  // Température de référence à la base de la station
-  const isoZeroM = massif.isoZeroAltitudeM;
+  // Température de référence à la base de la station et Isotherme 0°C temps réel
+  const liveAtmosphericIso0 = (typeof weather.isotherm0Meters === 'number' && weather.isotherm0Meters >= 0)
+    ? Math.round(weather.isotherm0Meters)
+    : (typeof weather.freezingLevelHeight === 'number' && weather.freezingLevelHeight >= 0)
+    ? Math.round(weather.freezingLevelHeight)
+    : (weather.altitudeMetrics?.isotherm0Altitude !== undefined && weather.altitudeMetrics.isotherm0Altitude >= 0)
+    ? Math.round(weather.altitudeMetrics.isotherm0Altitude)
+    : null;
+
+  const isoZeroM = liveAtmosphericIso0 !== null
+    ? liveAtmosphericIso0
+    : (massif.isRealTimeVerified && massif.isoZeroAltitudeM)
+    ? massif.isoZeroAltitudeM
+    : massif.isoZeroAltitudeM || 2200;
+
   const baseTempC = massif.baseTempC !== undefined
     ? massif.baseTempC
     : Number(((isoZeroM - massif.altitudeBase) * lapseRatePerM).toFixed(1));
@@ -1275,9 +1301,9 @@ export function calculateContinuousSnowAndLpnAnalysis(
 export async function fetchLiveSkiResortConditions(massif: MountainMassif): Promise<MountainMassif> {
   try {
     const ts = Date.now();
-    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&forecast_days=2&_ts=${ts}`;
-    const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudeBase}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth&forecast_days=1&_ts=${ts}`;
-    const nivoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.nivoseElevationM}&current=temperature_2m,snow_depth,snowfall&forecast_days=1&_ts=${ts}`;
+    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&timezone=auto&forecast_days=2&_ts=${ts}`;
+    const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudeBase}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth&timezone=auto&forecast_days=1&_ts=${ts}`;
+    const nivoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.nivoseElevationM}&current=temperature_2m,snow_depth,snowfall&timezone=auto&forecast_days=1&_ts=${ts}`;
 
     const [peakRes, baseRes, nivoseRes] = await Promise.all([
       fetch(peakUrl),
@@ -1295,19 +1321,50 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
     const curNivose = nivoseData?.current || null;
     const hourlyIso: number[] = peakData?.hourly?.freezing_level_height || [];
     const hourlySnowPeak: number[] = peakData?.hourly?.snowfall || [];
+    const hourlyTimes: string[] = peakData?.hourly?.time || [];
 
-    const nowHour = new Date().getHours();
+    // Correspondance temporelle précise de l'heure actuelle dans le modèle Open-Meteo
+    const curTimeIso: string = curPeak.time || new Date().toISOString().slice(0, 13);
+    let matchedHourIdx = hourlyTimes.findIndex(t => t.startsWith(curTimeIso.slice(0, 13)));
+    if (matchedHourIdx === -1) {
+      const nowIsoPrefix = new Date().toISOString().slice(0, 13);
+      matchedHourIdx = hourlyTimes.findIndex(t => t.startsWith(nowIsoPrefix));
+    }
+    if (matchedHourIdx === -1) {
+      matchedHourIdx = Math.min(12, Math.max(0, hourlyTimes.length - 1));
+    }
+
     const peakTemp = Number((curPeak.temperature_2m ?? -2).toFixed(1));
     const baseTemp = Number((curBase.temperature_2m ?? (peakTemp + ((massif.altitudePeak - massif.altitudeBase) * 0.0065))).toFixed(1));
     const nivoseTemp = curNivose?.temperature_2m !== undefined
       ? Number(curNivose.temperature_2m.toFixed(1))
       : Number((peakTemp + ((massif.altitudePeak - massif.nivoseElevationM) * 0.0065)).toFixed(1));
 
-    const liveIsoZero = Math.round(
-      hourlyIso[nowHour] ??
-        hourlyIso[12] ??
-        Math.max(0, massif.altitudePeak + ((curPeak.temperature_2m ?? -4) / 0.0062))
-    );
+    // Détermination de l'isotherme 0°C en direct selon le radiosondage modèle
+    const modelIsoCandidate = matchedHourIdx >= 0 ? hourlyIso[matchedHourIdx] : undefined;
+    let liveIsoZero: number;
+
+    if (typeof modelIsoCandidate === 'number' && !isNaN(modelIsoCandidate) && modelIsoCandidate >= 0) {
+      liveIsoZero = Math.round(modelIsoCandidate);
+    } else {
+      // Diagnostic thermodynamique fin entre la base et le sommet
+      const dAlt = Math.max(150, massif.altitudePeak - massif.altitudeBase);
+      const dTemp = baseTemp - peakTemp;
+      let effectiveLapseRate = 0.0065;
+      if (dTemp > 0.4) {
+        effectiveLapseRate = Math.max(0.004, Math.min(0.009, dTemp / dAlt));
+      }
+      if (peakTemp <= 0 && baseTemp <= 0) {
+        liveIsoZero = Math.max(0, Math.round(massif.altitudeBase + (baseTemp / 0.0065)));
+      } else if (peakTemp <= 0) {
+        // Le niveau 0°C est situé entre la base et le sommet
+        liveIsoZero = Math.round(massif.altitudeBase + (baseTemp / effectiveLapseRate));
+      } else {
+        // Le niveau 0°C est au-dessus du sommet
+        liveIsoZero = Math.round(massif.altitudePeak + (peakTemp / effectiveLapseRate));
+      }
+    }
+    liveIsoZero = Math.max(0, Math.min(5200, liveIsoZero));
 
     const rh = curPeak.relative_humidity_2m ?? 70;
     const isInternal = massif.topographicRegime?.includes('Massif Interne') ?? true;

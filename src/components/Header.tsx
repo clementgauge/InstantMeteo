@@ -40,6 +40,7 @@ import { AppLogo } from './AppLogo';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
 import { GoogleTranslateWidget } from './GoogleTranslateWidget';
+import { SiteTrafficStatsBadge } from './SiteTrafficStatsBadge';
 
 interface HeaderProps {
   currentStation: LocationPoint;
@@ -285,7 +286,10 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="block sm:hidden w-full space-y-3 px-1 pt-0.5 pb-1">
         {/* Native Mobile Status Bar (Heure réelle, wifi réel, vraie batterie si disponible) */}
         <div className="flex items-center justify-between text-xs text-slate-800 dark:text-white font-semibold px-2 pt-0.5 pb-1 select-none">
-          <span className="font-bold tracking-tight">{realClock}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold tracking-tight">{realClock}</span>
+            <SiteTrafficStatsBadge variant="compact" className="text-[10px] py-0 px-1.5" />
+          </div>
           <div className="flex items-center gap-2">
             {/* Cellular Signal Icon */}
             <svg className={`w-3.5 h-3 ${isOnline ? 'text-slate-800 dark:text-white' : 'text-slate-500'} fill-current`} viewBox="0 0 17 12">
@@ -631,6 +635,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span>GPS</span>
             </button>
           )}
+
+          {/* Site Traffic & Visitors Live Badge (24h, 7j, 30j, en direct) */}
+          <SiteTrafficStatsBadge variant="compact" />
 
           {/* Universal Search Modal Launcher (Allongé & Spacieux) */}
           <button
