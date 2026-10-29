@@ -423,7 +423,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
   };
 
   // Compute Route Weather using Open-Meteo Multi-Point Forecast
-  const calculateRouteWeather = async () => {
+  const calculateRouteWeather = async (isManual: boolean = false) => {
     setIsCalculating(true);
     setErrorMessage(null);
 
@@ -997,6 +997,16 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
         routingSource: mapsRoute.source,
         carTrafficVigilance,
       });
+
+      // Rediriger directement (notamment sur smartphone / mobile) vers le bloc "Météo étape par étape" après calcul réussi
+      if (isManual) {
+        setTimeout(() => {
+          const stepSection = document.getElementById('meteo-etape-par-etape');
+          if (stepSection) {
+            stepSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 180);
+      }
     } catch (err: any) {
       console.error('Error calculating route weather:', err);
       setErrorMessage(
@@ -1246,7 +1256,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
 
           <button
             type="button"
-            onClick={calculateRouteWeather}
+            onClick={() => calculateRouteWeather(true)}
             disabled={isCalculating || !depText || !arrText}
             className="w-full sm:w-auto px-5 py-2 rounded-md font-bold text-xs text-white bg-[#0284C7] hover:bg-sky-600 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
           >
@@ -1529,7 +1539,7 @@ export const RouteWeatherCalculator: React.FC<RouteWeatherCalculatorProps> = ({
           )}
 
           {/* Chronological Step-by-Step Waypoints Cards */}
-          <div className="space-y-3">
+          <div id="meteo-etape-par-etape" className="space-y-3 scroll-mt-24 sm:scroll-mt-28">
             <div className="flex items-center justify-between px-0.5">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <Compass className="h-3.5 w-3.5 text-teal-400" />

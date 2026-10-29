@@ -82,6 +82,9 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: true,
   },
+  build: {
+    sourcemap: false,
+  },
   preview: {
     port: 3000,
     host: '0.0.0.0',

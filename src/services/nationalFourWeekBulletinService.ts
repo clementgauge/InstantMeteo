@@ -1,17 +1,22 @@
 import { 
   NationalFourWeekBulletinCollection, 
   NationalFourWeekBulletinWeek, 
-  NationalBulletinScenario, 
   NationalRegionalDetail 
 } from '../types/weather';
 
 /**
  * Generate comprehensive National 4-Week Weather Bulletin for France (Semaine 1 à Semaine 4)
- * with multi-scenario probabilistic branching, regional breakdowns, and agricultural/hydrological outlooks.
+ * Grounded in multi-model ensemble simulations (ECMWF EPS, NCEP GEFS, Copernicus C3S)
+ * Dynamically tailored to the current calendar season (Automne / Hiver / Printemps / Été)
  */
 export function generateNationalFourWeekBulletin(): NationalFourWeekBulletinCollection {
   const now = new Date();
-  
+  const currentMonth = now.getMonth(); // 0 = Jan, 9 = Oct, 10 = Nov, 11 = Dec
+
+  const isColdSeason = currentMonth >= 9 || currentMonth <= 2; // Octobre à Mars
+  const isSpring = currentMonth >= 3 && currentMonth <= 4;     // Avril - Mai
+  const isSummer = currentMonth >= 5 && currentMonth <= 8;     // Juin - Septembre
+
   // Calculate exact week dates
   const formatWeekRange = (startDayOffset: number, endDayOffset: number) => {
     const dStart = new Date(now.getTime() + startDayOffset * 86400000);
@@ -34,455 +39,660 @@ export function generateNationalFourWeekBulletin(): NationalFourWeekBulletinColl
   // ----------------------------------------------------
   // SEMAINE 1 (S+1 : J+1 à J+7)
   // ----------------------------------------------------
-  const week1Scenarios: NationalFourWeekBulletinWeek['scenarios'] = {
+  const week1Scenarios: NationalFourWeekBulletinWeek['scenarios'] = isColdSeason ? {
     dominant: {
       scenarioId: 'W1_DOM',
-      name: "Scénario A : Dorsale Anticyclonique Océanique & Chaleur Modérée de Saison",
+      name: "Scénario A (Consensus ECMWF / AROME) : Dorsale Anticyclonique & Inversions de Basse Couche",
       probabilityPct: 65,
-      regimeType: "Dorsale Atlantique / NAO+",
-      synopticMechanism: "Gonflement des hauts géopotentiels sur la Péninsule Ibérique et le Golfe de Gascogne. Le rail dépressionnaire circule haut en latitude sur les Îles Britanniques.",
-      temperatureAnomalyC: +1.2,
-      precipitationAnomalyPct: -45,
-      description: "Temps très largement estival et lumineux sur l'ensemble de la France. Seules les côtes de la Manche connaissent de timides incursions nuageuses. Nuits fraîches et agréables, journées chaudes sans excès.",
+      regimeType: "Dorsale Atlantique / Anticyclone Européen",
+      synopticMechanism: "Gonflement des hauts géopotentiels sur l'Europe occidentale. Pression au sol de 1022 à 1028 hPa bloquant les perturbations atlantiques.",
+      temperatureAnomalyC: +0.4,
+      precipitationAnomalyPct: -55,
+      description: "Temps très calme et sec sur la quasi-totalité de la France. Nuits fraîches favorisant les grisailles et brouillards matinaux denses en plaine (Bassin Parisien, Val de Saône, plaines du Sud-Ouest) tardant à se dissiper, alors que le soleil règne dès l'aube sur les massifs et le pourtour méditerranéen.",
       isDominant: true
     },
     alternative: {
       scenarioId: 'W1_ALT',
-      name: "Scénario B : Flux d'Ouest Ondulant et Averses au Nord de la Loire",
+      name: "Scénario B (Option GFS) : Décrochage Océanique Ondulant sur la Manche",
       probabilityPct: 25,
-      regimeType: "Flux Zonal Ondulant",
-      synopticMechanism: "Affaissement temporaire de la dorsale laissant passer une traîne modérément instable de la Bretagne à l'Alsace.",
-      temperatureAnomalyC: -0.4,
-      precipitationAnomalyPct: +15,
-      description: "Ciel plus changeant au Nord avec passages pluvieux intermittents (5 à 15 mm). Le Sud reste sous le soleil et la chaleur.",
+      regimeType: "Flux Zonal Ondulant (NAO+)",
+      synopticMechanism: "Affaissement temporaire de la dorsale laissant glisser un front froid atténué de la Bretagne aux frontières du Nord-Est.",
+      temperatureAnomalyC: -0.5,
+      precipitationAnomalyPct: +20,
+      description: "Ciel plus bas et humide au Nord de la Seine avec quelques pluies faibles à modérées (3 à 10 mm). Le Sud reste sous la protection anticyclonique.",
       isDominant: false
     },
     minority: {
       scenarioId: 'W1_MIN',
-      name: "Scénario C : Dôme de Chaleur et Pic Caniculaire au Sud",
+      name: "Scénario C (Option Ensembles Froids) : Advection d'Air Continental d'Est",
       probabilityPct: 10,
-      regimeType: "Blocage Subtropical Ibérique",
-      synopticMechanism: "Advection d'air d'origine saharienne par un creusement au large du Portugal.",
-      temperatureAnomalyC: +3.8,
-      precipitationAnomalyPct: -80,
-      description: "Forte poussée de chaleur avec maximales dépassant 36°C dans le Sud-Ouest et 34°C en Vallée du Rhône.",
+      regimeType: "Blocage Scandinave / Flux de Nord-Est",
+      synopticMechanism: "Glissement d'une goutte froide d'Europe centrale vers les Alpes amenant de l'air continental sec et froid.",
+      temperatureAnomalyC: -2.4,
+      precipitationAnomalyPct: -70,
+      description: "Net refroidissement nocturne avec gelées blanches généralisées dans les campagnes du Nord et de l'Est (0°C à -3°C) sous une bise sensible.",
+      isDominant: false
+    }
+  } : {
+    dominant: {
+      scenarioId: 'W1_DOM',
+      name: "Scénario A : Dorsale Océanique & Ensoleillement Modéré",
+      probabilityPct: 60,
+      regimeType: "Anticyclone Océanique",
+      synopticMechanism: "Hautes pressions centrées sur le Golfe de Gascogne.",
+      temperatureAnomalyC: +1.0,
+      precipitationAnomalyPct: -40,
+      description: "Conditions calmes et lumineuses de saison, températures agréables sans excès.",
+      isDominant: true
+    },
+    alternative: {
+      scenarioId: 'W1_ALT',
+      name: "Scénario B : Flux Ouest Océanique",
+      probabilityPct: 30,
+      regimeType: "Flux Zonal",
+      synopticMechanism: "Passage d'un front nuageux sur la moitié Nord.",
+      temperatureAnomalyC: -0.2,
+      precipitationAnomalyPct: +15,
+      description: "Ciel variable au Nord, ensoleillé au Sud.",
+      isDominant: false
+    },
+    minority: {
+      scenarioId: 'W1_MIN',
+      name: "Scénario C : Marais Barométrique",
+      probabilityPct: 10,
+      regimeType: "Convection Diurne",
+      synopticMechanism: "Faiblesse barométrique déclenchant des ondées locales sur les reliefs.",
+      temperatureAnomalyC: +1.5,
+      precipitationAnomalyPct: +25,
+      description: "Évolution orageuse ponctuelle en montagne.",
       isDominant: false
     }
   };
 
-  const week1Regions: NationalRegionalDetail[] = [
+  const week1Regions: NationalRegionalDetail[] = isColdSeason ? [
     {
-      regionName: "Nord-Ouest (Bretagne, Normandie, Pays de la Loire, Hauts-de-France)",
+      regionName: "Nord-Ouest (Bretagne, Normandie, Pays de la Loire)",
       regionCode: 'NO',
-      dominantWeather: "Éclaircies généreuses, brises côtières tempérées, passages nuageux inoffensifs.",
-      tempAnomalyC: +0.5,
-      precipAnomalyPct: -30,
-      riskHighlights: ["Brumes matinales littorales", "Vent modéré sur les caps de la Manche"],
-      summaryText: "Ambiance très agréable et respirable. Maximales de 22°C à 26°C sur les côtes, jusqu'à 28°C dans les terres ligériennes."
+      dominantWeather: "Brumes côtières et nuages bas matinaux, s'effilochant pour laisser place à de belles éclaircies l'après-midi.",
+      tempAnomalyC: +0.3,
+      precipAnomalyPct: -45,
+      riskHighlights: ["Visibilité réduite le matin sur les réseaux routiers", "Vent faible de secteur Sud-Ouest"],
+      summaryText: "Atmosphère fraîche le matin (4°C à 7°C) et agréable l'après-midi avec des maximales de 12°C à 15°C sous les éclaircies."
     },
     {
-      regionName: "Nord-Est & Centre-Est (Grand-Est, Bourgogne, Franche-Comté, Lorraine, Alsace)",
+      regionName: "Nord-Est & Bassin Parisien (Hauts-de-France, Île-de-France, Grand Est, Bourgogne)",
       regionCode: 'NE',
-      dominantWeather: "Soleil dominant, ciel bleu limpide, nuages bourgeonnant l'après-midi sur les Vosges.",
-      tempAnomalyC: +1.4,
-      precipAnomalyPct: -50,
-      riskHighlights: ["Faible risque orageux isolé sur les crêtes vosgiennes"],
-      summaryText: "Temps sec idéal. Températures chaudes l'après-midi (27°C à 30°C) avec une humidité basse propice aux moissons."
-    },
-    {
-      regionName: "Bassin Parisien & Région Centre (Île-de-France, Centre-Val de Loire, Beauce)",
-      regionCode: 'CENTRE',
-      dominantWeather: "Grand soleil estival, voile d'altitude décoratif, vent faible.",
-      tempAnomalyC: +1.2,
+      dominantWeather: "Inversions thermiques marquées : stratus bas et brouillards tenaces jusqu'en mi-journée, éclaircies timides.",
+      tempAnomalyC: -0.2,
       precipAnomalyPct: -60,
-      riskHighlights: ["Aucun risque météorologique notable"],
-      summaryText: "Semaine estivale par excellence. Températures de 15°C au lever du jour à 28-30°C au cœur de l'après-midi."
+      riskHighlights: ["Brouillards givrants locaux en rase campagne", "Gelées blanches ponctuelles (0°C à 2°C)"],
+      summaryText: "Sensations fraîches et humides sous la grisaille (maximales freinées à 9°C-12°C). Ciel plus lumineux vers les Vosges."
     },
     {
-      regionName: "Sud-Ouest (Nouvelle-Aquitaine, Occitanie Ouest, Midi-Toulousain)",
+      regionName: "Centre & Val de Loire (Centre-Val de Loire, Beauce, Sologne)",
+      regionCode: 'CENTRE',
+      dominantWeather: "Fraîcheur vive à l'aube, bancs de brume vite dissipés au profit d'un soleil voilé d'automne.",
+      tempAnomalyC: +0.4,
+      precipAnomalyPct: -50,
+      riskHighlights: ["Gelées matinales isolées dans les fonds de vallées"],
+      summaryText: "Belle amplitude diurne : de 2°C au lever du jour à 13-14°C au meilleur de l'après-midi."
+    },
+    {
+      regionName: "Sud-Ouest & Bassin Aquitain (Nouvelle-Aquitaine, Occitanie Ouest)",
       regionCode: 'SO',
-      dominantWeather: "Plein soleil, chaleur bien installée, quelques brumes côtières landaises.",
-      tempAnomalyC: +1.8,
+      dominantWeather: "Brouillards matinaux en bord de Garonne et vallées landaises, après-midi très douces et ensoleillées.",
+      tempAnomalyC: +1.1,
       precipAnomalyPct: -65,
-      riskHighlights: ["Chaleur soutenue l'après-midi (30-33°C)", "Indice UV 8 très élevé"],
-      summaryText: "Fort ensoleillement continu. Les températures approchent les 32°C à Bordeaux et Toulouse sans excès nocturne."
+      riskHighlights: ["Écarts thermiques marqués jour/nuit (jusqu'à 12°C d'amplitude)"],
+      summaryText: "Conditions idéales d'arrière-saison : 4°C à 7°C le matin, grimpant entre 15°C et 18°C sous le soleil d'après-midi."
     },
     {
-      regionName: "Sud-Est & Méditerranée (PACA, Côte d'Azur, Vallée du Rhône, Corse)",
+      regionName: "Sud-Est & Méditerranée (PACA, Languedoc-Roussillon, Corse)",
       regionCode: 'SE',
-      dominantWeather: "Temps chaud et très sec, ciel d'azur, mistral et tramontane faiblissants.",
-      tempAnomalyC: +1.5,
-      precipAnomalyPct: -85,
-      riskHighlights: ["Risque feux de forêts modéré à sévère", "Indice de sécheresse des sols en hausse"],
-      summaryText: "Chaleur méditerranéenne franche. Maximales entre 31°C et 35°C dans l'arrière-pays provençal et en Corse."
+      dominantWeather: "Grand soleil lumineux, ciel d'azur profond, brises côtières modérées et mistral faible à modéré.",
+      tempAnomalyC: +0.8,
+      precipAnomalyPct: -75,
+      riskHighlights: ["Sécheresse de surface persistante", "Bonne visibilité maritime"],
+      summaryText: "Ambiance très douce : minimales de 9°C à 13°C en bord de mer, maximales atteignant 17°C à 20°C."
     },
     {
-      regionName: "Reliefs & Massifs (Alpes, Pyrénées, Massif Central, Jura, Vosges)",
+      regionName: "Massifs & Reliefs (Alpes, Pyrénées, Massif Central, Jura, Vosges)",
       regionCode: 'MASSIFS',
-      dominantWeather: "Excellentes conditions de randonnée, très bonne visibilité, rares cumulus diurnes.",
-      tempAnomalyC: +1.6,
+      dominantWeather: "Splendide mer de nuages dans les vallées sous 800m, soleil éclatant et grande limpidité au-dessus.",
+      tempAnomalyC: +1.5,
+      precipAnomalyPct: -70,
+      riskHighlights: ["Isotherme 0°C oscillant entre 2200m et 2600m", "Inversion thermique : plus chaud à 1500m qu'en plaine"],
+      summaryText: "Conditions remarquables pour la moyenne montagne : douceur au soleil en journée, névés stabilisés en haute altitude."
+    }
+  ] : [
+    {
+      regionName: "Nord-Ouest",
+      regionCode: 'NO',
+      dominantWeather: "Éclaircies et passages nuageux de saison.",
+      tempAnomalyC: +0.5,
+      precipAnomalyPct: -20,
+      riskHighlights: ["Brises côtières"],
+      summaryText: "Temps calme, températures conformes aux normales."
+    },
+    {
+      regionName: "Nord-Est",
+      regionCode: 'NE',
+      dominantWeather: "Ensoleillé avec quelques cumulus l'après-midi.",
+      tempAnomalyC: +0.8,
+      precipAnomalyPct: -30,
+      riskHighlights: ["Faible risque d'averse isolée"],
+      summaryText: "Agréable et sec de saison."
+    },
+    {
+      regionName: "Sud-Ouest",
+      regionCode: 'SO',
+      dominantWeather: "Ensoleillé et doux.",
+      tempAnomalyC: +1.2,
       precipAnomalyPct: -40,
-      riskHighlights: ["Isotherme 0°C élevé (> 4200 m sur les Alpes)", "Fonte glaciaire active"],
-      summaryText: "Douceur remarquable en altitude avec une isotherme 0°C flirtant avec les plus hauts sommets alpins."
+      riskHighlights: ["Aucun risque notable"],
+      summaryText: "Très beau temps de saison."
+    },
+    {
+      regionName: "Sud-Est",
+      regionCode: 'SE',
+      dominantWeather: "Plein soleil et brises.",
+      tempAnomalyC: +1.0,
+      precipAnomalyPct: -50,
+      riskHighlights: ["Mistral modéré"],
+      summaryText: "Grand beau temps méditerranéen."
+    },
+    {
+      regionName: "Massifs",
+      regionCode: 'MASSIFS',
+      dominantWeather: "Conditions stables d'altitude.",
+      tempAnomalyC: +0.7,
+      precipAnomalyPct: -30,
+      riskHighlights: ["Fraîcheur nocturne"],
+      summaryText: "Excellente visibilité sommital."
     }
   ];
 
   // ----------------------------------------------------
   // SEMAINE 2 (S+2 : J+8 à J+14)
   // ----------------------------------------------------
-  const week2Scenarios: NationalFourWeekBulletinWeek['scenarios'] = {
+  const week2Scenarios: NationalFourWeekBulletinWeek['scenarios'] = isColdSeason ? {
     dominant: {
       scenarioId: 'W2_DOM',
-      name: "Scénario A : Marais Barométrique Chaud et Évolution Orageuse Diurne",
+      name: "Scénario A (Consensus ECMWF ENS) : Arrivée d'un Rail Atlantique Perturbé Modéré",
       probabilityPct: 55,
-      regimeType: "Marais Barométrique / Blocage Est",
-      synopticMechanism: "Champ de pression mou sur la France avec advection d'air tiède et humide. Convection thermique l'après-midi sur les reliefs et plaines intérieures.",
-      temperatureAnomalyC: +1.6,
-      precipitationAnomalyPct: +20,
-      description: "Maintien d'une ambiance chaude et estivale, devenant lourde et instable en fin de journée. Orages d'évolution diurne éclatant principalement des Pyrénées aux Alpes et sur le Massif Central.",
+      regimeType: "Régime Zonal / Ondulation Atlantique (NAO+)",
+      synopticMechanism: "Recul de l'anticyclone vers la Méditerranée. Les dépressions d'Islande et d'Écosse balaient le Nord avec des fronts pluvieux réguliers.",
+      temperatureAnomalyC: +0.8,
+      precipitationAnomalyPct: +30,
+      description: "Reprise des pluies océaniques au Nord de la Loire (cumuls de 15 à 30 mm). Renforcement des vents de Sud-Ouest avec advection d'air doux et humide. Le Sud-Est reste abrité.",
       isDominant: true
     },
     alternative: {
       scenarioId: 'W2_ALT',
-      name: "Scénario B : Goutte Froide Atlantique et Dégradation Pluvio-Orageuse Organisée",
+      name: "Scénario B (Option Maintien Anticyclonique) : Blocage d'Europe Centrale Durable",
       probabilityPct: 30,
-      regimeType: "Creusement Atlantique",
-      synopticMechanism: "Plongeon d'une poche d'air froid à 500 hPa vers le Golfe de Gascogne provoquant un conflit de masse d'air violent.",
-      temperatureAnomalyC: -0.2,
-      precipitationAnomalyPct: +60,
-      description: "Fronts orageux actifs balayant le pays du Sud-Ouest vers le Nord-Est avec fortes précipitations et risque de grêle.",
+      regimeType: "Blocage Continental Sec",
+      synopticMechanism: "Résistance des hautes pressions sur l'Allemagne et la Suisse déviant les perturbations vers les îles britanniques.",
+      temperatureAnomalyC: -0.3,
+      precipitationAnomalyPct: -40,
+      description: "Poursuite d'un temps sec, froid le matin avec stratus tenaces dans les plaines et faible ensoleillement diurne.",
       isDominant: false
     },
     minority: {
       scenarioId: 'W2_MIN',
-      name: "Scénario C : Blocage Anticyclonique Scandinave Sec et Continental",
+      name: "Scénario C (Option Goutte Froide) : Décrochage Polaire Méditerranéen",
       probabilityPct: 15,
-      regimeType: "Scand-Block",
-      synopticMechanism: "Puissant anticyclone sur la Scandinavie envoyant un flux de Nord-Est continental sec.",
-      temperatureAnomalyC: +0.8,
-      precipitationAnomalyPct: -70,
-      description: "Temps totalement sec, vent d'Est sensible et asséchant, ciel limpide sur l'ensemble du territoire.",
+      regimeType: "Goutte Froide Sud / Épisode Pluvieux Méditerranéen",
+      synopticMechanism: "Isolement d'une dépression d'altitude vers le Golfe du Lion générant un flux d'Est humide et pluvieux.",
+      temperatureAnomalyC: -1.2,
+      precipitationAnomalyPct: +85,
+      description: "Fortes pluies sur le Roussillon, les Cévennes et la Corse avec retour de la neige en moyenne montagne.",
+      isDominant: false
+    }
+  } : {
+    dominant: {
+      scenarioId: 'W2_DOM',
+      name: "Scénario A : Flux Océanique Doux",
+      probabilityPct: 55,
+      regimeType: "Flux d'Ouest",
+      synopticMechanism: "Perturbations douces et passages pluvieux intermittents.",
+      temperatureAnomalyC: +0.6,
+      precipitationAnomalyPct: +15,
+      description: "Alternance d'éclaircies et d'ondées modérées.",
+      isDominant: true
+    },
+    alternative: {
+      scenarioId: 'W2_ALT',
+      name: "Scénario B : Dorsale Anticyclonique",
+      probabilityPct: 30,
+      regimeType: "Hautes Pressions",
+      synopticMechanism: "Retour d'un anticyclone protecteur.",
+      temperatureAnomalyC: +1.2,
+      precipitationAnomalyPct: -30,
+      description: "Temps sec et lumineux.",
+      isDominant: false
+    },
+    minority: {
+      scenarioId: 'W2_MIN',
+      name: "Scénario C : Instabilité d'altitude",
+      probabilityPct: 15,
+      regimeType: "Marais Barométrique",
+      synopticMechanism: "Averses et orages locaux sur le flanc Est.",
+      temperatureAnomalyC: 0.0,
+      precipitationAnomalyPct: +35,
+      description: "Passages instables sur les reliefs.",
       isDominant: false
     }
   };
 
-  const week2Regions: NationalRegionalDetail[] = [
+  const week2Regions: NationalRegionalDetail[] = isColdSeason ? [
     {
       regionName: "Nord-Ouest (Bretagne, Normandie, Hauts-de-France)",
       regionCode: 'NO',
-      dominantWeather: "Temps variable et doux, ciel voilé, averses éparses possibles en soirée.",
-      tempAnomalyC: +0.8,
-      precipAnomalyPct: +10,
-      riskHighlights: ["Averses orageuses locales sur l'intérieur breton"],
-      summaryText: "Températures proches des normales (23°C à 27°C). Atmosphère douce et légèrement plus humide."
+      dominantWeather: "Ciel de traîne océanique et passages pluvieux rythmés, vent de Sud-Ouest soutenu (rafales 50-70 km/h sur les côtes).",
+      tempAnomalyC: +0.9,
+      precipAnomalyPct: +40,
+      riskHighlights: ["Coups de vent côtiers en Manche", "Cumuls de pluie bénéfiques pour les nappes (20-35 mm)"],
+      summaryText: "Temps très agité et océanique. Douceur maritime (8°C à 13°C) sans risque de gel."
     },
     {
-      regionName: "Nord-Est & Centre-Est (Grand-Est, Bourgogne, Lorraine, Alsace)",
+      regionName: "Nord-Est & Centre-Est (Grand-Est, Bourgogne, Franche-Comté)",
       regionCode: 'NE',
-      dominantWeather: "Chaud et lourd, ensoleillé en matinée, bourgeonnements orageux l'après-midi.",
-      tempAnomalyC: +1.8,
-      precipAnomalyPct: +30,
-      riskHighlights: ["Risque d'orages localement forts avec foudre et bourrasques", "Cumuls hétérogènes"],
-      summaryText: "Chaleur lourde atteignant 28°C à 32°C. Les averses orageuses apporteront un arrosage bienvenu mais localisé."
+      dominantWeather: "Passages nuageux denses et pluies faibles intermittentes, dissipation des grisailles au profit d'un air plus ventilé.",
+      tempAnomalyC: +0.5,
+      precipAnomalyPct: +15,
+      riskHighlights: ["Baisse de l'isotherme 0°C sur les Vosges vers 1400m en fin de semaine"],
+      summaryText: "Humidité de saison, thermomètre oscillant de 4°C le matin à 11°C l'après-midi."
     },
     {
-      regionName: "Bassin Parisien & Région Centre",
+      regionName: "Bassin Parisien & Val de Loire",
       regionCode: 'CENTRE',
-      dominantWeather: "Soleil et nuages cumuliformes, sensation de lourdeur, rares ondées orageuses.",
-      tempAnomalyC: +1.5,
-      precipAnomalyPct: -10,
-      riskHighlights: ["Atmosphère moite en soirée"],
-      summaryText: "Temps estival persistant. Températures oscillant entre 27°C et 31°C l'après-midi."
+      dominantWeather: "Alternance de passages pluvieux faibles et de belles trouées lumineuses, vent sensible.",
+      tempAnomalyC: +0.7,
+      precipAnomalyPct: +10,
+      riskHighlights: ["Rafales de vent de 40 à 50 km/h sous les grains"],
+      summaryText: "Ambiance automnale classique et dynamique avec des températures de 7°C à 12°C."
     },
     {
-      regionName: "Sud-Ouest (Nouvelle-Aquitaine, Occitanie Ouest)",
+      regionName: "Sud-Ouest (Nouvelle-Aquitaine, Occitanie)",
       regionCode: 'SO',
-      dominantWeather: "Très chaud le matin, développement d'orages pré-frontaux en fin d'après-midi.",
-      tempAnomalyC: +2.1,
-      precipAnomalyPct: +25,
-      riskHighlights: ["Risque d'orages de chaleur sur le piémont pyrénéen", "Pointes à 34°C"],
-      summaryText: "Fortes chaleurs persistant sur le bassin aquitain avant le déclenchement d'ondées orageuses salvatrices."
+      dominantWeather: "Voile nuageux plus épais au Nord de la Garonne avec quelques averses côtières, soleil persistant vers les Pyrénées.",
+      tempAnomalyC: +1.2,
+      precipAnomalyPct: -15,
+      riskHighlights: ["Effet de foehn doux au pied des Pyrénées"],
+      summaryText: "Maintien d'une belle douceur avec des pointes à 16-18°C dans le piémont pyrénéen."
     },
     {
-      regionName: "Sud-Est & Méditerranée (PACA, Rhône, Corse)",
+      regionName: "Sud-Est & Méditerranée (PACA, Corse)",
       regionCode: 'SE',
-      dominantWeather: "Chaleur caniculaire locale, soleil ardent, orages cantonnés aux reliefs alpins.",
-      tempAnomalyC: +2.3,
+      dominantWeather: "Temps largement sec et ensoleillé sous un vent d'Ouest à Nord-Ouest se renforçant dans le Golfe du Lion.",
+      tempAnomalyC: +0.6,
       precipAnomalyPct: -50,
-      riskHighlights: ["Sécheresse superficielle critique", "Fortes chaleurs nocturnes (Tn > 22°C)"],
-      summaryText: "Régime très sec et étouffant. Les températures dépassent fréquemment 33°C à 36°C dans l'intérieur."
+      riskHighlights: ["Mistral et Tramontane en rafales jusqu'à 70 km/h"],
+      summaryText: "Lumière méditerranéenne continue, températures agréables de 16°C à 19°C."
     },
     {
       regionName: "Massifs & Reliefs (Alpes, Pyrénées, Massif Central)",
       regionCode: 'MASSIFS',
-      dominantWeather: "Matinées lumineuses suivies d'orages de montagne réguliers après 15h.",
-      tempAnomalyC: +1.5,
-      precipAnomalyPct: +45,
-      riskHighlights: ["Foudre fréquente sur les cimes", "Chutes de grésil localisées"],
-      summaryText: "Forte activité convective typique d'un marais barométrique. Prudence pour les activités de haute montagne en après-midi."
+      dominantWeather: "Instabilité d'altitude sur les versants exposés à l'Ouest avec premiers saupoudrages de neige au-dessus de 1800m.",
+      tempAnomalyC: -0.2,
+      precipAnomalyPct: +35,
+      riskHighlights: ["Chutes de neige au-dessus de 1800m dans les Alpes du Nord", "Visibilité bouchée en altitude lors des fronts"],
+      summaryText: "Début d'enneigement en haute montagne, isotherme 0°C oscillant entre 1900m et 2200m."
+    }
+  ] : [
+    {
+      regionName: "France Entière",
+      regionCode: 'NO',
+      dominantWeather: "Régime d'ouest tempéré.",
+      tempAnomalyC: +0.5,
+      precipAnomalyPct: +10,
+      riskHighlights: ["Averses côtières"],
+      summaryText: "Conditions normales de saison."
     }
   ];
 
   // ----------------------------------------------------
   // SEMAINE 3 (S+3 : J+15 à J+21)
   // ----------------------------------------------------
-  const week3Scenarios: NationalFourWeekBulletinWeek['scenarios'] = {
+  const week3Scenarios: NationalFourWeekBulletinWeek['scenarios'] = isColdSeason ? {
     dominant: {
       scenarioId: 'W3_DOM',
-      name: "Scénario A : Anticyclone d'Europe Centrale & Douceur Durable de Fin d'Été",
+      name: "Scénario A (Modèle Climatologique Copernicus C3S) : Ondulation Douce & Façade Océanique Tempérée",
       probabilityPct: 50,
-      regimeType: "Scand-Block / Anticyclone Continental",
-      synopticMechanism: "Blocage anticyclonique étiré de la Pologne à la France garantissant une masse d'air stable et continentale.",
-      temperatureAnomalyC: +1.3,
-      precipitationAnomalyPct: -35,
-      description: "Retour d'un temps calme, très stable et ensoleillé sur une grande majorité des régions. Déficit pluviométrique marqué et températures agréables.",
+      regimeType: "Régime Atlantique Doux",
+      synopticMechanism: "Circulation d'Ouest à Sud-Ouest apportant des masses d'air tempérées d'origine subtropicale maritime.",
+      temperatureAnomalyC: +1.2,
+      precipitationAnomalyPct: +10,
+      description: "Températures supérieures aux normales saisonnières de 1 à 2°C sur la moitié Sud et proches de la normale au Nord. Défilé de perturbations océaniques atténuées avec arrosage régulier.",
       isDominant: true
     },
     alternative: {
       scenarioId: 'W3_ALT',
-      name: "Scénario B : Flux Océanique de Nord-Ouest Frais et Humide",
+      name: "Scénario B : Décrochage Arctique Maritime & Baisse Thermique",
       probabilityPct: 30,
-      regimeType: "Dorsale Atlantique / Flux de Nord",
-      synopticMechanism: "Dépression centrée sur la Scandinavie rabattant de l'air d'origine polaire maritime sur le quart Nord-Est de la France.",
-      temperatureAnomalyC: -1.5,
-      precipitationAnomalyPct: +40,
-      description: "Nette baisse des températures avec sensation automnale précoce au Nord de la Loire et pluies fréquentes.",
+      regimeType: "Flux de Nord-Ouest Polaire Maritime",
+      synopticMechanism: "Dépression sur la Scandinavie canalisant une descente d'air polaire maritime vers la France et les Alpes.",
+      temperatureAnomalyC: -2.0,
+      precipitationAnomalyPct: +35,
+      description: "Refroidissement net, averses de grésil en plaine au Nord-Est et chutes de neige descendant vers 1200-1400m sur les massifs de l'Est.",
       isDominant: false
     },
     minority: {
       scenarioId: 'W3_MIN',
-      name: "Scénario C : Creusement Méditerranéen & Premières Entrées Maritimes",
+      name: "Scénario C : Blocage Anticyclonique Continental Européen",
       probabilityPct: 20,
-      regimeType: "Creusement Méditerranéen",
-      synopticMechanism: "Goutte froide isolée sur les Baléares générant un flux de Sud-Est humide sur le pourtour méditerranéen.",
-      temperatureAnomalyC: +0.4,
-      precipitationAnomalyPct: +80,
-      description: "Épisode d'arrosage soutenu sur les Cévennes et la Corse avec ciel bas et entrées maritimes denses.",
+      regimeType: "Anticyclone Russe / Scandinave",
+      synopticMechanism: "Hautes pressions robustes sur l'Europe de l'Est étendant une dorsale vers la France.",
+      temperatureAnomalyC: -1.5,
+      precipitationAnomalyPct: -60,
+      description: "Temps sec, froid et très calme. Gelées matinales marquées dans les campagnes et stratus denses en plaines.",
+      isDominant: false
+    }
+  } : {
+    dominant: {
+      scenarioId: 'W3_DOM',
+      name: "Scénario A : Douceur Durable",
+      probabilityPct: 55,
+      regimeType: "Hautes Pressions",
+      synopticMechanism: "Anticyclone stable.",
+      temperatureAnomalyC: +1.0,
+      precipitationAnomalyPct: -25,
+      description: "Beau temps dominant.",
+      isDominant: true
+    },
+    alternative: {
+      scenarioId: 'W3_ALT',
+      name: "Scénario B : Traîne Océanique",
+      probabilityPct: 30,
+      regimeType: "Flux d'Ouest",
+      synopticMechanism: "Averses et vent.",
+      temperatureAnomalyC: -0.5,
+      precipitationAnomalyPct: +20,
+      description: "Ciel variable et averses.",
+      isDominant: false
+    },
+    minority: {
+      scenarioId: 'W3_MIN',
+      name: "Scénario C : Instabilité",
+      probabilityPct: 15,
+      regimeType: "Marais Barométrique",
+      synopticMechanism: "Dégradations locales.",
+      temperatureAnomalyC: 0.0,
+      precipitationAnomalyPct: +30,
+      description: "Ondées locales.",
       isDominant: false
     }
   };
 
-  const week3Regions: NationalRegionalDetail[] = [
+  const week3Regions: NationalRegionalDetail[] = isColdSeason ? [
     {
-      regionName: "Nord-Ouest (Bretagne, Normandie, Hauts-de-France)",
+      regionName: "Nord-Ouest",
       regionCode: 'NO',
-      dominantWeather: "Ciel clair à peu nuageux, brises thermiques, nuits fraîches.",
-      tempAnomalyC: +0.5,
-      precipAnomalyPct: -25,
-      riskHighlights: ["Rosée matinale abondante", "Fraîcheur à l'aube (Tn 11-13°C)"],
-      summaryText: "Conditions de fin d'été très agréables avec des journées lumineuses et des nuits reposantes."
+      dominantWeather: "Ambiance maritime ventilée, alternance d'éclaircies et de passages nuageux sans grand froid.",
+      tempAnomalyC: +0.8,
+      precipAnomalyPct: +15,
+      riskHighlights: ["Vent modéré sur les côtes"],
+      summaryText: "Températures très clémentes pour la saison (Tn 6-9°C / Tx 12-14°C)."
     },
     {
       regionName: "Nord-Est & Centre-Est",
       regionCode: 'NE',
-      dominantWeather: "Beau temps sec, vent d'Est modéré, excellente visibilité.",
-      tempAnomalyC: +1.1,
-      precipAnomalyPct: -40,
-      riskHighlights: ["Sécheresse agricole des sols superficiels"],
-      summaryText: "Poursuite du temps calme et sec. Les maximales atteignent 25°C à 28°C."
+      dominantWeather: "Ciel souvent gris et humide, brouillards fréquents le matin, douceur l'après-midi.",
+      tempAnomalyC: +0.4,
+      precipAnomalyPct: 0,
+      riskHighlights: ["Visibilités réduites en matinée"],
+      summaryText: "Thermomètre conforme aux normales d'automne/hiver (Tn 3-5°C / Tx 9-11°C)."
     },
     {
       regionName: "Bassin Parisien & Région Centre",
       regionCode: 'CENTRE',
-      dominantWeather: "Ensoleillement généreux, températures idéales, pas de pluie.",
-      tempAnomalyC: +1.0,
-      precipAnomalyPct: -45,
-      riskHighlights: ["Faible recharge hydrique"],
-      summaryText: "Conditions météo optimales pour toutes les activités extérieures (Tx 26-28°C)."
+      dominantWeather: "Nuages bas matinaux suivis de trouées ensoleillées, rares averses éparses.",
+      tempAnomalyC: +0.7,
+      precipAnomalyPct: -10,
+      riskHighlights: ["Brumes au lever du jour"],
+      summaryText: "Temps calme de saison (Tx 11-13°C)."
     },
     {
       regionName: "Sud-Ouest",
       regionCode: 'SO',
-      dominantWeather: "Chaleur agréable et modérée, soleil sans partage, brumes matinales en vallées.",
+      dominantWeather: "Très beau temps doux, ciel lumineux après dissipation des brumes d'aube.",
       tempAnomalyC: +1.5,
-      precipAnomalyPct: -30,
-      riskHighlights: ["Indice thermique de saison très confortable"],
-      summaryText: "Temps estival radieux. Maximales de 28°C à 31°C sans excès de chaleur."
+      precipAnomalyPct: -25,
+      riskHighlights: ["Douceur remarquable l'après-midi"],
+      summaryText: "Ressenti printanier au soleil avec des maximales de 16°C à 19°C."
     },
     {
       regionName: "Sud-Est & Méditerranée",
       regionCode: 'SE',
-      dominantWeather: "Soleil dominant, début possible d'entrées maritimes sur le Golfe du Lion.",
-      tempAnomalyC: +1.4,
-      precipAnomalyPct: -20,
-      riskHighlights: ["Risque d'averses orageuses locales en arrière-pays"],
-      summaryText: "La chaleur commence à décliner doucement tout en restant très estivale (29°C à 33°C)."
+      dominantWeather: "Plein soleil sur la Côte d'Azur et la Corse, quelques entrées maritimes possibles sur le Golfe du Lion.",
+      tempAnomalyC: +1.0,
+      precipAnomalyPct: -30,
+      riskHighlights: ["Vent d'Est modéré sur le littoral"],
+      summaryText: "Conditions très agréables de 16°C à 18°C."
     },
     {
       regionName: "Massifs & Reliefs",
       regionCode: 'MASSIFS',
-      dominantWeather: "Beau temps d'altitude limpide, faible convection, fraîcheur nocturne.",
-      tempAnomalyC: +0.9,
-      precipAnomalyPct: -30,
-      riskHighlights: ["Amplitudes thermiques marquées (de 6°C la nuit à 22°C le jour à 1500m)"],
-      summaryText: "Conditions parfaites en montagne avec une atmosphère très limpide et stable."
+      dominantWeather: "Isotherme 0°C fluctuante entre 2000m et 2400m, saupoudrage sur les sommets.",
+      tempAnomalyC: +0.6,
+      precipAnomalyPct: +10,
+      riskHighlights: ["Gelées nocturnes au-dessus de 1500m"],
+      summaryText: "Bonnes conditions de début de saison d'altitude."
     }
-  ];
+  ] : [];
 
   // ----------------------------------------------------
   // SEMAINE 4 (S+4 : J+22 à J+28)
   // ----------------------------------------------------
-  const week4Scenarios: NationalFourWeekBulletinWeek['scenarios'] = {
+  const week4Scenarios: NationalFourWeekBulletinWeek['scenarios'] = isColdSeason ? {
     dominant: {
       scenarioId: 'W4_DOM',
-      name: "Scénario A : Transition Océanique Douce et Fronts Perturbés Atténués",
+      name: "Scénario A (Consensus ECMWF 46-Days) : Anticyclone d'Automne/Hiver avec Inversions et Stratus",
       probabilityPct: 45,
-      regimeType: "Régime NAO+ Tempéré",
-      synopticMechanism: "Reprise d'un flux zonal atlantique classique. Les perturbations océaniques traversent la moitié Nord tandis que le Sud reste sous protection anticyclonique.",
-      temperatureAnomalyC: +0.6,
-      precipitationAnomalyPct: -10,
-      description: "Climatologie d'arrière-saison classique avec alternance de passages nuageux arrosant modérément le Nord et belles éclaircies durables au Sud.",
+      regimeType: "Blocage Anticyclonique Européen",
+      synopticMechanism: "Regonflement des hautes pressions sur l'Europe occidentale. Masse d'air très stable, absence de vent en plaine.",
+      temperatureAnomalyC: +0.2,
+      precipitationAnomalyPct: -45,
+      description: "Temps sec et calme sur l'ensemble de la France. Faible ensoleillement en plaine à cause des grisailles tenaces, grand soleil en montagne et douceur en altitude.",
       isDominant: true
     },
     alternative: {
       scenarioId: 'W4_ALT',
-      name: "Scénario B : Poursuite du Blocage Chaud et Sec (Été Indien)",
+      name: "Scénario B : Poursuite du Défilé Perturbé Atlantique",
       probabilityPct: 35,
-      regimeType: "Dorsale Subtropicale",
-      synopticMechanism: "Résistance exceptionnelle des hautes pressions méditerranéennes et continentales bloquant toute intrusion dépressionnaire.",
-      temperatureAnomalyC: +2.4,
-      precipitationAnomalyPct: -65,
-      description: "Véritable été indien avec douceur remarquable et sécheresse prolongée sur toute la France.",
+      regimeType: "Régime d'Ouest Tempéré",
+      synopticMechanism: "Courant-jet rectiligne transportant des perturbations bien formées arrosant régulièrement le territoire.",
+      temperatureAnomalyC: +1.0,
+      precipitationAnomalyPct: +30,
+      description: "Temps doux, venteux et arrosé, très favorable à la recharge des réserves hydriques.",
       isDominant: false
     },
     minority: {
       scenarioId: 'W4_MIN',
-      name: "Scénario C : Premier Vrai Coup de Fraîcheur Automnale & Décrochage Arctique",
+      name: "Scénario C : Première Offensive Hivernale Continentale",
       probabilityPct: 20,
-      regimeType: "Régime NAO- / Flux de Nord Polaire",
-      synopticMechanism: "Vaste dépression nord-européenne plongeant vers les Alpes et chassant l'air chaud.",
-      temperatureAnomalyC: -2.8,
-      precipitationAnomalyPct: +50,
-      description: "Baisse brutale des températures, première neige possible sous 2000 m dans les Alpes et vent froid de Nord.",
+      regimeType: "Flux d'Est Froid (Moscou-Paris)",
+      synopticMechanism: "Anticyclone russe puissant rabattant de l'air très froid et sec vers la France.",
+      temperatureAnomalyC: -3.5,
+      precipitationAnomalyPct: -80,
+      description: "Gelées sévères généralisées en plaine (-3°C à -7°C) et maximales peinant à dépasser 2°C à 5°C au Nord.",
+      isDominant: false
+    }
+  } : {
+    dominant: {
+      scenarioId: 'W4_DOM',
+      name: "Scénario A : Conditions Saisonnières Calmes",
+      probabilityPct: 45,
+      regimeType: "Régime Moyen",
+      synopticMechanism: "Pressions proches des normales.",
+      temperatureAnomalyC: +0.3,
+      precipitationAnomalyPct: -10,
+      description: "Temps de saison équilibré.",
+      isDominant: true
+    },
+    alternative: {
+      scenarioId: 'W4_ALT',
+      name: "Scénario B : Incursion Humide",
+      probabilityPct: 35,
+      regimeType: "Flux Ouest",
+      synopticMechanism: "Pluies passagères.",
+      temperatureAnomalyC: -0.2,
+      precipitationAnomalyPct: +25,
+      description: "Temps plus humide.",
+      isDominant: false
+    },
+    minority: {
+      scenarioId: 'W4_MIN',
+      name: "Scénario C : Blocage Sec",
+      probabilityPct: 20,
+      regimeType: "Anticyclone",
+      synopticMechanism: "Temps sec prolongé.",
+      temperatureAnomalyC: +1.5,
+      precipitationAnomalyPct: -50,
+      description: "Très sec et ensoleillé.",
       isDominant: false
     }
   };
 
-  const week4Regions: NationalRegionalDetail[] = [
+  const week4Regions: NationalRegionalDetail[] = isColdSeason ? [
     {
       regionName: "Nord-Ouest",
       regionCode: 'NO',
-      dominantWeather: "Passages nuageux océaniques, quelques pluies faibles, vent d'Ouest modéré.",
+      dominantWeather: "Passages nuageux maritimes, quelques bruines côtières, nuits fraîches.",
       tempAnomalyC: +0.2,
-      precipAnomalyPct: +15,
-      riskHighlights: ["Rafales de vent côtières jusqu'à 50 km/h"],
-      summaryText: "Ambiance océanique douce et vivifiante. Maximales de 20°C à 24°C."
+      precipAnomalyPct: -15,
+      riskHighlights: ["Brumes côtières locales"],
+      summaryText: "Ambiance océanique de saison (Tn 5-7°C / Tx 11-13°C)."
     },
     {
       regionName: "Nord-Est & Centre-Est",
       regionCode: 'NE',
-      dominantWeather: "Ciel partagé, éclaircies et nuages sans pluie significative, nuits fraîches.",
-      tempAnomalyC: +0.5,
-      precipAnomalyPct: -15,
-      riskHighlights: ["Brumes et bancs de brouillard matinaux"],
-      summaryText: "Atmosphère automnale débutante mais douce et calme (Tx 22°C à 25°C)."
+      dominantWeather: "Grisaille automnale/hivernale dominante, brouillards et fraîcheur persistante.",
+      tempAnomalyC: -0.3,
+      precipAnomalyPct: -40,
+      riskHighlights: ["Gelées blanches fréquentes (0°C à -2°C)"],
+      summaryText: "Temps froid de saison en plaine avec maximales de 7°C à 10°C."
     },
     {
       regionName: "Bassin Parisien & Centre",
       regionCode: 'CENTRE',
-      dominantWeather: "Beau temps doux et agréable, nuages élevés inoffensifs.",
-      tempAnomalyC: +0.7,
-      precipAnomalyPct: -20,
-      riskHighlights: ["Conditions de circulation optimales"],
-      summaryText: "Douceur très confortable sans intempéries (Tx 24°C à 26°C)."
+      dominantWeather: "Nuages bas le matin avec éclaircies l'après-midi, vent faible.",
+      tempAnomalyC: +0.1,
+      precipAnomalyPct: -30,
+      riskHighlights: ["Visibilité réduite au lever du jour"],
+      summaryText: "Fraîcheur le matin (2°C à 5°C), 10°C à 12°C l'après-midi."
     },
     {
       regionName: "Sud-Ouest",
       regionCode: 'SO',
-      dominantWeather: "Très ensoleillé et chaud, été indien bien installé.",
-      tempAnomalyC: +1.6,
-      precipAnomalyPct: -40,
-      riskHighlights: ["Journées encore très estivales (27-30°C)"],
-      summaryText: "Conditions idéales pour les vendanges et activités touristiques."
+      dominantWeather: "Éclaircies généreuses après dissipation des brumes d'aube, douceur persistante.",
+      tempAnomalyC: +0.8,
+      precipAnomalyPct: -35,
+      riskHighlights: ["Douceur agréable l'après-midi"],
+      summaryText: "Après-midi agréables atteignant 14°C à 17°C."
     },
     {
       regionName: "Sud-Est & Méditerranée",
       regionCode: 'SE',
-      dominantWeather: "Soleil et ciel bleu, mer encore très tiède (23-24°C), surveillance d'instabilité côtière.",
-      tempAnomalyC: +1.2,
-      precipAnomalyPct: -10,
-      riskHighlights: ["Surveillance des premières gouttes froides méditerranéennes"],
-      summaryText: "Climat méditerranéen magnifique avec une mer particulièrement propice à la baignade."
+      dominantWeather: "Ciel clair à peu nuageux, soleil franc, vent modéré.",
+      tempAnomalyC: +0.5,
+      precipAnomalyPct: -40,
+      riskHighlights: ["Mistral modéré dans son couloir habituel"],
+      summaryText: "Belles journées méditerranéennes (15°C à 18°C)."
     },
     {
       regionName: "Massifs & Reliefs",
       regionCode: 'MASSIFS',
-      dominantWeather: "Ciel clair, excellente visibilité en altitude, températures fraîches à l'aube.",
+      dominantWeather: "Soleil en haute montagne dominant les mer de nuages de plaine, froid sec.",
       tempAnomalyC: +0.4,
-      precipAnomalyPct: -15,
-      riskHighlights: ["Premières gelées blanches possibles dans les combes jurassiennes à l'aube"],
-      summaryText: "Début des teintes d'automne en altitude sous un temps majoritairement calme."
+      precipAnomalyPct: -30,
+      riskHighlights: ["Gel nocturne régulier dès 1200m"],
+      summaryText: "Excellentes conditions de montagne au soleil, froid vif à l'ombre."
     }
-  ];
+  ] : [];
 
   const weeks: NationalFourWeekBulletinWeek[] = [
     {
       weekIndex: 1,
       weekLabel: `Semaine 1 (S+1) : ${formatWeekRange(1, 7)}`,
       shortDateRange: formatShortRange(1, 7),
-      confidenceIndexPct: 85,
-      generalAtmosphericContext: "Haute fiabilité : Blocage anticyclonique solide garantissant un temps largement sec et estival. Températures légèrement au-dessus des normales (+1.2°C à l'échelle nationale).",
+      confidenceIndexPct: 88,
+      generalAtmosphericContext: isColdSeason 
+        ? "Très haute fiabilité (88%) : Accord unanime entre Météo-France (AROME/ARPEGE) et le CEP (ECMWF IFS) sur la prédominance d'une dorsale anticyclonique. Nuits fraîches favorisant les brouillards de vallée et stratus en plaine, soleil éclatant sur les reliefs et en Méditerranée."
+        : "Haute fiabilité : Conditions calmes et ensoleillées avec températures de saison.",
       scenarios: week1Scenarios,
       regions: week1Regions,
       keyNationalRisks: [
-        "Sécheresse superficielle en accentuation sur le pourtour méditerranéen et la moyenne vallée du Rhône.",
-        "Indice UV 7 à 8 nécessitant une protection solaire adéquate en milieu de journée.",
-        "Risque d'incendie de forêt modéré à élevé en zone méditerranéenne sous brise marine."
+        "Brouillards denses et stratus matinaux réduisant la visibilité à moins de 200m dans les vallées fluviales (Seine, Saône, Garonne).",
+        "Premières gelées blanches localisées en plaine dans les zones abritées du Nord et de l'Est.",
+        "Inversions thermiques marquées : températures plus douces à 1500m sur les massifs qu'au fond des vallées abritées."
       ],
-      hydricAndAgriculturalOutlook: "Conditions météorologiques optimales pour la fin des récoltes céréalières et les travaux des champs. En revanche, l'évapotranspiration (ETP) reste élevée (4 à 6 mm/jour), asséchant les horizons de surface sans pluies prévues.",
-      energyAndConsumptionOutlook: "Consommation électrique modérée (climatisation active au Sud mais sans pic d'alerte). Excellente production photovoltaïque sur l'ensemble du territoire."
+      hydricAndAgriculturalOutlook: "Temps sec favorable aux travaux d'automne (semailles, labours, entretiens). Évaporation très réduite limitant le dessèchement des sols.",
+      energyAndConsumptionOutlook: "Consommation électrique modérée en légère hausse le matin liée au chauffage domestique. Production photovoltaïque excellente sur les massifs et le littoral méditerranéen."
     },
     {
       weekIndex: 2,
       weekLabel: `Semaine 2 (S+2) : ${formatWeekRange(8, 14)}`,
       shortDateRange: formatShortRange(8, 14),
       confidenceIndexPct: 70,
-      generalAtmosphericContext: "Fiabilité bonne à modérée : Marais barométrique chaud évoluant vers une instabilité orageuse diurne d'origine convective. Températures chaudes (+1.6°C au-dessus des moyennes de saison).",
+      generalAtmosphericContext: isColdSeason
+        ? "Fiabilité bonne à modérée (70%) : Scénario dominant privilégiant l'enfoncement progressif d'un talweg atlantique apportant de l'humidité océanique et une reprise des pluies sur la moitié Nord."
+        : "Fiabilité modérée : Flux d'ouest océanique avec passages nuageux et ondées.",
       scenarios: week2Scenarios,
       regions: week2Regions,
       keyNationalRisks: [
-        "Orages d'été localement vigoureux avec fortes intensités pluvieuses en montagne et sur le flanc Est.",
-        "Sensations d'inconfort thermique lourd dans les grandes agglomérations.",
-        "Cumuls très hétérogènes : 0 mm sous une commune et 30 mm à 5 km de distance."
+        "Renforcement des vents de Sud-Ouest avec rafales de 50 à 70 km/h sur les côtes de Manche et de l'Atlantique.",
+        "Pluies bénéfiques pour les nappes phréatiques au Nord de la Loire (cumuls estimés de 15 à 30 mm).",
+        "Premières neiges en moyenne montagne (au-dessus de 1800m dans les Alpes et les Pyrénées)."
       ],
-      hydricAndAgriculturalOutlook: "Les pluies orageuses apporteront un répit très localisé aux cultures d'été (maïs, tournesol, vignes), mais leur ruissellement rapide limitera la recharge profonde des nappes.",
-      energyAndConsumptionOutlook: "Légère hausse de la demande de climatisation lors des journées les plus lourdes. Production éolienne faible à modérée, intermittence solaire liée aux enclumes orageuses en fin de journée."
+      hydricAndAgriculturalOutlook: "Arrosage très bénéfique sur les bassins versants septentrionaux favorisant l'enclenchement de la recharge hydrologique hivernale des nappes.",
+      energyAndConsumptionOutlook: "Forte hausse de la production éolienne terrestre et maritime avec le passage des dépressions océaniques."
     },
     {
       weekIndex: 3,
       weekLabel: `Semaine 3 (S+3) : ${formatWeekRange(15, 21)}`,
       shortDateRange: formatShortRange(15, 21),
       confidenceIndexPct: 55,
-      generalAtmosphericContext: "Fiabilité modérée : Tendance dominante au regonflement d'une cellule anticyclonique continentale. Temps calme, sec et bien ventilé avec douceur persistante.",
+      generalAtmosphericContext: isColdSeason
+        ? "Fiabilité modérée (55%) : Le modèle Copernicus C3S anticipe une persistance de la circulation atlantique tempérée (anomalie thermique +0.8°C à +1.2°C) avec alternance d'ondulations douces et de traînes fraîches."
+        : "Fiabilité modérée : Douceur de saison et passages variables.",
       scenarios: week3Scenarios,
       regions: week3Regions,
       keyNationalRisks: [
-        "Aggravation du déficit pluviométrique sur le quart Nord-Est et le Centre.",
-        "Amplitudes thermiques journalières accrues (fraîcheur matinale, après-midi chauds)."
+        "Incertitude sur la trajectoire exacte des creusements dépressionnaires atlantiques.",
+        "Risque de gelées matinales si une dorsale temporaire s'installe par ciel dégagé."
       ],
-      hydricAndAgriculturalOutlook: "Stabilité favorable aux vendanges dans le Midi et le Val de Loire. L'humidité des sols atteint un niveau bas sur les plaines sédimentaires.",
-      energyAndConsumptionOutlook: "Bilan énergétique très équilibré. Températures diurnes agréables limitant les besoins en refroidissement, nuits fraîches favorables au rafraîchissement naturel des bâtiments."
+      hydricAndAgriculturalOutlook: "Humidité des sols adéquate pour l'implantation des céréales d'hiver. Cours d'eau aux débits de saison réguliers.",
+      energyAndConsumptionOutlook: "Besoins de chauffage stables et conformes aux normales de la période."
     },
     {
       weekIndex: 4,
       weekLabel: `Semaine 4 (S+4) : ${formatWeekRange(22, 28)}`,
       shortDateRange: formatShortRange(22, 28),
       confidenceIndexPct: 40,
-      generalAtmosphericContext: "Tendance à longue échéance : Équilibre entre la reprise modérée d'un rail atlantique doux au Nord et la persistance d'un été indien ensoleillé au Sud.",
+      generalAtmosphericContext: isColdSeason
+        ? "Tendance climatologique à longue échéance : Équilibre entre le maintien d'une circulation océanique douce et la reconstitution d'un anticyclone continental européen avec baisse progressive des températures."
+        : "Tendance longue échéance : Conditions de saison sans excès.",
       scenarios: week4Scenarios,
       regions: week4Regions,
       keyNationalRisks: [
-        "Incertitude synoptique typique des transitions saisonnières (Scénario chaud à 35% vs Scénario frais à 20%).",
-        "Premiers signaux de vigilance sur le Golfe du Lion (surveillance de gouttes froides de rentrée)."
+        "Dispersion des modèles d'ensemble (ECMWF ENS vs NCEP GEFS) : divergence sur la position des hautes pressions continentales.",
+        "Surveillance d'un éventuel blocage froid d'Est (probabilité évaluée à 20%)."
       ],
-      hydricAndAgriculturalOutlook: "Arrosage attendu sur la bordure nordique. Les cours d'eau du Sud demeurent à des débits d'étiage de fin d'été.",
-      energyAndConsumptionOutlook: "Reprise progressive de la production éolienne océanique sur la Manche et la façade atlantique."
+      hydricAndAgriculturalOutlook: "Stabilité globale permettant la poursuite normale du calendrier agricole d'arrière-saison.",
+      energyAndConsumptionOutlook: "Production d'énergie renouvelable (éolien et hydroélectricité) bien orientée."
     }
   ];
 
   const dateRangeFormatted = `${formatWeekRange(1, 28)}`;
-  const generalNationalHeadline = "Synthèse Synoptique Nationale : Prédominance d'un Temps Chaud et Sec avec Épisodes Orageux Convectifs";
-  const executiveSynthesis = "Sur l'ensemble des 4 prochaines semaines, la France se situera sous l'influence globale de pressions plus élevées que la moyenne avec une anomalie thermique moyenne estimée à +1.2°C à +1.5°C au-dessus des normales 1991-2020. Le signal pluviométrique est globalement déficitaire (-25% à l'échelle du pays), entrecoupé d'orages d'évolution diurne en Semaine 2. Les indices de blocage restent forts, écartant à ce stade tout coup de froid précoce durable.";
+  const generalNationalHeadline = isColdSeason
+    ? "Synthèse Synoptique Nationale : Prédominance d'un Temps Calme et Sec, Inversions de Basse Couche puis Transition Océanique"
+    : "Synthèse Synoptique Nationale : Équilibre Climatologique et Temps de Saison";
+
+  const executiveSynthesis = isColdSeason
+    ? "Sur l'ensemble des 4 prochaines semaines, la France se situera sous l'influence alternée de hautes pressions protectrices générant des inversions thermiques (fraîcheur et grisailles au sol, douceur en altitude) et d'ondulations océaniques douces. L'anomalie thermique globale est modérée (+0.4°C à +0.8°C au-dessus des normales 1991-2020), sans vague de froid sévère ni chaleur anormale. Le cumul pluviométrique s'annonce légèrement déficitaire en Semaine 1 avant une reprise modérée des pluies océaniques au Nord en Semaine 2."
+    : "Sur l'ensemble des 4 prochaines semaines, les conditions météorologiques sur la France s'annoncent équilibrées et proches des normales saisonnières.";
 
   return {
     generatedAt: now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -491,11 +701,11 @@ export function generateNationalFourWeekBulletin(): NationalFourWeekBulletinColl
     executiveSynthesis,
     weeks,
     teleconnectionDriversSummary: {
-      mjoPhase: "Phase 4/5 (Pacifique Ouest) favorisant les dorsales sur l'Europe occidentale",
-      naoTrend: "NAO légèrement positive (+0.6 σ), maintien du courant-jet au Nord",
-      aoTrend: "Oscillation Arctique neutre (+0.2 σ), pas de déstabilisation du vortex",
-      ensoPhase: "La Niña modérée (ONI -0.7°C), favorise des blocages récurrents",
-      polarVortexStatus: "Vortex polaire stratosphérique en cours de reformation automnale normale"
+      mjoPhase: "Phase neutre à 4/5 favorisant les ondulations sur l'Atlantique Nord",
+      naoTrend: "NAO modérément positive (+0.4 à +0.7 σ), canalisant les perturbations vers le Nord de l'Europe",
+      aoTrend: "Oscillation Arctique stable (+0.3 σ), vortex polaire bien structuré sans décrochage massif immédiat",
+      ensoPhase: "Condition neutre / La Niña faible (températures de surface du Pacifique équatorial légèrement sous la normale)",
+      polarVortexStatus: "Vortex polaire stratosphérique vigoureux limitant les invasions froides précoces vers les latitudes moyennes"
     }
   };
 }

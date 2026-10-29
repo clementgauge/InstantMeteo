@@ -83,7 +83,6 @@ import { BottomIconCarousel } from './components/BottomIconCarousel';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
 import { CommunityWeatherMap } from './components/CommunityWeatherMap';
-import { SiteTrafficStatsBadge } from './components/SiteTrafficStatsBadge';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
@@ -1335,9 +1334,6 @@ function WeatherApp() {
       {/* Footer avec maillage interne complet et URLs canoniques strictes pour Google Search Console */}
       <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-28">
         <div className="mx-auto max-w-7xl space-y-6">
-          {/* Bloc d'Audience et de Fréquentation Certifiée Instant Météo (24h, 7j, 30j) */}
-          <SiteTrafficStatsBadge variant="hero" />
-
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
             <p className="text-left font-medium">
               © 2026 <strong>Instant Météo</strong> — Prévisions météorologiques de référence, temps réel, 14 jours, 8 mois par département &amp; Vigilances Météo-France.

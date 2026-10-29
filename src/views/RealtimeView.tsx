@@ -84,6 +84,7 @@ import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
 import { RemarkableWeatherHighlightCard } from '../components/RemarkableWeatherHighlightCard';
+import { CertifiedLiveSiteStatsCard } from '../components/CertifiedLiveSiteStatsCard';
 import { calculatePhysicalIsotherm0 } from '../utils/isothermCalculations';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
@@ -94,7 +95,6 @@ import { MorningAudioBriefingCard } from '../components/MorningAudioBriefingCard
 import { ShareableWeatherCardModal } from '../components/ShareableWeatherCardModal';
 import { AuroraNightSkyCard } from '../components/AuroraNightSkyCard';
 import { isBlockVisible } from '../services/displayPreferencesService';
-import { SiteTrafficStatsBadge } from '../components/SiteTrafficStatsBadge';
 
 interface RealtimeViewProps {
   station: LocationPoint;
@@ -789,9 +789,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
         onResetRecalibration={onResetRecalibration}
       />
 
-      {/* Observatoire d'Audience & Statistiques de Fréquentation Instant Météo (24h, 7j, 30j, Temps Réel) */}
-      <SiteTrafficStatsBadge variant="hero" />
-
       {/* ========================================================================= */}
       {/* 2. CONTENU DU PROFIL SÉLECTIONNÉ (CLASSIQUE / AGRICULTURE / AVIATION / PRO) */}
       {/* ========================================================================= */}
@@ -1286,6 +1283,11 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onRecalibrate={onRecalibrate}
           onReset={onResetRecalibration}
         />
+      </div>
+
+      {/* 4-BIS. FRÉQUENTATION & STATISTIQUES CERTIFIÉES EN TEMPS RÉEL */}
+      <div id="realtime-certified-live-stats" className="w-full scroll-mt-28 pt-2">
+        <CertifiedLiveSiteStatsCard seniorMode={seniorMode} />
       </div>
 
       {/* 5. BLOC INDICATEURS REMARQUABLES & ALERTES PHÉNOMÈNES (TOUT EN BAS DE LA PAGE) */}

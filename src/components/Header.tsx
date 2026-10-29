@@ -40,7 +40,6 @@ import { AppLogo } from './AppLogo';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
 import { GoogleTranslateWidget } from './GoogleTranslateWidget';
-import { SiteTrafficStatsBadge } from './SiteTrafficStatsBadge';
 
 interface HeaderProps {
   currentStation: LocationPoint;
@@ -288,7 +287,6 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between text-xs text-slate-800 dark:text-white font-semibold px-2 pt-0.5 pb-1 select-none">
           <div className="flex items-center gap-2">
             <span className="font-bold tracking-tight">{realClock}</span>
-            <SiteTrafficStatsBadge variant="compact" className="text-[10px] py-0 px-1.5" />
           </div>
           <div className="flex items-center gap-2">
             {/* Cellular Signal Icon */}
@@ -636,9 +634,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Site Traffic & Visitors Live Badge (24h, 7j, 30j, en direct) */}
-          <SiteTrafficStatsBadge variant="compact" />
-
           {/* Universal Search Modal Launcher (Allongé & Spacieux) */}
           <button
             id="open-locality-search-btn"
@@ -813,20 +808,6 @@ export const Header: React.FC<HeaderProps> = ({
               ) : (
                 <Moon className="h-4 w-4 text-sky-400 transition-transform duration-300 hover:-rotate-12" />
               )}
-            </button>
-          )}
-
-          {/* Mode Montre Connectée Ronde */}
-          {onToggleWatchMode && (
-            <button
-              id="header-smartwatch-mode-btn"
-              type="button"
-              onClick={onToggleWatchMode}
-              title="Activer le cadran pour montres connectées rondes (Wear OS, Pixel Watch, Galaxy Watch)"
-              aria-label="Mode Montre Connectée Ronde"
-              className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-sky-600 dark:text-sky-400 hover:border-sky-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer shrink-0"
-            >
-              <Watch className="h-4 w-4" />
             </button>
           )}
 
@@ -1085,15 +1066,20 @@ export const Header: React.FC<HeaderProps> = ({
                       setSettingsSidebarOpen(false);
                       onToggleWatchMode();
                     }}
-                    className="group flex w-full items-center gap-3 rounded-2xl border border-sky-500/40 bg-sky-950/20 p-4 text-left text-slate-200 transition hover:border-sky-400 hover:bg-white hover:text-slate-950 cursor-pointer"
+                    className="group flex w-full items-center gap-3 rounded-2xl border border-sky-400/50 bg-gradient-to-r from-sky-950/40 to-slate-900 p-4 text-left text-slate-100 transition hover:border-sky-300 hover:bg-white hover:text-slate-950 cursor-pointer shadow-md"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 group-hover:bg-slate-100">
-                      <Watch className="h-5 w-5 text-sky-400 group-hover:text-slate-950" />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 group-hover:bg-sky-100 group-hover:text-slate-950 transition">
+                      <Watch className="h-6 w-6" />
                     </div>
-                    <div>
-                      <div className="font-black">Mode Montres Connectées Rondes</div>
-                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
-                        Cadran circulaire tactile pour Wear OS, Pixel Watch & Galaxy Watch
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="font-black text-sm">Mode Montres Connectées</div>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-sky-500 text-slate-950">
+                          Wear OS
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-600 truncate">
+                        Cadran rond optimisé Pixel Watch, Galaxy Watch &amp; Wear OS
                       </div>
                     </div>
                   </button>
