@@ -35,6 +35,7 @@ import {
   buildDynamicMountainProfileFromLocation,
   searchAndBuildWorldMountainStation
 } from '../services/mountainWeatherService';
+import { MountainAdaptivePhysicsCard } from '../components/MountainAdaptivePhysicsCard';
 
 interface MountainWeatherViewProps {
   station: LocationPoint;
@@ -1309,6 +1310,9 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Modélisation Physique Haute Résolution par Massif (Lapse Rate, Inversion, Venturi & LPN Isothermie) */}
+      <MountainAdaptivePhysicsCard />
     </div>
   );
 };

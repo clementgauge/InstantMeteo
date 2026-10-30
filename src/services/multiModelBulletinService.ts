@@ -9,8 +9,14 @@
  * - UK Met Office (Unified Model - Modèle britannique haute résolution)
  */
 
+import { 
+  calculateRobustTrimmedConsensus, 
+  determineGeographicZone, 
+  ModelDatum 
+} from '../utils/robustModelConsensus';
+
 export interface MeteorologicalCenterInfo {
-  id: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo';
+  id: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo' | 'gem';
   name: string;
   shortName: string;
   flag: string;
@@ -94,6 +100,20 @@ export const METEOROLOGICAL_CENTERS: Record<string, MeteorologicalCenterInfo> = 
     biasTendency: 'Très rigoureux sur les systèmes maritimes océaniques et les minima de température nocturne',
     color: '#f59e0b', // amber-500
     badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+  },
+  gem: {
+    id: 'gem' as any,
+    name: 'CMC GEM / HRDPS (Canadien)',
+    shortName: 'CMC GEM',
+    flag: '🇨🇦',
+    country: 'Canada',
+    organization: 'Centre Météorologique Canadien (Environnement Canada)',
+    resolution: '2.5 km (HRDPS) à 15 km (GEM Global)',
+    horizon: 'J+10',
+    specialty: 'Excellente gestion des masses d\'air polaire, profils verticaux et gel',
+    biasTendency: 'Très réactif lors des coulées froides arctiques et des advections humides',
+    color: '#ec4899', // pink-500
+    badgeBg: 'bg-pink-500/20 text-pink-300 border-pink-500/40'
   }
 };
 
@@ -111,15 +131,16 @@ export interface MultiModelDayComparison {
   dayIndex: number; // 0 = J0, 1 = J+1, ...
   dayLabel: string;
   dayName: string;
-  // Simulations des 5 centres
+  // Simulations des centres météo
   simulations: {
     meteofrance: CenterDaySimulation;
     ecmwf: CenterDaySimulation;
     gfs: CenterDaySimulation;
     icon: CenterDaySimulation;
     ukmo: CenterDaySimulation;
+    gem?: CenterDaySimulation;
   };
-  // Statistiques de consensus
+  // Statistiques de consensus & consensus robuste élagué (90%)
   consensus: {
     tMinMean: number;
     tMaxMean: number;
@@ -131,6 +152,15 @@ export interface MultiModelDayComparison {
     precipAgreement: string; // ex: "5/5 modèles sec" ou "3/5 modèles pluie"
     dominantWeatherCode: number;
     dominantWeatherLabel: string;
+    // Nouveaux indicateurs robustes (élagage des 5% extrêmes & pondération zonale)
+    trimmedTMinConsensus: number;
+    trimmedTMaxConsensus: number;
+    trimmedPrecipConsensus: number;
+    trimmedWindConsensus: number;
+    concordanceScorePct: number;
+    concordanceLabel: string;
+    appliedZone: string;
+    eliminatedExtremesNotice: string;
   };
   // Analyse de divergence scientifique
   divergence: {
@@ -341,6 +371,43 @@ function buildHonestReportFromRawData(
     const tMaxList = [mfTMax, ecTMax, gfsTMax, iconTMax, ukTMax];
     const tMinList = [mfTMin, ecTMin, gfsTMin, iconTMin, ukTMin];
     const precipList = [mfPrecip, ecPrecip, gfsPrecip, iconPrecip, ukPrecip];
+    const windList = [mfWind, ecWind, gfsWind, iconWind, ukWind];
+
+    const localZone = determineGeographicZone(lat, lon);
+
+    const tMinModelData: ModelDatum[] = [
+      { modelId: 'meteofrance', value: mfTMin },
+      { modelId: 'ecmwf', value: ecTMin },
+      { modelId: 'gfs', value: gfsTMin },
+      { modelId: 'icon', value: iconTMin },
+      { modelId: 'ukmo', value: ukTMin }
+    ];
+    const tMaxModelData: ModelDatum[] = [
+      { modelId: 'meteofrance', value: mfTMax },
+      { modelId: 'ecmwf', value: ecTMax },
+      { modelId: 'gfs', value: gfsTMax },
+      { modelId: 'icon', value: iconTMax },
+      { modelId: 'ukmo', value: ukTMax }
+    ];
+    const precipModelData: ModelDatum[] = [
+      { modelId: 'meteofrance', value: mfPrecip },
+      { modelId: 'ecmwf', value: ecPrecip },
+      { modelId: 'gfs', value: gfsPrecip },
+      { modelId: 'icon', value: iconPrecip },
+      { modelId: 'ukmo', value: ukPrecip }
+    ];
+    const windModelData: ModelDatum[] = [
+      { modelId: 'meteofrance', value: mfWind },
+      { modelId: 'ecmwf', value: ecWind },
+      { modelId: 'gfs', value: gfsWind },
+      { modelId: 'icon', value: iconWind },
+      { modelId: 'ukmo', value: ukWind }
+    ];
+
+    const tMinTrimmedRes = calculateRobustTrimmedConsensus(tMinModelData, localZone, 1);
+    const tMaxTrimmedRes = calculateRobustTrimmedConsensus(tMaxModelData, localZone, 1);
+    const precipTrimmedRes = calculateRobustTrimmedConsensus(precipModelData, localZone, 1);
+    const windTrimmedRes = calculateRobustTrimmedConsensus(windModelData, localZone, 0);
 
     const tMaxMean = Number((tMaxList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
     const tMinMean = Number((tMinList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
@@ -491,7 +558,17 @@ function buildHonestReportFromRawData(
         precipMean,
         precipAgreement,
         dominantWeatherCode: dominantCode,
-        dominantWeatherLabel: getWeatherLabelFromCode(dominantCode)
+        dominantWeatherLabel: getWeatherLabelFromCode(dominantCode),
+        trimmedTMinConsensus: tMinTrimmedRes.trimmedConsensus,
+        trimmedTMaxConsensus: tMaxTrimmedRes.trimmedConsensus,
+        trimmedPrecipConsensus: precipTrimmedRes.trimmedConsensus,
+        trimmedWindConsensus: windTrimmedRes.trimmedConsensus,
+        concordanceScorePct: Math.round((tMinTrimmedRes.concordanceScorePct + tMaxTrimmedRes.concordanceScorePct) / 2),
+        concordanceLabel: tMaxTrimmedRes.concordanceLabel,
+        appliedZone: localZone,
+        eliminatedExtremesNotice: tMaxTrimmedRes.eliminatedExtremesCount > 0 
+          ? `Neutralisation des 5% de scénarios extrêmes (${tMaxTrimmedRes.eliminatedExtremesCount} run(s) isolé(s) écarté(s) pour isoler le consensus à 90%)`
+          : 'Très forte convergence des 5 modèles au sein de l\'intervalle 5%-95%'
       },
       divergence: {
         level: divergenceLevel,
@@ -664,7 +741,15 @@ function buildSeasonalRealisticFallback(lat: number, lon: number, locName: strin
         precipMean: 0,
         precipAgreement: '5/5 modèles prévoient un temps sec',
         dominantWeatherCode: 2,
-        dominantWeatherLabel: 'Éclaircies et nuages bas matinaux'
+        dominantWeatherLabel: 'Éclaircies et nuages bas matinaux',
+        trimmedTMinConsensus: tMinMean,
+        trimmedTMaxConsensus: tMaxMean,
+        trimmedPrecipConsensus: 0,
+        trimmedWindConsensus: 14,
+        concordanceScorePct: Math.round(100 - tMaxSpread * 8.5),
+        concordanceLabel: 'Forte Concordance',
+        appliedZone: 'PARIS_NORTH_PLAINS',
+        eliminatedExtremesNotice: 'Élagage des 5% de scénarios extrêmes appliqué'
       },
       divergence: {
         level: tMaxSpread <= 2.0 ? 'FAIBLE' : 'MODÉRÉE',

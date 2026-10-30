@@ -33,7 +33,10 @@ import {
   Scale,
   Award,
   Sliders,
-  ChevronDown
+  ChevronDown,
+  Building2,
+  Mountain,
+  ShieldCheck
 } from 'lucide-react';
 import { LocationPoint, DailyForecast } from '../types/weather';
 import { 
@@ -45,6 +48,8 @@ import {
 } from '../services/multiModelBulletinService';
 import { generateNationalFourWeekBulletin } from '../services/nationalFourWeekBulletinService';
 import { GigaNationalFourWeekBulletinCard } from '../components/GigaNationalFourWeekBulletinCard';
+import { PrefecturesRegionalBulletinCard } from '../components/PrefecturesRegionalBulletinCard';
+import { MountainAdaptivePhysicsCard } from '../components/MountainAdaptivePhysicsCard';
 
 interface GigaBulletinViewProps {
   currentStation: LocationPoint;
@@ -62,7 +67,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
   onSelectStation
 }) => {
   // Navigation principale
-  const [activeTab, setActiveTab] = useState<'centres' | 'synoptique' | 'quotidien' | 'regions' | 'climatologie' | 'vigilance'>('centres');
+  const [activeTab, setActiveTab] = useState<'centres' | 'regions' | 'montagne' | 'synoptique' | 'quotidien' | 'climatologie' | 'vigilance'>('centres');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0); // 0 = Aujourd'hui, 1 = Demain, etc.
   const [selectedCenterId, setSelectedCenterId] = useState<'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo'>('ecmwf');
   
@@ -411,74 +416,86 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
         <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('centres')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'centres'
                 ? 'bg-sky-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Scale className="h-3.5 w-3.5" />
-            <span>1. Comparateur des 5 Centres Météo</span>
+            <span>1. Modèles &amp; Consensus 90%</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('regions')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              activeTab === 'regions'
+                ? 'bg-sky-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Building2 className="h-3.5 w-3.5" />
+            <span>2. 13 Régions, 96 Préfectures &amp; Sous-Préfectures</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('montagne')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              activeTab === 'montagne'
+                ? 'bg-sky-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Mountain className="h-3.5 w-3.5" />
+            <span>3. Météo de Montagne &amp; Orographie</span>
           </button>
 
           <button
             onClick={() => setActiveTab('synoptique')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'synoptique'
                 ? 'bg-sky-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Compass className="h-3.5 w-3.5" />
-            <span>2. Situation Synoptique &amp; Masses d'Air</span>
+            <span>4. Situation Synoptique</span>
           </button>
 
           <button
             onClick={() => setActiveTab('quotidien')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'quotidien'
                 ? 'bg-sky-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Calendar className="h-3.5 w-3.5" />
-            <span>3. Prévision Réelle &amp; 10 Métropoles</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('regions')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'regions'
-                ? 'bg-sky-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <MapPin className="h-3.5 w-3.5" />
-            <span>4. Tour des Régions Françaises</span>
+            <span>5. 10 Métropoles &amp; Quotidien</span>
           </button>
 
           <button
             onClick={() => setActiveTab('climatologie')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'climatologie'
                 ? 'bg-sky-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <TrendingUp className="h-3.5 w-3.5" />
-            <span>5. Tendances 4 Semaines Climatologiques</span>
+            <span>6. 4 Semaines Climatologiques</span>
           </button>
 
           <button
             onClick={() => setActiveTab('vigilance')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'vigilance'
                 ? 'bg-sky-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <ShieldAlert className="h-3.5 w-3.5" />
-            <span>6. Risques &amp; Vigilance</span>
+            <span>7. Vigilance</span>
           </button>
         </div>
       </div>
@@ -553,35 +570,50 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             {/* Fiche d'Analyse de Convergence & Consensus Mathématique du jour */}
             {activeDay && (
               <div className="rounded-xl border border-sky-500/20 bg-slate-900/90 p-4 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-sky-300 flex items-center gap-1">
-                      <Sparkles className="h-3.5 w-3.5 text-sky-400" />
-                      <span>Consensus Mathématique des 5 Centres :</span>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-sky-400" />
+                      <span>Consensus Robuste 90% (5% Extrêmes Neutralisés) :</span>
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      Coefficients Zonaux Adaptés
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${activeDay.divergence.color}`}>
                       Écart : ±{activeDay.divergence.spreadCelsius}°C ({activeDay.divergence.level})
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-slate-300">
-                    Indice de Fiabilité : <span className="text-emerald-400 font-black">{activeDay.confidencePct}%</span>
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-300">
+                      Concordance Inter-Modèles : <span className="text-emerald-400 font-black">{activeDay.consensus.concordanceScorePct || activeDay.confidencePct}%</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                  <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">T° Minimale Consensus</span>
-                    <span className="text-base font-black text-sky-400">{toDisplayTemp(activeDay.consensus.tMinMean)}</span>
-                    <span className="text-[9px] text-slate-400 block">Médiane : {toDisplayTemp(activeDay.consensus.tMinMedian)}</span>
+                  <div className="rounded-lg bg-slate-950/70 border border-sky-500/30 p-2.5">
+                    <span className="text-[10px] text-sky-300 uppercase font-black block">Tn Élaguée 90% (Consensus)</span>
+                    <span className="text-lg font-black text-sky-400">
+                      {toDisplayTemp(activeDay.consensus.trimmedTMinConsensus ?? activeDay.consensus.tMinMean)}
+                    </span>
+                    <span className="text-[9px] text-slate-400 block mt-0.5">
+                      Brute : {toDisplayTemp(activeDay.consensus.tMinMean)} • Méd. : {toDisplayTemp(activeDay.consensus.tMinMedian)}
+                    </span>
+                  </div>
+                  <div className="rounded-lg bg-slate-950/70 border border-amber-500/30 p-2.5">
+                    <span className="text-[10px] text-amber-300 uppercase font-black block">Tx Élaguée 90% (Consensus)</span>
+                    <span className="text-lg font-black text-amber-400">
+                      {toDisplayTemp(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean)}
+                    </span>
+                    <span className="text-[9px] text-slate-400 block mt-0.5">
+                      Brute : {toDisplayTemp(activeDay.consensus.tMaxMean)} • Méd. : {toDisplayTemp(activeDay.consensus.tMaxMedian)}
+                    </span>
                   </div>
                   <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">T° Maximale Consensus</span>
-                    <span className="text-base font-black text-amber-400">{toDisplayTemp(activeDay.consensus.tMaxMean)}</span>
-                    <span className="text-[9px] text-slate-400 block">Médiane : {toDisplayTemp(activeDay.consensus.tMaxMedian)}</span>
-                  </div>
-                  <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Précipitations Prévues</span>
-                    <span className="text-base font-black text-blue-400">{activeDay.consensus.precipMean} mm</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Précipitations Élaguées</span>
+                    <span className="text-base font-black text-blue-400">
+                      {activeDay.consensus.trimmedPrecipConsensus ?? activeDay.consensus.precipMean} mm
+                    </span>
                     <span className="text-[9px] text-slate-400 block truncate">{activeDay.consensus.precipAgreement}</span>
                   </div>
                   <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
@@ -593,9 +625,13 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
+                <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed space-y-1">
+                  <div className="text-[11px] text-emerald-300 font-semibold flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <span>{activeDay.consensus.eliminatedExtremesNotice}</span>
+                  </div>
                   <p><strong>Diagnostic de Divergence :</strong> {activeDay.divergence.description}</p>
-                  <p className="mt-1 text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400">
                     Modèle le plus frais : <span className="text-sky-300 font-semibold">{activeDay.divergence.colderModel}</span> • Modèle le plus doux : <span className="text-amber-300 font-semibold">{activeDay.divergence.warmerModel}</span> • Scénario retenu : <span className="text-white font-medium">{activeDay.divergence.dominantScenario}</span>
                   </p>
                 </div>
@@ -916,58 +952,28 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 6. ONGLET 4 : TOUR DES REGIONS FRANCAISES                                 */}
+      {/* ========================================================================= */}
+      {/* 5. ONGLET 2 : SYNTHÈSE DES 13 RÉGIONS & 96 PRÉFECTURES / SOUS-PRÉFECTURES */}
       {/* ========================================================================= */}
       {activeTab === 'regions' && (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-800 bg-[#0F172A] p-6 shadow-xl space-y-5">
-            <div className="border-b border-slate-800 pb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                Découpage Météorologique des 5 Grands Quadrants Français
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white mt-0.5">
-                Tour d'Horizon Régional &amp; Particularités Locales
-              </h2>
-            </div>
+          <PrefecturesRegionalBulletinCard
+            seniorMode={seniorMode}
+            tempUnit={tempUnit}
+            onSelectStation={onSelectStation}
+          />
+        </div>
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {seasonalRegionalBulletins.map(reg => (
-                <div
-                  key={reg.id}
-                  className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 space-y-3"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                    <div>
-                      <h3 className="text-base font-bold text-white">{reg.title}</h3>
-                      <span className="text-[10px] text-slate-400">{reg.departments}</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded text-[10px] font-bold bg-slate-900 border border-slate-700 text-sky-300">
-                      {reg.tempRange}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-200 leading-relaxed">
-                    <strong>Ciel dominant :</strong> {reg.dominantSky}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
-                    <div className="rounded bg-slate-900/70 p-2 border border-slate-800/60">
-                      <span className="text-[9px] text-slate-400 uppercase font-semibold block">Vent</span>
-                      <span>{reg.windNotice}</span>
-                    </div>
-                    <div className="rounded bg-slate-900/70 p-2 border border-slate-800/60">
-                      <span className="text-[9px] text-slate-400 uppercase font-semibold block">Phénomènes</span>
-                      <span>{reg.phenomenaRisk}</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-1 border-t border-slate-800/80 text-[11px] text-slate-400">
-                    <span>💡 <strong>Conseil expert :</strong> {reg.expertAdvice}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* ========================================================================= */}
+      {/* 6. ONGLET 3 : PHYSIQUE & MÉTÉO DE MONTAGNE PAR MASSIF (LPN & OROGRAPHIE) */}
+      {/* ========================================================================= */}
+      {activeTab === 'montagne' && (
+        <div className="space-y-6">
+          <MountainAdaptivePhysicsCard
+            seniorMode={seniorMode}
+            tempUnit={tempUnit}
+          />
         </div>
       )}
 
