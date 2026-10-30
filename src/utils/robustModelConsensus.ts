@@ -22,10 +22,74 @@ export type GeographicZoneType =
 export interface ModelReliabilityWeights {
   meteofrance: number; // AROME 1.3km / ARPEGE
   ecmwf: number;       // CEPMMT IFS (HRES 9km / ENS)
-  gfs: number;         // NOAA NCEP GFS
+  gfs: number;         // NOAA NCEP GFS (équitablement valorisé, 15-30%)
   icon: number;        // DWD ICON / ICON-EU 6.5km
   ukmo: number;        // UK Met Office Unified Model
   gem?: number;        // CMC Canada GEM / HRDPS
+  ai_models?: number;  // Modèles IA (ECMWF AIFS, GraphCast, Pangu)
+  ensembles?: number;  // Ensembles EPS 51 membres, GEFS 31 membres, ICON-EPS
+  control_run?: number;// Runs de contrôle déterministes non perturbés
+}
+
+/**
+ * Calcule dynamiquement les coefficients de fiabilité des modèles en combinant :
+ * 1. Le domaine géographique (relief, côte, plaine)
+ * 2. L'échéance de prévision (court terme J0-J+2, moyen terme J+3-J+6, long terme J+7-J+15)
+ * 3. La valorisation équitable de GFS, des modèles IA et des ensemblistes
+ */
+export function getAdaptiveModelWeightsByLeadTime(
+  zone: GeographicZoneType,
+  leadDay: number = 0
+): ModelReliabilityWeights {
+  const base = ZONE_RELIABILITY_WEIGHTS[zone];
+
+  // A. TRÈS COURT TERME (J0 à J+2 - H0 à H+48) :
+  // AROME domine sur la France et le relief, ECMWF et ICON-EU très performants, GFS bien calé
+  if (leadDay <= 2) {
+    return {
+      meteofrance: Math.max(0.30, base.meteofrance * 0.80),
+      ecmwf: 0.26,
+      gfs: 0.16,      // GFS équitablement pondéré et non diabolisé
+      icon: 0.14,
+      ukmo: 0.06,
+      gem: 0.05,
+      ai_models: 0.05, // Modèles IA apportent une confirmation synoptique
+      ensembles: 0.04,
+      control_run: 0.04
+    };
+  }
+
+  // B. MOYEN TERME (J+3 à J+6) :
+  // AROME s'arrête (J+3). ECMWF et GFS deviennent les deux piliers synoptiques majeurs.
+  // GFS brille particulièrement sur la détection des talwegs atlantiques et flux d'ouest rapides.
+  if (leadDay <= 6) {
+    return {
+      ecmwf: 0.28,
+      gfs: 0.24,      // GFS valorisé à 24% sur le moyen terme synoptique
+      icon: 0.16,
+      ai_models: 0.12,// AIFS / GraphCast excellents sur les trajectoires de dépressions à J+4-J+6
+      gem: 0.08,      // CMC Canada très stable sur les masses d'air froid
+      ensembles: 0.08,
+      meteofrance: 0.08, // ARPEGE
+      control_run: 0.06,
+      ukmo: 0.04
+    };
+  }
+
+  // C. LONG TERME (J+7 à J+15+) :
+  // Les déterministes seuls deviennent bruités. Les Ensemblistes (EPS 51 membres, GEFS 31 membres)
+  // et les modèles IA sont prédominants.
+  return {
+    ensembles: 0.32,  // Ensembles EPS + GEFS + ICON-EPS
+    gfs: 0.24,        // GEFS & GFS contrôle majeurs pour explorer les régimes de temps
+    ecmwf: 0.20,
+    ai_models: 0.15,  // Modèles IA synoptiques
+    control_run: 0.10,
+    gem: 0.06,
+    icon: 0.06,
+    meteofrance: 0.04,
+    ukmo: 0.03
+  };
 }
 
 /**
@@ -35,92 +99,92 @@ export interface ModelReliabilityWeights {
 export const ZONE_RELIABILITY_WEIGHTS: Record<GeographicZoneType, ModelReliabilityWeights> = {
   // 1. Côtes de la Manche & Façade Atlantique (Perturbations océaniques, vents côtiers, brises marines)
   COASTAL_ATLANTIC_MANCHE: {
-    ecmwf: 0.35,      // Référence synoptique atlantique J+1 à J+7
-    ukmo: 0.25,       // Modèle britannique très performant sur Manche et Atlantique Nord
-    meteofrance: 0.25,// AROME résout la ligne de rivage et les surventes de pointes
-    icon: 0.08,
-    gfs: 0.04,
-    gem: 0.03
+    ecmwf: 0.28,      // Référence synoptique atlantique J+1 à J+7
+    meteofrance: 0.22,// AROME résout la ligne de rivage et les surventes de pointes
+    gfs: 0.20,        // NOAA NCEP GFS très performant sur les dépressions d'Islande et jet-stream
+    ukmo: 0.14,       // Modèle britannique sur Manche et Atlantique Nord
+    icon: 0.10,
+    gem: 0.06
   },
 
   // 2. Zone Méditerranéenne & Sud-Est (Mistral, Tramontane, épisodes cévenols, brises littorales)
   MEDITERRANEAN_SE: {
-    meteofrance: 0.50,// AROME 1.3km est irremplaçable sur le relief côtier et la convection cévenole
+    meteofrance: 0.40,// AROME 1.3km est irremplaçable sur le relief côtier et la convection cévenole
     ecmwf: 0.22,
+    gfs: 0.16,        // GFS bien équilibré sur les creusements dans le Golfe de Gênes
     icon: 0.12,
-    ukmo: 0.08,
-    gfs: 0.05,
-    gem: 0.03
+    ukmo: 0.06,
+    gem: 0.04
   },
 
   // 3. Massifs Alpins (Alpes du Nord & Alpes du Sud - Orographie complexe, foehn, vallées encaissées)
   MOUNTAIN_ALPS: {
-    meteofrance: 0.52,// AROME maille 1.3km résout les vallées alpines et les isothermes de combe
-    icon: 0.20,       // ICON-EU réputé pour sa physique des nuages sur le relief alpin
-    ecmwf: 0.16,
+    meteofrance: 0.42,// AROME maille 1.3km résout les vallées alpines et les isothermes de combe
+    icon: 0.18,       // ICON-EU réputé pour sa physique des nuages sur le relief alpin
+    ecmwf: 0.18,
+    gfs: 0.14,        // GFS synoptique grand-échelle
     ukmo: 0.05,
-    gfs: 0.04,
     gem: 0.03
   },
 
   // 4. Pyrénées (Crête frontière, effet de foehn ibérique, vent d'Autan)
   MOUNTAIN_PYRENEES: {
-    meteofrance: 0.48,
-    ecmwf: 0.22,
-    icon: 0.15,
-    ukmo: 0.07,
-    gfs: 0.05,
-    gem: 0.03
+    meteofrance: 0.40,
+    ecmwf: 0.20,
+    gfs: 0.16,
+    icon: 0.14,
+    ukmo: 0.06,
+    gem: 0.04
   },
 
   // 5. Massif Central (Plateaux, Cévennes auvergnates, Sancy, Cantal)
   MOUNTAIN_MASSIF_CENTRAL: {
-    meteofrance: 0.45,
-    ecmwf: 0.24,
-    icon: 0.16,
-    ukmo: 0.07,
-    gfs: 0.05,
-    gem: 0.03
+    meteofrance: 0.38,
+    ecmwf: 0.22,
+    gfs: 0.16,
+    icon: 0.14,
+    ukmo: 0.06,
+    gem: 0.04
   },
 
   // 6. Jura & Vosges (Combes froides, bise rhénane, inversions stratus)
   MOUNTAIN_JURA_VOSGES: {
-    icon: 0.35,       // DWD allemand très affûté sur le domaine rhénan, Forêt-Noire et Jura
-    meteofrance: 0.32,
+    icon: 0.26,       // DWD allemand très affûté sur le domaine rhénan, Forêt-Noire et Jura
+    meteofrance: 0.26,
     ecmwf: 0.20,
+    gfs: 0.18,
     ukmo: 0.06,
-    gfs: 0.04,
-    gem: 0.03
+    gem: 0.04
   },
 
   // 7. Grand Est & Plaine d'Alsace (Climat semi-continental, froid d'inversion)
   CONTINENTAL_EAST: {
-    icon: 0.36,       // ICON capte excellemment les stratus de basse couche et le froid continental
-    ecmwf: 0.30,
-    meteofrance: 0.20,
-    ukmo: 0.06,
-    gfs: 0.05,
-    gem: 0.03
+    icon: 0.26,       // ICON capte excellemment les stratus de basse couche et le froid continental
+    ecmwf: 0.24,
+    gfs: 0.20,        // GFS solide sur les arrivées de masses d'air polaire
+    meteofrance: 0.18,
+    ukmo: 0.07,
+    gem: 0.05
   },
 
   // 8. Bassin Parisien & Plaines du Nord (Îlot thermique, passages frontaux tempérés)
   PARIS_NORTH_PLAINS: {
-    ecmwf: 0.34,
-    meteofrance: 0.30,
-    icon: 0.16,
-    ukmo: 0.11,
-    gfs: 0.06,
-    gem: 0.03
+    ecmwf: 0.28,
+    meteofrance: 0.24,
+    gfs: 0.20,        // GFS très fiable sur le rail dépressionnaire atlantique
+    icon: 0.14,
+    ukmo: 0.09,
+    gem: 0.05
   },
 
   // 9. Sud-Ouest & Bassin Aquitain (Flux océanique atténué, orages préfrontaux)
   SOUTH_WEST_AQUITAINE: {
-    meteofrance: 0.38,
-    ecmwf: 0.30,
+    meteofrance: 0.30,
+    ecmwf: 0.24,
+    gfs: 0.20,
     icon: 0.14,
-    ukmo: 0.08,
-    gfs: 0.06,
-    gem: 0.04
+    ukmo: 0.07,
+    gem: 0.05
   }
 };
 
@@ -180,7 +244,7 @@ export function determineGeographicZone(
 }
 
 export interface ModelDatum {
-  modelId: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo' | 'gem';
+  modelId: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo' | 'gem' | 'ai_models' | 'ensembles' | 'control_run';
   value: number;
 }
 
@@ -195,16 +259,19 @@ export interface TrimmedConsensusResult {
   eliminatedExtremesCount: number;
   retainedValues: number[];
   appliedZone: GeographicZoneType;
+  leadDayApplied: number;
 }
 
 /**
  * Calcule le consensus robuste en éliminant les 5% extrêmes de chaque côté (Winsorized / Trimmed Mean à 90%)
- * et en appliquant les coefficients de fiabilité spécifiques à la zone géographique.
+ * et en appliquant les coefficients de fiabilité spécifiques à la zone géographique et à l'échéance.
+ * GFS n'est pas diabolisé et les clusters de modèles (ex: GFS soutenu par GEM ou l'IA) sont préservés.
  */
 export function calculateRobustTrimmedConsensus(
   data: ModelDatum[],
   zone: GeographicZoneType,
-  precision: number = 1
+  precision: number = 1,
+  leadDay: number = 0
 ): TrimmedConsensusResult {
   if (!data || data.length === 0) {
     return {
@@ -217,51 +284,61 @@ export function calculateRobustTrimmedConsensus(
       concordanceLabel: 'Concordance Modérée',
       eliminatedExtremesCount: 0,
       retainedValues: [],
-      appliedZone: zone
+      appliedZone: zone,
+      leadDayApplied: leadDay
     };
   }
 
   const rawMean = Number((data.reduce((sum, d) => sum + d.value, 0) / data.length).toFixed(precision));
 
-  // 1. Si nous avons au moins 5 modèles, nous coupons les queues de distribution (les 5% min et max)
-  // Pour un petit échantillon de 5 à 7 modèles, le 5e et 95e percentile coupent le minimum et maximum aberrants
+  // 1. Analyse de convergence et clustering des modèles
   const sorted = [...data].sort((a, b) => a.value - b.value);
   const n = sorted.length;
 
   let retained: ModelDatum[] = [];
 
   if (n >= 5) {
-    // Élagage des 5% de queue : on isole le corps central de la distribution (90%)
-    // Si l'écart au min ou au max est disproportionné par rapport à l'écart interquartile (outlier), il est écarté
     const q1 = sorted[Math.floor(n * 0.25)].value;
     const q3 = sorted[Math.floor(n * 0.75)].value;
     const iqr = Math.max(0.4, q3 - q1);
     const lowerCutoff = q1 - 1.5 * iqr;
     const upperCutoff = q3 + 1.5 * iqr;
 
-    // Conserver les valeurs qui ne sont pas des runs aberrants extrêmes (hors du 5% / 95% ou 1.5x IQR)
+    // Détection de clusters : si une valeur extrême a un modèle allié proche (< 0.9°C),
+    // elle représente un scénario météorologique alternatif crédible et n'est pas un run fou isolé !
     retained = sorted.filter((d, idx) => {
-      // Pour 5 modèles, écarter l'extrême si trop distant
-      if (idx === 0 && d.value < lowerCutoff) return false;
-      if (idx === n - 1 && d.value > upperCutoff) return false;
+      // Vérifier le minimum
+      if (idx === 0) {
+        const nextVal = sorted[1].value;
+        const isCluster = Math.abs(d.value - nextVal) <= 0.8;
+        if (isCluster) return true; // Scénario froid soutenu par 2 modèles
+        if (d.value < lowerCutoff) return false; // Outlier isolé non soutenu
+      }
+      // Vérifier le maximum
+      if (idx === n - 1) {
+        const prevVal = sorted[n - 2].value;
+        const isCluster = Math.abs(d.value - prevVal) <= 0.8;
+        if (isCluster) return true; // Scénario chaud soutenu par 2 modèles
+        if (d.value > upperCutoff) return false; // Outlier isolé non soutenu
+      }
       return true;
     });
 
-    // Si tout a été gardé mais n >= 6, couper strictement les 2 extrémités
-    if (retained.length === n && n >= 6) {
+    // Si tout a été gardé mais n >= 7, couper strictement les queues marginales 5%
+    if (retained.length === n && n >= 7) {
       retained = sorted.slice(1, n - 1);
     }
   } else {
     retained = sorted;
   }
 
-  // 2. Application des coefficients de fiabilité zonaux sur le sous-ensemble retenu
-  const weights = ZONE_RELIABILITY_WEIGHTS[zone];
+  // 2. Application des coefficients adaptatifs à l'échéance (Court / Moyen / Long terme)
+  const adaptiveWeights = getAdaptiveModelWeightsByLeadTime(zone, leadDay);
   let totalWeight = 0;
   let weightedSum = 0;
 
   for (const item of retained) {
-    const w = (weights as any)[item.modelId] ?? (1 / retained.length);
+    const w = (adaptiveWeights as any)[item.modelId] ?? (1 / retained.length);
     weightedSum += item.value * w;
     totalWeight += w;
   }
@@ -275,9 +352,9 @@ export function calculateRobustTrimmedConsensus(
   const trimmedMax = Math.max(...retainedValues);
   const spread = Number((trimmedMax - trimmedMin).toFixed(precision));
 
-  // Score de concordance : 100% quand spread = 0, décroît avec la dispersion
-  // Pour les températures : spread de 1°C = ~92%, 2°C = ~84%, 4°C = ~65%
-  const concordanceScorePct = Math.max(30, Math.min(99, Math.round(100 - spread * 8.5)));
+  // Score de concordance adapté : tolérance légèrement élargie à moyen/long terme
+  const spreadTolerance = leadDay <= 2 ? 8.5 : (leadDay <= 6 ? 6.5 : 5.0);
+  const concordanceScorePct = Math.max(30, Math.min(99, Math.round(100 - spread * spreadTolerance)));
 
   let concordanceLabel: 'Concordance Exceptionnelle' | 'Forte Concordance' | 'Concordance Modérée' | 'Haute Incertitude Synoptique' = 'Forte Concordance';
   if (spread < 1.0) {
@@ -300,6 +377,7 @@ export function calculateRobustTrimmedConsensus(
     concordanceLabel,
     eliminatedExtremesCount: data.length - retained.length,
     retainedValues,
-    appliedZone: zone
+    appliedZone: zone,
+    leadDayApplied: leadDay
   };
 }

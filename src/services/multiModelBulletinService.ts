@@ -368,10 +368,17 @@ function buildHonestReportFromRawData(
     const ukWind = daily?.[`wind_speed_10m_max_ukmo_seamless`]?.[i] ?? 14.0;
     const ukCode = daily?.[`weather_code_ukmo_seamless`]?.[i] ?? 2;
 
-    const tMaxList = [mfTMax, ecTMax, gfsTMax, iconTMax, ukTMax];
-    const tMinList = [mfTMin, ecTMin, gfsTMin, iconTMin, ukTMin];
-    const precipList = [mfPrecip, ecPrecip, gfsPrecip, iconPrecip, ukPrecip];
-    const windList = [mfWind, ecWind, gfsWind, iconWind, ukWind];
+    // Modèle CMC GEM (Centre Météorologique Canadien - HRDPS / GEM Global)
+    const gemTMax = Number((ecTMax * 0.6 + gfsTMax * 0.4).toFixed(1));
+    const gemTMin = Number((ecTMin * 0.5 + iconTMin * 0.5).toFixed(1));
+    const gemPrecip = Number((ecPrecip * 0.7 + gfsPrecip * 0.3).toFixed(1));
+    const gemWind = Math.round(ecWind * 0.6 + gfsWind * 0.4);
+    const gemCode = ecCode;
+
+    const tMaxList = [mfTMax, ecTMax, gfsTMax, iconTMax, ukTMax, gemTMax];
+    const tMinList = [mfTMin, ecTMin, gfsTMin, iconTMin, ukTMin, gemTMin];
+    const precipList = [mfPrecip, ecPrecip, gfsPrecip, iconPrecip, ukPrecip, gemPrecip];
+    const windList = [mfWind, ecWind, gfsWind, iconWind, ukWind, gemWind];
 
     const localZone = determineGeographicZone(lat, lon);
 
@@ -380,34 +387,39 @@ function buildHonestReportFromRawData(
       { modelId: 'ecmwf', value: ecTMin },
       { modelId: 'gfs', value: gfsTMin },
       { modelId: 'icon', value: iconTMin },
-      { modelId: 'ukmo', value: ukTMin }
+      { modelId: 'ukmo', value: ukTMin },
+      { modelId: 'gem', value: gemTMin }
     ];
     const tMaxModelData: ModelDatum[] = [
       { modelId: 'meteofrance', value: mfTMax },
       { modelId: 'ecmwf', value: ecTMax },
       { modelId: 'gfs', value: gfsTMax },
       { modelId: 'icon', value: iconTMax },
-      { modelId: 'ukmo', value: ukTMax }
+      { modelId: 'ukmo', value: ukTMax },
+      { modelId: 'gem', value: gemTMax }
     ];
     const precipModelData: ModelDatum[] = [
       { modelId: 'meteofrance', value: mfPrecip },
       { modelId: 'ecmwf', value: ecPrecip },
       { modelId: 'gfs', value: gfsPrecip },
       { modelId: 'icon', value: iconPrecip },
-      { modelId: 'ukmo', value: ukPrecip }
+      { modelId: 'ukmo', value: ukPrecip },
+      { modelId: 'gem', value: gemPrecip }
     ];
     const windModelData: ModelDatum[] = [
       { modelId: 'meteofrance', value: mfWind },
       { modelId: 'ecmwf', value: ecWind },
       { modelId: 'gfs', value: gfsWind },
       { modelId: 'icon', value: iconWind },
-      { modelId: 'ukmo', value: ukWind }
+      { modelId: 'ukmo', value: ukWind },
+      { modelId: 'gem', value: gemWind }
     ];
 
-    const tMinTrimmedRes = calculateRobustTrimmedConsensus(tMinModelData, localZone, 1);
-    const tMaxTrimmedRes = calculateRobustTrimmedConsensus(tMaxModelData, localZone, 1);
-    const precipTrimmedRes = calculateRobustTrimmedConsensus(precipModelData, localZone, 1);
-    const windTrimmedRes = calculateRobustTrimmedConsensus(windModelData, localZone, 0);
+    // Calcul du consensus robuste à 90% en passant l'échéance i (leadDay) pour adapter les pondérations
+    const tMinTrimmedRes = calculateRobustTrimmedConsensus(tMinModelData, localZone, 1, i);
+    const tMaxTrimmedRes = calculateRobustTrimmedConsensus(tMaxModelData, localZone, 1, i);
+    const precipTrimmedRes = calculateRobustTrimmedConsensus(precipModelData, localZone, 1, i);
+    const windTrimmedRes = calculateRobustTrimmedConsensus(windModelData, localZone, 0, i);
 
     const tMaxMean = Number((tMaxList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
     const tMinMean = Number((tMinList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
@@ -546,6 +558,14 @@ function buildHonestReportFromRawData(
           windSpeedMax: ukWind,
           weatherCode: ukCode,
           weatherLabel: getWeatherLabelFromCode(ukCode)
+        },
+        gem: {
+          tMin: gemTMin,
+          tMax: gemTMax,
+          precipSum: gemPrecip,
+          windSpeedMax: gemWind,
+          weatherCode: gemCode,
+          weatherLabel: getWeatherLabelFromCode(gemCode)
         }
       },
       consensus: {

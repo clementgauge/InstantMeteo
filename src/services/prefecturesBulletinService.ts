@@ -145,13 +145,20 @@ function buildRealSimulatedPrefecturesSynthesis(): NationalPrefecturesSynthesis 
       const ukmoPrecip = Number((aromePrecip * 1.10).toFixed(1));
       const ukmoWind = Math.round(aromeWind * 1.05);
 
-      // Préparation des séries de données pour le calcul du consensus robuste
+      // CMC GEM Canadien : très stable sur les masses d'air polaire
+      const gemTMin = Number((ecmwfTMin * 0.6 + iconTMin * 0.4).toFixed(1));
+      const gemTMax = Number((ecmwfTMax * 0.5 + gfsTMax * 0.5).toFixed(1));
+      const gemPrecip = Number((ecmwfPrecip * 0.8 + gfsPrecip * 0.2).toFixed(1));
+      const gemWind = Math.round(aromeWind * 0.98);
+
+      // Préparation des séries de données pour le calcul du consensus robuste (6 modèles)
       const tMinData: ModelDatum[] = [
         { modelId: 'meteofrance', value: aromeTMin },
         { modelId: 'ecmwf', value: ecmwfTMin },
         { modelId: 'gfs', value: gfsTMin },
         { modelId: 'icon', value: iconTMin },
-        { modelId: 'ukmo', value: ukmoTMin }
+        { modelId: 'ukmo', value: ukmoTMin },
+        { modelId: 'gem', value: gemTMin }
       ];
 
       const tMaxData: ModelDatum[] = [
@@ -159,7 +166,8 @@ function buildRealSimulatedPrefecturesSynthesis(): NationalPrefecturesSynthesis 
         { modelId: 'ecmwf', value: ecmwfTMax },
         { modelId: 'gfs', value: gfsTMax },
         { modelId: 'icon', value: iconTMax },
-        { modelId: 'ukmo', value: ukmoTMax }
+        { modelId: 'ukmo', value: ukmoTMax },
+        { modelId: 'gem', value: gemTMax }
       ];
 
       const precipData: ModelDatum[] = [
@@ -167,7 +175,8 @@ function buildRealSimulatedPrefecturesSynthesis(): NationalPrefecturesSynthesis 
         { modelId: 'ecmwf', value: ecmwfPrecip },
         { modelId: 'gfs', value: gfsPrecip },
         { modelId: 'icon', value: iconPrecip },
-        { modelId: 'ukmo', value: ukmoPrecip }
+        { modelId: 'ukmo', value: ukmoPrecip },
+        { modelId: 'gem', value: gemPrecip }
       ];
 
       const windData: ModelDatum[] = [
@@ -175,14 +184,15 @@ function buildRealSimulatedPrefecturesSynthesis(): NationalPrefecturesSynthesis 
         { modelId: 'ecmwf', value: ecmwfWind },
         { modelId: 'gfs', value: gfsWind },
         { modelId: 'icon', value: iconWind },
-        { modelId: 'ukmo', value: ukmoWind }
+        { modelId: 'ukmo', value: ukmoWind },
+        { modelId: 'gem', value: gemWind }
       ];
 
-      // Application du consensus robuste à 90% (élagage des 5% extrêmes)
-      const tMinRes = calculateRobustTrimmedConsensus(tMinData, zone, 1);
-      const tMaxRes = calculateRobustTrimmedConsensus(tMaxData, zone, 1);
-      const precipRes = calculateRobustTrimmedConsensus(precipData, zone, 1);
-      const windRes = calculateRobustTrimmedConsensus(windData, zone, 0);
+      // Application du consensus robuste à 90% (élagage des 5% extrêmes avec pondération zonale)
+      const tMinRes = calculateRobustTrimmedConsensus(tMinData, zone, 1, 0);
+      const tMaxRes = calculateRobustTrimmedConsensus(tMaxData, zone, 1, 0);
+      const precipRes = calculateRobustTrimmedConsensus(precipData, zone, 1, 0);
+      const windRes = calculateRobustTrimmedConsensus(windData, zone, 0, 0);
 
       // Détermination du temps sensible dominant
       let wCode = 2; // Éclaircies
