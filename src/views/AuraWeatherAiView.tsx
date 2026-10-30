@@ -387,7 +387,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     {
       id: 'welcome',
       sender: 'aura',
-      text: `Bonjour ! Je suis **AURA**, votre intelligence météorologique conversationnelle connectée en direct aux données certifiées d'**Instant Météo**.\n\nJe détecte précisément les mots-clés de votre question (villes, métriques, périodes, graphiques, cartes 3D) pour générer des réponses sur-mesure :\n\n💡 **Exemples de requêtes directes** :\n- **Dites simplement le nom d'une ville** (ex: *"Paris"*, *"Marseille"*, *"Lyon"*, *"Bordeaux"*, *"Brest"*...) ➔ affiche son bulletin météo complet en direct\n- *"Donne-moi la température sur 7 jours"* ➔ génère la courbe complète Tmax / Tmin\n- *"Donne-moi la température de aujourd'hui à j-7"* ➔ trace l'historique thermique passé\n- *"Génère un graphe de la température de Paris"* ➔ trace la courbe thermique en direct de Paris\n- *"Génère une carte 3D de la France"* ➔ ouvre la modélisation 3D interactive du territoire\n- *"Fais une capture du radar"* ➔ extrait instantané de l'imagerie radar Doppler`,
+      text: `Bonjour ! Je suis **AURA**, votre intelligence météorologique connectée en direct aux données certifiées d'**Instant Météo**.\n\nPosez-moi vos questions météo :\n- 📍 **Météo d'une ville** : *"Paris"*, *"Marseille"*, *"Lyon"*...\n- 📊 **Tendances** : *"Donne-moi la température sur 7 jours"*\n- 🗺️ **Modélisation** : *"Génère une carte 3D de la France"*\n- 🌧️ **Précipitations** : *"Fais une capture du radar"*`,
       card: {
         location: currentStation.name,
         stationId: currentStation.id,
@@ -406,10 +406,9 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(true);
   const [isListening, setIsListening] = useState<boolean>(false);
-  const [personaMode, setPersonaMode] = useState<'standard' | 'expert' | 'health'>('standard');
+  const personaMode = 'standard';
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [selectedChipCategory, setSelectedChipCategory] = useState<'villes' | 'graphes' | '3d' | 'comparer' | 'science'>('villes');
 
   const handleSpeakMessage = (id: string, text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -1479,7 +1478,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   };
 
   const renderViewContent = () => (
-    <div className={`relative ${isModal ? 'w-full max-w-4xl h-[92vh] max-h-[850px]' : 'min-h-[750px] sm:min-h-[820px]'} rounded-3xl border border-sky-500/30 overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between shadow-2xl`}>
+    <div className={`relative ${isModal ? 'w-full h-[100dvh] sm:h-[90vh] sm:max-h-[850px] sm:max-w-4xl sm:rounded-3xl sm:border sm:border-sky-500/30' : 'w-full h-[100dvh] sm:min-h-[820px] sm:rounded-3xl sm:border sm:border-sky-500/30'} overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between shadow-2xl`}>
       {/* 1. ATMOSPHERIC CANVAS ENGINE BACKGROUND */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full block" />
@@ -1496,26 +1495,27 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         )}
       </div>
 
-      {/* 2. HEADER NAVBAR */}
-      <header className="relative z-20 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-950/65 backdrop-blur-2xl">
-        <div className="flex items-center gap-3">
+      {/* 2. HEADER NAVBAR (Compact & ergonomique sur mobile) */}
+      <header className="relative z-20 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-3 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           {onBackToMain && (
             <button
               onClick={onBackToMain}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center justify-center shrink-0 cursor-pointer"
               title="Retour à Instant Météo"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
 
-          {/* Nouveau logo ultra-moderne AURA */}
-          <AuraBotAvatar size="md" glow={true} />
+          {/* Logo AURA */}
+          <AuraBotAvatar size="sm" glow={true} className="sm:hidden" />
+          <AuraBotAvatar size="md" glow={true} className="hidden sm:flex" />
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-serif text-lg sm:text-xl tracking-wide font-semibold text-white">AURA</h1>
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-extrabold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="font-serif text-base sm:text-xl font-bold tracking-wide text-white">AURA</h1>
+              <span className="px-1.5 py-0.5 text-[9px] sm:text-[10px] uppercase font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
                 Weather AI
               </span>
               <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase font-bold rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
@@ -1523,56 +1523,19 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                 Données Instant Météo
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Atmosphère : <span className="text-amber-300 font-medium">{weatherState.name}</span> &bull; Station : <span className="text-sky-300 font-semibold">{currentStation.name}</span>
+            <p className="text-[11px] sm:text-xs text-slate-400 truncate max-w-[150px] sm:max-w-xs">
+              <span className="text-sky-300 font-medium">{currentStation.name}</span> &bull; {safeWeather.temperature.toFixed(1)}°C
             </p>
           </div>
         </div>
 
-        {/* Action Controls & Persona Mode Switcher */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Persona Mode Switcher */}
-          <div className="flex items-center p-1 rounded-xl bg-white/5 border border-white/10 text-[11px]">
-            <button
-              onClick={() => setPersonaMode('standard')}
-              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
-                personaMode === 'standard' 
-                  ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Mode Grand Public : prévisions claires, confort et activités"
-            >
-              🌤️ Public
-            </button>
-            <button
-              onClick={() => setPersonaMode('expert')}
-              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
-                personaMode === 'expert' 
-                  ? 'bg-sky-500/30 text-sky-200 border border-sky-400/50 shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Mode Expert : analyse synoptique approfondie, gradients et physique"
-            >
-              🔬 Expert
-            </button>
-            <button
-              onClick={() => setPersonaMode('health')}
-              className={`px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
-                personaMode === 'health' 
-                  ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-500/50 shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Mode Santé : confort thermique, sensibilité météo, UV et qualité de l'air"
-            >
-              🌿 Santé
-            </button>
-          </div>
-
+        {/* Action Controls : audio & close only (expert, santé, ville bulletin supprimés) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Soundscape audio toggle */}
           <button
             onClick={() => setIsAudioMuted(!isAudioMuted)}
             title={isAudioMuted ? 'Activer le carillon sonore atmosphérique' : 'Couper le son'}
-            className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
+            className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl border transition flex items-center justify-center cursor-pointer ${
               !isAudioMuted 
                 ? 'bg-sky-500/20 text-sky-300 border-sky-400/40 shadow-sm' 
                 : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
@@ -1584,7 +1547,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           {isModal && onClose && (
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center justify-center cursor-pointer"
               title="Fermer la boîte de dialogue AURA"
             >
               <X className="h-4 w-4" />
@@ -1594,24 +1557,24 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       </header>
 
       {/* 3. MAIN CONVERSATIONAL CHAT CONTAINER */}
-      <main className="relative z-10 flex-1 overflow-hidden flex flex-col justify-between max-w-4xl w-full mx-auto px-4 sm:px-6 py-4">
+      <main className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between w-full max-w-4xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3">
         
-        {/* Chat Stream */}
-        <div ref={chatStreamRef} className="flex-1 overflow-y-auto space-y-4 pr-1 sm:pr-2 py-2 max-h-[520px] sm:max-h-[560px]">
+        {/* Chat Stream (Flexible & scrollable sur mobile) */}
+        <div ref={chatStreamRef} className="flex-1 min-h-0 overflow-y-auto space-y-3.5 pr-1 sm:pr-2 overscroll-contain">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex items-start gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start gap-2.5 sm:gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.sender === 'aura' && (
                 <AuraBotAvatar size="sm" glow={true} className="mt-1" />
               )}
 
               <div
-                className={`p-4 sm:p-5 rounded-2xl max-w-2xl space-y-3 shadow-xl backdrop-blur-2xl border ${
+                className={`p-3.5 sm:p-5 rounded-2xl max-w-[90%] sm:max-w-2xl space-y-2.5 shadow-xl backdrop-blur-2xl border ${
                   msg.sender === 'user'
-                    ? 'rounded-tr-sm bg-sky-500/15 border-sky-400/30 text-white'
-                    : 'rounded-tl-sm bg-slate-900/75 border-white/10 text-slate-200'
+                    ? 'rounded-tr-sm bg-sky-500/20 border-sky-400/35 text-white'
+                    : 'rounded-tl-sm bg-slate-900/80 border-white/10 text-slate-200'
                 }`}
               >
                 <div
@@ -1621,37 +1584,34 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
                 {/* Weather Observation Badge Card */}
                 {msg.card && (
-                  <div className={`mt-3 p-3.5 rounded-xl border flex flex-col gap-2.5 ${
+                  <div className={`mt-2.5 p-3 rounded-xl border flex flex-col gap-2 ${
                     msg.card.isGaleAlert
                       ? 'bg-amber-950/40 border-amber-500/50 text-amber-200'
                       : msg.card.isPlainSnowAlert
                         ? 'bg-sky-950/40 border-sky-400/50 text-cyan-200'
                         : 'bg-white/5 border-white/10 text-white'
                   }`}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div className="text-2xl shrink-0">{msg.card.icon}</div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 flex-wrap">
-                            <span>{msg.card.location}</span>
+                            <span className="truncate">{msg.card.location}</span>
                             {msg.card.department && (
                               <span className="text-[10px] text-slate-400 font-normal">({msg.card.department})</span>
                             )}
-                            <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                              Instant Météo
-                            </span>
                           </div>
-                          <div className="text-[11px] text-slate-300">{msg.card.condition}</div>
+                          <div className="text-[11px] text-slate-300 truncate">{msg.card.condition}</div>
                           <div className="text-[10px] text-slate-400 font-mono mt-0.5">{msg.card.windInfo}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-lg sm:text-xl font-black text-amber-300">{msg.card.temp}</div>
+                        <div className="text-base sm:text-xl font-black text-amber-300">{msg.card.temp}</div>
                         <div className="text-[10px] text-slate-400">Ressenti {msg.card.feelsLike}</div>
                       </div>
                     </div>
 
-                    {/* Actions interactives sur la station météo */}
+                    {/* Actions simplifiées sur la station météo */}
                     {msg.card.stationId && (
                       <div className="pt-2 border-t border-white/10 flex flex-wrap items-center gap-1.5 text-[11px]">
                         {onSelectStation && (
@@ -1660,7 +1620,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                               const st = FRENCH_STATIONS.find(s => s.id === msg.card?.stationId);
                               if (st) onSelectStation(st);
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 font-semibold transition flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 font-semibold transition flex items-center gap-1 cursor-pointer"
                             title="Régler Instant Météo sur cette station"
                           >
                             <MapPin className="h-3 w-3 text-sky-400" />
@@ -1669,24 +1629,10 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                         )}
                         <button
                           onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours à ${msg.card?.location}`)}
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
                         >
                           <LineChart className="h-3 w-3 text-amber-400" />
                           <span>Graphe 7j</span>
-                        </button>
-                        <button
-                          onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7 à ${msg.card?.location}`)}
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
-                        >
-                          <Activity className="h-3 w-3 text-sky-400" />
-                          <span>Historique J-7</span>
-                        </button>
-                        <button
-                          onClick={() => handleProcessQuery(`Génère une carte 3D de la France`)}
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
-                        >
-                          <Compass className="h-3 w-3 text-purple-400" />
-                          <span>Carte 3D</span>
                         </button>
                       </div>
                     )}
@@ -1695,38 +1641,38 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
                 {/* Multi-City Comparison Card */}
                 {msg.comparison && (
-                  <div className="mt-3 p-4 rounded-xl bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-amber-950/40 border border-sky-400/30 space-y-3">
+                  <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-amber-950/40 border border-sky-400/30 space-y-2.5">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <span className="text-xs font-black uppercase text-amber-300 flex items-center gap-1.5">
                         <Scale className="h-3.5 w-3.5 text-amber-400" />
-                        Comparatif Télémétrique Direct
+                        Comparatif Direct
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 font-bold truncate max-w-[160px]">
                         {msg.comparison.summary}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       {/* Station A */}
-                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
+                      <div className="p-2.5 sm:p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
                         <div className="text-xs font-bold text-sky-300 flex items-center justify-between">
-                          <span>{msg.comparison.stationA.name}</span>
-                          <span className="text-base">{msg.comparison.stationA.icon}</span>
+                          <span className="truncate">{msg.comparison.stationA.name}</span>
+                          <span className="text-base shrink-0">{msg.comparison.stationA.icon}</span>
                         </div>
-                        <div className="text-xl font-black text-white mt-1">{msg.comparison.stationA.temp}</div>
-                        <div className="text-[11px] text-slate-300 mt-0.5">{msg.comparison.stationA.condition}</div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationA.wind}</div>
+                        <div className="text-lg sm:text-xl font-black text-white mt-1">{msg.comparison.stationA.temp}</div>
+                        <div className="text-[10px] sm:text-[11px] text-slate-300 mt-0.5 truncate">{msg.comparison.stationA.condition}</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationA.wind}</div>
                       </div>
 
                       {/* Station B */}
-                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
+                      <div className="p-2.5 sm:p-3 rounded-lg bg-white/5 border border-white/10 flex flex-col justify-between">
                         <div className="text-xs font-bold text-amber-300 flex items-center justify-between">
-                          <span>{msg.comparison.stationB.name}</span>
-                          <span className="text-base">{msg.comparison.stationB.icon}</span>
+                          <span className="truncate">{msg.comparison.stationB.name}</span>
+                          <span className="text-base shrink-0">{msg.comparison.stationB.icon}</span>
                         </div>
-                        <div className="text-xl font-black text-white mt-1">{msg.comparison.stationB.temp}</div>
-                        <div className="text-[11px] text-slate-300 mt-0.5">{msg.comparison.stationB.condition}</div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationB.wind}</div>
+                        <div className="text-lg sm:text-xl font-black text-white mt-1">{msg.comparison.stationB.temp}</div>
+                        <div className="text-[10px] sm:text-[11px] text-slate-300 mt-0.5 truncate">{msg.comparison.stationB.condition}</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-400 font-mono mt-1">💨 {msg.comparison.stationB.wind}</div>
                       </div>
                     </div>
                   </div>
@@ -1734,17 +1680,17 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
                 {/* Dynamic Chart.js Graphic */}
                 {msg.chart && (
-                  <div className="mt-4 p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-2">
+                  <div className="mt-3 p-3 sm:p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-2">
                     <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                      <span className="font-bold text-sky-300 flex items-center gap-1.5">
-                        <LineChart className="h-3.5 w-3.5" />
-                        {msg.chart.title}
+                      <span className="font-bold text-sky-300 flex items-center gap-1.5 truncate">
+                        <LineChart className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{msg.chart.title}</span>
                       </span>
-                      <span className="text-[10px] uppercase font-mono text-emerald-400">
-                        Données Instant Météo
+                      <span className="text-[9px] sm:text-[10px] uppercase font-mono text-emerald-400 shrink-0">
+                        Instant Météo
                       </span>
                     </div>
-                    <div className="relative w-full h-44 sm:h-52">
+                    <div className="relative w-full h-40 sm:h-52">
                       <canvas id={msg.chart.id} />
                     </div>
                   </div>
@@ -1775,12 +1721,12 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSpeakMessage(msg.id, msg.text)}
-                        className={`px-2 py-0.5 rounded-lg border transition flex items-center gap-1 text-[10px] cursor-pointer font-medium ${
+                        className={`px-2.5 py-1 rounded-lg border transition flex items-center gap-1 text-[10px] cursor-pointer font-medium ${
                           speakingMessageId === msg.id
                             ? 'bg-rose-500/25 text-rose-300 border-rose-400/50 animate-pulse'
                             : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
                         }`}
-                        title={speakingMessageId === msg.id ? "Arrêter la lecture" : "Écouter le bulletin oral"}
+                        title={speakingMessageId === msg.id ? "Arrêter la lecture" : "Écouter le bulletin"}
                       >
                         {speakingMessageId === msg.id ? (
                           <>
@@ -1797,7 +1743,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
                       <button
                         onClick={() => handleCopyMessage(msg.id, msg.text)}
-                        className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 text-[10px] cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1 text-[10px] cursor-pointer"
                         title="Copier le texte"
                       >
                         {copiedMessageId === msg.id ? (
@@ -1828,272 +1774,66 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
         {/* Thinking Indicator */}
         {isThinking && (
-          <div className="my-2 flex items-center justify-center gap-3 py-2">
-            <div className="flex items-center gap-1 h-5">
+          <div className="my-1.5 flex items-center justify-center gap-2.5 py-1.5 shrink-0">
+            <div className="flex items-center gap-1 h-4">
               <span className="w-1.5 h-full rounded-full bg-cyan-400 animate-pulse" />
               <span className="w-1.5 h-full rounded-full bg-sky-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
               <span className="w-1.5 h-full rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
             </div>
-            <span className="text-xs text-sky-300 font-semibold tracking-wide uppercase">
-              AURA analyse les modélisations et génère le rendu...
+            <span className="text-[11px] sm:text-xs text-sky-300 font-semibold tracking-wide">
+              AURA analyse les modélisations...
             </span>
           </div>
         )}
 
-        {/* Categorized Interactive Prompt Navigation */}
-        <div className="pt-2 pb-1 space-y-2">
-          {/* Category Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 text-[11px]">
+        {/* Simplified Quick Prompt Actions (4 essential buttons only) */}
+        <div className="pt-2 pb-1 shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             <button
-              onClick={() => setSelectedChipCategory('villes')}
-              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
-                selectedChipCategory === 'villes'
-                  ? 'bg-sky-500/25 text-sky-200 border border-sky-400/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
+              onClick={() => handleProcessQuery("Donne-moi la température sur 7 jours")}
+              className="text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-medium shrink-0 shadow-sm whitespace-nowrap active:scale-95"
             >
-              <MapPin className="h-3 w-3 text-sky-400" />
-              <span>Villes & Bulletins</span>
+              <LineChart className="h-3.5 w-3.5 text-amber-400" />
+              <span>📊 Prévision 7 jours</span>
             </button>
             <button
-              onClick={() => setSelectedChipCategory('graphes')}
-              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
-                selectedChipCategory === 'graphes'
-                  ? 'bg-amber-500/25 text-amber-200 border border-amber-400/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
+              onClick={() => handleProcessQuery("Génère une carte 3D de la France")}
+              className="text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/30 text-purple-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-medium shrink-0 shadow-sm whitespace-nowrap active:scale-95"
             >
-              <LineChart className="h-3 w-3 text-amber-400" />
-              <span>Graphiques & Tendances</span>
+              <Compass className="h-3.5 w-3.5 text-purple-400" />
+              <span>🗺️ Carte 3D France</span>
             </button>
             <button
-              onClick={() => setSelectedChipCategory('3d')}
-              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
-                selectedChipCategory === '3d'
-                  ? 'bg-purple-500/25 text-purple-200 border border-purple-400/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
+              onClick={() => handleProcessQuery("Fais une capture du radar")}
+              className="text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-medium shrink-0 shadow-sm whitespace-nowrap active:scale-95"
             >
-              <Compass className="h-3 w-3 text-purple-400" />
-              <span>Modélisation 3D & Radar</span>
+              <Camera className="h-3.5 w-3.5 text-sky-400" />
+              <span>🌧️ Radar Pluie</span>
             </button>
             <button
-              onClick={() => setSelectedChipCategory('comparer')}
-              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
-                selectedChipCategory === 'comparer'
-                  ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
+              onClick={() => handleProcessQuery("Compare Paris et Marseille")}
+              className="text-[11px] sm:text-xs px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-medium shrink-0 shadow-sm whitespace-nowrap active:scale-95"
             >
-              <Scale className="h-3 w-3 text-emerald-400" />
-              <span>Comparateur</span>
+              <Scale className="h-3.5 w-3.5 text-emerald-400" />
+              <span>⚖️ Paris vs Marseille</span>
             </button>
-            <button
-              onClick={() => setSelectedChipCategory('science')}
-              className={`px-2.5 py-1 rounded-lg transition font-semibold cursor-pointer shrink-0 flex items-center gap-1 ${
-                selectedChipCategory === 'science'
-                  ? 'bg-rose-500/25 text-rose-200 border border-rose-400/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
-            >
-              <BookOpen className="h-3 w-3 text-rose-400" />
-              <span>Science & Phénomènes</span>
-            </button>
-          </div>
-
-          {/* Dynamic Suggestion Chips */}
-          <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar">
-            {selectedChipCategory === 'villes' && (
-              <>
-                {['Paris', 'Lyon', 'Marseille', 'Nice', 'Brest', 'Bordeaux', 'Toulouse', 'Strasbourg', 'Nantes', 'Lille'].map((city) => (
-                  <button
-                    key={city}
-                    onClick={() => handleProcessQuery(`Météo ${city}`)}
-                    className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                  >
-                    <MapPin className="h-3 w-3 text-sky-400" />
-                    <span>📍 {city}</span>
-                  </button>
-                ))}
-              </>
-            )}
-
-            {selectedChipCategory === 'graphes' && (
-              <>
-                <button
-                  onClick={() => handleProcessQuery(`Donne-moi la température sur 7 jours`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <LineChart className="h-3 w-3 text-amber-400" />
-                  <span>📊 Températures 7 jours</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Donne-moi la température de aujourd'hui à j-7`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Activity className="h-3 w-3 text-sky-400" />
-                  <span>📉 Historique J-7 à Aujourd'hui</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Génère un graphe de la température de Paris`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <LineChart className="h-3 w-3 text-amber-300" />
-                  <span>📈 Graphe Paris</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Donne-moi le cumul de pluie sur 7 jours`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <CloudRain className="h-3 w-3 text-blue-400" />
-                  <span>💧 Pluie 7j</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Donne-moi les rafales de vent sur 7 jours`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Wind className="h-3 w-3 text-orange-400" />
-                  <span>💨 Rafales de vent 7j</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Donne-moi l'isotherme 0°C et la limite pluie-neige sur 7 jours`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Snowflake className="h-3 w-3 text-cyan-400" />
-                  <span>🏔️ Isotherme 0°C & LPN 7j</span>
-                </button>
-              </>
-            )}
-
-            {selectedChipCategory === '3d' && (
-              <>
-                <button
-                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant le relief et les vrais contours`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/25 to-amber-500/25 hover:from-emerald-500/35 hover:to-amber-500/35 border border-emerald-400/50 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Mountain className="h-3 w-3 text-emerald-400" />
-                  <span>🏔️ Carte Relief 3D &amp; Vrais Contours</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la température`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/40 text-purple-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Compass className="h-3 w-3 text-purple-400" />
-                  <span>🗺️ Carte 3D Températures</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant le vent et les rafales`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/40 text-orange-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Wind className="h-3 w-3 text-orange-400" />
-                  <span>💨 Carte 3D Vent & Rafales</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la pluie`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <CloudRain className="h-3 w-3 text-blue-400" />
-                  <span>🌧️ Carte 3D Précipitations</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Génère une carte 3D de la France montrant la neige et l'isotherme`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Snowflake className="h-3 w-3 text-cyan-400" />
-                  <span>❄️ Carte 3D Neige & Relief</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Fais une capture du radar`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer shrink-0"
-                >
-                  <Camera className="h-3 w-3 text-sky-300" />
-                  <span>📸 Capture Radar Doppler</span>
-                </button>
-              </>
-            )}
-
-            {selectedChipCategory === 'comparer' && (
-              <>
-                <button
-                  onClick={() => handleProcessQuery(`Compare Paris et Marseille`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Scale className="h-3 w-3 text-emerald-400" />
-                  <span>⚖️ Paris vs Marseille</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Compare Brest et Nice`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Scale className="h-3 w-3 text-emerald-400" />
-                  <span>⚖️ Brest vs Nice</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Compare Lyon et Bordeaux`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Scale className="h-3 w-3 text-emerald-400" />
-                  <span>⚖️ Lyon vs Bordeaux</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Compare Lille et Toulouse`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-emerald-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Scale className="h-3 w-3 text-emerald-400" />
-                  <span>⚖️ Lille vs Toulouse</span>
-                </button>
-              </>
-            )}
-
-            {selectedChipCategory === 'science' && (
-              <>
-                <button
-                  onClick={() => handleProcessQuery(`Explique-moi le phénomène de la goutte froide en météorologie`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <BookOpen className="h-3 w-3 text-rose-400" />
-                  <span>🔬 Qu'est-ce qu'une goutte froide ?</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Quelle est la différence entre le Mistral et la Tramontane ?`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Wind className="h-3 w-3 text-orange-400" />
-                  <span>💨 Mistral vs Tramontane</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Comment se forme un orage de supercellule ?`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Zap className="h-3 w-3 text-amber-400" />
-                  <span>⚡ Orage supercellulaire</span>
-                </button>
-                <button
-                  onClick={() => handleProcessQuery(`Pourquoi fait-il plus froid en altitude ?`)}
-                  className="text-[11px] px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer font-bold shadow-sm shrink-0"
-                >
-                  <Thermometer className="h-3 w-3 text-cyan-400" />
-                  <span>🏔️ Gradient adiabatique d'altitude</span>
-                </button>
-              </>
-            )}
           </div>
         </div>
 
-        {/* USER INPUT DOCK */}
-        <div className="relative mt-2">
+        {/* USER INPUT DOCK (Ergonomique sur mobile) */}
+        <div className="relative mt-1 pb-safe shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleProcessQuery(inputText);
             }}
-            className="rounded-2xl p-2 flex items-center gap-2 bg-slate-900/80 border border-white/15 backdrop-blur-2xl shadow-2xl"
+            className="rounded-2xl p-1 sm:p-1.5 flex items-center gap-1.5 bg-slate-900/90 border border-white/15 backdrop-blur-2xl shadow-xl"
           >
             <button
               type="button"
               onClick={handleToggleVoice}
               title={isListening ? 'Écoute en cours...' : 'Parler à AURA'}
-              className={`p-3 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer ${
+              className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition flex items-center justify-center shrink-0 cursor-pointer ${
                 isListening
                   ? 'bg-rose-500 text-white animate-pulse'
                   : 'hover:bg-white/10 text-slate-400 hover:text-sky-300'
@@ -2106,14 +1846,15 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ex: donne moi la température sur 7 jours, carte 3D, pluie, graphe de Paris..."
-              className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-2 font-normal"
+              placeholder="Posez votre question (ex: Paris, 7 jours, carte 3D...)"
+              className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-1.5 sm:px-2 font-normal"
             />
 
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-sky-500 hover:from-amber-400 hover:to-sky-400 text-slate-950 font-bold transition shadow-md flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-r from-amber-500 to-sky-500 hover:from-amber-400 hover:to-sky-400 text-slate-950 font-bold transition shadow-md flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="Envoyer la question"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -2126,7 +1867,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
   if (isModal) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200">
         {renderViewContent()}
       </div>
     );
