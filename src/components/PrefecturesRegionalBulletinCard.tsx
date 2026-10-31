@@ -258,11 +258,16 @@ export const PrefecturesRegionalBulletinCard: React.FC<PrefecturesRegionalBullet
           <div className="rounded-xl border border-slate-700/80 bg-slate-900/90 p-4 sm:p-5 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
               <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-sky-400">
-                  Chef-lieu régional : {selectedRegion.region.chefLieuRegional}
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                    🗺️ [Échelle Régionale : Région {selectedRegion.region.name}]
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">
+                    Chef-lieu : {selectedRegion.region.chefLieuRegional}
+                  </span>
                 </div>
                 <h3 className="text-lg font-black text-white">
-                  Région {selectedRegion.region.name} ({selectedRegion.region.departmentsCount} départements)
+                  Bassin Régional {selectedRegion.region.name} ({selectedRegion.region.departmentsCount} départements)
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -364,6 +369,9 @@ export const PrefecturesRegionalBulletinCard: React.FC<PrefecturesRegionalBullet
 
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                            📍 [Échelle Locale : {item.locality.name}]
+                          </span>
                           <h4 className="font-bold text-white text-base">
                             {item.locality.name}
                           </h4>
@@ -502,15 +510,46 @@ export const PrefecturesRegionalBulletinCard: React.FC<PrefecturesRegionalBullet
                         </div>
                       </div>
 
+                      {/* Diagnostic Concret au Quotidien & Risque de Neige */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
+                        <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                            <span>🎯</span>
+                            <span>Ce que ça donnera concrètement :</span>
+                          </span>
+                          <p className="text-slate-300 text-[11px] leading-relaxed">
+                            {item.tMaxConsensus >= 22
+                              ? "Ambiance très douce et agréable. Tenue légère de mi-saison, conditions très favorables pour vos sorties et activités."
+                              : item.tMaxConsensus <= 5
+                              ? "Atmosphère froide et piquante. Manteau d'hiver, gants et écharpe recommandés. Prudence sur les routes matinales."
+                              : "Temps de saison tempéré. Veste standard pour le matin et après-midi confortable sans excès."}
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300 flex items-center gap-1">
+                            <Snowflake className="h-3 w-3 text-sky-400" />
+                            <span>Analyse Neige &amp; Hiver :</span>
+                          </span>
+                          <p className="text-slate-300 text-[11px] leading-relaxed">
+                            {item.tMaxConsensus <= 2.5 && item.locality.altitude < 400 && (item.modelsComparison.arome.precip > 0 || item.modelsComparison.ecmwf.precip > 0)
+                              ? "❄️ Flocons ou pluie-neige mêlée possibles en plaine lors des averses les plus denses."
+                              : item.locality.altitude >= 600 && item.tMaxConsensus <= 6
+                              ? `🏔️ Risque de neige dès ${Math.max(400, Math.round(item.locality.altitude + (item.tMaxConsensus - 1) * 160))} m sur les hauteurs environnantes.`
+                              : "☀️ Rien de spécial / Aucun risque de neige en plaine (température largement positive)."}
+                          </p>
+                        </div>
+                      </div>
+
                       <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1">
                         <span>🛡️ <strong>Traitement robuste :</strong> {item.eliminatedExtremesNotice}</span>
                         {onSelectStation && (
                           <button
                             type="button"
                             onClick={() => onSelectStation(item.locality)}
-                            className="text-sky-400 hover:underline font-bold"
+                            className="text-sky-400 hover:underline font-bold cursor-pointer"
                           >
-                            Sélectionner cette station
+                            Définir comme station active
                           </button>
                         )}
                       </div>

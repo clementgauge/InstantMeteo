@@ -84,7 +84,6 @@ import { ProfessionalMeteoCard } from '../components/ProfessionalMeteoCard';
 import { LiveMeteoFranceVigilanceCard } from '../components/LiveMeteoFranceVigilanceCard';
 import { MeteoFrancePluieEtNormalesWidget } from '../components/MeteoFrancePluieEtNormalesWidget';
 import { RemarkableWeatherHighlightCard } from '../components/RemarkableWeatherHighlightCard';
-import { CertifiedLiveSiteStatsCard } from '../components/CertifiedLiveSiteStatsCard';
 import { calculatePhysicalIsotherm0 } from '../utils/isothermCalculations';
 import { FranceMiniOverviewCard } from '../components/FranceMiniOverviewCard';
 import { WeatherContradictionModal } from '../components/WeatherContradictionModal';
@@ -1283,11 +1282,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           onRecalibrate={onRecalibrate}
           onReset={onResetRecalibration}
         />
-      </div>
-
-      {/* 4-BIS. FRÉQUENTATION & STATISTIQUES CERTIFIÉES EN TEMPS RÉEL */}
-      <div id="realtime-certified-live-stats" className="w-full scroll-mt-28 pt-2">
-        <CertifiedLiveSiteStatsCard seniorMode={seniorMode} />
       </div>
 
       {/* 5. BLOC INDICATEURS REMARQUABLES & ALERTES PHÉNOMÈNES (TOUT EN BAS DE LA PAGE) */}

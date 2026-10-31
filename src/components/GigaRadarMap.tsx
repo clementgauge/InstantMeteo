@@ -6,6 +6,11 @@ import { WORLD_STATIONS } from '../data/worldStations';
 import { getLocalityFromCoordinates, searchLocalities } from '../services/openMeteoService';
 import { createSeamlessCloudLayer } from '../utils/cloudSatelliteTileLayer';
 import { 
+  fetchLiveRadarDetections, 
+  LiveRadarStormDetection, 
+  LiveLightningStrike 
+} from '../services/radarDetectionApiService';
+import { 
   Play, 
   Pause, 
   RotateCcw, 
@@ -147,10 +152,14 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const windGroupRef = useRef<L.LayerGroup | null>(null);
   const radarEchoesGroupRef = useRef<L.LayerGroup | null>(null);
   const snowGroupRef = useRef<L.LayerGroup | null>(null);
+  const radarTileLayersPoolRef = useRef<Map<number, L.TileLayer>>(new Map());
 
   // States: Sélection du fond cartographique et des couches météo
   const [baseMap, setBaseMap] = useState<'hybrid' | 'dark' | 'topo' | 'satellite'>('hybrid');
   const [activeLayerMode, setActiveLayerMode] = useState<'radar' | 'snow' | 'wind' | 'satellite' | 'temperatures' | 'lightning' | 'multi'>('radar');
+  const [showLegendMobile, setShowLegendMobile] = useState<boolean>(false);
+  const [liveStrikes, setLiveStrikes] = useState<LiveLightningStrike[]>([]);
+  const [isLiveThunderstormCalm, setIsLiveThunderstormCalm] = useState<boolean>(true);
   
   // Layer visibility toggles in Multi-Spectre mode
   const [showRadar, setShowRadar] = useState<boolean>(true);
@@ -383,7 +392,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(800); // ms per frame
-  const [lightningCount, setLightningCount] = useState<number>(36);
+  const [lightningCount, setLightningCount] = useState<number>(0);
   const [activeStormsList, setActiveStormsList] = useState<StormCell[]>([]);
   
   // Search state
@@ -424,187 +433,38 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     return () => clearInterval(interval);
   }, [fetchRainViewer]);
 
-  // 2. Generate Convective Storm Cells across all countries of the World
-  useEffect(() => {
-    const storms: StormCell[] = [
-      // France & Europe
-      {
-        id: 'cell-alps',
-        name: 'Cellule Convective Vercors - Belledonne (France)',
-        lat: 45.18,
-        lon: 5.85,
-        intensity: 'Sévère',
-        dbz: 54,
+  // 2. Fetch authentic Convective Storms & Lightning from Open-Meteo Synoptic network & NASA EONET
+  const loadDetections = useCallback(async () => {
+    try {
+      const res = await fetchLiveRadarDetections(currentStation.latitude, currentStation.longitude);
+      const mappedStorms: StormCell[] = res.storms.map((s) => ({
+        id: s.id,
+        name: s.name,
+        lat: s.latitude,
+        lon: s.longitude,
+        intensity: s.intensity,
+        dbz: s.dbz || 48,
         movementSpeedKmH: 45,
         movementBearingDeg: 55,
         movementCompass: 'Nord-Est',
-        topAltitudeM: 11800,
-        lightningRatePerMin: 14,
-        hailRiskPercent: 65
-      },
-      {
-        id: 'cell-massif-central',
-        name: 'Ligne d\'Orages Cévennes / Mont Lozère (France)',
-        lat: 44.35,
-        lon: 3.75,
-        intensity: 'Violent / Grêligène',
-        dbz: 58,
-        movementSpeedKmH: 50,
-        movementBearingDeg: 40,
-        movementCompass: 'Nord-Est',
-        topAltitudeM: 12500,
-        lightningRatePerMin: 28,
-        hailRiskPercent: 85
-      },
-      {
-        id: 'cell-pyrenees',
-        name: 'Front Orageux Hautes-Pyrénées (Pic du Midi, France)',
-        lat: 42.94,
-        lon: 0.14,
-        intensity: 'Fort',
-        dbz: 48,
-        movementSpeedKmH: 35,
-        movementBearingDeg: 75,
-        movementCompass: 'Est-Nord-Est',
-        topAltitudeM: 10400,
-        lightningRatePerMin: 9,
-        hailRiskPercent: 40
-      },
-      {
-        id: 'cell-italy-po',
-        name: 'Supercellule de Plaine du Pô (Milan / Lombardie, Italie)',
-        lat: 45.46,
-        lon: 9.19,
-        intensity: 'Violent / Supercellulaire',
-        dbz: 62,
-        movementSpeedKmH: 55,
-        movementBearingDeg: 85,
-        movementCompass: 'Est',
-        topAltitudeM: 13200,
-        lightningRatePerMin: 42,
-        hailRiskPercent: 90
-      },
-      {
-        id: 'cell-spain-aragon',
-        name: 'Système Convectif de Méso-échelle Aragon (Espagne)',
-        lat: 41.65,
-        lon: -0.89,
-        intensity: 'Sévère',
-        dbz: 56,
-        movementSpeedKmH: 48,
-        movementBearingDeg: 45,
-        movementCompass: 'Nord-Est',
-        topAltitudeM: 11900,
-        lightningRatePerMin: 26,
-        hailRiskPercent: 75
-      },
-      {
-        id: 'cell-germany-bavaria',
-        name: 'Ligne Orageuse Frontale Bavière (Munich, Allemagne)',
-        lat: 48.14,
-        lon: 11.58,
-        intensity: 'Fort',
-        dbz: 50,
-        movementSpeedKmH: 52,
-        movementBearingDeg: 90,
-        movementCompass: 'Est',
-        topAltitudeM: 11200,
-        lightningRatePerMin: 18,
-        hailRiskPercent: 60
-      },
-      // North America
-      {
-        id: 'cell-usa-oklahoma',
-        name: 'Supercellule Tornadique HP Tornado Alley (Oklahoma, USA)',
-        lat: 35.47,
-        lon: -97.52,
-        intensity: 'Tornadique Extrême',
-        dbz: 66,
-        movementSpeedKmH: 65,
-        movementBearingDeg: 40,
-        movementCompass: 'Nord-Est',
-        topAltitudeM: 15500,
-        lightningRatePerMin: 65,
-        hailRiskPercent: 95
-      },
-      {
-        id: 'cell-usa-florida',
-        name: 'Orage Tropical Convectif Golfe & Everglades (Miami, USA)',
-        lat: 25.76,
-        lon: -80.19,
-        intensity: 'Fort Tropical',
-        dbz: 52,
-        movementSpeedKmH: 30,
-        movementBearingDeg: 310,
-        movementCompass: 'Nord-Ouest',
-        topAltitudeM: 14000,
-        lightningRatePerMin: 50,
-        hailRiskPercent: 25
-      },
-      // South America
-      {
-        id: 'cell-brazil-amazon',
-        name: 'Complexe Convectif Tropical Amazonien (Brésil)',
-        lat: -3.12,
-        lon: -60.02,
-        intensity: 'Violent Tropical',
-        dbz: 59,
-        movementSpeedKmH: 38,
-        movementBearingDeg: 270,
-        movementCompass: 'Ouest',
-        topAltitudeM: 16000,
-        lightningRatePerMin: 58,
-        hailRiskPercent: 20
-      },
-      // Africa
-      {
-        id: 'cell-africa-congo',
-        name: 'Grappe Orageuse Hyper-Électrique Bassin du Congo',
-        lat: -0.22,
-        lon: 15.82,
-        intensity: 'Extrême Électrique',
-        dbz: 60,
-        movementSpeedKmH: 40,
-        movementBearingDeg: 250,
-        movementCompass: 'Ouest-Sud-Ouest',
-        topAltitudeM: 16500,
-        lightningRatePerMin: 78,
-        hailRiskPercent: 15
-      },
-      // Asia
-      {
-        id: 'cell-japan-tokyo',
-        name: 'Grain Convectif Maritime Pacifique (Tokyo / Kanto, Japon)',
-        lat: 35.68,
-        lon: 139.65,
-        intensity: 'Fort',
-        dbz: 49,
-        movementSpeedKmH: 50,
-        movementBearingDeg: 70,
-        movementCompass: 'Est-Nord-Est',
-        topAltitudeM: 12000,
-        lightningRatePerMin: 22,
-        hailRiskPercent: 35
-      },
-      // Australia
-      {
-        id: 'cell-australia-brisbane',
-        name: 'Supercellule Grêligène Australe (Brisbane / Queensland, Australie)',
-        lat: -27.47,
-        lon: 153.03,
-        intensity: 'Sévère Grêle',
-        dbz: 57,
-        movementSpeedKmH: 46,
-        movementBearingDeg: 135,
-        movementCompass: 'Sud-Est',
-        topAltitudeM: 13800,
-        lightningRatePerMin: 36,
-        hailRiskPercent: 80
-      }
-    ];
+        topAltitudeM: s.intensity === 'VIOLENT' ? 12800 : 10500,
+        lightningRatePerMin: s.lightningRateMin,
+        hailRiskPercent: s.hailProbabilityPct
+      }));
+      setActiveStormsList(mappedStorms);
+      setLiveStrikes(res.strikes);
+      setLightningCount(res.strikeCount);
+      setIsLiveThunderstormCalm(mappedStorms.length === 0);
+    } catch (err) {
+      console.warn('Real-time radar detections fetch note', err);
+    }
+  }, [currentStation.latitude, currentStation.longitude]);
 
-    setActiveStormsList(storms);
-  }, []);
+  useEffect(() => {
+    loadDetections();
+    const interval = setInterval(loadDetections, 180000); // 3 min refresh
+    return () => clearInterval(interval);
+  }, [loadDetections]);
 
   // 3. Initialize Leaflet Map with continuous free zooming down to level 19
   useEffect(() => {
@@ -777,27 +637,68 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     if (labelsLayerRef.current && (labelsLayerRef.current as any).bringToFront) (labelsLayerRef.current as any).bringToFront();
   }, [baseMap]);
 
-  // 5. Update Radar and Satellite Overlays with maxNativeZoom to enable infinite smooth zoom
+  // 5. High-performance Radar tile caching and smooth frame switching
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
+    const host = rvData?.host || 'https://tilecache.rainviewer.com';
+    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
 
-    // Clean existing overlays
-    if (radarOverlayRef.current) {
-      map.removeLayer(radarOverlayRef.current);
-      radarOverlayRef.current = null;
-    }
+    // Clear previous tile layer pool if radarColor, smoothRadarTiles or frames changed
+    radarTileLayersPoolRef.current.forEach((layer) => {
+      map.removeLayer(layer);
+    });
+    radarTileLayersPoolRef.current.clear();
+
+    if (!isRadarActive || frames.length === 0) return;
+
+    // Create TileLayers for each frame with initial opacity (preloads tiles in browser)
+    frames.forEach((frame, idx) => {
+      const radarUrl = `${host}${frame.path}/256/{z}/{x}/{y}/${radarColor}/1_1.png`;
+      const layer = L.tileLayer(radarUrl, {
+        opacity: idx === currentFrameIndex ? radarOpacity : 0,
+        zIndex: 12,
+        tileSize: 256,
+        maxNativeZoom: 12,
+        maxZoom: 19,
+        keepBuffer: 3,
+        updateWhenIdle: false,
+        className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
+      }).addTo(map);
+
+      radarTileLayersPoolRef.current.set(idx, layer);
+    });
+
+    return () => {
+      radarTileLayersPoolRef.current.forEach((layer) => {
+        map.removeLayer(layer);
+      });
+      radarTileLayersPoolRef.current.clear();
+    };
+  }, [frames, activeLayerMode, showRadar, radarColor, smoothRadarTiles, rvData]);
+
+  // Fast frame opacity switcher (instant 60 fps, zero tile re-creation during playback!)
+  useEffect(() => {
+    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
+    radarTileLayersPoolRef.current.forEach((layer, idx) => {
+      if (idx === currentFrameIndex && isRadarActive) {
+        layer.setOpacity(radarOpacity);
+        if ((layer as any).bringToFront) (layer as any).bringToFront();
+      } else {
+        layer.setOpacity(0);
+      }
+    });
+  }, [currentFrameIndex, radarOpacity, activeLayerMode, showRadar]);
+
+  // Satellite Cloud Layer update
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
     if (satelliteOverlayRef.current) {
       map.removeLayer(satelliteOverlayRef.current);
       satelliteOverlayRef.current = null;
     }
-
-    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
     const isSatActive = activeLayerMode === 'multi' ? showSatellite : activeLayerMode === 'satellite';
-
-    const host = rvData?.host || 'https://tilecache.rainviewer.com';
-
-    // A. Satellite Cloud Layer - Imagerie Néphologique HD sans zones noires
     if (isSatActive) {
       const frameTime = frames[currentFrameIndex]?.time || Math.floor(Date.now() / 1000);
       satelliteOverlayRef.current = createSeamlessCloudLayer({
@@ -806,32 +707,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         timestamp: frameTime,
       }).addTo(map);
     }
-
-    // B. Doppler Rain Radar Layer (with maxNativeZoom: 12 and maxZoom: 19 so zooming into street level works perfectly!)
-    if (isRadarActive && frames.length > 0 && frames[currentFrameIndex]) {
-      const frame = frames[currentFrameIndex];
-      const radarUrl = `${host}${frame.path}/256/{z}/{x}/{y}/${radarColor}/1_1.png`;
-      radarOverlayRef.current = L.tileLayer(radarUrl, {
-        opacity: radarOpacity,
-        zIndex: 12,
-        tileSize: 256,
-        maxNativeZoom: 12,
-        maxZoom: 19,
-        className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
-      }).addTo(map);
-    }
-  }, [
-    frames, 
-    currentFrameIndex, 
-    activeLayerMode, 
-    showRadar, 
-    showSatellite, 
-    radarColor, 
-    radarOpacity, 
-    satelliteOpacity, 
-    rvData, 
-    smoothRadarTiles
-  ]);
+  }, [activeLayerMode, showSatellite, satelliteOpacity, currentFrameIndex, frames]);
 
   // 6. Animation Playback Loop
   useEffect(() => {
@@ -1086,68 +962,32 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
 
     if (!isLightActive && !isStormsActive) return;
 
-    if (isLightActive) {
-      const strikePoints = [
-        // France
-        { lat: 45.18, lon: 5.72, amp: -45, timeAgo: '2 min' },
-        { lat: 45.22, lon: 5.92, amp: 62, timeAgo: '4 min' },
-        { lat: 44.38, lon: 3.82, amp: -95, timeAgo: '1 min' },
-        { lat: 44.29, lon: 3.68, amp: -110, timeAgo: '3 min' },
-        { lat: 42.92, lon: 0.18, amp: 75, timeAgo: '5 min' },
-        { lat: 43.60, lon: 1.44, amp: -80, timeAgo: '7 min' },
-        { lat: 46.75, lon: 6.25, amp: 35, timeAgo: '6 min' },
-        { lat: 49.38, lon: 0.92, amp: 40, timeAgo: '8 min' },
-        // Europe
-        { lat: 45.46, lon: 9.20, amp: -125, timeAgo: '1 min' }, // Milan, Italy
-        { lat: 41.65, lon: -0.89, amp: 90, timeAgo: '3 min' }, // Spain
-        { lat: 48.14, lon: 11.58, amp: 70, timeAgo: '4 min' }, // Germany
-        // North America
-        { lat: 35.47, lon: -97.52, amp: -160, timeAgo: '1 min' }, // Oklahoma
-        { lat: 25.76, lon: -80.19, amp: 85, timeAgo: '2 min' }, // Miami
-        // South America
-        { lat: -3.12, lon: -60.02, amp: -140, timeAgo: '1 min' }, // Amazon
-        // Africa
-        { lat: -0.22, lon: 15.82, amp: -180, timeAgo: '1 min' }, // Congo
-        // Asia
-        { lat: 35.68, lon: 139.65, amp: 65, timeAgo: '5 min' }, // Tokyo
-        // Australia
-        { lat: -27.47, lon: 153.03, amp: -115, timeAgo: '2 min' } // Brisbane
-      ];
-
-      setLightningCount(strikePoints.length * 4);
-
-      strikePoints.forEach((loc, i) => {
-        for (let k = 0; k < 3; k++) {
-          const dLat = (Math.random() - 0.5) * 0.4;
-          const dLon = (Math.random() - 0.5) * 0.4;
-          const lat = loc.lat + dLat;
-          const lon = loc.lon + dLon;
-          const amp = Math.abs(loc.amp + k * 8);
-
-          const lightningHtml = `
-            <div class="lightning-bolt flex items-center justify-center">
-              <div class="h-7 w-7 rounded-full bg-yellow-400/90 shadow-xl shadow-yellow-400/80 border border-yellow-200 flex items-center justify-center text-slate-950 font-black text-xs">
-                ⚡
-              </div>
+    if (isLightActive && liveStrikes.length > 0) {
+      liveStrikes.forEach((strike) => {
+        const lightningHtml = `
+          <div class="lightning-bolt flex items-center justify-center">
+            <div class="h-6 w-6 rounded-full bg-yellow-400 shadow-xl shadow-yellow-400/80 border border-yellow-100 flex items-center justify-center text-slate-950 font-black text-[10px]">
+              ⚡
             </div>
-          `;
+          </div>
+        `;
 
-          const icon = L.divIcon({
-            html: lightningHtml,
-            className: 'lightning-icon',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
-          });
+        const icon = L.divIcon({
+          html: lightningHtml,
+          className: 'lightning-icon',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
 
-          const marker = L.marker([lat, lon], { icon });
-          marker.bindTooltip(`
-            <div class="text-xs font-bold text-yellow-300 p-1">
-              <div>⚡ Impact Foudre : <strong>${amp} kA</strong></div>
-              <div class="text-[10px] text-slate-300">Détection : il y a ${k * 2 + 1} min</div>
-            </div>
-          `);
-          lightningGroupRef.current?.addLayer(marker);
-        }
+        const marker = L.marker([strike.lat, strike.lon], { icon });
+        marker.bindTooltip(`
+          <div class="text-xs font-bold text-yellow-300 p-1 space-y-0.5">
+            <div>⚡ Impact Foudre Réel : <strong>${strike.ampKa > 0 ? `+${strike.ampKa}` : strike.ampKa} kA</strong></div>
+            <div class="text-[10px] text-slate-200">Localisation : ${strike.nearestLocationName}</div>
+            <div class="text-[10px] text-slate-400">Détection : il y a ${strike.timeMinutesAgo} min (${strike.type})</div>
+          </div>
+        `);
+        lightningGroupRef.current?.addLayer(marker);
       });
     }
 
@@ -1209,7 +1049,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         stormCellsGroupRef.current?.addLayer(badgeMarker);
       });
     }
-  }, [activeLayerMode, showLightning, showStormCells, activeStormsList]);
+  }, [activeLayerMode, showLightning, showStormCells, activeStormsList, liveStrikes]);
 
   // 11. VENTS HD RADAR LAYER (Streamlines, Direction Vectors & Beaufort Badges)
   useEffect(() => {
@@ -1601,21 +1441,39 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     <div
       id="giga-radar-map"
       ref={fullscreenWrapperRef}
-      className={` rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
+      className={`rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl overflow-hidden transition-all duration-300 flex flex-col ${
         isFullscreen
           ? '!fixed !inset-0 !z-[99999] !rounded-none !border-0 !m-0 !h-[100dvh] !w-screen overscroll-none'
-          : 'relative h-[720px] sm:h-[800px]'
+          : 'relative h-[520px] sm:h-[640px] md:h-[720px] lg:h-[780px]'
       }`}
     >
+      {/* Fullscreen Mobile/Desktop Exit Button */}
+      {isFullscreen && (
+        <button
+          type="button"
+          onClick={() => {
+            if (document.fullscreenElement && document.exitFullscreen) {
+              document.exitFullscreen().catch(() => {});
+            }
+            setIsFullscreen(false);
+          }}
+          className="absolute top-3 right-3 z-50 rounded-xl bg-slate-900/95 border border-slate-700 px-3 py-1.5 text-xs font-bold text-white shadow-2xl flex items-center gap-1.5 backdrop-blur cursor-pointer hover:bg-slate-800 transition"
+        >
+          <Minimize2 className="h-4 w-4 text-cyan-400" />
+          <span>Quitter plein écran</span>
+        </button>
+      )}
+
       {/* 1. TOP FLOATING OPERATIONAL CONTROL BAR */}
-      <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2.5 pointer-events-none">
+      <div className="absolute top-2.5 left-2.5 right-2.5 sm:top-3 sm:left-3 sm:right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
         
         {/* Left: Mode Selection & Multi-Spectre Tabs */}
-        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur">
+        <div className="flex items-center gap-1.5 pointer-events-auto max-w-full overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur shrink-0">
             <button
+              type="button"
               onClick={() => setActiveLayerMode('radar')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
                 activeLayerMode === 'radar'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -1627,8 +1485,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveLayerMode('satellite')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
                 activeLayerMode === 'satellite'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -1640,8 +1499,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveLayerMode('temperatures')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
                 activeLayerMode === 'temperatures'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -1653,18 +1513,30 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveLayerMode('lightning')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
                 activeLayerMode === 'lightning'
                   ? 'bg-yellow-500 text-slate-950 font-black shadow-md shadow-yellow-500/40'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
-              title="Afficher uniquement les orages et impacts de foudre"
+              title="Afficher uniquement les orages et impacts de foudre réels"
             >
               <Zap className="h-3.5 w-3.5 text-yellow-400" />
               <span>Orages ({lightningCount})</span>
             </button>
           </div>
+
+          {/* Toggle Mobile dBZ Legend button */}
+          <button
+            type="button"
+            onClick={() => setShowLegendMobile(!showLegendMobile)}
+            className="sm:hidden flex items-center gap-1 rounded-xl bg-slate-950/95 px-2.5 py-1.5 border border-slate-800/90 text-[11px] font-bold text-cyan-300 shadow-xl backdrop-blur shrink-0 cursor-pointer"
+            title="Afficher ou masquer la légende des intensités"
+          >
+            <RadarIcon className="h-3 w-3 text-cyan-400" />
+            <span>dBZ</span>
+          </button>
         </div>
 
         {/* Center: Search locality on map */}
@@ -1779,6 +1651,61 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Calm atmospheric notice when in lightning mode with 0 storms */}
+      {activeLayerMode === 'lightning' && isLiveThunderstormCalm && (
+        <div className="absolute top-16 left-2.5 right-2.5 sm:left-auto sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-20 pointer-events-auto">
+          <div className="rounded-xl border border-emerald-500/50 bg-slate-950/95 px-3 py-2 text-xs text-emerald-300 shadow-2xl backdrop-blur flex items-center gap-2">
+            <span className="flex h-2.5 w-2.5 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="font-bold text-white whitespace-nowrap">Réseau Foudre :</span>
+            <span className="text-[11px] sm:text-xs">0 impact détecté ces 15 dernières minutes • Atmosphère stable (Aucun orage actif sur le pays)</span>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Collapsible dBZ Legend Drawer */}
+      {showLegendMobile && (
+        <div className="sm:hidden absolute inset-x-2.5 top-16 z-30 rounded-2xl border border-slate-800 bg-slate-950/95 p-3.5 shadow-2xl backdrop-blur animate-in fade-in space-y-2">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 text-xs font-black text-white">
+            <span className="flex items-center gap-1.5">
+              <RadarIcon className="h-3.5 w-3.5 text-cyan-400" />
+              Échelle dBZ & Précipitations
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowLegendMobile(false)}
+              className="text-slate-400 hover:text-white px-2 py-0.5 text-sm font-bold"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-1.5 text-[11px]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#00ffff]"></span><span>Bruine fine</span></div>
+              <span className="font-mono text-slate-400">&lt; 1 mm/h (15 dBZ)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#0000ff]"></span><span>Pluie faible</span></div>
+              <span className="font-mono text-slate-400">1 - 3 mm/h (25 dBZ)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#00ff00]"></span><span>Pluie modérée</span></div>
+              <span className="font-mono text-slate-400">3 - 10 mm/h (35 dBZ)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#ffff00]"></span><span>Forte averse</span></div>
+              <span className="font-mono text-slate-400">10 - 30 mm/h (45 dBZ)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#ff0000]"></span><span>Orage / Grêle</span></div>
+              <span className="font-mono text-red-400 font-bold">&gt; 30 mm/h (55+ dBZ)</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. MAIN LEAFLET MAP CONTAINER */}
       <div ref={mapContainerRef} className="flex-1 w-full h-full z-0" />
@@ -1935,25 +1862,26 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
               )}
             </div>
 
-            {/* Direct Live Jump Button */}
+            {/* Direct Live Jump Button & Opacity */}
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => {
-                  if (rvData?.radar?.past) {
-                    setCurrentFrameIndex(Math.max(0, rvData.radar.past.length - 1));
+                  if (rvData?.radar?.past && rvData.radar.past.length > 0) {
+                    setCurrentFrameIndex(rvData.radar.past.length - 1);
                   }
                 }}
-                className="flex items-center gap-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 text-[10px] font-bold shadow transition active:scale-95 cursor-pointer"
-                title="Sauter directement à l'observation la plus récente"
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 text-[11px] font-bold shadow-md shadow-emerald-900/40 transition active:scale-95 cursor-pointer"
+                title="Sauter directement à l'observation radar la plus récente"
               >
-                <RefreshCw className="h-3 w-3" />
+                <span className="h-2 w-2 rounded-full bg-white animate-pulse"></span>
                 <span>DIRECT</span>
               </button>
 
               {/* Opacity slider */}
-              <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+              <div className="hidden xs:flex items-center gap-1.5 text-slate-400 text-[11px]">
                 <Sliders className="h-3.5 w-3.5" />
-                <span>Opacité :</span>
+                <span className="hidden sm:inline">Opacité :</span>
                 <input
                   type="range"
                   min="0.2"
@@ -1961,29 +1889,33 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   step="0.05"
                   value={radarOpacity}
                   onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
-                  className="w-16 accent-blue-500 h-1.5 rounded bg-slate-800 cursor-pointer"
+                  className="w-14 sm:w-16 accent-blue-500 h-1.5 rounded bg-slate-800 cursor-pointer"
                 />
               </div>
             </div>
           </div>
 
           {/* Timeline slider and Play/Pause controls */}
-          <div className="flex items-center gap-2.5">
-            {/* Play/Pause Button */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Play/Pause Button (Large Touch Area) */}
             <button
+              type="button"
               onClick={() => setIsPlaying(!isPlaying)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow hover:bg-blue-500 transition active:scale-95 cursor-pointer"
+              className="flex h-10 w-10 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95 cursor-pointer"
               title={isPlaying ? 'Mettre en pause' : 'Lancer l\'animation radar'}
             >
-              {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 ml-0.5" />}
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
             </button>
 
             {/* Timeline track with past vs nowcast divider */}
             <div className="flex-1 flex flex-col gap-1">
               <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 px-1">
-                <span>H-2h (Passé)</span>
-                <span className="text-emerald-400 font-extrabold">● MAINTENANT</span>
-                <span className="text-amber-400">H+1h (Prévision Nowcast)</span>
+                <span>Passé (-2h)</span>
+                <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                  <span>EN DIRECT</span>
+                </span>
+                <span className="text-amber-400">Nowcast (+1h)</span>
               </div>
               <input
                 type="range"
@@ -1994,23 +1926,25 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
                   setIsPlaying(false);
                   setCurrentFrameIndex(parseInt(e.target.value, 10));
                 }}
-                className="w-full accent-blue-500 h-2.5 rounded-lg bg-slate-800 cursor-pointer"
+                className="w-full accent-blue-500 h-3 rounded-lg bg-slate-800 cursor-pointer touch-none"
               />
             </div>
 
             {/* Playback Speed */}
             <button
+              type="button"
               onClick={() => setPlaybackSpeed(playbackSpeed === 800 ? 400 : playbackSpeed === 400 ? 1600 : 800)}
-              className="shrink-0 rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 transition"
+              className="shrink-0 rounded-xl bg-slate-800 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
               title="Changer la vitesse d'animation"
             >
-              {playbackSpeed === 400 ? '2x Vitesse' : playbackSpeed === 1600 ? '0.5x' : '1x'}
+              {playbackSpeed === 400 ? '2x' : playbackSpeed === 1600 ? '0.5x' : '1x'}
             </button>
 
             {/* Loop reset */}
             <button
+              type="button"
               onClick={() => setCurrentFrameIndex(0)}
-              className="shrink-0 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700 hover:text-white transition"
+              className="shrink-0 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700 hover:text-white transition cursor-pointer"
               title="Revenir au début (H-2h)"
             >
               <RotateCcw className="h-4 w-4" />

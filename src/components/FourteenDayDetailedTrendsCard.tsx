@@ -37,7 +37,8 @@ import {
   Zap,
   Check,
   Target,
-  Scale
+  Scale,
+  Snowflake
 } from 'lucide-react';
 import { FourteenDayUncertaintyConeChart } from './FourteenDayUncertaintyConeChart';
 import { 
@@ -53,6 +54,11 @@ import {
   generateFourteenDayScenarios, 
   fetchAndGenerateFourteenDayMultiModelScenarios 
 } from '../services/fourteenDayScenariosService';
+import { 
+  determineGeographicZone, 
+  ZONE_RELIABILITY_WEIGHTS,
+  GeographicZoneType 
+} from '../utils/robustModelConsensus';
 
 interface FourteenDayDetailedTrendsCardProps {
   station: LocationPoint;
@@ -138,6 +144,31 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
     const avgTx = (totalTx / data.days.length).toFixed(1);
     return { warmest, coldest, wettest, avgTx, rainDays, highConfDays };
   }, [data]);
+
+  const geoZone: GeographicZoneType = React.useMemo(() => {
+    return determineGeographicZone(
+      station.latitude,
+      station.longitude,
+      station.altitude ?? 100,
+      station.department
+    );
+  }, [station]);
+
+  const geoWeights = React.useMemo(() => {
+    return ZONE_RELIABILITY_WEIGHTS[geoZone];
+  }, [geoZone]);
+
+  const geoZoneMeta: Record<GeographicZoneType, { label: string; desc: string; icon: string }> = {
+    COASTAL_ATLANTIC_MANCHE: { label: 'Façade Atlantique & Manche', desc: 'Priorité CEPMMT (28%) & AROME (22%) - Suivi des perturbations océaniques', icon: '🌊' },
+    MEDITERRANEAN_SE: { label: 'Zone Méditerranéenne & Sud-Est', desc: 'Priorité AROME 1.3km (40%) & CEPMMT (22%) - Modélisation fine du Mistral et du relief', icon: '☀️' },
+    MOUNTAIN_ALPS: { label: 'Massifs Alpins (Nord & Sud)', desc: 'Priorité AROME Alpin (42%) & ICON-EU (18%) - Résolution des combes et inversions', icon: '🏔️' },
+    MOUNTAIN_PYRENEES: { label: 'Massif des Pyrénées', desc: 'Priorité AROME (40%) & CEPMMT (20%) - Effet de foehn et orographie ibérique', icon: '⛰️' },
+    MOUNTAIN_MASSIF_CENTRAL: { label: 'Massif Central & Cévennes', desc: 'Priorité AROME (38%) & CEPMMT (22%) - Plateaux et blocages d\'air froid', icon: '🌋' },
+    MOUNTAIN_JURA_VOSGES: { label: 'Jura & Massif des Vosges', desc: 'Priorité ICON DWD (26%) & AROME (26%) - Physique des brouillards et bise', icon: '🌲' },
+    CONTINENTAL_EAST: { label: 'Grand Est & Plaine d\'Alsace', desc: 'Priorité ICON (26%) & CEPMMT (24%) & GFS (20%) - Climat semi-continental', icon: '🌾' },
+    PARIS_NORTH_PLAINS: { label: 'Bassin Parisien & Plaines du Nord', desc: 'Priorité CEPMMT (28%) & AROME (24%) & GFS (20%) - Concordance des perturbations', icon: '🏙️' },
+    SOUTH_WEST_AQUITAINE: { label: 'Sud-Ouest & Bassin Aquitain', desc: 'Priorité AROME (30%) & CEPMMT (24%) & GFS (20%) - Évolution thermique et orages', icon: '🍇' }
+  };
 
   if (!data) return null;
 
@@ -384,6 +415,46 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
             <span>Synthèse de l'évolution à 14 jours :</span>
           </p>
           <p>{data.overallSummary}</p>
+        </div>
+
+        {/* Geographic Model Weighting Matrix Banner (Calibration Zonal) */}
+        <div className="mt-3 p-3.5 rounded-lg bg-slate-950 border border-sky-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <span className="text-2xl shrink-0 mt-0.5 sm:mt-0">{geoZoneMeta[geoZone]?.icon || '🗺️'}</span>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                  [Échelle Locale : {station.name} • {geoZoneMeta[geoZone]?.label}]
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Consensus Élagué à 90% (5% Extrêmes Exclus)
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                {geoZoneMeta[geoZone]?.desc}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono shrink-0">
+            <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-sky-300 font-semibold" title="Météo-France (AROME 1.3km / ARPEGE)">
+              AROME : <strong>{Math.round(geoWeights.meteofrance * 100)}%</strong>
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-indigo-300 font-semibold" title="Centre Européen (IFS 9km / Ensembles)">
+              ECMWF : <strong>{Math.round(geoWeights.ecmwf * 100)}%</strong>
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-amber-300 font-semibold" title="NOAA NCEP (GFS / GEFS 31 membres)">
+              GFS : <strong>{Math.round(geoWeights.gfs * 100)}%</strong>
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-emerald-300 font-semibold" title="DWD Allemagne (ICON / ICON-EU)">
+              ICON : <strong>{Math.round(geoWeights.icon * 100)}%</strong>
+            </span>
+            {geoWeights.ukmo && (
+              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-purple-300 font-semibold" title="UK Met Office (Unified Model)">
+                UKMO : <strong>{Math.round(geoWeights.ukmo * 100)}%</strong>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Sub-Navigation Tabs - Hidden in Simplified Mode */}
@@ -907,7 +978,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-sky-300 border border-slate-700 flex items-center gap-1">
                       <span>{getBranchWeatherEmoji(selectedDay.dominantScenario)}</span>
-                      <span>Scénario Principal</span>
+                      <span>1. Scénario Majoritaire (Consensus 90%)</span>
                     </span>
                     <span className="text-xs font-bold text-sky-400 font-mono">{selectedDay.dominantScenario.probabilityPct}% prob.</span>
                   </div>
@@ -935,7 +1006,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-amber-300 border border-slate-700 flex items-center gap-1">
                       <span>{getBranchWeatherEmoji(selectedDay.alternativeScenario1)}</span>
-                      <span>Scénario Alternatif 1</span>
+                      <span>2. Scénario Alternatif (Timing/Front)</span>
                     </span>
                     <span className="text-xs font-bold text-amber-400 font-mono">{selectedDay.alternativeScenario1.probabilityPct}% prob.</span>
                   </div>
@@ -951,7 +1022,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   </div>
                 </button>
 
-                {/* ALT 2 SCENARIO */}
+                {/* ALT 2 SCENARIO (Risque Phénomène / Extrême) */}
                 {selectedDay.alternativeScenario2 && (
                   <button
                     onClick={() => setActiveScenarioType('alt2')}
@@ -964,7 +1035,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-purple-300 border border-slate-700 flex items-center gap-1">
                         <span>{getBranchWeatherEmoji(selectedDay.alternativeScenario2)}</span>
-                        <span>Scénario Alternatif 2</span>
+                        <span>3. Risque Phénomène / Extrême</span>
                       </span>
                       <span className="text-xs font-bold text-purple-400 font-mono">{selectedDay.alternativeScenario2.probabilityPct}% prob.</span>
                     </div>
@@ -995,10 +1066,10 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                 <div className="rounded-md bg-slate-950 border border-slate-800 p-4 space-y-4">
                   {/* Scenario Header with Supporting Models */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                          Configuration Synoptique
+                        <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                          [Échelle Locale : {station.name} • Alt. {station.altitude || 100} m]
                         </span>
                         {activeBranch.title && (
                           <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
@@ -1019,6 +1090,47 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <div className="rounded-md bg-slate-900 border border-slate-800 px-3 py-1.5 text-center">
                         <span className="text-[10px] text-slate-400 block">Probabilité</span>
                         <span className="text-base font-bold text-emerald-400 font-mono">{activeBranch.probabilityPct} %</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Analyse Neige & Limite Pluie-Neige Explicite */}
+                  <div className="rounded-md bg-slate-900 border border-slate-800 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Snowflake className="h-3.5 w-3.5 text-sky-400" />
+                        <span>Analyse Neige &amp; Limite Pluie-Neige ({selectedDay.dayLabel}) :</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        Altitude Station : {station.altitude ?? 100} m
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1.5 flex-wrap">
+                          <span>Verdict :</span>
+                          <span className={activeBranch.tempMax <= 2.5 ? "text-cyan-300" : "text-emerald-300"}>
+                            {activeBranch.tempMax <= 2.5 && (station.altitude || 0) < 500 && activeBranch.precipitationMm > 0
+                              ? "❄️ Flocons ou neige fondante possibles en plaine lors des averses les plus soutenues"
+                              : (station.altitude || 0) >= 700 && activeBranch.tempMax <= 5
+                              ? `🏔️ Flocons probables sur les massifs dès ${Math.max(400, Math.round((activeBranch.isotherm0Meters ?? 2000) - 300))} m`
+                              : "☀️ Rien de spécial / Aucun risque de neige en plaine (température sous abri trop douce)"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-1">
+                          Isotherme 0°C calculé : <strong className="text-sky-300">{activeBranch.isotherm0Meters ?? 2800} m</strong> • Limite Pluie-Neige (LPN) estimée : <strong className="text-indigo-300">{Math.max(0, (activeBranch.isotherm0Meters ?? 2800) - 300)} m</strong>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                          activeBranch.tempMax <= 2.5
+                            ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                            : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        }`}>
+                          {activeBranch.tempMax <= 2.5 ? 'Surveillance Neige' : 'Hors Gel en Plaine'}
+                        </span>
                       </div>
                     </div>
                   </div>

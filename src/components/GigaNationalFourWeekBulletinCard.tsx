@@ -370,10 +370,15 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
             {/* Selected Region Detailed Card */}
             <div className="rounded-2xl border border-blue-500/30 bg-slate-950/90 p-6 space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-                <div>
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
-                    Zoom Régional • {selectedWeek.weekLabel.split(':')[0]}
-                  </span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                      🗺️ [Échelle Régionale : {selectedRegion.regionName}]
+                    </span>
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                      Zoom Régional • {selectedWeek.weekLabel.split(':')[0]}
+                    </span>
+                  </div>
                   <h4 className="text-xl font-black text-white mt-0.5">{selectedRegion.regionName}</h4>
                   <p className="text-xs text-slate-300 mt-1 font-semibold">{selectedRegion.dominantWeather}</p>
                 </div>
@@ -422,6 +427,37 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
                       </li>
                     ))}
                   </ul>
+                </div>
+              </div>
+
+              {/* Impacts Concrets au Quotidien & Analyse Neige */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+                <div className="rounded-xl bg-slate-900 border border-slate-800 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                    <span>🎯</span>
+                    <span>Ce que ça donnera concrètement au quotidien :</span>
+                  </span>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    {selectedRegion.tempAnomalyC > 1.5
+                      ? "Ressenti très doux à chaud pour la saison. Vêtements printaniers légers, confort thermique optimal pour les activités extérieures."
+                      : selectedRegion.tempAnomalyC < -1.5
+                      ? "Fraîcheur vive ou froid prononcé. Manteau chaud et protection coupe-vent recommandés pour vos journées."
+                      : "Conditions de saison sans rupture thermique brutale. Prévoyez des couches adaptées matin et soir."}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-slate-900 border border-slate-800 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300 flex items-center gap-1">
+                    <span>❄️</span>
+                    <span>Analyse Neige &amp; Hiver :</span>
+                  </span>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    {selectedRegion.regionName.includes('Montagnes') || selectedRegion.regionName.includes('Alpes')
+                      ? "🏔️ Enneigement et regel assurés au-dessus de 1600-1800 m selon les fronts d'altitude."
+                      : selectedRegion.tempAnomalyC < -2.0 && selectedRegion.precipAnomalyPct > 15
+                      ? "❄️ Risque de chutes de neige humides ou grésil en plaine à surveiller en cas de blocage dépressionnaire."
+                      : "☀️ Rien de spécial / Aucun risque de neige en plaine pour cette période."}
+                  </p>
                 </div>
               </div>
             </div>

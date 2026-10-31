@@ -2056,6 +2056,49 @@ app.get('/api/vigilance-meteofrance', async (req, res) => {
   res.json(result);
 });
 
+// 18. API Aura Intelligence Météorologique (Gemini 2.5 Flash Server-Side)
+app.post('/api/aura/chat', async (req, res) => {
+  const { message, station, weather } = req.body || {};
+  if (!message) {
+    return res.status(400).json({ error: 'Message manquant' });
+  }
+
+  const client = getGeminiClient();
+  if (!client) {
+    return res.json({
+      success: false,
+      reason: 'Gemini client not initialized'
+    });
+  }
+
+  try {
+    const prompt = `Tu es AURA, l'intelligence météorologique officielle d'Instant Météo connectée aux modèles (ECMWF, GFS, ICON, AROME).
+Station de référence : ${station?.name || 'France'} (${station?.department || ''}), Température : ${weather?.temperature ?? 15}°C (ressenti : ${weather?.feelsLike ?? 15}°C), Conditions : ${weather?.weatherDescription || 'Variable'}, Vent : ${weather?.windSpeed ?? 15} km/h (rafales ${weather?.windGust ?? 25} km/h).
+Question de l'utilisateur : "${message}"
+Consignes impératives :
+- Réponds en français clair, précis, empathique et rigoureux.
+- Précise toujours explicitement l'échelle géographique dont tu parles : ex. "[Échelle Locale : Nom de la ville]" ou "[Échelle Régionale : Région]" ou "[Échelle Nationale : France métropolitaine]".
+- Indique toujours une section "Ce que cela donnera concrètement" (impact sur la vie quotidienne, parapluie, tenue recommandée).
+- Mentionne explicitement l'analyse du risque de neige ("Risque de neige : Rien de spécial / Aucun risque en plaine" ou altitude de la LPN en montagne).
+- Tu es AURA d'Instant Météo.`;
+
+    const aiRes = await client.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt
+    });
+
+    const answer = aiRes.text?.trim() || '';
+    if (answer) {
+      return res.json({ success: true, answer });
+    }
+    return res.json({ success: false });
+  } catch (err: any) {
+    console.warn("Aura chat AI error:", err?.message || err);
+    return res.json({ success: false, error: err?.message });
+  }
+});
+
+
 // -------------------------------------------------------------
 // VÉRIFICATION GOOGLE SEARCH CONSOLE SÉCURISÉE (MASQUÉE AUX VISITEURS)
 // -------------------------------------------------------------

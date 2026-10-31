@@ -65,7 +65,9 @@ export interface ChartDatasetItem {
 export const MAJOR_FRENCH_CITIES_MAP: Record<string, string> = {
   'paris': 'paris-montsouris',
   'marseille': 'marseille-marignane',
+  'marseilles': 'marseille-marignane',
   'lyon': 'lyon-bron',
+  'lyons': 'lyon-bron',
   'toulouse': 'toulouse-blagnac',
   'nice': 'nice-cote-d-azur',
   'nantes': 'nantes-atlantique',
@@ -164,6 +166,18 @@ export function detectStationFromInput(query: string): LocationPoint | null {
     if (regex.test(clean) || clean === cityName) {
       const match = FRENCH_STATIONS.find(s => s.id === stationId);
       if (match) return match;
+    }
+  }
+
+  // 1b. Variante avec singulier (ex: "marseilles" -> "marseille", "lyons" -> "lyon")
+  const tokens = clean.split(/[\s,.'?!:;-]+/).filter(t => t.length >= 4);
+  for (const token of tokens) {
+    if (token.endsWith('s')) {
+      const singular = token.slice(0, -1);
+      if (MAJOR_FRENCH_CITIES_MAP[singular]) {
+        const match = FRENCH_STATIONS.find(s => s.id === MAJOR_FRENCH_CITIES_MAP[singular]);
+        if (match) return match;
+      }
     }
   }
 
@@ -720,6 +734,9 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     setInputText('');
     setIsThinking(true);
     scrollToBottom();
+
+    // Délibération de l'IA (1.4s) pour animer les 3 petits points de réflexion dans le chat stream
+    await new Promise((resolve) => setTimeout(resolve, 1400));
 
     // Normalisation du texte pour analyse sémantique approfondie
     const lower = query.toLowerCase();
@@ -1315,18 +1332,26 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         activityAdvice = '❄️ Froid piquant : gants et manteau d\'hiver fortement recommandés.';
       }
 
-      responseText = `📍 **Bulletin Météo Certifié — ${targetStation.name}**${stationDept} :\n\n` +
-        `À **${targetStation.name}**, le temps est actuellement **${targetWeather.weatherDescription.toLowerCase()}** avec une température sous abri de **${targetWeather.temperature}°C** (ressenti bio-météo de **${targetWeather.feelsLike}°C**).\n\n` +
+      const isPlainSnowRisk = targetWeather.temperature <= 2.0 && (targetStation.altitude || 0) < 500 && targetWeather.precipitation > 0;
+      const snowVerdict = isPlainSnowRisk
+        ? '❄️ Risque de pluie et neige mêlées ou flocons en plaine lors des passages les plus intenses.'
+        : (targetStation.altitude || 0) >= 700 && targetWeather.temperature <= 4.0
+        ? `🏔️ Chutes de neige possibles en altitude sur les massifs dès ${Math.max(400, Math.round((targetStation.altitude || 700) + (targetWeather.temperature - 1) * 150))} m.`
+        : '☀️ Rien de spécial / Aucun risque de neige en plaine (0% de probabilité, isotherme élevé).';
+
+      responseText = `📍 **[Échelle Locale : ${targetStation.name}${stationDept}]**\n\n` +
+        `À **${targetStation.name}**, le ciel est actuellement **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti bio-météorologique de **${targetWeather.feelsLike}°C**).\n\n` +
         `📊 **Télémétrie en direct (${targetStation.name}${stationAlt})** :\n` +
-        `- 💨 **Vent moyen** : **${targetWeather.windSpeed} km/h** | **Rafales de pointe** : **${currentGust} km/h** (cap ${targetWeather.windDirection ?? 230}°)\n` +
-        `- 💧 **Humidité relative** : **${targetWeather.humidity ?? 65}%** | **Précipitations** : **${targetWeather.precipitation} mm** (risque immédiat **${rainProb}%**)\n` +
+        `- 💨 **Vent moyen** : **${targetWeather.windSpeed} km/h** | **Rafales maximales** : **${currentGust} km/h** (secteur ${targetWeather.windDirection ?? 230}°)\n` +
+        `- 💧 **Humidité relative** : **${targetWeather.humidity ?? 65}%** | **Précipitations mesurées** : **${targetWeather.precipitation} mm** (risque immédiat **${rainProb}%**)\n` +
         `- 🧭 **Pression atmosphérique** : **${targetWeather.pressure ?? 1015} hPa** (${isPressHigh ? 'baromètre anticyclonique stable' : 'régime dépressionnaire'})\n` +
         `- ☀️ **Indice UV estimé** : **${targetWeather.uvIndex ?? (targetWeather.temperature > 20 ? 5 : 2)}** / 10\n\n` +
-        `⏱️ **Évolution de la journée** :\n` +
-        `- Matinée : **${morningTemp}°C** | Après-midi : **${afternoonTemp}°C** | Soirée : **${eveningTemp}°C**\n\n` +
+        `🎯 **Ce que ça donnera concrètement aujourd'hui :**\n` +
+        `- ❄️ **Analyse Neige** : ${snowVerdict}\n` +
+        `- 🧥 **Tenue & Vie quotidienne** : ${activityAdvice}\n` +
+        `- ⏱️ **Rythme de la journée** : Matinée **${morningTemp}°C** • Après-midi **${afternoonTemp}°C** • Soirée **${eveningTemp}°C**\n\n` +
         (forecast3Days ? `📅 **Aperçu des 3 prochains jours** :\n${forecast3Days}\n\n` : '') +
-        `💡 **Conseil d'AURA** : ${activityAdvice}\n\n` +
-        `*Cliquez sur "Définir comme ville active" ci-dessous pour régler Instant Météo sur ${targetStation.name}, ou demandez-moi son graphe thermique sur 7 jours.*`;
+        `*Définissez ${targetStation.name} comme ville active ci-dessous pour aligner vos alertes et vos radars.*`;
 
       cardData = {
         location: targetStation.name,
@@ -1770,21 +1795,22 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
               </div>
             </div>
           ))}
-        </div>
 
-        {/* Thinking Indicator */}
-        {isThinking && (
-          <div className="my-1.5 flex items-center justify-center gap-2.5 py-1.5 shrink-0">
-            <div className="flex items-center gap-1 h-4">
-              <span className="w-1.5 h-full rounded-full bg-cyan-400 animate-pulse" />
-              <span className="w-1.5 h-full rounded-full bg-sky-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
-              <span className="w-1.5 h-full rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
+          {/* Bulle de réflexion animée AURA avec les 3 petits points (comme si l'IA réfléchit) */}
+          {isThinking && (
+            <div className="flex items-start gap-2.5 sm:gap-3 justify-start animate-fade-in py-1">
+              <AuraBotAvatar size="sm" glow={true} className="mt-1 shrink-0" />
+              <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-sm bg-slate-900/95 border border-sky-400/40 text-slate-200 shadow-2xl backdrop-blur-2xl flex items-center gap-3">
+                <span className="text-xs text-sky-300 font-semibold tracking-wide">AURA réfléchit</span>
+                <div className="inline-flex items-center gap-1.5 px-1 py-0.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '180ms' }} />
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '360ms' }} />
+                </div>
+              </div>
             </div>
-            <span className="text-[11px] sm:text-xs text-sky-300 font-semibold tracking-wide">
-              AURA analyse les modélisations...
-            </span>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Simplified Quick Prompt Actions (4 essential buttons only) */}
         <div className="pt-2 pb-1 shrink-0">

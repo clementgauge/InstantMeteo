@@ -383,10 +383,15 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
         {report && (
           <div className="mt-5 rounded-2xl bg-slate-950/80 border border-sky-500/30 p-4.5 space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-sky-400" />
-                <span>Diagnostic Synoptique Conjoint des 5 Centres Météo :</span>
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                  🌐 [Échelle Nationale : France métropolitaine]
+                </span>
+                <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-sky-400" />
+                  <span>Diagnostic Synoptique Conjoint des 5 Centres Météo :</span>
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                   Consensus des Modèles : {report.synopticDiagnosis.centersConsensusIndex} %
@@ -572,6 +577,9 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
               <div className="rounded-xl border border-sky-500/20 bg-slate-900/90 p-4 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                      📍 [Échelle Locale : {currentStation.name}{currentStation.department ? ` (${currentStation.department})` : ''}]
+                    </span>
                     <span className="text-xs font-black uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-sky-400" />
                       <span>Consensus Robuste 90% (5% Extrêmes Neutralisés) :</span>
@@ -622,6 +630,37 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                       {renderWeatherIcon(activeDay.consensus.dominantWeatherCode, "w-4 h-4")}
                       <span className="text-xs font-bold text-white truncate">{activeDay.consensus.dominantWeatherLabel}</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Bloc d'Analyse Concrète : Impacts Quotidien & Risque de Neige Explicite */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
+                  <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <span>🎯</span>
+                      <span>Ce que ça donnera concrètement ({activeDay.dayLabel}) :</span>
+                    </span>
+                    <p className="text-slate-300 text-[11px] leading-relaxed">
+                      {(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) >= 22
+                        ? "Douceur très agréable et printanière/estivale. Vêtements légers, conditions excellentes pour les loisirs en extérieur et déplacements."
+                        : (activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 4
+                        ? "Ambiance glaciale ou très froide. Vêtements chauds, manteau d'hiver et gants nécessaires. Prudence sur les axes routiers ombragés."
+                        : "Températures conformes à la saison. Prévoir une veste pour la matinée et un confort thermique équilibré l'après-midi."}
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300 flex items-center gap-1">
+                      <Snowflake className="h-3 w-3 text-sky-400" />
+                      <span>Analyse Neige &amp; Phénomènes Hivernaux :</span>
+                    </span>
+                    <p className="text-slate-300 text-[11px] leading-relaxed">
+                      {(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 2.5 && (activeDay.consensus.trimmedPrecipConsensus ?? activeDay.consensus.precipMean) > 0
+                        ? "❄️ Risque de neige ou pluie mêlée de flocons en plaine lors des averses les plus soutenues."
+                        : (currentStation.altitude || 0) >= 600 && (activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 6
+                        ? `🏔️ Flocons possibles sur les reliefs à partir de ${Math.max(400, Math.round((currentStation.altitude || 600) + ((activeDay.consensus.trimmedTMaxConsensus ?? 10) - 1) * 150))} m.`
+                        : "☀️ Rien de spécial / Aucun risque de neige en plaine (isotherme 0°C trop élevé, températures positives)."}
+                    </p>
                   </div>
                 </div>
 
