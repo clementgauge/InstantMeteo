@@ -370,6 +370,41 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     }
   }, [userLocationPoint, currentStation]);
 
+  // Températures réelles mesurées pour l'ensemble des stations françaises du réseau
+  const [liveStationTemps, setLiveStationTemps] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveFrenchStationsTemps = async () => {
+      try {
+        const lats = FRENCH_STATIONS.map(s => s.latitude.toFixed(2)).join(',');
+        const lons = FRENCH_STATIONS.map(s => s.longitude.toFixed(2)).join(',');
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=auto`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const mapTemps: Record<string, number> = {};
+          data.forEach((item, idx) => {
+            if (item?.current?.temperature_2m !== undefined && FRENCH_STATIONS[idx]) {
+              mapTemps[FRENCH_STATIONS[idx].id] = Number(item.current.temperature_2m.toFixed(1));
+            }
+          });
+          if (isMounted) setLiveStationTemps(mapTemps);
+        }
+      } catch (err) {
+        console.warn('Erreur chargement températures réelles stations:', err);
+      }
+    };
+
+    fetchLiveFrenchStationsTemps();
+    const interval = setInterval(fetchLiveFrenchStationsTemps, 300000); // Actualisation toutes les 5 min
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   // Target probe & distance measurement
   const [measuredTarget, setMeasuredTarget] = useState<{
     lat: number;
@@ -380,6 +415,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     localityName: string;
     estimatedDbz?: number;
     estimatedRainRate?: number;
+    temperature?: number;
   } | null>(null);
 
   const [hoverCoord, setHoverCoord] = useState<{ lat: number; lng: number } | null>(null);
@@ -507,18 +543,32 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       setHoverCoord({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
 
-    // Map Click Handler -> Probe locality and set measurement
+    // Map Click Handler -> Probe locality, real telemetry and set measurement
     map.on('click', async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       const distance = calculateHaversineDistance(currentStation.latitude, currentStation.longitude, lat, lng);
       const bearing = calculateBearing(currentStation.latitude, currentStation.longitude, lat, lng);
 
-      // Simulate realistic reflectivity based on nearby storm cells or general distance
-      const randomDbz = Math.round(Math.random() * 45 + 5);
-      const rainRate = dbzToRainRate(randomDbz);
-
       try {
-        const point = await getLocalityFromCoordinates(lat, lng);
+        const pointPromise = getLocalityFromCoordinates(lat, lng);
+        const liveWeatherPromise = fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=auto`)
+          .then(r => r.json())
+          .catch(() => null);
+
+        const [point, liveData] = await Promise.all([pointPromise, liveWeatherPromise]);
+
+        const precip = liveData?.current?.precipitation !== undefined ? Number(liveData.current.precipitation) : 0;
+        const liveTemp = liveData?.current?.temperature_2m !== undefined ? Number(liveData.current.temperature_2m.toFixed(1)) : undefined;
+
+        // Marshall-Palmer relation Z = 200 * R^1.6 -> dBZ = 10 * log10(Z)
+        let calcDbz = 0;
+        if (precip > 0.05) {
+          const z = 200 * Math.pow(precip, 1.6);
+          calcDbz = Math.min(65, Math.max(12, Math.round(10 * Math.log10(z))));
+        } else if (liveData?.current?.weather_code && [51, 53, 55, 61, 80].includes(liveData.current.weather_code)) {
+          calcDbz = 18;
+        }
+
         setMeasuredTarget({
           lat,
           lon: lng,
@@ -526,8 +576,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           bearingDeg: bearing.deg,
           bearingCompass: bearing.compass,
           localityName: point.name,
-          estimatedDbz: randomDbz,
-          estimatedRainRate: rainRate
+          estimatedDbz: calcDbz,
+          estimatedRainRate: Number(precip.toFixed(1)),
+          temperature: liveTemp
         });
 
         // Add visual click probe pin
@@ -822,21 +873,26 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     const isTempActive = activeLayerMode === 'temperatures' || (activeLayerMode === 'multi' && showStations);
     if (!isTempActive) return;
 
-    // Helper to calculate realistic temperature for any world station
+    // Helper to obtain authentic live temperature for any station
     const getStationTemp = (st: LocationPoint) => {
-      const absLat = Math.abs(st.latitude || 0);
-      const alt = st.altitude ?? 150;
-      let base = 30.5 - Math.pow(absLat / 90, 1.42) * 44;
-      const lapse = (alt / 1000) * 6.5;
-      let temp = base - lapse;
-      const month = new Date().getMonth();
-      const isNorthernSummer = month >= 4 && month <= 9;
-      if ((st.latitude || 0) >= 0) {
-        temp += isNorthernSummer ? 4.5 * Math.sin((absLat / 90) * Math.PI) : -4.5 * Math.sin((absLat / 90) * Math.PI);
-      } else {
-        temp += isNorthernSummer ? -4.5 * Math.sin((absLat / 90) * Math.PI) : 4.5 * Math.sin((absLat / 90) * Math.PI);
+      // 1. Station active sélectionnée sur le site avec données météo directes
+      if (st.id === currentStation.id && weather?.temperature !== undefined) {
+        return Number(weather.temperature.toFixed(1));
       }
-      return Number(temp.toFixed(1));
+      // 2. Position GPS de l'utilisateur
+      if (st.id === userLocationPoint?.id && userLocationTemp !== null) {
+        return userLocationTemp;
+      }
+      // 3. Relevés réels mesurés Open-Meteo pour cette station
+      if (liveStationTemps[st.id] !== undefined) {
+        return liveStationTemps[st.id];
+      }
+      // 4. Calcul synoptique basé sur la température de référence du site
+      const refTemp = weather?.temperature ?? 15.0;
+      const refAlt = currentStation.altitude ?? 100;
+      const dLat = (st.latitude - currentStation.latitude) * 0.75;
+      const dAlt = ((st.altitude ?? 150) - refAlt) / 100 * 0.65;
+      return Number((refTemp - dLat - dAlt).toFixed(1));
     };
 
     // Position exacte de l'utilisateur (auto-détectée par GPS ou commune active)
@@ -949,7 +1005,7 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     if (activeLayerMode === 'temperatures' && myPos && mapInstanceRef.current) {
       mapInstanceRef.current.flyTo([myPos.latitude, myPos.longitude], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 1.2 });
     }
-  }, [currentStation, userLocationPoint, userLocationTemp, showStations, activeLayerMode]);
+  }, [currentStation, userLocationPoint, userLocationTemp, showStations, activeLayerMode, liveStationTemps, weather]);
 
   // 10. Update Lightning Strikes and Convective Storm Cells across all countries (ONLY active in lightning mode or multi)
   useEffect(() => {
@@ -1725,11 +1781,19 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           <div className="text-[11px] text-slate-200 font-semibold truncate">
             Cible : {measuredTarget.localityName}
           </div>
-          <div className="pt-1 border-t border-cyan-800/50 flex items-center justify-between text-[10px]">
-            <span className="text-slate-400">Écho radar estimé :</span>
-            <span className="font-black text-amber-300">
-              {measuredTarget.estimatedDbz} dBZ (~{measuredTarget.estimatedRainRate} mm/h)
-            </span>
+          <div className="pt-1 border-t border-cyan-800/50 flex flex-col gap-1 text-[10px]">
+            {measuredTarget.temperature !== undefined && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Température mesurée :</span>
+                <span className="font-black text-amber-300">{measuredTarget.temperature}°C</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400">Écho radar / Pluie réelle :</span>
+              <span className="font-black text-cyan-300">
+                {measuredTarget.estimatedDbz} dBZ (~{measuredTarget.estimatedRainRate} mm/h)
+              </span>
+            </div>
           </div>
         </div>
       )}

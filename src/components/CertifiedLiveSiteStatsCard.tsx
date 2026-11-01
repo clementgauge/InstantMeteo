@@ -48,10 +48,10 @@ export const CertifiedLiveSiteStatsCard: React.FC<CertifiedLiveSiteStatsCardProp
   useEffect(() => {
     refreshData();
 
-    // Boucle de réactualisation automatique continue (toutes les 15 secondes)
+    // Boucle de réactualisation automatique continue en temps réel (toutes les 4 secondes)
     const interval = setInterval(() => {
       refreshData();
-    }, 15000);
+    }, 4000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {

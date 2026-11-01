@@ -34,7 +34,7 @@ import {
 import Chart from 'chart.js/auto';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
-import { getFallbackWeatherData } from '../services/openMeteoService';
+import { fetchWeatherData, getFallbackWeatherData } from '../services/openMeteoService';
 import { getIsothermComprehensiveDiagnostic } from '../utils/isothermCalculations';
 import { AuraBotAvatar } from '../components/AuraBotAvatar';
 import { Aura3DAtmosphericMap, Map3DMetric } from '../components/Aura3DAtmosphericMap';
@@ -754,17 +754,30 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
     if (detectedStation) {
       targetStation = detectedStation;
-      const computed = computeRealisticStationWeather(
-        detectedStation,
-        currentStation,
-        safeWeather,
-        hourly,
-        daily
-      );
-      targetWeather = computed.weather;
-      targetHourly = computed.hourly;
-      targetDaily = computed.daily;
-      targetStationIcon = computed.icon;
+      try {
+        const liveCityData = await fetchWeatherData(detectedStation);
+        if (liveCityData && liveCityData.current) {
+          targetWeather = liveCityData.current;
+          targetHourly = liveCityData.hourly || [];
+          targetDaily = liveCityData.daily || [];
+          targetStationIcon = liveCityData.current.temperature >= 22 ? '☀️' : (liveCityData.current.precipitation > 0 ? '🌧️' : '⛅');
+        } else {
+          throw new Error('Données directes non disponibles');
+        }
+      } catch (err) {
+        console.warn('Fallback calcul station pour', detectedStation.name, err);
+        const computed = computeRealisticStationWeather(
+          detectedStation,
+          currentStation,
+          safeWeather,
+          hourly,
+          daily
+        );
+        targetWeather = computed.weather;
+        targetHourly = computed.hourly;
+        targetDaily = computed.daily;
+        targetStationIcon = computed.icon;
+      }
     }
 
     // Détection du comparatif multi-villes (ex: "Compare Paris et Marseille")
@@ -853,8 +866,16 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     else if (isComparisonQuery) {
       const stA = detectedStations[0];
       const stB = detectedStations[1];
-      const resA = computeRealisticStationWeather(stA, currentStation, safeWeather, hourly, daily);
-      const resB = computeRealisticStationWeather(stB, currentStation, safeWeather, hourly, daily);
+      const [liveA, liveB] = await Promise.all([
+        fetchWeatherData(stA).catch(() => null),
+        fetchWeatherData(stB).catch(() => null)
+      ]);
+      const resA = liveA && liveA.current 
+        ? { weather: liveA.current, hourly: liveA.hourly || [], daily: liveA.daily || [], icon: liveA.current.temperature >= 22 ? '☀️' : '⛅' }
+        : computeRealisticStationWeather(stA, currentStation, safeWeather, hourly, daily);
+      const resB = liveB && liveB.current 
+        ? { weather: liveB.current, hourly: liveB.hourly || [], daily: liveB.daily || [], icon: liveB.current.temperature >= 22 ? '☀️' : '⛅' }
+        : computeRealisticStationWeather(stB, currentStation, safeWeather, hourly, daily);
 
       const tA = resA.weather.temperature;
       const tB = resB.weather.temperature;
@@ -1503,7 +1524,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   };
 
   const renderViewContent = () => (
-    <div className={`relative ${isModal ? 'w-full h-[100dvh] sm:h-[90vh] sm:max-h-[850px] sm:max-w-4xl sm:rounded-3xl sm:border sm:border-sky-500/30' : 'w-full h-[100dvh] sm:min-h-[820px] sm:rounded-3xl sm:border sm:border-sky-500/30'} overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between shadow-2xl`}>
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-[#05070B] text-slate-100 flex flex-col justify-between">
       {/* 1. ATMOSPHERIC CANVAS ENGINE BACKGROUND */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full block" />
@@ -1893,11 +1914,15 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
 
   if (isModal) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-50 w-screen h-[100dvh] p-0 m-0 bg-[#05070B] overflow-hidden animate-in fade-in duration-200">
         {renderViewContent()}
       </div>
     );
   }
 
-  return renderViewContent();
+  return (
+    <div className="fixed inset-0 z-50 w-screen h-[100dvh] p-0 m-0 bg-[#05070B] overflow-hidden">
+      {renderViewContent()}
+    </div>
+  );
 };

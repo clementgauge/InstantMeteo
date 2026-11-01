@@ -96,6 +96,8 @@ import {
   MAJOR_FRENCH_CITY_SEO_LIST,
 } from './seo/pagesSeoData';
 import { getNativeSiteLanguage } from './i18n/siteTranslations';
+import { sendHeartbeatAndFetchStats, notifyVisitorLeave } from './services/siteStatsService';
+import { CertifiedLiveSiteStatsCard } from './components/CertifiedLiveSiteStatsCard';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -341,6 +343,7 @@ function WeatherApp() {
   const [isPseudoModalOpen, setIsPseudoModalOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const p = loadPlayerProfile();
@@ -349,6 +352,32 @@ function WeatherApp() {
       return false;
     }
   });
+
+  // Télémétrie de présence temps réel globale (Fréquentation certifiée)
+  useEffect(() => {
+    // 1. Premier heartbeat immédiat à l'arrivée
+    sendHeartbeatAndFetchStats().catch(() => {});
+
+    // 2. Heartbeat toutes les 8s pour certifier la présence en direct
+    const statsInterval = setInterval(() => {
+      sendHeartbeatAndFetchStats().catch(() => {});
+    }, 8000);
+
+    // 3. Départ immédiat sur fermeture ou changement de page
+    const handleLeave = () => {
+      notifyVisitorLeave();
+    };
+
+    window.addEventListener('beforeunload', handleLeave);
+    window.addEventListener('pagehide', handleLeave);
+
+    return () => {
+      clearInterval(statsInterval);
+      window.removeEventListener('beforeunload', handleLeave);
+      window.removeEventListener('pagehide', handleLeave);
+      notifyVisitorLeave();
+    };
+  }, []);
 
   useEffect(() => {
     ensurePlayerProfileRestored();
@@ -899,6 +928,7 @@ function WeatherApp() {
           onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
+          onOpenStatsModal={() => setIsStatsModalOpen(true)}
         />
       </div>
 
@@ -1382,6 +1412,13 @@ function WeatherApp() {
               >
                 📱 Installer l'App
               </button>
+              <span>•</span>
+              <button
+                onClick={() => setIsStatsModalOpen(true)}
+                className="text-emerald-400 hover:text-emerald-300 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+              >
+                📊 Fréquentation &amp; Stats Certifiées
+              </button>
             </div>
           </div>
 
@@ -1749,6 +1786,22 @@ function WeatherApp() {
         isOpen={isPageBlockCustomizerOpen}
         onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
+
+      {/* Modal Télémétrie & Fréquentation Certifiée */}
+      {isStatsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-4 sm:p-6">
+            <button
+              onClick={() => setIsStatsModalOpen(false)}
+              className="absolute top-4 right-4 h-9 w-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition z-10"
+              title="Fermer"
+            >
+              ✕
+            </button>
+            <CertifiedLiveSiteStatsCard seniorMode={seniorMode} />
+          </div>
+        </div>
+      )}
 
       {/* Modal Dialogue IA Météo AURA (Conversation, Analyses, Cartes 3D & Graphiques) */}
       {isAuraModalOpen && (

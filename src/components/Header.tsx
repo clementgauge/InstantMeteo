@@ -31,7 +31,8 @@ import {
   Sun,
   Moon,
   Download,
-  Watch
+  Watch,
+  Activity
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -88,6 +89,7 @@ interface HeaderProps {
   onTriggerSecretCode?: (code: string) => boolean;
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
+  onOpenStatsModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -134,7 +136,8 @@ export const Header: React.FC<HeaderProps> = ({
   isAdmin = false,
   onTriggerSecretCode,
   showFloatingBubble,
-  onToggleFloatingBubble
+  onToggleFloatingBubble,
+  onOpenStatsModal
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -1107,6 +1110,33 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                       <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
                         Choisir les pages et les blocs à afficher
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {onOpenStatsModal && (
+                  <button
+                    id="sidebar-stats-certifiees-btn"
+                    type="button"
+                    onClick={() => {
+                      setSettingsSidebarOpen(false);
+                      onOpenStatsModal();
+                    }}
+                    className="group flex w-full items-center gap-3 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 to-teal-950/30 p-4 text-left text-emerald-200 transition hover:bg-white hover:text-slate-950 shadow-md cursor-pointer"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 group-hover:bg-emerald-100">
+                      <Activity className="h-5 w-5 text-emerald-400 group-hover:text-emerald-700" />
+                    </div>
+                    <div>
+                      <div className="font-black flex items-center gap-1.5">
+                        <span>Fréquentation &amp; Stats Certifiées</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500 text-slate-950 font-black uppercase">
+                          En direct
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">
+                        Compteurs de visiteurs réels en direct
                       </div>
                     </div>
                   </button>

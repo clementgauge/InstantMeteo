@@ -135,3 +135,25 @@ export async function fetchCertifiedRealtimeStats(): Promise<RealtimeStatsData> 
   }
   return sendHeartbeatAndFetchStats();
 }
+
+/**
+ * Notifie le serveur immédiatement du départ du visiteur (fermeture d'onglet ou navigation)
+ */
+export function notifyVisitorLeave(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const sessionId = window.sessionStorage.getItem(STORAGE_SESSION_KEY);
+    if (!sessionId) return;
+    const payload = JSON.stringify({ sessionId });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/stats/leave', new Blob([payload], { type: 'application/json' }));
+    } else {
+      fetch('/api/stats/leave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(() => {});
+    }
+  } catch {}
+}

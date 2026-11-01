@@ -722,10 +722,10 @@ app.post('/api/stats/heartbeat', async (req, res) => {
     existing.deviceType = deviceType;
   }
 
-  // Nettoyage des sessions inactives (> 90 secondes)
-  const cutoff90s = now - 90_000;
+  // Nettoyage rapide des sessions inactives (> 25 secondes pour réactivité temps réel 1 vs 2 visiteurs)
+  const cutoff25s = now - 25_000;
   for (const [sId, sess] of activeLiveSessions.entries()) {
-    if (sess.lastSeen < cutoff90s) {
+    if (sess.lastSeen < cutoff25s) {
       activeLiveSessions.delete(sId);
     }
   }
@@ -764,12 +764,29 @@ app.post('/api/stats/heartbeat', async (req, res) => {
   });
 });
 
-// Route 1d. Lecture directe des statistiques certifiées
+// Route 1d. Départ immédiat d'un visiteur (fermeture d'onglet ou navigation)
+app.post('/api/stats/leave', (req, res) => {
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch {}
+  }
+  const sessionId = body?.sessionId;
+  if (sessionId && activeLiveSessions.has(sessionId)) {
+    activeLiveSessions.delete(sessionId);
+  }
+  res.json({
+    success: true,
+    onlineUsers: activeLiveSessions.size,
+    timestamp: Date.now()
+  });
+});
+
+// Route 1e. Lecture directe des statistiques certifiées
 app.get('/api/stats/realtime', async (req, res) => {
   const now = Date.now();
-  const cutoff90s = now - 90_000;
+  const cutoff25s = now - 25_000;
   for (const [sId, sess] of activeLiveSessions.entries()) {
-    if (sess.lastSeen < cutoff90s) {
+    if (sess.lastSeen < cutoff25s) {
       activeLiveSessions.delete(sId);
     }
   }
