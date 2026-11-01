@@ -791,37 +791,306 @@ export const BEACH_SPOTS: BeachSpot[] = [
     windThermalBreeze: 'Alizés de Sud-Est réguliers'
   },
   {
-    id: 'monde-miami-waikiki-copacabana-bali-bondi',
-    name: 'Monde — Miami Beach, Malibu, Waikiki (Hawaii), Cancún, Copacabana (Rio), Bali (Uluwatu, Seminyak), Phuket & Bondi Beach (Sydney)',
+    id: 'est-canadien-quebec-saint-laurent',
+    name: 'Québec & Est Canadien — Golfe du Saint-Laurent, Baie des Chaleurs, Gaspé, Rimouski, Tadoussac & Îles-de-la-Madeleine',
     coastline: 'Outre-Mer & Monde',
-    country: 'États-Unis / Brésil / Indonésie / Australie',
-    department: 'Floride / Californie / Hawaii / Rio / Bali / Sydney',
+    country: 'Canada',
+    department: 'Québec (Estuaire / Bas-Saint-Laurent / Gaspésie)',
+    latitude: 48.8315,
+    longitude: -64.4836,
+    waterTempC: 5.8,
+    airTempC: 6.5,
+    waveHeightM: 0.9,
+    wavePeriodSec: 7,
+    swellHeightM: 0.6,
+    windWaveHeightM: 0.5,
+    oceanCurrentKnots: 1.4,
+    windSpeedKnots: 15,
+    windDirectionCompass: 'NW',
+    seaStateDouglas: '3 — Peu agitée',
+    swimFlag: 'JAUNE',
+    swimFlagReason: 'Eaux froides subpolaires boréales sous influence du courant du Labrador et de l\'estuaire du Saint-Laurent. Combinaison néoprène recommandée.',
+    tideHighTime: '11:45',
+    tideLowTime: '18:10',
+    tideCoefficient: 74,
+    tideStatus: 'Descendante (Jusant)',
+    beachUvIndex: 2,
+    jellyfishRisk: 'Nul',
+    baineWarning: false,
+    waterQuality: 'Excellente (Pavillon Bleu)',
+    bathingComfortScore: 5.2,
+    windThermalBreeze: 'Flux de Nord-Ouest vif canalisé par la vallée fluviale'
+  },
+  {
+    id: 'usa-cote-est-cap-cod-maine-ny',
+    name: 'Côte Est USA — Cap Cod, Maine, Boston, Long Island (Hamptons) & New Jersey',
+    coastline: 'Outre-Mer & Monde',
+    country: 'États-Unis',
+    department: 'Massachusetts / Maine / New York / New Jersey',
+    latitude: 41.6688,
+    longitude: -70.2962,
+    waterTempC: 12.2,
+    airTempC: 13.5,
+    waveHeightM: 1.2,
+    wavePeriodSec: 8,
+    swellHeightM: 0.9,
+    windWaveHeightM: 0.6,
+    oceanCurrentKnots: 1.1,
+    windSpeedKnots: 13,
+    windDirectionCompass: 'WNW',
+    seaStateDouglas: '3 — Peu agitée à agitée',
+    swimFlag: 'VERT',
+    swimFlagReason: 'Grandes plages océaniques atlantiques de Nouvelle-Angleterre avec vagues franches et marées modérées.',
+    tideHighTime: '10:30',
+    tideLowTime: '16:50',
+    tideCoefficient: 72,
+    tideStatus: 'Montante (Flot)',
+    beachUvIndex: 3,
+    jellyfishRisk: 'Faible',
+    baineWarning: true,
+    waterQuality: 'Excellente (Pavillon Bleu)',
+    bathingComfortScore: 7.1,
+    windThermalBreeze: 'Brise de terre d\'Ouest modérée'
+  },
+  {
+    id: 'usa-floride-miami-cancun-bahamas',
+    name: 'Floride, Caraïbes & Golfe — Miami Beach, Key West, Cancún & Nassau (Bahamas)',
+    coastline: 'Outre-Mer & Monde',
+    country: 'États-Unis / Mexique / Bahamas',
+    department: 'Floride (Miami-Dade) / Quintana Roo',
     latitude: 25.7907,
     longitude: -80.1300,
-    waterTempC: 27.6,
-    airTempC: 30.1,
-    waveHeightM: 1.1,
-    wavePeriodSec: 10,
-    swellHeightM: 0.9,
-    windWaveHeightM: 0.5,
-    oceanCurrentKnots: 1.2,
-    windSpeedKnots: 12,
+    waterTempC: 26.5,
+    airTempC: 28.5,
+    waveHeightM: 0.9,
+    wavePeriodSec: 8,
+    swellHeightM: 0.7,
+    windWaveHeightM: 0.4,
+    oceanCurrentKnots: 1.5,
+    windSpeedKnots: 11,
     windDirectionCompass: 'ESE',
-    seaStateDouglas: '2 à 3 — Belle à peu agitée',
+    seaStateDouglas: '2 — Belle à peu agitée',
     swimFlag: 'VERT',
-    swimFlagReason: 'Grandes plages internationales surveillées toute l\'année avec eaux chaudes et vagues de surf régulières.',
+    swimFlagReason: 'Baignade tropicale chaude toute l\'année sous l\'influence directe du Gulf Stream chaud.',
     tideHighTime: '08:45',
     tideLowTime: '15:00',
     tideCoefficient: 66,
     tideStatus: 'Montante (Flot)',
-    beachUvIndex: 11,
+    beachUvIndex: 8,
     jellyfishRisk: 'Faible',
     baineWarning: true,
     waterQuality: 'Excellente (Pavillon Bleu)',
-    bathingComfortScore: 9.5,
-    windThermalBreeze: 'Brise océanique régulière'
+    bathingComfortScore: 9.6,
+    windThermalBreeze: 'Alizé marin régulier d\'Est-Sud-Est'
+  },
+  {
+    id: 'usa-pacifique-californie-malibu-hawaii',
+    name: 'Côte Pacifique & Hawaii — Malibu, Santa Monica, San Diego & Waikiki (Honolulu)',
+    coastline: 'Outre-Mer & Monde',
+    country: 'États-Unis',
+    department: 'Californie / Hawaii',
+    latitude: 34.0259,
+    longitude: -118.7798,
+    waterTempC: 16.8,
+    airTempC: 21.0,
+    waveHeightM: 1.5,
+    wavePeriodSec: 12,
+    swellHeightM: 1.4,
+    windWaveHeightM: 0.4,
+    oceanCurrentKnots: 0.9,
+    windSpeedKnots: 10,
+    windDirectionCompass: 'W',
+    seaStateDouglas: '3 — Agitée (Houle longue)',
+    swimFlag: 'VERT',
+    swimFlagReason: 'Courant froid de Californie avec upwelling et houle longue du Pacifique prisée des surfeurs.',
+    tideHighTime: '09:15',
+    tideLowTime: '15:40',
+    tideCoefficient: 64,
+    tideStatus: 'Montante (Flot)',
+    beachUvIndex: 6,
+    jellyfishRisk: 'Faible',
+    baineWarning: true,
+    waterQuality: 'Excellente (Pavillon Bleu)',
+    bathingComfortScore: 8.4,
+    windThermalBreeze: 'Brise thermique de mer d\'Ouest en après-midi'
+  },
+  {
+    id: 'amerique-sud-copacabana-rio',
+    name: 'Amérique du Sud — Copacabana & Ipanema (Rio de Janeiro), Florianópolis',
+    coastline: 'Outre-Mer & Monde',
+    country: 'Brésil',
+    department: 'Rio de Janeiro / Santa Catarina',
+    latitude: -22.9711,
+    longitude: -43.1822,
+    waterTempC: 23.5,
+    airTempC: 26.5,
+    waveHeightM: 1.3,
+    wavePeriodSec: 11,
+    swellHeightM: 1.1,
+    windWaveHeightM: 0.5,
+    oceanCurrentKnots: 1.0,
+    windSpeedKnots: 11,
+    windDirectionCompass: 'SE',
+    seaStateDouglas: '3 — Agitée',
+    swimFlag: 'VERT',
+    swimFlagReason: 'Grandes plages océaniques de l\'Atlantique Sud avec vagues de shorebreak régulières.',
+    tideHighTime: '10:00',
+    tideLowTime: '16:20',
+    tideCoefficient: 65,
+    tideStatus: 'Montante (Flot)',
+    beachUvIndex: 9,
+    jellyfishRisk: 'Faible',
+    baineWarning: true,
+    waterQuality: 'Bonne',
+    bathingComfortScore: 8.9,
+    windThermalBreeze: 'Brise de mer de Sud-Est'
+  },
+  {
+    id: 'oceanie-bondi-sydney-byron',
+    name: 'Océanie — Bondi Beach (Sydney), Manly, Surfers Paradise & Gold Coast',
+    coastline: 'Outre-Mer & Monde',
+    country: 'Australie',
+    department: 'Nouvelle-Galles du Sud / Queensland',
+    latitude: -33.8915,
+    longitude: 151.2767,
+    waterTempC: 20.8,
+    airTempC: 23.0,
+    waveHeightM: 1.4,
+    wavePeriodSec: 10,
+    swellHeightM: 1.2,
+    windWaveHeightM: 0.6,
+    oceanCurrentKnots: 1.3,
+    windSpeedKnots: 14,
+    windDirectionCompass: 'NE',
+    seaStateDouglas: '3 — Agitée',
+    swimFlag: 'VERT',
+    swimFlagReason: 'Baignade surveillée impérativement entre les drapeaux bicolores jaune et rouge en raison des courants d\'arrachement (rip currents).',
+    tideHighTime: '08:30',
+    tideLowTime: '14:45',
+    tideCoefficient: 70,
+    tideStatus: 'Montante (Flot)',
+    beachUvIndex: 9,
+    jellyfishRisk: 'Faible',
+    baineWarning: true,
+    waterQuality: 'Excellente (Pavillon Bleu)',
+    bathingComfortScore: 8.8,
+    windThermalBreeze: 'Brise côtière de Nord-Est'
+  },
+  {
+    id: 'asie-bali-phuket',
+    name: 'Asie du Sud-Est — Bali (Kuta, Seminyak, Uluwatu), Phuket & Koh Samui',
+    coastline: 'Outre-Mer & Monde',
+    country: 'Indonésie / Thaïlande',
+    department: 'Bali / Phuket / Golfe de Thaïlande',
+    latitude: -8.7205,
+    longitude: 115.1693,
+    waterTempC: 28.5,
+    airTempC: 29.8,
+    waveHeightM: 1.3,
+    wavePeriodSec: 12,
+    swellHeightM: 1.2,
+    windWaveHeightM: 0.4,
+    oceanCurrentKnots: 1.1,
+    windSpeedKnots: 10,
+    windDirectionCompass: 'ESE',
+    seaStateDouglas: '2 à 3 — Belle à peu agitée',
+    swimFlag: 'VERT',
+    swimFlagReason: 'Eaux équatoriales très chaudes toute l\'année, récifs coralliens et spots de surf de renommée mondiale.',
+    tideHighTime: '10:50',
+    tideLowTime: '17:15',
+    tideCoefficient: 62,
+    tideStatus: 'Montante (Flot)',
+    beachUvIndex: 12,
+    jellyfishRisk: 'Faible',
+    baineWarning: true,
+    waterQuality: 'Excellente (Pavillon Bleu)',
+    bathingComfortScore: 9.7,
+    windThermalBreeze: 'Régime d\'alizé de mousson doux'
   }
 ];
+
+/**
+ * Calcule avec rigueur la Température de Surface de la Mer (SST) réaliste
+ * selon le bassin océanique exact, la latitude, la longitude, le mois de l'année et les courants marins majeurs.
+ * Neutralise les aberrations où le Québec recevait les températures tropicales de Miami.
+ */
+export function calculateRealisticSeaSurfaceTemperature(lat: number, lon: number, date: Date = new Date()): number {
+  const month = date.getMonth(); // 0 = Jan, ..., 10 = Nov, 11 = Dec
+  const isNorthern = lat >= 0;
+  // Déphasage marin : pic thermique vers mi-août dans l'hémisphère Nord, mi-février dans le Sud
+  const seasonalPhase = isNorthern ? (month - 7.5) * (Math.PI / 6) : (month - 1.5) * (Math.PI / 6);
+  const seasonalAmp = Math.cos(seasonalPhase); // +1 en fin d'été, -1 en fin d'hiver
+
+  // 1. Golfe du Saint-Laurent, Québec, Estuaire, Terre-Neuve, Labrador (Courant subpolaire froid)
+  if (lat >= 45.0 && lat <= 54.0 && lon >= -76.0 && lon <= -55.0) {
+    const meanSst = 7.5;
+    const amp = 6.0; // Hiver: ~1.5°C, Printemps: ~3.5°C, Été: ~13.5°C, Automne/Nov: ~5.8°C
+    return Number(Math.max(0.5, Math.min(16.5, meanSst - amp * seasonalAmp)).toFixed(1));
+  }
+
+  // 2. Côte Est des USA - Nouvelle-Angleterre (Maine, Cap Cod, Boston, New York)
+  if (lat >= 39.0 && lat <= 45.0 && lon >= -76.0 && lon <= -68.0) {
+    const meanSst = 12.0;
+    const amp = 7.5; // Hiver: ~4.5°C, Été: ~19.5°C, Nov: ~12.0°C
+    return Number(Math.max(2.5, Math.min(21.5, meanSst - amp * seasonalAmp)).toFixed(1));
+  }
+
+  // 3. Côte Sud-Est des USA, Floride & Caraïbes (Gulf Stream tropical chaud)
+  if (lat >= 20.0 && lat <= 32.0 && lon >= -90.0 && lon <= -75.0) {
+    const meanSst = 27.2;
+    const amp = 2.8; // Hiver: ~24.4°C, Été: ~30.0°C
+    return Number(Math.max(23.5, Math.min(30.8, meanSst - amp * seasonalAmp)).toFixed(1));
+  }
+
+  // 4. Côte Pacifique USA (Courant froid de Californie avec remontées d'eaux profondes upwelling)
+  if (lat >= 32.0 && lat <= 49.0 && lon >= -126.0 && lon <= -116.0) {
+    const meanSst = 14.2;
+    const amp = 2.8; // Eaux fraîches tempérées toute l'année (11.5°C à 17.0°C)
+    return Number(Math.max(10.5, Math.min(18.5, meanSst - amp * seasonalAmp)).toFixed(1));
+  }
+
+  // 5. Manche & Mer du Nord
+  if (lat >= 48.5 && lat <= 53.0 && lon >= -4.5 && lon <= 4.5) {
+    const meanSst = 13.5;
+    const amp = 5.0; // Hiver: ~8.5°C, Été: ~18.5°C, Nov: ~13.5°C
+    return Number((meanSst - amp * seasonalAmp).toFixed(1));
+  }
+
+  // 6. Façade Atlantique Française & Golfe de Gascogne
+  if (lat >= 43.0 && lat <= 48.5 && lon >= -6.0 && lon <= -0.5) {
+    const meanSst = 15.5;
+    const amp = 5.5; // Hiver: ~10.0°C, Été: ~21.0°C, Nov: ~15.5°C
+    return Number((meanSst - amp * seasonalAmp).toFixed(1));
+  }
+
+  // 7. Mer Méditerranée & Corse
+  if (lat >= 30.0 && lat <= 45.5 && lon >= -5.0 && lon <= 36.0) {
+    const meanSst = 19.5;
+    const amp = 6.0; // Hiver: ~13.5°C, Été: ~25.5°C, Nov: ~19.5°C
+    return Number((meanSst - amp * seasonalAmp).toFixed(1));
+  }
+
+  // 8. Mer Baltique
+  if (lat >= 53.0 && lat <= 66.0 && lon >= 9.0 && lon <= 30.0) {
+    const meanSst = 10.0;
+    const amp = 8.5; // Hiver: ~1.5°C, Été: ~18.5°C
+    return Number(Math.max(1.0, meanSst - amp * seasonalAmp).toFixed(1));
+  }
+
+  // 9. Zone Tropicale Globale (-23.5° à +23.5°)
+  if (Math.abs(lat) <= 23.5) {
+    const baseTrop = 27.5;
+    const ampTrop = 1.8;
+    return Number((baseTrop - ampTrop * seasonalAmp).toFixed(1));
+  }
+
+  // 10. Modèle Océanographique Global pour toute autre coordonnée
+  const absLat = Math.abs(lat);
+  const baseGlobal = 28 - Math.pow(absLat / 70, 1.3) * 27;
+  const globalAmp = Math.max(1.5, Math.min(6.5, (absLat / 50) * 5.5));
+  const result = baseGlobal - globalAmp * seasonalAmp;
+  return Number(Math.max(0.5, Math.min(31.0, result)).toFixed(1));
+}
 
 const COMPASS_DIRS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 function degToCompass(deg: number): string {
@@ -1118,8 +1387,9 @@ export async function fetchLiveMarineSpotForCoordinates(
     const wCur = wxData?.current || {};
 
     const airTempC = Number((fallbackAirTemp ?? wCur.temperature_2m ?? 22.0).toFixed(1));
-    const defaultSst = Math.max(8, Math.min(29, Number((27 - Math.abs(lat) * 0.24).toFixed(1))));
-    const waterTempC = Number((mCur.sea_surface_temperature ?? defaultSst).toFixed(1));
+    const realisticSst = calculateRealisticSeaSurfaceTemperature(lat, lon, new Date());
+    const validMarineSst = typeof mCur.sea_surface_temperature === 'number' && mCur.sea_surface_temperature > -2.5 && mCur.sea_surface_temperature < 36.0;
+    const waterTempC = Number((validMarineSst ? mCur.sea_surface_temperature : realisticSst).toFixed(1));
 
     const waveHeightM = Number((mCur.wave_height ?? (isMed ? 0.4 : 1.2)).toFixed(1));
     const wavePeriodSec = Math.round(mCur.wave_period ?? mCur.swell_wave_period ?? (isMed ? 5 : 10));
@@ -1191,6 +1461,7 @@ export async function fetchLiveMarineSpotForCoordinates(
       isLiveCustomSpot: true
     };
   } catch {
+    const fallbackSst = calculateRealisticSeaSurfaceTemperature(lat, lon, new Date());
     return {
       id: `live-marine-${lat.toFixed(3)}-${lon.toFixed(3)}`,
       name,
@@ -1198,7 +1469,7 @@ export async function fetchLiveMarineSpotForCoordinates(
       department: departmentOrCountry,
       latitude: lat,
       longitude: lon,
-      waterTempC: 19.5,
+      waterTempC: fallbackSst,
       airTempC: fallbackAirTemp ?? 22.0,
       waveHeightM: 1.0,
       wavePeriodSec: 9,

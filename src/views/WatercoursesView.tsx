@@ -30,6 +30,7 @@ interface RiverStationData {
   vigicruesLabel: string;
   currentHeightM: number;
   currentDischargeM3s: number; // Débit Q en m3/s
+  waterTempC: number; // Température de l'eau du cours d'eau en °C
   medianDischargeM3s?: number;
   p75DischargeM3s?: number;
   forecast7dDischarges?: { date: string; discharge: number }[];
@@ -48,6 +49,38 @@ interface RiverStationData {
   isLiveLocal?: boolean;
 }
 
+/**
+ * Calcule avec rigueur la température réaliste d'un cours d'eau
+ * en fonction de la saison, de la latitude, de l'altitude et de la température de l'air.
+ */
+export function calculateRealisticRiverWaterTemperature(
+  lat: number,
+  altitudeM: number = 100,
+  airTempC?: number,
+  date: Date = new Date()
+): number {
+  const month = date.getMonth(); // 0 = Janvier
+  // Température normale mensuelle des eaux courantes de plaine (France & Europe tempérée)
+  const monthlyRiverNormals = [
+    5.6, 6.4, 8.6, 11.4, 15.1, 18.4, 20.8, 20.4, 17.2, 13.1, 9.2, 6.5
+  ];
+  const seasonalBase = monthlyRiverNormals[month] ?? 10.0;
+
+  // Gradient latitudinal (plus frais au nord)
+  const latOffset = (46.0 - lat) * 0.45;
+
+  // Décroissance altimétrique de l'eau (~0.4°C / 100m)
+  const altOffset = -(Math.max(0, altitudeM) / 100) * 0.4;
+
+  let temp = seasonalBase + latOffset + altOffset;
+  if (airTempC !== undefined && !isNaN(airTempC)) {
+    // Équilibre thermique à forte inertie hydrique (70% eau, 30% air)
+    temp = 0.72 * temp + 0.28 * airTempC;
+  }
+
+  return Number(Math.max(1.5, Math.min(25.5, temp)).toFixed(1));
+}
+
 const RIVER_STATIONS_DATABASE: RiverStationData[] = [
   {
     id: 'seine-paris',
@@ -59,6 +92,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 2.15,
     currentDischargeM3s: 310,
+    waterTempC: 9.4,
     trend: 'STABLE',
     trendLabel: 'Niveau d\'eau stable',
     yellowThresholdM: 3.20,
@@ -81,6 +115,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 1.85,
     currentDischargeM3s: 1150,
+    waterTempC: 9.1,
     trend: 'STABLE',
     trendLabel: 'Écoulement régulier',
     yellowThresholdM: 3.80,
@@ -103,6 +138,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 0.95,
     currentDischargeM3s: 240,
+    waterTempC: 10.2,
     trend: 'DOWN',
     trendLabel: 'Lente décrue',
     yellowThresholdM: 2.60,
@@ -125,6 +161,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Vigilance Jaune : Risque de crue ou montée rapide des eaux',
     currentHeightM: 2.45,
     currentDischargeM3s: 680,
+    waterTempC: 10.5,
     trend: 'UP',
     trendLabel: 'Montée des eaux consécutive aux pluies pyrénéennes',
     yellowThresholdM: 2.20,
@@ -147,6 +184,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 3.10,
     currentDischargeM3s: 1450,
+    waterTempC: 8.2,
     trend: 'STABLE',
     trendLabel: 'Débit soutenu',
     yellowThresholdM: 5.50,
@@ -169,6 +207,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 1.40,
     currentDischargeM3s: 42,
+    waterTempC: 9.6,
     trend: 'STABLE',
     trendLabel: 'Nappes de la craie soutenues',
     yellowThresholdM: 2.10,
@@ -191,6 +230,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 1.32,
     currentDischargeM3s: 64,
+    waterTempC: 9.8,
     trend: 'STABLE',
     trendLabel: 'Écoulement armoricain normal',
     yellowThresholdM: 2.30,
@@ -213,6 +253,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 0.90,
     currentDischargeM3s: 38,
+    waterTempC: 11.8,
     trend: 'STABLE',
     trendLabel: 'Régime calme hors épisode méditerranéen',
     yellowThresholdM: 2.50,
@@ -235,6 +276,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 1.15,
     currentDischargeM3s: 95,
+    waterTempC: 8.5,
     trend: 'DOWN',
     trendLabel: 'Régime régulé par barrages alpins',
     yellowThresholdM: 2.80,
@@ -257,6 +299,7 @@ const RIVER_STATIONS_DATABASE: RiverStationData[] = [
     vigicruesLabel: 'Pas de vigilance particulière (Vert)',
     currentHeightM: 0.85,
     currentDischargeM3s: 24,
+    waterTempC: 10.8,
     trend: 'STABLE',
     trendLabel: 'Écoulement torrentiel corse calme',
     yellowThresholdM: 2.20,
@@ -279,8 +322,10 @@ async function fetchLiveRiverProfileForLocality(
   name: string,
   departmentOrCountry: string,
   lat: number,
-  lon: number
+  lon: number,
+  airTempC?: number
 ): Promise<RiverStationData> {
+  const waterTempC = calculateRealisticRiverWaterTemperature(lat, 120, airTempC, new Date());
   try {
     const isFrance = lat >= 41.0 && lat <= 51.2 && lon >= -5.5 && lon <= 9.8;
 
@@ -379,6 +424,7 @@ async function fetchLiveRiverProfileForLocality(
       vigicruesLabel,
       currentHeightM,
       currentDischargeM3s,
+      waterTempC,
       medianDischargeM3s,
       p75DischargeM3s,
       forecast7dDischarges,
@@ -409,6 +455,7 @@ async function fetchLiveRiverProfileForLocality(
       vigicruesLabel: 'Pas de vigilance particulière (Vert)',
       currentHeightM: 1.25,
       currentDischargeM3s: 42,
+      waterTempC,
       medianDischargeM3s: 38,
       p75DischargeM3s: 58,
       trend: 'STABLE',
@@ -445,7 +492,8 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
       station.name,
       `${station.department || station.region || 'France / Monde'}`,
       station.latitude,
-      station.longitude
+      station.longitude,
+      weather.temperature
     ).then((prof) => {
       if (isMounted) {
         setLiveLocalRiver(prof);
@@ -455,7 +503,7 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [station.id, station.latitude, station.longitude]);
+  }, [station.id, station.latitude, station.longitude, weather.temperature]);
 
   const allRiverStations = useMemo(() => {
     const list: RiverStationData[] = [];
@@ -562,6 +610,11 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
             </div>
             <div className="w-px h-8 bg-slate-700/60" />
             <div className="px-3 py-1.5 rounded-xl text-center">
+              <div className="text-[11px] uppercase tracking-wider text-slate-400">Temp. de l'Eau</div>
+              <div className="text-lg font-black text-sky-300">{selectedStation.waterTempC} °C</div>
+            </div>
+            <div className="w-px h-8 bg-slate-700/60" />
+            <div className="px-3 py-1.5 rounded-xl text-center">
               <div className="text-[11px] uppercase tracking-wider text-slate-400">Tendance 24h</div>
               <div className="text-lg font-black text-emerald-400">
                 {selectedStation.trend === 'UP' ? '↗ Hausse' : selectedStation.trend === 'DOWN' ? '↘ Baisse' : '→ Stable'}
@@ -664,6 +717,16 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
               </div>
             )}
 
+            {/* Notification explicite pour localités sans cours d'eau direct */}
+            {selectedStation.isLiveLocal && (!selectedStation.nearbyRiversList || selectedStation.nearbyRiversList.length === 0) && (
+              <div className="mt-4 p-3 rounded-xl bg-slate-950/60 border border-slate-700/60 text-xs text-slate-300 flex items-center gap-2">
+                <span className="text-base">⛰️</span>
+                <span>
+                  <strong>Territoire de crête ou plateau sans grand cours d'eau répertorié :</strong> Aucun fleuve ni rivière majeure ne traverse directement cette localité dans un rayon de 25 km. Le débit et l'écoulement affichés correspondent à la modélisation hydrologique Copernicus GloFAS du bassin versant récepteur.
+                </span>
+              </div>
+            )}
+
             {/* Hydraulic Context */}
             <div className="mt-5 p-4 rounded-2xl bg-slate-950/40 border border-slate-800">
               <div className="flex items-start gap-3">
@@ -680,7 +743,7 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
             </div>
 
             {/* Current Measurements Grid */}
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
               <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
                 <span className="text-[11px] text-slate-400 font-medium block">Hauteur Actuelle</span>
                 <span className="text-2xl font-black text-blue-400 mt-1 block">{selectedStation.currentHeightM.toFixed(2)} m</span>
@@ -693,6 +756,12 @@ export const WatercoursesView: React.FC<WatercoursesViewProps> = ({
                 <span className="text-[10px] text-slate-500">
                   {selectedStation.medianDischargeM3s ? `Normale P50: ${selectedStation.medianDischargeM3s} m³/s` : 'Flux volumique Q'}
                 </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">
+                <span className="text-[11px] text-slate-400 font-medium block">Température Eau</span>
+                <span className="text-2xl font-black text-sky-400 mt-1 block">{selectedStation.waterTempC} °C</span>
+                <span className="text-[10px] text-slate-500">Inertie thermique fluviale</span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800">

@@ -68,21 +68,28 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
 
   const nearestCoastalRef = useMemo(() => findNearestCoastalSpot(station), [station]);
 
-  // Charge en temps réel le profil marin de la localité active (ou de sa façade côtière immédiate)
+  // Détection d'un territoire véritablement côtier (distance mer <= 25km ou lac balnéaire majeur)
+  const isDirectCoastal = useMemo(() => {
+    if (nearestCoastalRef.distanceKm <= 25) return true;
+    const nameLower = (station.name || '').toLowerCase();
+    return ['annecy', 'leman', 'léman', 'bourget', 'biscarrosse', 'serre-poncon', 'serre-ponçon', 'arcachon', 'porquerolles', 'ouessant', 'belle-ile', 'belle-île'].some(k => nameLower.includes(k));
+  }, [station.name, nearestCoastalRef.distanceKm]);
+
+  // Charge en temps réel le profil marin UNIQUEMENT si la localité active possède une vraie façade côtière ou lacustre
   useEffect(() => {
     let isMounted = true;
-    const isNearCoast = nearestCoastalRef.distanceKm <= 95;
-    const targetLat = isNearCoast ? station.latitude : nearestCoastalRef.spot.latitude;
-    const targetLon = isNearCoast ? station.longitude : nearestCoastalRef.spot.longitude;
-    const labelName = isNearCoast
-      ? `${station.name} (Littoral Direct)`
-      : `${station.name} → Façade ${nearestCoastalRef.spot.name.split(',')[0]}`;
+    if (!isDirectCoastal) {
+      setLiveLocalSpot(null);
+      return;
+    }
+
+    const labelName = `${station.name} (Littoral Direct)`;
 
     fetchLiveMarineSpotForCoordinates(
       labelName,
       `${station.department || station.region || 'Littoral'}`,
-      targetLat,
-      targetLon,
+      station.latitude,
+      station.longitude,
       weather.temperature,
       weather.windSpeed,
       weather.windDirection,
@@ -90,16 +97,14 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
     ).then((spot) => {
       if (isMounted) {
         setLiveLocalSpot(spot);
-        if (isNearCoast) {
-          setSelectedSpotId(spot.id);
-        }
+        setSelectedSpotId(spot.id);
       }
     });
 
     return () => {
       isMounted = false;
     };
-  }, [station.id, station.latitude, station.longitude, weather.temperature, weather.windSpeed]);
+  }, [isDirectCoastal, station.name, station.department, station.region, station.latitude, station.longitude, weather.temperature, weather.windSpeed]);
 
   const allSpots = useMemo(() => {
     const list: BeachSpot[] = [];
@@ -109,9 +114,9 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
   }, [liveLocalSpot, customSearchedSpots, liveSpotOverrides]);
 
   const selectedBeach: BeachSpot = useMemo(() => {
-    const found = allSpots.find((b) => b.id === selectedSpotId) || liveLocalSpot || BEACH_SPOTS[0];
+    const found = allSpots.find((b) => b.id === selectedSpotId) || (isDirectCoastal ? liveLocalSpot : null) || nearestCoastalRef.spot || BEACH_SPOTS[0];
     return liveSpotOverrides[found.id] || found;
-  }, [allSpots, selectedSpotId, liveLocalSpot, liveSpotOverrides]);
+  }, [allSpots, selectedSpotId, isDirectCoastal, liveLocalSpot, nearestCoastalRef.spot, liveSpotOverrides]);
 
   // Réactualisation automatique et continue de la télémétrie marine en direct pour la plage sélectionnée
   useEffect(() => {
@@ -402,7 +407,9 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: 'ALL', label: '🌊 Toutes Stations (France, Europe & Monde)' },
-              { id: 'LOCAL', label: `📍 Mon Littoral (${station.name})` },
+              ...(isDirectCoastal && liveLocalSpot
+                ? [{ id: 'LOCAL', label: `📍 Mon Littoral (${station.name})` }]
+                : []),
               { id: 'Manche & Mer du Nord', label: '🇫🇷 Manche & Nord' },
               { id: 'Bretagne & Celtique', label: '🇫🇷 Bretagne' },
               { id: 'Océan Atlantique', label: '🇫🇷 Atlantique' },
@@ -429,6 +436,32 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
             ))}
           </div>
         </div>
+
+        {/* Bannière explicite pour Territoire Intérieur / Non Côtier */}
+        {!isDirectCoastal && (
+          <div className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-amber-300 uppercase tracking-wide">
+                  Territoire Terrestre Intérieur — Pas de Façade Maritime Directe
+                </span>
+                <p className="text-slate-300 mt-0.5">
+                  <strong>{station.name}</strong> est située à l'intérieur des terres (à environ <strong>{Math.round(nearestCoastalRef.distanceKm)} km</strong> du premier littoral marin : <em>{nearestCoastalRef.spot.name}</em>). Les données maritimes, houle et marées sont rattachées aux stations côtières authentiques ci-dessous.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedSpotId(nearestCoastalRef.spot.id)}
+              className="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold shrink-0 transition flex items-center gap-1.5 cursor-pointer text-xs"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Voir {nearestCoastalRef.spot.name} ({Math.round(nearestCoastalRef.distanceKm)} km)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Beach Spot Selector Grid */}
