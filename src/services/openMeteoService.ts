@@ -1385,7 +1385,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const dailyData = weatherData.daily;
     const hourlyData = weatherData.hourly;
 
-    const weatherDesc = getWeatherDescription(cur.weather_code);
+    const weatherDesc = getWeatherDescription(cur.weather_code, cur.is_day === 1);
     const aqiInfo = getAirQualityLabel(aqiValue);
 
     // Precise Local Station Time alignment (Handles timezones and past_days accurately)
@@ -1532,7 +1532,8 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const pGust = Math.round(hourlyData.wind_gusts_10m?.[p] ?? pWind * 1.3);
       const pPress = Math.round(hourlyData.surface_pressure?.[p] ?? qfe);
       const pCode = hourlyData.weather_code[p];
-      const pDesc = getWeatherDescription(pCode).label;
+      const isPastDay = hourlyData.is_day?.[p] !== undefined ? hourlyData.is_day[p] === 1 : (pHour >= 8 && pHour <= 18);
+      const pDesc = getWeatherDescription(pCode, isPastDay).label;
       const hoursAgo = currentHourIndexInHourly - p;
 
       // 3-hour diurnal slot normal for that hour
@@ -1557,7 +1558,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         pressureHpa: pPress,
         weatherCode: pCode,
         weatherDescription: pDesc,
-        isDay: pHour >= 6 && pHour <= 21,
+        isDay: isPastDay,
         normal3hSlotTemp: slotNormalInfo.slotNormalTemp,
         tempAnomalyVsSlot
       });
@@ -2093,7 +2094,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
           weatherC = 0; // Ciel bien dégagé
         }
       }
-      const isDayHour = hourlyData.is_day?.[i] === 1 || (date.getHours() >= 6 && date.getHours() <= 21);
+      const isDayHour = hourlyData.is_day?.[i] !== undefined ? hourlyData.is_day[i] === 1 : (date.getHours() >= 8 && date.getHours() <= 18);
       const weatherD = getWeatherDescription(weatherC, isDayHour).label;
       const dewP = hourlyData.dew_point_2m?.[i] !== undefined && hourlyData.dew_point_2m?.[i] !== null
         ? Math.round(hourlyData.dew_point_2m[i] * 10) / 10 

@@ -138,7 +138,7 @@ export const MeteoFrancePluieEtNormalesWidget: React.FC<MeteoFrancePluieEtNormal
   return (
     <div 
       id="meteo-france-pluie-et-normales-widget" 
-      className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 my-4 font-sans select-none"
+      className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 my-4 mb-8 pb-4 font-sans select-none"
     >
       {/* ========================================================= */}
       {/* CARD 1 : PLUIE DANS L'HEURE (Fond noir / dark design)    */}

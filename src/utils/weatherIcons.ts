@@ -383,6 +383,87 @@ export const WEATHER_CODES_MAP: Record<number, WeatherCodeInfo> = {
 };
 
 /**
+ * Map of night-specific labels, descriptions, and icons for standard WMO codes
+ */
+const NIGHT_CODES_OVERRIDE: Record<number, Partial<WeatherCodeInfo>> = {
+  0: {
+    label: "Ciel nocturne parfaitement dégagé et nuit étoilée",
+    shortLabel: "Nuit Claire",
+    skyCondition: "Nuit Claire & Étoilée",
+    iconName: "Moon",
+    badgeBg: "bg-indigo-950/40",
+    badgeText: "text-indigo-200",
+    badgeBorder: "border-indigo-500/30",
+    description: "Voûte céleste limpide sans aucun obstacle nuageux, excellente visibilité astronomique."
+  },
+  1: {
+    label: "Nuit calme et ciel principalement clair avec fins voiles",
+    shortLabel: "Nuit Peu Nuageuse",
+    skyCondition: "Nuit Calme & Voilée",
+    iconName: "Moon",
+    badgeBg: "bg-indigo-950/40",
+    badgeText: "text-indigo-200",
+    badgeBorder: "border-indigo-500/20",
+    description: "Nuit claire et paisible avec quelques discrets voiles nuageux d'altitude."
+  },
+  2: {
+    label: "Nuit avec passages nuageux et belles éclaircies nocturnes",
+    shortLabel: "Éclaircies Nocturnes",
+    skyCondition: "Éclaircies Nocturnes",
+    iconName: "CloudMoon",
+    badgeBg: "bg-slate-800/60",
+    badgeText: "text-sky-200",
+    badgeBorder: "border-sky-500/30",
+    description: "Alternance de passages nuageux et de belles trouées permettant d'observer la lune et les étoiles."
+  },
+  3: {
+    label: "Nuit très nuageuse, plafond bas ou ciel couvert dense",
+    shortLabel: "Nuit Couverte",
+    skyCondition: "Nuit Bouchée",
+    iconName: "Cloud",
+    badgeBg: "bg-slate-900/80",
+    badgeText: "text-slate-300",
+    badgeBorder: "border-slate-700/60",
+    description: "Couverture nuageuse compacte masquant le ciel nocturne et les étoiles."
+  },
+  45: {
+    label: "Brouillard nocturne ou brume dense (visibilité < 1 km)",
+    shortLabel: "Brouillard Nocturne",
+    skyCondition: "Brouillard Nocturne",
+    iconName: "CloudFog",
+    description: "Nappe de brouillard au sol avec visibilité fortement réduite durant la nuit."
+  },
+  48: {
+    label: "Brouillard givrant nocturne avec dépôts de gelée blanche",
+    shortLabel: "Brouillard Givrant",
+    skyCondition: "Brouillard Givrant",
+    iconName: "CloudFog",
+    description: "Brouillard par température négative créant des dépôts de givre au cours de la nuit."
+  },
+  80: {
+    label: "Averses nocturnes faibles et intermittentes",
+    shortLabel: "Averses Nocturnes",
+    skyCondition: "Averses Nocturnes",
+    iconName: "CloudRain",
+    description: "Averses passagères se déclenchant en cours de nuit."
+  },
+  81: {
+    label: "Averses nocturnes modérées",
+    shortLabel: "Averses Nocturnes",
+    skyCondition: "Averses Nocturnes",
+    iconName: "CloudRain",
+    description: "Passages pluvieux réguliers au cours de la nuit."
+  },
+  82: {
+    label: "Fortes averses nocturnes violentes",
+    shortLabel: "Fortes Averses Nocturnes",
+    skyCondition: "Averses Nocturnes",
+    iconName: "CloudRain",
+    description: "Lignes d'averses intenses et soutenues en cours de nuit."
+  }
+};
+
+/**
  * Return rich weather information for any WMO code, taking day/night into account
  */
 export function getRichWeatherInfo(
@@ -397,8 +478,8 @@ export function getRichWeatherInfo(
     shortLabel: "Variable",
     emoji: isDay ? "⛅" : "🌥️",
     nightEmoji: "🌥️",
-    iconName: "CloudSun",
-    skyCondition: "Variable",
+    iconName: isDay ? "CloudSun" : "CloudMoon",
+    skyCondition: isDay ? "Variable" : "Nuit Variable",
     badgeBg: "bg-slate-800/80",
     badgeText: "text-slate-300",
     badgeBorder: "border-slate-700",
@@ -406,6 +487,51 @@ export function getRichWeatherInfo(
   };
 
   const activeEmoji = isDay ? base.emoji : base.nightEmoji;
+
+  if (!isDay) {
+    const nightOverride = NIGHT_CODES_OVERRIDE[code];
+    let label = nightOverride?.label || base.label;
+    let shortLabel = nightOverride?.shortLabel || base.shortLabel;
+    let skyCondition = nightOverride?.skyCondition || base.skyCondition;
+    let iconName = nightOverride?.iconName || (base.iconName === 'Sun' || base.iconName === 'SunDim' ? 'Moon' : base.iconName === 'CloudSun' ? 'CloudMoon' : base.iconName);
+    let description = nightOverride?.description || base.description;
+    let badgeBg = nightOverride?.badgeBg || base.badgeBg;
+    let badgeText = nightOverride?.badgeText || base.badgeText;
+    let badgeBorder = nightOverride?.badgeBorder || base.badgeBorder;
+
+    // Strict safety sanitizer against any remaining daylight words appearing at night
+    label = label
+      .replace(/parfaitement dégagé et ensoleillé/gi, 'parfaitement dégagé et nuit étoilée')
+      .replace(/ensoleillé/gi, 'clair et étoilé')
+      .replace(/Ensoleillé/gi, 'Clair et Étoilé')
+      .replace(/Plein Soleil/gi, 'Nuit Claire')
+      .replace(/soleil/gi, 'ciel nocturne');
+
+    description = description
+      .replace(/Ensoleillement maximal/gi, 'Voûte céleste parfaitement dégagée')
+      .replace(/ensoleillement/gi, 'visibilité céleste')
+      .replace(/soleil/gi, 'lune et étoiles');
+
+    skyCondition = skyCondition
+      .replace(/Plein Soleil/gi, 'Nuit Claire & Étoilée')
+      .replace(/Ensoleillé Voilé/gi, 'Nuit Calme & Voilée')
+      .replace(/Belles Éclaircies/gi, 'Éclaircies Nocturnes');
+
+    return {
+      ...base,
+      label,
+      detailedLabel: label,
+      shortLabel,
+      emoji: activeEmoji,
+      iconName,
+      skyCondition,
+      description,
+      badgeBg,
+      badgeText,
+      badgeBorder
+    };
+  }
+
   return {
     ...base,
     detailedLabel: base.label,

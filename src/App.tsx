@@ -933,7 +933,7 @@ function WeatherApp() {
       </div>
 
       {/* Main Container - Expansive wide screen layout without left sidebar */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2.5 pb-28 overflow-x-hidden">
+      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2.5 pb-40 sm:pb-36 overflow-x-hidden">
 
         <section className="min-w-0 w-full">
         {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA) */}
@@ -1362,7 +1362,7 @@ function WeatherApp() {
       </main>
 
       {/* Footer avec maillage interne complet et URLs canoniques strictes pour Google Search Console */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-28">
+      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-40 sm:pb-36">
         <div className="mx-auto max-w-7xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
             <p className="text-left font-medium">

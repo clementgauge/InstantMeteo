@@ -453,9 +453,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       />
 
       {/* ========================================================================= */}
-      {/* BANDEAU VEDETTE : DIRECT MÉTÉO & SURVEILLANCE ATMOSPHÉRIQUE               */}
+      {/* BANDEAU VEDETTE : DIRECT MÉTÉO & SURVEILLANCE ATMOSPHÉRIQUE (DESKTOP/TABLET)*/}
       {/* ========================================================================= */}
-      <div className="w-full rounded-2xl border border-sky-400/30 dark:border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 dark:from-slate-900/95 dark:via-sky-950/40 dark:to-slate-900/95 p-3 sm:p-3.5 shadow-lg backdrop-blur-md flex flex-wrap items-center justify-between gap-3 transition-all">
+      <div className="hidden sm:flex w-full rounded-2xl border border-sky-400/30 dark:border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 dark:from-slate-900/95 dark:via-sky-950/40 dark:to-slate-900/95 p-3 sm:p-3.5 shadow-lg backdrop-blur-md flex-wrap items-center justify-between gap-3 transition-all">
         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 text-emerald-700 dark:text-emerald-300 text-xs font-black shadow-sm">
             <span className="relative flex h-2 w-2">
@@ -514,7 +514,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       {/* ========================================================================= */}
       {/* MOBILE EXCLUSIVE HERO & FORECAST (Hyper-Attractif & 100% Complet)         */}
       {/* ========================================================================= */}
-      <div className="block sm:hidden space-y-3.5 mb-4">
+      <div className="block sm:hidden space-y-3.5 mb-4 pb-10">
         {/* 1. Scenic Hero Weather Card with Luminous Glassmorphism */}
         <div className="scenic-hero-card motion-card-enter relative overflow-hidden rounded-3xl border border-sky-500/35 shadow-[0_20px_50px_rgba(2,132,199,0.22)] text-white bg-slate-950">
           {/* Top Luminous Accent Strip */}
