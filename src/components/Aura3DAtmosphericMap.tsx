@@ -26,6 +26,7 @@ interface Aura3DAtmosphericMapProps {
   currentStation: LocationPoint;
   onSelectStation?: (station: LocationPoint) => void;
   title?: string;
+  focusCityName?: string; // Nom de la ville demandée en détail (ex: "Paris", "Marseille")
 }
 
 interface Station3DNode {
@@ -49,7 +50,8 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
   initialMetric = 'relief',
   currentStation,
   onSelectStation,
-  title
+  title,
+  focusCityName
 }) => {
   const [metric, setMetric] = useState<Map3DMetric>(initialMetric);
   const [rotX, setRotX] = useState<number>(44); // Pitch (inclinaison 3D)
@@ -323,12 +325,14 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
                   <stop offset="100%" stopColor="#e2e8f0" stopOpacity="0.9" />
                 </linearGradient>
 
-                {/* Dégradé Thermique Spatial France */}
-                <linearGradient id="franceThermalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.5" />
-                  <stop offset="40%" stopColor="#10B981" stopOpacity="0.45" />
-                  <stop offset="75%" stopColor="#F59E0B" stopOpacity="0.55" />
-                  <stop offset="100%" stopColor="#EF4444" stopOpacity="0.6" />
+                {/* Dégradé Thermique Spatial France : Bleu si froid, Orange si entre-deux, Rouge si chaud */}
+                <linearGradient id="franceThermalGrad" x1="10%" y1="0%" x2="60%" y2="100%">
+                  <stop offset="0%" stopColor="#1E40AF" stopOpacity="0.88" />   {/* Nord / Manche : bleu froid */}
+                  <stop offset="26%" stopColor="#0284C7" stopOpacity="0.85" />  {/* Hauts-de-France / Bassin Parisien Nord : cyan */}
+                  <stop offset="50%" stopColor="#10B981" stopOpacity="0.80" />  {/* Centre / Val de Loire : vert tempéré */}
+                  <stop offset="70%" stopColor="#F59E0B" stopOpacity="0.88" />  {/* Aquitaine / Rhône : orange entre-deux */}
+                  <stop offset="85%" stopColor="#EA580C" stopOpacity="0.92" />  {/* Occitanie : orange chaud */}
+                  <stop offset="100%" stopColor="#DC2626" stopOpacity="0.95" /> {/* Méditerranée / Corse : rouge chaud */}
                 </linearGradient>
 
                 {/* Dégradé Vent Spatial */}
@@ -542,6 +546,20 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
             const nodeColor = getNodeColor(st);
             const badgeVal = getNodeBadgeValue(st);
             const isSummit = (st.altitude || 0) >= 1500;
+
+            const isFocusedCity = Boolean(
+              focusCityName &&
+              (st.id.toLowerCase().includes(focusCityName.toLowerCase()) ||
+               st.name.toLowerCase().includes(focusCityName.toLowerCase()) ||
+               st.shortName.toLowerCase().includes(focusCityName.toLowerCase()))
+            );
+
+            // Règle demandée : pour la température ne pas donner tous les noms des villes,
+            // seulement la ville demandée en détail !
+            const shouldShowFullLabel = metric === 'temperature'
+              ? (focusCityName ? isFocusedCity : isSelected)
+              : (focusCityName ? (isFocusedCity || isSelected) : true);
+
             // Height proportional to altitude in relief mode, or custom elevation in 3D
             const heightPx = metric === 'relief'
               ? Math.max(16, Math.min(85, Math.round((st.altitude / 4809) * 80) + 14))
@@ -557,7 +575,7 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
                     if (match) onSelectStation(match);
                   }
                 }}
-                className="absolute group cursor-pointer"
+                className={`absolute group cursor-pointer ${isFocusedCity ? 'z-30' : 'z-10'}`}
                 style={{
                   left: `${st.x}%`,
                   top: `${st.y}%`,
@@ -567,59 +585,71 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
               >
                 {/* Base Anchor Beacon on ground plane */}
                 <div 
-                  className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
-                    isSelected ? 'ring-4 ring-white scale-125' : 'group-hover:scale-110'
+                  className={`rounded-full border transition-all duration-300 flex items-center justify-center ${
+                    isFocusedCity 
+                      ? 'w-5 h-5 ring-4 ring-amber-400 animate-pulse scale-125' 
+                      : isSelected 
+                        ? 'w-4 h-4 ring-4 ring-white scale-125' 
+                        : 'w-3 h-3 group-hover:scale-110'
                   }`}
                   style={{
-                    backgroundColor: `${nodeColor}33`,
-                    borderColor: nodeColor,
-                    boxShadow: `0 0 12px ${nodeColor}`
+                    backgroundColor: `${nodeColor}40`,
+                    borderColor: isFocusedCity ? '#F59E0B' : nodeColor,
+                    boxShadow: isFocusedCity ? `0 0 18px #F59E0B` : `0 0 10px ${nodeColor}`
                   }}
                 >
                   <div 
                     className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: nodeColor }}
+                    style={{ backgroundColor: isFocusedCity ? '#F59E0B' : nodeColor }}
                   />
                 </div>
 
                 {/* 3D Vertical Pillar ascending from the relief */}
-                <div
-                  className="absolute bottom-1/2 left-1/2 -translate-x-1/2 w-0.5 pointer-events-none transition-all duration-300 opacity-70 group-hover:opacity-100"
-                  style={{
-                    height: `${heightPx}px`,
-                    background: `linear-gradient(to top, ${nodeColor}40, ${nodeColor})`,
-                    transform: 'rotateX(-90deg)',
-                    transformOrigin: 'bottom'
-                  }}
-                />
+                {shouldShowFullLabel && (
+                  <div
+                    className="absolute bottom-1/2 left-1/2 -translate-x-1/2 w-0.5 pointer-events-none transition-all duration-300 opacity-80 group-hover:opacity-100"
+                    style={{
+                      height: `${heightPx}px`,
+                      background: `linear-gradient(to top, ${nodeColor}40, ${nodeColor})`,
+                      transform: 'rotateX(-90deg)',
+                      transformOrigin: 'bottom'
+                    }}
+                  />
+                )}
 
-                {/* Elevated Holographic Station Head badge */}
-                <div
-                  className="absolute pointer-events-auto transition-transform duration-200 group-hover:scale-110"
-                  style={{
-                    transform: `translate3d(-50%, -100%, ${heightPx}px) rotateZ(${-rotZ}deg) rotateX(${-rotX}deg)`,
-                    transformOrigin: 'bottom center',
-                    top: '-6px',
-                    left: '50%'
-                  }}
-                >
-                  <div 
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-black border backdrop-blur-md shadow-lg transition-all ${
-                      isSelected 
-                        ? 'bg-white text-slate-950 border-white ring-2 ring-sky-400 scale-105' 
-                        : 'bg-slate-950/85 text-white border-white/20 hover:border-white/50'
-                    }`}
+                {/* Elevated Holographic Station Head badge : UNIQUEMENT pour la ville demandée ou sélectionnée */}
+                {shouldShowFullLabel && (
+                  <div
+                    className="absolute pointer-events-auto transition-transform duration-200 group-hover:scale-110 z-20"
+                    style={{
+                      transform: `translate3d(-50%, -100%, ${heightPx}px) rotateZ(${-rotZ}deg) rotateX(${-rotX}deg)`,
+                      transformOrigin: 'bottom center',
+                      top: '-6px',
+                      left: '50%'
+                    }}
                   >
-                    {isSummit && <Mountain className="h-2.5 w-2.5 text-amber-400 shrink-0" />}
-                    <span className="truncate max-w-[68px] sm:max-w-[85px]">{st.shortName}</span>
-                    <span 
-                      className="px-1 py-0.2 rounded font-mono text-[9px] text-slate-950 font-black shrink-0"
-                      style={{ backgroundColor: nodeColor }}
+                    <div 
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-black border backdrop-blur-md shadow-2xl transition-all ${
+                        isFocusedCity
+                          ? 'bg-slate-950/95 text-white border-amber-400 ring-2 ring-amber-400/80 scale-110'
+                          : isSelected 
+                            ? 'bg-white text-slate-950 border-white ring-2 ring-sky-400 scale-105' 
+                            : 'bg-slate-950/85 text-white border-white/20 hover:border-white/50'
+                      }`}
                     >
-                      {badgeVal}
-                    </span>
+                      {isSummit && <Mountain className="h-3 w-3 text-amber-400 shrink-0" />}
+                      <span className="truncate max-w-[90px] sm:max-w-[120px] font-bold">
+                        {isFocusedCity ? `📍 ${st.name}` : st.shortName}
+                      </span>
+                      <span 
+                        className="px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-950 font-black shrink-0"
+                        style={{ backgroundColor: nodeColor }}
+                      >
+                        {badgeVal}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
@@ -666,16 +696,16 @@ export const Aura3DAtmosphericMap: React.FC<Aura3DAtmosphericMapProps> = ({
           {metric === 'temperature' && (
             <div className="space-y-1 text-slate-300">
               <div className="flex items-center justify-between text-[9px]">
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-red-500 inline-block" /> Chaud (&gt; 22°C)</span>
-                <span className="font-mono text-white">Midi / Aquitaine</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-red-600 inline-block" /> Rouge (Chaud &gt; 22°C)</span>
+                <span className="font-mono text-white">Midi / Méditerranée</span>
               </div>
               <div className="flex items-center justify-between text-[9px]">
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-emerald-500 inline-block" /> Tempéré (16-19°C)</span>
-                <span className="font-mono text-white">Façade Ouest</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-amber-500 inline-block" /> Orange (Entre-deux 16-21°C)</span>
+                <span className="font-mono text-white">Sud-Ouest &amp; Centre</span>
               </div>
               <div className="flex items-center justify-between text-[9px]">
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-sky-500 inline-block" /> Frais d'altitude</span>
-                <span className="font-mono text-white">Massifs &lt; 10°C</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-blue-600 inline-block" /> Bleu (Froid &lt; 10°C)</span>
+                <span className="font-mono text-white">Nord &amp; Reliefs</span>
               </div>
             </div>
           )}

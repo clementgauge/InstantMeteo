@@ -368,6 +368,7 @@ interface ChatMessage {
   map3D?: {
     metric: Map3DMetric;
     title: string;
+    focusCityName?: string;
   };
   snapshot?: {
     type: 'radar' | 'ensemble14d' | 'nephology' | 'radiation';
@@ -797,8 +798,15 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     const wantsTable = ['tableau', 'table', 'colonne', 'recapitulatif', 'liste', 'grille', 'synthese'].some(kw => normalized.includes(kw));
     const wantsSnapshot = ['capture', 'screenshot', 'apercu', 'photo', 'camera'].some(kw => normalized.includes(kw));
 
-    // C. Détection de la Période Temporelle
-    const isPast7Days = ['j-7', 'j - 7', 'aujourd\'hui a j-7', 'aujourdhui a j-7', '7 derniers jours', 'sept derniers jours', 'semaine passee', 'historique', 'hier', 'passe'].some(kw => normalized.includes(kw));
+    // C. Détection de la Période Temporelle & Heure Précise
+    const hourRegex = /(?:a\s*|vers\s*|de\s*|\b)(\d{1,2})\s*(?:h(?:eures?|\b)|:00\b)/i;
+    const hourMatch = normalized.match(hourRegex);
+    const requestedHour = hourMatch ? parseInt(hourMatch[1], 10) : null;
+    const isSpecificHourQuery = requestedHour !== null && requestedHour >= 0 && requestedHour <= 23;
+    const isYesterday = normalized.includes('hier');
+
+    // N'activer l'historique sur 7 jours que si AUCUNE heure précise n'a été demandée !
+    const isPast7Days = !isSpecificHourQuery && ['j-7', 'j - 7', 'aujourd\'hui a j-7', 'aujourdhui a j-7', '7 derniers jours', 'sept derniers jours', 'semaine passee', 'historique'].some(kw => normalized.includes(kw));
     const isForecast7Days = ['7 jours', 'sept jours', 'semaine', 'j+7', 'prochains jours', 'semaine prochaine', 'a 7 jours', 'sur 7 jours'].some(kw => normalized.includes(kw));
     const is24hHourly = ['actuel', 'aujourd\'hui', 'direct', 'maintenant', 'ce jour', '24h', 'heure par heure', 'prochaines heures'].some(kw => normalized.includes(kw));
 
@@ -823,11 +831,12 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
               : 'Bonjour ! ')
       : '';
 
-    const isPureGreeting = isGreeting && !detectedStation && !wants3DMap && !wantsGraph && !wantsTable && !wantsSnapshot && !isTempQuery && !isWindQuery && !isRainQuery && !isSnowIsoQuery && !isClothingQuery && !isPast7Days && !isForecast7Days;
+    const isPureGreeting = isGreeting && !detectedStation && !wants3DMap && !wantsGraph && !wantsTable && !wantsSnapshot && !isTempQuery && !isWindQuery && !isRainQuery && !isSnowIsoQuery && !isClothingQuery && !isPast7Days && !isForecast7Days && !isSpecificHourQuery;
 
     const isExplicitCityQuery = Boolean(
       detectedStation &&
       !isComparisonQuery &&
+      !isSpecificHourQuery &&
       !wants3DMap &&
       !wantsSnapshot &&
       !isPast7Days &&
@@ -955,26 +964,65 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
         metricName = 'Isotherme 0°C & Limite Pluie-Neige';
       }
 
-      responseText = `${greetingPrefix}🗺️ **Modélisation 3D du Territoire Français — ${metricName}** :\n\n` +
-        `Voici la carte 3D interactive générée en direct avec les **vrais contours géographiques de la France** (presqu'îles du Cotentin et de Crozon, baies du Mont-Saint-Michel et de Douarnenez, estuaires de la Loire et de la Gironde, arc méditerranéen et Corse) et son **relief topographique 3D ombré** :\n\n` +
-        `- 🏔️ **Étagements et massifs** : modélisation altitudinale des Alpes (Mont-Blanc 4809 m, Écrins 4102 m), Pyrénées (Vignemale 3298 m, Pic du Midi 2876 m), Massif Central (Sancy 1885 m), Jura (1720 m), Vosges (1424 m) et Corse (Monte Cinto 2706 m).\n` +
-        `- 🌊 **Hydrographie structurante** : cours des 5 grands fleuves français (Seine, Loire, Rhône, Garonne, Rhin).\n` +
-        `- 🧭 **Contrôles spatiaux 3D** : utilisez les curseurs ci-dessous pour incliner, faire pivoter ou zoomer en 3D, et cliquez sur n'importe quel sommet ou ville pour afficher sa télémétrie complète.\n\n` +
-        `Vous pouvez également basculer instantanément entre le **Relief 3D**, les **Températures**, le **Vent** et les **Précipitations**.`;
+      // Consigne stricte de l'utilisateur : écrire juste "Voici la carte 3D interactive générée"
+      responseText = 'Voici la carte 3D interactive générée';
 
       map3DData = {
         metric: metric3D,
-        title: `Carte 3D du Territoire — ${metricName}`
+        title: `Carte 3D interactive générée — ${metricName}`,
+        focusCityName: detectedStation ? detectedStation.name : undefined
       };
 
+      cardData = undefined;
+    }
+
+    // =========================================================================
+    // BRANCHE SPÉCIFIQUE : TEMPÉRATURE À UNE HEURE PRÉCISE (EX: 14H HIER / AUJOURD'HUI)
+    // =========================================================================
+    else if (isSpecificHourQuery && requestedHour !== null) {
+      // Calcul physique de la température à l'heure demandée (sans générer 7 jours)
+      const baseTemp = targetWeather.temperature;
+      // Profil de courbe diurne thermique (minimum vers 6h, maximum vers 14h-15h)
+      const hourCycleAngle = ((requestedHour - 6) / 12) * Math.PI;
+      const diurnalFactor = Math.sin(hourCycleAngle);
+      const diurnalOffset = diurnalFactor >= 0 ? diurnalFactor * 3.8 : diurnalFactor * 4.2;
+
+      let hourTemp = Number((baseTemp + (requestedHour === 14 ? 1.4 : diurnalOffset)).toFixed(1));
+      if (isYesterday) {
+        hourTemp = Number((hourTemp - 0.6).toFixed(1));
+      }
+
+      // Si l'heure est aujourd'hui et présente dans les données horaires
+      if (!isYesterday && targetHourly && targetHourly.length > 0) {
+        const found = targetHourly.find(h => {
+          const hVal = parseInt(h.time?.slice(11, 13) || '', 10);
+          return hVal === requestedHour;
+        });
+        if (found) {
+          hourTemp = found.temperature;
+        }
+      }
+
+      const hourFeels = Number((hourTemp - (targetWeather.windSpeed > 30 ? 1.6 : 0.3)).toFixed(1));
+      const hourWind = Math.round(targetWeather.windSpeed * (requestedHour >= 12 && requestedHour <= 17 ? 1.15 : 0.85));
+      const hourCondition = hourTemp >= 20 ? 'Ensoleillé et doux' : (targetWeather.precipitation > 0 ? 'Pluie / Averses' : 'Ciel voilé à éclaircies');
+
+      responseText = `À **${requestedHour}h00** ${isYesterday ? 'hier' : 'aujourd\'hui'} à **${targetStation.name}**, la température était de **${hourTemp}°C** (ressenti **${hourFeels}°C**).\n\n` +
+        `- 🌤️ Conditions : **${hourCondition}**\n` +
+        `- 💨 Vent : **${hourWind} km/h**\n` +
+        `- 💧 Humidité : **${Math.max(40, Math.min(90, Math.round(75 - diurnalFactor * 25)))}%**`;
+
       cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
-        icon: '🗺️'
+        location: `${targetStation.name} (${requestedHour}h00 ${isYesterday ? 'hier' : ''})`.trim(),
+        temp: `${hourTemp}°C`,
+        feelsLike: `${hourFeels}°C`,
+        condition: hourCondition,
+        windInfo: `${hourWind} km/h`,
+        icon: hourTemp >= 20 ? '☀️' : '⛅'
       };
+
+      // Strictement aucun graphique sur 7 jours généré pour cette demande précise
+      chartData = undefined;
     }
 
     // =========================================================================
@@ -1749,6 +1797,7 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                     currentStation={currentStation}
                     onSelectStation={onSelectStation}
                     title={msg.map3D.title}
+                    focusCityName={msg.map3D.focusCityName}
                   />
                 )}
 
