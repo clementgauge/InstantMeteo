@@ -136,7 +136,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
             }`}
           >
             <Radar className="h-4 w-4" />
-            <span>Nowcasting &lt; 3 Heures (5 &amp; 15 min)</span>
+            <span>Pluie sous 3 heures (5 &amp; 15 min)</span>
           </button>
 
           <button
@@ -168,7 +168,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
       </div>
 
       {/* ========================================================================= */}
-      {/* HORIZON 1 : NOWCASTING À MOINS DE 3 HEURES (PLUIE PAR 5 MIN & 15 MIN)     */}
+      {/* HORIZON 1 : PRÉVISION À MOINS DE 3 HEURES (PLUIE PAR 5 MIN & 15 MIN)      */}
       {/* ========================================================================= */}
       {activeHorizon === '3h' && (
         <div className="space-y-6">
@@ -177,7 +177,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <Radar className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                Chronologie par Créneau • Cliquez sur une case pour inspecter la microphysique
+                Chronologie par créneau • Cliquez sur une case pour plus de détails
               </h4>
               <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700"></span> Sec</span>
@@ -193,7 +193,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
-                  Prochaine Heure (0 à 60 minutes) • Précision chirurgicale par palier de 5 min
+                  Prochaine heure (0 à 60 minutes) • Évolution par palier de 5 min
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">12 intervalles</span>
               </div>
@@ -274,7 +274,7 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
                   </div>
                   <div>
                     <h5 className="font-black text-slate-900 dark:text-white text-base">
-                      Détail Chirurgical du Créneau {activeSelectedSlot.timeLabel} (+{activeSelectedSlot.minutes} min)
+                      Détail du créneau {activeSelectedSlot.timeLabel} (+{activeSelectedSlot.minutes} min)
                     </h5>
                     <span className="text-xs text-cyan-700 dark:text-cyan-300 font-bold">
                       {activeSelectedSlot.intensityLabel}
@@ -286,31 +286,31 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
                   onClick={() => setSelectedSlotIndex(null)}
                   className="rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-1 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white self-start sm:self-auto cursor-pointer"
                 >
-                  Fermer l'inspection
+                  Fermer
                 </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-xs">
                 <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Intensité Instantanée</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Intensité</span>
                   <span className="text-base font-black text-cyan-600 dark:text-cyan-300 mt-0.5 block">{activeSelectedSlot.rainRateMmH} mm/h</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Cumul sur créneau : {activeSelectedSlot.accumulatedMm} mm</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Cumul prévu : {activeSelectedSlot.accumulatedMm} mm</span>
                 </div>
 
                 <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
                   <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Réflectivité Radar</span>
                   <span className="text-base font-black text-purple-600 dark:text-purple-300 mt-0.5 block">{activeSelectedSlot.radarDbz} dBZ</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Écho Doppler modélisé</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Signal radar estimé</span>
                 </div>
 
                 <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Microphysique</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Type de précipitation</span>
                   <span className="text-base font-black text-blue-600 dark:text-blue-300 mt-0.5 block">{activeSelectedSlot.microphysicsPhase}</span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Probabilité : {activeSelectedSlot.probabilityPct}%</span>
                 </div>
 
                 <div className="rounded-xl bg-white dark:bg-slate-950/90 p-3 border border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Vent au Sol &amp; Rafales</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Vent &amp; Rafales</span>
                   <span className="text-base font-black text-emerald-600 dark:text-emerald-300 mt-0.5 block">{activeSelectedSlot.windSpeedKmh} km/h</span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Rafales max : {activeSelectedSlot.windGustKmh} km/h</span>
                 </div>
@@ -323,17 +323,17 @@ export const GigaPrecipitationNowcastingCard: React.FC<GigaPrecipitationNowcasti
             <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/80 p-4 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-bold mb-1">
                 <Waves className="h-4 w-4" />
-                <span className="uppercase text-[10px] tracking-wider">Microphysique des Gouttes</span>
+                <span className="uppercase text-[10px] tracking-wider">Nature des Précipitations</span>
               </div>
               <span className="text-slate-900 dark:text-white font-black text-sm block">
                 {nowcasting?.dominantPrecipType || 'Sec'}
               </span>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
                 {currentPrecip > 4
-                  ? "Grosses gouttes de convection (> 2.5 mm). Risque de ruissellement immédiat."
+                  ? "Averses denses avec intensité marquée et ruissellement rapide."
                   : currentPrecip > 0.5
-                  ? "Gouttes stratiformes régulières (0.8 à 1.5 mm). Excellente pénétration dans les sols."
-                  : "Absence de gouttelettes précipitantes dans la colonne atmosphérique."}
+                  ? "Pluie régulière continue, bonne pénétration dans les sols."
+                  : "Absence de précipitations significatives."}
               </p>
             </div>
 

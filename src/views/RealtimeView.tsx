@@ -22,6 +22,7 @@ import {
   Radar, 
   TrendingUp, 
   Navigation, 
+  Bot,
   SlidersHorizontal,
   CheckCircle2, 
   Split, 
@@ -453,72 +454,48 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
       />
 
       {/* ========================================================================= */}
-      {/* BANDEAU VEDETTE : DIRECT MÉTÉO & SURVEILLANCE ATMOSPHÉRIQUE (DESKTOP/TABLET)*/}
+      {/* BANDEAU VEDETTE : DIRECT MÉTÉO (DESKTOP/TABLET)                           */}
       {/* ========================================================================= */}
-      <div className="hidden sm:flex w-full rounded-2xl border border-sky-400/30 dark:border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 dark:from-slate-900/95 dark:via-sky-950/40 dark:to-slate-900/95 p-3 sm:p-3.5 shadow-lg backdrop-blur-md flex-wrap items-center justify-between gap-3 transition-all">
+      <div className="hidden sm:flex w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-3 sm:p-3.5 shadow-sm backdrop-blur-md flex-wrap items-center justify-between gap-3 transition-all">
         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 text-emerald-700 dark:text-emerald-300 text-xs font-black shadow-sm">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span>Flux Météo en Direct</span>
+            <span>Conditions en direct</span>
           </div>
-          <div className="flex items-center gap-2.5 text-xs font-mono tabular-nums flex-wrap">
-            <span className="text-cyan-700 dark:text-cyan-300 font-bold flex items-center gap-1" title="Vitesse et rafales">
-              <Wind className="h-3.5 w-3.5 text-cyan-500" />
-              <span>Vent : <strong className="font-black text-slate-900 dark:text-white">{Math.round(weather.windSpeed)} km/h</strong></span>
-              <span className="text-amber-600 dark:text-amber-400 text-[11px] font-semibold">(raf. {Math.round(weather.windGust || weather.windSpeed * 1.35)} km/h)</span>
-            </span>
-            <span className="text-slate-400">·</span>
-            <span className="text-sky-700 dark:text-sky-300 font-bold flex items-center gap-1" title="Isotherme 0°C calculé">
-              <ThermometerSnowflake className="h-3.5 w-3.5 text-sky-500" />
-              <span>Iso 0°C : <strong className="font-black text-slate-900 dark:text-white">{calculatePhysicalIsotherm0({ stationAltitude: station.altitude ?? 80, temperature: weather.temperature, precipitationMm: 0 })} m</strong></span>
-            </span>
-            <span className="text-slate-400">·</span>
-            <span className="text-amber-700 dark:text-amber-300 font-bold flex items-center gap-1" title="Indice UV maximal">
-              <Sun className="h-3.5 w-3.5 text-amber-500" />
-              <span>UV : <strong className="font-black text-slate-900 dark:text-white">{weather.uvIndex ?? 3}</strong></span>
-            </span>
-          </div>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Relevés atmosphériques pour {station.name}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => document.getElementById('remarkable-weather-highlight-card')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer"
-            title="Consulter les coups de vent, rafales et limites pluie-neige"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-slate-950" />
-            <span>Indicateurs Remarquables (Vent &amp; Neige)</span>
-          </button>
-          <button
             onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-xs font-black shadow-md shadow-cyan-500/20 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer"
           >
-            <CloudRain className="h-3.5 w-3.5 text-cyan-200" />
-            <span>Radar des Pluies HD</span>
+            <CloudRain className="h-3.5 w-3.5 text-sky-500" />
+            <span>Radar des pluies</span>
           </button>
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('auraAI')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-700 hover:to-sky-700 text-white text-xs font-black shadow-md shadow-purple-500/20 transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
-              <span>IA AURA</span>
+              <Bot className="h-3.5 w-3.5 text-sky-500" />
+              <span>Assistant IA</span>
             </button>
           )}
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* MOBILE EXCLUSIVE HERO & FORECAST (Hyper-Attractif & 100% Complet)         */}
+      {/* MOBILE EXCLUSIVE HERO & FORECAST                                         */}
       {/* ========================================================================= */}
       <div className="block sm:hidden space-y-3.5 mb-4 pb-10">
-        {/* 1. Scenic Hero Weather Card with Luminous Glassmorphism */}
-        <div className="scenic-hero-card motion-card-enter relative overflow-hidden rounded-3xl border border-sky-500/35 shadow-[0_20px_50px_rgba(2,132,199,0.22)] text-white bg-slate-950">
-          {/* Top Luminous Accent Strip */}
-          <div className="absolute top-0 inset-x-0 h-1 z-20 bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500" />
+        {/* 1. Scenic Hero Weather Card */}
+        <div className="scenic-hero-card motion-card-enter relative overflow-hidden rounded-3xl border border-slate-800 shadow-md text-white bg-slate-950">
           {/* Photographic Background Asset */}
           <img 
             src={cityPhotoUrl}
@@ -658,7 +635,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               </div>
             </div>
 
-            {/* Translucent Glass 6-Metric Strip (2 rows of 3 or 4+2 for complete mobile telemetry at a glance) */}
+            {/* Translucent Glass 4-Metric Strip avec Direction du Vent & Impact Ressenti */}
             <div className="rounded-2xl bg-slate-950/85 border border-white/15 backdrop-blur-xl p-2.5 grid grid-cols-4 divide-x divide-slate-800/90 text-center shadow-xl">
               {/* 1. Ressenti */}
               <div className="flex flex-col items-center px-1">
@@ -667,6 +644,13 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   <span>Ressenti</span>
                 </div>
                 <span className="text-xs font-black text-white tabular-nums">{formatTemp(weather.feelsLike)}</span>
+                {weather.windDirectionImpactC !== undefined && weather.windDirectionImpactC !== 0 ? (
+                  <span className={`text-[8.5px] font-black font-mono mt-0.5 ${weather.windDirectionImpactC < 0 ? 'text-cyan-300' : 'text-amber-300'}`} title={weather.windDirectionExplanation}>
+                    {weather.windDirectionImpactC > 0 ? `+${weather.windDirectionImpactC}` : weather.windDirectionImpactC}°C vent
+                  </span>
+                ) : (
+                  <span className="text-[8.5px] text-slate-400">Normal</span>
+                )}
               </div>
 
               {/* 2. Humidité */}
@@ -676,16 +660,22 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                   <span>Humidité</span>
                 </div>
                 <span className="text-xs font-black text-white tabular-nums">{weather.humidity}%</span>
+                <span className="text-[8.5px] text-blue-200/80 font-mono">
+                  Td {weather.dewPoint !== undefined ? `${Math.round(weather.dewPoint)}°` : '--'}
+                </span>
               </div>
 
-              {/* 3. Vent */}
+              {/* 3. Vent & Direction */}
               <div className="flex flex-col items-center px-1">
                 <div className="flex items-center gap-1 text-[10px] text-teal-300 font-bold mb-0.5">
                   <Wind className="h-3 w-3 text-teal-400" />
-                  <span>Vent</span>
+                  <span>{weather.regionalWindName ? weather.regionalWindName.split(' ')[0] : 'Vent'}</span>
                 </div>
                 <span className="text-xs font-black text-white tabular-nums">
                   {Math.round(weather.windSpeed)} <span className="text-[9px] text-slate-300 font-bold">km/h</span>
+                </span>
+                <span className="text-[8.5px] font-black font-mono text-teal-200 bg-teal-500/20 px-1 rounded mt-0.5">
+                  {weather.windDirectionCompass || (weather.windDirection !== undefined ? `${Math.round(weather.windDirection)}°` : 'Var')}
                 </span>
               </div>
 
@@ -698,22 +688,9 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 <span className="text-xs font-black text-white tabular-nums">
                   {weather.uvIndex ?? 0} <span className="text-[9px] text-emerald-300 font-bold">• IQA {weather.airQualityAqi}</span>
                 </span>
-              </div>
-            </div>
-
-            {/* Indicateur Remarquable Mobile: Rafales & Alerte Neige/Vent */}
-            <div 
-              onClick={() => document.getElementById('remarkable-weather-highlight-card')?.scrollIntoView({ behavior: 'smooth' })}
-              className="rounded-2xl bg-slate-950/90 border border-amber-500/30 p-2.5 text-[11px] font-mono flex flex-wrap items-center justify-between gap-1.5 cursor-pointer shadow-md active:scale-[0.99] transition"
-            >
-              <div className="flex items-center gap-1.5 font-sans font-bold text-white text-[10px]">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                <span>Indicateurs Remarquables :</span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap text-[11px]">
-                <span className="text-amber-300 font-bold">💨 Rafales {weather.windGust ?? Math.round((weather.windSpeed ?? 15) * 1.35)} km/h</span>
-                <span className="text-slate-500">·</span>
-                <span className="text-sky-300 font-bold">❄️ Isotherme 0°C {calculatePhysicalIsotherm0({ stationAltitude: station.altitude ?? 80, temperature: weather.temperature, precipitationMm: 0 })}m</span>
+                <span className="text-[8.5px] text-slate-300">
+                  Raf. {Math.round(weather.windGust || (weather.windSpeed * 1.35))}
+                </span>
               </div>
             </div>
 
@@ -722,15 +699,15 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
               {onLocateGps && (
                 <button
                   onClick={onLocateGps}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-emerald-950/90 to-teal-950/90 border border-emerald-400/50 text-emerald-200 font-black text-xs shadow-lg active:scale-95 transition cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 font-bold text-xs shadow transition active:scale-95 cursor-pointer"
                 >
-                  <Navigation className="h-3.5 w-3.5 fill-emerald-300/30 text-emerald-300" />
+                  <Navigation className="h-3.5 w-3.5 text-sky-400" />
                   <span>Ma position GPS</span>
                 </button>
               )}
               <button
                 onClick={() => onNavigateTab ? onNavigateTab('radar') : (onOpenGigaRadar ? onOpenGigaRadar() : null)}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-sky-950/90 to-blue-950/90 border border-sky-400/50 text-sky-100 font-black text-xs shadow-lg active:scale-95 transition hover:text-white cursor-pointer"
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 font-bold text-xs shadow transition hover:text-white active:scale-95 cursor-pointer"
               >
                 <Map className="h-3.5 w-3.5 text-sky-400" />
                 <span>Voir sur la carte</span>
@@ -740,7 +717,7 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             {/* Bouton de signalement d'observation de terrain */}
             <button
               onClick={() => setIsContradictionModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-200 font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-medium text-xs transition active:scale-95 cursor-pointer"
               title="Signaler un écart entre la météo affichée et le temps réel observé dehors"
             >
               <Zap className="h-3.5 w-3.5 text-amber-400" />
@@ -931,7 +908,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={Droplets}
                 colorClass="text-blue-400"
                 bgGradient="bg-blue-600/20"
-                description="Teneur en vapeur d'eau de l'atmosphère. Une valeur entre 45% et 65% offre un confort respiratoire optimal."
                 seniorMode={seniorMode}
               />
 
@@ -943,7 +919,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={Wind}
                 colorClass="text-teal-400"
                 bgGradient="bg-teal-600/20"
-                description="Vitesse moyenne mesurée à 10 mètres du sol avec analyse des rafales instantanées."
                 seniorMode={seniorMode}
               />
 
@@ -955,7 +930,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={Sun}
                 colorClass="text-amber-400"
                 bgGradient="bg-amber-600/20"
-                description="Intensité des rayons ultraviolets corrigée de l'altitude (+10% / 1000m). Protection solaire conseillée."
                 seniorMode={seniorMode}
               />
 
@@ -967,7 +941,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={Activity}
                 colorClass="text-emerald-400"
                 bgGradient="bg-emerald-600/20"
-                description="Indice européen de pureté de l'air (PM2.5, PM10, Ozone, NO2). Air pur sans risque respiratoire."
                 seniorMode={seniorMode}
               />
 
@@ -979,7 +952,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={Gauge}
                 colorClass="text-indigo-400"
                 bgGradient="bg-indigo-600/20"
-                description={`Pression réelle QFE à ${station.altitude} m d'altitude. Tendance barométrique stable.`}
                 seniorMode={seniorMode}
               />
 
@@ -991,7 +963,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
                 icon={CloudRain}
                 colorClass="text-cyan-400"
                 bgGradient="bg-cyan-600/20"
-                description="Quantité de pluie mesurée sur la dernière heure. Détection radar en temps réel."
                 seniorMode={seniorMode}
               />
 
@@ -1042,15 +1013,15 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             </div>
           )}
 
-          {/* CHAPITRE 4 : PRÉCIPITATIONS CHIRURGICALES & NOWCASTING (< 3h & < 24h) */}
+          {/* CHAPITRE 4 : PRÉCIPITATIONS & PLUIE DANS L'HEURE (< 3h & 24h) */}
           <div id="realtime-precipitation" className="w-full scroll-mt-28 min-w-0 space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/35 text-[10px] font-black text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
-                  Suivi Pluie Minute par Minute
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Précipitations
                 </span>
                 <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                  Nowcasting Chirurgical des Précipitations (&lt; 3h &amp; 24h)
+                  Pluie dans l'heure &amp; Prévisions à court terme
                 </h3>
               </div>
             </div>

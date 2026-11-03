@@ -918,6 +918,10 @@ export interface CurrentWeather {
   windSpeed: number;
   windGust: number;
   windDirection: number;
+  windDirectionCompass?: string; // e.g. "N", "NE", "SSE", "SO"
+  regionalWindName?: string; // e.g. "Mistral", "Tramontane", "Bise", "Vent d'Autan", "Marin", "Sirocco", "Fœhn"
+  windDirectionImpactC?: number; // e.g. -1.5 (cooling) or +1.2 (warming)
+  windDirectionExplanation?: string; // Detailed pedagogical explanation of directional thermal impact
   pressure: number; // QFE or surface pressure
   pressureMsl?: number; // QNH sea-level pressure
   uvIndex: number;

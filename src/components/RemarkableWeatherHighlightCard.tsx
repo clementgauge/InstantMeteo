@@ -47,12 +47,32 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
   const currentWindGust = weather.windGust ?? Math.round(currentWindSpeed * 1.35);
 
   // Recherche de la rafale maximale sur les prochaines 24h
+  // Recherche de la rafale maximale sur les prochaines 24h
   const next24hHours = hourly.slice(0, 24);
   const maxGustIn24h = next24hHours.length > 0 
     ? Math.max(...next24hHours.map(h => h.windGust ?? h.windSpeed ?? 0))
     : currentWindGust;
   const peakHourObj = next24hHours.find(h => (h.windGust ?? h.windSpeed ?? 0) === maxGustIn24h);
-  const peakHourLabel = peakHourObj ? peakHourObj.time : 'Actuel';
+
+  // Formatage propre de l'heure du pic (évite les horodatages bruts ISO type 2026-11-02T15:00)
+  const formatCleanHour = (rawTime?: string, label?: string) => {
+    if (label && /^\d{1,2}h(\d{2})?$/.test(label.trim())) return label.trim();
+    if (!rawTime) return '15h00';
+    if (rawTime.includes('T')) {
+      const timePart = rawTime.split('T')[1];
+      if (timePart) {
+        const [hh, mm] = timePart.split(':');
+        return `${hh}h${mm && mm !== '00' ? mm : '00'}`;
+      }
+    }
+    if (rawTime.includes(':')) {
+      const [hh, mm] = rawTime.split(':');
+      return `${hh}h${mm && mm !== '00' ? mm : '00'}`;
+    }
+    return rawTime;
+  };
+
+  const peakHourLabel = peakHourObj ? formatCleanHour(peakHourObj.time, peakHourObj.hourLabel) : 'Actuel';
 
   const isLocalGaleActive = currentWindGust >= 55 || maxGustIn24h >= 60;
   const isSevereStorm = currentWindGust >= 85 || maxGustIn24h >= 90;
@@ -60,7 +80,7 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
   // Calcul échelle de Beaufort pour le vent
   let beaufortForce = 4;
   let beaufortTitle = 'Brise modérée';
-  let beaufortColor = 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10';
+  let beaufortColor = 'text-slate-300 border-slate-700 bg-slate-800/40';
   let windAdvice = 'Conditions calmes à normales pour les activités extérieures.';
 
   if (currentWindGust >= 100 || currentWindSpeed >= 85) {
@@ -81,14 +101,26 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
   } else if (currentWindGust >= 40) {
     beaufortForce = 5;
     beaufortTitle = 'Vent frais soutenu (Force 5/6)';
-    beaufortColor = 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10';
-    windAdvice = 'Petits arbres feuillus balancés, vagues courtes bien formées.';
+    beaufortColor = 'text-sky-300 border-sky-500/30 bg-sky-500/10';
+    windAdvice = 'Petits arbres feuillus balancés, brise sensible sans gravité.';
   }
 
-  // 2. DÉTECTION NEIGE EN PLAINE & NEIGE HORS SAISON
+  // 2. DÉTECTION NEIGE : STRICTEMENT CONDITIONNÉE
+  // N'afficher la neige que si :
+  // - Il neige actuellement ou de la neige est prévue sous 24h
+  // - Ou la commune est de montagne / altitude (>= 600m)
+  // - Ou nous sommes en plein hiver (décembre, janvier, février) ET température froide (<= 3.5°C)
   const stationAltitude = station.altitude ?? 80;
-  const isPlainZone = stationAltitude < 400; // Moins de 400m = zones de plaine française
+  const isPlainZone = stationAltitude < 400;
   const currentTemp = weather.temperature;
+  const isWinterSeason = currentMonth === 12 || currentMonth === 1 || currentMonth === 2;
+  const isMountainOrHighElevation = stationAltitude >= 600;
+  const isCurrentSnowing = [71, 73, 75, 77, 85, 86].includes(weather.weatherCode);
+  const isSnowInForecast = hourly.slice(0, 24).some(h => 
+    [71, 73, 75, 77, 85, 86].includes(h.weatherCode) || ((h.snowfallCm ?? 0) > 0)
+  );
+  const currentRainProb = hourly[0]?.precipitationProbability ?? (weather.precipitation > 0 ? 80 : 0);
+  const hasSnowRisk = isCurrentSnowing || isSnowInForecast || isMountainOrHighElevation || (isWinterSeason && currentTemp <= 3.5 && currentRainProb >= 25);
 
   // Isotherme 0°C et LPN physiques calculés
   const isoDiag = getIsothermComprehensiveDiagnostic({
@@ -100,18 +132,14 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
   const isotherm0 = isoDiag.isotherm0Meters;
   const lpn = isoDiag.snowRainLimitMeters;
 
-  // Neige inhabituelle en plaine :
-  // En plaine (< 400m), si T <= 2.5°C avec risque de neige ou neige observée
-  const currentRainProb = hourly[0]?.precipitationProbability ?? (weather.precipitation > 0 ? 80 : 0);
-  const isSnowInPlainsLikely = isPlainZone && (
+  const isSnowInPlainsLikely = hasSnowRisk && isPlainZone && (
     (currentTemp <= 2.2 && currentRainProb >= 20) ||
-    [71, 73, 75, 77, 85, 86].includes(weather.weatherCode) ||
-    hourly.slice(0, 24).some(h => [71, 73, 75, 77, 85, 86].includes(h.weatherCode) || (h.temperature <= 1.5 && (h.precipitationProbability ?? 0) >= 35))
+    isCurrentSnowing ||
+    isSnowInForecast
   );
 
-  // Neige précoce (Octobre / Novembre) ou tardive (Avril / Mai)
   const isEarlyOrLateSnowSeason = (currentMonth === 10 || currentMonth === 11 || currentMonth === 4 || currentMonth === 5);
-  const isOffSeasonSnowAlert = isEarlyOrLateSnowSeason && (
+  const isOffSeasonSnowAlert = hasSnowRisk && isEarlyOrLateSnowSeason && (
     currentTemp <= 3.0 || lpn <= (stationAltitude + 500)
   );
 
@@ -183,8 +211,8 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
     let peakPeriodName = "Cet après-midi entre 14h00 et 17h30";
     let calmPeriodName = "Ce soir dès 20h00 avec retour au calme";
 
-    const peakHour = peakHourObj?.hourLabel || peakHourObj?.time || '15h00';
-    const hrNum = parseInt(peakHour, 10);
+    const peakHour = formatCleanHour(peakHourObj?.time, peakHourObj?.hourLabel);
+    const hrNum = peakHourObj?.hourNumber ?? parseInt(peakHour, 10);
 
     if (hrNum >= 6 && hrNum < 12) {
       peakPeriodName = `Ce matin entre 08h00 et 11h30 (Pic à ${peakHour})`;
@@ -221,56 +249,60 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
       {/* Header bar with toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500/20 to-sky-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
-            <Sparkles className="h-5 w-5" />
+          <div className="h-9 w-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
+            <Wind className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-base font-black text-white tracking-tight">
-                Indicateurs Remarquables &amp; Alertes Phénomènes
+                {hasSnowRisk ? "Indicateurs Remarquables (Vent & Neige)" : "Suivi des Phénomènes Aérologiques (Vent & Rafales)"}
               </h3>
               {isLocalGaleActive && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
                   Coup de Vent Actif
                 </span>
               )}
               {isSnowInPlainsLikely && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-cyan-300 border border-sky-500/40 animate-pulse">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-cyan-300 border border-sky-500/40">
                   Neige en Plaine
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-400">
-              Mise en valeur continue des coups de vent, tempêtes et du risque de neige inhabituelle en plaine ou hors saison.
+              {hasSnowRisk 
+                ? "Mise en valeur continue des coups de vent, rafales et du risque de neige."
+                : "Mise en valeur continue des coups de vent, bourrasques et évolution par palier horaire."}
             </p>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 shrink-0 self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('wind')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'wind'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Wind className="h-3.5 w-3.5" />
-            <span>Vent &amp; Rafales ({currentWindGust} km/h)</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('snow')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'snow'
-                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Snowflake className="h-3.5 w-3.5" />
-            <span>Neige &amp; LPN ({lpn}m)</span>
-          </button>
-        </div>
+        {/* Tab Switcher - UNIQUEMENT SI RISQUE DE NEIGE AVÉRÉ */}
+        {hasSnowRisk && (
+          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={() => setActiveTab('wind')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'wind'
+                  ? 'bg-slate-700 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Wind className="h-3.5 w-3.5" />
+              <span>Vent ({currentWindGust} km/h)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('snow')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'snow'
+                  ? 'bg-sky-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Snowflake className="h-3.5 w-3.5" />
+              <span>Neige &amp; LPN ({lpn}m)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -290,10 +322,12 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
               <div className="sm:col-span-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3">
                   <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-700 shadow-inner">
-                    <Wind className={`h-8 w-8 ${currentWindGust >= 60 ? 'text-amber-400 animate-pulse' : 'text-slate-300'}`} />
+                    <Wind className={`h-8 w-8 ${currentWindGust >= 60 ? 'text-amber-400' : 'text-slate-300'}`} />
                     <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-500 text-[9px] font-black text-slate-950 items-center justify-center">
+                      {isLocalGaleActive && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      )}
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-slate-800 border border-slate-600 text-[9px] font-black text-slate-200 items-center justify-center">
                         B{beaufortForce}
                       </span>
                     </span>
@@ -303,7 +337,7 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
                       <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                         {currentWindGust}
                       </span>
-                      <span className="text-sm font-bold text-amber-400">km/h rafales</span>
+                      <span className={`text-sm font-bold ${isLocalGaleActive ? 'text-amber-400' : 'text-slate-300'}`}>km/h rafales</span>
                       <span className="text-xs text-slate-400 font-mono">({currentWindSpeed} km/h moyen)</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
@@ -311,7 +345,7 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
                         {beaufortTitle}
                       </span>
                       <span className="text-xs text-slate-300 flex items-center gap-1 font-semibold">
-                        <Compass className="h-3.5 w-3.5 text-cyan-400" />
+                        <Compass className="h-3.5 w-3.5 text-slate-400" />
                         Cap : {weather.windDirection ?? 225}°
                       </span>
                     </div>
@@ -322,7 +356,7 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
                 <div className="sm:ml-auto w-full sm:w-auto pt-2 sm:pt-0 sm:border-l sm:border-slate-800 sm:pl-4">
                   <div className="text-[11px] uppercase font-bold text-slate-400">Pic de rafale prévu (24h) :</div>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className={`text-xl font-black ${maxGustIn24h >= 65 ? 'text-rose-400' : 'text-amber-300'}`}>
+                    <span className={`text-xl font-black ${maxGustIn24h >= 65 ? 'text-rose-400' : isLocalGaleActive ? 'text-amber-300' : 'text-white'}`}>
                       {maxGustIn24h} km/h
                     </span>
                     <span className="text-xs text-slate-400">vers {peakHourLabel}</span>
@@ -335,16 +369,16 @@ export const RemarkableWeatherHighlightCard: React.FC<RemarkableWeatherHighlight
 
               {/* Advice Box */}
               <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300 mb-1">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  <span>Consigne de Vigilance Vent</span>
+                <div className={`flex items-center gap-1.5 text-xs font-bold mb-1 ${isLocalGaleActive ? 'text-amber-300' : 'text-slate-300'}`}>
+                  {isLocalGaleActive ? <AlertTriangle className="h-3.5 w-3.5 text-amber-400" /> : <Wind className="h-3.5 w-3.5 text-slate-400" />}
+                  <span>{isLocalGaleActive ? 'Consigne de Vigilance Vent' : 'Suivi du Vent'}</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-snug">
                   {windAdvice}
                 </p>
                 <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
                   <span className="text-slate-400">Station :</span>
-                  <span className="font-bold text-white truncate max-w-[120px]">{station.name}</span>
+                  <span className="font-bold text-white truncate max-w-[140px]">{station?.name?.trim() || 'Station locale'}</span>
                 </div>
               </div>
 

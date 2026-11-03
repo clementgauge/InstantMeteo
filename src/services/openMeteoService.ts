@@ -61,7 +61,8 @@ import {
   calculateVaporPressureHpa,
   calculateExactHumidex,
   calculateExactWindChill,
-  calculateReliableFeelsLike
+  calculateReliableFeelsLike,
+  detectRegionalWindAndImpact
 } from '../utils/bioclimaticCalculations';
 import { getRecalibrationOffsetForStation } from './userObservationService';
 import { computeRealtimePollenTracking, RawCamsPollenInput } from './pollenService';
@@ -1760,7 +1761,11 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       curHum,
       curWindSpd,
       solarRadiationTotal,
-      cur.apparent_temperature
+      cur.apparent_temperature,
+      cur.wind_direction_10m,
+      station.department,
+      station.latitude,
+      station.longitude
     );
       
     // 8. Horizontal Visibility
@@ -1858,12 +1863,25 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       finalCurTemp = Math.round(cur.temperature_2m * 10) / 10;
     }
 
+    const regionalWindDiagnostic = detectRegionalWindAndImpact(
+      cur.wind_direction_10m,
+      cur.wind_speed_10m,
+      finalCurTemp,
+      station.department,
+      station.latitude,
+      station.longitude
+    );
+
     const calibratedFeelsLike = calculateReliableFeelsLike(
       finalCurTemp,
       cur.relative_humidity_2m,
       cur.wind_speed_10m,
       solarRadiationTotal,
-      cur.apparent_temperature
+      cur.apparent_temperature,
+      cur.wind_direction_10m,
+      station.department,
+      station.latitude,
+      station.longitude
     );
 
     // Calibration fidèle du code météo et RÉCONCILIATION RADAR DES PRÉCIPITATIONS
@@ -1957,6 +1975,10 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       windSpeed: Math.round(cur.wind_speed_10m),
       windGust: Math.round(cur.wind_gusts_10m || cur.wind_speed_10m * 1.3),
       windDirection: cur.wind_direction_10m,
+      windDirectionCompass: regionalWindDiagnostic.compass,
+      regionalWindName: regionalWindDiagnostic.regionalName,
+      windDirectionImpactC: regionalWindDiagnostic.impactC,
+      windDirectionExplanation: regionalWindDiagnostic.notice,
       pressure: qfe,
       pressureMsl: qnh,
       uvIndex: uvAdjustedAltitude,
@@ -2068,14 +2090,24 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const temp = Math.round(hourlyData.temperature_2m[i] * 10) / 10;
       const hum = hourlyData.relative_humidity_2m?.[i] ? Math.round(hourlyData.relative_humidity_2m[i]) : 65;
       const windSpd = Math.round(hourlyData.wind_speed_10m[i]);
+      const windDir = hourlyData.wind_direction_10m?.[i] ?? 220;
+      const windCompass = getCompassDirection(windDir);
       const radDirect = Math.round(hourlyData.direct_radiation?.[i] ?? 0);
       const radDiffuse = Math.round(hourlyData.diffuse_radiation?.[i] ?? 0);
-      const apparentTemp = calculateReliableFeelsLike(temp, hum, windSpd, radDirect + radDiffuse, hourlyData.apparent_temperature?.[i]);
+      const apparentTemp = calculateReliableFeelsLike(
+        temp, 
+        hum, 
+        windSpd, 
+        radDirect + radDiffuse, 
+        hourlyData.apparent_temperature?.[i],
+        windDir,
+        station.department,
+        station.latitude,
+        station.longitude
+      );
       const rainMm = Math.round((hourlyData.precipitation[i] || 0) * 10) / 10;
       const proba = hourlyData.precipitation_probability?.[i] ?? (rainMm > 0 ? 80 : 10);
       const windGst = Math.round(hourlyData.wind_gusts_10m?.[i] ?? windSpd * 1.3);
-      const windDir = hourlyData.wind_direction_10m?.[i] ?? 220;
-      const windCompass = getCompassDirection(windDir);
       const cloudC = hourlyData.cloud_cover?.[i] ?? 40;
       const cloudLow = hourlyData.cloud_cover_low?.[i] ?? Math.min(100, Math.round(cloudC * 0.6));
       const cloudMid = hourlyData.cloud_cover_mid?.[i] ?? Math.min(100, Math.round(cloudC * 0.5));

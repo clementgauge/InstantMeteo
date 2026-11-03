@@ -145,7 +145,7 @@ export const GrandDayAndWeekDetailedForecastCard: React.FC<GrandDayAndWeekDetail
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Défilement heure par heure + prévisions 7 jours avec icônes honnêtes et contrastes thermiques
+              Évolution heure par heure et prévisions sur 7 jours
             </p>
           </div>
         </div>

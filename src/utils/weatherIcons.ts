@@ -32,7 +32,7 @@ export const WEATHER_CODES_MAP: Record<number, WeatherCodeInfo> = {
   1: {
     code: 1,
     label: "Ciel principalement clair avec quelques cirrus / voiles",
-    shortLabel: "Peu Nuageux / Voilé",
+    shortLabel: "Peu nuageux",
     emoji: "🌤️",
     nightEmoji: "🌌",
     iconName: "SunDim",
@@ -45,7 +45,7 @@ export const WEATHER_CODES_MAP: Record<number, WeatherCodeInfo> = {
   2: {
     code: 2,
     label: "Ciel éclairci avec passages nuageux et belles éclaircies",
-    shortLabel: "Éclaircies & Passages Nuageux",
+    shortLabel: "Éclaircies",
     emoji: "⛅",
     nightEmoji: "🌥️",
     iconName: "CloudSun",

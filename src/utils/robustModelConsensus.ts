@@ -44,18 +44,26 @@ export function getAdaptiveModelWeightsByLeadTime(
   const base = ZONE_RELIABILITY_WEIGHTS[zone];
 
   // A. TRÈS COURT TERME (J0 à J+2 - H0 à H+48) :
-  // AROME domine sur la France et le relief, ECMWF et ICON-EU très performants, GFS bien calé
+  // Primauté absolue des mailles fines haute résolution adaptée à chaque zone :
+  // AROME 1.3km (reliefs, vallées, littoral méditerranéen), ICON-D2 2.2km / ICON-EU (Est/Rhénan/Jura), ECMWF HRES 9km
   if (leadDay <= 2) {
+    const mfFineWeight = Math.min(0.48, Math.max(0.32, base.meteofrance * 1.15));
+    const iconFineWeight = Math.min(0.30, Math.max(0.12, base.icon * 1.15));
+    const ecWeight = Math.min(0.26, Math.max(0.18, base.ecmwf));
+    const gfsWeight = Math.min(0.18, Math.max(0.12, base.gfs));
+    const ukmoWeight = Math.min(0.12, Math.max(0.05, base.ukmo));
+    const gemWeight = Math.min(0.08, Math.max(0.04, base.gem ?? 0.05));
+    const sum = mfFineWeight + iconFineWeight + ecWeight + gfsWeight + ukmoWeight + gemWeight;
     return {
-      meteofrance: Math.max(0.30, base.meteofrance * 0.80),
-      ecmwf: 0.26,
-      gfs: 0.16,      // GFS équitablement pondéré et non diabolisé
-      icon: 0.14,
-      ukmo: 0.06,
-      gem: 0.05,
-      ai_models: 0.05, // Modèles IA apportent une confirmation synoptique
-      ensembles: 0.04,
-      control_run: 0.04
+      meteofrance: Number((mfFineWeight / sum).toFixed(2)),
+      ecmwf: Number((ecWeight / sum).toFixed(2)),
+      icon: Number((iconFineWeight / sum).toFixed(2)),
+      gfs: Number((gfsWeight / sum).toFixed(2)),
+      ukmo: Number((ukmoWeight / sum).toFixed(2)),
+      gem: Number((gemWeight / sum).toFixed(2)),
+      ai_models: 0.04,
+      ensembles: 0.03,
+      control_run: 0.03
     };
   }
 

@@ -449,120 +449,90 @@ export const DesktopWeatherHeroDashboard: React.FC<DesktopWeatherHeroDashboardPr
               </div>
             </div>
 
-            {/* Bottom Architectural Telemetry Dock: 4-Column Vibrant Instrument Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-950/80 border border-white/15 backdrop-blur-md shadow-inner">
+            {/* Bottom Telemetry Dock: 4-Column Clean Instrument Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 rounded-xl bg-slate-950/60 border border-slate-800 backdrop-blur-md">
               {/* Tile 1: Ressenti */}
-              <div className="px-3.5 py-2.5 rounded-xl bg-gradient-to-br from-sky-950/60 via-slate-900/60 to-slate-950/80 border border-sky-500/20 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs text-sky-200 font-semibold">
+              <div className="px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs text-slate-300 font-medium">
                   <span>Ressenti</span>
                   <Thermometer className="h-3.5 w-3.5 text-sky-400 shrink-0" />
                 </div>
                 <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                  <span className={`text-xl font-black font-mono tabular-nums ${weather.feelsLike <= 0 ? 'text-cyan-300' : weather.feelsLike <= 12 ? 'text-sky-300' : weather.feelsLike <= 22 ? 'text-emerald-300' : weather.feelsLike <= 29 ? 'text-amber-300' : 'text-rose-400'}`}>
+                  <span className="text-xl font-bold font-mono text-white tabular-nums">
                     {formatTemp(weather.feelsLike)}
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 px-1.5 py-0.5 rounded bg-white/10">
-                    {weather.feelsLike < 5 ? 'Froid' : weather.feelsLike < 15 ? 'Frais' : weather.feelsLike < 24 ? 'Doux' : weather.feelsLike < 30 ? 'Chaud' : 'Très chaud'}
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {weather.feelsLike < 5 ? 'Froid' : weather.feelsLike < 15 ? 'Frais' : weather.feelsLike < 24 ? 'Doux' : 'Chaud'}
                   </span>
                 </div>
+                {weather.windDirectionImpactC !== undefined && weather.windDirectionImpactC !== 0 && (
+                  <div className="mt-1 text-[10px] text-slate-400 truncate flex items-center gap-1">
+                    <span>Vent {weather.windDirectionCompass || ''} :</span>
+                    <strong className={weather.windDirectionImpactC < 0 ? 'text-sky-400' : 'text-slate-200'}>
+                      {weather.windDirectionImpactC > 0 ? `+${weather.windDirectionImpactC}` : weather.windDirectionImpactC}°C
+                    </strong>
+                  </div>
+                )}
               </div>
 
               {/* Tile 2: Humidité & Rosée */}
-              <div className="px-3.5 py-2.5 rounded-xl bg-gradient-to-br from-blue-950/60 via-slate-900/60 to-slate-950/80 border border-blue-500/20 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs text-blue-200 font-semibold">
+              <div className="px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs text-slate-300 font-medium">
                   <span>Humidité</span>
-                  <Droplets className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                  <Droplets className="h-3.5 w-3.5 text-sky-400 shrink-0" />
                 </div>
                 <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                  <span className="text-xl font-black text-blue-300 font-mono tabular-nums">
+                  <span className="text-xl font-bold text-white font-mono tabular-nums">
                     {Math.round(weather.humidity)}%
                   </span>
-                  <span className="text-[10px] font-mono text-cyan-300 font-bold tabular-nums">
-                    Td {weather.dewPoint !== undefined ? `${Math.round(weather.dewPoint)}°C` : `${Math.round(weather.temperature - (100 - weather.humidity) / 5)}°C`}
+                  <span className="text-[11px] font-mono text-slate-400 tabular-nums">
+                    Point de rosée {weather.dewPoint !== undefined ? `${Math.round(weather.dewPoint)}°C` : `${Math.round(weather.temperature - (100 - weather.humidity) / 5)}°C`}
                   </span>
                 </div>
               </div>
 
-              {/* Tile 3: Vent & Rafales */}
+              {/* Tile 3: Vent & Direction */}
               {(() => {
                 const currentGust = Math.round(weather.windGust || (weather.windSpeed * 1.35));
-                const isStrongGust = currentGust >= 55;
+                const isStrongGust = currentGust >= 65;
+                const compass = weather.windDirectionCompass || (weather.windDirection !== undefined ? `${Math.round(weather.windDirection)}°` : 'Var');
+                const regionalName = weather.regionalWindName;
                 return (
-                  <div className={`px-3.5 py-2.5 rounded-xl bg-gradient-to-br ${isStrongGust ? 'from-rose-950/50 via-slate-900/60 to-slate-950/80 border-rose-500/35' : 'from-teal-950/60 via-slate-900/60 to-slate-950/80 border-teal-500/20'} border flex flex-col justify-between`}>
-                    <div className="flex items-center justify-between text-xs text-teal-200 font-semibold">
-                      <span>Vent &amp; Rafales</span>
-                      <Wind className={`h-3.5 w-3.5 shrink-0 ${isStrongGust ? 'text-rose-400 animate-pulse' : 'text-teal-400'}`} />
+                  <div className={`px-3.5 py-2.5 rounded-lg bg-slate-900/80 border flex flex-col justify-between ${isStrongGust ? 'border-amber-500/40' : 'border-slate-800/80'}`}>
+                    <div className="flex items-center justify-between text-xs text-slate-300 font-medium gap-1">
+                      <span className="truncate">{regionalName || 'Vent'}</span>
+                      <Wind className={`h-3.5 w-3.5 shrink-0 ${isStrongGust ? 'text-amber-400' : 'text-sky-400'}`} />
                     </div>
                     <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                      <span className="text-xl font-black text-teal-300 font-mono tabular-nums">
-                        {Math.round(weather.windSpeed)} <span className="text-xs font-semibold text-slate-300">km/h</span>
+                      <span className="text-xl font-bold text-white font-mono tabular-nums">
+                        {Math.round(weather.windSpeed)} <span className="text-xs font-normal text-slate-400">km/h</span>
                       </span>
-                      <span className={`text-[10px] font-black font-mono tabular-nums px-1.5 py-0.5 rounded ${isStrongGust ? 'bg-rose-500/25 text-rose-300' : 'bg-teal-500/15 text-teal-200'}`}>
-                        Raf. {currentGust}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <span className="font-medium text-slate-300">{compass}</span>
+                        <span>·</span>
+                        <span>Raf. {currentGust}</span>
+                      </div>
                     </div>
                   </div>
                 );
               })()}
 
               {/* Tile 4: Pression & UV */}
-              <div className="px-3.5 py-2.5 rounded-xl bg-gradient-to-br from-indigo-950/60 via-amber-950/30 to-slate-950/80 border border-indigo-500/20 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs text-indigo-200 font-semibold">
+              <div className="px-3.5 py-2.5 rounded-lg bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs text-slate-300 font-medium">
                   <span>Pression · UV</span>
-                  <Gauge className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                  <Gauge className="h-3.5 w-3.5 text-sky-400 shrink-0" />
                 </div>
                 <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                  <span className="text-xl font-black text-indigo-200 font-mono tabular-nums">
-                    {Math.round(weather.pressure)} <span className="text-xs font-semibold text-slate-400">hPa</span>
+                  <span className="text-xl font-bold text-white font-mono tabular-nums">
+                    {Math.round(weather.pressure)} <span className="text-xs font-normal text-slate-400">hPa</span>
                   </span>
-                  <span className="text-[10px] font-black text-amber-300 font-mono tabular-nums px-1.5 py-0.5 rounded bg-amber-500/20">
-                    UV {weather.uvIndex ?? 3}
+                  <span className="text-xs text-slate-300 font-medium">
+                    Indice UV {weather.uvIndex ?? 3}
                   </span>
                 </div>
               </div>
             </div>
-
-            {/* Indicateurs Météo Remarquables en Direct (Coups de vent & Isotherme 0°C / LPN) */}
-            {(() => {
-              const currentGust = Math.round(weather.windGust || (weather.windSpeed * 1.35));
-              const iso0Val = calculatePhysicalIsotherm0({ stationAltitude: station.altitude ?? 80, temperature: weather.temperature, precipitationMm: 0 });
-              return (
-                <div 
-                  onClick={() => document.getElementById('remarkable-weather-highlight-card')?.scrollIntoView({ behavior: 'smooth' })}
-                  title="Consulter l'analyse détaillée des coups de vent remarquables et des limites pluie-neige"
-                  className="mt-2.5 pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs cursor-pointer hover:bg-white/10 transition-all rounded-xl px-2.5 py-1.5 bg-gradient-to-r from-slate-900/60 via-sky-950/30 to-amber-950/25 border border-white/10 hover:border-amber-400/50"
-                >
-                  <div className="flex items-center gap-2 text-slate-200">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-                    <span className="font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                      <span>Indicateurs Remarquables en Direct :</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 font-mono text-[11px] flex-wrap">
-                    <span className={`font-bold flex items-center gap-1 ${currentGust >= 60 ? 'text-rose-300' : 'text-cyan-300'}`}>
-                      <span>💨 Rafales :</span>
-                      <strong className="font-black text-white">{currentGust} km/h</strong>
-                    </span>
-                    <span className="text-slate-500">·</span>
-                    <span className="text-sky-300 font-bold flex items-center gap-1">
-                      <span>❄️ Iso 0°C :</span>
-                      <strong className="font-black text-white">{iso0Val} m</strong>
-                    </span>
-                    <span className="text-slate-500">·</span>
-                    <span className="text-amber-300 font-bold flex items-center gap-1">
-                      <span>🧭 Cap :</span>
-                      <strong className="font-black text-white">{Math.round(weather.windDirection ?? 225)}°</strong>
-                    </span>
-                    <span className="text-slate-500">·</span>
-                    <span className="text-emerald-300 font-bold flex items-center gap-1 hover:underline">
-                      <span>Consulter l'analyse ➔</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
           </div>
         </div>
 

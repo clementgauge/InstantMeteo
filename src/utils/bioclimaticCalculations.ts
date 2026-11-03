@@ -32,6 +32,16 @@ export interface BioclimaticResult {
   dominantFactor: 'HUMIDEX' | 'WINDCHILL' | 'NEUTRE' | 'SOLAIRE';
   /** Explication pédagogique pour l'utilisateur */
   explanation: string;
+  /** Direction du vent en degrés (0-360°) */
+  windDirectionDeg?: number;
+  /** Rose des vents (N, NE, SO, etc.) */
+  windDirectionCompass?: string;
+  /** Nom du vent régional homologué (ex. Mistral, Tramontane, Bise, Autan, Marin, Fœhn) */
+  regionalWindName?: string;
+  /** Impact thermique net de la direction du vent sur le ressenti (°C) */
+  windDirectionImpactC?: number;
+  /** Notice explicative de l'effet bioclimatique de la direction du vent */
+  windDirectionNotice?: string;
 }
 
 /**
@@ -133,15 +143,169 @@ export function calculateHeatIndex(temperatureC: number, relativeHumidity: numbe
 }
 
 /**
+ * 5b. Rose des vents 16 directions cardinales
+ */
+export function getCompassSector(deg: number): string {
+  const normalized = ((deg % 360) + 360) % 360;
+  const sectors = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const index = Math.round(normalized / 22.5) % 16;
+  return sectors[index];
+}
+
+/**
+ * 5c. Détection des vents régionaux français et calcul précis de l'impact thermique de la direction du vent
+ */
+export function detectRegionalWindAndImpact(
+  windDirectionDeg?: number,
+  windSpeedKmH: number = 0,
+  temperature: number = 15,
+  department?: string,
+  latitude?: number,
+  longitude?: number
+): {
+  compass: string;
+  regionalName: string;
+  impactC: number;
+  notice: string;
+} {
+  if (windDirectionDeg === undefined || windDirectionDeg === null || isNaN(windDirectionDeg)) {
+    return {
+      compass: 'Variable',
+      regionalName: 'Vent variable',
+      impactC: 0,
+      notice: 'Direction du vent variable ou calme, sans forçage thermique orienté.'
+    };
+  }
+
+  const deg = ((windDirectionDeg % 360) + 360) % 360;
+  const compass = getCompassSector(deg);
+  const deptStr = (department || '').toLowerCase();
+  const lat = latitude ?? 46.5;
+  const lon = longitude ?? 2.5;
+
+  let regionalName = `Vent de ${compass}`;
+  let impactC = 0;
+  let notice = `Vent soufflant du secteur ${compass}.`;
+
+  // 1. Détection des vents régionaux typiques de la géographie française
+  const isSouthEast = lat < 45.0 && lon > 4.0;
+  const isRhoneValley = (deptStr.includes('13') || deptStr.includes('84') || deptStr.includes('26') || deptStr.includes('07') || deptStr.includes('30') || deptStr.includes('38') || deptStr.includes('69'));
+  const isLanguedoc = (deptStr.includes('11') || deptStr.includes('66') || deptStr.includes('34') || deptStr.includes('pyrénées-orientales') || deptStr.includes('aude') || deptStr.includes('hérault'));
+  const isSouthWest = (deptStr.includes('31') || deptStr.includes('81') || deptStr.includes('82') || deptStr.includes('32') || deptStr.includes('haute-garonne') || deptStr.includes('tarn'));
+  const isCorse = (deptStr.includes('2a') || deptStr.includes('2b') || deptStr.includes('corse'));
+  const isAlps = (deptStr.includes('73') || deptStr.includes('74') || deptStr.includes('05') || deptStr.includes('38') || deptStr.includes('alpes'));
+  const isPyrenees = (deptStr.includes('64') || deptStr.includes('65') || deptStr.includes('09') || deptStr.includes('pyrénées'));
+  const isNorthEastOrJura = (deptStr.includes('67') || deptStr.includes('68') || deptStr.includes('25') || deptStr.includes('39') || deptStr.includes('70') || deptStr.includes('90') || deptStr.includes('54') || deptStr.includes('57') || deptStr.includes('01') || deptStr.includes('74') || deptStr.includes('alsace') || deptStr.includes('lorraine') || deptStr.includes('jura'));
+
+  if (isRhoneValley && (deg >= 320 || deg <= 20) && windSpeedKmH >= 15) {
+    regionalName = 'Mistral';
+  } else if (isLanguedoc && (deg >= 290 && deg <= 350) && windSpeedKmH >= 15) {
+    regionalName = 'Tramontane';
+  } else if (isSouthWest && (deg >= 100 && deg <= 160) && windSpeedKmH >= 15) {
+    regionalName = "Vent d'Autan";
+  } else if ((isNorthEastOrJura || lat > 46.5) && (deg >= 20 && deg <= 70) && windSpeedKmH >= 12) {
+    regionalName = 'Bise de Nord-Est';
+  } else if (isCorse && (deg >= 210 && deg <= 260) && windSpeedKmH >= 15) {
+    regionalName = 'Libeccio';
+  } else if (isSouthEast && (deg >= 110 && deg <= 170) && windSpeedKmH >= 15) {
+    regionalName = 'Marin Méditerranéen';
+  } else if ((isPyrenees || isAlps) && (deg >= 160 && deg <= 210) && windSpeedKmH >= 15) {
+    regionalName = 'Effet de Fœhn';
+  } else if (deg >= 340 || deg <= 30) {
+    regionalName = 'Vent de Nord';
+  } else if (deg > 30 && deg <= 75) {
+    regionalName = 'Bise / Vent de Nord-Est';
+  } else if (deg > 75 && deg <= 115) {
+    regionalName = "Vent d'Est (Levant)";
+  } else if (deg > 115 && deg <= 165) {
+    regionalName = 'Vent de Sud-Est (Marin)';
+  } else if (deg > 165 && deg <= 205) {
+    regionalName = 'Vent de Sud';
+  } else if (deg > 205 && deg <= 250) {
+    regionalName = 'Vent de Sud-Ouest';
+  } else if (deg > 250 && deg <= 295) {
+    regionalName = "Vent d'Ouest (Ponant)";
+  } else {
+    regionalName = 'Vent de Nord-Ouest';
+  }
+
+  // 2. Modélisation bioclimatique de la masse d'air advectée
+  if (windSpeedKmH >= 5) {
+    const intensityFactor = Math.min(1.0, windSpeedKmH / 45);
+
+    // Secteur Nord / Nord-Est (330° à 60°) : Air polaire continental sec
+    if (deg >= 330 || deg <= 60) {
+      if (temperature <= 14) {
+        impactC = -Number((intensityFactor * (temperature <= 4 ? 2.2 : 1.4)).toFixed(1));
+        notice = `${regionalName} continental glacial : l'air très sec et dense extrait la chaleur corporelle bien plus vite (-${Math.abs(impactC)}°C sur le ressenti).`;
+      } else {
+        impactC = -Number((intensityFactor * 0.8).toFixed(1));
+        notice = `${regionalName} : ventilation sèche apportant une fraîcheur vivifiante (${impactC}°C).`;
+      }
+    }
+    // Secteur Nord-Ouest (300° à 330°) : Mistral / Tramontane / Air polaire maritime turbulent
+    else if (deg > 300 && deg < 330) {
+      if (temperature <= 14) {
+        impactC = -Number((intensityFactor * 1.6).toFixed(1));
+        notice = `${regionalName} : flux turbulent et froid augmentant la déperdition thermique (-${Math.abs(impactC)}°C).`;
+      } else {
+        impactC = -Number((intensityFactor * 0.6).toFixed(1));
+        notice = `${regionalName} : brise rafraîchissante modérée.`;
+      }
+    }
+    // Secteur Sud / Sud-Ouest (150° à 220°) : Air tropical doux / Fœhn
+    else if (deg >= 150 && deg <= 220) {
+      if (temperature <= 18) {
+        impactC = +Number((intensityFactor * 1.6).toFixed(1));
+        notice = `${regionalName} doux / fœhné : l'advection d'air tiède atténue fortement le pouvoir refroidissant du vent (+${impactC}°C sur le ressenti).`;
+      } else if (temperature >= 26) {
+        impactC = +Number((intensityFactor * 1.8).toFixed(1));
+        notice = `${regionalName} saharien / chaud : accentue la sensation d'étouffement (+${impactC}°C).`;
+      } else {
+        impactC = +Number((intensityFactor * 0.8).toFixed(1));
+        notice = `${regionalName} doux : confort thermique tempéré et agréable.`;
+      }
+    }
+    // Secteur Est (65° à 120°) : Air continental sec
+    else if (deg > 65 && deg < 120) {
+      if (temperature <= 10) {
+        impactC = -Number((intensityFactor * 1.3).toFixed(1));
+        notice = `${regionalName} d'origine continentale : froid piquant et sec (-${Math.abs(impactC)}°C).`;
+      } else if (temperature >= 24) {
+        impactC = +Number((intensityFactor * 0.8).toFixed(1));
+        notice = `${regionalName} continental : chaleur sèche bien ventilée.`;
+      }
+    }
+    // Secteur Ouest / Océanique (225° à 295°) : Ponant / Maritime
+    else {
+      impactC = -Number((intensityFactor * 0.4).toFixed(1));
+      notice = `${regionalName} océanique tempéré : humidité atlantique modérée, effet thermique neutre.`;
+    }
+  }
+
+  return {
+    compass,
+    regionalName,
+    impactC,
+    notice
+  };
+}
+
+/**
  * 6. Calcul Fiable & Unifié de la Température Ressentie (Apparent Temperature / Steadman Bio-meteorological Model)
- * Combine harmonieusement le modèle atmosphérique, le Windchill en hiver et l'Humidex/Heat-Index en été.
+ * Combine harmonieusement le modèle atmosphérique, le Windchill en hiver, l'Humidex en été
+ * et la modulation thermique réelle induite par la direction du vent (Bise vs Vent de Sud/Fœhn).
  */
 export function calculateReliableFeelsLike(
   temperature: number,
   relativeHumidity: number,
   windSpeedKmH: number,
   solarRadiationWm2?: number,
-  apiApparentTemp?: number | null
+  apiApparentTemp?: number | null,
+  windDirectionDeg?: number,
+  stationDepartment?: string,
+  stationLatitude?: number,
+  stationLongitude?: number
 ): number {
   const hum = Math.min(100, Math.max(5, relativeHumidity));
   const dp = calculateExactDewPoint(temperature, hum);
@@ -187,6 +351,12 @@ export function calculateReliableFeelsLike(
     }
   }
 
+  // 4. Modulation thermique directionnelle selon la masse d'air advectée
+  if (windDirectionDeg !== undefined && windDirectionDeg !== null && !isNaN(windDirectionDeg) && windSpeedKmH >= 5) {
+    const dirDiag = detectRegionalWindAndImpact(windDirectionDeg, windSpeedKmH, temperature, stationDepartment, stationLatitude, stationLongitude);
+    calculated += dirDiag.impactC;
+  }
+
   // Si l'API fournit une valeur apparent_temperature, on l'utilise en pondération douce (25%) avec notre physique locale (75%)
   if (typeof apiApparentTemp === 'number' && !isNaN(apiApparentTemp) && Math.abs(apiApparentTemp - temperature) <= 18) {
     const blended = (calculated * 0.75) + (apiApparentTemp * 0.25);
@@ -204,14 +374,37 @@ export function getBioclimaticFullDiagnostic(
   relativeHumidity: number,
   windSpeedKmH: number,
   solarRadiationWm2?: number,
-  apiApparentTemp?: number | null
+  apiApparentTemp?: number | null,
+  windDirectionDeg?: number,
+  stationDepartment?: string,
+  stationLatitude?: number,
+  stationLongitude?: number
 ): BioclimaticResult {
   const dewPoint = calculateExactDewPoint(temperature, relativeHumidity);
   const vaporPressureHpa = calculateVaporPressureHpa(dewPoint);
   const humidex = calculateExactHumidex(temperature, relativeHumidity, dewPoint);
   const windChill = calculateExactWindChill(temperature, windSpeedKmH);
-  const feelsLike = calculateReliableFeelsLike(temperature, relativeHumidity, windSpeedKmH, solarRadiationWm2, apiApparentTemp);
+  const feelsLike = calculateReliableFeelsLike(
+    temperature,
+    relativeHumidity,
+    windSpeedKmH,
+    solarRadiationWm2,
+    apiApparentTemp,
+    windDirectionDeg,
+    stationDepartment,
+    stationLatitude,
+    stationLongitude
+  );
   const deltaTemp = Number((feelsLike - temperature).toFixed(1));
+
+  const dirDiag = detectRegionalWindAndImpact(
+    windDirectionDeg,
+    windSpeedKmH,
+    temperature,
+    stationDepartment,
+    stationLatitude,
+    stationLongitude
+  );
 
   let dominantFactor: 'HUMIDEX' | 'WINDCHILL' | 'NEUTRE' | 'SOLAIRE' = 'NEUTRE';
   let comfortLabel = 'Confort thermique optimal';
@@ -272,6 +465,11 @@ export function getBioclimaticFullDiagnostic(
     comfortLabel,
     severityColor,
     dominantFactor,
-    explanation
+    explanation,
+    windDirectionDeg,
+    windDirectionCompass: dirDiag.compass,
+    regionalWindName: dirDiag.regionalName,
+    windDirectionImpactC: dirDiag.impactC,
+    windDirectionNotice: dirDiag.notice
   };
 }

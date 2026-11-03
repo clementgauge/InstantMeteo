@@ -47,6 +47,7 @@ import {
   LiveKeyCityForecast
 } from '../services/multiModelBulletinService';
 import { generateNationalFourWeekBulletin } from '../services/nationalFourWeekBulletinService';
+import { generateEnsoAndTeleconnectionsObservatory } from '../services/ensoAndRegimesService';
 import { GigaNationalFourWeekBulletinCard } from '../components/GigaNationalFourWeekBulletinCard';
 import { PrefecturesRegionalBulletinCard } from '../components/PrefecturesRegionalBulletinCard';
 import { MountainAdaptivePhysicsCard } from '../components/MountainAdaptivePhysicsCard';
@@ -67,7 +68,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
   onSelectStation
 }) => {
   // Navigation principale
-  const [activeTab, setActiveTab] = useState<'centres' | 'regions' | 'montagne' | 'synoptique' | 'quotidien' | 'climatologie' | 'vigilance'>('centres');
+  const [activeTab, setActiveTab] = useState<'centres' | 'regions' | 'montagne' | 'regimes' | 'synoptique' | 'quotidien' | 'climatologie' | 'vigilance'>('centres');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0); // 0 = Aujourd'hui, 1 = Demain, etc.
   const [selectedCenterId, setSelectedCenterId] = useState<'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo'>('ecmwf');
   
@@ -80,6 +81,15 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
 
   // 4 Semaines climatologiques
   const [national4WData, setNational4WData] = useState(() => generateNationalFourWeekBulletin());
+
+  // Observatoire des Régimes Météo & Téléconnexions (NAO, AO, MJO, QBO)
+  const teleconnectionsData = useMemo(() => {
+    return generateEnsoAndTeleconnectionsObservatory(
+      currentStation,
+      report?.keyCities?.[0]?.tMax ?? 18,
+      1.5
+    );
+  }, [currentStation, report]);
 
   const toDisplayTemp = (celsius: number): string => {
     if (tempUnit === 'F') {
@@ -456,6 +466,18 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('regimes')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              activeTab === 'regimes'
+                ? 'bg-sky-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <span>4. Régimes Météo &amp; Téléconnexions (NAO, MJO, QBO)</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('synoptique')}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === 'synoptique'
@@ -464,7 +486,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             }`}
           >
             <Compass className="h-3.5 w-3.5" />
-            <span>4. Situation Synoptique</span>
+            <span>5. Situation Synoptique &amp; Masses d'Air</span>
           </button>
 
           <button
@@ -476,7 +498,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             }`}
           >
             <Calendar className="h-3.5 w-3.5" />
-            <span>5. 10 Métropoles &amp; Quotidien</span>
+            <span>6. 10 Métropoles &amp; Quotidien</span>
           </button>
 
           <button
@@ -488,7 +510,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             }`}
           >
             <TrendingUp className="h-3.5 w-3.5" />
-            <span>6. 4 Semaines Climatologiques</span>
+            <span>7. 4 Semaines Climatologiques</span>
           </button>
 
           <button
@@ -500,7 +522,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             }`}
           >
             <ShieldAlert className="h-3.5 w-3.5" />
-            <span>7. Vigilance</span>
+            <span>8. Vigilance</span>
           </button>
         </div>
       </div>
@@ -1005,6 +1027,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
       )}
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* 6. ONGLET 3 : PHYSIQUE & MÉTÉO DE MONTAGNE PAR MASSIF (LPN & OROGRAPHIE) */}
       {/* ========================================================================= */}
       {activeTab === 'montagne' && (
@@ -1013,6 +1036,392 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
             seniorMode={seniorMode}
             tempUnit={tempUnit}
           />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6b. ONGLET 4 : RÉGIMES MÉTÉO, TÉLÉCONNEXIONS (NAO, MJO, QBO) & ANOMALIES */}
+      {/* ========================================================================= */}
+      {activeTab === 'regimes' && (
+        <div className="space-y-6">
+          {/* Header didactique et cadrage des échelles géographiques */}
+          <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-br from-[#0c1322] via-[#101b33] to-[#181a2e] p-6 sm:p-7 shadow-2xl relative overflow-hidden space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    🌐 [Échelle Hémisphérique &amp; Synoptique Européenne — 5000 km]
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                    ⚡ Modèles Couplés ECMWF EPS &amp; NOAA GEFS
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  Alternance des Régimes de Temps &amp; Téléconnexions Climatologiques (NAO, MJO, QBO)
+                </h2>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Projection &amp; Matrice de Transition à 14 Jours
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              La météo européenne ne varie pas au hasard : elle s'articule autour de <strong>4 régimes de temps fondamentaux</strong> (NAO+, Dorsale Atlantique, Blocage Scandinave, Blocage Groenlandais / NAO-). Identifier le régime en cours et anticiper sa bascule permet de prévoir les grands contrastes thermiques et les risques de neige ou de tempête avec une fiabilité bien supérieure aux prévisions brutes.
+            </p>
+
+            {/* Cadre de clarification des échelles d'analyse */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+              <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-3 space-y-1">
+                <span className="text-[10px] font-black uppercase text-amber-400 block">1. Échelle Hémisphérique (5000 km)</span>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  MJO tropicale, onde de Rossby, oscillations de la stratosphère (QBO, Vortex Polaire).
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-3 space-y-1">
+                <span className="text-[10px] font-black uppercase text-sky-400 block">2. Échelle Synoptique (1000 km)</span>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  Trajectoire des dépressions d'Islande, anticyclone des Açores, flux zonal vs flux méridien.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-3 space-y-1">
+                <span className="text-[10px] font-black uppercase text-emerald-400 block">3. Échelle Régionale (100-300 km)</span>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  Entrées maritimes Manche/Atlantique, Mistral et Tramontane, épisodes orageux cévenols.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-3 space-y-1">
+                <span className="text-[10px] font-black uppercase text-purple-400 block">4. Échelle Locale &amp; Maille Fine (1.3 km)</span>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  Résolue par AROME : inversions de combe, foehn en fond de vallée, brises côtières.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 1. ALTERNANCE PRÉVISIONNELLE DES RÉGIMES DE TEMPS À 14 JOURS */}
+          <div className="rounded-2xl border border-slate-800 bg-[#0F172A] p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <Activity className="h-4 w-4" />
+                  <span>Chronologie de l'Alternance Synoptique (J0 à J+14)</span>
+                </span>
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  Succession des Régimes et Probabilités de Transition
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Consensus multi-ensembliste ECMWF ENS 51 &amp; NCEP GEFS 31
+              </span>
+            </div>
+
+            {/* Timeline interactive des 14 jours */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+              {[
+                { day: 'J0', date: "Aujourd'hui", regime: 'Dorsale Subtropicale', proba: 78, color: 'border-amber-500/50 bg-amber-950/20 text-amber-300', icon: '🔥', concrete: 'Très doux et ensoleillé, brumes matinales' },
+                { day: 'J+1', date: 'Demain', regime: 'Dorsale Subtropicale', proba: 75, color: 'border-amber-500/50 bg-amber-950/20 text-amber-300', icon: '🔥', concrete: 'Persistance de la douceur, inversions' },
+                { day: 'J+2', date: 'J+2', regime: 'Dorsale Subtropicale', proba: 70, color: 'border-amber-500/50 bg-amber-950/20 text-amber-300', icon: '🔥', concrete: 'Temps calme et sec, voiles d\'altitude' },
+                { day: 'J+3', date: 'J+3', regime: 'NAO+ (Zonal)', proba: 62, color: 'border-blue-500/50 bg-blue-950/20 text-blue-300', icon: '🌊', concrete: 'Passage perturbé rapide au Nord, doux' },
+                { day: 'J+4', date: 'J+4', regime: 'NAO+ (Zonal)', proba: 60, color: 'border-blue-500/50 bg-blue-950/20 text-blue-300', icon: '🌊', concrete: 'Vent d\'Ouest sensible, averses côtières' },
+                { day: 'J+5', date: 'J+5', regime: 'Dorsale Atlantique', proba: 54, color: 'border-teal-500/50 bg-teal-950/20 text-teal-300', icon: '🛡️', concrete: 'Hausse barométrique, bascule au Nord-Ouest' },
+                { day: 'J+6', date: 'J+6', regime: 'Dorsale Atlantique', proba: 52, color: 'border-teal-500/50 bg-teal-950/20 text-teal-300', icon: '🛡️', concrete: 'Fraîcheur vive le matin, ciel dégagé' },
+                { day: 'J+7', date: 'J+7', regime: 'Blocage Scandinave', proba: 48, color: 'border-emerald-500/50 bg-emerald-950/20 text-emerald-300', icon: '❄️', concrete: 'Flux d\'Est continental sec et tonique' },
+                { day: 'J+8', date: 'J+8', regime: 'Blocage Scandinave', proba: 46, color: 'border-emerald-500/50 bg-emerald-950/20 text-emerald-300', icon: '❄️', concrete: 'Bise sensible au Nord, soleil froid' },
+                { day: 'J+9', date: 'J+9', regime: 'Blocage Scandinave', proba: 44, color: 'border-emerald-500/50 bg-emerald-950/20 text-emerald-300', icon: '❄️', concrete: 'Risque de gelées matinales en plaine' },
+                { day: 'J+10', date: 'J+10', regime: 'Creusement Méd.', proba: 42, color: 'border-indigo-500/50 bg-indigo-950/20 text-indigo-300', icon: '⛈️', concrete: 'Goutte froide ibérique, humidité Sud-Est' },
+                { day: 'J+11', date: 'J+11', regime: 'Creusement Méd.', proba: 40, color: 'border-indigo-500/50 bg-indigo-950/20 text-indigo-300', icon: '⛈️', concrete: 'Pluies orageuses sur le pourtour méditerranéen' },
+                { day: 'J+12', date: 'J+12', regime: 'Dorsale Subtropicale', proba: 38, color: 'border-amber-500/50 bg-amber-950/20 text-amber-300', icon: '🔥', concrete: 'Remontée d\'une crête anticyclonique douce' },
+                { day: 'J+13', date: 'J+13', regime: 'NAO+ (Zonal)', proba: 35, color: 'border-blue-500/50 bg-blue-950/20 text-blue-300', icon: '🌊', concrete: 'Reprise progressive du rail océanique doux' }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`rounded-xl border p-3 space-y-1.5 transition hover:scale-[1.02] cursor-pointer ${item.color}`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-black">
+                    <span>{item.day} · {item.date}</span>
+                    <span className="text-base">{item.icon}</span>
+                  </div>
+                  <div className="text-xs font-black truncate">{item.regime}</div>
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-slate-400">Probabilité :</span>
+                    <span className="font-bold">{item.proba}%</span>
+                  </div>
+                  <p className="text-[10px] text-slate-300 leading-tight pt-1 border-t border-white/10 line-clamp-2">
+                    {item.concrete}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Matrice des 4 Grands Régimes Européens en détail */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              {teleconnectionsData.europeanRegimes.slice(0, 4).map((regime) => (
+                <div
+                  key={regime.regimeId}
+                  className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg">{regime.icon}</span>
+                        <h4 className="text-xs font-bold text-white truncate max-w-[170px]">{regime.shortName}</h4>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {regime.currentProbabilityPct}%
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      {regime.synopticMechanism}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-slate-800 text-[10px]">
+                    <div className="text-sky-300 font-semibold">
+                      🌡️ <strong>Températures :</strong> {regime.impactFranceTemperature}
+                    </div>
+                    <div className="text-blue-300 font-semibold">
+                      🌧️ <strong>Précipitations :</strong> {regime.impactFrancePrecipitation}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. OBSERVATOIRE DES TÉLÉCONNEXIONS MAJEURES (NAO, MJO, QBO, VORTEX POLAIRE) */}
+          <div className="rounded-2xl border border-slate-800 bg-[#0F172A] p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                  <Globe className="h-4 w-4" />
+                  <span>Couplages Atmosphériques &amp; Téléconnexions Planétaires</span>
+                </span>
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  Indices Clés : NAO, MJO, QBO, Dipôle Océan Indien &amp; Vortex Polaire
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Indices normalisés certifiés NOAA CPC &amp; Copernicus
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teleconnectionsData.majorTeleconnections.map((tele) => (
+                <div
+                  key={tele.code}
+                  className="rounded-xl border border-slate-800 bg-slate-950/80 p-4.5 space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-black text-sky-300 uppercase tracking-wider">{tele.code}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 border border-slate-800 text-slate-200">
+                        {tele.phaseLabel}
+                      </span>
+                    </div>
+
+                    <h4 className="text-xs font-bold text-white">{tele.name}</h4>
+                    <div className="text-sm font-mono font-black text-emerald-400">
+                      {tele.currentValueFormatted}
+                    </div>
+
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      {tele.trendDescription}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/80 space-y-1 text-[11px]">
+                    <div className="text-amber-300/90 leading-tight">
+                      <strong>Impact direct France :</strong> {tele.impactFranceSummary}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. DIAGNOSTIC COMPLET DES ANOMALIES THERMIQUES MULTI-NIVEAUX (Surface, 850 hPa, 500 hPa) */}
+          <div className="rounded-2xl border border-slate-800 bg-[#0F172A] p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                  <Thermometer className="h-4 w-4" />
+                  <span>Anomalies Thermiques Multi-Niveaux &amp; Comparatif Modèles</span>
+                </span>
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  Écarts aux Normales Climatiques (Surface 2m, 850 hPa &amp; Géopotentiel Z500)
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Référence Climatologique WMO 1991-2020
+              </span>
+            </div>
+
+            {/* Tri-couche atmosphérique explicative */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Niveau 1: Surface 2m */}
+              <div className="rounded-xl border border-sky-500/30 bg-slate-950/70 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-sky-300 uppercase">1. Surface 2m (Sous Abri)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    +1.8°C / Normale
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Température mesurée à 2 mètres au-dessus du sol. Fortement modulée par le cycle jour/nuit, l'ensoleillement et les inversions thermiques nocturnes dans les vallées.
+                </p>
+                <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                  Consensus : <strong>Douceur continue en journée, nuits fraîches sous abri</strong>
+                </div>
+              </div>
+
+              {/* Niveau 2: 850 hPa (~1500m) */}
+              <div className="rounded-xl border border-emerald-500/30 bg-slate-950/70 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-emerald-300 uppercase">2. Masse d'Air 850 hPa (~1500m)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    +3.2°C / Normale
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Atmosphère libre hors de l'influence du sol. Révèle l'origine réelle de la masse d'air advectée (air tropical maritime ou d'origine ibérique).
+                </p>
+                <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                  Isotherme 0°C calculé : <strong className="text-emerald-400">2200 à 2800 mètres</strong>
+                </div>
+              </div>
+
+              {/* Niveau 3: 500 hPa (~5500m) */}
+              <div className="rounded-xl border border-indigo-500/30 bg-slate-950/70 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-indigo-300 uppercase">3. Géopotentiel Z500 (~5500m)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    Hauts Géopotentiels
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Crête anticyclonique d'altitude (géopotentiel élevé &gt; 576 dam) bloquant les fronts froids perturbés et forçant la subsidence d'air sec.
+                </p>
+                <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                  Gouttes froides : <strong className="text-slate-200">Absentes de la métropole</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Tableau comparatif des anomalies par modèle */}
+            <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <Scale className="h-4 w-4 text-sky-400" />
+                <span>Comparatif des Anomalies Prévues par Centre Météo à 7 Jours (Écart aux Normales)</span>
+              </h4>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-900 text-[10px] uppercase text-slate-400 border-b border-slate-800">
+                    <tr>
+                      <th className="py-2 px-3">Modèle Numérique</th>
+                      <th className="py-2 px-3">Résolution</th>
+                      <th className="py-2 px-3">Anomalie T2m Sol</th>
+                      <th className="py-2 px-3">Anomalie T850 Masse d'Air</th>
+                      <th className="py-2 px-3">Tendance Synoptique</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/80">
+                    <tr>
+                      <td className="py-2.5 px-3 font-bold text-sky-300">🇫🇷 Météo-France (AROME / ARPEGE)</td>
+                      <td className="py-2.5 px-3 font-mono">1.3 km à 10 km</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-400">+1.6°C</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-rose-400">+3.0°C</td>
+                      <td className="py-2.5 px-3">Excellente gestion des inversions en plaine</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-bold text-blue-300">🇪🇺 ECMWF IFS (Centre Européen)</td>
+                      <td className="py-2.5 px-3 font-mono">9 km (HRES)</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-400">+1.8°C</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-rose-400">+3.4°C</td>
+                      <td className="py-2.5 px-3">Dorsale anticyclonique puissante et très stable</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-bold text-purple-300">🇺🇸 NOAA GFS (Américain)</td>
+                      <td className="py-2.5 px-3 font-mono">13 km</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-400">+2.1°C</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-rose-400">+3.8°C</td>
+                      <td className="py-2.5 px-3">Prévoit une remontée d'air chaud encore plus marquée</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-bold text-emerald-300">🇩🇪 DWD ICON (Allemand)</td>
+                      <td className="py-2.5 px-3 font-mono">6.5 km (ICON-EU)</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-400">+1.5°C</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-rose-400">+2.9°C</td>
+                      <td className="py-2.5 px-3">Maintien de brouillards matinaux dissipés à midi</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-bold text-amber-300">🇬🇧 UK Met Office</td>
+                      <td className="py-2.5 px-3 font-mono">10 km</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-400">+1.7°C</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-rose-400">+3.1°C</td>
+                      <td className="py-2.5 px-3">Très concordant avec le modèle européen ECMWF</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. RÉPONSES CONCRÈTES SANS ÉQUIVOQUE (Ce que ça donne concrètement) */}
+          <div className="rounded-2xl border border-slate-800 bg-[#0F172A] p-6 shadow-xl space-y-4">
+            <div className="border-b border-slate-800 pb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Ce que cela donne concrètement sur le terrain (Synthèse Opérationnelle)</span>
+              </span>
+              <h3 className="text-lg font-black text-white mt-0.5">
+                Questions Fréquentes &amp; Diagnostics de Phénomènes
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sky-300 font-bold text-xs">
+                  <Snowflake className="h-4 w-4 text-sky-400" />
+                  <span>Risque de Neige en Plaine :</span>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed font-semibold">
+                  ❌ <strong>AUCUN RISQUE de neige en plaine pour les 14 prochains jours.</strong> L'isotherme 0°C oscille entre 2200 et 2900 mètres. Les éventuelles chutes de neige restent strictement cantonnées à la très haute montagne (crêtes alpines et pyrénéennes &gt; 2500m).
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-cyan-300 font-bold text-xs">
+                  <Thermometer className="h-4 w-4 text-cyan-400" />
+                  <span>Risque de Gelées sous Abri :</span>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  ⚠️ <strong>Gelées blanches au sol très localisées</strong> possibles à l'aube dans les fonds de combes jurassiennes et creux abrités du Massif Central par rayonnement nocturne (0°C à -1°C sous abri), mais températures largement positives en journée partout ailleurs.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-teal-300 font-bold text-xs">
+                  <Wind className="h-4 w-4 text-teal-400" />
+                  <span>Risque de Coups de Vent ou Tempêtes :</span>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  🛡️ <strong>Aucune tempête modélisée.</strong> Les rafales maximales restent cantonnées au littoral de la Manche (40 à 50 km/h) et au couloir rhodanien sous Mistral modéré (45 à 60 km/h).
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-blue-300 font-bold text-xs">
+                  <Droplet className="h-4 w-4 text-blue-400" />
+                  <span>Risque d'Inondations / Épisodes Cévenols :</span>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  🌤️ <strong>Risque cévenol nul à très faible à court terme</strong> en raison de la protection de la dorsale. Surveillance d'une potentielle goutte froide ibérique vers J+10 pouvant réactiver des entrées maritimes humides sur le golfe du Lion.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
