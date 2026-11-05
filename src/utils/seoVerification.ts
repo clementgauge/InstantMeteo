@@ -198,7 +198,7 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
  * Met à jour dynamiquement toutes les balises SEO (title, description, OpenGraph, JSON-LD)
  * dès qu'une commune ou station est sélectionnée par l'utilisateur ou chargée depuis l'URL.
  * Garantit que la page affiche fidèlement le titre : "Météo [Ville] [Code Postal]"
- * Exemple : "Météo Paris 75000 — Prévisions en Direct & Radar Pluie | Instant Météo"
+ * Exemple : "Météo Paris 75000 — Prévisions & Radar | Instant Météo"
  */
 export function updateDocumentSeoForStation(station: LocationPoint, syncHistory = false): PageSeoMetadata {
   const activeLocale = getActiveSiteLocale();

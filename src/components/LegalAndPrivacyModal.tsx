@@ -20,7 +20,7 @@ import {
 interface LegalAndPrivacyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd';
+  initialTab?: 'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact';
 }
 
 export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
@@ -28,7 +28,12 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
   onClose,
   initialTab = 'privacy',
 }) => {
-  const [activeTab, setActiveTab] = useState<'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact'>(initialTab);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactSubject, setContactSubject] = useState('Question générale');
+  const [contactSent, setContactSent] = useState(false);
 
   if (!isOpen) return null;
 
@@ -135,6 +140,19 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
           >
             <Info className="h-3.5 w-3.5" />
             <span>Mentions Légales &amp; Éditeur</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('contact')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 ${
+              activeTab === 'contact'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Mail className="h-3.5 w-3.5" />
+            <span>Contact &amp; Support</span>
           </button>
         </div>
 
@@ -439,6 +457,15 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="text-xs font-black uppercase tracking-wider text-amber-400">
+                    Indépendance &amp; Absence d'affiliation
+                  </div>
+                  <div className="text-xs text-slate-300 leading-relaxed">
+                    <strong>Instant Météo</strong> est un service météorologique indépendant, développé et édité à titre privé. Instant Météo n'a aucune affiliation officielle avec l'établissement public administratif national Météo-France ou tout autre organisme étatique. Les prévisions et données affichées sont calculées à partir de données ouvertes publiques (Open Data sous licence Etalab v2.0 et Copernicus CC-BY 4.0).
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-xs font-black uppercase tracking-wider text-indigo-400">
                     Hébergement &amp; Infrastructure
                   </div>
@@ -451,6 +478,125 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB 6: CONTACT */}
+          {activeTab === 'contact' && (
+            <div className="space-y-6">
+              <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700">
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-blue-400" />
+                  Contact, Assistance &amp; Signalement
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Une question sur une prévision, une anomalie détectée ou une demande relative au RGPD ?
+                </p>
+              </div>
+
+              {contactSent ? (
+                <div className="p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-3">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
+                  <h4 className="text-base font-bold text-white">Message envoyé avec succès !</h4>
+                  <p className="text-xs text-slate-300 max-w-md mx-auto">
+                    Merci pour votre retour. Notre équipe prendra connaissance de votre message dans les meilleurs délais.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContactSent(false);
+                      setContactMessage('');
+                    }}
+                    className="mt-3 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition cursor-pointer"
+                  >
+                    Envoyer un autre message
+                  </button>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!contactEmail || !contactMessage) return;
+                    setContactSent(true);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Votre nom ou pseudo <span className="text-slate-500 font-normal">(facultatif)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        placeholder="Ex: Jean Dupont"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Votre adresse e-mail <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="jean.dupont@exemple.fr"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Objet de la demande
+                    </label>
+                    <select
+                      value={contactSubject}
+                      onChange={(e) => setContactSubject(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="Question générale">Question générale</option>
+                      <option value="Signalement d'anomalie météo">Signalement d'anomalie ou bug météo</option>
+                      <option value="Demande d'exercice de droits RGPD">Demande d'exercice de droits RGPD</option>
+                      <option value="Suggestion d'amélioration">Suggestion d'amélioration</option>
+                      <option value="Autre demande">Autre demande</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Votre message <span className="text-rose-400">*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      placeholder="Précisez votre question, la commune concernée ou votre retour..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <p className="text-[11px] text-slate-400">
+                      Email direct :{' '}
+                      <a href="mailto:instantmeteofr@gmail.com" className="text-blue-400 hover:underline font-bold">
+                        instantmeteofr@gmail.com
+                      </a>
+                    </p>
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Envoyer mon message</span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
         </div>

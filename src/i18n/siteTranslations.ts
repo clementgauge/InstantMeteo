@@ -37,36 +37,36 @@ export interface LocalizedSiteBrand {
 export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand> = {
   fr: {
     code: 'fr',
-    brandName: 'Instant Météo France',
-    brandFull: 'Instant Météo France',
-    brandUpper: 'INSTANT MÉTÉO FRANCE',
+    brandName: 'Instant Météo',
+    brandFull: 'Instant Météo',
+    brandUpper: 'INSTANT MÉTÉO',
     word1: 'INSTANT',
     word2: 'MÉTÉO',
-    tagline: 'Météo France · Météo Direct · Instant Meteo',
+    tagline: 'Prévisions & Radar Pluie en Direct',
     ogLocale: 'fr_FR',
     inLanguage: 'fr-FR',
     dir: 'ltr',
-    homeTitle: 'Instant Météo France — Météo France en Direct & Radar Pluie HD | Météo Direct',
-    homeH1: 'Instant Météo France — Prévisions météo en France gratuites, Météo France et Météo Direct',
+    homeTitle: 'Instant Météo — Prévisions & Radar Pluie en Direct',
+    homeH1: 'Instant Météo — Prévisions météo et radar de pluie en direct',
     homeDescription:
-      'Site météo 100 % gratuit et sans pub : Instant Météo France, Météo France, Météo Direct et Instant Meteo pour les 34 965 communes de France.',
-    homeBreadcrumb: 'Accueil Météo France',
+      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité.',
+    homeBreadcrumb: 'Accueil Instant Météo',
   },
   en: {
     code: 'en',
     brandName: 'Instant Weather',
-    brandFull: 'Instant Weather France',
+    brandFull: 'Instant Weather',
     brandUpper: 'INSTANT WEATHER',
     word1: 'INSTANT',
     word2: 'WEATHER',
-    tagline: 'HD Doppler Radar & Live Weather Forecasts',
+    tagline: 'Live Forecasts & HD Rain Radar',
     ogLocale: 'en_US',
     inLanguage: 'en',
     dir: 'ltr',
-    homeTitle: 'Instant Weather — Free Live Weather, Ad-Free Visibility & Open Data in France',
-    homeH1: 'Instant Weather — Free Live Weather Forecasts, Ad-Free & Open Data in France',
+    homeTitle: 'Instant Weather — Live Forecasts & Doppler Radar',
+    homeH1: 'Instant Weather — Free Live Weather Forecasts & Doppler Radar',
     homeDescription:
-      '100% free weather portal with no intrusive ads harming site visibility, powered by official Open Data across all 34,965 municipalities in France.',
+      '100% free and ad-free weather portal: live forecasts, high-resolution precipitation radar, and alerts across France and worldwide.',
     homeBreadcrumb: 'Instant Weather Home',
   },
   de: {
@@ -262,17 +262,17 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Weather — Free Live Weather, Ad-Free Visibility & Open Data in France',
+    title: 'Instant Weather — Live Forecasts & Rain Radar',
     description:
-      '100% free weather portal with no intrusive ads harming site visibility, powered by official Open Data across all 34,965 municipalities in France.',
-    h1: 'Instant Weather — Free Live Weather Forecasts, Ad-Free & Open Data in France',
+      'Live weather, high-resolution rain radar and reliable forecasts for all municipalities in France. 100% free and ad-free service.',
+    h1: 'Instant Weather — Live Weather Forecasts & Rain Radar in France',
     sectionTitle: 'Meteorological Data Sources and Portal Architecture',
     breadcrumbName: 'Instant Weather Home',
     tabId: 'realtime',
     changefreq: 'always',
     priority: '1.0',
     introParagraph:
-      'Instant Weather (Instant Météo France) brings together live surface observations and high-resolution local forecasts for all 34,965 municipalities across metropolitan France and overseas territories. Search for your town or use GPS geolocation to immediately view temperature, wind chill, hourly evolution and multi-day trends.',
+      'Instant Weather brings together live surface observations and high-resolution local forecasts for all 34,965 municipalities across metropolitan France and overseas territories. Search for your town or use GPS geolocation to immediately view temperature, wind chill, hourly evolution and multi-day trends.',
     sections: [
       {
         heading: 'Where does the meteorological data displayed on the site come from?',
@@ -310,7 +310,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'direct',
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Live Weather Observations in France — Temperature, Wind & Pressure | Instant Weather',
+    title: 'Live Weather by Municipality | Instant Weather',
     description:
       'Real-time weather conditions in your municipality: current temperature, feels-like index, wind gusts, atmospheric pressure, humidity and UV index.',
     h1: 'Real-Time Weather Observations & Hourly Evolution',
@@ -454,7 +454,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'nuages',
     path: '/nuages',
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
-    title: 'Cloud Cover, Vertical Sounding, Cloud Classification & Icing | Instant Weather',
+    title: 'Cloud Cover & Atmospheric Sounding | Instant Weather',
     description:
       'Track cloud cover (nebulosity) in France: vertical atmospheric sounding, WMO cloud classification (low, mid, high decks), cloud ceiling, icing risk and 48h sky clearing.',
     h1: 'Cloud Cover, Vertical Sounding, Cloud Classification and Nebulosity',
@@ -502,7 +502,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: '14-jours',
     path: '/14-jours',
     canonicalUrl: `${BASE_SITE_URL}/14-jours`,
-    title: '14-Day Weather Forecast & Ensemble Scenarios in France | Instant Weather',
+    title: '14-Day Weather Forecast in France | Instant Weather',
     description:
       '14-day weather trends for your municipality: daily minimum and maximum temperatures, precipitation probabilities, ensemble spread and confidence index.',
     h1: '14-Day Weather Trends and Ensemble Scenarios',
@@ -550,7 +550,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'montagne',
     path: '/montagne',
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Mountain Weather & Snow Conditions Across French Massifs | Instant Weather',
+    title: 'Mountain Weather, Snow & Avalanche | Instant Weather',
     description:
       'Mountain weather across the 7 French ranges (Northern Alps, Southern Alps, Pyrenees, Massif Central, Vosges, Jura and Corsica): snow depth, rain-snow line, 0°C isotherm and avalanche risk.',
     h1: 'Mountain Weather and Snowpack Conditions',
@@ -598,7 +598,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'plages',
     path: '/plages',
     canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Beach Weather, Tides & Sea Water Temperature in France | Instant Weather',
+    title: 'Beach Weather, Tides & Sea Temperature | Instant Weather',
     description:
       'Coastal and beach weather in France: high and low tide times, tide coefficients, sea surface temperature, wave height, swell period, onshore wind and UV index.',
     h1: 'Coastal Weather, Tide Times and Swimming Conditions',
@@ -838,7 +838,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'bulletins',
     path: '/bulletins',
     canonicalUrl: `${BASE_SITE_URL}/bulletins`,
-    title: 'Departmental Weather Bulletins & 4-Week Outlook | Instant Weather',
+    title: 'Weather Bulletins & 4-Week Outlook | Instant Weather',
     description:
       'Written weather bulletins for France and every department: daily synopsis, weekly evolution and 4-week weather outlook.',
     h1: 'Detailed Weather Bulletins by Department and 4-Week Outlook',
@@ -886,7 +886,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'archives',
     path: '/archives',
     canonicalUrl: `${BASE_SITE_URL}/archives`,
-    title: 'Historical Weather Archives in France Since 1950 | Instant Weather',
+    title: 'Weather Archives in France Since 1950 | Instant Weather',
     description:
       'Look up day-by-day historical weather in France since 1950: past temperatures, rainfall totals, records and 1991-2020 climate normals.',
     h1: 'Historical Weather Archives and Seasonal Normals',
@@ -934,7 +934,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'monde-catastrophes',
     path: '/monde-catastrophes',
     canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
-    title: 'Major Natural Disasters & Global Weather Events | Instant Weather',
+    title: 'Global Natural Disasters Monitoring | Instant Weather',
     description:
       'Global tracking of major meteorological and geophysical events: tropical cyclones, severe storms, floods, wildfires, earthquakes and volcanic eruptions.',
     h1: 'Global Monitoring of Major Natural Events',
@@ -982,7 +982,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'climat',
     path: '/climat',
     canonicalUrl: `${BASE_SITE_URL}/climat`,
-    title: 'Seasonal 8-Month Climate Trends & ENSO Tracking | Instant Weather',
+    title: 'Seasonal 8-Month Climate Trends | Instant Weather',
     description:
       '8-month seasonal climate projections in France, El Niño / La Niña (ENSO) cycle monitoring and multi-decade temperature evolution.',
     h1: 'Seasonal Trends and Climate Summaries',
@@ -1030,7 +1030,7 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     slug: 'communaute',
     path: '/communaute',
     canonicalUrl: `${BASE_SITE_URL}/communaute`,
-    title: 'Community Weather Reports & Live Citizen Observations | Instant Weather',
+    title: 'Community Weather Observations | Instant Weather',
     description:
       'Share and view live citizen weather observations in France: snowfall, hail, thunderstorms, wind gusts, fog and local weather discussions.',
     h1: 'Live Weather Observations Shared by Residents',

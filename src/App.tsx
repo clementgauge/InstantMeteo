@@ -73,6 +73,7 @@ import { BeachWeatherView } from './views/BeachWeatherView';
 import { DroughtAndFireView } from './views/DroughtAndFireView';
 import { WatercoursesView } from './views/WatercoursesView';
 import { AuraWeatherAiView } from './views/AuraWeatherAiView';
+import { LegalAndPrivacyModal } from './components/LegalAndPrivacyModal';
 import { PseudoModal } from './components/PseudoModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
@@ -344,6 +345,8 @@ function WeatherApp() {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isPageBlockCustomizerOpen, setIsPageBlockCustomizerOpen] = useState<boolean>(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
+  const [legalModalTab, setLegalModalTab] = useState<'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact'>('privacy');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const p = loadPlayerProfile();
@@ -820,6 +823,16 @@ function WeatherApp() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentNavIndex]);
+
+  useEffect(() => {
+    const handleOpenLegal = (e: Event) => {
+      const custom = e as CustomEvent<{ tab?: 'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact' }>;
+      if (custom.detail?.tab) setLegalModalTab(custom.detail.tab);
+      setIsLegalModalOpen(true);
+    };
+    window.addEventListener('instant_meteo_open_legal', handleOpenLegal);
+    return () => window.removeEventListener('instant_meteo_open_legal', handleOpenLegal);
+  }, []);
 
   // Mode Bulle Flottante Détachée (Extérieure à l'application / Bureau / Widget)
   const isMiniBubbleMode = typeof window !== 'undefined' && window.location.search.includes('mini_bubble=true');
@@ -1648,6 +1661,80 @@ function WeatherApp() {
                 );
               })}
             </div>
+
+            {/* Pages obligatoires (Mentions Légales, Confidentialité & Cookies, RGPD, Contact) */}
+            <div className="pt-3 mt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-y-2 text-xs">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('mentions');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+                >
+                  Mentions Légales
+                </button>
+                <span className="text-slate-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('privacy');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+                >
+                  Politique de Confidentialité &amp; Cookies
+                </button>
+                <span className="text-slate-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('rgpd');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+                >
+                  Protection RGPD
+                </button>
+                <span className="text-slate-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('cgu');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+                >
+                  Conditions Générales (CGU)
+                </button>
+                <span className="text-slate-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('sources');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+                >
+                  Données Publiques Open Data
+                </button>
+                <span className="text-slate-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalModalTab('contact');
+                    setIsLegalModalOpen(true);
+                  }}
+                  className="text-sky-400 hover:text-sky-300 font-bold hover:underline cursor-pointer transition-colors inline-flex items-center gap-1"
+                >
+                  ✉️ Contact &amp; Support
+                </button>
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Service météorologique indépendant • 100 % gratuit &amp; sans publicité
+              </div>
+            </div>
           </div>
         </div>
       </footer>
@@ -1802,6 +1889,13 @@ function WeatherApp() {
           </div>
         </div>
       )}
+
+      {/* Modal Conformité Légale, RGPD, Cookies & Contact */}
+      <LegalAndPrivacyModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalModalTab}
+      />
 
       {/* Modal Dialogue IA Météo AURA (Conversation, Analyses, Cartes 3D & Graphiques) */}
       {isAuraModalOpen && (

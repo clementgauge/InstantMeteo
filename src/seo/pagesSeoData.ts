@@ -84,55 +84,51 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo France — Météo France en Direct, Radar Pluie HD & Prévisions 14 Jours | Météo Direct',
+    title: 'Instant Météo — Prévisions & Radar Pluie en Direct',
     description:
-      'Site météo 100 % gratuit et sans pub : Instant Météo France, Météo France, Météo Direct et Instant Meteo pour votre commune. Radar de pluie HD, relevés Infoclimat et prévisions 14 jours.',
-    h1: 'Instant Météo France — Prévisions météo en France gratuites, Météo France et Météo Direct en données ouvertes',
-    sectionTitle: 'Sources météorologiques en données ouvertes (Open Data) et fonctionnement du portail',
-    breadcrumbName: 'Accueil Météo France',
+      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité.',
+    h1: 'Instant Météo — Prévisions météorologiques et radar de pluie en direct',
+    sectionTitle: 'Fonctionnement du portail et sources météorologiques en données ouvertes',
+    breadcrumbName: 'Accueil Instant Météo',
     tabId: 'realtime',
     changefreq: 'always',
     priority: '1.0',
     introParagraph:
-      'Bienvenue sur Instant Météo France, portail météorologique national également accessible sous les appellations Météo France, Météo Direct et Instant Meteo. Accessible directement sur Google pour chaque ville et village de France (comme Versailles, Paris ou toute autre localité), notre service 100 % gratuit et sans publicité intrusive regroupe les relevés en temps réel, le radar Doppler haute résolution et les prévisions locales pour les 34 965 communes françaises et le monde entier.',
+      'Instant Météo est un portail météorologique indépendant fournissant des prévisions détaillées, un radar de pluie haute résolution et les alertes de vigilance pour les 34 965 communes françaises et le monde. Les observations sont 100 % gratuites, sans création de compte et sans publicité.',
     sections: [
       {
-        heading: 'Site 100 % gratuit, sans publicité nuisible et fondé sur les données ouvertes (Open Data)',
-        body: 'Instant Météo France garantit un accès entièrement gratuit et sans aucune publicité intrusive pouvant nuire à la visibilité des cartes ou des bulletins. Cette plateforme s’appuie sur les données ouvertes publiques (Open Data) : les modèles numériques AROME (maille fine 1,3 km) et ARPEGE de Météo-France, le modèle européen ECMWF (IFS 9 km), l’imagerie radar RainViewer, les relevés hydrologiques Vigicrues (SCHAPI), les prédictions de marées du SHOM, le suivi des nappes du BRGM, les données satellitaires NASA FIRMS / GIBS et les réanalyses climatiques Copernicus ERA5.',
+        heading: 'Un portail météo 100 % gratuit et sans publicité',
+        body: 'Instant Météo garantit une navigation fluide et sans bannières intrusives. La plateforme s’appuie sur les données ouvertes officielles (Open Data) : modèles numériques AROME (1,3 km) et ARPEGE de Météo-France, modèle européen IFS du centre ECMWF, réseau hydrologique Vigicrues, prédictions marégraphiques du SHOM et réanalyses climatiques Copernicus ERA5.',
       },
       {
-        heading: 'Recherche Google : Instant Météo France, Météo France, Météo Direct et Instant Meteo',
-        body: 'Vous pouvez retrouver immédiatement notre plateforme sur Google en saisissant Instant Météo France, Instant Meteo, Météo France ou Météo Direct, ainsi qu’en tapant le nom de votre localité (ex. météo versailles, météo paris 75000). Le site apparaît également lors de recherches courantes comme météo france en direct gratuit et sans publicité.',
+        heading: 'Précision locale adaptée au relief de chaque commune',
+        body: 'Chaque commune bénéficie d’un calcul tenant compte de son altitude réelle et de sa topographie. Le gradient thermique vertical et l’exposition aux vents dominants sont intégrés pour restituer des conditions fidèles à la réalité du terrain.',
       },
       {
-        heading: 'Adaptation automatique au relief et à l’altitude de chaque commune',
-        body: 'Contrairement à une prévision générale par grande agglomération, chaque fiche communale prend en compte l’altitude réelle de la mairie ou du sommet sélectionné. Le gradient thermique vertical et l’exposition aux vents dominants sont ainsi intégrés pour restituer un ressenti fidèle au terrain.',
-      },
-      {
-        heading: 'Navigation rapide entre les outils spécialisés',
-        body: 'Depuis l’accueil, vous pouvez basculer vers le radar interactif des précipitations, la carte des vigilances départementales, l’observatoire de la couverture nuageuse ou les bulletins spécialisés pour la montagne, le littoral et les cours d’eau.',
+        heading: 'Outils spécialisés en libre accès',
+        body: 'Accédez en un clic au radar interactif des précipitations Doppler, à la carte des vigilances départementales, aux scénarios probabilistes à 14 jours, ainsi qu’aux suivis pour la montagne, le littoral et les cours d’eau.',
       },
     ],
     faq: [
       {
-        question: 'Comment trouver notre site sur Google avec différents intitulés ?',
+        question: 'Quelles sont les sources des données météorologiques ?',
         answer:
-          'Vous pouvez trouver notre site sur Google en tapant Instant Météo France, Instant Meteo, Météo France ou Météo Direct. Toutes ces requêtes mènent directement à notre portail météo 100 % gratuit et sans publicité.',
+          'Les prévisions reposent sur les modèles numériques ouverts officiels (AROME et ARPEGE de Météo-France, IFS du Centre européen ECMWF) combinés aux observations des stations météorologiques au sol et aux radars Doppler.',
       },
       {
-        question: 'Comment rechercher les prévisions météo de mon village ou de mon quartier ?',
+        question: 'Comment rechercher les prévisions météo de ma commune ?',
         answer:
-          'Utilisez la barre de recherche en haut de page en saisissant le nom de votre commune ou son code postal à 5 chiffres. Les 34 965 communes françaises ainsi que les principaux sommets et plages sont accessibles instantanément.',
+          'Utilisez la barre de recherche en saisissant le nom de votre commune ou son code postal. Les 34 965 communes de France métropolitaine et d’outre-mer sont accessibles instantanément.',
       },
       {
-        question: 'À quel rythme les observations sont-elles rafraîchies ?',
+        question: 'À quelle fréquence les observations sont-elles actualisées ?',
         answer:
-          'Les relevés de température, de vent et de pression sont actualisés toutes les 10 à 15 minutes, tandis que l’imagerie radar suit le déplacement des averses par pas de 5 minutes.',
+          'Le radar de pluie est réactualisé toutes les 5 minutes. Les relevés de température, vent, humidité et pression atmosphérique sont actualisés toutes les 10 à 15 minutes.',
       },
       {
-        question: 'Le site est-il vraiment gratuit, sans publicité gênante et en données ouvertes ?',
+        question: 'Le service est-il entièrement gratuit et sans inscription ?',
         answer:
-          'Oui, l’ensemble des cartes, des bulletins communaux et des outils de suivi est 100 % gratuit, sans création de compte, sans publicité permettant de nuire à la visibilité du site, et repose sur les données ouvertes (Open Data) officielles.',
+          'Oui, l’ensemble des cartes, radars et bulletins prévisionnels est 100 % gratuit, sans inscription, sans abonnement et sans publicité.',
       },
     ],
   },
@@ -141,9 +137,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'direct',
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Météo en direct par commune — Gratuit, sans pub & données ouvertes | Instant Météo',
+    title: 'Météo en Direct par Commune | Instant Météo',
     description:
-      'Relevés météo en direct gratuits et sans publicité nuisible dans votre commune : température, ressenti, vent, radar pluie et données ouvertes (Open Data).',
+      'Relevés météo en direct pour chaque commune de France : température, vent, humidité, pression et prévisions immédiates. Gratuit et sans pub.',
     h1: 'Observations météo en direct par commune',
     sectionTitle: 'Lecture des relevés actuels et du diagnostic heure par heure',
     breadcrumbName: 'Météo en Direct',
@@ -189,9 +185,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'radar',
     path: '/radar',
     canonicalUrl: `${BASE_SITE_URL}/radar`,
-    title: 'Radar Pluie HD en Direct France & Europe — Précipitations Haute Définition, Orages & Grêle | Instant Météo',
+    title: 'Radar Pluie HD en Direct — Précipitations | Instant Météo',
     description:
-      'Radar de pluie haute résolution en direct : suivi Doppler minute par minute, cellules orageuses, grêle, neige et prévisions immédiates (Nowcasting) sur toute la France et l\'Europe avec fond satellite hybride et frontières départementales.',
+      'Radar de pluie haute résolution en direct : suivi des précipitations minute par minute, orages et chutes de neige en France et en Europe.',
     h1: 'Radar des précipitations en direct HD — Pluie, orages et chutes de neige',
     sectionTitle: 'Fonctionnement du radar et lecture des échos de pluie',
     breadcrumbName: 'Radar Pluie en Direct',
@@ -285,9 +281,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'ia-meteo',
     path: '/ia-meteo',
     canonicalUrl: `${BASE_SITE_URL}/ia-meteo`,
-    title: 'AURA Weather AI — Intelligence Atmosphérique & Conversationnelle | Instant Météo',
+    title: 'IA Météo AURA — Assistant Conversationnel | Instant Météo',
     description:
-      'Interrogez AURA, l’intelligence artificielle météo conversationnelle propulsée par les données certifiées d’Instant Météo : température exacte, vent, pluie, neige et graphiques.',
+      'Interrogez AURA, l’assistant météo conversationnel en direct : prévisions fiables, vent, pluie, neige et graphiques pour toutes les communes.',
     h1: 'AURA Weather AI : Intelligence Atmosphérique Conversationnelle',
     sectionTitle: 'Questions en langage naturel, analyses météorologiques et graphiques sur mesure',
     breadcrumbName: 'IA Météo AURA',
@@ -295,11 +291,11 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     changefreq: 'always',
     priority: '0.95',
     introParagraph:
-      'AURA Weather AI est votre assistant atmosphérique intelligent. Connecté en direct aux serveurs haute résolution d’Instant Météo, il analyse le temps de votre commune, détecte les coups de vent, surveille les isothermes neige et génère des graphiques précis à la demande.',
+      'AURA Weather AI est votre assistant atmosphérique intelligent. Connecté en direct aux données haute résolution d’Instant Météo, il analyse le temps de votre commune, détecte les coups de vent, surveille les isothermes neige et génère des graphiques précis à la demande.',
     sections: [
       {
-        heading: 'Données météorologiques 100 % certifiées InstantMétéo',
-        body: 'Contrairement aux modèles de langage généralistes qui inventent parfois des chiffres, AURA s’appuie exclusivement sur les relevés en direct, les modélisations numériques AROME et les radars Doppler officiels.',
+        heading: 'Données météorologiques vérifiées',
+        body: 'AURA s’appuie exclusivement sur les relevés en direct, les modélisations numériques AROME et les radars Doppler officiels pour vous fournir des réponses rigoureuses.',
       },
       {
         heading: 'Interaction vocale et textuelle fluide',
@@ -309,7 +305,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     faq: [
       {
         question: 'D’où proviennent les données utilisées par AURA ?',
-        answer: 'Toutes les observations proviennent directement de votre station sélectionnée sur Instant Météo et des flux officiels ouverts Open Data.',
+        answer: 'Toutes les observations proviennent directement de votre station sélectionnée sur Instant Météo et des flux ouverts officiels (Open Data).',
       },
       {
         question: 'Puis-je demander des graphiques à AURA ?',
@@ -318,32 +314,13 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/aura': {
-    slug: 'aura',
-    path: '/aura',
-    canonicalUrl: `${BASE_SITE_URL}/ia-meteo`,
-    title: 'AURA Weather AI — Intelligence Atmosphérique & Conversationnelle | Instant Météo',
-    description:
-      'Interrogez AURA, l’intelligence artificielle météo conversationnelle propulsée par les données certifiées d’Instant Météo.',
-    h1: 'AURA Weather AI : Intelligence Atmosphérique Conversationnelle',
-    sectionTitle: 'Questions en langage naturel, analyses météorologiques et graphiques sur mesure',
-    breadcrumbName: 'IA Météo AURA',
-    tabId: 'auraAI',
-    changefreq: 'always',
-    priority: '0.90',
-    introParagraph:
-      'AURA Weather AI est votre assistant atmosphérique intelligent connecté en direct à Instant Météo.',
-    sections: [],
-    faq: [],
-  },
-
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
-    title: 'Couverture nuageuse, sondage vertical et nébulosité | Instant Météo',
+    title: 'Nuages & Sondage de l’Atmosphère | Instant Météo',
     description:
-      'Suivez la couverture nuageuse (nébulosité) en France : sondage vertical de l’atmosphère, classification des nuages (bas, moyens, élevés), plafond nuageux et risque de givrage sur 48 heures.',
+      'Couverture nuageuse en France : sondage vertical de l’atmosphère, classification des nuages (bas, moyens, hauts), plafond et nébulosité.',
     h1: 'Couverture nuageuse, sondage vertical, classification des nuages et nébulosité',
     sectionTitle: 'Sondage vertical troposphérique, classification des nuages, givrage et nébulosité',
     breadcrumbName: 'Carte des Nuages',
@@ -437,9 +414,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'montagne',
     path: '/montagne',
     canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Météo Montagne en Direct & Réactualisation Continue : Niveaux Neige Sommets, LPN & BERA | Instant Météo',
+    title: 'Météo Montagne, Neige & Risque Avalanche | Instant Météo',
     description:
-      'Météo montagne avec réactualisation en continu 24/7 : niveaux réels de neige vérifiés par balise Nivôse, isotherme 0°C, limite pluie-neige (LPN), téléphériques, état des pistes et risques d\'avalanche BERA (Alpes, Pyrénées, Massif Central, Jura, Vosges, Europe).',
+      'Météo montagne en direct : hauteur de neige, limite pluie-neige (LPN), isotherme 0°C et risques d’avalanche BERA sur tous les massifs français.',
     h1: 'Météo en montagne en continu, niveaux réels de neige et bulletins d’avalanche BERA',
     sectionTitle: 'Paramètres d’altitude pour les stations de ski et la randonnée',
     breadcrumbName: 'Météo Montagne',
@@ -485,9 +462,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'plages',
     path: '/plages',
     canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Météo des Plages, Marées SHOM & Grandes Marées : Horaires Pleine Mer, Température Eau & Vagues | Instant Météo',
+    title: 'Météo des Plages, Marées SHOM & Mer | Instant Météo',
     description:
-      'Météo des plages et marées SHOM en direct : horaires 4 marées (Pleine Mer 1 & 2, Basse Mer 1 & 2), coefficients et alertes Grandes Marées, pêche à pied, température de l’eau (SST), vagues, courants côtiers et sécurité baïnes sur toute la France et l\'Europe.',
+      'Météo des plages et marées SHOM en direct : horaires de pleine et basse mer, température de l’eau, vagues et coefficients de marée en France.',
     h1: 'Météo des plages, annuaire des marées SHOM et alertes grandes marées',
     sectionTitle: 'Informations marines pour la baignade, le surf et la pêche à pied',
     breadcrumbName: 'Météo des Plages',
@@ -533,9 +510,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'secheresse-incendie',
     path: '/secheresse-incendie',
     canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
-    title: 'État de la sécheresse et risque d’incendie en France | Instant Météo',
+    title: 'Sécheresse & Risque Feux de Forêt | Instant Météo',
     description:
-      'Suivi de la sécheresse des sols, du niveau des nappes phréatiques et du danger météorologique de feux de forêt par département en France.',
+      'Suivi de la sécheresse des sols, niveau des nappes phréatiques et danger météorologique de feux de forêt par département en France.',
     h1: 'Suivi de la sécheresse et du risque feux de forêt',
     sectionTitle: 'Indicateurs d’humidité des sols, nappes souterraines et danger incendie',
     breadcrumbName: 'Sécheresse & Incendies',
@@ -677,9 +654,9 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'sports',
     path: '/sports',
     canonicalUrl: `${BASE_SITE_URL}/sports`,
-    title: 'Météo des trajets routiers et activités de plein air | Instant Météo',
+    title: 'Météo Route & Activités de Plein Air | Instant Météo',
     description:
-      'Calculateur météo de trajet routier et indices pour le sport en extérieur : vélo, course à pied, randonnée, golf, sports nautiques et entretien du jardin.',
+      'Calculateur météo d’itinéraire routier et indices de praticabilité pour le vélo, la course à pied, la randonnée et le jardinage.',
     h1: 'Conditions météo pour la route et le sport',
     sectionTitle: 'Planification des déplacements routiers et des séances sportives',
     breadcrumbName: 'Météo Route & Sports',
@@ -725,7 +702,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'bulletins',
     path: '/bulletins',
     canonicalUrl: `${BASE_SITE_URL}/bulletins`,
-    title: 'Bulletins météo départementaux et tendances mensuelles | Instant Météo',
+    title: 'Bulletins Météo & Tendances 4 Semaines | Instant Météo',
     description:
       'Bulletins météo rédigés pour la France et chaque département : synthèse du jour, évolution de la semaine et perspectives sur 4 semaines.',
     h1: 'Bulletins météo détaillés par département',
@@ -869,7 +846,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'climat',
     path: '/climat',
     canonicalUrl: `${BASE_SITE_URL}/climat`,
-    title: 'Tendances saisonnières et évolution du climat | Instant Météo',
+    title: 'Climat & Tendances Saisonnières 8 Mois | Instant Météo',
     description:
       'Projections climatiques saisonnières sur 8 mois en France, suivi du cycle El Niño / La Niña (ENSO) et évolution des températures annuelles.',
     h1: 'Tendances saisonnières et bilans climatiques',
@@ -1411,8 +1388,8 @@ export function buildCitySeoConfigEn(city: MajorCitySeoConfig): PageSeoMetadata 
     slug: city.slug,
     path: city.path,
     canonicalUrl: `${BASE_SITE_URL}${city.path}`,
-    title: `${city.cityName} Weather Live (${city.deptCode}) — 14-Day Forecast & Rain Radar | Instant Weather`,
-    description: `Live weather in ${city.cityName} (${city.department}, ${city.region}, France): current temperature, 48-hour hourly forecast, 14-day outlook, HD Doppler rain radar and weather warnings.`,
+    title: `${city.cityName} Weather — Forecast & Radar | Instant Weather`,
+    description: `Live weather in ${city.cityName}: real-time temperature, 1-hour rain radar, 48-hour and 14-day forecasts. 100% free and ad-free service.`,
     h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
     sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
     breadcrumbName: `${city.cityName} Weather`,
@@ -1451,12 +1428,14 @@ export function buildCitySeoConfigEn(city: MajorCitySeoConfig): PageSeoMetadata 
   };
 }
 
+export const CITY_URL_ALIASES: Record<string, string> = {};
+
 for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
   const postal = city.postalCode || (city.deptCode ? `${city.deptCode}000` : '');
   const cityWithPostal = postal ? `${city.cityName} ${postal}` : city.cityName;
-  const cityTitle = `Météo ${cityWithPostal} — Prévisions en Direct & Radar Pluie | Instant Météo`;
+  const cityTitle = `Météo ${cityWithPostal} — Prévisions & Radar | Instant Météo`;
   const cityH1 = `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`;
-  const cityDesc = `Consultez la météo à ${cityWithPostal} (${city.department}, ${city.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`;
+  const cityDesc = `Météo ${cityWithPostal} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes météo officielles. 100% gratuit.`;
 
   const cityConfig: PageSeoMetadata = {
     slug: city.slug,
@@ -1478,7 +1457,7 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
       },
       {
         heading: `Suivi des précipitations et radar de pluie sur ${city.cityName}`,
-        body: `Le nowcasting chirurgical (< 3h) et le radar des pluies permettent d'anticiper minute par minute le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${city.cityName} et de sa périphérie.`,
+        body: `Le suivi immédiat et le radar des pluies permettent d'anticiper avec clarté le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${city.cityName} et de sa périphérie.`,
       },
       {
         heading: `Records météorologiques historiques à ${city.cityName}`,
@@ -1492,7 +1471,7 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
       },
       {
         question: `Va-t-il pleuvoir dans l'heure à ${city.cityName} ?`,
-        answer: `Le module Prévisions Précipitations & Nowcasting analyse les échos radar en temps réel par pas de 5 minutes pour indiquer l'heure exacte du début et de la fin de la pluie à ${city.cityName}.`,
+        answer: `Le radar Doppler analyse les précipitations en direct par pas de 5 minutes pour indiquer l'imminence d'une averse à ${city.cityName}.`,
       },
       {
         question: `Quelles sont les prévisions météo à 7 et 14 jours pour ${cityWithPostal} ?`,
@@ -1501,12 +1480,14 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
     ],
   };
 
+  // Enregistrer UNIQUEMENT la route canonique pour éviter toute duplication
   SEO_PAGES_MAP[city.path] = cityConfig;
-  // Enregistrer les alias d'URLs fréquents (ex: /meteo-paris, /meteo-paris-75000, /paris-75000)
-  SEO_PAGES_MAP[`/meteo-${city.slug}`] = cityConfig;
+
+  // Enregistrer les alias dans un registre dédié pour la résolution d'URL sans polluer SEO_PAGES_MAP
+  CITY_URL_ALIASES[`/meteo-${city.slug}`] = city.path;
   if (postal) {
-    SEO_PAGES_MAP[`/meteo-${city.slug}-${postal}`] = cityConfig;
-    SEO_PAGES_MAP[`/${city.slug}-${postal}`] = cityConfig;
+    CITY_URL_ALIASES[`/meteo-${city.slug}-${postal}`] = city.path;
+    CITY_URL_ALIASES[`/${city.slug}-${postal}`] = city.path;
   }
 
   MAJOR_CITY_SEO_MAP_EN[city.path] = buildCitySeoConfigEn(city);
@@ -1573,8 +1554,8 @@ export function getLocalitySeoData(station: { name: string; department?: string;
     slug,
     path,
     canonicalUrl: `${BASE_SITE_URL}${path}`,
-    title: `Météo ${displayLocality} — Prévisions en Direct & Radar Pluie | Instant Météo`,
-    description: `Consultez la météo à ${displayLocality} en direct : température, ressenti, prévisions heure par heure, radar pluie HD et tendance à 14 jours. 100% gratuit et sans pub.`,
+    title: `Météo ${displayLocality} — Prévisions & Radar | Instant Météo`,
+    description: `Météo ${displayLocality} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes officielles. 100% gratuit.`,
     h1: `Météo ${displayLocality} — Observations en direct et prévisions à 14 jours`,
     sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cleanName}`,
     breadcrumbName: `Météo ${cleanName}`,
@@ -1710,11 +1691,17 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
   if (cleanPath.toLowerCase().startsWith('/meteo-') && MAJOR_FRENCH_CITY_SEO_LIST.some((c) => c.path === '/' + cleanPath.slice(7).toLowerCase())) {
     cleanPath = '/' + cleanPath.slice(7).toLowerCase();
   }
+  if (CITY_URL_ALIASES[cleanPath.toLowerCase()]) {
+    cleanPath = CITY_URL_ALIASES[cleanPath.toLowerCase()];
+  }
 
   // Alias historiques éventuels redirigés vers la bonne configuration SEO
   const aliases: Record<string, string> = {
     '/accueil': '/',
     '/home': '/',
+    '/aura': '/ia-meteo',
+    '/assistant': '/ia-meteo',
+    '/assistant-aura': '/ia-meteo',
     '/meteo-en-direct': '/direct',
     '/temps-reel': '/direct',
     '/radar-pluie': '/radar',
@@ -1790,8 +1777,8 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
           slug: cityCfg.slug,
           path: cityCfg.path,
           canonicalUrl: `${BASE_SITE_URL}${cityCfg.path}`,
-          title: `Météo ${cityWithPostal} — Prévisions en Direct & Radar Pluie | Instant Météo`,
-          description: `Consultez la météo à ${cityWithPostal} (${cityCfg.department}, ${cityCfg.region}) en direct : température actuelle, prévisions heure par heure 48h, tendance à 14 jours, radar des pluies HD et vigilances.`,
+          title: `Météo ${cityWithPostal} — Prévisions & Radar | Instant Météo`,
+          description: `Météo ${cityWithPostal} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes météo officielles. 100% gratuit.`,
           h1: `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`,
           sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cityCfg.cityName}`,
           breadcrumbName: `Météo ${cityCfg.cityName}`,
@@ -2010,30 +1997,12 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
         '@type': 'WebSite',
         '@id': `${BASE_SITE_URL}/#website-${locale}`,
         url: localizedHomeUrl,
-        name: 'Instant Météo France',
+        name: brand.brandFull,
         alternateName: [
-          'Instant Météo France',
-          'Météo France',
-          'Météo Direct',
-          'Instant Meteo',
-          'Instant Meteo France',
-          'Instant Météo',
-          'Météo en Direct',
-          'Météo Direct France',
-          'Instant Météo Versailles',
-          'instant météo france',
-          'météo france',
-          'météo direct',
-          'instant meteo',
-          'instantmeteo',
           brand.brandFull,
-          brand.brandUpper,
+          brand.brandName,
+          'Instant Météo',
           'Instant Weather',
-          'Instant Weather France',
-          'Instant Wetter',
-          'Instant Clima',
-          'Instant Tempo',
-          'Instant Weer',
         ],
         description: brand.homeDescription,
         isAccessibleForFree: true,
@@ -2048,10 +2017,10 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
         operatingSystem: 'All',
         isAccessibleForFree: true,
         description:
-          'Site météo 100 % gratuit, sans publicité permettant de nuire à la visibilité du site, propulsé par les données ouvertes (Open Data Météo-France, ECMWF, Vigicrues, SHOM).',
+          'Service météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Gratuit et sans publicité.',
         featureList: [
-          'Site météo 100 % gratuit sans abonnement',
-          'Sans publicité permettant de nuire à la visibilité et à la lisibilité du site',
+          'Prévisions météo 100 % gratuites et sans abonnement',
+          'Radar de pluie haute résolution et suivi en temps réel',
           'Données ouvertes publiques (Open Data Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)',
         ],
         offers: {
@@ -2120,7 +2089,13 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
   const langParam = isFr ? '' : `?hl=${locale}`;
   const localizedCanonical = `${seoData.canonicalUrl}${langParam}`;
   const pagesMap = isFr ? SEO_PAGES_MAP : SEO_PAGES_MAP_EN;
+  const seenPaths = new Set<string>();
   const navLinks = Object.values(pagesMap)
+    .filter((page) => {
+      if (!page || !page.path || page.path === '/aura' || seenPaths.has(page.path)) return false;
+      seenPaths.add(page.path);
+      return true;
+    })
     .map(
       (page) =>
         `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${page.path}${langParam}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`

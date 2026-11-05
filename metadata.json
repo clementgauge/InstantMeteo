@@ -1,6 +1,6 @@
 {
   "name": "Instant Météo",
-  "description": "Site météo 100 % gratuit et sans publicité : radar de pluie haute résolution en direct, relevés Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), seuils de gel/canicule et prévisions pour 34 965 communes et le monde entier.",
+  "description": "Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
