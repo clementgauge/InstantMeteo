@@ -1381,8 +1381,8 @@ export const Header: React.FC<HeaderProps> = ({
                     ✨
                   </div>
                   <div>
-                    <div className="font-bold">Aperçu du démarrage PWA</div>
-                    <div className="text-[11px] text-slate-400 group-hover:text-slate-500">Rejouer l'animation radar stylée</div>
+                    <div className="font-bold">Aperçu de l'animation d'ouverture</div>
+                    <div className="text-[11px] text-slate-400 group-hover:text-slate-500">Rejouer l'animation « La météo, à l'instant »</div>
                   </div>
                 </button>
               </section>

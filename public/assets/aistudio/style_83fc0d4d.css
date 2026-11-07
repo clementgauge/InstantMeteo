@@ -1,0 +1,79 @@
+:root{
+  --bg:#030913;
+  --neon:#2f86ff;
+  --neon-light:#8fd8ff;
+  --warm:#ffb27a;
+  --size:min(46vw,46vh,300px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);overflow:hidden;color:#fff;
+  font-family:"SF Pro Display",Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+
+#sky{position:fixed;inset:0;width:100%;height:100%;display:block}
+.vignette{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 40%,rgba(1,5,14,.75) 100%)}
+
+.stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,28px);
+  padding-bottom:4vh}
+
+/* ---------- Icône ---------- */
+.icon{position:relative;width:var(--size);height:var(--size);
+  opacity:0;transform:scale(.92)}
+.go .icon{animation:iconIn 1.2s cubic-bezier(.2,.8,.2,1) .1s forwards,float 6s ease-in-out 2.5s infinite}
+@keyframes iconIn{to{opacity:1;transform:scale(1)}}
+@keyframes float{50%{transform:translateY(-8px)}}
+
+.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;
+  filter:drop-shadow(0 0 5px rgba(80,170,255,.9)) drop-shadow(0 0 18px rgba(30,110,255,.65)) drop-shadow(0 0 40px rgba(20,80,255,.35))}
+.line{fill:none;stroke:url(#neon);stroke-linecap:round}
+.base{stroke-width:2.2;stroke-dasharray:1;stroke-dashoffset:1}
+.go .base{animation:draw 2.4s cubic-bezier(.6,.05,.2,1) .2s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+.comet{stroke:#e9f8ff;stroke-width:3.4;stroke-dasharray:.1 .9;stroke-dashoffset:0;opacity:0}
+.go .comet{animation:orbit 3.2s linear 2.2s infinite,cometIn .8s ease 2.2s forwards}
+@keyframes orbit{to{stroke-dashoffset:-1}}
+@keyframes cometIn{to{opacity:1}}
+
+/* halo qui respire derrière le cadre */
+.icon::before{content:"";position:absolute;inset:-14%;border-radius:36%;
+  background:radial-gradient(circle,rgba(40,120,255,.28),rgba(40,120,255,0) 65%);opacity:0}
+.go .icon::before{animation:halo 4s ease-in-out 1.8s infinite}
+@keyframes halo{0%,100%{opacity:.35;transform:scale(.96)}50%{opacity:.9;transform:scale(1.05)}}
+
+/* ---------- Pictogramme ---------- */
+.glyph{position:absolute;inset:22%;width:56%;height:56%;overflow:visible;
+  filter:drop-shadow(0 0 10px rgba(255,190,110,.5))}
+.sun{fill:#ffd36a}
+.rays path{fill:none;stroke:#ffd36a;stroke-width:3;stroke-linecap:round}
+.cloud{fill:#dbeaff;stroke:#8fd8ff;stroke-width:1.5}
+.glyph>*{opacity:0;transform-box:fill-box;transform-origin:center}
+.go .sun{animation:pop .8s cubic-bezier(.2,1.4,.3,1) 2.3s forwards}
+.go .rays{animation:pop .8s ease 2.5s forwards,spin 14s linear 3.3s infinite;transform-origin:40px 38px;transform-box:view-box}
+.go .cloud{animation:cloudIn 1s cubic-bezier(.2,.9,.2,1) 2.7s forwards}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes cloudIn{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
+
+/* ---------- Texte ---------- */
+.title{display:flex;gap:.28em;font-weight:800;letter-spacing:-.02em;line-height:1;
+  font-size:clamp(30px,min(9vw,8vh),64px)}
+.title .w{display:inline-flex}
+.title .l{display:inline-block;opacity:0;color:#eaf4ff;text-shadow:0 0 24px rgba(60,140,255,.55)}
+.title .accent .l{color:#9fdcff}
+.go .title .l{animation:letter .9s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(3s + var(--i)*55ms)}
+@keyframes letter{from{opacity:0;transform:translateY(22px);filter:blur(10px)}to{opacity:1;transform:none;filter:blur(0)}}
+
+.tag{font-size:clamp(11px,2.8vw,15px);font-weight:600;text-transform:uppercase;letter-spacing:.6em;color:#9db6d6;opacity:0}
+.go .tag{animation:tag 1.4s ease 3.8s forwards}
+@keyframes tag{from{opacity:0;letter-spacing:.7em}to{opacity:.85;letter-spacing:.34em}}
+
+.replay{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);color:#cfe0f5;border-radius:999px;
+  padding:9px 16px;font:inherit;font-size:13px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.replay:hover{background:rgba(255,255,255,.14)}
+
+@media (prefers-reduced-motion:reduce){
+  .go .icon,.go .icon::before,.go .comet,.go .rays{animation-duration:.01s!important;animation-iteration-count:1!important}
+}
