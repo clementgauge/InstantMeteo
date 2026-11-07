@@ -147,23 +147,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3842,
     latitude: 45.9237,
     longitude: 6.8694,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'E', 'NW'],
-    criticalAltitudeThreshold: 2200,
-    snowDepthBottomCm: 35,
-    snowDepthTopCm: 295,
-    freshSnow24hCm: 18,
-    isoZeroAltitudeM: 2150,
-    rainSnowLimitM: 1800,
-    ridgeWindSpeedKmh: 55,
-    ridgeWindGustKmh: 85,
+    criticalAltitudeThreshold: 2400,
+    snowDepthBottomCm: 0, // Sol déneigé en vallée à 1035m
+    snowDepthTopCm: 38,   // Névé / glacier d'altitude Aiguille du Midi (3842m)
+    freshSnow24hCm: 5,
+    isoZeroAltitudeM: 2350,
+    rainSnowLimitM: 2000,
+    ridgeWindSpeedKmh: 45,
+    ridgeWindGustKmh: 72,
     ridgeWindDirectionDeg: 245,
-    snowQuality: 'Plaques à vent',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Aiguilles Rouges / Midi',
     nivoseElevationM: 2330,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Vallée de Chamonix : fort effet d\'isothermie en cas de précipitations abaissant la limite pluie-neige jusqu\'à 400m sous l\'isotherme 0°C. Plaques à vent formées en haute altitude au-dessus de 2200m.'
+    beraSummary: 'Vallée de Chamonix : bas de station entièrement déneigé (1035m). Enneigement continu observé au-dessus de 2300m sur les glaciers des Grands Montets et de l\'Aiguille du Midi. Plaques denses résiduelles en versants froids d\'ubac.'
   },
   {
     id: 'val-thorens-3-vallees',
@@ -176,23 +176,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3230,
     latitude: 45.2979,
     longitude: 6.5800,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 85,
-    snowDepthTopCm: 245,
-    freshSnow24hCm: 15,
-    isoZeroAltitudeM: 2180,
-    rainSnowLimitM: 1850,
-    ridgeWindSpeedKmh: 46,
-    ridgeWindGustKmh: 74,
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0, // Bas des Menuires déneigé
+    snowDepthTopCm: 32,   // Cime Caron (3230m)
+    freshSnow24hCm: 4,
+    isoZeroAltitudeM: 2380,
+    rainSnowLimitM: 2050,
+    ridgeWindSpeedKmh: 42,
+    ridgeWindGustKmh: 68,
     ridgeWindDirectionDeg: 230,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Cime Caron / Bellecôte',
     nivoseElevationM: 3035,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Plus haute station d\'Europe (2300m village) : enneigement garanti sur l\'ensemble du domaine. Couches fragiles persistantes en versants Nord au-dessus de 2400m.'
+    beraSummary: 'Domaine de la Vanoise : alpages de bas de vallée dégagés. Manteau neigeux continu dès 2400m avec sous-couche densifiée vers la Cime de Caron et Peclet.'
   },
   {
     id: 'tignes-val-disere',
@@ -205,23 +205,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3456,
     latitude: 45.4683,
     longitude: 6.9056,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'E', 'NW'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 70,
-    snowDepthTopCm: 265,
-    freshSnow24hCm: 16,
-    isoZeroAltitudeM: 2150,
-    rainSnowLimitM: 1820,
-    ridgeWindSpeedKmh: 50,
-    ridgeWindGustKmh: 78,
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 35,
+    freshSnow24hCm: 4,
+    isoZeroAltitudeM: 2350,
+    rainSnowLimitM: 2020,
+    ridgeWindSpeedKmh: 44,
+    ridgeWindGustKmh: 70,
     ridgeWindDirectionDeg: 250,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Le Chevril / Grande Motte',
     nivoseElevationM: 2560,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Haute-Tarentaise : climat interne froid favorisant une limite pluie-neige basse et d\'épaisses hauteurs de neige sur le glacier de la Grande Motte et Pisaillas (retours d\'Est fréquents).'
+    beraSummary: 'Haute-Tarentaise : village déneigé (1550m). Glacier de la Grande Motte (3456m) et Pisaillas skiables avec manteau tassé au-dessus de 2700m.'
   },
   {
     id: 'courchevel-meribel',
@@ -237,20 +237,20 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     beraRiskLevel: 2,
     beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2250,
-    snowDepthBottomCm: 45,
-    snowDepthTopCm: 215,
-    freshSnow24hCm: 12,
-    isoZeroAltitudeM: 2200,
-    rainSnowLimitM: 1900,
-    ridgeWindSpeedKmh: 40,
-    ridgeWindGustKmh: 64,
+    criticalAltitudeThreshold: 2450,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 26,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2400,
+    rainSnowLimitM: 2100,
+    ridgeWindSpeedKmh: 36,
+    ridgeWindGustKmh: 58,
     ridgeWindDirectionDeg: 240,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'La Saulire',
     nivoseElevationM: 2738,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Excellente conservation de la neige froide dans les combes Nord de la Saulire et du Mont Vallon.'
+    beraSummary: 'Versants forestiers et stations villages déneigés. Enneigement résiduel dans les couloirs ombragés de la Saulire et du Mont Vallon au-delà de 2400m.'
   },
   {
     id: 'la-plagne-les-arcs',
@@ -263,23 +263,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3250,
     latitude: 45.5064,
     longitude: 6.6772,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2200,
-    snowDepthBottomCm: 42,
-    snowDepthTopCm: 235,
-    freshSnow24hCm: 14,
-    isoZeroAltitudeM: 2200,
-    rainSnowLimitM: 1880,
-    ridgeWindSpeedKmh: 45,
-    ridgeWindGustKmh: 70,
+    criticalAltitudeThreshold: 2450,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 28,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2400,
+    rainSnowLimitM: 2080,
+    ridgeWindSpeedKmh: 38,
+    ridgeWindGustKmh: 62,
     ridgeWindDirectionDeg: 245,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Bellecôte / Aiguille Rouge',
     nivoseElevationM: 3035,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Dénivelé majeur de 1250m à 3250m (Aiguille Rouge et Bellecôte). Fort gradient d\'enneigement entre les villages forestiers et les glaciers.'
+    beraSummary: 'Villages de Tarentaise au vert. Saupoudrage sur l\'Aiguille Rouge et le glacier de Bellecôte au-dessus de 2500m.'
   },
   {
     id: 'avoriaz-portes-du-soleil',
@@ -292,23 +292,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2466,
     latitude: 46.1914,
     longitude: 6.7749,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
-    criticalSlopes: ['N', 'NE', 'E', 'SE'],
-    criticalAltitudeThreshold: 1900,
-    snowDepthBottomCm: 35,
-    snowDepthTopCm: 230,
-    freshSnow24hCm: 20,
-    isoZeroAltitudeM: 1950,
-    rainSnowLimitM: 1650,
-    ridgeWindSpeedKmh: 48,
-    ridgeWindGustKmh: 76,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE', 'E'],
+    criticalAltitudeThreshold: 2100,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 8,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2350,
+    rainSnowLimitM: 2050,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 56,
     ridgeWindDirectionDeg: 280,
-    snowQuality: 'Plaques à vent',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Hauts-Forts / Avoriaz',
     nivoseElevationM: 2220,
     topographicRegime: 'Préalpes & Flux Océanique',
-    beraSummary: 'Massif du Chablais en première ligne face aux perturbations de Nord-Ouest : cumuls neigeux très abondants dès 1700m sur le plateau d\'Avoriaz.'
+    beraSummary: 'Chablais : herbe et forêts libres de neige jusqu\'au plateau d\'Avoriaz (1800m). Minces plaques de neige d\'automne sur les crêtes des Hauts-Forts (2466m).'
   },
   {
     id: 'la-clusaz-grand-bornand',
@@ -321,23 +321,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2500,
     latitude: 45.9042,
     longitude: 6.4239,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 1950,
-    snowDepthBottomCm: 30,
-    snowDepthTopCm: 225,
-    freshSnow24hCm: 16,
-    isoZeroAltitudeM: 2000,
-    rainSnowLimitM: 1700,
-    ridgeWindSpeedKmh: 42,
-    ridgeWindGustKmh: 68,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2200,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 6,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2350,
+    rainSnowLimitM: 2050,
+    ridgeWindSpeedKmh: 34,
+    ridgeWindGustKmh: 54,
     ridgeWindDirectionDeg: 270,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Col des Aravis / Flaine',
     nivoseElevationM: 2150,
     topographicRegime: 'Préalpes & Flux Océanique',
-    beraSummary: 'Effet de barrage orographique marqué sur la chaîne des Aravis et le désert de Platé (Flaine), produisant un enneigement remarquable dès 1600m.'
+    beraSummary: 'Aravis : alpages entièrement dégagés. Traces de neige isolées sur les lapiaz calcaires sommeliers au-delà de 2300m.'
   },
   {
     id: 'alpe-dhuez-2-alpes',
@@ -353,20 +353,20 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     beraRiskLevel: 2,
     beraRiskLabel: 'Risque Limité (2/5)',
     criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2400,
-    snowDepthBottomCm: 35,
-    snowDepthTopCm: 240,
-    freshSnow24hCm: 10,
-    isoZeroAltitudeM: 2300,
-    rainSnowLimitM: 2000,
-    ridgeWindSpeedKmh: 40,
-    ridgeWindGustKmh: 65,
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 34,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2450,
+    rainSnowLimitM: 2150,
+    ridgeWindSpeedKmh: 38,
+    ridgeWindGustKmh: 60,
     ridgeWindDirectionDeg: 260,
-    snowQuality: 'Neige de printemps',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Pic Blanc / Les Écrins',
     nivoseElevationM: 2940,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Fort ensoleillement sur l\'Île au Soleil (Alpe d\'Huez) et haute altitude glaciaire aux 2 Alpes (3568m). Contraste marqué entre les pentes Sud transformées et les couloirs Nord de La Grave.'
+    beraSummary: 'Oisans : vallées au vert. Enneigement régulier et glacier du Mont-de-Lans aux 2 Alpes au-delà de 2800m. Regel nocturne marqué au Pic Blanc.'
   },
 
   // ============================================================================
@@ -383,23 +383,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2800,
     latitude: 44.9431,
     longitude: 6.5619,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
     criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 28,
-    snowDepthTopCm: 185,
-    freshSnow24hCm: 8,
-    isoZeroAltitudeM: 2400,
-    rainSnowLimitM: 2050,
-    ridgeWindSpeedKmh: 36,
-    ridgeWindGustKmh: 58,
+    criticalAltitudeThreshold: 2400,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 14,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2500,
+    rainSnowLimitM: 2200,
+    ridgeWindSpeedKmh: 30,
+    ridgeWindGustKmh: 48,
     ridgeWindDirectionDeg: 290,
-    snowQuality: 'Neige de printemps',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Col du Lautaret / Chardonnet',
     nivoseElevationM: 2450,
     topographicRegime: 'Climat Sud-Alpin / Méditerranéen Sec',
-    beraSummary: 'Air sec briançonnais favorisant une excellente conservation de la neige par sublimation réduite et une limite pluie-neige basse lors des retours d\'Est lombards.'
+    beraSummary: 'Air sec briançonnais : bas de station entièrement sec (1200m). Traces d\'enneigement résiduel et plaques de regel sur les versants Nord au-dessus de 2400m.'
   },
   {
     id: 'vars-risoul-isola2000',
@@ -412,23 +412,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2750,
     latitude: 44.1856,
     longitude: 7.1565,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2350,
-    snowDepthBottomCm: 40,
-    snowDepthTopCm: 190,
-    freshSnow24hCm: 9,
-    isoZeroAltitudeM: 2450,
-    rainSnowLimitM: 2100,
-    ridgeWindSpeedKmh: 34,
-    ridgeWindGustKmh: 54,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2450,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 12,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2550,
+    rainSnowLimitM: 2250,
+    ridgeWindSpeedKmh: 28,
+    ridgeWindGustKmh: 45,
     ridgeWindDirectionDeg: 140,
-    snowQuality: 'Neige de printemps',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Millefonts / Parpaillon',
     nivoseElevationM: 2430,
     topographicRegime: 'Climat Sud-Alpin / Méditerranéen Sec',
-    beraSummary: 'Enneigement abondant par flux de Sud méditerranéen sur Isola 2000 et le Mercantour, suivi d\'un grand soleil favorisant le cycle gel nocturne / décaillage printanier.'
+    beraSummary: 'Massif du Mercantour et Queyras : bas de station déneigé et ensoleillé. Faibles plaques de neige dure sur les sommets ombragés au-delà de 2500m.'
   },
 
   // ============================================================================
@@ -445,23 +445,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2600,
     latitude: 42.9086,
     longitude: 0.1456,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5)',
-    criticalSlopes: ['N', 'NE', 'E', 'SE'],
-    criticalAltitudeThreshold: 2100,
-    snowDepthBottomCm: 35,
-    snowDepthTopCm: 195,
-    freshSnow24hCm: 15,
-    isoZeroAltitudeM: 2250,
-    rainSnowLimitM: 1950,
-    ridgeWindSpeedKmh: 58,
-    ridgeWindGustKmh: 90,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE', 'E'],
+    criticalAltitudeThreshold: 2300,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 10,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2450,
+    rainSnowLimitM: 2150,
+    ridgeWindSpeedKmh: 40,
+    ridgeWindGustKmh: 65,
     ridgeWindDirectionDeg: 280,
-    snowQuality: 'Plaques à vent',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Lac d\'Ardiden / Port d\'Aula',
     nivoseElevationM: 2445,
     topographicRegime: 'Chaîne Pyrénéenne',
-    beraSummary: 'Flux de Nord-Ouest océanique bloqué sur la barrière pyrénéenne : fort cumul neigeux à Cauterets et au Pic du Midi avec transport éolien vers les pentes Est.'
+    beraSummary: 'Pyrénées centrales : alpages de piémont et stations villages verts (1400m). Manteau discontinu et névés anciens repérables vers le Pic du Midi et Ardiden.'
   },
   {
     id: 'font-romeu-ax-les-angles',
@@ -474,23 +474,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2400,
     latitude: 42.5047,
     longitude: 2.0369,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2100,
-    snowDepthBottomCm: 30,
-    snowDepthTopCm: 145,
-    freshSnow24hCm: 8,
-    isoZeroAltitudeM: 2300,
-    rainSnowLimitM: 2000,
-    ridgeWindSpeedKmh: 45,
-    ridgeWindGustKmh: 72,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2250,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 5,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2500,
+    rainSnowLimitM: 2200,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 55,
     ridgeWindDirectionDeg: 315,
-    snowQuality: 'Croûte de regel',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Puigmal / Hospitalet',
     nivoseElevationM: 2470,
     topographicRegime: 'Chaîne Pyrénéenne',
-    beraSummary: 'Plateau de Cerdagne et Capcir : air sec et ensoleillé avec regel nocturne puissant permettant le maintien du manteau neigeux.'
+    beraSummary: 'Plateau de Cerdagne et Capcir : temps sec et lumineux, sol libre de neige sur l\'ensemble des stations. Seuls quelques névés résiduels au Puigmal.'
   },
   {
     id: 'sancy-cantal-lioran',
@@ -503,23 +503,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 1885,
     latitude: 45.5122,
     longitude: 2.8528,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 1500,
-    snowDepthBottomCm: 18,
-    snowDepthTopCm: 90,
-    freshSnow24hCm: 6,
-    isoZeroAltitudeM: 1750,
-    rainSnowLimitM: 1480,
-    ridgeWindSpeedKmh: 50,
-    ridgeWindGustKmh: 78,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 1800,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 0,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2200,
+    rainSnowLimitM: 1900,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 55,
     ridgeWindDirectionDeg: 250,
-    snowQuality: 'Croûte de regel',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Chastreix-Sancy',
     nivoseElevationM: 1385,
     topographicRegime: 'Moyenne Montagne Exposée',
-    beraSummary: 'Volcans d\'Auvergne directement exposés aux flux atlantiques : variations rapides de la limite pluie-neige et vent soutenu sur les crêtes du Sancy.'
+    beraSummary: 'Volcans d\'Auvergne : sol entièrement déneigé de la base jusqu\'au sommet du Sancy et du Plomb du Cantal. Conditions de randonnée automnale sèches.'
   },
   {
     id: 'vosges-jura-rousses-bresse',
@@ -535,20 +535,20 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     beraRiskLevel: 1,
     beraRiskLabel: 'Risque Faible (1/5)',
     criticalSlopes: ['NE', 'E'],
-    criticalAltitudeThreshold: 1250,
-    snowDepthBottomCm: 12,
-    snowDepthTopCm: 75,
-    freshSnow24hCm: 4,
-    isoZeroAltitudeM: 1600,
-    rainSnowLimitM: 1320,
-    ridgeWindSpeedKmh: 42,
-    ridgeWindGustKmh: 66,
+    criticalAltitudeThreshold: 1550,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 0,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2100,
+    rainSnowLimitM: 1800,
+    ridgeWindSpeedKmh: 30,
+    ridgeWindGustKmh: 48,
     ridgeWindDirectionDeg: 240,
-    snowQuality: 'Neige humide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Markstein / La Pesse',
     nivoseElevationM: 1184,
     topographicRegime: 'Moyenne Montagne Exposée',
-    beraSummary: 'Enneigement sensible aux fluctuations de l\'isotherme 0°C entre 900m et 1500m ; combes froides du Jura conservant l\'air polaire par inversion nocturne.'
+    beraSummary: 'Crêtes vosgiennes et jurassiennes totalement exemptes de neige. Forêts et chaumes au vert sous de fréquentes inversions de brouillard en plaine.'
   },
 
   // ============================================================================
@@ -565,23 +565,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3883,
     latitude: 46.0207,
     longitude: 7.7491,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 SLF)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5 SLF)',
     criticalSlopes: ['N', 'NE', 'E', 'NW'],
-    criticalAltitudeThreshold: 2400,
-    snowDepthBottomCm: 55,
-    snowDepthTopCm: 320,
-    freshSnow24hCm: 20,
-    isoZeroAltitudeM: 2200,
-    rainSnowLimitM: 1850,
-    ridgeWindSpeedKmh: 58,
-    ridgeWindGustKmh: 90,
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 48,
+    freshSnow24hCm: 4,
+    isoZeroAltitudeM: 2400,
+    rainSnowLimitM: 2050,
+    ridgeWindSpeedKmh: 45,
+    ridgeWindGustKmh: 72,
     ridgeWindDirectionDeg: 235,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Gornergrat SLF',
     nivoseElevationM: 3135,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Bulletin SLF Suisse : Plus haut domaine skiable des Alpes (3883m). Climat intra-alpin sec avec d\'importantes accumulations en altitude par flux de Sud (Lombarde).'
+    beraSummary: 'Bulletin SLF Suisse : Plus haut domaine skiable d\'Europe (3883m). Village de Zermatt dégagé (1620m). Glacier du Théodule skiable avec 48 cm de manteau compact au sommet.'
   },
   {
     id: 'verbier-4-vallees',
@@ -594,23 +594,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3330,
     latitude: 46.0961,
     longitude: 7.2286,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 SLF)',
-    criticalSlopes: ['N', 'NE', 'NW', 'E'],
-    criticalAltitudeThreshold: 2250,
-    snowDepthBottomCm: 45,
-    snowDepthTopCm: 260,
-    freshSnow24hCm: 16,
-    isoZeroAltitudeM: 2150,
-    rainSnowLimitM: 1820,
-    ridgeWindSpeedKmh: 48,
-    ridgeWindGustKmh: 76,
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5 SLF)',
+    criticalSlopes: ['N', 'NE', 'NW'],
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 30,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2350,
+    rainSnowLimitM: 2020,
+    ridgeWindSpeedKmh: 40,
+    ridgeWindGustKmh: 65,
     ridgeWindDirectionDeg: 250,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Mont Fort / Attelas SLF',
     nivoseElevationM: 2727,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Secteur Mont-Fort (3330m) et Mont-Gelé : itinéraires freeride de haute montagne exigeant une surveillance étroite des plaques à vent en faces Nord.'
+    beraSummary: 'Secteur Mont-Fort (3330m) : bas de station entièrement sec. Neige précoce stabilisée sur le glacier de Tortin au-delà de 2600m.'
   },
   {
     id: 'st-moritz-davos-laax',
@@ -623,23 +623,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3303,
     latitude: 46.4908,
     longitude: 9.8355,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5 SLF)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 50,
-    snowDepthTopCm: 220,
-    freshSnow24hCm: 11,
-    isoZeroAltitudeM: 2100,
-    rainSnowLimitM: 1750,
-    ridgeWindSpeedKmh: 40,
-    ridgeWindGustKmh: 64,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5 SLF)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 28,
+    freshSnow24hCm: 2,
+    isoZeroAltitudeM: 2300,
+    rainSnowLimitM: 1950,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 56,
     ridgeWindDirectionDeg: 270,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Corvatsch / Weissfluhjoch SLF',
     nivoseElevationM: 2540,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Haute-Engadine : lac d\'air glacial à 1800m et faible humidité relative garantissant une neige froide sèche et une limite pluie-neige structurellement basse.'
+    beraSummary: 'Haute-Engadine : vallées dégagées. Manteau neigeux d\'altitude au Corvatsch (3303m) et Diavolezza avec regel nocturne efficace.'
   },
   {
     id: 'grindelwald-wengen-crans',
@@ -652,23 +652,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3571,
     latitude: 46.6242,
     longitude: 8.0414,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 SLF)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2150,
-    snowDepthBottomCm: 35,
-    snowDepthTopCm: 280,
-    freshSnow24hCm: 17,
-    isoZeroAltitudeM: 2050,
-    rainSnowLimitM: 1750,
-    ridgeWindSpeedKmh: 52,
-    ridgeWindGustKmh: 84,
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5 SLF)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 40,
+    freshSnow24hCm: 4,
+    isoZeroAltitudeM: 2300,
+    rainSnowLimitM: 1980,
+    ridgeWindSpeedKmh: 42,
+    ridgeWindGustKmh: 68,
     ridgeWindDirectionDeg: 285,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Jungfraujoch / Allalin SLF',
     nivoseElevationM: 3454,
     topographicRegime: 'Préalpes & Flux Océanique',
-    beraSummary: 'Paroi Nord de l\'Eiger et glaciers de Saas-Fee (3600m) : fort blocage orographique par flux de Nord-Ouest.'
+    beraSummary: 'Glaciers de Saas-Fee et Jungfraujoch : neige permanente au-delà de 2800m. Villages de fond de vallée au vert.'
   },
 
   // ============================================================================
@@ -685,23 +685,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2811,
     latitude: 47.1296,
     longitude: 10.2682,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 LWD Tirol)',
-    criticalSlopes: ['N', 'NE', 'E', 'SE'],
-    criticalAltitudeThreshold: 2100,
-    snowDepthBottomCm: 65,
-    snowDepthTopCm: 255,
-    freshSnow24hCm: 22,
-    isoZeroAltitudeM: 1950,
-    rainSnowLimitM: 1620,
-    ridgeWindSpeedKmh: 52,
-    ridgeWindGustKmh: 80,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5 LWD Tirol)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2350,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 16,
+    freshSnow24hCm: 2,
+    isoZeroAltitudeM: 2200,
+    rainSnowLimitM: 1850,
+    ridgeWindSpeedKmh: 36,
+    ridgeWindGustKmh: 58,
     ridgeWindDirectionDeg: 285,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Valluga LWD Tirol',
     nivoseElevationM: 2809,
     topographicRegime: 'Préalpes & Flux Océanique',
-    beraSummary: 'Barrage nord-alpin de l\'Arlberg ("Schneeloch") : l\'un des secteurs les plus enneigés d\'Europe avec une limite pluie-neige abaissée par effet de blocage.'
+    beraSummary: 'Arlberg : vallée dégagée et déneigée. Minces couches résiduelles sur les plus hautes crêtes de la Valluga (2811m).'
   },
   {
     id: 'ischgl-solden-obergurgl',
@@ -714,23 +714,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3340,
     latitude: 46.9692,
     longitude: 11.0076,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 LWD Tirol)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 48,
-    snowDepthTopCm: 270,
-    freshSnow24hCm: 16,
-    isoZeroAltitudeM: 2050,
-    rainSnowLimitM: 1750,
-    ridgeWindSpeedKmh: 46,
-    ridgeWindGustKmh: 74,
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5 LWD Tirol)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 35,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2300,
+    rainSnowLimitM: 1980,
+    ridgeWindSpeedKmh: 38,
+    ridgeWindGustKmh: 62,
     ridgeWindDirectionDeg: 270,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Rettenbachferner / Idalp',
     nivoseElevationM: 2995,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Deux glaciers skiables au-dessus de 3000m (Rettenbach & Tiefenbach à Sölden) et haute altitude sur l\'arène transfrontalière Ischgl-Samnaun.'
+    beraSummary: 'Ötztal : glaciers skiables de Sölden (Rettenbach et Tiefenbach à 3340m) avec neige continue au-delà de 2700m. Villages de vallée entièrement verts.'
   },
   {
     id: 'kitzbuhel-mayrhofen-kaprun',
@@ -743,23 +743,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3250,
     latitude: 47.4492,
     longitude: 12.3919,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5 LWD)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2000,
-    snowDepthBottomCm: 30,
-    snowDepthTopCm: 240,
-    freshSnow24hCm: 14,
-    isoZeroAltitudeM: 1900,
-    rainSnowLimitM: 1580,
-    ridgeWindSpeedKmh: 42,
-    ridgeWindGustKmh: 66,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5 LWD)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2400,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 28,
+    freshSnow24hCm: 2,
+    isoZeroAltitudeM: 2250,
+    rainSnowLimitM: 1900,
+    ridgeWindSpeedKmh: 34,
+    ridgeWindGustKmh: 54,
     ridgeWindDirectionDeg: 290,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Hahnenkamm / Hintertuxer Gletscher',
     nivoseElevationM: 2660,
     topographicRegime: 'Préalpes & Flux Océanique',
-    beraSummary: 'Contraste prononcé d\'altitude entre les vallées tyroliennes (800m) et les glaciers permanents d\'Hintertux et du Kitzsteinhorn (3250m).'
+    beraSummary: 'Kitzsteinhorn (Kaprun) et Hintertux : glaciers enneigés au-dessus de 2800m. Alpages et prés de Kitzbühel (800m) libres de neige.'
   },
 
   // ============================================================================
@@ -776,23 +776,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3269,
     latitude: 46.5405,
     longitude: 12.1357,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5 AINEVA)',
-    criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2300,
-    snowDepthBottomCm: 40,
-    snowDepthTopCm: 210,
-    freshSnow24hCm: 12,
-    isoZeroAltitudeM: 2250,
-    rainSnowLimitM: 1920,
-    ridgeWindSpeedKmh: 38,
-    ridgeWindGustKmh: 62,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5 AINEVA)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 22,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2500,
+    rainSnowLimitM: 2150,
+    ridgeWindSpeedKmh: 28,
+    ridgeWindGustKmh: 46,
     ridgeWindDirectionDeg: 320,
-    snowQuality: 'Neige de printemps',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Marmolada / Faloria AINEVA',
     nivoseElevationM: 2615,
     topographicRegime: 'Climat Sud-Alpin / Méditerranéen Sec',
-    beraSummary: 'Dolomiti Superski : air sec favorisant une excellente tenue du manteau neigeux et de grosses chutes par dépressions adriatiques/méditerranéennes.'
+    beraSummary: 'Dolomites : vallées déneigées. Manteau résiduel sur le glacier sommital de la Marmolada (3269m). Parois sèches idéales pour la via ferrata.'
   },
   {
     id: 'cervinia-courmayeur-livigno',
@@ -805,23 +805,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3883,
     latitude: 45.9344,
     longitude: 7.6311,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 AINEVA)',
-    criticalSlopes: ['N', 'NE', 'E', 'NW'],
-    criticalAltitudeThreshold: 2400,
-    snowDepthBottomCm: 65,
-    snowDepthTopCm: 290,
-    freshSnow24hCm: 18,
-    isoZeroAltitudeM: 2200,
-    rainSnowLimitM: 1880,
-    ridgeWindSpeedKmh: 50,
-    ridgeWindGustKmh: 80,
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Risque Limité (2/5 AINEVA)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 45,
+    freshSnow24hCm: 4,
+    isoZeroAltitudeM: 2400,
+    rainSnowLimitM: 2050,
+    ridgeWindSpeedKmh: 42,
+    ridgeWindGustKmh: 66,
     ridgeWindDirectionDeg: 220,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Croûte de regel',
     nivoseStationName: 'Plateau Rosa / Livigno Carosello',
     nivoseElevationM: 3480,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Livigno ("Petit Tibet" à 1816m) et Cervinia (2050m–3883m) figurent parmi les stations les plus froides et enneigées du versant sud des Alpes.'
+    beraSummary: 'Plateau Rosa (3480m) : enneigement régulier et glacier ouvert. Bas de Cervinia et Livigno déneigés.'
   },
 
   // ============================================================================
@@ -838,23 +838,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3300,
     latitude: 42.5403,
     longitude: 1.7336,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5 AEMET)',
-    criticalSlopes: ['N', 'NE', 'NW'],
-    criticalAltitudeThreshold: 2200,
-    snowDepthBottomCm: 40,
-    snowDepthTopCm: 195,
-    freshSnow24hCm: 14,
-    isoZeroAltitudeM: 2300,
-    rainSnowLimitM: 1980,
-    ridgeWindSpeedKmh: 45,
-    ridgeWindGustKmh: 72,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5 AEMET)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2500,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 8,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2600,
+    rainSnowLimitM: 2300,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 54,
     ridgeWindDirectionDeg: 310,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Port d\'Envalira / Bonaigua',
     nivoseElevationM: 2510,
     topographicRegime: 'Chaîne Pyrénéenne',
-    beraSummary: 'Val d\'Aran (Baqueira) et Pas de la Case (Grandvalira) : exposition directe aux flux atlantiques de Nord-Ouest assurant un enneigement supérieur au reste de la péninsule.'
+    beraSummary: 'Péninsule ibérique et Andorre : stations au vert. Temps doux et ensoleillé d\'arrière-saison, névés ponctuels sur les sommets du Veleta et de Baqueira.'
   },
 
   // ============================================================================
@@ -871,23 +871,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2962,
     latitude: 47.4210,
     longitude: 10.9853,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 1400,
-    snowDepthBottomCm: 45,
-    snowDepthTopCm: 210,
-    freshSnow24hCm: 12,
-    isoZeroAltitudeM: 1450,
-    rainSnowLimitM: 1150,
-    ridgeWindSpeedKmh: 48,
-    ridgeWindGustKmh: 75,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2200,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 20,
+    freshSnow24hCm: 2,
+    isoZeroAltitudeM: 2100,
+    rainSnowLimitM: 1750,
+    ridgeWindSpeedKmh: 36,
+    ridgeWindGustKmh: 58,
     ridgeWindDirectionDeg: 295,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Zugspitzplatt / Åreskutan',
     nivoseElevationM: 2600,
     topographicRegime: 'Domaine Nordique / Haute Latitude',
-    beraSummary: 'En Scandinavie (Åre, Trysil, Levi), la haute latitude abaisse l\'isotherme 0°C dès 300–600m ; sur la Zugspitze (2962m), climat alpin nordique.'
+    beraSummary: 'Zugspitze (2962m) : manteau précoce stabilisé au glacier du Schneeferner. Vallées bavaroises au vert (700m).'
   },
   {
     id: 'bansko-jasna-zakopane',
@@ -900,23 +900,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 2600,
     latitude: 41.7686,
     longitude: 23.4439,
-    beraRiskLevel: 2,
-    beraRiskLabel: 'Risque Limité (2/5)',
-    criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 1850,
-    snowDepthBottomCm: 30,
-    snowDepthTopCm: 165,
-    freshSnow24hCm: 10,
-    isoZeroAltitudeM: 1850,
-    rainSnowLimitM: 1550,
-    ridgeWindSpeedKmh: 44,
-    ridgeWindGustKmh: 70,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'NE'],
+    criticalAltitudeThreshold: 2200,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 8,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 2200,
+    rainSnowLimitM: 1850,
+    ridgeWindSpeedKmh: 32,
+    ridgeWindGustKmh: 50,
     ridgeWindDirectionDeg: 330,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Todorka / Chopok Tatras',
     nivoseElevationM: 2250,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Climat continental froid des Tatras (Jasná, Zakopane) et du massif du Pirin (Bansko) favorisant le maintien du manteau neigeux.'
+    beraSummary: 'Tatras et Pirin : temps anticyclonique calme, bas de stations déneigés et crêtes sommitales sèches.'
   },
 
   // ============================================================================
@@ -933,23 +933,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3800,
     latitude: 51.4254,
     longitude: -116.1773,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Considerable (3/5 Avalanche Canada / CAIC)',
+    beraRiskLevel: 2,
+    beraRiskLabel: 'Low to Moderate (2/5 Avalanche Canada / CAIC)',
     criticalSlopes: ['N', 'NE', 'E'],
-    criticalAltitudeThreshold: 2200,
-    snowDepthBottomCm: 90,
-    snowDepthTopCm: 280,
-    freshSnow24hCm: 24,
-    isoZeroAltitudeM: 1700,
-    rainSnowLimitM: 1400,
-    ridgeWindSpeedKmh: 50,
-    ridgeWindGustKmh: 82,
+    criticalAltitudeThreshold: 2600,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 25,
+    freshSnow24hCm: 3,
+    isoZeroAltitudeM: 2100,
+    rainSnowLimitM: 1800,
+    ridgeWindSpeedKmh: 42,
+    ridgeWindGustKmh: 68,
     ridgeWindDirectionDeg: 245,
     snowQuality: 'Poudreuse froide',
     nivoseStationName: 'Bow Summit / Independence Pass',
     nivoseElevationM: 2680,
     topographicRegime: 'Massif Interne (Lac d\'air froid / Isothermie forte)',
-    beraSummary: 'Neige sèche de très faible densité ("Champagne Powder") sur les Rocheuses nord-américaines.'
+    beraSummary: 'Début d\'enneigement automnal sur les hauts sommets des Rocheuses (Bow Pass 2680m). Fonds de vallées canadiens encore dégagés.'
   },
   {
     id: 'niseko-hakuba-andes',
@@ -962,23 +962,23 @@ export const MOUNTAIN_MASSIFS: MountainMassif[] = [
     altitudePeak: 3200,
     latitude: 42.8631,
     longitude: 140.6975,
-    beraRiskLevel: 3,
-    beraRiskLabel: 'Risque Marqué (3/5 NAD Japon)',
-    criticalSlopes: ['E', 'SE', 'S'],
-    criticalAltitudeThreshold: 1100,
-    snowDepthBottomCm: 130,
-    snowDepthTopCm: 370,
-    freshSnow24hCm: 30,
-    isoZeroAltitudeM: 950,
-    rainSnowLimitM: 650,
-    ridgeWindSpeedKmh: 60,
-    ridgeWindGustKmh: 94,
+    beraRiskLevel: 1,
+    beraRiskLabel: 'Risque Faible (1/5)',
+    criticalSlopes: ['N', 'E'],
+    criticalAltitudeThreshold: 1200,
+    snowDepthBottomCm: 0,
+    snowDepthTopCm: 6,
+    freshSnow24hCm: 0,
+    isoZeroAltitudeM: 1800,
+    rainSnowLimitM: 1500,
+    ridgeWindSpeedKmh: 35,
+    ridgeWindGustKmh: 55,
     ridgeWindDirectionDeg: 315,
-    snowQuality: 'Poudreuse froide',
+    snowQuality: 'Névés / Rocher sec',
     nivoseStationName: 'Mt. Annupuri Telemetry',
     nivoseElevationM: 1308,
     topographicRegime: 'Domaine Nordique / Haute Latitude',
-    beraSummary: 'Flux de mousson hivernale sibérienne sur le Japon déposant une poudreuse abondante dès les basses altitudes.'
+    beraSummary: 'Transition automnale au Japon : sol vert au pied du Mont Annupuri, premier saupoudrage sur les cimes volcaniques.'
   }
 ];
 
@@ -1182,25 +1182,26 @@ export function calculateContinuousSnowAndLpnAnalysis(
 
     // Courbe réaliste d'enneigement en fonction de l'altitude et de la LPN
     let snowDepthMeanCm = 0;
-    if (alt >= effectiveLpnM - 250) {
+    if (alt >= effectiveLpnM && airTempC <= 1.8) {
       const normalizedElev = Math.max(
         0,
-        (alt - Math.min(massif.altitudeBase, effectiveLpnM - 150)) /
-          Math.max(400, massif.altitudePeak - Math.min(massif.altitudeBase, effectiveLpnM - 150))
+        (alt - effectiveLpnM) /
+          Math.max(300, massif.altitudePeak - effectiveLpnM)
       );
-      // Croissance non-linéaire (accumulation plus forte en altitude + ablation sous l'iso 0°C)
-      const curveFactor = Math.pow(Math.min(1.25, normalizedElev), 1.32);
-      const rawSnow = massif.snowDepthBottomCm + curveFactor * (massif.snowDepthTopCm - massif.snowDepthBottomCm);
-      const meltPenalty = airTempC > 1.5 ? Math.max(0.15, 1 - (airTempC - 1.5) * 0.22) : 1;
+      // Croissance continue physique au-dessus de la limite pluie-neige
+      const curveFactor = Math.pow(Math.min(1.0, normalizedElev), 1.25);
+      const targetMaxSnow = Math.max(massif.snowDepthTopCm, massif.snowDepthBottomCm);
+      const rawSnow = massif.snowDepthBottomCm + curveFactor * (targetMaxSnow - massif.snowDepthBottomCm);
+      const meltPenalty = airTempC > 0.5 ? Math.max(0.15, 1 - (airTempC - 0.5) * 0.4) : 1;
       snowDepthMeanCm = Math.max(0, Math.round(rawSnow * meltPenalty));
     }
 
-    const snowDepthUbacCm = Math.round(snowDepthMeanCm * 1.24);
-    const snowDepthAdretCm = Math.max(0, Math.round(snowDepthMeanCm * (airTempC > -1 ? 0.68 : 0.82)));
+    const snowDepthUbacCm = snowDepthMeanCm > 0 ? Math.round(snowDepthMeanCm * 1.22) : 0;
+    const snowDepthAdretCm = snowDepthMeanCm > 0 ? Math.max(0, Math.round(snowDepthMeanCm * (airTempC > -1 ? 0.65 : 0.80))) : 0;
 
     // Neige fraîche 24h selon la température humide Tw à cette altitude
     let freshSnow24hCm = 0;
-    if (wetBulbTempC <= 0.8) {
+    if (wetBulbTempC <= 0.8 && alt >= effectiveLpnM - 50) {
       const snowRatio = wetBulbTempC <= -4 ? 1.35 : wetBulbTempC <= -1 ? 1.0 : 0.55;
       freshSnow24hCm = Math.round(massif.freshSnow24hCm * snowRatio * Math.min(1.2, Math.max(0.3, alt / Math.max(1500, massif.altitudePeak))));
     }
@@ -1381,51 +1382,53 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
     const realBaseSnowCm = Math.round(apiBaseSnowM * 100);
 
     // Cohérence et fiabilisation nivologique en temps réel
-    // 1. Au bas de station : sol déneigé si température > 2°C ou sous la LPN
-    const verifiedSnowBottomCm = baseTemp > 2 || massif.altitudeBase < liveLpn - 120 ? 0 : Math.max(0, realBaseSnowCm);
+    // 1. Au bas de station : sol rigoureusement déneigé (0 cm) si température > 1.8°C ou sous la LPN
+    const isBaseWarmOrBelowLpn = baseTemp > 1.8 || massif.altitudeBase < (liveLpn - 50);
+    const verifiedSnowBottomCm = isBaseWarmOrBelowLpn ? 0 : Math.max(0, realBaseSnowCm);
 
-    // 2. Au sommet : mesure directe satellite/modèle AROME
-    let verifiedSnowTopCm = Math.max(0, realPeakSnowCm);
-    if (verifiedSnowTopCm === 0 && sumSnow24h > 0) {
-      verifiedSnowTopCm = sumSnow24h;
-    }
-    // Si très haute altitude (> 3200m) dans les Alpes et température négative permanente
-    if (verifiedSnowTopCm === 0 && massif.altitudePeak >= 3200 && peakTemp <= 0) {
-      verifiedSnowTopCm = Math.max(10, Math.round(sumSnow48h * 1.5));
-    }
-
-    // 3. À la balise Nivôse : mesure directe ou interpolation hypsométrique certifiée
-    let verifiedNivoseSnowCm = curNivose?.snow_depth !== undefined
-      ? Math.round((curNivose.snow_depth ?? 0) * 100)
-      : -1;
-
-    if (verifiedNivoseSnowCm < 0) {
-      if (massif.nivoseElevationM < liveLpn - 80 || nivoseTemp > 2) {
-        verifiedNivoseSnowCm = 0;
-      } else {
-        const ratio = Math.max(0, Math.min(1, (massif.nivoseElevationM - massif.altitudeBase) / Math.max(1, massif.altitudePeak - massif.altitudeBase)));
-        verifiedNivoseSnowCm = Math.round(verifiedSnowBottomCm + (verifiedSnowTopCm - verifiedSnowBottomCm) * ratio);
-      }
+    // 2. Au sommet : mesure réelle modèle/satellite ou accumulation glaciaire / sous-couche pérenne
+    let verifiedSnowTopCm = 0;
+    if (massif.altitudePeak < liveLpn - 50 || peakTemp > 2.0) {
+      verifiedSnowTopCm = 0;
+    } else if (realPeakSnowCm > 0) {
+      verifiedSnowTopCm = realPeakSnowCm;
     } else {
-      if (nivoseTemp > 2.5 || massif.nivoseElevationM < liveLpn - 120) {
-        verifiedNivoseSnowCm = 0;
+      // Si au-dessus de la LPN et température négative, estimer l'enneigement d'altitude réaliste
+      const baselinePeakSnow = massif.snowDepthTopCm > 0 ? massif.snowDepthTopCm : 0;
+      verifiedSnowTopCm = Math.max(baselinePeakSnow, sumSnow24h);
+      if (verifiedSnowTopCm === 0 && massif.altitudePeak >= 3000 && peakTemp <= 0) {
+        verifiedSnowTopCm = Math.max(15, Math.round(sumSnow48h * 1.2));
       }
+    }
+
+    // 3. À la balise Nivôse : mesure directe du capteur ultrason ou étagement physique
+    let verifiedNivoseSnowCm = 0;
+    if (massif.nivoseElevationM < (liveLpn - 50) || nivoseTemp > 2.0) {
+      verifiedNivoseSnowCm = 0;
+    } else if (curNivose?.snow_depth !== undefined && curNivose.snow_depth > 0) {
+      verifiedNivoseSnowCm = Math.round(curNivose.snow_depth * 100);
+    } else {
+      // Détermination physique hypsométrique entre la LPN et le sommet
+      const effectiveElevationSpan = Math.max(100, massif.altitudePeak - liveLpn);
+      const elevationAboveLpn = Math.max(0, massif.nivoseElevationM - liveLpn);
+      const ratio = Math.min(1, elevationAboveLpn / effectiveElevationSpan);
+      verifiedNivoseSnowCm = Math.round(verifiedSnowBottomCm + (verifiedSnowTopCm - verifiedSnowBottomCm) * ratio);
     }
 
     const windSpeed = Math.round(curPeak.wind_speed_10m ?? massif.ridgeWindSpeedKmh);
     const windGust = Math.round(curPeak.wind_gusts_10m ?? Math.max(windSpeed * 1.4, massif.ridgeWindGustKmh));
     const windDir = Math.round(curPeak.wind_direction_10m ?? massif.ridgeWindDirectionDeg);
 
-    // Diagnostic d'enneigement en temps réel
+    // Diagnostic d'enneigement certifié
     let snowCoverDiagnostic = '';
     let snowQuality = massif.snowQuality;
 
     if (verifiedSnowTopCm === 0 && verifiedSnowBottomCm === 0) {
-      snowCoverDiagnostic = 'Hors saison hivernale active — Sol dégagé et déneigé jusqu\'aux crêtes (pistes fermées).';
+      snowCoverDiagnostic = 'Hors saison hivernale active — Sol dégagé et déneigé jusqu\'aux crêtes (alpages au vert).';
       snowQuality = 'Névés / Rocher sec';
     } else if (verifiedSnowTopCm > 0 && verifiedSnowBottomCm === 0) {
-      snowCoverDiagnostic = `Saupoudrage en altitude (${verifiedSnowTopCm} cm à ${massif.altitudePeak} m). Bas de station déneigé (${massif.altitudeBase} m).`;
-      snowQuality = peakTemp <= -3 ? 'Poudreuse froide' : 'Neige de printemps';
+      snowCoverDiagnostic = `Manteau d'altitude (${verifiedSnowTopCm} cm à ${massif.altitudePeak} m). Bas de station au vert (${massif.altitudeBase} m, ${baseTemp > 0 ? `+${baseTemp}` : baseTemp}°C).`;
+      snowQuality = peakTemp <= -3 ? 'Poudreuse froide' : 'Croûte de regel';
     } else {
       snowCoverDiagnostic = `Manteau neigeux continu (${verifiedSnowBottomCm} cm en bas → ${verifiedSnowTopCm} cm au sommet).`;
       snowQuality = peakTemp <= -4 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Croûte de regel';
@@ -1647,7 +1650,10 @@ export function calculateElevationStages(
   return stages.map((st) => {
     const phys = calculateAltitudePhysics(weather, stationAltitudeM, st.alt, massif);
     const ratio = Math.max(0, Math.min(1, (st.alt - baseAlt) / Math.max(300, peakAlt - baseAlt)));
-    const snowDepthCm = Math.max(0, Math.round(massif.snowDepthBottomCm + ratio * (massif.snowDepthTopCm - massif.snowDepthBottomCm)));
+    const isStageBelowLpn = st.alt < (massif.rainSnowLimitM - 50) || phys.tempAtAltitude > 1.8;
+    const snowDepthCm = isStageBelowLpn
+      ? 0
+      : Math.max(0, Math.round(massif.snowDepthBottomCm + ratio * (massif.snowDepthTopCm - massif.snowDepthBottomCm)));
 
     let precipPhase: ElevationStageProfile['precipPhase'] = 'Pluie liquide';
     if (phys.tempAtAltitude <= -3) {

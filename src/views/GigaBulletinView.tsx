@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Globe,
   Calendar,
-  Sparkles,
   TrendingUp,
   TrendingDown,
   Wind,
@@ -46,6 +45,7 @@ import {
   METEOROLOGICAL_CENTERS,
   LiveKeyCityForecast
 } from '../services/multiModelBulletinService';
+import { getNationalPrefecturesSynthesis } from '../services/prefecturesBulletinService';
 import { generateNationalFourWeekBulletin } from '../services/nationalFourWeekBulletinService';
 import { generateEnsoAndTeleconnectionsObservatory } from '../services/ensoAndRegimesService';
 import { GigaNationalFourWeekBulletinCard } from '../components/GigaNationalFourWeekBulletinCard';
@@ -99,10 +99,17 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
     return `${celsius > 0 ? `+${celsius}` : celsius}°C`;
   };
 
-  // Chargement des données multi-modèles réelles en direct
-  const loadData = async (lat = currentStation.latitude || 46.5, lon = currentStation.longitude || 2.5, name = currentStation.name) => {
+  const [dailyRefreshFeedback, setDailyRefreshFeedback] = useState<string>('');
+
+  // Chargement des données multi-modèles réelles en direct avec gestion du cycle quotidien
+  const loadData = async (
+    lat = currentStation.latitude || 46.5,
+    lon = currentStation.longitude || 2.5,
+    name = currentStation.name,
+    forceBustCache = false
+  ) => {
     try {
-      const data = await fetchLiveMultiModelBulletin(lat, lon, name);
+      const data = await fetchLiveMultiModelBulletin(lat, lon, name, forceBustCache);
       setReport(data);
       setLastRefreshedTime(new Intl.DateTimeFormat('fr-FR', {
         hour: '2-digit',
@@ -121,10 +128,13 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
     loadData();
   }, [currentStation.latitude, currentStation.longitude]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     setNational4WData(generateNationalFourWeekBulletin());
-    loadData();
+    await getNationalPrefecturesSynthesis(true);
+    await loadData(currentStation.latitude || 46.5, currentStation.longitude || 2.5, currentStation.name, true);
+    setDailyRefreshFeedback("Édition quotidienne et modèles réactualisés avec succès !");
+    setTimeout(() => setDailyRefreshFeedback(''), 4500);
   };
 
   // Synthèse vocale officielle du bulletin (Web Speech API)
@@ -389,6 +399,51 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
           </div>
         </div>
 
+        {/* BANNIÈRE OFFICIELLE DU BULLETIN QUOTIDIEN CERTIFIÉ */}
+        {report && (
+          <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-700/80 shadow-md">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm sm:text-base font-black text-white">
+                      Édition Quotidienne du {report.dailyEditionInfo?.editionDateFormatted || new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                      🟢 Bulletin du Jour Certifié &amp; Consolidé
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-300 flex flex-wrap gap-x-4 gap-y-1 leading-relaxed">
+                    <span>• <strong>Run de référence :</strong> {report.dailyEditionInfo?.runLabel || "AROME 00z & CEP ECMWF IFS 00z"}</span>
+                    <span>• <strong>Cycle :</strong> Actualisé chaque jour à 06h00 UTC</span>
+                    <span>• <strong>Prochaine édition :</strong> {report.dailyEditionInfo?.nextDailyUpdate || "Demain à 06h00 UTC"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 self-start lg:self-auto">
+                {dailyRefreshFeedback && (
+                  <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg">
+                    ✓ {dailyRefreshFeedback}
+                  </span>
+                )}
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing || isLoading}
+                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm cursor-pointer"
+                  title="Forcer la réactualisation quotidienne complète de tous les modèles et préfectures"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span>{isRefreshing ? 'Réactualisation en cours...' : 'Forcer la réactualisation quotidienne'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Diagnostic Exécutif Multi-Centres Express */}
         {report && (
           <div className="mt-5 rounded-2xl bg-slate-950/80 border border-sky-500/30 p-4.5 space-y-2">
@@ -398,7 +453,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                   🌐 [Échelle Nationale : France métropolitaine]
                 </span>
                 <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 text-sky-400" />
+                  <Globe className="h-4 w-4 text-sky-400" />
                   <span>Diagnostic Synoptique Conjoint des 5 Centres Météo :</span>
                 </span>
               </div>
@@ -603,7 +658,7 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                       📍 [Échelle Locale : {currentStation.name}{currentStation.department ? ` (${currentStation.department})` : ''}]
                     </span>
                     <span className="text-xs font-black uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-sky-400" />
+                      <Scale className="h-4 w-4 text-sky-400" />
                       <span>Consensus Robuste 90% (5% Extrêmes Neutralisés) :</span>
                     </span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">

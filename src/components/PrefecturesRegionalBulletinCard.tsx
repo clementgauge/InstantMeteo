@@ -19,7 +19,6 @@ import {
   RotateCw,
   Compass,
   Scale,
-  Sparkles,
   GitBranch,
   BarChart3,
   Thermometer,

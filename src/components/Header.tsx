@@ -32,7 +32,9 @@ import {
   Moon,
   Download,
   Watch,
-  Activity
+  Activity,
+  Share2,
+  QrCode
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -90,6 +92,8 @@ interface HeaderProps {
   showFloatingBubble?: boolean;
   onToggleFloatingBubble?: () => void;
   onOpenStatsModal?: () => void;
+  onOpenShareModal?: () => void;
+  onOpenQrCodeModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -137,7 +141,9 @@ export const Header: React.FC<HeaderProps> = ({
   onTriggerSecretCode,
   showFloatingBubble,
   onToggleFloatingBubble,
-  onOpenStatsModal
+  onOpenStatsModal,
+  onOpenShareModal,
+  onOpenQrCodeModal
 }) => {
   const [stationDropdownOpen, setStationDropdownOpen] = React.useState(false);
   const [settingsSidebarOpen, setSettingsSidebarOpen] = React.useState(false);
@@ -357,6 +363,34 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Download className="h-3.5 w-3.5 text-amber-400" />
             </button>
+
+            {/* 3b. Bouton Partager le site */}
+            {onOpenShareModal && (
+              <button
+                type="button"
+                id="mobile-header-share-btn"
+                onClick={onOpenShareModal}
+                title="Partager le site ou envoyer le lien"
+                aria-label="Partager"
+                className="relative w-7 h-7 rounded-full border border-sky-500/40 bg-sky-500/15 text-sky-400 hover:text-sky-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+
+            {/* 3c. Bouton QR Code */}
+            {onOpenQrCodeModal && (
+              <button
+                type="button"
+                id="mobile-header-qrcode-btn"
+                onClick={onOpenQrCodeModal}
+                title="Afficher et créer le QR Code"
+                aria-label="QR Code"
+                className="relative w-7 h-7 rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+              >
+                <QrCode className="h-3.5 w-3.5" />
+              </button>
+            )}
 
             {/* 4. Bouton Choix de la Langue */}
             <div className="shrink-0 flex items-center">
@@ -796,6 +830,34 @@ export const Header: React.FC<HeaderProps> = ({
                   {activeAlertCount}
                 </span>
               )}
+            </button>
+          )}
+
+          {/* Share launcher */}
+          {onOpenShareModal && (
+            <button
+              id="header-share-btn"
+              type="button"
+              onClick={onOpenShareModal}
+              title="Partager le site (WhatsApp, SMS, Réseaux...)"
+              aria-label="Partager le site"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border border-sky-300 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 hover:border-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+
+          {/* QR Code launcher */}
+          {onOpenQrCodeModal && (
+            <button
+              id="header-qrcode-btn"
+              type="button"
+              onClick={onOpenQrCodeModal}
+              title="Créer un QR Code d'accès direct"
+              aria-label="Créer un QR Code"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition shadow-sm active:scale-95 cursor-pointer"
+            >
+              <QrCode className="h-3.5 w-3.5" />
             </button>
           )}
 
@@ -1262,6 +1324,65 @@ export const Header: React.FC<HeaderProps> = ({
                   <div>
                     <div className="font-black">Télécharger l'Application</div>
                     <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">Windows (PC), Android (APK/PWA) &amp; iPhone</div>
+                  </div>
+                </button>
+              </section>
+
+              <section className="space-y-2">
+                <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Partage &amp; QR Code</p>
+
+                {onOpenShareModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsSidebarOpen(false);
+                      onOpenShareModal();
+                    }}
+                    className="group flex w-full items-center gap-3 rounded-2xl border border-sky-500/30 bg-sky-950/30 p-4 text-left text-sky-200 transition hover:bg-white hover:text-slate-950 cursor-pointer"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/15 group-hover:bg-sky-100">
+                      <Share2 className="h-5 w-5 text-sky-400 group-hover:text-slate-950" />
+                    </div>
+                    <div>
+                      <div className="font-black">Partager le site</div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">Envoyer via WhatsApp, SMS, Réseaux ou copier le lien</div>
+                    </div>
+                  </button>
+                )}
+
+                {onOpenQrCodeModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsSidebarOpen(false);
+                      onOpenQrCodeModal();
+                    }}
+                    className="group flex w-full items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 text-left text-slate-200 transition hover:bg-white hover:text-slate-950 cursor-pointer"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 group-hover:bg-slate-100">
+                      <QrCode className="h-5 w-5 text-slate-400 group-hover:text-slate-950" />
+                    </div>
+                    <div>
+                      <div className="font-black">Créer un QR Code</div>
+                      <div className="mt-0.5 text-xs text-slate-400 group-hover:text-slate-500">Télécharger en image PNG ou imprimer une affiche</div>
+                    </div>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsSidebarOpen(false);
+                    window.dispatchEvent(new CustomEvent('instant_meteo_trigger_splash'));
+                  }}
+                  className="group flex w-full items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-3.5 text-left text-slate-300 transition hover:bg-white hover:text-slate-950 cursor-pointer text-xs"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sm">
+                    ✨
+                  </div>
+                  <div>
+                    <div className="font-bold">Aperçu du démarrage PWA</div>
+                    <div className="text-[11px] text-slate-400 group-hover:text-slate-500">Rejouer l'animation radar stylée</div>
                   </div>
                 </button>
               </section>

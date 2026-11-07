@@ -99,6 +99,8 @@ import {
 import { getNativeSiteLanguage } from './i18n/siteTranslations';
 import { sendHeartbeatAndFetchStats, notifyVisitorLeave } from './services/siteStatsService';
 import { CertifiedLiveSiteStatsCard } from './components/CertifiedLiveSiteStatsCard';
+import { PWASplashScreen } from './components/PWASplashScreen';
+import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
 
 function WeatherApp() {
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
@@ -347,6 +349,8 @@ function WeatherApp() {
   const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
   const [legalModalTab, setLegalModalTab] = useState<'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact'>('privacy');
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [shareModalTab, setShareModalTab] = useState<'share' | 'qrcode'>('share');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const p = loadPlayerProfile();
@@ -390,6 +394,16 @@ function WeatherApp() {
     };
     window.addEventListener('instant_meteo_score_updated', handleScoreUpdated);
     return () => window.removeEventListener('instant_meteo_score_updated', handleScoreUpdated);
+  }, []);
+
+  // Écoute de l'événement universel pour ouvrir le modal de partage ou QR code
+  useEffect(() => {
+    const handleOpenShare = (e: any) => {
+      setShareModalTab(e?.detail?.tab === 'qrcode' ? 'qrcode' : 'share');
+      setIsShareModalOpen(true);
+    };
+    window.addEventListener('instant_meteo_open_share', handleOpenShare);
+    return () => window.removeEventListener('instant_meteo_open_share', handleOpenShare);
   }, []);
 
   const [activeRecalibration, setActiveRecalibration] = useState<RecalibrationState | null>(() => getActiveRecalibration());
@@ -878,6 +892,9 @@ function WeatherApp() {
     <div 
       className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
     >
+      {/* Atmospheric PWA Startup Splash Screen */}
+      <PWASplashScreen />
+
       {/* Dynamic Canonical URL & Head SEO Synchronization */}
       <SeoHead activeTab={activeTab} currentPath={currentPath} />
 
@@ -942,6 +959,14 @@ function WeatherApp() {
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
           onOpenStatsModal={() => setIsStatsModalOpen(true)}
+          onOpenShareModal={() => {
+            setShareModalTab('share');
+            setIsShareModalOpen(true);
+          }}
+          onOpenQrCodeModal={() => {
+            setShareModalTab('qrcode');
+            setIsShareModalOpen(true);
+          }}
         />
       </div>
 
@@ -1798,6 +1823,15 @@ function WeatherApp() {
         onClose={() => setIsInstallModalOpen(false)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={handleToggleFullscreen}
+      />
+
+      {/* Share and QR Code Generator Modal */}
+      <ShareAndQrCodeModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        currentStation={currentStation}
+        currentTab={activeTab}
+        initialTab={shareModalTab}
       />
 
       {/* Automatic Browser & Device App Download Notification Banner (Chrome, Firefox, Edge, Safari — PC & Mobile) */}

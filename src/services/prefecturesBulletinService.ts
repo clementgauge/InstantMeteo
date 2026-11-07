@@ -164,8 +164,8 @@ const REGIONAL_CLIMATOLOGICAL_NORMALS_1991_2020: Record<string, [number, number,
   ]
 };
 
-// In-memory cache for prefectures bulletin
-let cachedPrefecturesSynthesis: { timestamp: number; data: NationalPrefecturesSynthesis } | null = null;
+// In-memory cache for prefectures bulletin with daily dateKey
+let cachedPrefecturesSynthesis: { timestamp: number; dateKey: string; data: NationalPrefecturesSynthesis } | null = null;
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 /**
@@ -255,15 +255,17 @@ async function fetchRealRegionalChefLieuxLive(): Promise<Map<string, ChefLieuLiv
  * Génère ou récupère la synthèse complète des préfectures et sous-préfectures françaises
  * fondée sur les simulations numériques des centres météo, l'élagage des 5% extrêmes et les coefficients zonaux.
  */
-export async function getNationalPrefecturesSynthesis(): Promise<NationalPrefecturesSynthesis> {
+export async function getNationalPrefecturesSynthesis(forceBustCache: boolean = false): Promise<NationalPrefecturesSynthesis> {
   const now = Date.now();
-  if (cachedPrefecturesSynthesis && now - cachedPrefecturesSynthesis.timestamp < CACHE_TTL_MS) {
+  const todayDateKey = new Date().toISOString().slice(0, 10);
+
+  if (!forceBustCache && cachedPrefecturesSynthesis && cachedPrefecturesSynthesis.dateKey === todayDateKey && (now - cachedPrefecturesSynthesis.timestamp < CACHE_TTL_MS)) {
     return cachedPrefecturesSynthesis.data;
   }
 
   const liveChefLieux = await fetchRealRegionalChefLieuxLive();
   const synthesis = buildRealSimulatedPrefecturesSynthesis(liveChefLieux);
-  cachedPrefecturesSynthesis = { timestamp: now, data: synthesis };
+  cachedPrefecturesSynthesis = { timestamp: now, dateKey: todayDateKey, data: synthesis };
   return synthesis;
 }
 

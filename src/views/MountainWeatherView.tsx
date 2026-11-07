@@ -14,7 +14,6 @@ import {
   Sliders,
   Search,
   Clock,
-  Sparkles,
   CloudRainWind,
   ArrowDownUp,
   Droplets,
@@ -267,9 +266,12 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     if (selectedMassif.nivoseSnowDepthCm !== undefined && selectedMassif.nivoseSnowDepthCm >= 0) {
       return selectedMassif.nivoseSnowDepthCm;
     }
-    if (selectedMassif.nivoseElevationM < (activeLpn - 80)) return 0;
-    const range = Math.max(1, selectedMassif.altitudePeak - selectedMassif.altitudeBase);
-    const ratio = Math.max(0, Math.min(1, (selectedMassif.nivoseElevationM - selectedMassif.altitudeBase) / range));
+    if (selectedMassif.nivoseElevationM < (activeLpn - 50) || (selectedMassif.nivoseTempC !== undefined && selectedMassif.nivoseTempC > 2.0)) {
+      return 0;
+    }
+    const effectiveSpan = Math.max(100, selectedMassif.altitudePeak - activeLpn);
+    const elevAboveLpn = Math.max(0, selectedMassif.nivoseElevationM - activeLpn);
+    const ratio = Math.max(0, Math.min(1, elevAboveLpn / effectiveSpan));
     return Math.round(selectedMassif.snowDepthBottomCm + (selectedMassif.snowDepthTopCm - selectedMassif.snowDepthBottomCm) * ratio);
   }, [selectedMassif, activeLpn]);
 
@@ -639,8 +641,12 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                   <div className="text-xs text-slate-300 font-semibold">{selectedMassif.altitudeBase} m</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-black text-emerald-400">{selectedMassif.snowDepthBottomCm} cm</div>
-                  <div className="text-[10px] text-slate-400">T° : {selectedMassif.baseTempC ?? lpnAnalysis.baseTempC}°C</div>
+                  <div className={`text-lg font-black ${selectedMassif.snowDepthBottomCm === 0 ? 'text-slate-300' : 'text-emerald-400'}`}>
+                    {selectedMassif.snowDepthBottomCm} cm
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    {selectedMassif.snowDepthBottomCm === 0 ? 'Sol déneigé' : 'Manteau au sol'} • T° : {selectedMassif.baseTempC ?? lpnAnalysis.baseTempC}°C
+                  </div>
                 </div>
               </div>
 
@@ -917,7 +923,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
-              <Sparkles className="w-4 h-4" />
+              <Compass className="w-4 h-4" />
               <span>Modélisation Topographique & Nivologique par Orientation de Pente — Altitude d'analyse : {customAltitude} m</span>
             </div>
             <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">

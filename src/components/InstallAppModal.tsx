@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   Zap,
-  HardDrive
+  HardDrive,
+  QrCode,
+  Share2
 } from 'lucide-react';
 import { triggerPwaInstallPrompt } from '../hooks/usePWAInstall';
 
@@ -195,7 +197,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                 </p>
               </div>
 
-              <div className="pt-1">
+              <div className="pt-1 flex flex-wrap items-center justify-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleInstallPWA}
@@ -203,6 +205,18 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                 >
                   <img src="/icon-192.png" alt="" className="h-5 w-5 rounded-md object-cover border border-white/30" />
                   <span>Installer en PWA</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    window.dispatchEvent(new CustomEvent('instant_meteo_open_share', { detail: { tab: 'qrcode' } }));
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold text-xs transition active:scale-95 cursor-pointer"
+                >
+                  <QrCode className="h-4 w-4 text-sky-400" />
+                  <span>Scanner le QR Code sur mobile</span>
                 </button>
               </div>
             </div>
