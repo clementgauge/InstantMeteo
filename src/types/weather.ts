@@ -2230,7 +2230,10 @@ export interface NationalFourWeekBulletinWeek {
     dominant: NationalBulletinScenario;
     alternative: NationalBulletinScenario;
     minority: NationalBulletinScenario;
+    polarColdDrop?: NationalBulletinScenario;
+    subtropicalPlume?: NationalBulletinScenario;
   };
+  allScenarios?: NationalBulletinScenario[];
   
   regions: NationalRegionalDetail[];
   

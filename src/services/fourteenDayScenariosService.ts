@@ -17,6 +17,7 @@ import {
   calculateWetBulbZero,
   calculateSnowRainLimit 
 } from '../utils/isothermCalculations';
+import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
 
 function seededRandom(seed: number): number {
   const x = Math.sin(seed) * 10000;
@@ -179,6 +180,15 @@ export function generateFourteenDayScenarios(
       tMaxDom = realDay.tempMax;
       rainDom = realDay.precipitationSumMm ?? realDay.rainMm ?? 0;
       probDom = d <= 3 ? Math.round(85 - d * 3) : Math.round(70 - (d - 3) * 4);
+      if (d === 0) {
+        const activeCurrentT = currentWeather?.temperature ?? currentTemp;
+        if (typeof activeCurrentT === 'number') {
+          const curMin = currentWeather?.tempMin ?? activeCurrentT;
+          const curMax = currentWeather?.tempMax ?? activeCurrentT;
+          tMinDom = Number(Math.min(tMinDom, activeCurrentT, curMin).toFixed(1));
+          tMaxDom = Number(Math.max(tMaxDom, activeCurrentT, curMax).toFixed(1));
+        }
+      }
       const tMeanDom = (tMinDom + tMaxDom) / 2;
       iso0Dom = calculatePhysicalIsotherm0({
         stationAltitude: alt,
@@ -203,6 +213,15 @@ export function generateFourteenDayScenarios(
       probDom = d <= 3 ? Math.round(75 - d * 3) : d <= 7 ? Math.round(65 - (d - 3) * 3) : d <= 10 ? Math.round(52 - (d - 7) * 2) : 44;
       tMinDom = Number((baseTMin + synopticTrend + (r1 * 1.8 - 0.9)).toFixed(1));
       tMaxDom = Number((baseTMax + synopticTrend + (r2 * 2.4 - 1.2)).toFixed(1));
+      if (d === 0) {
+        const activeCurrentT = currentWeather?.temperature ?? currentTemp;
+        if (typeof activeCurrentT === 'number') {
+          const curMin = currentWeather?.tempMin ?? activeCurrentT;
+          const curMax = currentWeather?.tempMax ?? activeCurrentT;
+          tMinDom = Number(Math.min(tMinDom, activeCurrentT, curMin).toFixed(1));
+          tMaxDom = Number(Math.max(tMaxDom, activeCurrentT, curMax).toFixed(1));
+        }
+      }
       rainDom = r3 > 0.65 ? Number((Math.pow(r4, 1.5) * 16 + 1.5).toFixed(1)) : 0;
       const tMeanDom = (tMinDom + tMaxDom) / 2;
       iso0Dom = calculatePhysicalIsotherm0({
@@ -647,31 +666,34 @@ export function generateFourteenDayScenarios(
       synopticDiscrepancyReason: synopticReason
     };
 
+    // Calcul de la fiabilité dynamique réelle (Lorenz, pression, convection orageuse, dispersion inter-modèles)
+    const dynRel = calculateDynamicReliability({
+      leadDayIndex: d,
+      pressureHpa: currentWeather?.pressureMsl ?? 1018,
+      weatherCode: finalDomWeatherCode,
+      precipitationMm: rainDom,
+      temperatureSpreadC: maxTSpread,
+      temperatureC: tMaxDom,
+      altitudeM: alt
+    });
+
+    consensusScore = dynRel.scorePct;
+    divergenceLevel = dynRel.divergenceLevel === 'TRÈS_FAIBLE' ? 'FAIBLE_CONSENSUS' : dynRel.divergenceLevel;
+    divergenceLevelLabel = dynRel.divergenceLabel;
+
     // Scientific Honesty & Realistic Meteorological Uncertainty Modeling
     const uncertaintyMarginC = d === 0 ? 0.5 : d <= 2 ? 0.9 : d <= 4 ? 1.5 : d <= 7 ? 2.4 : d <= 10 ? 3.8 : 5.5;
     const confidenceGrade: FourteenDayDayDetail['confidenceGrade'] = 
-      d <= 3 ? 'EXCELLENTE' : d <= 7 ? 'BONNE' : d <= 10 ? 'MOYENNE' : 'FAIBLE_SPÉCULATIVE';
-    const confidenceGradeLabel = 
-      d <= 3 ? 'Fiabilité Très Haute (Prévision Déterministe)' :
-      d <= 7 ? 'Fiabilité Bonne (Tendance Globale Probable)' :
-      d <= 10 ? 'Fiabilité Moyenne (Bifurcation de Scénarios)' :
-      'Fiabilité Faible (Projection Ensembliste Spéculative)';
+      dynRel.grade === 'DÉLICATE' ? 'MOYENNE' : dynRel.grade;
+    const confidenceGradeLabel = dynRel.gradeLabel;
 
     const whatIsCertain = d <= 3
-      ? `Acquis à plus de 90% : La masse d'air dominante et l'évolution globale des pressions sont consolidées par AROME et ECMWF. Les températures maximales (${tMaxDom}°C) ne s'écarteront pas de plus de 1°C.`
+      ? `${dynRel.whatIsCertain} (AROME / ECMWF)`
       : d <= 7
-      ? `Acquis à 75% : La tendance synoptique de fond (maintien des hauts géopotentiels ou transit d'un flux atlantique). Pas de rupture thermique brutale imprévue.`
-      : d <= 10
-      ? `Acquis à 50% : La zone géographique générale des anomalies de géopotentiel (dorsale ou dépression). Absence de signal d'épisode extrême hors norme.`
-      : `Acquis à 30% : Seule l'orientation statistique moyenne du jet-stream est modélisée. Tout détail local relève de l'approximation climatologique.`;
+      ? `${dynRel.whatIsCertain} (Moyenne ensembliste CEP)`
+      : dynRel.whatIsCertain;
 
-    const whatIsUncertain = d <= 3
-      ? `Incertitudes minimes : Présence éventuelle de grisailles ou brumes matinales locales retardant la hausse du thermomètre de 1 à 2 heures.`
-      : d <= 7
-      ? `Incertitudes ciblées : Vitesse de progression des fronts ondulants (marge d'erreur de 6h à 12h) et localisation précise des ondées orageuses.`
-      : d <= 10
-      ? `Divergence critique : Trajectoire fine des dépressions d'altitude. Un décalage de 300 km peut transformer une journée ensoleillée en journée pluvieuse.`
-      : `Incertitude maximale (chaos ensembliste) : La dispersion des 51 scénarios ECMWF s'élargit fortement (écart thermique possible de plus de 6°C).`;
+    const whatIsUncertain = dynRel.whatIsUncertain;
 
     const synopticPivot = d <= 3
       ? "Verrou synoptique : Positionnement stable du centre d'action anticyclonique européen."
@@ -723,7 +745,7 @@ export function generateFourteenDayScenarios(
       milestoneId: 'PHASE_1_3',
       title: "Phase 1 : Échéance Rapprochée (J+1 à J+3)",
       daysRangeLabel: `${days[1].dayLabel} au ${days[3].dayLabel}`,
-      confidenceIndexPct: 90,
+      confidenceIndexPct: Math.round((days[1].modelConsensusScorePct + days[2].modelConsensusScorePct + days[3].modelConsensusScorePct) / 3),
       dominantRegimeName: "Dorsale Anticyclonique et Flux Océanique Doux",
       synopticConsensusOverview: "Très fort consensus déterministe et ensembliste (AROME / ECMWF / GFS). Les centres d'action sont parfaitement positionnés. Les températures évolueront dans les normales saisonnières avec une excellente prévisibilité.",
       keyDivergencePoints: [
@@ -738,7 +760,7 @@ export function generateFourteenDayScenarios(
       milestoneId: 'PHASE_4_7',
       title: "Phase 2 : Échéance Moyenne (J+4 à J+7)",
       daysRangeLabel: `${days[4].dayLabel} au ${days[7].dayLabel}`,
-      confidenceIndexPct: 75,
+      confidenceIndexPct: Math.round((days[4].modelConsensusScorePct + days[5].modelConsensusScorePct + days[6].modelConsensusScorePct + days[7].modelConsensusScorePct) / 4),
       dominantRegimeName: "Flux d'Ouest à Sud-Ouest Ondulant",
       synopticConsensusOverview: "Bonne fiabilité globale sur l'ondulation du courant-jet. Les modèles s'accordent sur le maintien de hauts géopotentiels au Sud et le passage d'une traîne atténuée au Nord.",
       keyDivergencePoints: [
@@ -753,13 +775,13 @@ export function generateFourteenDayScenarios(
       milestoneId: 'PHASE_8_10',
       title: "Phase 3 : Échéance Éloignée & Première Rupture (J+8 à J+10)",
       daysRangeLabel: `${days[8].dayLabel} au ${days[10].dayLabel}`,
-      confidenceIndexPct: 58,
+      confidenceIndexPct: Math.round((days[8].modelConsensusScorePct + days[9].modelConsensusScorePct + days[10].modelConsensusScorePct) / 3),
       dominantRegimeName: "Ondulation Subtropicale vs Goutte Froide Atlantique",
       synopticConsensusOverview: "Éclatement notable du faisceau ensembliste. Le scénario majoritaire (55%) privilégie le regonflement d'une crête chaude d'altitude, tandis qu'un cluster minoritaire (45%) envisage un décrochage dépressionnaire sur le Golfe de Gênes.",
       keyDivergencePoints: [
         "Trajectoire de la dépression d'altitude : plongeon vers l'Espagne ou maintien sur l'Atlantique ?",
         "Fourchette thermique élargie : écart de 5°C à 6°C entre les membres froids et chauds.",
-        "Indice de confiance en baisse sensible (58%)."
+        `Indice de confiance consolidé à ${Math.round((days[8].modelConsensusScorePct + days[9].modelConsensusScorePct + days[10].modelConsensusScorePct) / 3)}%.`
       ],
       temperatureTrendOverview: `Scénario chaud : Tx > ${days[8].dominantScenario.tempMax + 2}°C • Scénario frais : Tx < ${days[8].dominantScenario.tempMax - 3}°C.`,
       precipitationOverview: "Risque d'averses orageuses en hausse en cas d'isolement de goutte froide."
@@ -768,7 +790,7 @@ export function generateFourteenDayScenarios(
       milestoneId: 'PHASE_11_14',
       title: "Phase 4 : Tendance à Très Longue Échéance (J+11 à J+14)",
       daysRangeLabel: `${days[11].dayLabel} au ${days[14].dayLabel}`,
-      confidenceIndexPct: 42,
+      confidenceIndexPct: Math.round((days[11].modelConsensusScorePct + days[12].modelConsensusScorePct + days[13].modelConsensusScorePct + days[14].modelConsensusScorePct) / 4),
       dominantRegimeName: "Régimes Synoptiques Multi-Faisceaux (Scand-Block vs NAO+)",
       synopticConsensusOverview: "La prévisibilité déterministe est dépassée. L'analyse s'effectue via les régimes météo européens. Le scénario médian suggère un retour aux conditions climatologiques d'arrière-saison ou d'été stable.",
       keyDivergencePoints: [

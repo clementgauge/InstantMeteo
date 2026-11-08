@@ -14,6 +14,7 @@ import {
   determineGeographicZone, 
   ModelDatum 
 } from '../utils/robustModelConsensus';
+import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
 
 export interface MeteorologicalCenterInfo {
   id: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo' | 'gem';
@@ -438,26 +439,27 @@ function buildHonestReportFromRawData(
     const precipTrimmedRes = calculateRobustTrimmedConsensus(precipModelData, localZone, 1, i);
     const windTrimmedRes = calculateRobustTrimmedConsensus(windModelData, localZone, 0, i);
 
-    const tMaxMean = Number((tMaxList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
-    const tMinMean = Number((tMinList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
+    const tMaxMean = Number((tMaxList.reduce((a, b) => a + b, 0) / tMaxList.length).toFixed(1));
+    const tMinMean = Number((tMinList.reduce((a, b) => a + b, 0) / tMinList.length).toFixed(1));
 
     const sortedTMax = [...tMaxList].sort((a, b) => a - b);
     const sortedTMin = [...tMinList].sort((a, b) => a - b);
 
-    const tMaxMedian = sortedTMax[2];
-    const tMinMedian = sortedTMin[2];
+    const tMaxMedian = sortedTMax[Math.floor(sortedTMax.length / 2)];
+    const tMinMedian = sortedTMin[Math.floor(sortedTMin.length / 2)];
 
     const tMaxSpread = Number((Math.max(...tMaxList) - Math.min(...tMaxList)).toFixed(1));
     const tMinSpread = Number((Math.max(...tMinList) - Math.min(...tMinList)).toFixed(1));
-    const precipMean = Number((precipList.reduce((a, b) => a + b, 0) / 5).toFixed(1));
+    const precipMean = Number((precipList.reduce((a, b) => a + b, 0) / precipList.length).toFixed(1));
 
     // Accord sur les précipitations
     const dryModelsCount = precipList.filter(p => p < 0.3).length;
-    let precipAgreement = `${dryModelsCount}/5 modèles anticipent un temps sec (< 0.3 mm)`;
+    const totalModels = precipList.length;
+    let precipAgreement = `${dryModelsCount}/${totalModels} modèles anticipent un temps sec (< 0.3 mm)`;
     if (dryModelsCount <= 2) {
-      precipAgreement = `${5 - dryModelsCount}/5 modèles voient un passage perturbé pluvieux`;
-    } else if (dryModelsCount === 3 || dryModelsCount === 4) {
-      precipAgreement = `Divergence : ${5 - dryModelsCount} modèle(s) voient des averses isolées`;
+      precipAgreement = `${totalModels - dryModelsCount}/${totalModels} modèles voient un passage perturbé pluvieux`;
+    } else if (dryModelsCount < totalModels) {
+      precipAgreement = `Divergence : ${totalModels - dryModelsCount} modèle(s) voient des averses isolées`;
     }
 
     // Code météo dominant
@@ -506,29 +508,37 @@ function buildHonestReportFromRawData(
     const warmerModel = [...modelPairs].sort((a, b) => b.tx - a.tx)[0].name;
     const wetterModel = [...modelPairs].sort((a, b) => b.rr - a.rr)[0].name;
 
-    // Explication scientifique de la divergence
+    // Calcul de l'indice de confiance physique et dynamique (Lorenz, pression, CAPE, divergence réelle)
+    const dynamicReliability = calculateDynamicReliability({
+      leadDayIndex: i,
+      pressureHpa: 1018,
+      weatherCode: dominantCode,
+      precipitationMm: precipMean,
+      temperatureSpreadC: maxSpread,
+      temperatureC: tMaxTrimmedRes.trimmedConsensus
+    });
+    const confidencePct = dynamicReliability.scorePct;
+
+    // Explication scientifique de la divergence basée sur la physique atmosphérique
     let divergenceDescription = '';
     let dominantScenario = '';
     if (i <= 2) {
       if (maxSpread <= 1.5) {
-        divergenceDescription = `Convergence remarquable entre les 5 centres (écart maximal de seulement ${maxSpread}°C). Les maillages fins AROME et ICON confirment la trajectoire de la masse d'air.`;
+        divergenceDescription = `Convergence remarquable entre les modèles (écart maximal de seulement ${maxSpread}°C). ${dynamicReliability.whatIsCertain}`;
         dominantScenario = `Scénario très fiable et consensuel (${tMinMean}°C à ${tMaxMean}°C).`;
       } else {
-        divergenceDescription = `Légère divergence sur la nébulosité de basse couche : ${colderModel} modélise une dissipation plus tardive des brouillards/stratus limitant la hausse des températures, alors que ${warmerModel} privilégie un déblocage solaire dès midi.`;
+        divergenceDescription = `Légère divergence sur la nébulosité de basse couche : ${colderModel} modélise une dissipation plus tardive des brouillards/stratus limitant la hausse des températures, alors que ${warmerModel} privilégie un déblocage solaire dès midi. ${dynamicReliability.whatIsUncertain}`;
         dominantScenario = `Consensus moyen thermique à ${tMaxMean}°C avec incertitude locale sur la vitesse de dissipation de la grisaille.`;
       }
     } else {
       if (maxSpread > 3.0) {
-        divergenceDescription = `Divergence marquée à cette échéance (+${maxSpread}°C d'écart entre ${colderModel} et ${warmerModel}). GFS et ECMWF diffèrent sur l'enfoncement d'un talweg atlantique et le creusement dépressionnaire.`;
+        divergenceDescription = `Divergence marquée à cette échéance (+${maxSpread}°C d'écart entre ${colderModel} et ${warmerModel}). GFS et ECMWF diffèrent sur l'enfoncement d'un talweg atlantique et le creusement dépressionnaire. ${dynamicReliability.whatIsUncertain}`;
         dominantScenario = `Scénario intermédiaire retenu par la moyenne d'ensemble (Tn ${tMinMean}°C / Tx ${tMaxMean}°C).`;
       } else {
-        divergenceDescription = `Bonne concordance synoptique à moyen terme pour J+${i} (écart moyen de ${maxSpread}°C). Les modèles européens (ECMWF, AROME/ARPEGE, ICON) s'alignent sur la poursuite du régime.`;
+        divergenceDescription = `Bonne concordance synoptique à moyen terme pour J+${i} (écart moyen de ${maxSpread}°C). Les modèles européens (ECMWF, AROME/ARPEGE, ICON) s'alignent sur la poursuite du régime. ${dynamicReliability.whatIsCertain}`;
         dominantScenario = `Évolution majoritaire validée par les centres européens.`;
       }
     }
-
-    // Calcul de l'indice de confiance en %
-    const confidencePct = Math.max(35, Math.min(98, Math.round(100 - maxSpread * 9 - i * 4)));
 
     dailyComparisons.push({
       date: rawDate,
@@ -814,7 +824,13 @@ function buildSeasonalRealisticFallback(lat: number, lon: number, locName: strin
         wetterModel: 'Accord unanime sur le sec',
         dominantScenario: `Moyenne multi-modèles retenue : Tn ${tMinMean}°C / Tx ${tMaxMean}°C.`
       },
-      confidencePct: Math.max(50, 92 - i * 6)
+      confidencePct: calculateDynamicReliability({
+        leadDayIndex: i,
+        weatherCode: 2,
+        precipitationMm: 0,
+        temperatureSpreadC: tMaxSpread,
+        temperatureC: tMaxMean
+      }).scorePct
     });
   }
 

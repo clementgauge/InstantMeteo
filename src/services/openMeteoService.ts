@@ -2259,8 +2259,14 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const dayLabel = isToday ? "Aujourd'hui" : isTomorrow ? "Demain" : `${dayShort[dateObj.getDay()]} ${dateObj.getDate()}`;
       const fullDateFormatted = `${dayNames[dateObj.getDay()]} ${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
       
-      const tMin = Math.round((dailyData.temperature_2m_min?.[srcDailyIdx] ?? cur.temperature_2m - 4) * 10) / 10;
-      const tMax = Math.round((dailyData.temperature_2m_max?.[srcDailyIdx] ?? cur.temperature_2m + 5) * 10) / 10;
+      let tMin = Math.round((dailyData.temperature_2m_min?.[srcDailyIdx] ?? cur.temperature_2m - 4) * 10) / 10;
+      let tMax = Math.round((dailyData.temperature_2m_max?.[srcDailyIdx] ?? cur.temperature_2m + 5) * 10) / 10;
+      if (isToday) {
+        tMin = Number(Math.min(tMin, current.temperature).toFixed(1));
+        tMax = Number(Math.max(tMax, current.temperature).toFixed(1));
+        current.tempMin = tMin;
+        current.tempMax = tMax;
+      }
       const tMean = Math.round(((tMin + tMax) / 2) * 10) / 10;
       const rainSum = Math.round((dailyData.precipitation_sum?.[srcDailyIdx] ?? 0) * 10) / 10;
       const probaMax = dailyData.precipitation_probability_max?.[srcDailyIdx] ?? (rainSum > 0 ? 70 : 10);

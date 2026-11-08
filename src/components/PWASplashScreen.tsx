@@ -54,15 +54,15 @@ export const PWASplashScreen: React.FC<PWASplashScreenProps> = ({
     // Start CSS animations
     const startTimer = setTimeout(() => setIsGo(true), 40);
 
-    // Auto fade-out into app after full sequence has played (~5.2s)
+    // Auto fade-out into app after full sequence has played and completed (~8.5s)
     const fadeTimer = setTimeout(() => {
       setIsFadingOut(true);
       const closeTimer = setTimeout(() => {
         setVisible(false);
         if (onFinished) onFinished();
-      }, 600);
+      }, 700);
       return () => clearTimeout(closeTimer);
-    }, 5400);
+    }, 8500);
 
     return () => {
       clearTimeout(startTimer);

@@ -159,7 +159,7 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
             }`}
           >
             <Compass className="h-3.5 w-3.5" />
-            <span>1. Les 3 Scénarios Probabilistes ({selectedWeek.shortDateRange})</span>
+            <span>1. Tous les Scénarios Ensemblistes ({selectedWeek.allScenarios?.length || 5} branches • {selectedWeek.shortDateRange})</span>
           </button>
 
           <button
@@ -207,127 +207,91 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
               </div>
             </div>
 
-            {/* 3 Scenarios Cards Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* DOMINANT */}
-              <div className="rounded-2xl bg-slate-950/90 border-2 border-emerald-500/50 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl">
-                  Scénario Dominant • {selectedWeek.scenarios.dominant.probabilityPct}%
-                </div>
+            {/* Scenarios Cards Grid (All Available Scenarios) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {(selectedWeek.allScenarios || [selectedWeek.scenarios.dominant, selectedWeek.scenarios.alternative, selectedWeek.scenarios.minority]).map((scen, idx) => {
+                const isDom = scen.isDominant || idx === 0;
+                const isAlt = idx === 1;
+                const isCold = scen.scenarioId.includes('COLD_DROP') || scen.temperatureAnomalyC <= -1.5;
+                const isWarm = scen.scenarioId.includes('WARM_PLUME') || scen.temperatureAnomalyC >= 2.5;
 
-                <div className="space-y-4">
-                  <div className="pt-2">
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
-                      Régime : {selectedWeek.scenarios.dominant.regimeType}
-                    </span>
-                    <h4 className="text-lg font-black text-white mt-1 leading-snug">
-                      {selectedWeek.scenarios.dominant.name}
-                    </h4>
-                  </div>
+                const borderColor = isDom
+                  ? 'border-2 border-emerald-500/50'
+                  : isAlt
+                  ? 'border border-amber-500/40'
+                  : isCold
+                  ? 'border border-cyan-500/40'
+                  : isWarm
+                  ? 'border border-rose-500/40'
+                  : 'border border-purple-500/30';
 
-                  {/* Anomalies Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                      T°C : {selectedWeek.scenarios.dominant.temperatureAnomalyC > 0 ? `+${selectedWeek.scenarios.dominant.temperatureAnomalyC}` : selectedWeek.scenarios.dominant.temperatureAnomalyC}°C
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                      Pluie : {selectedWeek.scenarios.dominant.precipitationAnomalyPct > 0 ? `+${selectedWeek.scenarios.dominant.precipitationAnomalyPct}` : selectedWeek.scenarios.dominant.precipitationAnomalyPct}%
-                    </span>
-                  </div>
+                const badgeBg = isDom
+                  ? 'bg-emerald-500 text-slate-950 font-black'
+                  : isAlt
+                  ? 'bg-amber-500/20 text-amber-300 border-b border-l border-amber-500/40 font-black'
+                  : isCold
+                  ? 'bg-cyan-500/20 text-cyan-300 border-b border-l border-cyan-500/40 font-black'
+                  : isWarm
+                  ? 'bg-rose-500/20 text-rose-300 border-b border-l border-rose-500/40 font-black'
+                  : 'bg-purple-500/20 text-purple-300 border-b border-l border-purple-500/40 font-black';
 
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-slate-400 block mb-0.5">Mécanisme Synoptique :</span>
-                      <span>{selectedWeek.scenarios.dominant.synopticMechanism}</span>
+                const rankLabel = isDom
+                  ? `Scénario Dominant • ${scen.probabilityPct}%`
+                  : isAlt
+                  ? `Scénario Alternatif • ${scen.probabilityPct}%`
+                  : `Scénario ${idx + 1} • ${scen.probabilityPct}%`;
+
+                return (
+                  <div key={scen.scenarioId || idx} className={`rounded-2xl bg-slate-950/90 ${borderColor} p-6 flex flex-col justify-between shadow-xl relative overflow-hidden`}>
+                    <div className={`absolute top-0 right-0 ${badgeBg} text-[10px] uppercase px-3 py-1 rounded-bl-xl`}>
+                      {rankLabel}
                     </div>
 
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-emerald-300 block mb-0.5">Temps Sensible Attendu :</span>
-                      <span>{selectedWeek.scenarios.dominant.description}</span>
+                    <div className="space-y-4">
+                      <div className="pt-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                          Régime : <strong className={isDom ? 'text-emerald-400' : isAlt ? 'text-amber-400' : isCold ? 'text-cyan-400' : isWarm ? 'text-rose-400' : 'text-purple-400'}>{scen.regimeType}</strong>
+                        </span>
+                        <h4 className="text-lg font-black text-white mt-1 leading-snug">
+                          {scen.name}
+                        </h4>
+                      </div>
+
+                      {/* Anomalies Badge */}
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
+                          scen.temperatureAnomalyC > 0 
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                            : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                        }`}>
+                          T°C : {scen.temperatureAnomalyC > 0 ? `+${scen.temperatureAnomalyC}` : scen.temperatureAnomalyC}°C
+                        </span>
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
+                          scen.precipitationAnomalyPct > 0 
+                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          Pluie : {scen.precipitationAnomalyPct > 0 ? `+${scen.precipitationAnomalyPct}` : scen.precipitationAnomalyPct}%
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-xs text-slate-300">
+                        <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
+                          <span className="font-bold text-slate-400 block mb-0.5">Mécanisme Synoptique :</span>
+                          <span>{scen.synopticMechanism}</span>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
+                          <span className={`font-bold block mb-0.5 ${isDom ? 'text-emerald-300' : isAlt ? 'text-amber-300' : isCold ? 'text-cyan-300' : isWarm ? 'text-rose-300' : 'text-purple-300'}`}>
+                            Temps Sensible Attendu :
+                          </span>
+                          <span>{scen.description}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* ALTERNATIVE */}
-              <div className="rounded-2xl bg-slate-950/90 border border-amber-500/40 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-amber-500/20 text-amber-300 border-b border-l border-amber-500/40 text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl">
-                  Scénario Alternatif • {selectedWeek.scenarios.alternative.probabilityPct}%
-                </div>
-
-                <div className="space-y-4">
-                  <div className="pt-2">
-                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                      Régime : {selectedWeek.scenarios.alternative.regimeType}
-                    </span>
-                    <h4 className="text-lg font-black text-white mt-1 leading-snug">
-                      {selectedWeek.scenarios.alternative.name}
-                    </h4>
-                  </div>
-
-                  {/* Anomalies Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-800 text-slate-200 border border-slate-700">
-                      T°C : {selectedWeek.scenarios.alternative.temperatureAnomalyC > 0 ? `+${selectedWeek.scenarios.alternative.temperatureAnomalyC}` : selectedWeek.scenarios.alternative.temperatureAnomalyC}°C
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                      Pluie : {selectedWeek.scenarios.alternative.precipitationAnomalyPct > 0 ? `+${selectedWeek.scenarios.alternative.precipitationAnomalyPct}` : selectedWeek.scenarios.alternative.precipitationAnomalyPct}%
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-slate-400 block mb-0.5">Mécanisme Synoptique :</span>
-                      <span>{selectedWeek.scenarios.alternative.synopticMechanism}</span>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-amber-300 block mb-0.5">Temps Sensible Attendu :</span>
-                      <span>{selectedWeek.scenarios.alternative.description}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* MINORITY */}
-              <div className="rounded-2xl bg-slate-950/90 border border-purple-500/30 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-purple-500/20 text-purple-300 border-b border-l border-purple-500/40 text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl">
-                  Scénario Minoritaire • {selectedWeek.scenarios.minority.probabilityPct}%
-                </div>
-
-                <div className="space-y-4">
-                  <div className="pt-2">
-                    <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">
-                      Régime : {selectedWeek.scenarios.minority.regimeType}
-                    </span>
-                    <h4 className="text-lg font-black text-white mt-1 leading-snug">
-                      {selectedWeek.scenarios.minority.name}
-                    </h4>
-                  </div>
-
-                  {/* Anomalies Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-800 text-slate-200 border border-slate-700">
-                      T°C : {selectedWeek.scenarios.minority.temperatureAnomalyC > 0 ? `+${selectedWeek.scenarios.minority.temperatureAnomalyC}` : selectedWeek.scenarios.minority.temperatureAnomalyC}°C
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                      Pluie : {selectedWeek.scenarios.minority.precipitationAnomalyPct > 0 ? `+${selectedWeek.scenarios.minority.precipitationAnomalyPct}` : selectedWeek.scenarios.minority.precipitationAnomalyPct}%
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-slate-400 block mb-0.5">Mécanisme Synoptique :</span>
-                      <span>{selectedWeek.scenarios.minority.synopticMechanism}</span>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-900 p-3 border border-slate-800">
-                      <span className="font-bold text-purple-300 block mb-0.5">Temps Sensible Attendu :</span>
-                      <span>{selectedWeek.scenarios.minority.description}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
