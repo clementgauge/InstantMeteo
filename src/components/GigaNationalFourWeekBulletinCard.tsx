@@ -9,7 +9,6 @@ import {
   Sun, 
   Thermometer, 
   ShieldAlert, 
-  Sparkles, 
   RefreshCw, 
   MapPin, 
   Layers, 
@@ -92,13 +91,13 @@ export const GigaNationalFourWeekBulletinCard: React.FC<GigaNationalFourWeekBull
           </div>
         </div>
 
-        {/* Executive National Synthesis Box */}
-        <div className="mt-5 rounded-2xl bg-slate-950/80 border border-emerald-500/30 p-4 space-y-1 text-xs text-slate-200 leading-relaxed">
+        {/* Executive National Synthesis Box (Unboxed) */}
+        <div className="mt-5 pt-4 border-t border-slate-800/80 space-y-1.5 text-xs text-slate-200 leading-relaxed">
           <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider">
-            <Sparkles className="h-4 w-4" />
+            <Activity className="h-4 w-4" />
             <span>Synthèse Nationale Exécutive :</span>
           </div>
-          <p className="text-slate-100 font-medium">{data.executiveSynthesis}</p>
+          <p className="text-slate-100 font-medium text-xs sm:text-sm">{data.executiveSynthesis}</p>
         </div>
 
         {/* Global Drivers Ticker */}

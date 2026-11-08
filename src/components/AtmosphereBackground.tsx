@@ -8,6 +8,7 @@ interface AtmosphereBackgroundProps {
   station?: LocationPoint;
   seniorMode?: boolean;
   isLightMode?: boolean;
+  isDirectPage?: boolean;
 }
 
 interface Particle {
@@ -28,8 +29,18 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
   theme, 
   station, 
   seniorMode, 
-  isLightMode = false 
+  isLightMode = false,
+  isDirectPage = true
 }) => {
+  if (!isDirectPage) {
+    return (
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-black" 
+        style={{ backgroundColor: '#000000' }} 
+      />
+    );
+  }
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const regionalPalette = useMemo(() => getRegionalPaletteForStation(station), [station?.department, station?.name, station?.country]);
 

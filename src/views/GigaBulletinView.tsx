@@ -675,49 +675,49 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                  <div className="rounded-lg bg-slate-950/70 border border-sky-500/30 p-2.5">
-                    <span className="text-[10px] text-sky-300 uppercase font-black block">Tn Élaguée 90% (Consensus)</span>
-                    <span className="text-lg font-black text-sky-400">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80 text-center border-t border-slate-800/80">
+                  <div className="px-2">
+                    <span className="text-[10px] text-sky-400 uppercase font-black tracking-wider block">Tn Consensus</span>
+                    <span className="text-2xl font-black text-sky-400 mt-0.5">
                       {toDisplayTemp(activeDay.consensus.trimmedTMinConsensus ?? activeDay.consensus.tMinMean)}
                     </span>
-                    <span className="text-[9px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       Brute : {toDisplayTemp(activeDay.consensus.tMinMean)} • Méd. : {toDisplayTemp(activeDay.consensus.tMinMedian)}
                     </span>
                   </div>
-                  <div className="rounded-lg bg-slate-950/70 border border-amber-500/30 p-2.5">
-                    <span className="text-[10px] text-amber-300 uppercase font-black block">Tx Élaguée 90% (Consensus)</span>
-                    <span className="text-lg font-black text-amber-400">
+                  <div className="px-2 pt-2 sm:pt-0">
+                    <span className="text-[10px] text-amber-400 uppercase font-black tracking-wider block">Tx Consensus</span>
+                    <span className="text-2xl font-black text-amber-400 mt-0.5">
                       {toDisplayTemp(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean)}
                     </span>
-                    <span className="text-[9px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       Brute : {toDisplayTemp(activeDay.consensus.tMaxMean)} • Méd. : {toDisplayTemp(activeDay.consensus.tMaxMedian)}
                     </span>
                   </div>
-                  <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Précipitations Élaguées</span>
-                    <span className="text-base font-black text-blue-400">
+                  <div className="px-2 pt-2 sm:pt-0">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Précipitations</span>
+                    <span className="text-2xl font-black text-blue-400 mt-0.5">
                       {activeDay.consensus.trimmedPrecipConsensus ?? activeDay.consensus.precipMean} mm
                     </span>
-                    <span className="text-[9px] text-slate-400 block truncate">{activeDay.consensus.precipAgreement}</span>
+                    <span className="text-[10px] text-slate-500 block truncate">{activeDay.consensus.precipAgreement}</span>
                   </div>
-                  <div className="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Temps Dominant</span>
-                    <div className="flex items-center justify-center gap-1.5 mt-0.5">
-                      {renderWeatherIcon(activeDay.consensus.dominantWeatherCode, "w-4 h-4")}
-                      <span className="text-xs font-bold text-white truncate">{activeDay.consensus.dominantWeatherLabel}</span>
+                  <div className="px-2 pt-2 sm:pt-0">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Temps Dominant</span>
+                    <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                      {renderWeatherIcon(activeDay.consensus.dominantWeatherCode, "w-5 h-5")}
+                      <span className="text-sm font-bold text-white truncate">{activeDay.consensus.dominantWeatherLabel}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Bloc d'Analyse Concrète : Impacts Quotidien & Risque de Neige Explicite */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
-                  <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                {/* Bloc d'Analyse Concrète : Impacts Quotidien & Risque de Neige Explicite (Unboxed) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-xs">
+                  <div className="border-l-2 border-amber-500/60 pl-3 space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
                       <span>🎯</span>
                       <span>Ce que ça donnera concrètement ({activeDay.dayLabel}) :</span>
                     </span>
-                    <p className="text-slate-300 text-[11px] leading-relaxed">
+                    <p className="text-slate-300 text-xs leading-relaxed">
                       {(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) >= 22
                         ? "Douceur très agréable et printanière/estivale. Vêtements légers, conditions excellentes pour les loisirs en extérieur et déplacements."
                         : (activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 4
@@ -726,12 +726,12 @@ export const GigaBulletinView: React.FC<GigaBulletinViewProps> = ({
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                  <div className="border-l-2 border-sky-500/60 pl-3 space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300 flex items-center gap-1">
-                      <Snowflake className="h-3 w-3 text-sky-400" />
+                      <Snowflake className="h-3.5 w-3.5 text-sky-400" />
                       <span>Analyse Neige &amp; Phénomènes Hivernaux :</span>
                     </span>
-                    <p className="text-slate-300 text-[11px] leading-relaxed">
+                    <p className="text-slate-300 text-xs leading-relaxed">
                       {(activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 2.5 && (activeDay.consensus.trimmedPrecipConsensus ?? activeDay.consensus.precipMean) > 0
                         ? "❄️ Risque de neige ou pluie mêlée de flocons en plaine lors des averses les plus soutenues."
                         : (currentStation.altitude || 0) >= 600 && (activeDay.consensus.trimmedTMaxConsensus ?? activeDay.consensus.tMaxMean) <= 6

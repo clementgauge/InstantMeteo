@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, 
-  Sparkles, 
   TrendingUp, 
   TrendingDown, 
   AlertTriangle, 
@@ -408,13 +407,13 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
           </div>
         </div>
 
-        {/* Global Executive Summary */}
-        <div className="mt-4 rounded-md bg-slate-950 border border-slate-800 p-3.5 text-xs text-slate-300 leading-relaxed">
+        {/* Global Executive Summary (Unboxed) */}
+        <div className="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300 leading-relaxed">
           <p className="font-semibold text-sky-300 flex items-center gap-1.5 mb-1">
-            <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+            <TrendingUp className="h-3.5 w-3.5 text-sky-400" />
             <span>Synthèse de l'évolution à 14 jours :</span>
           </p>
-          <p>{data.overallSummary}</p>
+          <p className="text-slate-200">{data.overallSummary}</p>
         </div>
 
         {/* Geographic Model Weighting Matrix Banner (Calibration Zonal) */}
@@ -651,7 +650,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-0.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+                      <Calendar className="h-3.5 w-3.5 text-sky-400" />
                       Ligne unique de tendances & fiabilité (14 jours) :
                     </span>
                     <span className="text-[11px] text-slate-400 hidden sm:inline">• Touchez un jour pour ouvrir l'analyse</span>
@@ -1175,157 +1174,150 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <span>Paramètres Physiques pour {selectedDay.dayLabel} :</span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 py-3 border-t border-slate-800/80 text-center">
                       {/* Tn */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider block">Tn (Aube)</span>
-                          <Thermometer className="h-3.5 w-3.5 text-sky-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Thermometer className="h-3 w-3 text-sky-400" />
+                          <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider">Tn (Aube)</span>
                         </div>
-                        <div className="text-lg font-bold text-sky-300 mt-1 font-mono">
+                        <div className="text-xl font-bold text-sky-300 mt-1 font-mono">
                           {formatTemp(activeBranch.tempMin)}
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">
+                        <div className="text-[10px] text-slate-500 mt-0.5">
                           {activeBranch.tempMin <= 0 ? 'Risque de gelée' : 'Fraîcheur matinale'}
                         </div>
                       </div>
 
                       {/* Tx */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-rose-300 uppercase tracking-wider block">Tx (Après-midi)</span>
-                          <Thermometer className="h-3.5 w-3.5 text-rose-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Thermometer className="h-3 w-3 text-rose-400" />
+                          <span className="text-[10px] font-bold text-rose-300 uppercase tracking-wider">Tx (Après-midi)</span>
                         </div>
-                        <div className="text-lg font-bold text-rose-300 mt-1 font-mono">
+                        <div className="text-xl font-bold text-rose-300 mt-1 font-mono">
                           {formatTemp(activeBranch.tempMax)}
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">
+                        <div className="text-[10px] text-slate-500 mt-0.5">
                           {activeBranch.tempMax >= 30 ? 'Forte chaleur' : 'Température diurne'}
                         </div>
                       </div>
 
                       {/* Ressenti Max */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-amber-300 uppercase block">Ressenti Max</span>
-                          <Flame className="h-3.5 w-3.5 text-amber-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Flame className="h-3 w-3 text-amber-400" />
+                          <span className="text-[10px] font-medium text-amber-300 uppercase">Ressenti Max</span>
                         </div>
-                        <div className="text-lg font-bold text-amber-300 mt-1 font-mono">
+                        <div className="text-xl font-bold text-amber-300 mt-1 font-mono">
                           {formatTemp(activeBranch.feelsLikeMax ?? activeBranch.tempMax)}
                         </div>
-                        <span className="text-[10px] text-slate-400 block">Vent & humidité</span>
+                        <span className="text-[10px] text-slate-500 block">Vent & humidité</span>
                       </div>
 
                       {/* Précipitations */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-sky-300 uppercase block">Pluie 24h</span>
-                          <CloudRain className="h-3.5 w-3.5 text-sky-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <CloudRain className="h-3 w-3 text-sky-400" />
+                          <span className="text-[10px] font-medium text-sky-300 uppercase">Pluie 24h</span>
                         </div>
-                        <div className="flex items-baseline gap-1 mt-1 font-mono">
-                          <span className="text-lg font-bold text-sky-400">{activeBranch.precipitationMm}</span>
+                        <div className="flex items-baseline justify-center gap-1 mt-1 font-mono">
+                          <span className="text-xl font-bold text-sky-400">{activeBranch.precipitationMm}</span>
                           <span className="text-xs text-sky-300">mm</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 block truncate">
+                        <span className="text-[10px] text-slate-500 block truncate">
                           {activeBranch.precipitationType ?? (activeBranch.precipitationMm > 0 ? "Ondée" : "Sec")}
                         </span>
                       </div>
 
                       {/* Vent */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-slate-400 uppercase block">Vent Max</span>
-                          <Wind className="h-3.5 w-3.5 text-slate-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Wind className="h-3 w-3 text-slate-400" />
+                          <span className="text-[10px] font-medium text-slate-400 uppercase">Vent Max</span>
                         </div>
-                        <div className="flex items-baseline gap-1 mt-1 font-mono">
-                          <span className="text-lg font-bold text-white">{activeBranch.windGustKmh ?? 30}</span>
+                        <div className="flex items-baseline justify-center gap-1 mt-1 font-mono">
+                          <span className="text-xl font-bold text-white">{activeBranch.windGustKmh ?? 30}</span>
                           <span className="text-xs text-slate-400">km/h</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 block truncate">
+                        <span className="text-[10px] text-slate-500 block truncate">
                           {activeBranch.windDirection ?? "Ouest"}
                         </span>
                       </div>
 
                       {/* Soleil ou Isotherme */}
-                      <div className="rounded-md bg-slate-900 border border-slate-800 p-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-medium text-slate-400 uppercase block">Soleil Prévu</span>
-                          <Sun className="h-3.5 w-3.5 text-amber-400" />
+                      <div className="px-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Sun className="h-3 w-3 text-amber-400" />
+                          <span className="text-[10px] font-medium text-slate-400 uppercase">Soleil Prévu</span>
                         </div>
-                        <div className="flex items-baseline gap-1 mt-1 font-mono">
-                          <span className="text-lg font-bold text-amber-300">{activeBranch.sunshineHours ?? 8}</span>
+                        <div className="flex items-baseline justify-center gap-1 mt-1 font-mono">
+                          <span className="text-xl font-bold text-amber-300">{activeBranch.sunshineHours ?? 8}</span>
                           <span className="text-xs text-slate-400">h</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 block truncate">
+                        <span className="text-[10px] text-slate-500 block truncate">
                           Iso 0° : {activeBranch.isotherm0Meters ?? 3000}m
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Practical Daily Impacts */}
+                  {/* Practical Daily Impacts (Unboxed) */}
                   {activeBranch.practicalImpacts && (
-                    <div className="space-y-2 pt-1">
+                    <div className="space-y-2 pt-2 border-t border-slate-800/80">
                       <div className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+                        <Activity className="h-3.5 w-3.5 text-sky-400" />
                         <span>Recommandations Pratiques :</span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                         {/* 1. Habillement */}
-                        <div className="rounded-md bg-slate-900 border border-slate-800 p-3 flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded bg-slate-800 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <Shirt className="h-3.5 w-3.5" />
+                        <div className="border-l-2 border-sky-500/60 pl-3 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                            <Shirt className="h-3.5 w-3.5 text-sky-400" />
+                            <span>Tenue & Vêtements</span>
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="text-xs font-semibold text-white block">Tenue & Vêtements</span>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                              {activeBranch.practicalImpacts.clothing}
-                            </p>
-                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {activeBranch.practicalImpacts.clothing}
+                          </p>
                         </div>
 
                         {/* 2. Activités Extérieures & Agriculture */}
-                        <div className="rounded-md bg-slate-900 border border-slate-800 p-3 flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded bg-slate-800 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <Sprout className="h-3.5 w-3.5" />
+                        <div className="border-l-2 border-emerald-500/60 pl-3 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                            <Sprout className="h-3.5 w-3.5 text-emerald-400" />
+                            <span>Activités Extérieures</span>
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="text-xs font-semibold text-white block">Activités Extérieures</span>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                              {activeBranch.practicalImpacts.agricultureOutdoor}
-                            </p>
-                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {activeBranch.practicalImpacts.agricultureOutdoor}
+                          </p>
                         </div>
 
                         {/* 3. Conduite & Transports */}
-                        <div className="rounded-md bg-slate-900 border border-slate-800 p-3 flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded bg-slate-800 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <Car className="h-3.5 w-3.5" />
+                        <div className="border-l-2 border-indigo-500/60 pl-3 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                            <Car className="h-3.5 w-3.5 text-indigo-400" />
+                            <span>Sécurité Routière</span>
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="text-xs font-semibold text-white block">Sécurité Routière</span>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                              {activeBranch.practicalImpacts.drivingTransit}
-                            </p>
-                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {activeBranch.practicalImpacts.drivingTransit}
+                          </p>
                         </div>
 
                         {/* 4. Confort Intérieur & Énergie */}
-                        <div className="rounded-md bg-slate-900 border border-slate-800 p-3 flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded bg-slate-800 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                            <Home className="h-3.5 w-3.5" />
+                        <div className="border-l-2 border-amber-500/60 pl-3 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                            <Home className="h-3.5 w-3.5 text-amber-400" />
+                            <span>Habitat & Aération</span>
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="text-xs font-semibold text-white block">Habitat & Aération</span>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                              {activeBranch.practicalImpacts.homeComfort}
-                            </p>
-                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {activeBranch.practicalImpacts.homeComfort}
+                          </p>
                         </div>
                       </div>
                     </div>
                   )}
+
 
                   {/* Detailed Synoptic Narrative */}
                   <div className="rounded-md bg-slate-900 border border-slate-800 p-3 space-y-1">

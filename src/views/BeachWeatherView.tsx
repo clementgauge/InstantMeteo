@@ -575,38 +575,38 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
               </p>
             </div>
 
-            {/* Décomposition Spectrale : Houle Primaire vs Mer du Vent & Courants */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Houle Primaire</div>
-                <div className="text-base font-black text-cyan-400 mt-1">
+            {/* Décomposition Spectrale : Houle Primaire vs Mer du Vent & Courants (Unboxed) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80 text-center border-t border-slate-800/80">
+              <div className="px-2">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Houle Primaire</div>
+                <div className="text-xl font-black text-cyan-400 mt-1">
                   {selectedBeach.swellHeightM ?? Number((selectedBeach.waveHeightM * 0.8).toFixed(1))} m
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Train de houle au large</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Train de large</div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Mer du Vent (Clapot)</div>
-                <div className="text-base font-black text-blue-400 mt-1">
+              <div className="px-2 pt-2 sm:pt-0">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Mer du Vent</div>
+                <div className="text-xl font-black text-blue-400 mt-1">
                   {selectedBeach.windWaveHeightM ?? Number((selectedBeach.waveHeightM * 0.45).toFixed(1))} m
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Vagues générées par le vent</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Clapot de surface</div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Courant Côtier</div>
-                <div className="text-base font-black text-emerald-400 mt-1">
+              <div className="px-2 pt-2 sm:pt-0">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Courant Côtier</div>
+                <div className="text-xl font-black text-emerald-400 mt-1">
                   {selectedBeach.oceanCurrentKnots ?? 1.2} nds
                 </div>
                 <div className="text-[10px] text-slate-500 mt-0.5">Dérive littorale</div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">Période de Houle</div>
-                <div className="text-base font-black text-amber-400 mt-1">
+              <div className="px-2 pt-2 sm:pt-0">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Période Houle</div>
+                <div className="text-xl font-black text-amber-400 mt-1">
                   {selectedBeach.wavePeriodSec} sec
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Énergie des trains d'onde</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Énergie d'onde</div>
               </div>
             </div>
 

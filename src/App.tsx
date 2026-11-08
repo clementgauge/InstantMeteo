@@ -888,9 +888,12 @@ function WeatherApp() {
     );
   }
 
+  const isDirectPage = activeTab === 'realtime';
+
   return (
     <div 
-      className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
+      className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${!isDirectPage ? 'bg-black' : ''} ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
+      style={!isDirectPage ? { backgroundColor: '#000000' } : undefined}
     >
       {/* Atmospheric PWA Startup Splash Screen */}
       <PWASplashScreen />
@@ -898,12 +901,13 @@ function WeatherApp() {
       {/* Dynamic Canonical URL & Head SEO Synchronization */}
       <SeoHead activeTab={activeTab} currentPath={currentPath} />
 
-      {/* Dynamic Seasonal & Time-of-Day Atmospheric Background */}
+      {/* Dynamic Seasonal & Time-of-Day Atmospheric Background (Active on Direct Page, Pure Black on All Other Pages) */}
       <AtmosphereBackground 
         theme={currentTheme} 
         station={currentStation}
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}
+        isDirectPage={isDirectPage}
       />
 
       {/* Header */}

@@ -633,24 +633,24 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </div>
             </div>
 
-            {/* Repères comparatifs étagés : Pied de station / Balise Nivôse / Sommet */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+            {/* Repères comparatifs étagés : Pied de station / Balise Nivôse / Sommet (Unboxed) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-800/80">
+              <div className="flex items-center justify-between sm:pr-4 sm:border-r sm:border-slate-800/70">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Pied de station</div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Pied de station</div>
                   <div className="text-xs text-slate-300 font-semibold">{selectedMassif.altitudeBase} m</div>
                 </div>
                 <div className="text-right">
-                  <div className={`text-lg font-black ${selectedMassif.snowDepthBottomCm === 0 ? 'text-slate-300' : 'text-emerald-400'}`}>
+                  <div className={`text-xl font-black ${selectedMassif.snowDepthBottomCm === 0 ? 'text-slate-400' : 'text-emerald-400'}`}>
                     {selectedMassif.snowDepthBottomCm} cm
                   </div>
                   <div className="text-[10px] text-slate-400">
-                    {selectedMassif.snowDepthBottomCm === 0 ? 'Sol déneigé' : 'Manteau au sol'} • T° : {selectedMassif.baseTempC ?? lpnAnalysis.baseTempC}°C
+                    {selectedMassif.snowDepthBottomCm === 0 ? 'Sol déneigé' : 'Manteau au sol'} • T° {selectedMassif.baseTempC ?? lpnAnalysis.baseTempC}°C
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-sky-950/40 border border-sky-500/50 flex items-center justify-between shadow-sm">
+              <div className="flex items-center justify-between sm:px-4 sm:border-r sm:border-slate-800/70">
                 <div>
                   <div className="text-[10px] uppercase font-black text-sky-400 flex items-center gap-1">
                     <Radio className="w-3 h-3 text-sky-400" />
@@ -659,44 +659,44 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                   <div className="text-xs text-white font-bold">{selectedMassif.nivoseElevationM} m</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-black text-sky-300">{nivoseSnowDepth} cm</div>
-                  <div className="text-[10px] text-sky-400">T° : {nivoseTemp}°C</div>
+                  <div className="text-2xl font-black text-sky-300">{nivoseSnowDepth} cm</div>
+                  <div className="text-[10px] text-sky-400 font-medium">T° {nivoseTemp}°C</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+              <div className="flex items-center justify-between sm:pl-4">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Crête / Sommet</div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Crête / Sommet</div>
                   <div className="text-xs text-slate-300 font-semibold">{selectedMassif.altitudePeak} m</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-black text-indigo-400">{selectedMassif.snowDepthTopCm} cm</div>
-                  <div className="text-[10px] text-slate-400">T° : {selectedMassif.peakTempC ?? lpnAnalysis.peakTempC}°C</div>
+                  <div className="text-xl font-black text-indigo-400">{selectedMassif.snowDepthTopCm} cm</div>
+                  <div className="text-[10px] text-slate-400">T° {selectedMassif.peakTempC ?? lpnAnalysis.peakTempC}°C</div>
                 </div>
               </div>
             </div>
 
-            {/* Chutes fraîches 24h / 48h, LPN & Qualité */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Neige Fraîche 24h</div>
-                <div className="text-base font-black text-cyan-400 mt-0.5">
+            {/* Chutes fraîches 24h / 48h, LPN & Qualité (Unboxed Open Metrics) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-slate-800/80">
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Neige Fraîche 24h</div>
+                <div className="text-lg font-black text-cyan-400 mt-0.5">
                   {selectedMassif.freshSnow24hCm > 0 ? `+${selectedMassif.freshSnow24hCm} cm` : '0 cm'}
                 </div>
                 <div className="text-[10px] text-slate-500">Dernières 24 heures</div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Neige Fraîche 48h</div>
-                <div className="text-base font-black text-cyan-300 mt-0.5">
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Neige Fraîche 48h</div>
+                <div className="text-lg font-black text-cyan-300 mt-0.5">
                   {selectedMassif.freshSnow48hCm ? `+${selectedMassif.freshSnow48hCm} cm` : '0 cm'}
                 </div>
                 <div className="text-[10px] text-slate-500">Cumul sur 2 jours</div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Limite Pluie-Neige</div>
-                <div className={`text-base font-black mt-0.5 ${isLpnBelow800 ? 'text-rose-400 animate-pulse' : 'text-indigo-400'}`}>
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Limite Pluie-Neige</div>
+                <div className={`text-lg font-black mt-0.5 ${isLpnBelow800 ? 'text-rose-400 animate-pulse' : 'text-indigo-400'}`}>
                   {activeLpn} m
                 </div>
                 <div className="text-[10px] text-slate-500">
@@ -704,9 +704,9 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Qualité de Surface</div>
-                <div className="text-xs font-black text-white mt-1 truncate" title={selectedMassif.snowQuality}>
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Qualité de Surface</div>
+                <div className="text-sm font-black text-white mt-1 truncate" title={selectedMassif.snowQuality}>
                   {selectedMassif.snowQuality}
                 </div>
                 <div className="text-[10px] text-slate-500">
@@ -715,15 +715,15 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </div>
             </div>
 
-            {/* Diagnostic d'enneigement en clair & horodatage */}
-            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            {/* Diagnostic d'enneigement en clair & horodatage (Unboxed) */}
+            <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2 text-slate-300">
                 <Snowflake className="w-4 h-4 text-sky-400 shrink-0" />
                 <span>
                   <strong>Diagnostic Manteau Neigeux :</strong> {selectedMassif.snowCoverDiagnostic || 'Contrôle automatique du manteau neigeux et des couches de surface.'}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 shrink-0">
+              <div className="text-[11px] text-slate-500 shrink-0">
                 {selectedMassif.verifiedAt ? `Télémesure validée : ${selectedMassif.verifiedAt}` : 'Synchronisation directe en continu'}
               </div>
             </div>
@@ -746,25 +746,25 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               {lpnAnalysis.physicalExplanation}
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Isotherme 0°C (T=0°C)</div>
-                <div className="text-base font-black text-amber-400 mt-0.5">{lpnAnalysis.isoZeroM} m</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-slate-800/80 text-center">
+              <div className="px-1">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Isotherme 0°C</div>
+                <div className="text-lg font-black text-amber-400 mt-0.5">{lpnAnalysis.isoZeroM} m</div>
                 <div className="text-[10px] text-slate-500">Début de fusion</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Iso Tw = 0°C (Humide)</div>
-                <div className="text-base font-black text-cyan-400 mt-0.5">{lpnAnalysis.wetBulbZeroM} m</div>
+              <div className="px-1">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Iso Tw = 0°C</div>
+                <div className="text-lg font-black text-cyan-400 mt-0.5">{lpnAnalysis.wetBulbZeroM} m</div>
                 <div className="text-[10px] text-slate-500">Thermomètre mouillé</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-sky-500/40">
-                <div className="text-[10px] uppercase text-sky-300 font-bold">LPN Active Station</div>
-                <div className="text-base font-black text-white mt-0.5">{lpnAnalysis.effectiveLpnM} m</div>
+              <div className="px-1">
+                <div className="text-[10px] uppercase font-bold text-sky-300">LPN Active Station</div>
+                <div className="text-lg font-black text-white mt-0.5">{lpnAnalysis.effectiveLpnM} m</div>
                 <div className="text-[10px] text-sky-400">Tenue au sol</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-indigo-500/40">
-                <div className="text-[10px] uppercase text-indigo-300 font-bold">LPN sous Forte Averse</div>
-                <div className="text-base font-black text-indigo-300 mt-0.5">{lpnAnalysis.isothermyLpnM} m</div>
+              <div className="px-1">
+                <div className="text-[10px] uppercase font-bold text-indigo-300">LPN sous Forte Averse</div>
+                <div className="text-lg font-black text-indigo-300 mt-0.5">{lpnAnalysis.isothermyLpnM} m</div>
                 <div className="text-[10px] text-slate-500">Effet d'isothermie</div>
               </div>
             </div>
@@ -776,11 +776,11 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               <Clock className="w-4 h-4" />
               <span>Évolution 24h de la Limite Pluie-Neige & T° Prévues</span>
             </div>
-            <div className="space-y-2">
+            <div className="divide-y divide-slate-800/80">
               {lpnAnalysis.timeline24h.map((slot, i) => (
                 <div
                   key={i}
-                  className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/90 flex items-center justify-between gap-2 text-xs"
+                  className="py-2.5 flex items-center justify-between gap-2 text-xs first:pt-1 last:pb-1"
                 >
                   <div>
                     <div className="font-bold text-white">{slot.slotLabel}</div>
@@ -789,10 +789,10 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                   <div className="text-right shrink-0">
                     <div className="font-black text-white">
                       LPN <span className="text-sky-400">{slot.lpnM} m</span>{' '}
-                      <span className="text-[10px] text-slate-400">(Iso {slot.isoZeroM}m)</span>
+                      <span className="text-[10px] text-slate-400 font-normal">(Iso {slot.isoZeroM}m)</span>
                     </div>
                     <div className="text-[10px] text-slate-400">
-                      Base: {slot.tempAtBaseC > 0 ? `+${slot.tempAtBaseC}` : slot.tempAtBaseC}°C • 2000m: {slot.tempAt2000mC > 0 ? `+${slot.tempAt2000mC}` : slot.tempAt2000mC}°C
+                      Base : {slot.tempAtBaseC > 0 ? `+${slot.tempAtBaseC}` : slot.tempAtBaseC}°C • 2000m : {slot.tempAt2000mC > 0 ? `+${slot.tempAt2000mC}` : slot.tempAt2000mC}°C
                     </div>
                   </div>
                 </div>
@@ -1020,22 +1020,22 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Insolation Pente 30°</div>
-                <div className="text-sm font-black text-amber-400 mt-0.5">{activeVersantDetail.solarIrradianceWm2} W/m²</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-800/80 text-center">
+              <div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Insolation Pente 30°</div>
+                <div className="text-base font-black text-amber-400 mt-0.5">{activeVersantDetail.solarIrradianceWm2} W/m²</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Temp. Surface Neige</div>
-                <div className="text-sm font-black text-sky-400 mt-0.5">{activeVersantDetail.surfaceSnowTempC} °C</div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Temp. Surface Neige</div>
+                <div className="text-base font-black text-sky-400 mt-0.5">{activeVersantDetail.surfaceSnowTempC} °C</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Épaisseur Versant</div>
-                <div className="text-sm font-black text-white mt-0.5">{activeVersantDetail.estimatedSnowDepthCm} cm</div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Épaisseur Versant</div>
+                <div className="text-base font-black text-white mt-0.5">{activeVersantDetail.estimatedSnowDepthCm} cm</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                <div className="text-[10px] uppercase text-slate-400">Pente Critique</div>
-                <div className="text-sm font-black text-rose-400 mt-0.5">&gt; {activeVersantDetail.criticalSlopeAngleDeg}°</div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Pente Critique</div>
+                <div className="text-base font-black text-rose-400 mt-0.5">&gt; {activeVersantDetail.criticalSlopeAngleDeg}°</div>
               </div>
             </div>
           </div>
