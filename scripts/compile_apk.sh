@@ -60,16 +60,13 @@ if [ ! -f "$KEYSTORE" ]; then
 fi
 
 echo "8. Signing APK with apksigner (v1, v2, v3 schemes)..."
-rm -f ./public/Instant-Meteo.apk ./public/Instant-Meteo-France.apk ./public/ClimaFrance-Precision.apk
+mkdir -p ./downloads
 apksigner sign \
   --ks "$KEYSTORE" \
   --ks-pass pass:instantmeteo123 \
   --key-pass pass:instantmeteo123 \
-  --out ./public/Instant-Meteo.apk \
+  --out ./downloads/Instant-Meteo.apk \
   "$BIN_DIR/aligned.apk"
-
-cp ./public/Instant-Meteo.apk ./public/Instant-Meteo-France.apk
-cp ./public/Instant-Meteo.apk ./public/ClimaFrance-Precision.apk
 
 echo "9. Verifying signed APK..."
 apksigner verify --verbose ./public/Instant-Meteo.apk

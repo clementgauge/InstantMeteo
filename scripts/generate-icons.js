@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 async function generateIcons() {
-  const icoPath = path.resolve('public/Instant-Meteo.ico');
+  const icoPath = path.resolve('public/favicon.ico');
   const icon512Path = path.resolve('public/icon-512.png');
   const icon192Path = path.resolve('public/icon-192.png');
 

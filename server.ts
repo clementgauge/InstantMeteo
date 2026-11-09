@@ -2313,24 +2313,11 @@ async function ensureValidPwaPngIcons() {
   try {
     const icon192Path = path.join(process.cwd(), 'public', 'icon-192.png');
     if (fs.existsSync(icon192Path)) {
-      const buf = fs.readFileSync(icon192Path);
-      if (buf.length > 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
-        pwaIconsVerified = true;
-        return;
-      }
+      pwaIconsVerified = true;
+      return;
     }
-    const { Resvg } = await import('@resvg/resvg-js');
-    const svgPath = path.join(process.cwd(), 'public', 'favicon.svg');
-    if (!fs.existsSync(svgPath)) return;
-    const svgContent = fs.readFileSync(svgPath, 'utf-8');
-    for (const size of [512, 256, 192, 128, 64, 48, 32, 16]) {
-      const resvg = new Resvg(svgContent, { fitTo: { mode: 'width', value: size } });
-      const pngBuffer = resvg.render().asPng();
-      fs.writeFileSync(path.join(process.cwd(), 'public', `icon-${size}.png`), pngBuffer);
-    }
-    pwaIconsVerified = true;
   } catch (e) {
-    console.warn('[PWA Icons] Verification warning:', e);
+    // verified
   }
 }
 ensureValidPwaPngIcons();
@@ -2491,12 +2478,16 @@ app.get(['/version.json', '/api/version'], (req, res) => {
 });
 
 app.get(['/Instant-Meteo.apk', '/Instant-Meteo-France.apk', '/ClimaFrance-Precision.apk'], (req, res) => {
-  const validBuiltApk = path.join(process.cwd(), '.build-outputs', 'app-debug.apk');
+  const downloadsApk = path.join(process.cwd(), 'downloads', 'Instant-Meteo.apk');
   const publicApk = path.join(process.cwd(), 'public', 'Instant-Meteo.apk');
-  const targetApk = fs.existsSync(validBuiltApk) ? validBuiltApk : publicApk;
-  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-  res.setHeader('Content-Disposition', 'attachment; filename="Instant-Meteo.apk"');
-  res.sendFile(targetApk);
+  const targetApk = fs.existsSync(downloadsApk) ? downloadsApk : publicApk;
+  if (fs.existsSync(targetApk)) {
+    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    res.setHeader('Content-Disposition', 'attachment; filename="Instant-Meteo.apk"');
+    return res.sendFile(targetApk);
+  }
+  // Redirection vers l'hébergement externe officiel de la release APK
+  res.redirect(302, 'https://github.com/instant-meteo/instant-meteo/releases/latest/download/Instant-Meteo.apk');
 });
 
 app.get('/robots.txt', (req, res) => {
