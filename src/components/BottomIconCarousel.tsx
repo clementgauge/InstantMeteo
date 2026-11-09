@@ -5,18 +5,36 @@ interface BottomIconCarouselProps {
   onOpenRadar?: () => void;
   onOpenAura?: () => void;
   onNavigateDirect?: () => void;
+  onOpenSkyMap?: () => void;
 }
 
 export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
   onOpenRadar,
   onOpenAura,
-  onNavigateDirect
+  onNavigateDirect,
+  onOpenSkyMap
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
   // Éléments du carrousel d'icônes défilant
   const carouselItems = [
+    {
+      id: 'skymap',
+      name: 'SkyMap 3D',
+      subtitle: 'Relief, Ciel & GPS',
+      icon: (
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-md shadow-cyan-500/20 flex items-center justify-center">
+          <div className="w-full h-full bg-slate-950/40 rounded-[14px] flex items-center justify-center">
+            <Compass className="h-5 w-5 text-cyan-300 animate-pulse" />
+          </div>
+        </div>
+      ),
+      badge: '3D VECTEUR',
+      badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      action: () => onOpenSkyMap?.(),
+      isExternal: false
+    },
     {
       id: 'radar',
       name: 'Radar HD',

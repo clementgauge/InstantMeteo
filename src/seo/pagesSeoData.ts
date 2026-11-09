@@ -602,6 +602,45 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
+  '/skymap': {
+    slug: 'skymap',
+    path: '/skymap',
+    canonicalUrl: `${BASE_SITE_URL}/skymap`,
+    title: 'SkyMap 3D — Carte Météo 3D & Ciel en Direct | Instant Météo',
+    description:
+      'Explorez la carte 3D interactive SkyMap avec météo en direct, relief montagneux, nébulosité, radar de pluie et géolocalisation GPS en temps réel.',
+    h1: 'SkyMap 3D — Visualisation météorologique vectorielle et navigation 3D',
+    sectionTitle: 'Cartographie tridimensionnelle, météo locale et géolocalisation haute précision',
+    breadcrumbName: 'SkyMap 3D',
+    tabId: 'skymap',
+    changefreq: 'always',
+    priority: '0.9',
+    introParagraph:
+      'SkyMap 3D offre une expérience immersive de cartographie météorologique en trois dimensions avec géolocalisation GPS en direct, intégration du relief, radar de pluie, zones météo et calculateur d\'itinéraire pas à pas.',
+    sections: [
+      {
+        heading: 'Cartographie 3D vectorielle et données météorologiques en temps réel',
+        body: 'SkyMap 3D combine le rendu vectoriel MapLibre GL avec les données météorologiques ouvertes Open-Meteo et le radar de pluie haute définition RainViewer. Visualisez le relief, les bâtiments 3D et les couches météo avec une fluidité exceptionnelle.',
+      },
+      {
+        heading: 'Géolocalisation GPS et suivi de trajectoire en direct',
+        body: 'Activez la géolocalisation pour centrer instantanément la carte 3D sur votre position réelle, suivre vos déplacements avec boussole d\'orientation et obtenir les conditions du ciel au-dessus de vous.',
+      },
+    ],
+    faq: [
+      {
+        question: 'Comment activer la géolocalisation dans SkyMap 3D ?',
+        answer:
+          'Cliquez sur le bouton "Ma position GPS" en haut de la page ou sur l\'icône de cible sur la carte. Autorisez le navigateur à accéder à votre localisation pour lancer le suivi en temps réel.',
+      },
+      {
+        question: 'Le mode 3D fonctionne-t-il sur mobile et tablette ?',
+        answer:
+          'Oui, SkyMap 3D est compatible avec tous les smartphones, tablettes et ordinateurs supportant WebGL.',
+      },
+    ],
+  },
+
   '/cartes-thematiques': {
     slug: 'cartes-thematiques',
     path: '/cartes-thematiques',
@@ -1867,6 +1906,7 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
   }
 
   const tabToPath: Record<string, string> = {
+    skymap: '/skymap',
     auraAI: '/ia-meteo',
     vigilance: '/vigilances',
     cloudNephology: '/nuages',

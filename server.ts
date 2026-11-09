@@ -88,7 +88,7 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(), microphone=()');
+  res.setHeader('Permissions-Policy', 'geolocation=*, camera=(), microphone=()');
 
   // Route dédiée prioritaire de validation Google Search Console (Google Site Verification HTML file)
   if (req.path.startsWith('/google') && req.path.endsWith('.html')) {

@@ -32,6 +32,16 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
     ]
   },
   {
+    id: 'skymap',
+    number: 2,
+    label: '2. SkyMap 3D — Navigation, Ciel & Relief',
+    description: 'Carte 3D vectorielle interactive, météo en direct, guidage GPS, relief et itinéraires',
+    blocks: [
+      { id: 'skymap_viewer', label: 'Visualiseur SkyMap 3D', description: 'Vue vectorielle 3D avec météo en temps réel et radar' },
+      { id: 'skymap_gps', label: 'Géolocalisation & Guidage GPS', description: 'Suivi de position en direct et orientation' }
+    ]
+  },
+  {
     id: 'cloudNephology',
     number: 2,
     label: '2. Nuages & Observatoire Néphologique 48h',

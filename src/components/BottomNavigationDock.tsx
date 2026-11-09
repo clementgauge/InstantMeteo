@@ -43,6 +43,7 @@ import { isPageVisible } from '../services/displayPreferencesService';
 export type NavTabId = 
   | 'realtime' 
   | 'auraAI'
+  | 'skymap'
   | 'cloudNephology'
   | 'vigilance' 
   | 'mountain'
@@ -147,6 +148,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   // Quick primary actions on the dock (filtrés dynamiquement par préférences de l'utilisateur)
   const allDockItems: { id: NavTabId; label: string; icon: any; shortLabel: string; badge?: string }[] = [
     { id: 'realtime', label: 'Temps Réel', shortLabel: 'Direct', icon: Sun },
+    { id: 'skymap', label: 'SkyMap 3D', shortLabel: 'SkyMap 3D', icon: Compass, badge: '3D' },
     { id: 'cloudNephology', label: 'Nuages & Néphologie', shortLabel: 'Nuages', icon: Cloud, badge: '48h' },
     { id: 'vigilance', label: 'Vigilances', shortLabel: 'Alertes', icon: ShieldAlert, badge: '5m' },
     { id: 'scenarios14d', label: '14 Jours', shortLabel: '14 Jours', icon: Split },
@@ -173,6 +175,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       categoryName: '⚡ Direct, Alertes & Précipitations',
       items: [
         { id: 'realtime', label: '1. Temps Réel & Observatoire Direct', icon: Sun, desc: 'Conditions actuelles, thermo-hygrométrie, vent et relevé de la station' },
+        { id: 'skymap', label: 'SkyMap 3D — Navigation, Ciel & Relief', icon: Compass, desc: 'Carte 3D vectorielle interactive, météo en direct, guidage GPS, relief et itinéraires' },
         { id: 'cloudNephology', label: '2. Observatoire Néphologique & Nuages 48h', icon: Cloud, desc: 'Sondage vertical 0-12000m, décomposition par étage, LCL, base/sommet, givrage & atlas OMM' },
         { id: 'vigilance', label: '3. Vigilances & Alertes Multi-Jours', icon: ShieldAlert, desc: 'Matrice 12 risques actualisée toutes les 5 min' },
         { id: 'radar', label: '4. Radar Précipitations, Feux NASA & Vents Open-Meteo', icon: CloudRain, desc: 'Radar Doppler légal, imagerie feux de forêt NASA FIRMS et vecteurs vents Open-Meteo' },

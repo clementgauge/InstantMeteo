@@ -73,6 +73,7 @@ import { BeachWeatherView } from './views/BeachWeatherView';
 import { DroughtAndFireView } from './views/DroughtAndFireView';
 import { WatercoursesView } from './views/WatercoursesView';
 import { AuraWeatherAiView } from './views/AuraWeatherAiView';
+import { SkyMapView } from './views/SkyMapView';
 import { LegalAndPrivacyModal } from './components/LegalAndPrivacyModal';
 import { PseudoModal } from './components/PseudoModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
@@ -752,31 +753,32 @@ function WeatherApp() {
   };
 
   const categories = [
-    { id: 'ALL', label: 'Toutes les prévisions (16)' },
+    { id: 'ALL', label: 'Toutes les prévisions (18)' },
     { id: 'DIRECT', label: '⚡ Direct, Nuages, Alertes, Neige & Gel (6)' },
     { id: 'MEDIUM', label: '⏱️ 0 à 14 Jours (3)' },
     { id: 'LONG', label: '📅 30 Jours, 8 Mois & Évolution 2000 (3)' },
-    { id: 'MAPS', label: '🗺️ Radar, Carte, Évasion & Monde (4)' },
+    { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Carte & Monde (5)' },
   ];
 
   const navItems = [
     { id: 'realtime', category: 'DIRECT', label: '1. ⚡ Temps Réel & Observatoire Direct', icon: Sun },
-    { id: 'cloudNephology', category: 'DIRECT', label: '2. ☁️ Observatoire Néphologique & Nuages 48h', icon: Cloud, highlight: true },
-    { id: 'vigilance', category: 'DIRECT', label: '3. ⚠️ Vigilances & Alertes Multi-Jours', icon: ShieldAlert, highlight: true },
-    { id: 'scenarios14d', category: 'MEDIUM', label: '4. 📊 Tendances & Scénarios 14 Jours', icon: Split, highlight: true },
-    { id: 'radar', category: 'MAPS', label: '5. 📡 Radar Précipitations, Feux NASA & Vents', icon: CloudRain, highlight: true },
-    { id: 'eightMonths', category: 'LONG', label: '6. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
-    { id: 'historicalTrends', category: 'LONG', label: '7. 📈 Évolution depuis 2000 & Temps Réel (1 min)', icon: History, highlight: true },
-    { id: 'sportsActivities', category: 'MAPS', label: '8. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
-    { id: 'worldDisasters', category: 'MAPS', label: '9. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
-    { id: 'weatherArchive', category: 'LONG', label: '10. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
-    { id: 'bulletin', category: 'MEDIUM', label: '11. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
-    { id: 'competitive', category: 'DIRECT', label: '12. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
-    { id: 'discussionGroup', category: 'DIRECT', label: '13. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
-    { id: 'mountain', category: 'MAPS', label: '14. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
-    { id: 'beaches', category: 'MAPS', label: '15. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
-    { id: 'droughtFire', category: 'DIRECT', label: '16. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
-    { id: 'watercourses', category: 'DIRECT', label: '17. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
+    { id: 'skymap', category: 'MAPS', label: '2. 🗺️ SkyMap 3D — Carte 3D, Ciel & Navigation GPS', icon: Compass, highlight: true },
+    { id: 'cloudNephology', category: 'DIRECT', label: '3. ☁️ Observatoire Néphologique & Nuages 48h', icon: Cloud, highlight: true },
+    { id: 'vigilance', category: 'DIRECT', label: '4. ⚠️ Vigilances & Alertes Multi-Jours', icon: ShieldAlert, highlight: true },
+    { id: 'scenarios14d', category: 'MEDIUM', label: '5. 📊 Tendances & Scénarios 14 Jours', icon: Split, highlight: true },
+    { id: 'radar', category: 'MAPS', label: '6. 📡 Radar Précipitations, Feux NASA & Vents', icon: CloudRain, highlight: true },
+    { id: 'eightMonths', category: 'LONG', label: '7. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
+    { id: 'historicalTrends', category: 'LONG', label: '8. 📈 Évolution depuis 2000 & Temps Réel (1 min)', icon: History, highlight: true },
+    { id: 'sportsActivities', category: 'MAPS', label: '9. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
+    { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
+    { id: 'weatherArchive', category: 'LONG', label: '11. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
+    { id: 'bulletin', category: 'MEDIUM', label: '12. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
+    { id: 'competitive', category: 'DIRECT', label: '13. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
+    { id: 'discussionGroup', category: 'DIRECT', label: '14. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
+    { id: 'mountain', category: 'MAPS', label: '15. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
+    { id: 'beaches', category: 'MAPS', label: '16. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
+    { id: 'droughtFire', category: 'DIRECT', label: '17. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
+    { id: 'watercourses', category: 'DIRECT', label: '18. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
   // Quick navigation helper
@@ -1041,7 +1043,7 @@ function WeatherApp() {
               seniorMode={seniorMode}
             />
 
-            {(activeTab === 'realtime' || !['cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
+            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
               <div className="space-y-4">
                 <RealtimeView
                   station={currentStation}
@@ -1262,6 +1264,14 @@ function WeatherApp() {
               />
             )}
 
+            {activeTab === 'skymap' && (
+              <SkyMapView
+                currentStation={currentStation}
+                onSelectStation={handleSelectStationWithSeo}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
+
             {activeTab === 'communityReports' && (
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
@@ -1398,6 +1408,7 @@ function WeatherApp() {
             onOpenRadar={() => setActiveTab('radar')}
             onOpenAura={() => setIsAuraModalOpen(true)}
             onNavigateDirect={() => setActiveTab('realtime')}
+            onOpenSkyMap={() => setActiveTab('skymap')}
           />
         </div>
         </section>
