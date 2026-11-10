@@ -2518,10 +2518,32 @@ app.get(['/modeles', '/modele', '/modeles-meteo', '/modeles/', '/modele/', '/mod
 // DÉMARRAGE DU SERVEUR EXPRESS & MIDDLEWARE VITE
 // -------------------------------------------------------------
 async function startServer() {
+  const publicPath = path.join(process.cwd(), 'public');
+  const distPath = path.join(process.cwd(), 'dist');
+
+  // Route prioritaire absolue pour SkyMap 3D autonome (servie directement sans passer par Vite ni SPA fallback)
+  app.get([
+    '/assets/aistudio/SkyMap-ligne-bleue-reparee_a36eb9c7.html',
+    '/skymap-embed.html',
+    '/skymap.html'
+  ], (req, res) => {
+    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+    if (fs.existsSync(primaryPath)) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.sendFile(primaryPath);
+    }
+    const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.sendFile(distFilePath);
+  });
+
+  // Servir les fichiers de public/ avant Vite et avant le routeur SPA
+  app.use(express.static(publicPath, { index: false }));
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'custom',
     });
 
     // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
@@ -2541,7 +2563,7 @@ async function startServer() {
       }
 
       // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
-      if (req.method === 'GET' && !req.path.startsWith('/api/') && (req.path === '/' || !req.path.includes('.'))) {
+      if ((req.method === 'GET' || req.method === 'HEAD') && !req.path.startsWith('/api/') && (req.path === '/' || !req.path.includes('.'))) {
         const ua = (req.headers['user-agent'] || '').toLowerCase();
         const isGoogle =
           ua.includes('google') ||

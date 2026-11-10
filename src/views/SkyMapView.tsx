@@ -39,7 +39,7 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
   const [iframeKey, setIframeKey] = useState(0);
 
   // Construct iframe URL with active station coordinates and auto-locate hint
-  const iframeSrc = `/assets/aistudio/SkyMap-ligne-bleue-reparee_a36eb9c7.html#${currentStation.latitude},${currentStation.longitude},15.2,${encodeURIComponent(currentStation.name)}`;
+  const iframeSrc = `/skymap-embed.html#${currentStation.latitude},${currentStation.longitude},15,${encodeURIComponent(currentStation.name)}`;
 
   // Post message helper
   const postToSkyMap = useCallback((message: any) => {
