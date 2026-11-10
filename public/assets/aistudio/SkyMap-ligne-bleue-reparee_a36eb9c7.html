@@ -730,7 +730,7 @@ const DEF = { lat:48.8566, lon:2.3522, name:'Paris' };
 let sel = store.get('sel', DEF);
 let startZoom=upgrading?15.2:clamp(store.get('zoom',15.2),3,19);
 (function fromHash(){
-  const m = /^#(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+)(?:,(.*))?$/.exec(location.hash||'');
+  const m = /^#(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+(?:\.\d+)?)(?:,(.*))?$/.exec(location.hash||'');
   if (m){ sel = { lat:+m[1], lon:+m[2], name: m[4] ? decodeURIComponent(m[4]) : 'Lieu partagé' }; startZoom = +m[3]; }
 })();
 const S = { w:null, air:null, tab:'today', req:0 };

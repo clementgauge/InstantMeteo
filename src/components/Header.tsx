@@ -34,7 +34,8 @@ import {
   Watch,
   Activity,
   Share2,
-  QrCode
+  QrCode,
+  Compass
 } from 'lucide-react';
 import { LocationPoint } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
@@ -81,6 +82,7 @@ interface HeaderProps {
   onToggleFullscreen?: () => void;
   onOpenVigilanceTab?: () => void;
   onOpenRadarTab?: () => void;
+  onOpenSkyMapTab?: () => void;
   onSelectTab?: (tabId: any) => void;
   onOpenAuraModal?: () => void;
   onOpenNotificationsModal?: () => void;
@@ -131,6 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleFullscreen,
   onOpenVigilanceTab,
   onOpenRadarTab,
+  onOpenSkyMapTab,
   onSelectTab,
   onOpenAuraModal,
   onOpenNotificationsModal,
@@ -552,50 +555,75 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Row 4: Three Warning / Status Cards (Alertes & Push, Vigilance 5j, Radar HD) */}
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          {/* Card 1: Alertes & Push (Red) */}
+        {/* Row 4: Four Status Cards (SkyMap 3D, Radar HD, Vigilance 5j, Alertes & Push) */}
+        <div className="grid grid-cols-4 gap-1.5 pt-1">
+          {/* Card 1: SkyMap 3D (Cyan) */}
           <button
-            onClick={onOpenNotificationsModal}
-            className="flex items-center gap-2 p-2.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 shadow-lg shadow-rose-950/30 text-left active:scale-95 transition hover:border-rose-400 cursor-pointer min-w-0"
+            type="button"
+            onClick={() => {
+              if (onOpenSkyMapTab) onOpenSkyMapTab();
+              else if (onSelectTab) onSelectTab('skymap');
+            }}
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 shadow-lg shadow-cyan-950/30 text-left active:scale-95 transition hover:border-cyan-400 cursor-pointer min-w-0"
+            title="Ouvrir SkyMap 3D avec guidage GPS et relief"
           >
-            <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
-              <AlertTriangle className="h-4 w-4" />
+            <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shrink-0">
+              <Compass className="h-3.5 w-3.5 animate-pulse" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold text-white truncate leading-tight">Alertes &amp; Push</div>
-              <div className="text-[9px] text-slate-400 truncate">Restez informé</div>
+              <div className="text-[10px] font-bold text-white truncate leading-tight">SkyMap 3D</div>
+              <div className="text-[8px] text-cyan-300/80 truncate">Ciel &amp; GPS</div>
             </div>
           </button>
 
-          {/* Card 2: Vigilance 5j (Amber) */}
+          {/* Card 2: Radar HD (Teal) */}
           <button
-            onClick={onOpenVigilanceTab}
-            className="flex items-center gap-2 p-2.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 shadow-lg shadow-amber-950/30 text-left active:scale-95 transition hover:border-amber-400 cursor-pointer min-w-0"
-          >
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-              <ShieldAlert className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold text-white truncate leading-tight">Vigilance 5j</div>
-              <div className="text-[9px] text-slate-400 truncate">Cartes officielles</div>
-            </div>
-          </button>
-
-          {/* Card 3: Radar HD (Teal) */}
-          <button
+            type="button"
             onClick={() => {
               if (onOpenRadarTab) onOpenRadarTab();
               else if (onSelectTab) onSelectTab('radar');
             }}
-            className="flex items-center gap-2 p-2.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 shadow-lg shadow-emerald-950/30 text-left active:scale-95 transition hover:border-emerald-400 cursor-pointer min-w-0"
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 shadow-lg shadow-emerald-950/30 text-left active:scale-95 transition hover:border-emerald-400 cursor-pointer min-w-0"
+            title="Radar Doppler des pluies en temps réel"
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-              <Radio className="h-4 w-4" />
+            <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+              <Radio className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold text-white truncate leading-tight">Radar HD</div>
-              <div className="text-[9px] text-slate-400 truncate">En temps réel</div>
+              <div className="text-[10px] font-bold text-white truncate leading-tight">Radar HD</div>
+              <div className="text-[8px] text-slate-400 truncate">Temps réel</div>
+            </div>
+          </button>
+
+          {/* Card 3: Vigilance 5j (Amber) */}
+          <button
+            type="button"
+            onClick={onOpenVigilanceTab}
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-amber-950/40 border border-amber-500/40 shadow-lg shadow-amber-950/30 text-left active:scale-95 transition hover:border-amber-400 cursor-pointer min-w-0"
+            title="Cartes officielles de vigilance Météo-France"
+          >
+            <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+              <ShieldAlert className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold text-white truncate leading-tight">Vigilance</div>
+              <div className="text-[8px] text-slate-400 truncate">12 risques</div>
+            </div>
+          </button>
+
+          {/* Card 4: Alertes & Push (Red) */}
+          <button
+            type="button"
+            onClick={onOpenNotificationsModal}
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-rose-950/40 border border-rose-500/40 shadow-lg shadow-rose-950/30 text-left active:scale-95 transition hover:border-rose-400 cursor-pointer min-w-0"
+            title="Centre d'alertes et notifications météo"
+          >
+            <div className="w-7 h-7 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <AlertTriangle className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold text-white truncate leading-tight">Alertes</div>
+              <div className="text-[8px] text-slate-400 truncate">Push direct</div>
             </div>
           </button>
         </div>
@@ -765,6 +793,22 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Quick SkyMap 3D Launcher on Desktop */}
+          <button
+            id="header-skymap-btn"
+            type="button"
+            onClick={() => {
+              if (onOpenSkyMapTab) onOpenSkyMapTab();
+              else if (onSelectTab) onSelectTab('skymap');
+            }}
+            title="Ouvrir la carte 3D SkyMap avec relief, ciel et géolocalisation"
+            className="flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-200 px-2.5 py-1.5 text-[11px] leading-tight font-bold shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+          >
+            <Compass className="h-3.5 w-3.5 text-cyan-400 animate-pulse shrink-0" />
+            <span className="hidden lg:inline">SkyMap</span>
+            <span className="px-1 py-0.2 rounded-md bg-cyan-500/20 text-cyan-300 text-[9px] border border-cyan-500/30">3D</span>
+          </button>
 
           {/* Mode Simplifié Toggle */}
           {onToggleSimplifiedMode && (

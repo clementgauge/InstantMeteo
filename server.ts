@@ -2570,7 +2570,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    const publicPath = path.join(process.cwd(), 'public');
     const distIndexPath = path.join(distPath, 'index.html');
+    app.use(express.static(publicPath, { index: false }));
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
       if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {

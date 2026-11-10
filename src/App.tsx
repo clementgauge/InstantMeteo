@@ -960,6 +960,7 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
+          onOpenSkyMapTab={() => setActiveTab('skymap')}
           onOpenAuraModal={() => setIsAuraModalOpen(true)}
           onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
@@ -1035,13 +1036,15 @@ function WeatherApp() {
               </div>
             )}
 
-            {/* Direct on-screen weather alert notification banner */}
-            <DirectAlertBanner
-              station={currentStation}
-              weather={weather}
-              onOpenAlerts={() => setActiveTab('vigilance')}
-              seniorMode={seniorMode}
-            />
+            {/* Direct on-screen weather alert notification banner (Temps Réel uniquement) */}
+            {activeTab === 'realtime' && (
+              <DirectAlertBanner
+                station={currentStation}
+                weather={weather}
+                onOpenAlerts={() => setActiveTab('vigilance')}
+                seniorMode={seniorMode}
+              />
+            )}
 
             {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
               <div className="space-y-4">
@@ -1535,6 +1538,14 @@ function WeatherApp() {
                 className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
               >
                 Cartes Thématiques (OSM)
+              </a>
+              <span className="text-slate-700">•</span>
+              <a
+                href="/skymap"
+                onClick={(e) => { e.preventDefault(); setActiveTab('skymap'); window.history.pushState(null, '', '/skymap'); }}
+                className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
+              >
+                SkyMap 3D
               </a>
               <span className="text-slate-700">•</span>
               <a

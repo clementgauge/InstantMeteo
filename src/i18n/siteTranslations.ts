@@ -354,6 +354,45 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     ],
   },
 
+  '/skymap': {
+    slug: 'skymap',
+    path: '/skymap',
+    canonicalUrl: `${BASE_SITE_URL}/skymap`,
+    title: 'SkyMap 3D — Live Weather 3D Map, Relief & GPS | Instant Weather',
+    description:
+      'Explore the interactive 3D SkyMap with real-time weather, mountainous relief, cloud cover, rain radar and live GPS navigation.',
+    h1: 'SkyMap 3D — 3D Vector Weather Map & Real-time GPS Navigation',
+    sectionTitle: 'Interactive 3D Topography, Live Weather Layers and High-Precision Geolocation',
+    breadcrumbName: 'SkyMap 3D',
+    tabId: 'skymap',
+    changefreq: 'always',
+    priority: '0.95',
+    introParagraph:
+      'SkyMap 3D provides an immersive 3D meteorological cartography experience featuring real-time GPS positioning, topographical terrain, Doppler radar overlay, live weather indicators and step-by-step route planning.',
+    sections: [
+      {
+        heading: '3D Vector Cartography and Real-Time Weather Integration',
+        body: 'SkyMap 3D merges MapLibre GL 3D vector rendering with Open-Meteo open weather datasets and RainViewer high-definition Doppler precipitation radar. Explore terrain elevation, 3D extruded urban buildings and dynamic weather layers with ultra-smooth rendering.',
+      },
+      {
+        heading: 'Continuous GPS Geolocation and Compass Orientation',
+        body: 'Activate GPS tracking to follow your location in real time with an orientation cone and precision radius. Weather metrics and rain alerts update continuously as you move.',
+      },
+    ],
+    faq: [
+      {
+        question: 'How do I tilt and rotate the 3D map?',
+        answer:
+          'On mobile devices, drag with two fingers to pitch the camera up to 65 degrees and rotate. On desktop, hold the right mouse button while dragging or use the 3D button in the bottom dock.',
+      },
+      {
+        question: 'Does SkyMap 3D work with live GPS tracking?',
+        answer:
+          'Yes, click the "Ma position GPS" button to locate your position instantly and enable persistent tracking with real-time speed and heading calculation.',
+      },
+    ],
+  },
+
   '/radar': {
     slug: 'radar',
     path: '/radar',

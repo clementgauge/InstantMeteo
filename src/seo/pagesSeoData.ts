@@ -1738,6 +1738,9 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
   const aliases: Record<string, string> = {
     '/accueil': '/',
     '/home': '/',
+    '/skymap3d': '/skymap',
+    '/carte-3d': '/skymap',
+    '/ciel-3d': '/skymap',
     '/aura': '/ia-meteo',
     '/assistant': '/ia-meteo',
     '/assistant-aura': '/ia-meteo',
@@ -1901,6 +1904,9 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
     if (cityCfg) return cityCfg.path;
     return cleanCurrent === '/direct' ? '/direct' : '/';
   }
+  if (tabId === 'skymap') {
+    return '/skymap';
+  }
   if (tabId === 'radar') {
     return cleanCurrent === '/cartes-thematiques' ? '/cartes-thematiques' : '/radar';
   }
@@ -1939,6 +1945,10 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
  * Retourne l'identifiant d'onglet React correspondant à l'URL visitée.
  */
 export function getTabIdForPath(pathname: string): string {
+  const clean = (pathname || '/').split('?')[0].split('#')[0].trim().toLowerCase();
+  if (clean === '/skymap' || clean === '/skymap3d' || clean === '/carte-3d' || clean === '/ciel-3d') {
+    return 'skymap';
+  }
   const seo = getSeoDataForPath(pathname);
   return seo.tabId;
 }

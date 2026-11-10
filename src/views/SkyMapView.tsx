@@ -68,16 +68,6 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
           });
           setIsLocating(false);
           setGpsError(null);
-
-          // Propose updating currentStation if user has moved significantly
-          if (onSelectStation) {
-            try {
-              const locality = await getLocalityFromCoordinates(lat, lon);
-              if (locality && locality.name) {
-                onSelectStation(locality);
-              }
-            } catch (_) {}
-          }
         }
       } else if (event.data.type === 'SKYMAP_GPS_ERROR') {
         setGpsError(event.data.message || 'Signal GPS introuvable.');
@@ -87,7 +77,7 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
 
     window.addEventListener('message', handleWindowMessage);
     return () => window.removeEventListener('message', handleWindowMessage);
-  }, [onSelectStation]);
+  }, []);
 
   // Trigger high-precision geolocation
   const handleLocateMe = useCallback(() => {
@@ -117,16 +107,6 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
             accuracy,
             name: 'Ma position GPS',
           });
-
-          // Sync with parent applet
-          if (onSelectStation) {
-            try {
-              const locality = await getLocalityFromCoordinates(lat, lon);
-              if (locality && locality.name) {
-                onSelectStation(locality);
-              }
-            } catch (_) {}
-          }
         },
         (err) => {
           console.warn('[SkyMap Parent Geolocation] Fallback to iframe listener:', err.message);
@@ -141,7 +121,7 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
       setIsLocating(false);
       setGpsError('La géolocalisation n\'est pas prise en charge par ce navigateur.');
     }
-  }, [postToSkyMap, onSelectStation]);
+  }, [postToSkyMap]);
 
   // Center on current station
   const handleCenterOnStation = useCallback(() => {
