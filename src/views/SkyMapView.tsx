@@ -1,46 +1,22 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { LocationPoint } from '../types/weather';
 
 interface SkyMapViewProps {
-  currentStation: LocationPoint;
+  currentStation?: LocationPoint;
   onSelectStation?: (station: LocationPoint) => void;
   isLightMode?: boolean;
 }
 
-export const SkyMapView: React.FC<SkyMapViewProps> = ({
-  currentStation,
-}) => {
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-
-  // URL directe du fichier autonome avec les coordonnées de la station active
-  const iframeSrc = `/skymap-embed.html#${currentStation.latitude},${currentStation.longitude},15,${encodeURIComponent(currentStation.name)}`;
-
-  // Détection anti-imbrication de sécurité
-  const handleIframeLoad = useCallback(() => {
-    try {
-      if (iframeRef.current && iframeRef.current.contentDocument) {
-        const doc = iframeRef.current.contentDocument;
-        const isOuterApp = doc.getElementById('root') || doc.title.includes('Instant Météo —');
-        if (isOuterApp) {
-          iframeRef.current.contentWindow?.location.replace(iframeSrc);
-        }
-      }
-    } catch (_) {
-      // Safe cross-origin
-    }
-  }, [iframeSrc]);
+export const SkyMapView: React.FC<SkyMapViewProps> = ({ currentStation }) => {
+  useEffect(() => {
+    const hash = currentStation ? `#${currentStation.latitude},${currentStation.longitude},15,${encodeURIComponent(currentStation.name)}` : '';
+    window.location.replace('/skymap' + hash);
+  }, [currentStation]);
 
   return (
-    <div className="w-full h-full min-h-screen bg-black overflow-hidden m-0 p-0">
-      <iframe
-        ref={iframeRef}
-        src={iframeSrc}
-        title="SkyMap 3D — Carte Ciel & Relief"
-        className="w-full h-full min-h-screen border-0 block m-0 p-0"
-        allow="geolocation; camera; microphone; fullscreen; accelerometer; gyroscope; display-capture"
-        loading="eager"
-        onLoad={handleIframeLoad}
-      />
+    <div className="fixed inset-0 z-50 w-screen h-screen bg-black flex flex-col items-center justify-center text-white m-0 p-0">
+      <div className="text-cyan-400 font-bold text-base mb-2 animate-pulse">Ouverture de SkyMap 3D...</div>
+      <p className="text-xs text-slate-400">Redirection vers la carte 3D autonome...</p>
     </div>
   );
 };

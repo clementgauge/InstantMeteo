@@ -104,13 +104,11 @@ import { PWASplashScreen } from './components/PWASplashScreen';
 import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
 
 function WeatherApp() {
-  // Sécurité anti-récursion iframe : si cette application React est chargée dans un iframe (notamment pour SkyMap),
-  // rediriger immédiatement la fenêtre iframe vers le fichier autonome SkyMap 3D pour éviter tout affichage imbriqué.
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.self !== window.top) {
+    if (typeof window !== 'undefined') {
       const p = window.location.pathname.toLowerCase();
-      if (p.includes('skymap') || p.includes('embed') || window.location.hash.includes('locate') || window.location.search.includes('skymap')) {
-        window.location.replace('/skymap-embed.html' + window.location.hash);
+      if (p === '/skymap' || p === '/skymap/' || p === '/skymap3d' || p === '/carte-3d' || p === '/ciel-3d') {
+        window.location.replace('/skymap' + window.location.hash);
       }
     }
   }, []);
@@ -924,27 +922,11 @@ function WeatherApp() {
       />
 
       {activeTab === 'skymap' ? (
-        <div className="fixed inset-0 z-50 w-screen h-screen bg-black overflow-hidden m-0 p-0">
-          {/* Bouton discret flottant de retour vers Instant Météo */}
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('realtime');
-              window.history.pushState(null, '', '/direct');
-            }}
-            className="fixed top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-white text-xs font-bold border border-slate-700/80 shadow-2xl backdrop-blur transition cursor-pointer active:scale-95"
-            title="Retourner à l'accueil Instant Météo"
-          >
-            <ChevronLeft className="w-4 h-4 text-cyan-400" />
-            <span>Instant Météo</span>
-          </button>
-
-          <SkyMapView
-            currentStation={currentStation}
-            onSelectStation={handleSelectStationWithSeo}
-            isLightMode={themeMode === 'light'}
-          />
-        </div>
+        <SkyMapView
+          currentStation={currentStation}
+          onSelectStation={handleSelectStationWithSeo}
+          isLightMode={themeMode === 'light'}
+        />
       ) : (
         <>
           {/* Header */}
@@ -995,9 +977,15 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
-          onOpenSkyMapTab={() => setActiveTab('skymap')}
+          onOpenSkyMapTab={() => { window.location.href = '/skymap'; }}
           onOpenAuraModal={() => setIsAuraModalOpen(true)}
-          onSelectTab={(tabId) => setActiveTab(tabId)}
+          onSelectTab={(tabId) => {
+            if (tabId === 'skymap') {
+              window.location.href = '/skymap';
+              return;
+            }
+            setActiveTab(tabId);
+          }}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
           onOpenStatsModal={() => setIsStatsModalOpen(true)}
@@ -1439,7 +1427,7 @@ function WeatherApp() {
             onOpenRadar={() => setActiveTab('radar')}
             onOpenAura={() => setIsAuraModalOpen(true)}
             onNavigateDirect={() => setActiveTab('realtime')}
-            onOpenSkyMap={() => setActiveTab('skymap')}
+            onOpenSkyMap={() => { window.location.href = '/skymap'; }}
           />
         </div>
         </section>

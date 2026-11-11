@@ -2525,17 +2525,23 @@ async function startServer() {
   app.get([
     '/skymap',
     '/skymap/',
+    '/skymap3d',
+    '/skymap3d/',
+    '/carte-3d',
+    '/carte-3d/',
+    '/ciel-3d',
+    '/ciel-3d/',
     '/assets/aistudio/SkyMap-ligne-bleue-reparee_a36eb9c7.html',
     '/skymap-embed.html',
     '/skymap.html'
   ], (req, res) => {
     const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     if (fs.existsSync(primaryPath)) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
       return res.sendFile(primaryPath);
     }
     const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.sendFile(distFilePath);
   });
 
@@ -2562,6 +2568,16 @@ async function startServer() {
         const cleanPath = req.path.replace(/\/+$/, '');
         const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
         return res.redirect(301, `${cleanPath}${query}`);
+      }
+
+      // Servir directement SkyMap autonome sans jamais le transformer en index.html SPA
+      if (req.path === '/skymap' || req.path === '/skymap/' || req.path === '/skymap3d' || req.path === '/carte-3d' || req.path === '/ciel-3d' || req.path.includes('skymap')) {
+        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        if (fs.existsSync(primaryPath)) {
+          return res.sendFile(primaryPath);
+        }
       }
 
       // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
@@ -2599,6 +2615,14 @@ async function startServer() {
     app.use(express.static(publicPath, { index: false }));
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
+      if (req.path === '/skymap' || req.path === '/skymap/' || req.path === '/skymap3d' || req.path === '/carte-3d' || req.path === '/ciel-3d' || req.path.includes('skymap')) {
+        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+        const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        if (fs.existsSync(primaryPath)) return res.sendFile(primaryPath);
+        return res.sendFile(distFilePath);
+      }
       if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
         return res.redirect(301, '/direct');
       }
