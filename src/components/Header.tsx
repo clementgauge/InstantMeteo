@@ -561,7 +561,8 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => {
-              window.location.href = '/skymap';
+              if (onOpenSkyMapTab) onOpenSkyMapTab();
+              else if (onSelectTab) onSelectTab('skymap');
             }}
             className="flex items-center gap-1.5 p-2 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 shadow-lg shadow-cyan-950/30 text-left active:scale-95 transition hover:border-cyan-400 cursor-pointer min-w-0"
             title="Ouvrir SkyMap 3D avec guidage GPS et relief"
@@ -798,7 +799,8 @@ export const Header: React.FC<HeaderProps> = ({
             id="header-skymap-btn"
             type="button"
             onClick={() => {
-              window.location.href = '/skymap';
+              if (onOpenSkyMapTab) onOpenSkyMapTab();
+              else if (onSelectTab) onSelectTab('skymap');
             }}
             title="Ouvrir la carte 3D SkyMap avec relief, ciel et géolocalisation"
             className="flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-200 px-2.5 py-1.5 text-[11px] leading-tight font-bold shadow-sm transition active:scale-95 cursor-pointer shrink-0"

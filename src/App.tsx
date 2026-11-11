@@ -104,11 +104,13 @@ import { PWASplashScreen } from './components/PWASplashScreen';
 import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
 
 function WeatherApp() {
+  // Sécurité anti-récursion iframe : si cette application React est chargée dans un iframe (notamment pour SkyMap),
+  // rediriger immédiatement la fenêtre iframe vers le fichier autonome SkyMap 3D pour éviter tout affichage imbriqué.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.self !== window.top) {
       const p = window.location.pathname.toLowerCase();
-      if (p === '/skymap' || p === '/skymap/' || p === '/skymap3d' || p === '/carte-3d' || p === '/ciel-3d') {
-        window.location.replace('/skymap' + window.location.hash);
+      if (p.includes('skymap') || p.includes('embed') || window.location.hash.includes('locate') || window.location.search.includes('skymap')) {
+        window.location.replace('/skymap-embed.html' + window.location.hash);
       }
     }
   }, []);
@@ -921,17 +923,9 @@ function WeatherApp() {
         isDirectPage={isDirectPage}
       />
 
-      {activeTab === 'skymap' ? (
-        <SkyMapView
-          currentStation={currentStation}
-          onSelectStation={handleSelectStationWithSeo}
-          isLightMode={themeMode === 'light'}
-        />
-      ) : (
-        <>
-          {/* Header */}
-          <div className="relative z-30 w-full max-w-full">
-            <Header
+      {/* Header */}
+      <div className="relative z-30 w-full max-w-full">
+        <Header
           currentStation={currentStation}
           onSelectStation={handleSelectStationWithSeo}
           seniorMode={seniorMode}
@@ -977,15 +971,9 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
-          onOpenSkyMapTab={() => { window.location.href = '/skymap'; }}
+          onOpenSkyMapTab={() => setActiveTab('skymap')}
           onOpenAuraModal={() => setIsAuraModalOpen(true)}
-          onSelectTab={(tabId) => {
-            if (tabId === 'skymap') {
-              window.location.href = '/skymap';
-              return;
-            }
-            setActiveTab(tabId);
-          }}
+          onSelectTab={(tabId) => setActiveTab(tabId)}
           showFloatingBubble={showFloatingBubble}
           onToggleFloatingBubble={handleToggleFloatingBubble}
           onOpenStatsModal={() => setIsStatsModalOpen(true)}
@@ -1290,6 +1278,13 @@ function WeatherApp() {
               />
             )}
 
+            {activeTab === 'skymap' && (
+              <SkyMapView
+                currentStation={currentStation}
+                onSelectStation={handleSelectStationWithSeo}
+                isLightMode={themeMode === 'light'}
+              />
+            )}
 
             {activeTab === 'communityReports' && (
               <div className="space-y-4">
@@ -1427,7 +1422,7 @@ function WeatherApp() {
             onOpenRadar={() => setActiveTab('radar')}
             onOpenAura={() => setIsAuraModalOpen(true)}
             onNavigateDirect={() => setActiveTab('realtime')}
-            onOpenSkyMap={() => { window.location.href = '/skymap'; }}
+            onOpenSkyMap={() => setActiveTab('skymap')}
           />
         </div>
         </section>
@@ -1817,11 +1812,9 @@ function WeatherApp() {
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}
       />
-        </>
-      )}
 
       {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}
-      {showFloatingBubble && weather && activeTab !== 'skymap' && (
+      {showFloatingBubble && weather && (
         <FloatingWeatherBubble
           station={currentStation}
           weather={weather}
