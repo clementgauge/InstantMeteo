@@ -923,9 +923,33 @@ function WeatherApp() {
         isDirectPage={isDirectPage}
       />
 
-      {/* Header */}
-      <div className="relative z-30 w-full max-w-full">
-        <Header
+      {activeTab === 'skymap' ? (
+        <div className="fixed inset-0 z-50 w-screen h-screen bg-black overflow-hidden m-0 p-0">
+          {/* Bouton discret flottant de retour vers Instant Météo */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('realtime');
+              window.history.pushState(null, '', '/direct');
+            }}
+            className="fixed top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-white text-xs font-bold border border-slate-700/80 shadow-2xl backdrop-blur transition cursor-pointer active:scale-95"
+            title="Retourner à l'accueil Instant Météo"
+          >
+            <ChevronLeft className="w-4 h-4 text-cyan-400" />
+            <span>Instant Météo</span>
+          </button>
+
+          <SkyMapView
+            currentStation={currentStation}
+            onSelectStation={handleSelectStationWithSeo}
+            isLightMode={themeMode === 'light'}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="relative z-30 w-full max-w-full">
+            <Header
           currentStation={currentStation}
           onSelectStation={handleSelectStationWithSeo}
           seniorMode={seniorMode}
@@ -1278,13 +1302,6 @@ function WeatherApp() {
               />
             )}
 
-            {activeTab === 'skymap' && (
-              <SkyMapView
-                currentStation={currentStation}
-                onSelectStation={handleSelectStationWithSeo}
-                isLightMode={themeMode === 'light'}
-              />
-            )}
 
             {activeTab === 'communityReports' && (
               <div className="space-y-4">
@@ -1812,9 +1829,11 @@ function WeatherApp() {
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}
       />
+        </>
+      )}
 
       {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}
-      {showFloatingBubble && weather && (
+      {showFloatingBubble && weather && activeTab !== 'skymap' && (
         <FloatingWeatherBubble
           station={currentStation}
           weather={weather}

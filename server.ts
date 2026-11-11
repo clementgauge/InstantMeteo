@@ -2523,6 +2523,8 @@ async function startServer() {
 
   // Route prioritaire absolue pour SkyMap 3D autonome (servie directement sans passer par Vite ni SPA fallback)
   app.get([
+    '/skymap',
+    '/skymap/',
     '/assets/aistudio/SkyMap-ligne-bleue-reparee_a36eb9c7.html',
     '/skymap-embed.html',
     '/skymap.html'
