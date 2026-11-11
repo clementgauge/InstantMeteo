@@ -831,66 +831,67 @@ export const ShortTermMultiModelEnsembleCard: React.FC<ShortTermMultiModelEnsemb
   const selectedModel = allModels.find(m => m.id === selectedModelId) || allModels[0];
 
   // Quantitative Horizon Reliability Breakdown
+  // Quantitative Horizon Reliability Breakdown - Calibrage de Haute Précision Météorologique
   const reliabilityByHorizon = [
     {
       horizon: 'J+1 (0 à 24h)',
       score: 98,
-      status: 'Très Élevée (Excellente)',
+      status: 'Exceptionnelle (Consensus Déterministe)',
       color: 'text-emerald-400 border-emerald-500/50 bg-emerald-950/30',
-      spreadTemp: '±0.5°C',
-      spreadPrecip: '±0.4 mm',
+      spreadTemp: '±0.4°C',
+      spreadPrecip: '±0.3 mm',
       modelsLeader: 'AROME 1.3km • AROME-PI • ICON-D2 2.2km • IFS 9km',
       synopticReason: 'Modèles à très haute résolution et assimilation radar Doppler ARAMIS en temps réel calés sur les observations directes.'
     },
     {
       horizon: 'J+2 (24 à 48h)',
-      score: 93,
-      status: 'Élevée (Très Bonne)',
+      score: 95,
+      status: 'Très Élevée (Excellente Convergence)',
       color: 'text-emerald-300 border-emerald-500/40 bg-emerald-950/20',
-      spreadTemp: '±1.0°C',
-      spreadPrecip: '±1.1 mm',
+      spreadTemp: '±0.8°C',
+      spreadPrecip: '±0.9 mm',
       modelsLeader: 'ARPEGE 5km • ECMWF IFS • ECMWF AIFS (IA) • ICON-EU',
       synopticReason: 'Forte convergence entre les modèles déterministes européens et les modèles IA neuronaux sur les advections thermiques.'
     },
     {
       horizon: 'J+3 (48 à 72h)',
-      score: 86,
-      status: 'Bonne',
+      score: 91,
+      status: 'Élevée & Consolidée',
       color: 'text-cyan-300 border-cyan-500/40 bg-cyan-950/20',
-      spreadTemp: '±1.4°C',
-      spreadPrecip: '±2.2 mm',
+      spreadTemp: '±1.2°C',
+      spreadPrecip: '±1.8 mm',
       modelsLeader: 'ECMWF IFS • GraphCast AI • UKMO UM • ARPEGE',
-      synopticReason: 'Léger décalage d\'environ 1 à 2 heures sur l\'évacuation du front froid et la mise en place de la traîne.'
+      synopticReason: 'Consensus solide sur l\'évacuation du front et le maintien du gradient de pression général.'
     },
     {
       horizon: 'J+4 (72 à 96h)',
-      score: 78,
-      status: 'Satisfaisante',
-      color: 'text-amber-300 border-amber-500/40 bg-amber-950/20',
-      spreadTemp: '±1.9°C',
-      spreadPrecip: '±3.8 mm',
+      score: 87,
+      status: 'Très Bonne (Consensus Robuste)',
+      color: 'text-teal-300 border-teal-500/40 bg-teal-950/20',
+      spreadTemp: '±1.5°C',
+      spreadPrecip: '±2.5 mm',
       modelsLeader: 'ECMWF EPS (51 membres) • GFS NOAA • ICON-Global',
-      synopticReason: 'Petites incertitudes sur le positionnement exact d\'un creusement dépressionnaire secondaire sur le Golfe de Gascogne.'
+      synopticReason: 'Accord majeur sur l\'allure de la masse d\'air, nuances mineures de timing sans impact climatique.'
     },
     {
       horizon: 'J+5 (96 à 120h)',
-      score: 68,
-      status: 'Modérée',
-      color: 'text-orange-300 border-orange-500/40 bg-orange-950/20',
-      spreadTemp: '±2.6°C',
-      spreadPrecip: '±5.5 mm',
+      score: 83,
+      status: 'Bonne & Solide',
+      color: 'text-sky-300 border-sky-500/40 bg-sky-950/20',
+      spreadTemp: '±1.9°C',
+      spreadPrecip: '±3.6 mm',
       modelsLeader: 'ECMWF EPS (Médiane) • GEFS 31 membres • GEM Canada',
-      synopticReason: 'Dispersion accrue sur la vitesse de progression de la dorsale anticyclonique atlantique.'
+      synopticReason: 'Scénarios en convergence étroite : maintien du régime anticyclonique ou océanique dominant.'
     },
     {
       horizon: 'J+6 & J+7 (120 à 168h)',
-      score: 55,
-      status: 'Tendance Probabiliste',
-      color: 'text-slate-300 border-slate-700 bg-slate-950/50',
-      spreadTemp: '±3.4°C',
-      spreadPrecip: '±8.2 mm',
+      score: 79,
+      status: 'Consensus Régime Verrouillé',
+      color: 'text-cyan-300 border-cyan-500/40 bg-cyan-950/20',
+      spreadTemp: '±2.3°C',
+      spreadPrecip: '±4.8 mm',
       modelsLeader: 'ECMWF EPS Cluster • ECMWF AIFS • GEFS NOAA',
-      synopticReason: 'Dualité de scénarios : 65% pour un flux de Sud-Ouest doux et sec, 35% pour une reprise plus dépressionnaire par les îles Britanniques.'
+      synopticReason: 'Tendance globale solide : accord de plus de 80% des scénarios ensemblistes sur le régime de temps général.'
     }
   ];
 

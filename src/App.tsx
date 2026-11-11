@@ -104,6 +104,17 @@ import { PWASplashScreen } from './components/PWASplashScreen';
 import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
 
 function WeatherApp() {
+  // Sécurité anti-récursion iframe : si cette application React est chargée dans un iframe (notamment pour SkyMap),
+  // rediriger immédiatement la fenêtre iframe vers le fichier autonome SkyMap 3D pour éviter tout affichage imbriqué.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      const p = window.location.pathname.toLowerCase();
+      if (p.includes('skymap') || p.includes('embed') || window.location.hash.includes('locate') || window.location.search.includes('skymap')) {
+        window.location.replace('/skymap-embed.html' + window.location.hash);
+      }
+    }
+  }, []);
+
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
     try {
       if (typeof window !== 'undefined') {

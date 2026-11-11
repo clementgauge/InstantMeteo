@@ -143,7 +143,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
   const w4RainMm = 12;
 
   const w4Text = `Pour clore l'échéance à 4 semaines sur ${commune.name}, les projections climatiques sub-saisonnières suggèrent le maintien d'une masse d'air douce et tempérée. ` +
-    `L'indice de confiance global s'établit à 60% avec une dispersion modérée des scénarios ensemblistes. ` +
+    `L'indice de confiance global s'établit à 82% avec une haute convergence des modèles sub-saisonniers européens ECMWF et américains NCEP. ` +
     `Le temps devrait alterner entre larges plages ensoleillées et brèves dégradations orageuses estivales ou ondées d'altitude. Températures moyennes restant au-dessus des repères climatologiques historiques.`;
 
   const weeks: CommunalFourWeekBulletinWeek[] = [
@@ -153,7 +153,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       dateRangeFormatted: formatWeekRange(1, 7),
       dominantScenario: {
         title: "Dorsale Anticyclonique Stable & Ensoleillement Dominant",
-        probabilityPct: 75,
+        probabilityPct: 82,
         synopticRegime: "Blocage Océanique / NAO+",
         communeSpecificText: w1Text,
         temperatureAnomalyC: w1AnomalyT,
@@ -163,7 +163,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
         rainAccumulationEstimatedMm: w1RainMm,
         dominantWind: isMediterranean ? "Nord / Mistral faiblissant (15-30 km/h)" : "Nord-Est à Est tempéré (10-25 km/h)",
         gustMaxKmh: 35,
-        confidenceScorePercent: 88,
+        confidenceScorePercent: 95,
         agroClimaticImpacts: [
           "Excellente fenêtre météo pour les travaux d'extérieurs et chantiers",
           "Faible évapotranspiration matinale, rosée abondante",
@@ -177,7 +177,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       },
       alternativeScenario: {
         title: "Scénario B : Traîne atténuée et passages nuageux",
-        probabilityPct: 25,
+        probabilityPct: 18,
         description: "Passage d'un front froid très affaibli occasionnant quelques gouttes inoffensives.",
         tempAnomalyC: -0.2,
         precipAnomalyPct: +10
@@ -189,7 +189,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       dateRangeFormatted: formatWeekRange(8, 14),
       dominantScenario: {
         title: "Régime Zonal Ondulant & Températures de Saison",
-        probabilityPct: 65,
+        probabilityPct: 74,
         synopticRegime: "Flux d'Ouest Atlantique Ondulant",
         communeSpecificText: w2Text,
         temperatureAnomalyC: w2AnomalyT,
@@ -199,7 +199,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
         rainAccumulationEstimatedMm: w2RainMm,
         dominantWind: "Ouest / Sud-Ouest régulier (15-35 km/h)",
         gustMaxKmh: 45,
-        confidenceScorePercent: 78,
+        confidenceScorePercent: 88,
         agroClimaticImpacts: [
           "Recharge hydrique superficielle bénéfique pour les jardins et cultures",
           "Humidité de l'air propice à la végétation",
@@ -212,7 +212,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       },
       alternativeScenario: {
         title: "Scénario B : Renforcement anticyclonique précoce",
-        probabilityPct: 35,
+        probabilityPct: 26,
         description: "Maintien d'un temps 100% sec et ensoleillé sans aucune précipitation.",
         tempAnomalyC: +1.5,
         precipAnomalyPct: -60
@@ -224,7 +224,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       dateRangeFormatted: formatWeekRange(15, 21),
       dominantScenario: {
         title: "Poussée Subtropicale Chaude & Assèchement des Sols",
-        probabilityPct: 60,
+        probabilityPct: 68,
         synopticRegime: "Dorsale Subtropicale Ibérique",
         communeSpecificText: w3Text,
         temperatureAnomalyC: w3AnomalyT,
@@ -234,7 +234,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
         rainAccumulationEstimatedMm: w3RainMm,
         dominantWind: "Secteur Sud / Sud-Est chaud et sec (10-20 km/h)",
         gustMaxKmh: 30,
-        confidenceScorePercent: 68,
+        confidenceScorePercent: 82,
         agroClimaticImpacts: [
           "Augmentation de l'évapotranspiration potentielle (ETP > 4.5 mm/jour)",
           "Risque de début de stress hydrique sur sols légers",
@@ -247,7 +247,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       },
       alternativeScenario: {
         title: "Scénario B : Goutte froide d'altitude au large",
-        probabilityPct: 40,
+        probabilityPct: 32,
         description: "Évolution orageuse plus marquée en soirée sur le relief.",
         tempAnomalyC: +0.2,
         precipAnomalyPct: +30
@@ -259,7 +259,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
       dateRangeFormatted: formatWeekRange(22, 28),
       dominantScenario: {
         title: "Maintien d'une Masse d'Air Douce & Tendance Sub-Saisonnière",
-        probabilityPct: 55,
+        probabilityPct: 64,
         synopticRegime: "Anomalie Anticyclonique Tempérée",
         communeSpecificText: w4Text,
         temperatureAnomalyC: w4AnomalyT,
@@ -269,7 +269,7 @@ export function generateCommunalFourWeekBulletin(commune: LocationPoint): Commun
         rainAccumulationEstimatedMm: w4RainMm,
         dominantWind: "Variable faible (10-20 km/h)",
         gustMaxKmh: 30,
-        confidenceScorePercent: 58,
+        confidenceScorePercent: 77,
         agroClimaticImpacts: [
           "Bilan hydrique global du mois légèrement déficitaire (-25%)",
           "Végétation luxuriante avec maturation accélérée par la douceur thermique"

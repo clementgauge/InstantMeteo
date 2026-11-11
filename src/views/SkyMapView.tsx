@@ -134,6 +134,22 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
     });
   }, [postToSkyMap, currentStation]);
 
+  // Anti-nesting safeguard: ensure iframe always displays SkyMap 3D and never the outer React app
+  const handleIframeLoad = useCallback(() => {
+    try {
+      if (iframeRef.current && iframeRef.current.contentDocument) {
+        const doc = iframeRef.current.contentDocument;
+        const isOuterApp = doc.getElementById('root') || doc.title.includes('Instant Météo —');
+        if (isOuterApp) {
+          console.warn('[SkyMap] Nested application detected inside iframe, enforcing /skymap-embed.html');
+          iframeRef.current.contentWindow?.location.replace(iframeSrc);
+        }
+      }
+    } catch (_) {
+      // Safe cross-origin
+    }
+  }, [iframeSrc]);
+
   // Toggle internal fullscreen
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -344,6 +360,7 @@ export const SkyMapView: React.FC<SkyMapViewProps> = ({
           className="w-full h-full border-0 block"
           allow="geolocation; camera; microphone; fullscreen; accelerometer; gyroscope; display-capture"
           loading="eager"
+          onLoad={handleIframeLoad}
         />
       </div>
 

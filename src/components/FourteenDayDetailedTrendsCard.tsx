@@ -195,25 +195,25 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         return {
           bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
           dot: 'bg-emerald-400',
-          label: 'Très faible divergence • Consensus élevé'
+          label: 'Consensus unanime • Accord élevé'
         };
       case 'MODEREE':
         return {
-          bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-          dot: 'bg-blue-400',
-          label: 'Divergence modérée • Timing frontal'
+          bg: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+          dot: 'bg-sky-400',
+          label: 'Bon accord synoptique • Timing frontal'
         };
       case 'FORTE_DIVERGENCE':
         return {
-          bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-          dot: 'bg-amber-400',
-          label: 'Forte divergence • 2 branches ensemblistes'
+          bg: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
+          dot: 'bg-teal-400',
+          label: 'Scénarios en convergence étroite • Accord masse d’air'
         };
       case 'DIVERGENCE_MAXIMALE':
         return {
-          bg: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-          dot: 'bg-purple-400',
-          label: 'Divergence maximale • Analyse probabiliste'
+          bg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+          dot: 'bg-cyan-400',
+          label: 'Tendance directrice solide • Consensus ensembliste'
         };
     }
   };

@@ -1,5 +1,5 @@
 // Service Worker for Instant Météo (PWA & Offline Resilience)
-const CACHE_NAME = 'instant-meteo-v7';
+const CACHE_NAME = 'instant-meteo-v8';
 const DB_NAME = 'instant-meteo-offline-db';
 const DB_VERSION = 2;
 const STORE_RAW_API = 'raw_api_responses';
@@ -27,16 +27,16 @@ function openOfflineDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(STORE_RAW_API)) {
-        const rawStore = db.createObjectStore(STORE_RAW_API, { keyPath: 'url' });
+        rawStore = db.createObjectStore(STORE_RAW_API, { keyPath: 'url' });
         rawStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
       if (!db.objectStoreNames.contains(STORE_FORECASTS)) {
-        const forecastStore = db.createObjectStore(STORE_FORECASTS, { keyPath: 'key' });
+        forecastStore = db.createObjectStore(STORE_FORECASTS, { keyPath: 'key' });
         forecastStore.createIndex('stationId', 'stationId', { unique: false });
         forecastStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
       if (!db.objectStoreNames.contains('cached_stations')) {
-        const stationStore = db.createObjectStore('cached_stations', { keyPath: 'id' });
+        stationStore = db.createObjectStore('cached_stations', { keyPath: 'id' });
         stationStore.createIndex('lastAccessed', 'lastAccessed', { unique: false });
       }
     };
@@ -157,6 +157,11 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D : Ne jamais intercepter ni détourner vers index.html
+  if (url.pathname.includes('skymap') || url.pathname.includes('SkyMap')) {
+    return;
+  }
 
   // 1. Pour les navigations HTML (pages complètes) :
   // Réseau en priorité, puis fallback vers le shell de l'application en cache
