@@ -265,6 +265,33 @@ export default {
       });
     }
 
+    // SkyMap 3D : page autonome servie telle quelle (sans shell React ni injection SEO)
+    if (
+      (request.method === 'GET' || request.method === 'HEAD') &&
+      env.ASSETS &&
+      ['/skymap', '/skymap3d', '/carte-3d', '/ciel-3d', '/skymap.html', '/skymap-embed.html'].includes(path)
+    ) {
+      for (const assetPath of ['/skymap', '/skymap.html', '/skymap-embed.html']) {
+        try {
+          const res = await env.ASSETS.fetch(new Request(new URL(assetPath, request.url).toString(), { method: 'GET' }));
+          const html = res.status === 200 && (res.headers.get('content-type') || '').includes('text/html')
+            ? await res.text()
+            : null;
+          // Vérifie qu'il s'agit bien de SkyMap et non du shell React
+          if (html && html.includes('maplibregl') && !html.includes('SEO_ROOT_START')) {
+            return new Response(request.method === 'HEAD' ? null : html, {
+              status: 200,
+              headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'public, max-age=0, must-revalidate',
+                'X-Content-Type-Options': 'nosniff',
+              },
+            });
+          }
+        } catch (_) {}
+      }
+    }
+
     try {
       // =========================================================================
       // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE

@@ -130,6 +130,15 @@ function prerenderAllRoutes() {
   const allRoutes = Object.keys(SEO_PAGES_MAP);
 
   for (const route of allRoutes) {
+    if (route === '/skymap') {
+      const staleDir = path.join(distDir, 'skymap');
+      if (fs.existsSync(staleDir)) fs.rmSync(staleDir, { recursive: true, force: true });
+      const standalone = path.join(publicDir, 'skymap.html');
+      if (fs.existsSync(standalone)) fs.copyFileSync(standalone, path.join(distDir, 'skymap.html'));
+      console.log('[Prerender SEO] /skymap ignoré : page autonome conservée (dist/skymap.html)');
+      continue;
+    }
+
     const routeHtml = transformHtmlForRoute(cleanTemplateHtml, route);
 
     if (route === '/') {
