@@ -445,8 +445,12 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                         <button
                           key={item.id}
                           onClick={() => {
-                            onSelectTab(item.id as NavTabId);
                             setIsMenuDrawerOpen(false);
+                            if (item.id === 'skymap') {
+                              window.location.href = '/skymap';
+                              return;
+                            }
+                            onSelectTab(item.id as NavTabId);
                           }}
                           className={`flex items-start gap-3 p-3 rounded-2xl border text-left transition ${
                             isActive
@@ -563,7 +567,13 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                   <button
                     key={item.id}
                     id={`dock-tab-${item.id}`}
-                    onClick={() => onSelectTab(item.id)}
+                    onClick={() => {
+                      if (item.id === 'skymap') {
+                        window.location.href = '/skymap';
+                        return;
+                      }
+                      onSelectTab(item.id);
+                    }}
                     className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs transition-all relative shrink-0 active:scale-95 ${
                       getDockItemStyle(item.id, isActive)
                     } ${seniorMode ? 'py-2 px-3 text-sm' : ''}`}

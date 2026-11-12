@@ -31,9 +31,9 @@ export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
         </div>
       ),
       badge: '3D VECTEUR',
-      badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-      action: () => onOpenSkyMap?.(),
-      isExternal: false
+      action: () => {
+        window.location.href = '/skymap';
+      },
     },
     {
       id: 'radar',
