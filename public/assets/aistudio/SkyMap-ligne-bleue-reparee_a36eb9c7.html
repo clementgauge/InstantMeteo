@@ -288,6 +288,167 @@
 @media(max-height:740px) and (max-width:899px){#fabs{top:176px;gap:8px}#fabs .fab{height:35px;width:35px}#fabs .mode-3d{font-size:11px}.route-panel{top:164px;max-height:calc(100dvh - 179px)}.route-panel.has-route:not(.editing){max-height:calc(100dvh - 179px);bottom:10px}.route-heading{margin-bottom:12px}.route-heading h2{font-size:19px}.route-field label{margin-bottom:5px}.route-input{height:40px}.route-between{margin:5px 0 8px}.route-help{margin:8px 0}.route-primary{height:38px}.route-attribution{margin-top:10px}#gpsStatus{top:164px;font-size:9px;max-width:calc(100% - 75px)}#pickHint{top:166px}.maplibregl-ctrl-bottom-left{display:none}.zone-badge{padding:5px 7px 5px 3px;border-radius:11px;gap:4px}.zone-badge .weather-art{width:25px;height:25px}.zone-badge b{font-size:12px}.zone-badge small{font-size:8px}}
 @media(max-height:530px) and (max-width:899px){#fabs{top:auto;bottom:16px;flex-direction:row;left:12px;right:auto}#gpsStatus{top:155px;left:12px;max-width:280px}.route-panel,.route-panel.has-route:not(.editing){left:auto;right:12px;top:12px;bottom:auto;width:340px;max-height:calc(100dvh - 24px)}#pickHint{top:153px;left:12px;width:290px;right:auto}.active-trip{left:12px;bottom:70px}.maplibregl-ctrl-bottom-right{bottom:0}}
 
+/* ===================== LIVE GPS MARKER & 3D CAR COCKPIT ===================== */
+.gps-marker .gps-car{display:none;width:100%;height:100%;filter:drop-shadow(0 8px 14px rgba(14,165,233,0.65)) drop-shadow(0 2px 4px rgba(0,0,0,0.65))}
+.gps-marker.driving{width:54px;height:70px;z-index:20}
+.gps-marker.driving .gps-dot,.gps-marker.driving .gps-heading{display:none}
+.gps-marker.driving .gps-car{display:block}
+.gps-dot{animation:gps-pulse 2.4s ease-out infinite}
+@keyframes gps-pulse{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.65),0 2px 8px #18355177}70%{box-shadow:0 0 0 18px rgba(56,189,248,0),0 2px 8px #18355177}100%{box-shadow:0 0 0 0 rgba(56,189,248,0),0 2px 8px #18355177}}
+#gpsStatus button.retry-gps{background:rgba(56,189,248,0.2);color:#bae6fd;border:1px solid rgba(125,211,252,0.4);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:650;cursor:pointer;margin-left:4px}
+.chip.car-mode-chip{background:linear-gradient(135deg,rgba(16,138,142,0.88),rgba(14,116,144,0.88));border-color:rgba(125,235,232,0.45);color:#ecfeff}
+.chip.car-mode-chip:hover{background:linear-gradient(135deg,rgba(20,164,168,0.95),rgba(14,132,164,0.95))}
+
+/* Driving mode overrides: fullscreen 3D canvas + Cockpit HUD */
+#app.driving-mode #top,
+#app.driving-mode #bottom,
+#app.driving-mode #fabs,
+#app.driving-mode #mapctl,
+#app.driving-mode #activeTrip,
+#app.driving-mode #connectionPill,
+#app.driving-mode #gpsStatus{display:none!important}
+#app.driving-mode .maplibregl-ctrl-bottom-left{bottom:82px;left:16px}
+#app.driving-mode .maplibregl-ctrl-bottom-right{bottom:82px;right:16px}
+#app.driving-mode #layerPanel{top:72px;right:16px;left:auto;z-index:2050}
+#app.driving-mode #routePanel{z-index:2050}
+
+#driveHUD.car-cockpit{position:absolute;inset:0;z-index:1600;width:100%;max-width:none;transform:none;top:0;left:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;pointer-events:none;font-variant-numeric:tabular-nums;color:#f3f8ff}
+#driveHUD.car-cockpit[hidden]{display:none!important}
+.car-cockpit-glass{background:linear-gradient(145deg,rgba(15,38,62,0.82),rgba(9,24,42,0.86));border:1px solid rgba(173,218,248,0.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 14px 36px rgba(2,12,28,0.46)}
+
+/* Top cockpit bar */
+.car-top{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:16px;right:16px;display:flex;align-items:center;gap:12px;pointer-events:none;z-index:10}
+.car-top>*{pointer-events:auto}
+.car-clock-box{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:6px 12px;border-radius:14px;min-width:70px;background:rgba(12,30,50,0.72);border:1px solid rgba(186,225,255,0.18);backdrop-filter:blur(14px)}
+#carClock{font-size:15px;font-weight:700;letter-spacing:-0.3px;line-height:1.15;color:#fff}
+.car-signal{display:flex;align-items:flex-end;gap:2px;margin-top:3px;height:9px}
+.car-signal i{display:block;width:3px;border-radius:1.5px;background:rgba(255,255,255,0.28);transition:background .25s}
+.car-signal i:nth-child(1){height:3px}.car-signal i:nth-child(2){height:5px}.car-signal i:nth-child(3){height:7px}.car-signal i:nth-child(4){height:9px}
+.car-signal.s1 i:nth-child(1){background:#fbbf24}
+.car-signal.s2 i:nth-child(1),.car-signal.s2 i:nth-child(2){background:#7dd3fc}
+.car-signal.s3 i:nth-child(1),.car-signal.s3 i:nth-child(2),.car-signal.s3 i:nth-child(3){background:#34d399}
+.car-signal.s4 i{background:#34d399}
+.car-search-wrap{position:relative;flex:1;max-width:440px}
+.car-search-box{display:flex;align-items:center;gap:9px;height:42px;padding:0 14px;border-radius:999px;background:rgba(13,34,56,0.78);border:1px solid rgba(186,225,255,0.25);backdrop-filter:blur(18px);box-shadow:0 8px 24px rgba(3,16,32,0.34)}
+.car-search-box svg{width:17px;height:17px;color:#b8d7ee;flex:none}
+.car-search-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#f3f9ff;font-size:13px}
+.car-search-box input::placeholder{color:#9ab8d0}
+.car-search-clear{border:0!important;background:none!important;color:#9dc0da!important;padding:4px!important;display:grid;place-items:center}
+.car-suggestions{position:absolute;top:48px;left:0;right:0;max-height:52vh;overflow-y:auto;border-radius:18px;background:rgba(13,31,50,0.96);border:1px solid rgba(180,218,248,0.28);backdrop-filter:blur(22px);box-shadow:0 20px 50px rgba(2,12,24,0.68);z-index:40}
+.car-suggestions[hidden]{display:none!important}
+.car-suggestions button{width:100%;display:flex;align-items:center;gap:10px;padding:11px 14px;border:0!important;border-bottom:1px solid rgba(180,218,248,0.12)!important;border-radius:0!important;background:transparent!important;text-align:left;color:#eff7ff!important}
+.car-suggestions button:hover{background:rgba(56,189,248,0.16)!important}
+.car-suggestions small{display:block;color:#99b8d0;font-size:11px;margin-top:2px}
+.car-top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.car-round-btn{width:40px;height:40px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;background:rgba(14,35,58,0.78)!important;border:1px solid rgba(186,225,255,0.24)!important;color:#ecf6ff!important;backdrop-filter:blur(16px)}
+.car-round-btn:hover{background:rgba(28,64,98,0.88)!important}
+.car-round-btn svg{width:19px;height:19px}
+.car-exit-pill{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 13px!important;border-radius:999px!important;background:rgba(14,35,58,0.82)!important;border:1px solid rgba(186,225,255,0.26)!important;color:#e4f2ff!important;font-size:12px;font-weight:600;text-decoration:none;backdrop-filter:blur(16px)}
+
+/* Left sidebar rail */
+.car-dock{position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:20px;pointer-events:auto;z-index:8}
+.car-dock button{width:44px;height:44px;padding:0!important;border-radius:14px!important;border:1px solid transparent!important;background:rgba(180,215,245,0.06)!important;color:#c3dbef!important;display:grid;place-items:center}
+.car-dock button:hover{background:rgba(180,215,245,0.16)!important;color:#fff!important}
+.car-dock button.active{background:linear-gradient(135deg,#2dd4bf,#0ea5e9)!important;color:#052230!important;box-shadow:0 6px 18px rgba(20,184,166,0.45)}
+.car-dock button svg{width:20px;height:20px}
+
+/* Top-left Turn-by-Turn Emerald Card */
+.car-maneuver{position:absolute;top:calc(env(safe-area-inset-top) + 68px);left:84px;width:min(330px,calc(100vw - 108px));border-radius:20px;background:linear-gradient(135deg,rgba(15,118,110,0.92),rgba(11,76,94,0.89));border:1px solid rgba(125,235,224,0.38);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 16px 38px rgba(4,24,38,0.48);overflow:hidden;pointer-events:auto;z-index:8}
+.car-maneuver-main{display:flex;align-items:center;gap:14px;padding:15px 16px 12px}
+.car-turn-icon{width:50px;height:50px;flex:none;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,0.12);color:#fff}
+.car-turn-icon svg{width:34px;height:34px}
+.car-maneuver-copy{min-width:0;flex:1}
+.car-maneuver-dist{font-size:28px;font-weight:750;line-height:1.05;letter-spacing:-0.8px;color:#fff}
+#driveInstruction{font-size:13.5px;font-weight:600;color:#d6faf4;margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#driveRemaining.car-maneuver-sub{font-size:11px;font-weight:500;color:#99e4db;margin-top:4px}
+.car-maneuver-lanes{display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 14px;background:rgba(6,44,54,0.45);border-top:1px solid rgba(160,245,238,0.18);font-size:12px;color:#cbeee9}
+.car-maneuver-lanes .lane-arrow{opacity:.42;display:grid;place-items:center}
+.car-maneuver-lanes .lane-arrow.active{opacity:1;color:#fff;transform:scale(1.12)}
+.car-maneuver-lanes svg{width:19px;height:19px}
+.car-pick-dest-btn{border:0!important;background:rgba(255,255,255,0.16)!important;color:#fff!important;border-radius:9px!important;padding:5px 12px!important;font-size:11.5px;font-weight:650}
+
+/* Right Translucent Weather & Radar Panel */
+.car-weather{position:absolute;top:calc(env(safe-area-inset-top) + 68px);right:16px;bottom:84px;width:296px;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;scrollbar-width:none;pointer-events:auto;z-index:8;transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
+.car-weather::-webkit-scrollbar{display:none}
+.car-weather.collapsed{opacity:0;pointer-events:none;transform:translateX(20px)}
+.car-wx-head{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:650;color:#eff7ff}
+.car-wx-head-title{display:flex;align-items:center;gap:7px}
+.car-wx-head button{border:0!important;background:transparent!important;color:#b2d4ec!important;padding:2px 6px!important;display:grid;place-items:center}
+.car-wx-now{display:flex;align-items:center;gap:12px;padding:2px 2px 4px}
+.car-wx-ico{width:54px;height:54px;flex:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.35))}
+.car-wx-temp{font-size:36px;font-weight:650;letter-spacing:-1.2px;line-height:1;color:#fff}
+.car-wx-cond{min-width:0;flex:1}
+.car-wx-cond b{display:block;font-size:14px;font-weight:650;color:#f3f9ff}
+.car-wx-cond span{display:block;font-size:11.5px;color:#a5cae2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.car-wx-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.car-wx-tile{padding:9px 10px;border-radius:13px;background:rgba(170,215,245,0.09);border:1px solid rgba(185,225,255,0.16);display:flex;align-items:center;gap:8px;min-width:0}
+.car-wx-tile svg{width:19px;height:19px;color:#5dd7ff;flex:none}
+.car-wx-tile small{display:block;font-size:10px;color:#9fc0d8}
+.car-wx-tile b{display:block;font-size:12.5px;font-weight:650;color:#f5fbff;margin-top:1px;white-space:nowrap}
+.car-wx-tile em{display:block;font-style:normal;font-size:10px;color:#8cb2cc}
+.car-radar-card{border-radius:15px;padding:10px;background:rgba(170,215,245,0.08);border:1px solid rgba(185,225,255,0.18);cursor:pointer;text-align:left;width:100%}
+.car-radar-card:hover{background:rgba(170,215,245,0.14)}
+.car-radar-preview{position:relative;height:86px;margin-top:8px;border-radius:11px;overflow:hidden;background:radial-gradient(circle at 50% 50%,#1b3e5a,#0b1c30);border:1px solid rgba(155,212,248,0.2)}
+.car-radar-base,.car-radar-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.car-radar-base{opacity:.55;filter:saturate(0.75) contrast(1.08)}
+.car-radar-overlay{opacity:.88;mix-blend-mode:screen}
+.car-radar-dot{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:3px solid #0ea5e9;box-shadow:0 0 0 6px rgba(56,189,248,0.32),0 2px 8px rgba(0,0,0,0.6)}
+.car-radar-badge{position:absolute;left:7px;bottom:6px;padding:2px 7px;border-radius:999px;background:rgba(7,20,36,0.78);color:#cceaff;font-size:9.5px;font-weight:600;border:1px solid rgba(160,215,250,0.2)}
+.car-hours-box{border-radius:15px;padding:10px;background:rgba(170,215,245,0.07);border:1px solid rgba(185,225,255,0.14);margin-top:auto}
+.car-hours-title{font-size:11.5px;font-weight:650;color:#e1f1ff;margin-bottom:8px}
+.car-hours-title span{font-weight:500;color:#99bbd3;font-size:10.5px}
+.car-hours-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;text-align:center}
+.car-hour-col{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
+.car-hour-col span{font-size:10px;color:#9fc1d9}
+.car-hour-col .weather-art{width:26px;height:26px}
+.car-hour-col b{font-size:12px;font-weight:650;color:#f5fbff}
+
+/* Bottom Cockpit Strip */
+.car-bottom{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;align-items:stretch;justify-content:space-between;gap:12px;pointer-events:none;z-index:10}
+.car-bottom>*{pointer-events:auto}
+.car-trip-bar{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:18px;flex:1;max-width:650px;min-width:0}
+.car-eta-group{display:flex;flex-direction:column;line-height:1.1;padding-right:12px;border-right:1px solid rgba(180,220,248,0.18)}
+.car-eta-group span{font-size:10px;color:#9bc0da}
+.car-eta-group strong{font-size:21px;font-weight:750;color:#fff;margin-top:2px}
+.car-trip-dur{font-size:16px;font-weight:700;color:#34d399;white-space:nowrap}
+.car-trip-dist{font-size:14.5px;font-weight:600;color:#e3f1ff;white-space:nowrap;padding-right:12px;border-right:1px solid rgba(180,220,248,0.18)}
+.car-trip-wx{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#cde4f5;min-width:0;flex:1;line-height:1.25}
+.car-trip-wx .weather-art{width:24px;height:24px;flex:none}
+.car-trip-actions{display:flex;align-items:center;gap:7px;margin-left:auto;flex:none}
+.car-trip-actions button{height:34px;padding:0 11px!important;border-radius:10px!important;border:1px solid rgba(175,218,248,0.26)!important;background:rgba(165,210,245,0.12)!important;color:#eef7ff!important;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.car-trip-actions button:hover{background:rgba(165,210,245,0.24)!important}
+.car-trip-actions button.sim-on{background:rgba(20,184,166,0.28)!important;border-color:rgba(94,234,212,0.55)!important;color:#ccfbf1!important}
+.car-trip-actions button.stop-btn{background:rgba(239,68,68,0.2)!important;border-color:rgba(248,113,113,0.45)!important;color:#fecaca!important}
+.car-alert-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:18px;max-width:390px;cursor:pointer;text-align:left;color:#f3f9ff}
+.car-alert-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:rgba(250,204,21,0.18);color:#facc15;flex:none}
+.car-alert-bar.calm .car-alert-icon{background:rgba(52,211,153,0.18);color:#34d399}
+.car-alert-bar strong{display:block;font-size:12px;font-weight:700;color:#fde68a;white-space:nowrap}
+.car-alert-bar.calm strong{color:#a7f3d0}
+.car-alert-bar span{display:block;font-size:11.5px;color:#d6e9f8;line-height:1.25}
+
+@media(max-width:920px){
+  .car-maneuver{left:74px;width:min(300px,calc(100vw - 90px))}
+  .car-weather{width:264px}
+  .car-bottom{flex-direction:column;align-items:stretch;gap:8px}
+  .car-trip-bar,.car-alert-bar{max-width:none}
+}
+@media(max-width:680px){
+  .car-top{left:10px;right:10px;gap:8px}
+  .car-clock-box{min-width:58px;padding:5px 9px}
+  #carClock{font-size:13px}
+  .car-dock{left:10px;top:auto;bottom:calc(env(safe-area-inset-bottom) + 152px);transform:none;padding:6px;gap:6px;border-radius:16px}
+  .car-dock button{width:38px;height:38px;border-radius:11px!important}
+  .car-maneuver{left:10px;right:10px;width:auto;top:calc(env(safe-area-inset-top) + 64px)}
+  .car-maneuver-main{padding:11px 13px;gap:11px}
+  .car-turn-icon{width:42px;height:42px}
+  .car-maneuver-dist{font-size:23px}
+  .car-weather{left:10px;right:10px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 146px);max-height:54dvh}
+  .car-trip-bar{flex-wrap:wrap;gap:8px 10px;padding:9px 11px}
+  .car-trip-dist{border-right:0;padding-right:0}
+  .car-trip-wx{flex-basis:100%;order:5}
+  .car-alert-bar{padding:8px 12px}
+  .car-exit-pill span{display:none}
+}
 </style>
 <!-- MapLibre GL JS license
 Copyright (c) 2023, MapLibre contributors
@@ -435,12 +596,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <button class="chip map-chip" id="chipMap" aria-label="Choisir le fond de carte"><svg class="ic " aria-hidden="true"><use href="#i-map"/></svg><span>Carte</span></button>
       <button class="chip weather-chip" data-layer="cloud" aria-pressed="true"><svg class="ic " aria-hidden="true"><use href="#i-rain"/></svg><span>Météo</span><span class="chip-check"><svg class="ic " aria-hidden="true"><use href="#i-check"/></svg></span></button>
       <button class="chip route-chip" id="routeBtn" aria-label="Préparer un trajet" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-route"/></svg><span>Trajet</span></button>
+      <button class="chip car-mode-chip" id="carModeBtn" aria-label="Activer la vue voiture 3D"><svg class="ic" aria-hidden="true"><use href="#i-car"/></svg><span>Voiture</span></button>
       <button class="chip" id="moreBtn" aria-label="Plus de couches et d’options"><svg class="ic " aria-hidden="true"><use href="#i-more"/></svg><span>Plus</span></button>
     </nav>
   </header>
 
   <aside class="connection-pill" id="connectionPill" aria-live="polite"><span class="status-dot"></span><span id="dataStatus">Connexion à la météo…</span></aside>
-  <div id="gpsStatus" hidden role="status"><span class="status-dot"></span><span id="gpsText"></span><button id="stopGps" aria-label="Arrêter la localisation"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div id="gpsStatus" hidden role="status"><span class="status-dot"></span><span id="gpsText"></span><button id="retryGps" class="retry-gps" hidden type="button">Réessayer</button><button id="stopGps" aria-label="Arrêter la localisation"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
 <div id="fabs" aria-label="Commandes de la carte">
 <button class="fab mode-3d" id="mode3d" aria-label="Activer ou désactiver la carte en 3D" aria-pressed="true">3D</button>
     <button class="fab compass" id="northBtn" aria-label="Orienter la carte vers le nord"><span>N</span><svg class="ic " aria-hidden="true"><use href="#i-compass"/></svg></button>
@@ -511,7 +673,97 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <p class="route-attribution">Adresses © OpenStreetMap · Calcul OSRM</p>
   </section>
 
-  <div id="driveHUD" hidden role="status" aria-live="polite"><div class="drive-hud-top"><strong>🚘 Navigation en cours</strong><button id="driveStop" aria-label="Arrêter le guidage">Terminer</button></div><div id="driveRemaining">Recherche de votre position…</div><div id="driveInstruction">Suivez la ligne bleue · recalcul automatique si vous changez de route</div><button id="driveRecenter">⌖ Recentrer</button></div>
+  <section id="driveHUD" class="car-cockpit" hidden role="region" aria-label="Vue voiture trajet en direct">
+    <div class="car-top">
+      <div class="car-clock-box" title="Heure locale &amp; signal GPS">
+        <time id="carClock">--:--</time>
+        <div class="car-signal s2" id="carGpsBars" aria-label="Signal GPS"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="car-search-wrap">
+        <div class="car-search-box">
+          <svg aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="carQ" type="search" placeholder="Rechercher un lieu, une adresse..." autocomplete="off" spellcheck="false" aria-label="Rechercher une destination en vue voiture">
+          <button id="carSearchGo" class="car-search-clear" type="button" aria-label="Lancer la recherche"><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        </div>
+        <div id="carSuggestions" class="car-suggestions" role="listbox" hidden></div>
+      </div>
+      <div class="car-top-actions">
+        <button class="car-round-btn" id="carLayersBtn" type="button" aria-label="Fonds de carte et couches"><svg aria-hidden="true"><use href="#i-layers"/></svg></button>
+        <button class="car-round-btn" id="carFullscreenBtn" type="button" aria-label="Plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+        <a href="/direct" class="car-exit-pill" title="Retourner à Instant Météo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg><span>Instant Météo</span></a>
+      </div>
+    </div>
+
+    <nav class="car-dock car-cockpit-glass" aria-label="Raccourcis vue voiture">
+      <button id="carDockNav" class="active" type="button" aria-label="Navigation et recentrage GPS" title="Navigation / Recentrer"><svg aria-hidden="true"><use href="#i-locate"/></svg></button>
+      <button id="carDockMap" type="button" aria-label="Cartes et couches 3D" title="Carte et couches"><svg aria-hidden="true"><use href="#i-map"/></svg></button>
+      <button id="carDockWeather" class="active" type="button" aria-label="Afficher ou masquer la météo" title="Météo &amp; Radar"><svg aria-hidden="true"><use href="#i-cloud"/></svg></button>
+      <button id="carDockFav" type="button" aria-label="Mes lieux favoris" title="Mes lieux favoris"><svg aria-hidden="true"><use href="#i-star"/></svg></button>
+      <button id="carDockSettings" type="button" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.82 1 1.48 1.04H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51.96Z"/></svg></button>
+    </nav>
+
+    <div class="car-maneuver" id="carManeuver" role="status" aria-live="polite">
+      <div class="car-maneuver-main">
+        <div class="car-turn-icon" id="carTurnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg></div>
+        <div class="car-maneuver-copy">
+          <div class="car-maneuver-dist" id="carStepDist">GPS Actif</div>
+          <div id="driveInstruction">Position en direct sur carte 3D</div>
+          <div id="driveRemaining" class="car-maneuver-sub">Suivi temps réel activé</div>
+        </div>
+      </div>
+      <div class="car-maneuver-lanes" id="carLanes">
+        <button type="button" id="carChooseDestBtn" class="car-pick-dest-btn">+ Choisir une destination</button>
+      </div>
+    </div>
+
+    <aside class="car-weather car-cockpit-glass" id="carWeatherPanel" aria-label="Météo et radar du trajet">
+      <div class="car-wx-head">
+        <span class="car-wx-head-title"><svg class="ic" aria-hidden="true"><use href="#i-cloud"/></svg>Météo</span>
+        <button id="carExpandWeather" type="button" aria-label="Voir les prévisions complètes"><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+      </div>
+      <div class="car-wx-now">
+        <div class="car-wx-ico" id="carWIcon"><svg class="weather-art" aria-hidden="true"><use href="#weather-partly"/></svg></div>
+        <div class="car-wx-temp" id="carWTemp">--°C</div>
+        <div class="car-wx-cond"><b id="carWDesc">Chargement…</b><span id="carWRainSub">Analyse locale</span></div>
+      </div>
+      <div class="car-wx-stats">
+        <div class="car-wx-tile"><svg aria-hidden="true"><use href="#i-drop"/></svg><div><small>Pluie</small><b id="carRainVal">-- mm/h</b></div></div>
+        <div class="car-wx-tile"><svg aria-hidden="true"><use href="#i-wind"/></svg><div><small>Vent</small><b id="carWindVal">-- km/h</b><em id="carWindDir">--</em></div></div>
+      </div>
+      <button class="car-radar-card" id="carRadarCard" type="button" aria-label="Basculer le radar de pluie sur la carte">
+        <div class="car-wx-head"><span class="car-wx-head-title"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg>Radar pluie</span><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></div>
+        <div class="car-radar-preview" id="carRadarPreview">
+          <img class="car-radar-base" id="carRadarBaseImg" alt="" loading="lazy">
+          <img class="car-radar-overlay" id="carRadarRainImg" alt="" loading="lazy" hidden>
+          <span class="car-radar-dot" id="carRadarDot" aria-hidden="true"></span>
+          <span class="car-radar-badge" id="carRadarStatus">Radar en direct</span>
+        </div>
+      </button>
+      <div class="car-hours-box">
+        <div class="car-hours-title">Prévisions <span>(prochaines heures)</span></div>
+        <div class="car-hours-grid" id="carHourlyRow"></div>
+      </div>
+    </aside>
+
+    <div class="car-bottom">
+      <div class="car-trip-bar car-cockpit-glass">
+        <div class="car-eta-group"><span>Arrivée</span><strong id="carEta">--:--</strong></div>
+        <div class="car-trip-dur" id="carDurRemain">-- min</div>
+        <div class="car-trip-dist" id="carDistRemain">-- km</div>
+        <div class="car-trip-wx" id="carTripWeather"><svg class="weather-art" aria-hidden="true"><use href="#weather-cloud"/></svg><span>Météo locale en direct</span></div>
+        <div class="car-trip-actions">
+          <button id="carSimBtn" type="button" hidden title="Aperçu animé du trajet">▶ Aperçu</button>
+          <button id="driveRecenter" type="button" aria-label="Recentrer sur ma position">⌖</button>
+          <button id="driveStop" class="stop-btn" type="button" aria-label="Quitter la vue voiture">Terminer</button>
+        </div>
+      </div>
+      <button class="car-alert-bar car-cockpit-glass calm" id="carAlertBar" type="button" aria-label="Voir le détail des alertes météo">
+        <div class="car-alert-icon"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg></div>
+        <div style="min-width:0;flex:1"><strong id="carAlertTitle">Conditions météo</strong><span id="carAlertText">Chargement des conditions…</span></div>
+        <svg class="ic" style="width:15px;height:15px;opacity:.7;flex:none" aria-hidden="true"><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+  </section>
   <div id="modal" role="dialog" aria-modal="true" aria-label="Options SkyMap"><div class="mcard"><div id="modalBody"></div></div></div>
   <div id="toast" role="status" aria-live="polite"></div>
 </main>
@@ -787,10 +1039,10 @@ function initMapLayers(){
   putLayer({id:'sky-accuracy-line',type:'line',source:'sky-accuracy',paint:{'line-color':'#399df9','line-opacity':.7,'line-width':1.3}});
   // Les lignes restent au-dessus des fonds, des zones météo et des routes du style.
   putLayer({id:'sky-route-alt',type:'line',source:'sky-route-alt',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#849bb4','line-width':['interpolate',['linear'],['zoom'],5,2.5,12,4,17,6],'line-opacity':.68,'line-dasharray':[2,2]}});
-  putLayer({id:'sky-route-shadow',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#071a35','line-width':['interpolate',['linear'],['zoom'],5,8,12,12,17,16],'line-opacity':.4}});
-  putLayer({id:'sky-route-halo',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],5,6,12,9,17,12],'line-opacity':.96}});
-  putLayer({id:'sky-route-line',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#087cff','line-width':['interpolate',['linear'],['zoom'],5,3.5,12,6,17,8],'line-opacity':1}});
-  putLayer({id:'sky-route-core',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#5dd7ff','line-width':['interpolate',['linear'],['zoom'],5,.6,12,1.2,17,1.8],'line-opacity':.85}});
+  putLayer({id:'sky-route-shadow',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#021329','line-width':['interpolate',['linear'],['zoom'],5,10,12,15,17,22],'line-opacity':.45}});
+  putLayer({id:'sky-route-halo',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#38bdf8','line-width':['interpolate',['linear'],['zoom'],5,7,12,11,17,15],'line-opacity':.75}});
+  putLayer({id:'sky-route-line',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#0888ff','line-width':['interpolate',['linear'],['zoom'],5,4,12,7,17,10],'line-opacity':1}});
+  putLayer({id:'sky-route-core',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#a5f3fc','line-width':['interpolate',['linear'],['zoom'],5,1,12,2.2,17,3.5],'line-opacity':.95}});
   setSelMarker();if(GPS.fix)drawGPS();renderRoute();drawField();renderPills();applyRadarVisibility();scheduleGrid();
 }
 function setSelMarker(){
@@ -888,7 +1140,7 @@ function setLayer(name){
 /* ===================== RADAR OBSERVÉ ===================== */
 const RAD={frames:[],host:'',idx:0,cur:null,pending:null,playing:false,speed:1,ver:0,cancel:null};
 const hmFromTs=t=>new Date(t*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-async function loadRadar(){try{const d=await getJSON('https://api.rainviewer.com/public/weather-maps.json');RAD.host=d.host;RAD.frames=d.radar?.past||[];RAD.idx=Math.max(0,RAD.frames.length-1);$('slider').max=RAD.idx;$('slider').value=RAD.idx;if(!RAD.frames.length)throw new Error('Aucune image');if(cfg.layer==='radar')await showFrame(RAD.idx);}catch(e){$('lgUnit').textContent='Radar indisponible';$('frameTime').textContent='--:--';if(cfg.layer==='radar')toast('Le radar est indisponible. Les zones météo restent accessibles.');}}
+async function loadRadar(){try{const d=await getJSON('https://api.rainviewer.com/public/weather-maps.json');RAD.host=d.host;RAD.frames=d.radar?.past||[];RAD.idx=Math.max(0,RAD.frames.length-1);$('slider').max=RAD.idx;$('slider').value=RAD.idx;if(!RAD.frames.length)throw new Error('Aucune image');if(cfg.layer==='radar')await showFrame(RAD.idx);if(DRIVE.active)renderCarCockpit();}catch(e){$('lgUnit').textContent='Radar indisponible';$('frameTime').textContent='--:--';if(cfg.layer==='radar')toast('Le radar est indisponible. Les zones météo restent accessibles.');}}
 function dropRadar(id){if(!map||!id)return;if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id);}
 function cancelRadarPending(){if(RAD.cancel)RAD.cancel();RAD.cancel=null;RAD.pending=null;}
 function removeRadar(){cancelRadarPending();dropRadar(RAD.cur);RAD.cur=null;}
@@ -1045,6 +1297,7 @@ function renderAll(){
   const nc = $('nowcast'); nc.className = 'nowcast' + (w.now.type!=='dry' ? ' rain' : '');
   nc.textContent = (w.now.type==='dry' ? '☀️ ' : '🌧️ ') + w.now.text;
   renderToday(); renderHours(); renderDays(); renderAir(); updateBadge(); renderOverview();
+  if (typeof renderCarCockpit === 'function' && DRIVE.active) renderCarCockpit();
 }
 function updateFav(){const fav=isFav(sel);$('favBtn').innerHTML=icon('star');$('favBtn').setAttribute('aria-pressed',String(fav));$('favBtn').setAttribute('aria-label',fav?'Retirer des favoris':'Ajouter aux favoris');}
 function renderOverview(){
@@ -1062,6 +1315,7 @@ function renderOverview(){
   $('placeKicker').textContent=S.offline?'DONNÉES EN MÉMOIRE':'CONDITIONS À '+hhmm(c.time);
   $('dataStatus').textContent=(S.offline?'Hors ligne · ':'Météo actualisée à ')+hhmm(c.time);
   $('connectionPill').dataset.offline=String(!!S.offline);
+  if (typeof renderCarCockpit === 'function' && DRIVE.active) renderCarCockpit();
 }
 function sunCard(d0, nowStr){
   if (!d0 || !d0.sunrise || !d0.sunset) return '';
@@ -1179,44 +1433,71 @@ async function reverseName(lat,lon){
   try{const d=await geocodeJSON('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=fr&lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5)),a=d.address||{};return [a.house_number,a.road].filter(Boolean).join(' ')||a.city||a.town||a.village||a.suburb||d.name||lat.toFixed(5)+', '+lon.toFixed(5);}catch(e){return lat.toFixed(5)+', '+lon.toFixed(5);}
 }
 const GPS={watch:null,fix:null,marker:null,follow:false,waiters:[],weatherAt:0,weatherPoint:null,session:0};
-const DRIVE={active:false,heading:null,last:null,lastCamera:0,offCount:0,rerouting:false,lastReroute:0,rerouteId:0,routeStarted:0};
-function gpsStatus(text,error=false){$('gpsStatus').hidden=false;$('gpsText').textContent=text;$('gpsStatus').classList.toggle('error',error);$('locBtn').setAttribute('aria-busy',String(!GPS.fix&&GPS.watch!==null));$('locBtn').classList.toggle('tracking',GPS.follow);$('locBtn').setAttribute('aria-pressed',String(GPS.follow));}
+const DRIVE={active:false,heading:null,last:null,lastCamera:0,offCount:0,rerouting:false,lastReroute:0,rerouteId:0,routeStarted:0,simTimer:null,simIdx:0,simSub:0,clockTimer:null};
+function gpsStatus(text,error=false){
+  $('gpsStatus').hidden=false;$('gpsText').textContent=text;$('gpsStatus').classList.toggle('error',error);
+  const retryBtn=$('retryGps');if(retryBtn)retryBtn.hidden=!error;
+  $('locBtn').setAttribute('aria-busy',String(!GPS.fix&&GPS.watch!==null));$('locBtn').classList.toggle('tracking',GPS.follow);$('locBtn').setAttribute('aria-pressed',String(GPS.follow));
+  const bars=$('carGpsBars');
+  if(bars){
+    const acc=GPS.fix?.accuracy;
+    bars.className='car-signal '+(error||!GPS.fix?'s1':acc<=25?'s4':acc<=70?'s3':'s2');
+  }
+}
+const CAR_3D_SVG='<svg viewBox="0 0 64 84" fill="none" aria-hidden="true"><defs><radialGradient id="carBeam" cx="50%" cy="22%" r="50%"><stop offset="0%" stop-color="#a5f3fc" stop-opacity="0.72"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></radialGradient><linearGradient id="carBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#e2edf8"/><stop offset="100%" stop-color="#b8cce0"/></linearGradient><linearGradient id="carRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f2942"/><stop offset="100%" stop-color="#1e4d7b"/></linearGradient></defs><path d="M12 22 L20 2 L44 2 L52 22 Z" fill="url(#carBeam)"/><ellipse cx="32" cy="52" rx="22" ry="27" fill="#0ea5e9" fill-opacity="0.28"/><rect x="15" y="16" width="34" height="58" rx="14" fill="url(#carBody)" stroke="#f8fbff" stroke-width="2"/><path d="M19 30 C19 25, 45 25, 45 30 L43 56 C43 60, 21 60, 21 56 Z" fill="url(#carRoof)" stroke="#7dd3fc" stroke-width="1"/><path d="M21 31 C25 27, 39 27, 43 31 L42 38 C36 37, 28 37, 22 38 Z" fill="#38bdf8" fill-opacity="0.45"/><rect x="19" y="18" width="7" height="3" rx="1.5" fill="#7dd3fc"/><rect x="38" y="18" width="7" height="3" rx="1.5" fill="#7dd3fc"/><rect x="19" y="69" width="7" height="2.6" rx="1.3" fill="#f87171"/><rect x="38" y="69" width="7" height="2.6" rx="1.3" fill="#f87171"/></svg>';
 function drawGPS(){
   if(!map||!GPS.fix)return;
-  if(!GPS.marker){const el=document.createElement('div');el.className='gps-marker';el.innerHTML='<span class="gps-heading"></span><span class="gps-dot"></span>';el.setAttribute('role','img');GPS.marker=new maplibregl.Marker({element:el,rotationAlignment:'map'}).addTo(map);}
-  const p=GPS.fix;GPS.marker.getElement().classList.toggle('driving',DRIVE.active);GPS.marker.setLngLat([p.lon,p.lat]);GPS.marker.getElement().setAttribute('aria-label','Votre position, précision '+Math.round(p.accuracy)+' mètres');
-  GPS.marker.getElement().classList.toggle('has-heading',Number.isFinite(p.heading)||DRIVE.active);if(Number.isFinite(p.heading)||DRIVE.active)GPS.marker.setRotation(Number.isFinite(p.heading)?p.heading:(DRIVE.heading??0));
+  if(!GPS.marker){
+    const el=document.createElement('div');el.className='gps-marker';
+    el.innerHTML='<span class="gps-heading"></span><span class="gps-dot"></span><span class="gps-car">'+CAR_3D_SVG+'</span>';
+    el.setAttribute('role','img');GPS.marker=new maplibregl.Marker({element:el,rotationAlignment:'map'}).addTo(map);
+  }
+  const p=GPS.fix;
+  GPS.marker.getElement().classList.toggle('driving',DRIVE.active);
+  GPS.marker.setLngLat([p.lon,p.lat]);
+  GPS.marker.getElement().setAttribute('aria-label','Votre position, précision '+Math.round(p.accuracy)+' mètres');
+  GPS.marker.getElement().classList.toggle('has-heading',Number.isFinite(p.heading)||DRIVE.active);
+  if(Number.isFinite(p.heading)||DRIVE.active)GPS.marker.setRotation(Number.isFinite(p.heading)?p.heading:(DRIVE.heading??0));
   setGeo('sky-accuracy',C.collection([C.circle(p,p.accuracy)]));
 }
 function pauseFollow(){if(DRIVE.active)return;if(!GPS.follow)return;GPS.follow=false;gpsStatus('Suivi en pause · ± '+Math.round(GPS.fix?.accuracy||0)+' m');}
-function stopGPS(message='Localisation arrêtée'){if(DRIVE.active)stopDriving();
+function stopGPS(message='Localisation arrêtée'){if(DRIVE.active&&!DRIVE.simTimer)stopDriving();
   GPS.session++;if(GPS.watch!==null)navigator.geolocation?.clearWatch(GPS.watch);GPS.watch=null;GPS.follow=false;GPS.fix=null;GPS.weatherAt=0;GPS.weatherPoint=null;GPS.marker?.remove();GPS.marker=null;
   setGeo('sky-accuracy',empty());GPS.waiters.splice(0).forEach(w=>{clearTimeout(w.timer);w.reject(new Error(message));});$('gpsStatus').hidden=true;$('locBtn').classList.remove('tracking');$('locBtn').setAttribute('aria-busy','false');$('locBtn').setAttribute('aria-pressed','false');
 }
-function startGPS(){
+function startGPS(followOnStart=true){
   if(!window.isSecureContext){gpsStatus('La localisation nécessite une connexion HTTPS.',true);return false;}
   if(!navigator.geolocation){gpsStatus('Localisation non prise en charge par ce navigateur.',true);return false;}
-  GPS.follow=true;if(GPS.watch!==null){if(GPS.fix){gpsStatus('Suivi GPS · ± '+Math.round(GPS.fix.accuracy)+' m');focusMap(GPS.fix.lat,GPS.fix.lon,Math.max(mapZoom(),15.5));}return true;}
-  const session=++GPS.session;GPS.watch=-1;gpsStatus('Autorisez votre position dans le navigateur…');
+  GPS.follow=followOnStart;
+  if(GPS.watch!==null){
+    if(GPS.fix){
+      gpsStatus((GPS.follow?'Suivi GPS':'Position active')+' · ± '+Math.round(GPS.fix.accuracy)+' m');
+      if(GPS.follow&&!DRIVE.active)focusMap(GPS.fix.lat,GPS.fix.lon,Math.max(mapZoom(),15.5));
+      if(DRIVE.active)centerDriving(GPS.fix,false);
+    }
+    return true;
+  }
+  const session=++GPS.session;GPS.watch=-1;gpsStatus('Activation de votre position GPS…');
   try{GPS.watch=navigator.geolocation.watchPosition(async position=>{
     if(session!==GPS.session)return;const p=C.gpsFix(position);
     if(!p){gpsStatus('Position ancienne · recherche d’un nouveau signal…',true);return;}
     const old=GPS.fix;if(old&&p.accuracy>old.accuracy*2&&p.time-old.time<10000)return;
-    GPS.fix=p;if(DRIVE.active)updateDriving(p,old);drawGPS();gpsStatus((GPS.follow?'Suivi GPS':'Suivi en pause')+' · ± '+Math.round(p.accuracy)+' m'+(p.accuracy>200?' · approximatif':''));
+    if(DRIVE.simTimer)return;
+    GPS.fix=p;if(DRIVE.active){updateDriving(p,old);if(!old&&GPS.follow)centerDriving(p,true);}drawGPS();gpsStatus((GPS.follow?'Suivi GPS':'Position détectée')+' · ± '+Math.round(p.accuracy)+' m'+(p.accuracy>200?' · approximatif':''));
     try{window.parent?.postMessage({type:'SKYMAP_GPS_FIX',lat:p.lat,lon:p.lon,accuracy:p.accuracy},'*');}catch(_){}
     GPS.waiters.splice(0).forEach(w=>{clearTimeout(w.timer);w.resolve(p);});
     if(GPS.follow&&!DRIVE.active)focusMap(p.lat,p.lon,old?mapZoom():Math.min(17,Math.max(14,18-Math.log2(Math.max(10,p.accuracy)/10))));
     const moved=!GPS.weatherPoint||C.distance(p,GPS.weatherPoint)>300;
-    if(GPS.follow&&!DRIVE.active&&moved&&(!GPS.weatherAt||Date.now()-GPS.weatherAt>60000)){
-      GPS.weatherAt=Date.now();GPS.weatherPoint=p;select(p.lat,p.lon,'Ma position',false,false);
+    if(GPS.follow&&moved&&(!GPS.weatherAt||Date.now()-GPS.weatherAt>60000)){
+      GPS.weatherAt=Date.now();GPS.weatherPoint=p;select(p.lat,p.lon,'Ma position',!!old,false);
       const token=S.req,name=await reverseName(p.lat,p.lon);
-      if(session===GPS.session&&S.req===token&&Math.abs(sel.lat-p.lat)<1e-6&&Math.abs(sel.lon-p.lon)<1e-6){sel.name=name;$('wPlace').textContent=name;setSelMarker();}
+      if(session===GPS.session&&S.req===token&&Math.abs(sel.lat-p.lat)<1e-6&&Math.abs(sel.lon-p.lon)<1e-6){sel.name=name;$('wPlace').textContent=name;setSelMarker();if(DRIVE.active)renderCarCockpit();}
     }
   },error=>{
     if(session!==GPS.session)return;
-    const message=error.code===1?'Accès refusé. Autorisez la localisation dans les réglages du navigateur.':error.code===3?'Position introuvable à temps. Réessayez près d’une fenêtre ou à l’extérieur.':'Signal de localisation indisponible. Réessayez.';
+    const message=error.code===1?'Localisation refusée · appuyez sur Réessayer après autorisation.':error.code===3?'Position introuvable à temps · vérifiez le signal GPS.':'Signal de localisation indisponible.';
     stopGPS(message);gpsStatus(message,true);
-  },{enableHighAccuracy:true,maximumAge:0,timeout:15000});}catch(e){stopGPS();gpsStatus('La localisation est bloquée par ce navigateur.',true);return false;}
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}catch(e){stopGPS();gpsStatus('La localisation est bloquée par ce navigateur.',true);return false;}
   return true;
 }
 function freshPosition(){
@@ -1285,7 +1566,7 @@ async function calculateRoute(){
     if(!Array.isArray(data.waypoints)||data.waypoints.length<2)throw new Error('Les points de raccordement à la route sont manquants.');
     TR.from=start;TR.routes=routes.slice(0,3);TR.index=0;TR.waypoints=data.waypoints||[];TR.weatherReady=false;pauseFollow();
     $('routePanel').classList.add('has-route');$('routePanel').classList.remove('editing');$('app').classList.add('route-active');$('routeResults').hidden=false;
-    renderRouteResult();renderRoute();fitRoute();$('activeTrip').hidden=!$('routePanel').hidden;routeMessage('');
+    renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();$('activeTrip').hidden=!$('routePanel').hidden;routeMessage('');
     assessRouteWeather(token);
   }catch(e){if(token!==TR.req)return;clearTrip();routeMessage(e.message.startsWith('HTTP')||e.name==='AbortError'?'Service de trajet indisponible. Réessayez dans un instant.':e.message,true);}
   finally{if(TR.busyToken===token){TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';}}
@@ -1315,7 +1596,7 @@ async function assessRouteWeather(token){
     TR.index=chosen;const r=TR.routes[chosen],a=sums[chosen];
     el.classList.toggle('warning',!!(a.storm||a.snow||a.rain>=2||a.wind>=55));
     el.textContent='🌦 Choix météo : '+r.weatherLabel+' sur les points analysés · '+(r.duration-fastest>=60?'+'+Math.round((r.duration-fastest)/60)+' min face au plus rapide. ':'')+'Conditions actuelles indicatives (Open-Meteo), pas de trafic ni de fermetures de routes. Choix modifiable.';
-    renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();
+    renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();else renderCarCockpit();
   }catch(e){if(token!==TR.req)return;TR.weatherReady=false;el.textContent='🌦 Prévisions du parcours indisponibles : itinéraire choisi selon la durée, sans optimisation météo.';}
 }
 /* Recalcul de parcours : GPS vérifié, cap de déplacement, anti-rebond et itinéraire précédent conservé. */
@@ -1393,32 +1674,207 @@ function drivingDistance(p){
   let remain=0;for(let j=at;j<coords.length-1;j++)remain+=C.distance({lat:coords[j][1],lon:coords[j][0]},{lat:coords[j+1][1],lon:coords[j+1][0]});
   return {remaining:remain,off:closest};
 }
+function turnArrowSvg(maneuver){
+  const t=maneuver?.type||'',m=maneuver?.modifier||'';
+  if(t==='arrive')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.7-6-10a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z"/><circle cx="12" cy="11" r="2.2" fill="currentColor"/></svg>';
+  if(t==='roundabout'||t==='rotary'||t==='roundabout turn')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 20v-3.5m4.5-4.5H21m-3-3 3 3-3 3"/></svg>';
+  if(m.includes('uturn'))return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19V9a4 4 0 0 1 8 0v8m-3-3 3 3 3-3"/></svg>';
+  if(m.includes('left'))return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 19V11a3 3 0 0 0-3-3H6m4-4L6 8l4 4"/></svg>';
+  if(m.includes('right'))return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19V11a3 3 0 0 1 3-3h8m-4-4 4 4-4 4"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';
+}
+function nextRouteStep(p){
+  const r=TR.routes[TR.index];if(!r)return null;
+  const steps=r.legs.flatMap(l=>l.steps||[]);if(!steps.length)return null;
+  if(!p)return {step:steps[1]||steps[0],after:steps[2]||null,dist:steps[0]?.distance||0};
+  let best=0,bestD=Infinity;
+  for(let i=0;i<steps.length;i++){
+    const loc=steps[i].maneuver?.location;if(!loc)continue;
+    const d=C.distance(p,{lat:loc[1],lon:loc[0]});
+    if(d<bestD){bestD=d;best=i;}
+  }
+  const targetIdx=Math.min(steps.length-1,best===steps.length-1?best:best+1);
+  const step=steps[targetIdx],after=steps[targetIdx+1]||null;
+  const loc=step?.maneuver?.location;
+  const dist=loc?C.distance(p,{lat:loc[1],lon:loc[0]}):(step?.distance||0);
+  return {step,after,dist};
+}
+function renderCarCockpit(){
+  const hud=$('driveHUD');if(!hud||hud.hidden)return;
+  const now=new Date();
+  $('carClock').textContent=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  if(S.w){
+    const c=S.w.cur,ww=wmo(c.code,c.day);
+    $('carWIcon').innerHTML=weatherIcon(c.code,c.day);
+    $('carWTemp').textContent=fTU(c.t);
+    $('carWDesc').textContent=ww[1];
+    $('carWRainSub').textContent=S.w.now?.text||(c.pr>0?'Pluie en cours':'Temps sec');
+    $('carRainVal').textContent=(c.pr>0?c.pr.toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1}):'0,0')+' mm/h';
+    $('carWindVal').textContent=fW(c.ws);
+    $('carWindDir').textContent=dirTxt(c.wd);
+    const hrs=(S.w.hours||[]).slice(0,5);
+    $('carHourlyRow').innerHTML=hrs.map((h,i)=>{
+      const hr=i===0?'Maint.':h.time.slice(11,13)+' h';
+      return '<div class="car-hour-col"><span>'+hr+'</span>'+weatherIcon(h.code,h.day)+'<b>'+fT(h.t)+'</b></div>';
+    }).join('');
+    const alerts=computeAlerts(S.w,S.air),al=alerts[0];
+    const bar=$('carAlertBar');
+    if(al){
+      bar.classList.remove('calm');
+      $('carAlertTitle').textContent='Alerte météo · '+al.title;
+      $('carAlertText').textContent=al.text;
+    }else{
+      bar.classList.add('calm');
+      $('carAlertTitle').textContent='Conditions de route';
+      $('carAlertText').textContent=S.w.now?.text||'Aucune alerte météo dans votre zone';
+    }
+  }
+  const pt=GPS.fix||sel;
+  if(pt&&C.validPoint(pt)){
+    const z=7,n=Math.pow(2,z);
+    const xExact=(pt.lon+180)/360*n;
+    const latRad=pt.lat*Math.PI/180;
+    const yExact=(1-Math.log(Math.tan(latRad)+1/Math.cos(latRad))/Math.PI)/2*n;
+    const tx=Math.floor(xExact),ty=Math.floor(yExact);
+    if(Number.isFinite(tx)&&Number.isFinite(ty)){
+      $('carRadarBaseImg').src='https://basemaps.cartocdn.com/dark_all/'+z+'/'+tx+'/'+ty+'.png';
+      const dot=$('carRadarDot');
+      if(dot){dot.style.left=clamp((xExact-tx)*100,8,92).toFixed(1)+'%';dot.style.top=clamp((yExact-ty)*100,12,88).toFixed(1)+'%';}
+      if(RAD.host&&RAD.frames.length){
+        const frame=RAD.frames[RAD.frames.length-1];
+        $('carRadarRainImg').src=RAD.host+frame.path+'/256/'+z+'/'+tx+'/'+ty+'/2/1_1.png';
+        $('carRadarRainImg').hidden=false;
+        $('carRadarStatus').textContent='Radar · '+hmFromTs(frame.time);
+      }else{
+        $('carRadarRainImg').hidden=true;
+        $('carRadarStatus').textContent='Chargement radar…';
+      }
+    }
+  }
+  const hasRoute=TR.routes.length>0;
+  $('carSimBtn').hidden=!hasRoute;
+  if(!hasRoute){
+    $('carStepDist').textContent=GPS.fix?'GPS Actif':'Recherche GPS';
+    $('driveInstruction').textContent=sel.name||'Carte 3D prête';
+    $('driveRemaining').textContent=GPS.fix?'Précision ±'+Math.round(GPS.fix.accuracy)+' m':'Activez ou attendez votre position';
+    $('carTurnIcon').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15 8-2 5-5 2 2-5 5-2Z"/></svg>';
+    $('carEta').textContent='--:--';$('carDurRemain').textContent='-- min';$('carDistRemain').textContent='-- km';
+    const cur=S.w?.cur;$('carTripWeather').innerHTML=(cur?weatherIcon(cur.code,cur.day):'')+'<span>'+(cur?wmo(cur.code,cur.day)[1]:'Météo locale')+'</span>';
+    $('carLanes').innerHTML='<button type="button" id="carChooseDestBtn" class="car-pick-dest-btn">+ Choisir une destination</button>';
+    const cdb=$('carChooseDestBtn');if(cdb)cdb.onclick=()=>{openRoute();};
+  }
+}
 function centerDriving(p,instant=false){
   if(!map)return;const heading=Number.isFinite(p.heading)?p.heading:DRIVE.heading;
-  map.easeTo({center:[p.lon,p.lat],zoom:Math.max(map.getZoom(),16),pitch:45,bearing:Number.isFinite(heading)?heading:map.getBearing(),duration:instant?0:450,essential:true});
+  const h=$('map').clientHeight||640;
+  map.easeTo({
+    center:[p.lon,p.lat],
+    zoom:Math.max(map.getZoom(),16.8),
+    pitch:60,
+    bearing:Number.isFinite(heading)?heading:map.getBearing(),
+    offset:[0,Math.round(h*0.16)],
+    duration:instant?0:480,
+    essential:true
+  });
 }
 function updateDriving(p,old){
   if(!DRIVE.active)return;
   if(Number.isFinite(p.heading)&&(!Number.isFinite(p.speed)||p.speed>1))DRIVE.heading=p.heading;
-  else if(old&&C.distance(old,p)>8){const y=Math.sin((p.lon-old.lon)*Math.PI/180)*Math.cos(p.lat*Math.PI/180),x=Math.cos(old.lat*Math.PI/180)*Math.sin(p.lat*Math.PI/180)-Math.sin(old.lat*Math.PI/180)*Math.cos(p.lat*Math.PI/180)*Math.cos((p.lon-old.lon)*Math.PI/180);DRIVE.heading=(Math.atan2(y,x)*180/Math.PI+360)%360;}
-  checkDrivingDeviation(p,old);
-  const distance=drivingDistance(p),r=TR.routes[TR.index],metres=Math.max(0,distance.remaining);
-  $('driveRemaining').textContent=(metres>=1000?(metres/1000).toFixed(1)+' km':Math.round(metres/10)*10+' m')+' restants · '+(r?C.formatDuration(r.duration*Math.min(1,metres/Math.max(1,r.distance))):'');
-  if(!DRIVE.rerouting)$('driveInstruction').textContent=distance.off>Math.max(80,p.accuracy*2.5)?'Hors itinéraire · nouveau parcours recherché automatiquement':metres<35?'Vous approchez de votre destination.':'Suivez la ligne bleue · précision GPS ±'+Math.round(p.accuracy)+' m';
-  if(GPS.follow&&Date.now()-DRIVE.lastCamera>700){centerDriving(p);DRIVE.lastCamera=Date.now();}
+  else if(old&&C.distance(old,p)>4){const y=Math.sin((p.lon-old.lon)*Math.PI/180)*Math.cos(p.lat*Math.PI/180),x=Math.cos(old.lat*Math.PI/180)*Math.sin(p.lat*Math.PI/180)-Math.sin(old.lat*Math.PI/180)*Math.cos(p.lat*Math.PI/180)*Math.cos((p.lon-old.lon)*Math.PI/180);DRIVE.heading=(Math.atan2(y,x)*180/Math.PI+360)%360;}
+  const r=TR.routes[TR.index];
+  if(r){
+    if(!DRIVE.simTimer)checkDrivingDeviation(p,old);
+    const distance=drivingDistance(p),metres=Math.max(0,distance.remaining);
+    const remSec=r.duration*Math.min(1,metres/Math.max(1,r.distance));
+    const etaStr=new Date(Date.now()+remSec*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const distKmText=metres>=1000?(metres/1000).toFixed(1).replace('.',',')+' km':Math.max(10,Math.round(metres/10)*10)+' m';
+    $('carEta').textContent=etaStr;
+    $('carDurRemain').textContent=C.formatDuration(remSec);
+    $('carDistRemain').textContent=distKmText;
+    $('driveRemaining').textContent=distKmText+' restants · '+C.formatDuration(remSec);
+    const nxt=nextRouteStep(p);
+    if(nxt&&!DRIVE.rerouting){
+      const dStep=Math.max(0,nxt.dist);
+      $('carStepDist').textContent=dStep>=1000?(dStep/1000).toFixed(1).replace('.',',')+' km':Math.round(dStep/10)*10+' m';
+      $('driveInstruction').textContent=nxt.step.name||C.instruction(nxt.step);
+      $('carTurnIcon').innerHTML=turnArrowSvg(nxt.step.maneuver);
+      $('carLanes').innerHTML='<span class="lane-arrow">'+turnArrowSvg({type:'continue',modifier:'straight'})+'</span><span class="lane-arrow active">'+turnArrowSvg(nxt.step.maneuver)+'</span>'+(nxt.after?'<span class="lane-arrow">'+turnArrowSvg(nxt.after.maneuver)+'</span>':'');
+    }
+    const cur=S.w?.cur;
+    const wxLabel=r.weatherLabel?(r.weatherLabel.replace(/^[^\s]+\s+/,'')||'Trajet suivi'):(cur?wmo(cur.code,cur.day)[1]:'En direct');
+    $('carTripWeather').innerHTML=(cur?weatherIcon(cur.code,cur.day):'')+'<span>Trajet sous '+esc(wxLabel.toLowerCase())+'</span>';
+  }
+  renderCarCockpit();
+  if(GPS.follow&&Date.now()-DRIVE.lastCamera>550){centerDriving(p);DRIVE.lastCamera=Date.now();}
 }
-async function startDriving(){
-  if(!TR.routes.length)return;
-  if(!window.isSecureContext){routeMessage('Le guidage GPS nécessite HTTPS (ou localhost). Ouvrez SkyMap sur un site sécurisé.',true);return;}
-  DRIVE.active=true;DRIVE.rerouteId++;DRIVE.offCount=0;DRIVE.lastReroute=0;DRIVE.rerouting=false;DRIVE.routeStarted=Date.now();GPS.follow=true;$('driveHUD').hidden=false;$('startDriving').textContent='Navigation en cours';$('startDriving').disabled=true;
-  $('routePanel').hidden=true;$('activeTrip').hidden=true;
-  if(GPS.fix){updateDriving(GPS.fix,null);drawGPS();centerDriving(GPS.fix,true);}
-  if(!startGPS()){stopDriving();routeMessage('Impossible de démarrer le GPS : vérifiez les autorisations de localisation.',true);}
+function stopCarSim(){
+  if(DRIVE.simTimer){clearInterval(DRIVE.simTimer);DRIVE.simTimer=null;}
+  const b=$('carSimBtn');if(b){b.classList.remove('sim-on');b.textContent='▶ Aperçu';}
+}
+function toggleCarSim(){
+  if(DRIVE.simTimer){
+    stopCarSim();
+    if(navigator.geolocation){GPS.watch=null;startGPS(true);}
+    return;
+  }
+  const coords=TR.routes[TR.index]?.geometry?.coordinates;
+  if(!coords||coords.length<2){toast('Calculez d’abord un trajet');return;}
+  DRIVE.simIdx=0;DRIVE.simSub=0;GPS.follow=true;
+  const b=$('carSimBtn');if(b){b.classList.add('sim-on');b.textContent='⏸ Pause';}
+  const stepSim=()=>{
+    if(!DRIVE.active||!DRIVE.simTimer)return;
+    const i=DRIVE.simIdx;if(i>=coords.length-1){stopCarSim();toast('Arrivée simulée atteinte !');return;}
+    const a=coords[i],bPt=coords[i+1];
+    const segLen=Math.max(1,C.distance({lat:a[1],lon:a[0]},{lat:bPt[1],lon:bPt[0]}));
+    DRIVE.simSub+=6/segLen;
+    while(DRIVE.simSub>=1&&DRIVE.simIdx<coords.length-2){DRIVE.simSub-=1;DRIVE.simIdx++;}
+    const p1=coords[DRIVE.simIdx],p2=coords[Math.min(coords.length-1,DRIVE.simIdx+1)],t=clamp(DRIVE.simSub,0,1);
+    const lat=p1[1]+(p2[1]-p1[1])*t,lon=p1[0]+(p2[0]-p1[0])*t;
+    const y=Math.sin((p2[0]-p1[0])*Math.PI/180)*Math.cos(p2[1]*Math.PI/180),x=Math.cos(p1[1]*Math.PI/180)*Math.sin(p2[1]*Math.PI/180)-Math.sin(p1[1]*Math.PI/180)*Math.cos(p2[1]*Math.PI/180)*Math.cos((p2[0]-p1[0])*Math.PI/180);
+    const heading=(Math.atan2(y,x)*180/Math.PI+360)%360;
+    const old=GPS.fix,simFix={lat,lon,accuracy:8,heading,speed:14,time:Date.now()};
+    GPS.fix=simFix;DRIVE.heading=heading;drawGPS();updateDriving(simFix,old);
+  };
+  DRIVE.simTimer=setInterval(stepSim,380);
+  stepSim();
+}
+async function driveToPoint(point){
+  TR.fromGPS=!!GPS.fix;TR.from=TR.fromGPS?null:{...sel};
+  TR.to=point;TR.routes=[];syncRouteFields();
+  await calculateRoute();
+  if(TR.routes.length){
+    $('routePanel').hidden=true;$('activeTrip').hidden=true;
+    updateDriving(GPS.fix||{...TR.from,accuracy:15,time:Date.now()},null);
+    if(GPS.fix)centerDriving(GPS.fix,true);else fitRoute();
+  }
+}
+async function startDriving(freeRoam=false){
+  if(!freeRoam&&!TR.routes.length)return;
+  DRIVE.active=true;DRIVE.rerouteId++;DRIVE.offCount=0;DRIVE.lastReroute=0;DRIVE.rerouting=false;DRIVE.routeStarted=Date.now();GPS.follow=true;
+  $('app').classList.add('driving-mode');$('driveHUD').hidden=false;
+  if($('startDriving')){$('startDriving').textContent='Navigation en cours';$('startDriving').disabled=true;}
+  $('routePanel').hidden=true;$('activeTrip').hidden=true;closeLayers();
+  if(!cfg.mode3d){cfg.mode3d=true;saveCfg();try{apply3D();}catch(_){}}
+  if(!RAD.frames.length)loadRadar();
+  if(!DRIVE.clockTimer)DRIVE.clockTimer=setInterval(renderCarCockpit,15000);
+  renderCarCockpit();
+  map?.resize();
+  const focusPt=GPS.fix||(TR.routes.length&&TR.from?{lat:TR.from.lat,lon:TR.from.lon,accuracy:15,time:Date.now()}:null);
+  if(focusPt){updateDriving(focusPt,null);drawGPS();centerDriving(focusPt,true);}
+  else if(map){map.easeTo({pitch:60,zoom:Math.max(map.getZoom(),16.5),duration:600});}
+  if(window.isSecureContext)startGPS(true);
 }
 function stopDriving(){
-  if(!DRIVE.active)return;DRIVE.active=false;DRIVE.rerouteId++;DRIVE.rerouting=false;DRIVE.offCount=0;DRIVE.heading=null;$('driveHUD').hidden=true;$('startDriving').disabled=false;$('startDriving').textContent='▶ Départ en voiture';
-  if(GPS.marker)GPS.marker.getElement().classList.remove('driving');GPS.follow=false;
+  if(!DRIVE.active)return;
+  stopCarSim();
+  if(DRIVE.clockTimer){clearInterval(DRIVE.clockTimer);DRIVE.clockTimer=null;}
+  DRIVE.active=false;DRIVE.rerouteId++;DRIVE.rerouting=false;DRIVE.offCount=0;DRIVE.heading=null;
+  $('app').classList.remove('driving-mode');$('driveHUD').hidden=true;
+  if($('startDriving')){$('startDriving').disabled=false;$('startDriving').textContent='▶ Départ en voiture';}
+  if(GPS.marker){GPS.marker.getElement().classList.remove('driving');drawGPS();}
+  GPS.follow=false;
   $('activeTrip').hidden=!TR.routes.length||!$('routePanel').hidden;
+  if(map){map.resize();map.easeTo({pitch:cfg.mode3d?55:0,offset:[0,0],duration:500});}
 }
 /* Tracé de secours au-dessus de la carte : ne dépend pas des sources du style. */
 let routeOverlay=null,routeOutline=null,routeBlue=null;
@@ -1514,7 +1970,8 @@ function renderRouteResult(){
   $('routeSteps').onclick=e=>{const b=e.target.closest('[data-step]');if(!b)return;const p=steps[+b.dataset.step]?.maneuver?.location;if(p)focusMap(p[1],p[0],17);};
 }
 function setupTravel(){
-  $('stopGps').onclick=()=>stopGPS();$('routeBtn').onclick=()=>{openRoute();$('routeBtn').setAttribute('aria-expanded','true');};$('toHere').onclick=()=>openRoute(true);$('closeRoute').onclick=closeRoute;$('activeTrip').onclick=()=>openRoute();
+  $('stopGps').onclick=()=>stopGPS();if($('retryGps'))$('retryGps').onclick=()=>locate();
+  $('routeBtn').onclick=()=>{openRoute();$('routeBtn').setAttribute('aria-expanded','true');};$('carModeBtn').onclick=()=>startDriving(true);$('toHere').onclick=()=>openRoute(true);$('closeRoute').onclick=closeRoute;$('activeTrip').onclick=()=>openRoute();
   $('useMyPosition').onclick=()=>{invalidateRoute();TR.fromGPS=true;TR.from=null;syncRouteFields();routeMessage('Votre position sera demandée au calcul du trajet.');};
   ['from','to'].forEach(which=>{
     const field=$(which==='from'?'routeFrom':'routeTo');
@@ -1525,7 +1982,31 @@ function setupTravel(){
   $('routeSearchResults').addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp'].includes(e.key))return;e.preventDefault();const a=[...$('routeSearchResults').querySelectorAll('button')],i=a.indexOf(document.activeElement);a[clamp(i+(e.key==='ArrowDown'?1:-1),0,a.length-1)]?.focus();});
   $('swapRoute').onclick=()=>{if(TR.fromGPS&&!GPS.fix){routeMessage('Localisez-vous avant d’inverser le trajet.',true);return;}invalidateRoute();const from=TR.fromGPS?{...GPS.fix,name:'Ma position'}:TR.from;TR.from=TR.to;TR.to=from;TR.fromGPS=false;syncRouteFields();};
   $('routeCalculate').onclick=calculateRoute;$('cancelPick').onclick=cancelPick;
-  $('startDriving').onclick=startDriving;$('driveStop').onclick=stopDriving;$('driveRecenter').onclick=()=>{if(GPS.fix){GPS.follow=true;centerDriving(GPS.fix,true);}};
+  $('startDriving').onclick=()=>startDriving(false);$('driveStop').onclick=stopDriving;
+  $('driveRecenter').onclick=()=>{if(DRIVE.simTimer)stopCarSim();if(GPS.fix){GPS.follow=true;centerDriving(GPS.fix,true);}else locate();};
+  $('carSimBtn').onclick=toggleCarSim;
+  $('carLayersBtn').onclick=$('carDockMap').onclick=toggleLayers;
+  $('carDockNav').onclick=()=>{if(TR.routes.length){GPS.follow=true;if(GPS.fix)centerDriving(GPS.fix,true);else locate();}else openRoute();};
+  $('carDockWeather').onclick=()=>{$('carWeatherPanel').classList.toggle('collapsed');$('carDockWeather').classList.toggle('active',!$('carWeatherPanel').classList.contains('collapsed'));};
+  $('carDockFav').onclick=openPlaces;$('carDockSettings').onclick=openSettings;
+  $('carFullscreenBtn').onclick=()=>{try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}catch(_){}};
+  $('carRadarCard').onclick=()=>{setLayer('radar');toast(cfg.layer==='radar'?'Radar pluie activé sur la carte 3D':'Radar masqué');};
+  $('carExpandWeather').onclick=$('carAlertBar').onclick=()=>{stopDriving();activateTab('today');setSheet('half');};
+  let carSearchReq=0;
+  async function runCarSearch(){
+    const q=$('carQ').value.trim(),box=$('carSuggestions'),tok=++carSearchReq;
+    if(!q){box.hidden=true;return;}
+    box.innerHTML='<button type="button" disabled>Recherche de « '+esc(q)+' »…</button>';box.hidden=false;
+    try{
+      const list=await searchAddresses(q);if(tok!==carSearchReq)return;
+      box.innerHTML='';
+      if(!list.length){box.innerHTML='<button type="button" disabled>Aucun résultat trouvé</button>';return;}
+      list.forEach(p=>{const b=document.createElement('button');b.type='button';b.innerHTML=icon('pin')+'<span><b>'+esc(p.name)+'</b><small>'+esc(p.detail||p.lat+', '+p.lon)+'</small></span>';b.onclick=()=>{box.hidden=true;$('carQ').value=p.name;$('carQ').blur();driveToPoint(p);};box.append(b);});
+    }catch(e){if(tok===carSearchReq){box.innerHTML='<button type="button" disabled>'+esc(e.message||'Recherche indisponible')+'</button>';}}
+  }
+  $('carSearchGo').onclick=runCarSearch;
+  $('carQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runCarSearch();}});
+  document.addEventListener('click',e=>{if(!e.target.closest('.car-search-wrap'))$('carSuggestions').hidden=true;});
   $('routeAlternatives').onclick=e=>{const b=e.target.closest('[data-route]');if(!b)return;if(DRIVE.active)stopDriving();TR.index=+b.dataset.route;renderRouteResult();renderRoute();fitRoute();};
   $('routeEdit').onclick=()=>{$('routePanel').classList.add('editing');syncRouteFields();};
   $('clearRoute').onclick=()=>{clearTrip();closeRoute();};
@@ -1660,7 +2141,7 @@ function openPlaces(){
       list.onclick = e => {
         const del = e.target.closest('[data-del]');
         if (del){ const l = FAVS(); l.splice(+del.dataset.del,1); store.set('favs', l); updateFav(); openPlaces(); return; }
-        const it = e.target.closest('.place-item'); if (it){ const x = FAVS()[+it.dataset.i]; closeModal(); go(x.lat,x.lon,x.name); }
+        const it = e.target.closest('.place-item'); if (it){ const x = FAVS()[+it.dataset.i]; closeModal(); if(DRIVE.active)driveToPoint({lat:x.lat,lon:x.lon,name:x.name});else go(x.lat,x.lon,x.name); }
       };
       getJSON('https://api.open-meteo.com/v1/forecast?latitude='+f.map(x=>x.lat.toFixed(3)).join(',')+'&longitude='+f.map(x=>x.lon.toFixed(3)).join(',')+'&current=temperature_2m,weather_code,is_day&timezone=auto')
         .then(d => { if (!Array.isArray(d)) d=[d]; list.querySelectorAll('.place-item').forEach((el,i) => { const c = d[i] && d[i].current; if (c){ el.querySelector('.pi').textContent = wmo(c.weather_code,c.is_day)[0]; el.querySelector('.pt').textContent = fT(c.temperature_2m); } }); })
@@ -1782,9 +2263,13 @@ window.addEventListener('message',(event)=>{
 });
 try{
   const urlParams=new URLSearchParams(window.location.search);
-  if(urlParams.get('locate')==='1'||urlParams.get('autolocate')==='1'||location.hash.includes('locate=1')){
-    setTimeout(()=>{locate();},650);
-  }
+  const hasHashCoords=/^#-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?/.test(location.hash||'');
+  const wantDrive=urlParams.get('drive')==='1'||urlParams.get('car')==='1'||location.hash.includes('drive=1');
+  // Activation automatique de la position GPS de la personne au chargement
+  setTimeout(()=>{
+    const started=startGPS(!hasHashCoords);
+    if(wantDrive&&started)startDriving(true);
+  },300);
 }catch(_){}
 })();
 
