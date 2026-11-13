@@ -1516,8 +1516,12 @@ async function searchAddresses(text){
 async function reverseName(lat,lon){
   try{const d=await geocodeJSON('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=fr&lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5)),a=d.address||{};return [a.house_number,a.road].filter(Boolean).join(' ')||a.city||a.town||a.village||a.suburb||d.name||lat.toFixed(5)+', '+lon.toFixed(5);}catch(e){return lat.toFixed(5)+', '+lon.toFixed(5);}
 }
-const GPS={watch:null,fix:null,marker:null,follow:false,waiters:[],weatherAt:0,weatherPoint:null,session:0};
+const GPS={watch:null,fix:null,marker:null,follow:false,zoomPending:false,waiters:[],weatherAt:0,weatherPoint:null,session:0};
 const DRIVE={active:false,heading:null,last:null,lastCamera:0,offCount:0,rerouting:false,lastReroute:0,rerouteId:0,routeStarted:0,simTimer:null,simIdx:0,simSub:0,clockTimer:null};
+function gpsZoomFor(acc,explicit=false){
+  const z=Math.min(17.5,Math.max(15.5,18-Math.log2(Math.max(10,acc||40)/10)));
+  return explicit?Math.max(z,16.4):z;
+}
 function gpsStatus(text,error=false){
   $('gpsStatus').hidden=false;$('gpsText').textContent=text;$('gpsStatus').classList.toggle('error',error);
   const retryBtn=$('retryGps');if(retryBtn)retryBtn.hidden=!error;
@@ -1543,25 +1547,17 @@ function drawGPS(){
   if(Number.isFinite(p.heading)||DRIVE.active)GPS.marker.setRotation(Number.isFinite(p.heading)?p.heading:(DRIVE.heading??0));
   setGeo('sky-accuracy',C.collection([C.circle(p,p.accuracy)]));
 }
-function pauseFollow(){if(DRIVE.active)return;if(!GPS.follow)return;GPS.follow=false;gpsStatus('Suivi en pause · ± '+Math.round(GPS.fix?.accuracy||0)+' m');}
+function pauseFollow(){if(DRIVE.active)return;if(!GPS.follow)return;GPS.follow=false;GPS.zoomPending=false;gpsStatus('Suivi en pause · ± '+Math.round(GPS.fix?.accuracy||0)+' m');}
 function stopGPS(message='Localisation arrêtée'){if(DRIVE.active&&!DRIVE.simTimer)stopDriving();
-  GPS.session++;if(GPS.watch!==null)navigator.geolocation?.clearWatch(GPS.watch);GPS.watch=null;GPS.follow=false;GPS.fix=null;GPS.weatherAt=0;GPS.weatherPoint=null;GPS.marker?.remove();GPS.marker=null;
+  GPS.session++;if(GPS.watch!==null)navigator.geolocation?.clearWatch(GPS.watch);GPS.watch=null;GPS.follow=false;GPS.zoomPending=false;GPS.fix=null;GPS.weatherAt=0;GPS.weatherPoint=null;GPS.marker?.remove();GPS.marker=null;
   setGeo('sky-accuracy',empty());GPS.waiters.splice(0).forEach(w=>{clearTimeout(w.timer);w.reject(new Error(message));});$('gpsStatus').hidden=true;$('locBtn').classList.remove('tracking');$('locBtn').setAttribute('aria-busy','false');$('locBtn').setAttribute('aria-pressed','false');
 }
-function startGPS(followOnStart=true){
+function startGPS(followOnStart=true,forceZoom=false){
   if(!window.isSecureContext){gpsStatus('La localisation nécessite une connexion HTTPS.',true);return false;}
   if(!navigator.geolocation){gpsStatus('Localisation non prise en charge par ce navigateur.',true);return false;}
-  GPS.follow=followOnStart;
-  if(GPS.watch!==null){
-    if(GPS.fix){
-      gpsStatus((GPS.follow?'Suivi GPS':'Position active')+' · ± '+Math.round(GPS.fix.accuracy)+' m');
-      if(GPS.follow&&!DRIVE.active)focusMap(GPS.fix.lat,GPS.fix.lon,Math.max(mapZoom(),15.5));
-      if(DRIVE.active)centerDriving(GPS.fix,false);
-    }
-    return true;
-  }
-  const session=++GPS.session;GPS.watch=-1;gpsStatus('Activation de votre position GPS…');
-  try{GPS.watch=navigator.geolocation.watchPosition(async position=>{
+  GPS.follow=followOnStart||forceZoom;
+  if(forceZoom)GPS.zoomPending=true;
+  const applyFix=async(position,session)=>{
     if(session!==GPS.session)return;const p=C.gpsFix(position);
     if(!p){gpsStatus('Position ancienne · recherche d’un nouveau signal…',true);return;}
     const old=GPS.fix;if(old&&p.accuracy>old.accuracy*2&&p.time-old.time<10000)return;
@@ -1569,28 +1565,54 @@ function startGPS(followOnStart=true){
     GPS.fix=p;if(DRIVE.active){updateDriving(p,old);if(!old&&GPS.follow)centerDriving(p,true);}drawGPS();gpsStatus((GPS.follow?'Suivi GPS':'Position détectée')+' · ± '+Math.round(p.accuracy)+' m'+(p.accuracy>200?' · approximatif':''));
     try{window.parent?.postMessage({type:'SKYMAP_GPS_FIX',lat:p.lat,lon:p.lon,accuracy:p.accuracy},'*');}catch(_){}
     GPS.waiters.splice(0).forEach(w=>{clearTimeout(w.timer);w.resolve(p);});
-    if(GPS.follow&&!DRIVE.active)focusMap(p.lat,p.lon,old?mapZoom():Math.min(17,Math.max(14,18-Math.log2(Math.max(10,p.accuracy)/10))));
+    if(TR.fromGPS&&!$('routePanel').hidden&&!TR.routes.length)routeMessage('Position GPS localisée (± '+Math.round(p.accuracy)+' m).');
+    if(GPS.follow&&!DRIVE.active){
+      const shouldZoom=GPS.zoomPending||!old||(old&&p.accuracy<old.accuracy*0.45);
+      const targetZoom=shouldZoom?Math.max(mapZoom(),gpsZoomFor(p.accuracy,GPS.zoomPending||!old)):mapZoom();
+      focusMap(p.lat,p.lon,targetZoom);
+      if(p.accuracy<=150)GPS.zoomPending=false;
+    }
     const moved=!GPS.weatherPoint||C.distance(p,GPS.weatherPoint)>300;
     if(GPS.follow&&moved&&(!GPS.weatherAt||Date.now()-GPS.weatherAt>60000)){
       GPS.weatherAt=Date.now();GPS.weatherPoint=p;select(p.lat,p.lon,'Ma position',!!old,false);
       const token=S.req,name=await reverseName(p.lat,p.lon);
       if(session===GPS.session&&S.req===token&&Math.abs(sel.lat-p.lat)<1e-6&&Math.abs(sel.lon-p.lon)<1e-6){sel.name=name;$('wPlace').textContent=name;setSelMarker();if(DRIVE.active)renderCarCockpit();}
     }
-  },error=>{
-    if(session!==GPS.session)return;
-    const message=error.code===1?'Localisation refusée · appuyez sur Réessayer après autorisation.':error.code===3?'Position introuvable à temps · vérifiez le signal GPS.':'Signal de localisation indisponible.';
-    stopGPS(message);gpsStatus(message,true);
-  },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});}catch(e){stopGPS();gpsStatus('La localisation est bloquée par ce navigateur.',true);return false;}
+  };
+  if(GPS.watch!==null){
+    if(GPS.fix){
+      gpsStatus((GPS.follow?'Suivi GPS':'Position active')+' · ± '+Math.round(GPS.fix.accuracy)+' m');
+      if((GPS.follow||forceZoom)&&!DRIVE.active){
+        focusMap(GPS.fix.lat,GPS.fix.lon,Math.max(mapZoom(),gpsZoomFor(GPS.fix.accuracy,true)));
+        if(GPS.fix.accuracy<=150)GPS.zoomPending=false;
+      }
+      if(DRIVE.active){centerDriving(GPS.fix,true);GPS.zoomPending=false;}
+    }else if(forceZoom){
+      try{navigator.geolocation.getCurrentPosition(pos=>{if(!GPS.fix)applyFix(pos,GPS.session);},()=>{},{enableHighAccuracy:false,maximumAge:60000,timeout:6000});}catch(_){}
+    }
+    return true;
+  }
+  const session=++GPS.session;GPS.watch=-1;gpsStatus('Activation de votre position GPS…');
+  try{
+    if(forceZoom){
+      try{navigator.geolocation.getCurrentPosition(pos=>{if(session===GPS.session&&!GPS.fix)applyFix(pos,session);},()=>{},{enableHighAccuracy:false,maximumAge:60000,timeout:6000});}catch(_){}
+    }
+    GPS.watch=navigator.geolocation.watchPosition(pos=>applyFix(pos,session),error=>{
+      if(session!==GPS.session)return;
+      const message=error.code===1?'Localisation refusée · appuyez sur Réessayer après autorisation.':error.code===3?'Position introuvable à temps · vérifiez le signal GPS.':'Signal de localisation indisponible.';
+      stopGPS(message);gpsStatus(message,true);
+    },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+  }catch(e){stopGPS();gpsStatus('La localisation est bloquée par ce navigateur.',true);return false;}
   return true;
 }
 function freshPosition(){
   if(GPS.fix&&Date.now()-GPS.fix.time<20000)return Promise.resolve(GPS.fix);
   return new Promise((resolve,reject)=>{
     const waiter={resolve,reject,timer:null};waiter.timer=setTimeout(()=>{GPS.waiters=GPS.waiters.filter(w=>w!==waiter);reject(new Error('La localisation prend trop de temps. Choisissez le départ sur la carte ou saisissez une adresse.'));},18000);GPS.waiters.push(waiter);
-    if(!startGPS()){clearTimeout(waiter.timer);GPS.waiters=GPS.waiters.filter(w=>w!==waiter);reject(new Error('Localisation indisponible. Vous pouvez saisir une adresse de départ.'));}
+    if(!startGPS(true,true)){clearTimeout(waiter.timer);GPS.waiters=GPS.waiters.filter(w=>w!==waiter);reject(new Error('Localisation indisponible. Vous pouvez saisir une adresse de départ.'));}
   });
 }
-function locate(){startGPS();}
+function locate(){return startGPS(true,true);}
 
 /* ===================== ITINÉRAIRES ROUTIERS ===================== */
 const TR={from:null,to:null,fromGPS:false,routes:[],index:0,waypoints:[],markers:[],req:0,searchReq:0,pick:null,steps:false,busyToken:null,weatherReady:false};
@@ -1622,7 +1644,9 @@ function clearTrip(){
 function invalidateRoute(){clearTrip();routeMessage('Choisissez un départ et une arrivée.');}
 function setRoutePoint(which,point){invalidateRoute();if(which==='from'){TR.from=point;TR.fromGPS=false;}else TR.to=point;syncRouteFields();$('routeSearchResults').hidden=true;++TR.searchReq;routeMessage('Lieu sélectionné. Vous pouvez calculer le trajet.');}
 async function searchRoute(which){
-  const input=$(which==='from'?'routeFrom':'routeTo'),query=input.value.trim(),token=++TR.searchReq;routeMessage('Recherche de l’adresse…');$('routeSearchResults').hidden=false;$('routeSearchResults').innerHTML='<p>Recherche en cours…</p>';
+  const input=$(which==='from'?'routeFrom':'routeTo'),query=input.value.trim();
+  if(which==='from'&&/^(ma\s+position|position(\s+actuelle)?|ici|gps)$/i.test(query)){$('useMyPosition').click();return;}
+  const token=++TR.searchReq;routeMessage('Recherche de l’adresse…');$('routeSearchResults').hidden=false;$('routeSearchResults').innerHTML='<p>Recherche en cours…</p>';
   try{const list=await searchAddresses(query);if(token!==TR.searchReq)return;$('routeSearchResults').innerHTML='';
     if(!list.length){$('routeSearchResults').innerHTML='<p>Aucun résultat. Précisez la ville ou choisissez sur la carte.</p>';routeMessage('Aucune adresse trouvée.',true);return;}
     list.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='route-search-item';b.setAttribute('role','option');b.innerHTML=icon('pin')+'<span><b>'+esc(p.name)+'</b><small>'+esc(p.detail||p.lat+', '+p.lon)+'</small></span>';b.onclick=()=>setRoutePoint(which,p);$('routeSearchResults').append(b);});routeMessage('Sélectionnez une adresse dans les résultats.');
@@ -2078,7 +2102,17 @@ function renderRouteResult(){
 function setupTravel(){
   $('stopGps').onclick=()=>stopGPS();if($('retryGps'))$('retryGps').onclick=()=>locate();
   $('routeBtn').onclick=()=>{openRoute();$('routeBtn').setAttribute('aria-expanded','true');};$('toHere').onclick=()=>openRoute(true);$('closeRoute').onclick=closeRoute;$('activeTrip').onclick=()=>openRoute();
-  $('useMyPosition').onclick=()=>{invalidateRoute();TR.fromGPS=true;TR.from=null;syncRouteFields();routeMessage('Votre position sera demandée au calcul du trajet.');};
+  $('useMyPosition').onclick=()=>{
+    invalidateRoute();TR.fromGPS=true;TR.from=null;syncRouteFields();
+    if(GPS.fix){
+      routeMessage('Position GPS sélectionnée (± '+Math.round(GPS.fix.accuracy)+' m).');
+      drawGPS();
+      focusMap(GPS.fix.lat,GPS.fix.lon,Math.max(mapZoom(),gpsZoomFor(GPS.fix.accuracy,true)));
+    }else{
+      routeMessage('Recherche et zoom sur votre position…');
+      locate();
+    }
+  };
   ['from','to'].forEach(which=>{
     const field=$(which==='from'?'routeFrom':'routeTo');
     field.addEventListener('input',()=>{invalidateRoute();++TR.searchReq;TR[which]=null;if(which==='from')TR.fromGPS=false;field.dataset.resolved='false';$('routeSearchResults').hidden=true;});
@@ -2107,6 +2141,7 @@ function setupTravel(){
   async function runCarSearch(){
     const q=$('carQ').value.trim(),box=$('carSuggestions'),tok=++carSearchReq;
     if(!q){box.hidden=true;return;}
+    if(/^(ma\s+position|position(\s+actuelle)?|ici|gps)$/i.test(q)){box.hidden=true;$('carQ').blur();$('driveHUD').classList.remove('mobile-search-open');GPS.follow=true;locate();return;}
     box.innerHTML='<button type="button" disabled>Recherche de « '+esc(q)+' »…</button>';box.hidden=false;
     try{
       const list=await searchAddresses(q);if(tok!==carSearchReq)return;
@@ -2162,6 +2197,7 @@ let searchReq=0;
 const searchObserver=new MutationObserver(()=>$('q').setAttribute('aria-expanded',String(sug.style.display==='block')));searchObserver.observe(sug,{attributes:true,attributeFilter:['style']});
 async function searchMain(){
   const text=$('q').value.trim(),token=++searchReq;if(!text){showDefaultSuggestions();return;}
+  if(/^(ma\s+position|position(\s+actuelle)?|ici|gps)$/i.test(text)){sug.style.display='none';$('q').blur();locate();return;}
   sug.innerHTML='<div class="sg">Recherche de lieux et d’adresses…</div>';sug.style.display='block';
   try{const places=await searchAddresses(text);if(token!==searchReq)return;sug.innerHTML='';places.forEach(p=>sug.appendChild(sgItem('📍',p.name,p.detail||p.lat+', '+p.lon,()=>{$('q').value=p.name;go(p.lat,p.lon,p.name);})));if(!places.length)sug.innerHTML='<div class="sg"><span>Aucun lieu trouvé<small>Précisez la ville ou utilisez des coordonnées.</small></span></div>';}
   catch(e){if(token===searchReq)sug.innerHTML='<div class="sg"><span>Recherche indisponible<small>Réessayez ou sélectionnez un point sur la carte.</small></span></div>';}
