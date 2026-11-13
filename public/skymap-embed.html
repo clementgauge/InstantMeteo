@@ -1396,22 +1396,25 @@ async function fetchWeatherRaw(s){
   return d;
 }
 function parseWeather(d){
-  const c = d.current, h = d.hourly, dl = d.daily, nowH = c.time.slice(0,13);
-  let i0 = h.time.findIndex(t => t.slice(0,13) >= nowH); if (i0<0) i0 = 0;
-  const hours = [];
-  for (let i=i0; i<Math.min(i0+48, h.time.length); i++)
-    hours.push({ time:h.time[i], t:h.temperature_2m[i], pop:h.precipitation_probability[i], pr:h.precipitation[i]||0, code:h.weather_code[i], ws:h.wind_speed_10m[i], day:h.is_day[i], uv:h.uv_index[i], vis:h.visibility[i], dew:h.dew_point_2m[i] });
-  const days = dl.time.map((t,i) => ({ date:t, code:dl.weather_code[i], max:dl.temperature_2m_max[i], min:dl.temperature_2m_min[i], rain:dl.precipitation_sum[i], pop:dl.precipitation_probability_max[i], sunrise:dl.sunrise[i], sunset:dl.sunset[i], uv:dl.uv_index_max[i], gust:dl.wind_gusts_10m_max[i] }));
-  const h0 = hours[0] || {};
-  const cur = { time:c.time, t:c.temperature_2m, feels:c.apparent_temperature, h:c.relative_humidity_2m, pr:(c.precipitation||0)*(3600/(c.interval||900)), code:c.weather_code, cl:c.cloud_cover, p:c.pressure_msl, ws:c.wind_speed_10m, wd:c.wind_direction_10m, gust:c.wind_gusts_10m, day:c.is_day, vis:h0.vis, dew:h0.dew, uv:h0.uv };
-  return { cur, hours, days, now:nowcast(d, cur, hours), tz:d.timezone };
+  if(!d||typeof d!=='object')return null;
+  const c=d.current,h=d.hourly,dl=d.daily;
+  if(!c||typeof c.time!=='string'||!h||!Array.isArray(h.time)||!dl||!Array.isArray(dl.time))return null;
+  const nowH=c.time.slice(0,13);
+  let i0=h.time.findIndex(t=>typeof t==='string'&&t.slice(0,13)>=nowH);if(i0<0)i0=0;
+  const hours=[];
+  for(let i=i0;i<Math.min(i0+48,h.time.length);i++)
+    hours.push({time:h.time[i],t:h.temperature_2m?.[i],pop:h.precipitation_probability?.[i],pr:h.precipitation?.[i]||0,code:h.weather_code?.[i],ws:h.wind_speed_10m?.[i],day:h.is_day?.[i],uv:h.uv_index?.[i],vis:h.visibility?.[i],dew:h.dew_point_2m?.[i]});
+  const days=dl.time.map((t,i)=>({date:t,code:dl.weather_code?.[i],max:dl.temperature_2m_max?.[i],min:dl.temperature_2m_min?.[i],rain:dl.precipitation_sum?.[i],pop:dl.precipitation_probability_max?.[i],sunrise:dl.sunrise?.[i],sunset:dl.sunset?.[i],uv:dl.uv_index_max?.[i],gust:dl.wind_gusts_10m_max?.[i]}));
+  const h0=hours[0]||{};
+  const cur={time:c.time,t:c.temperature_2m,feels:c.apparent_temperature,h:c.relative_humidity_2m,pr:(c.precipitation||0)*(3600/(c.interval||900)),code:c.weather_code,cl:c.cloud_cover,p:c.pressure_msl,ws:c.wind_speed_10m,wd:c.wind_direction_10m,gust:c.wind_gusts_10m,day:c.is_day,vis:h0.vis,dew:h0.dew,uv:h0.uv};
+  return {cur,hours,days,now:nowcast(d,cur,hours),tz:d.timezone};
 }
 /* Prévision de pluie à 2 h (Open-Meteo minutely_15), sinon repli sur l'heure par heure */
 function nowcast(d, cur, hours){
-  const m = d.minutely_15;
-  if (m && m.precipitation && m.precipitation.some(v => v!==null)){
-    const nowM = cur.time.slice(0,16);
-    let j0 = m.time.findIndex(t => t.slice(0,16) >= nowM); if (j0<0) j0 = 0;
+  const m = d?.minutely_15;
+  if (m && Array.isArray(m.time) && Array.isArray(m.precipitation) && m.precipitation.some(v => v!==null)){
+    const nowM = (cur?.time||'').slice(0,16);
+    let j0 = m.time.findIndex(t => typeof t==='string' && t.slice(0,16) >= nowM); if (j0<0) j0 = 0;
     const arr = m.precipitation.slice(j0, j0+8).map(v => v||0), wet = v => v>=0.05;
     const first = arr.findIndex(wet);
     if (first===0){
@@ -1422,7 +1425,7 @@ function nowcast(d, cur, hours){
     if (first>0) return { type:'soon', text:'Pluie attendue dans '+(first*15)+' min', min:first*15 };
     return { type:'dry', text:'Pas de pluie prévue dans les 2 prochaines heures', min:null };
   }
-  if (cur.pr>=0.1) return { type:'rain', text:'Il pleut actuellement', min:0 };
+  if ((cur?.pr||0)>=0.1) return { type:'rain', text:'Il pleut actuellement', min:0 };
   const k = hours.slice(1,4).findIndex(x => (x.pop||0)>=50 || x.pr>=0.3);
   if (k>=0) return { type:'soon', text:'Pluie probable vers '+hhmm(hours[k+1].time), min:(k+1)*60 };
   return { type:'dry', text:'Pas de pluie prévue dans les prochaines heures', min:null };
@@ -1466,7 +1469,8 @@ async function loadWeather(silent){
     if (c){ raw = c.d; offline = c.t; }
   }
   if (id !== S.req) return;
-  if (!raw){
+  const parsed = raw ? parseWeather(raw) : null;
+  if (!parsed){
     S.w=null; $('wIcon').innerHTML=weatherIcon(3,1); $('dataStatus').textContent='Météo indisponible'; $('connectionPill').dataset.offline='true'; $('placeKicker').textContent='EN ATTENTE DE CONNEXION'; $('wDesc').textContent = 'Données météo indisponibles';
     $('nowcast').textContent = 'Vérifie ta connexion internet.';
     $('p-today').innerHTML = '<div class="note">Impossible de récupérer la météo.</div><button class="btn" id="retryBtn">Réessayer</button>';
@@ -1474,7 +1478,7 @@ async function loadWeather(silent){
     const rb = $('retryBtn'); if (rb) rb.onclick = () => loadWeather();
     return;
   }
-  S.w = parseWeather(raw); S.offline = offline;
+  S.w = parsed; S.offline = offline;
   renderAll();
   maybeNotify();
   loadAir(s, id);
@@ -1675,14 +1679,16 @@ function updateCarStreetBadge(){
 }
 function drawGPS(){
   if(!map||!GPS.fix)return;
+  const p=GPS.fix;
   if(!GPS.marker){
     const el=document.createElement('div');el.className='gps-marker';
     el.innerHTML='<span class="gps-heading"></span><span class="gps-dot"></span><span class="gps-car">'+CAR_3D_SVG+'</span><span class="gps-car-street"></span>';
-    el.setAttribute('role','img');GPS.marker=new maplibregl.Marker({element:el,rotationAlignment:'map'}).addTo(map);
+    el.setAttribute('role','img');
+    GPS.marker=new maplibregl.Marker({element:el,rotationAlignment:'map'}).setLngLat([p.lon,p.lat]).addTo(map);
+  }else{
+    GPS.marker.setLngLat([p.lon,p.lat]);
   }
-  const p=GPS.fix;
   GPS.marker.getElement().classList.toggle('driving',DRIVE.active);
-  GPS.marker.setLngLat([p.lon,p.lat]);
   GPS.marker.getElement().setAttribute('aria-label','Votre position, précision '+Math.round(p.accuracy)+' mètres');
   GPS.marker.getElement().classList.toggle('has-heading',Number.isFinite(p.heading)||DRIVE.active);
   if(Number.isFinite(p.heading)||DRIVE.active)GPS.marker.setRotation(Number.isFinite(p.heading)?p.heading:(DRIVE.heading??0));
@@ -2240,7 +2246,7 @@ async function driveToPoint(point){
 }
 async function startDriving(freeRoam=false){
   if(!freeRoam&&!TR.routes.length)return;
-  DRIVE.active=true;DRIVE.rerouteId++;DRIVE.offCount=0;DRIVE.lastReroute=0;DRIVE.rerouting=false;DRIVE.routeStarted=Date.now();DRIVE.userZoomed=false;GPS.follow=true;
+  DRIVE.active=true;DRIVE.rerouteId++;DRIVE.offCount=0;DRIVE.lastReroute=0;DRIVE.rerouting=false;DRIVE.routeStarted=Date.now();DRIVE.userZoomed=false;GPS.follow=true;GPS.zoomPending=true;GPS.zoomedAccurate=false;
   $('app').classList.add('driving-mode');$('app').classList.remove('route-open');
   $('driveHUD').hidden=false;$('driveHUD').classList.remove('mobile-search-open');
   setCarWeatherOpen(isDesk());
@@ -2252,11 +2258,27 @@ async function startDriving(freeRoam=false){
   if(!DRIVE.clockTimer)DRIVE.clockTimer=setInterval(renderCarCockpit,15000);
   renderCarCockpit();
   map?.resize();
-  const focusPt=GPS.fix||(TR.routes.length&&TR.from?{lat:TR.from.lat,lon:TR.from.lon,accuracy:15,time:Date.now()}:null);
-  if(focusPt){updateDriving(focusPt,null);drawGPS();centerDriving(focusPt,true);}
-  else if(map){map.easeTo({pitch:isDesk()?60:58,zoom:Math.max(map.getZoom(),17.0),duration:600,essential:true});}
   if(MAP.ready)renderPills();
-  startGPS(true);
+  let focusPt=GPS.fix&&!GPS.fix.isIp?GPS.fix:null;
+  if(!focusPt&&TR.fromGPS){
+    $('carStepDist').textContent='Localisation…';
+    $('driveInstruction').textContent='Recherche de votre position GPS…';
+    try{
+      focusPt=await freshPosition();
+      if(!DRIVE.active)return;
+    }catch(e){
+      if(!DRIVE.active)return;
+      const errMsg=e?.message||'Position GPS indisponible ou refusée.';
+      $('carStepDist').textContent='GPS indisponible';
+      $('driveInstruction').textContent=errMsg;
+      toast(errMsg,3600);
+    }
+  }
+  if(!DRIVE.active)return;
+  if(!focusPt)focusPt=GPS.fix||(TR.routes.length&&TR.from?{lat:TR.from.lat,lon:TR.from.lon,accuracy:15,time:Date.now()}:null);
+  if(focusPt){GPS.zoomPending=false;updateDriving(focusPt,null);drawGPS();centerDriving(focusPt,true);}
+  else if(map){map.easeTo({pitch:isDesk()?60:58,zoom:Math.max(map.getZoom(),17.0),duration:600,essential:true});}
+  startGPS(true,!focusPt);
 }
 function stopDriving(){
   if(!DRIVE.active)return;
