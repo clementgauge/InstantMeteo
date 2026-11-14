@@ -637,13 +637,13 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
 
     switch (baseEngine) {
       case 'dark':
-        tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-        maxNativeZoom = 19;
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+        maxNativeZoom = 16;
         break;
       case 'topo':
       case 'esri_topo':
       case 'osm':
-        tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+        tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
         maxNativeZoom = 19;
         break;
       case 'satellite':
@@ -656,8 +656,7 @@ export const PrecisionRadarMap: React.FC<PrecisionRadarMapProps> = ({
     const baseLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
       maxNativeZoom,
-      subdomains: baseEngine === 'satellite' ? 'abc' : 'abcd',
-      attribution: '© CartoDB, Esri, Open-Meteo'
+      attribution: '© Esri, OpenStreetMap, Open-Meteo'
     });
 
     baseLayer.addTo(map);

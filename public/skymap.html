@@ -404,13 +404,14 @@
 .car-radar-card{border-radius:15px;padding:10px;background:rgba(170,215,245,0.08);border:1px solid rgba(185,225,255,0.18);cursor:pointer;text-align:left;width:100%}
 .car-radar-card:hover{background:rgba(170,215,245,0.14)}
 .car-radar-card.radar-off{opacity:.72;border-color:rgba(185,225,255,0.12)}
-.car-radar-card.radar-off .car-radar-overlay{opacity:.2!important}
-.car-radar-preview{position:relative;height:86px;margin-top:8px;border-radius:11px;overflow:hidden;background:radial-gradient(circle at 50% 50%,#1b3e5a,#0b1c30);border:1px solid rgba(155,212,248,0.2)}
-.car-radar-base,.car-radar-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
-.car-radar-base{opacity:.55;filter:saturate(0.75) contrast(1.08)}
-.car-radar-overlay{opacity:.88;mix-blend-mode:screen}
-.car-radar-dot{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:3px solid #0ea5e9;box-shadow:0 0 0 6px rgba(56,189,248,0.32),0 2px 8px rgba(0,0,0,0.6)}
-.car-radar-badge{position:absolute;left:7px;bottom:6px;padding:2px 7px;border-radius:999px;background:rgba(7,20,36,0.78);color:#cceaff;font-size:9.5px;font-weight:600;border:1px solid rgba(160,215,250,0.2)}
+.car-radar-preview{position:relative;height:86px;margin-top:8px;border-radius:11px;overflow:hidden;background:#0a1524;border:1px solid rgba(155,212,248,0.2)}
+.car-radar-minimap{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;transition:opacity .2s ease}
+.car-radar-minimap.failed{opacity:0}
+.car-radar-minimap .maplibregl-ctrl-bottom-left,.car-radar-minimap .maplibregl-ctrl-bottom-right{display:none!important}
+.car-radar-fallback{position:absolute;inset:0;display:grid;place-items:center;background:#0a1524;color:#9fc0d8;font-size:11px;font-weight:600;text-align:center;padding:6px;z-index:3;pointer-events:none}
+.car-radar-fallback[hidden]{display:none!important}
+.car-radar-dot{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#e0f7ff;border:3px solid #0ea5e9;box-shadow:0 0 0 6px rgba(56,189,248,0.34),0 2px 8px rgba(0,0,0,0.65);z-index:4;pointer-events:none}
+.car-radar-badge{position:absolute;left:7px;bottom:6px;padding:2px 7px;border-radius:999px;background:rgba(7,20,36,0.82);color:#cceaff;font-size:9.5px;font-weight:600;border:1px solid rgba(160,215,250,0.22);z-index:5;pointer-events:none}
 .car-hours-box{border-radius:15px;padding:10px;background:rgba(170,215,245,0.07);border:1px solid rgba(185,225,255,0.14);margin-top:auto}
 .car-hours-title{font-size:11.5px;font-weight:650;color:#e1f1ff;margin-bottom:8px}
 .car-hours-title span{font-weight:500;color:#99bbd3;font-size:10.5px}
@@ -874,11 +875,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <div class="car-wx-tile"><svg aria-hidden="true"><use href="#i-drop"/></svg><div><small>Pluie</small><b id="carRainVal">-- mm/h</b></div></div>
         <div class="car-wx-tile"><svg aria-hidden="true"><use href="#i-wind"/></svg><div><small>Vent</small><b id="carWindVal">-- km/h</b><em id="carWindDir">--</em></div></div>
       </div>
-      <button class="car-radar-card" id="carRadarCard" type="button" aria-label="Basculer le radar de pluie sur la carte">
+      <button class="car-radar-card" id="carRadarCard" type="button" aria-label="Ouvrir le radar de pluie sur la grande carte">
         <div class="car-wx-head"><span class="car-wx-head-title"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg>Radar pluie</span><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></div>
         <div class="car-radar-preview" id="carRadarPreview">
-          <img class="car-radar-base" id="carRadarBaseImg" alt="" loading="lazy">
-          <img class="car-radar-overlay" id="carRadarRainImg" alt="" loading="lazy" hidden>
+          <div class="car-radar-minimap" id="carRadarMiniMap" aria-hidden="true"></div>
+          <div class="car-radar-fallback" id="carRadarFallback" hidden>Fond de carte indisponible</div>
           <span class="car-radar-dot" id="carRadarDot" aria-hidden="true"></span>
           <span class="car-radar-badge" id="carRadarStatus">Radar en direct</span>
         </div>
@@ -2399,31 +2400,14 @@ function renderCarCockpit(){
       $('carAlertText').textContent=S.w.now?.text||'Aucune alerte météo dans votre zone';
     }
   }
-  const pt=GPS.fix||sel;
   const panelOpen=!$('carWeatherPanel')?.classList.contains('collapsed');
-  if(pt&&C.validPoint(pt)&&panelOpen){
-    const z=7,n=Math.pow(2,z);
-    const xExact=(pt.lon+180)/360*n;
-    const latRad=pt.lat*Math.PI/180;
-    const yExact=(1-Math.log(Math.tan(latRad)+1/Math.cos(latRad))/Math.PI)/2*n;
-    const tx=Math.floor(xExact),ty=Math.floor(yExact);
-    if(Number.isFinite(tx)&&Number.isFinite(ty)){
-      const baseUrl='https://basemaps.cartocdn.com/dark_all/'+z+'/'+tx+'/'+ty+'.png';
-      const baseEl=$('carRadarBaseImg');
-      if(baseEl&&baseEl.dataset.src!==baseUrl){baseEl.dataset.src=baseUrl;baseEl.src=baseUrl;}
-      const dot=$('carRadarDot');
-      if(dot){dot.style.left=clamp((xExact-tx)*100,8,92).toFixed(1)+'%';dot.style.top=clamp((yExact-ty)*100,12,88).toFixed(1)+'%';}
-      const rainEl=$('carRadarRainImg');
-      if(RAD.host&&RAD.frames.length){
-        const frame=RAD.frames[RAD.frames.length-1];
-        const rainUrl=RAD.host+frame.path+'/256/'+z+'/'+tx+'/'+ty+'/2/1_1.png';
-        if(rainEl&&rainEl.dataset.src!==rainUrl){rainEl.dataset.src=rainUrl;rainEl.src=rainUrl;}
-        if(rainEl)rainEl.hidden=false;
-        $('carRadarStatus').textContent=DRIVE.radar?'Radar · '+hmFromTs(frame.time):'Radar masqué';
-      }else{
-        if(rainEl)rainEl.hidden=true;
-        $('carRadarStatus').textContent=DRIVE.radar?'Chargement radar…':'Radar masqué';
-      }
+  if(panelOpen){
+    syncCarMiniMap();
+    if(RAD.host&&RAD.frames.length){
+      const frame=RAD.frames[RAD.frames.length-1];
+      $('carRadarStatus').textContent='Radar · '+hmFromTs(frame.time);
+    }else{
+      $('carRadarStatus').textContent=DRIVE.radar?'Chargement radar…':'Radar masqué';
     }
   }else if($('carRadarStatus')&&!DRIVE.radar){
     $('carRadarStatus').textContent='Radar masqué';
@@ -2566,6 +2550,120 @@ function toggleCarSim(){
   DRIVE.simTimer=setInterval(stepSim,380);
   stepSim();
 }
+const MINI_RADAR={map:null,ready:false,failed:false,framePath:'',radarAt:0,center:null,initTimer:null};
+function showMiniRadarFallback(on){
+  MINI_RADAR.failed=!!on;
+  const host=$('carRadarMiniMap'),fb=$('carRadarFallback');
+  if(host)host.classList.toggle('failed',!!on);
+  if(fb)fb.hidden=!on;
+}
+function updateMiniMapRadarLayer(){
+  const mm=MINI_RADAR.map;
+  if(!mm||!MINI_RADAR.ready||MINI_RADAR.failed)return;
+  if($('carWeatherPanel')?.classList.contains('collapsed'))return;
+  const now=Date.now();
+  if(!RAD.frames.length||(now-RAD.fetchedAt)>=RADAR_REFRESH_MS){
+    if(!RAD.loading&&(now-RAD.lastToast)>=8000)loadRadar();
+    if(!RAD.frames.length)return;
+  }
+  const frame=RAD.frames[RAD.frames.length-1];
+  if(!frame||!RAD.host)return;
+  const tilePath=RAD.host+frame.path;
+  if(MINI_RADAR.framePath===tilePath&&mm.getLayer('car-mini-radar'))return;
+  if(MINI_RADAR.framePath&&(now-MINI_RADAR.radarAt)<RADAR_REFRESH_MS)return;
+  try{
+    if(mm.getLayer('car-mini-radar'))mm.removeLayer('car-mini-radar');
+    if(mm.getSource('car-mini-radar'))mm.removeSource('car-mini-radar');
+    mm.addSource('car-mini-radar',{
+      type:'raster',
+      tiles:['wxradar://'+tilePath+'/512/{z}/{x}/{y}/2/1_1.png'],
+      tileSize:512,
+      maxzoom:7,
+      attribution:'Radar © RainViewer'
+    });
+    const layers=mm.getStyle()?.layers||[];
+    const before=layers.find(l=>l.type==='symbol')?.id;
+    mm.addLayer({
+      id:'car-mini-radar',
+      type:'raster',
+      source:'car-mini-radar',
+      paint:{
+        'raster-opacity':0.86,
+        'raster-resampling':'linear',
+        'raster-hue-rotate':-16,
+        'raster-saturation':0.55,
+        'raster-contrast':0.16,
+        'raster-fade-duration':200
+      }
+    },before);
+    MINI_RADAR.framePath=tilePath;
+    MINI_RADAR.radarAt=now;
+  }catch(_){}
+}
+function syncCarMiniMap(){
+  if(!DRIVE.active)return;
+  const panel=$('carWeatherPanel'),host=$('carRadarMiniMap');
+  if(!panel||panel.classList.contains('collapsed')||!host)return;
+  const pt=GPS.fix||sel;
+  if(!pt||!C.validPoint(pt))return;
+  if(typeof maplibregl==='undefined'){showMiniRadarFallback(true);return;}
+  if(!MINI_RADAR.map){
+    showMiniRadarFallback(false);
+    MINI_RADAR.ready=false;
+    MINI_RADAR.center={lat:pt.lat,lon:pt.lon};
+    try{
+      const mm=new maplibregl.Map({
+        container:host,
+        style:BASES[1].style,
+        center:[pt.lon,pt.lat],
+        zoom:7.4,
+        pitch:0,
+        bearing:0,
+        interactive:false,
+        attributionControl:false,
+        dragPan:false,
+        scrollZoom:false,
+        boxZoom:false,
+        dragRotate:false,
+        keyboard:false,
+        doubleClickZoom:false,
+        touchZoomRotate:false,
+        pitchWithRotate:false
+      });
+      MINI_RADAR.map=mm;
+      clearTimeout(MINI_RADAR.initTimer);
+      MINI_RADAR.initTimer=setTimeout(()=>{if(MINI_RADAR.map===mm&&!MINI_RADAR.ready)showMiniRadarFallback(true);},8000);
+      mm.on('load',()=>{
+        clearTimeout(MINI_RADAR.initTimer);
+        MINI_RADAR.ready=true;
+        showMiniRadarFallback(false);
+        mm.resize();
+        updateMiniMapRadarLayer();
+      });
+      mm.on('error',e=>{
+        const srcId=e&&(e.sourceId||e.source?.id);
+        if(srcId==='car-mini-radar'){
+          if($('carRadarStatus'))$('carRadarStatus').textContent='Radar indisponible';
+          return;
+        }
+        if(!MINI_RADAR.ready)showMiniRadarFallback(true);
+      });
+    }catch(_){showMiniRadarFallback(true);}
+    return;
+  }
+  try{MINI_RADAR.map.resize();}catch(_){}
+  if(!MINI_RADAR.center||C.distance(MINI_RADAR.center,pt)>=2500){
+    MINI_RADAR.center={lat:pt.lat,lon:pt.lon};
+    try{MINI_RADAR.map.jumpTo({center:[pt.lon,pt.lat],zoom:7.4});}catch(_){}
+  }
+  updateMiniMapRadarLayer();
+}
+function destroyCarMiniMap(){
+  clearTimeout(MINI_RADAR.initTimer);MINI_RADAR.initTimer=null;
+  if(MINI_RADAR.map){try{MINI_RADAR.map.remove();}catch(_){}}
+  MINI_RADAR.map=null;MINI_RADAR.ready=false;MINI_RADAR.failed=false;MINI_RADAR.framePath='';MINI_RADAR.radarAt=0;MINI_RADAR.center=null;
+  showMiniRadarFallback(false);
+}
 function syncCarRadarBtn(){
   const on=!!DRIVE.radar;
   const btn=$('carDockRadar');
@@ -2590,13 +2688,23 @@ function toggleDrivingRadar(){
   renderCarCockpit();
   toast(DRIVE.radar?'Radar pluie activé sur la carte':'Radar pluie masqué');
 }
+function openDrivingRadarFromPreview(){
+  if(!DRIVE.active)return;
+  DRIVE.radar=true;
+  syncCarRadarBtn();
+  applyRadarVisibility();
+  if(typeof WXFX!=='undefined')WXFX.sync();
+  if(!isDesk())setCarWeatherOpen(false);
+  renderCarCockpit();
+  toast('Radar pluie affiché sur la carte');
+}
 function setCarWeatherOpen(open){
   const p=$('carWeatherPanel'),btn=$('carDockWeather'),pill=$('carMobileWxBtn');
   if(!p)return;
   p.classList.toggle('collapsed',!open);
   if(btn)btn.classList.toggle('panel-open',open);
   if(pill)pill.classList.toggle('active',open);
-  if(open&&DRIVE.active)renderCarCockpit();
+  if(open&&DRIVE.active)setTimeout(()=>renderCarCockpit(),20);
 }
 async function driveToPoint(point){
   TR.fromGPS=!!GPS.fix;TR.from=TR.fromGPS?null:{...sel};
@@ -2652,6 +2760,7 @@ async function startDriving(freeRoam=false){
 function stopDriving(){
   if(!DRIVE.active)return;
   stopCarSim();
+  destroyCarMiniMap();
   if(DRIVE.clockTimer){clearInterval(DRIVE.clockTimer);DRIVE.clockTimer=null;}
   DRIVE.active=false;DRIVE.radar=false;DRIVE.rerouteId++;DRIVE.rerouting=false;DRIVE.offCount=0;DRIVE.heading=null;DRIVE.userZoomed=false;
   syncCarRadarBtn();
@@ -2805,7 +2914,7 @@ function setupTravel(){
   if($('carCloseSearchBtn'))$('carCloseSearchBtn').onclick=()=>{$('driveHUD').classList.remove('mobile-search-open');$('carSuggestions').hidden=true;};
   $('carDockFav').onclick=openPlaces;$('carDockSettings').onclick=openSettings;
   $('carFullscreenBtn').onclick=()=>{try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}catch(_){}};
-  $('carRadarCard').onclick=toggleDrivingRadar;
+  $('carRadarCard').onclick=openDrivingRadarFromPreview;
   $('carExpandWeather').onclick=()=>{stopDriving();activateTab('today');setSheet('half');};
   $('carAlertBar').onclick=()=>{if(!isDesk())setCarWeatherOpen($('carWeatherPanel').classList.contains('collapsed'));else{stopDriving();activateTab('today');setSheet('half');}};
   let carSearchReq=0;

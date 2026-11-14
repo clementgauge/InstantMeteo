@@ -161,13 +161,12 @@ export const LiveMiniRadarMapCard: React.FC<LiveMiniRadarMapCardProps> = ({
 
     const tileUrl = mapEngine === 'satellite'
       ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-      : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     const newBaseLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
       maxNativeZoom: mapEngine === 'satellite' ? 18 : 19,
-      subdomains: mapEngine === 'satellite' ? 'abc' : 'abcd',
-      attribution: '© Esri, CartoDB, Open-Meteo'
+      attribution: '© Esri, OpenStreetMap, Open-Meteo'
     }).addTo(map);
 
     baseLayerRef.current = newBaseLayer;

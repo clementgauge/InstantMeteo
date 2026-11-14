@@ -636,21 +636,21 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
         maxNativeZoom: 18,
         maxZoom: 19,
         subdomains: 'abc',
-        attribution: '© Esri, Maxar, CartoDB'
+        attribution: '© Esri, Maxar'
       },
       dark: {
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        maxNativeZoom: 19,
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        maxNativeZoom: 16,
         maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '© CartoDB, OpenStreetMap'
+        subdomains: 'abc',
+        attribution: '© Esri Dark Gray Canvas'
       },
       topo: {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         maxNativeZoom: 19,
         maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '© CartoDB, OpenStreetMap'
+        subdomains: 'abc',
+        attribution: '© OpenStreetMap contributors'
       },
       satellite: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -672,11 +672,11 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     // Frontières administratives et noms de villes en surimpression nette sur Satellite Hybride
     if (baseMap === 'hybrid') {
       labelsLayerRef.current = L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         {
-          subdomains: 'abcd',
+          maxNativeZoom: 16,
           maxZoom: 19,
-          opacity: 0.95,
+          opacity: 0.9,
           zIndex: 14
         }
       ).addTo(map);

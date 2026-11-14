@@ -724,7 +724,7 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         const initialTileUrl = mapLayerStyle === 'relief'
           ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
           : mapLayerStyle === 'dark'
-          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
           : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
         const baseTileLayer = L.tileLayer(initialTileUrl, {
@@ -826,8 +826,8 @@ export const FranceMiniOverviewCard: React.FC<FranceMiniOverviewCardProps> = ({
         labelsLayerRef.current.setOpacity(0.75);
       }
     } else if (mapLayerStyle === 'dark') {
-      tileLayerRef.current.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-      if (labelsLayerRef.current) labelsLayerRef.current.setOpacity(0.2);
+      tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}');
+      if (labelsLayerRef.current) labelsLayerRef.current.setOpacity(0.25);
     } else {
       tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
       if (labelsLayerRef.current) {

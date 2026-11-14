@@ -504,8 +504,8 @@ export const FranceMapInteractive: React.FC<FranceMapInteractiveProps> = ({
         };
       case 'dark':
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-          attribution: '© CartoDB'
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+          attribution: '© Esri Dark Gray Canvas'
         };
       case 'osm':
         return {
