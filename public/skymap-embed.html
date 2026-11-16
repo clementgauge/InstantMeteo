@@ -9,6 +9,7 @@
 <title>SkyMap — Le ciel, à portée de main</title>
 <meta name="description" content="Explorez une carte en 3D, suivez votre position, visualisez les zones météo et préparez vos itinéraires routiers.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⛅%3C/text%3E%3C/svg%3E">
+<script src="/assets/three-car.min.js" defer></script>
 
 
 <style>
@@ -299,6 +300,9 @@
 .gps-marker.driving{width:56px;height:72px;z-index:25}
 .gps-marker.driving .gps-dot,.gps-marker.driving .gps-heading{display:none}
 .gps-marker.driving .gps-car{display:block}
+.gps-marker.driving.has-3d-car{width:44px;height:48px}
+.gps-marker.driving.has-3d-car .gps-car{display:none}
+.gps-marker.driving.has-3d-car .gps-car-street{top:calc(100% + 4px)}
 .gps-marker.driving .gps-car-street.visible{display:block}
 .gps-dot{animation:gps-pulse 2.4s ease-out infinite}
 @keyframes gps-pulse{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.65),0 2px 8px #18355177}70%{box-shadow:0 0 0 18px rgba(56,189,248,0),0 2px 8px #18355177}100%{box-shadow:0 0 0 0 rgba(56,189,248,0),0 2px 8px #18355177}}
@@ -383,7 +387,7 @@
 .car-pick-dest-btn{border:0!important;background:rgba(255,255,255,0.16)!important;color:#fff!important;border-radius:9px!important;padding:5px 12px!important;font-size:11.5px;font-weight:650}
 
 /* Right Translucent Weather & Radar Panel */
-.car-weather{position:absolute;top:calc(env(safe-area-inset-top) + 68px);right:18px;bottom:84px;width:296px;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;scrollbar-width:none;pointer-events:auto;z-index:8;transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
+.car-weather{position:absolute;top:calc(env(safe-area-inset-top) + 68px);right:18px;bottom:auto;max-height:calc(100dvh - 156px);width:296px;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;scrollbar-width:none;pointer-events:auto;z-index:8;transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
 .car-weather::-webkit-scrollbar{display:none}
 .car-weather.collapsed{opacity:0;pointer-events:none;transform:translateX(20px)}
 .car-wx-head{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:650;color:#eff7ff}
@@ -405,15 +409,17 @@
 .car-radar-card{border-radius:15px;padding:10px;background:rgba(170,215,245,0.08);border:1px solid rgba(185,225,255,0.18);cursor:pointer;text-align:left;width:100%}
 .car-radar-card:hover{background:rgba(170,215,245,0.14)}
 .car-radar-card.radar-off{opacity:.72;border-color:rgba(185,225,255,0.12)}
-.car-radar-preview{position:relative;height:86px;margin-top:8px;border-radius:11px;overflow:hidden;background:#0a1524;border:1px solid rgba(155,212,248,0.2)}
+.car-radar-preview{position:relative;height:122px;margin-top:8px;border-radius:11px;overflow:hidden;background:#0a1524;border:1px solid rgba(155,212,248,0.2)}
 .car-radar-minimap{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;transition:opacity .2s ease}
 .car-radar-minimap.failed{opacity:0}
 .car-radar-minimap .maplibregl-ctrl-bottom-left,.car-radar-minimap .maplibregl-ctrl-bottom-right{display:none!important}
 .car-radar-fallback{position:absolute;inset:0;display:grid;place-items:center;background:#0a1524;color:#9fc0d8;font-size:11px;font-weight:600;text-align:center;padding:6px;z-index:3;pointer-events:none}
 .car-radar-fallback[hidden]{display:none!important}
+.car-radar-empty{position:absolute;left:8px;right:8px;top:7px;padding:3px 9px;border-radius:999px;background:rgba(7,20,36,0.84);border:1px solid rgba(160,215,250,0.28);color:#dceeff;font-size:10px;font-weight:600;text-align:center;line-height:1.25;z-index:5;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(2,12,24,0.45)}
+.car-radar-empty[hidden]{display:none!important}
 .car-radar-dot{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#e0f7ff;border:3px solid #0ea5e9;box-shadow:0 0 0 6px rgba(56,189,248,0.34),0 2px 8px rgba(0,0,0,0.65);z-index:4;pointer-events:none}
 .car-radar-badge{position:absolute;left:7px;bottom:6px;padding:2px 7px;border-radius:999px;background:rgba(7,20,36,0.82);color:#cceaff;font-size:9.5px;font-weight:600;border:1px solid rgba(160,215,250,0.22);z-index:5;pointer-events:none}
-.car-hours-box{border-radius:15px;padding:10px;background:rgba(170,215,245,0.07);border:1px solid rgba(185,225,255,0.14);margin-top:auto}
+.car-hours-box{border-radius:15px;padding:10px;background:rgba(170,215,245,0.07);border:1px solid rgba(185,225,255,0.14)}
 .car-hours-title{font-size:11.5px;font-weight:650;color:#e1f1ff;margin-bottom:8px}
 .car-hours-title span{font-weight:500;color:#99bbd3;font-size:10.5px}
 .car-hours-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;text-align:center}
@@ -513,13 +519,14 @@
   #carDockSettings{display:none!important}
 
   /* Bottom Weather Drawer (collapsed by default on mobile) */
-  .car-weather{left:10px;right:10px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 108px);max-height:min(410px,54dvh);border-radius:20px;padding:13px;z-index:22;transform:translateY(0)}
+  .car-weather{left:10px;right:10px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 104px);max-height:min(460px,64dvh);border-radius:20px;padding:12px;gap:8px;z-index:22;transform:translateY(0)}
   .car-weather.collapsed{transform:translateY(22px)}
   .car-wx-close{display:grid!important;width:28px;height:28px;border-radius:50%!important;background:rgba(180,218,248,0.12)!important;color:#d8ecff!important}
   .car-wx-close svg{width:14px;height:14px}
-  .car-wx-ico{width:46px;height:46px}
-  .car-wx-temp{font-size:30px}
-  .car-radar-preview{height:72px}
+  .car-wx-ico{width:44px;height:44px}
+  .car-wx-temp{font-size:29px}
+  .car-radar-preview{height:76px;margin-top:6px}
+  .car-radar-empty{top:5px;padding:2px 7px;font-size:9.5px}
 
   /* Compact Single-Dock Bottom Trip + Alert Strip + Floating Zoom/Recenter */
   .car-map-btns{right:10px!important;bottom:calc(env(safe-area-inset-bottom) + 116px);gap:6px;z-index:12}
@@ -881,6 +888,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <div class="car-radar-preview" id="carRadarPreview">
           <div class="car-radar-minimap" id="carRadarMiniMap" aria-hidden="true"></div>
           <div class="car-radar-fallback" id="carRadarFallback" hidden>Fond de carte indisponible</div>
+          <div class="car-radar-empty" id="carRadarEmptyMsg" hidden>Aucune précipitation autour de vous</div>
           <span class="car-radar-dot" id="carRadarDot" aria-hidden="true"></span>
           <span class="car-radar-badge" id="carRadarStatus">Radar en direct</span>
         </div>
@@ -1241,6 +1249,7 @@ const sizeOfMap=()=>({x:$('map').clientWidth,y:$('map').clientHeight});
 function addGeo(id){if(map&&!map.getSource(id))map.addSource(id,{type:'geojson',data:empty()});}
 function setGeo(id,data){if(MAP.ready&&map?.getSource(id))map.getSource(id).setData(data);}
 function putLayer(layer,before){if(!map.getLayer(layer.id))map.addLayer(layer,before);}
+let demReady=false,demFailed=false;
 function apply3D(){
   if(!MAP.ready)return;
   const source=map.getSource('openmaptiles')?'openmaptiles':'sky-vector';
@@ -1250,8 +1259,12 @@ function apply3D(){
   map.getStyle().layers.filter(l=>l.type==='fill-extrusion').forEach(l=>map.setLayoutProperty(l.id,'visibility',cfg.mode3d?'visible':'none'));
   putLayer({id:'sky-flat-buildings',type:'fill',source,'source-layer':'building',minzoom:14,paint:{'fill-color':cfg.base===1?'#374759':'#d8d4cc','fill-opacity':.8}});
   map.setLayoutProperty('sky-flat-buildings','visibility',cfg.mode3d?'none':'visible');
-  if(!map.getSource('sky-dem'))map.addSource('sky-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',encoding:'terrarium',tileSize:512,maxzoom:12});
-  map.setTerrain(cfg.mode3d?{source:'sky-dem',exaggeration:1.2}:null);
+  if(!demFailed&&!map.getSource('sky-dem')){
+    try{map.addSource('sky-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',encoding:'terrarium',tileSize:512,maxzoom:12});}catch(_){demFailed=true;}
+  }
+  const demSrc=!demFailed?map.getSource('sky-dem'):null;
+  const canTerrain=!!(cfg.mode3d&&demReady&&!demFailed&&demSrc&&map.isSourceLoaded('sky-dem'));
+  try{map.setTerrain(canTerrain?{source:'sky-dem',exaggeration:1.2}:null);}catch(_){try{map.setTerrain(null);}catch(__){}}
   $('mode3d').classList.toggle('active',cfg.mode3d);$('mode3d').setAttribute('aria-pressed',String(cfg.mode3d));
   $('pitch').value=map.getPitch();$('pitchValue').textContent=Math.round(map.getPitch())+'°';
 }
@@ -1359,7 +1372,7 @@ function reapplyMapSurfaceTheme(){
 function applyCarMapTheme(enable){
   reapplyMapSurfaceTheme();
 }
-function setBase(i){cfg.base=clamp(i,0,3);saveCfg();renderBases();if(!map)return;routeNativeHasGeometry=false;MAP.ready=false;MAP.lastStyle++;cancelRadarPending();BASE_STYLE_SNAPSHOT.clear();map.setStyle(styleFor(cfg.base));}
+function setBase(i){cfg.base=clamp(i,0,3);saveCfg();renderBases();if(!map)return;routeNativeHasGeometry=false;MAP.ready=false;demReady=false;demFailed=false;MAP.lastStyle++;cancelRadarPending();BASE_STYLE_SNAPSHOT.clear();map.setStyle(styleFor(cfg.base));}
 function initMapLayers(){
   if(!map)return;
   BASE_STYLE_SNAPSHOT.clear();
@@ -1380,6 +1393,7 @@ function initMapLayers(){
   putLayer({id:'sky-route-halo',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#0284c7','line-width':['interpolate',['linear'],['zoom'],5,7,12,11.5,17,17],'line-opacity':.94}},beforePlaceLabels);
   putLayer({id:'sky-route-line',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#00b4ff','line-width':['interpolate',['linear'],['zoom'],5,4.5,12,8,17,12],'line-opacity':1}},beforePlaceLabels);
   putLayer({id:'sky-route-core',type:'line',source:'sky-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#d8fbff','line-width':['interpolate',['linear'],['zoom'],5,1.2,12,2.6,17,4.2],'line-opacity':.96}},beforePlaceLabels);
+  if(typeof CAR3D!=='undefined'){try{CAR3D.ensureLayer(beforePlaceLabels);}catch(e){console.warn('CAR3D :',e);}}
   try{setSelMarker();}catch(e){console.warn('setSelMarker :',e);}
   if(GPS.fix){try{drawGPS();}catch(e){console.warn('drawGPS :',e);}}
   try{renderRoute();}catch(e){console.warn('renderRoute :',e);}
@@ -1516,11 +1530,11 @@ async function smoothRadarTileBuffer(rawBuf){
   if(typeof createImageBitmap!=='function'||typeof document==='undefined')return rawBuf;
   try{
     const bmp=await createImageBitmap(new Blob([rawBuf],{type:'image/png'}));
-    const w=bmp.width||512,h=bmp.height||512,pad=12;
+    const w=bmp.width||512,h=bmp.height||512,pad=16;
     const cPad=document.createElement('canvas');cPad.width=w+pad*2;cPad.height=h+pad*2;
     const pCtx=cPad.getContext('2d');
     if(!pCtx){bmp.close?.();return rawBuf;}
-    // Clône les bords sur 12 px avant filtrage pour éviter toute couture entre tuiles
+    // Clône les bords sur 16 px avant filtrage pour éviter toute couture entre tuiles
     pCtx.drawImage(bmp,pad,pad,w,h);
     pCtx.drawImage(bmp,0,0,1,h,0,pad,pad,h);
     pCtx.drawImage(bmp,w-1,0,1,h,w+pad,pad,pad,h);
@@ -1531,16 +1545,14 @@ async function smoothRadarTileBuffer(rawBuf){
     pCtx.drawImage(bmp,0,h-1,1,1,0,h+pad,pad,pad);
     pCtx.drawImage(bmp,w-1,h-1,1,1,w+pad,h+pad,pad,pad);
     bmp.close?.();
-    const sW=256+12,sH=256+12;
-    const cMid=document.createElement('canvas');cMid.width=sW;cMid.height=sH;
-    const mCtx=cMid.getContext('2d');
-    mCtx.imageSmoothingEnabled=true;mCtx.imageSmoothingQuality='high';
-    if('filter' in mCtx)mCtx.filter='blur(1.8px)';
-    mCtx.drawImage(cPad,0,0,sW,sH);
-    const cOut=document.createElement('canvas');cOut.width=256;cOut.height=256;
+    const outW=512,outH=512;
+    const scaleX=outW/w,scaleY=outH/h;
+    const cOut=document.createElement('canvas');cOut.width=outW;cOut.height=outH;
     const oCtx=cOut.getContext('2d');
+    if(!oCtx)return rawBuf;
     oCtx.imageSmoothingEnabled=true;oCtx.imageSmoothingQuality='high';
-    oCtx.drawImage(cMid,6,6,256,256,0,0,256,256);
+    if('filter' in oCtx)oCtx.filter='blur(3.2px)';
+    oCtx.drawImage(cPad,0,0,w+pad*2,h+pad*2,-pad*scaleX,-pad*scaleY,outW+pad*2*scaleX,outH+pad*2*scaleY);
     const blob=await new Promise(res=>cOut.toBlob(res,'image/png'));
     if(!blob)return rawBuf;
     return await blob.arrayBuffer();
@@ -1585,6 +1597,10 @@ async function loadRadar(force=false){
       RAD.host=d.host;RAD.frames=d.radar?.past||[];RAD.fetchedAt=Date.now();
       RAD.idx=Math.max(0,RAD.frames.length-1);$('slider').max=RAD.idx;$('slider').value=RAD.idx;
       if(!RAD.frames.length)throw new Error('Aucune image radar');
+      if(DRIVE.active){
+        if($('carRadarStatus'))$('carRadarStatus').textContent='Radar · '+hmFromTs(RAD.frames[RAD.idx].time);
+        updateMiniMapRadarLayer();
+      }
       if(isRadarVisible())await showFrame(DRIVE.active?RAD.frames.length-1:RAD.idx);
       if(DRIVE.active)renderCarCockpit();
       if(typeof WXFX!=='undefined')WXFX.sync();
@@ -1642,14 +1658,12 @@ function showFrame(i,attempt=0,reqSeq){
       if(cancelled||mySeq!==RAD.seq||!isRadarVisible()){resolve(false);return;}
       if(attempt<2){
         $('lgUnit').textContent='Radar · nouvel essai ('+(attempt+2)+'/3)…';
-        if($('carRadarStatus')&&DRIVE.active)$('carRadarStatus').textContent='Nouvel essai ('+(attempt+2)+'/3)…';
         setTimeout(()=>{
           if(mySeq!==RAD.seq||!isRadarVisible()){resolve(false);return;}
           showFrame(i,attempt+1,mySeq).then(resolve);
         },650*(attempt+1));
       }else{
         $('lgUnit').textContent='Tuiles radar indisponibles';
-        if($('carRadarStatus')&&DRIVE.active)$('carRadarStatus').textContent='Tuiles indisponibles';
         radarToast('Tuiles radar indisponibles après 3 tentatives'+(errMsg?' ('+errMsg+')':'')+'. Vérifiez votre connexion.');
         resolve(false);
       }
@@ -1993,6 +2007,312 @@ function gpsStatus(text,error=false){
   if(mBars)mBars.className=sigCls;
 }
 const CAR_3D_SVG='<svg viewBox="0 0 64 84" fill="none" aria-hidden="true"><defs><radialGradient id="carBeam" cx="50%" cy="22%" r="50%"><stop offset="0%" stop-color="#a5f3fc" stop-opacity="0.72"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></radialGradient><linearGradient id="carBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#e2edf8"/><stop offset="100%" stop-color="#b8cce0"/></linearGradient><linearGradient id="carRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f2942"/><stop offset="100%" stop-color="#1e4d7b"/></linearGradient></defs><path d="M12 22 L20 2 L44 2 L52 22 Z" fill="url(#carBeam)"/><ellipse cx="32" cy="52" rx="22" ry="27" fill="#0ea5e9" fill-opacity="0.28"/><rect x="15" y="16" width="34" height="58" rx="14" fill="url(#carBody)" stroke="#f8fbff" stroke-width="2"/><path d="M19 30 C19 25, 45 25, 45 30 L43 56 C43 60, 21 60, 21 56 Z" fill="url(#carRoof)" stroke="#7dd3fc" stroke-width="1"/><path d="M21 31 C25 27, 39 27, 43 31 L42 38 C36 37, 28 37, 22 38 Z" fill="#38bdf8" fill-opacity="0.45"/><rect x="19" y="18" width="7" height="3" rx="1.5" fill="#7dd3fc"/><rect x="38" y="18" width="7" height="3" rx="1.5" fill="#7dd3fc"/><rect x="19" y="69" width="7" height="2.6" rx="1.3" fill="#f87171"/><rect x="38" y="69" width="7" height="2.6" rx="1.3" fill="#f87171"/></svg>';
+const CAR3D=(function(){
+  const MODEL_URL='/assets/car-3d.glb';
+  let ready=false,failed=false,loading=false,layerAdded=false,isSoftwareGl=false;
+  let renderer=null,scene=null,camera=null,carRoot=null,modelGroup=null;
+  let shadowMesh=null,beamGroup=null,haloGroup=null,beamMats=[],haloMats=[];
+  let bodyMats=[],glassMats=[],headMats=[],tailMats=[],lastStateKey='';
+  let projMat=null,transMat=null,scaleMat=null,rotXMat=null;
+
+  function syncMarkerClass(){
+    const el=GPS.marker?.getElement();
+    if(el)el.classList.toggle('has-3d-car',!!(DRIVE.active&&ready&&!failed));
+  }
+  function detectSoftwareGl(gl){
+    try{
+      const dbg=gl.getExtension('WEBGL_debug_renderer_info');
+      const r=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)||''):'';
+      return /SwiftShader|llvmpipe|Software Rasterizer|WARP/i.test(r);
+    }catch(_){return false;}
+  }
+  function makeEnvTexture(THREE){
+    const c=document.createElement('canvas');c.width=256;c.height=128;
+    const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,128);
+    g.addColorStop(0.00,'#bfe4ff');
+    g.addColorStop(0.28,'#eef8ff');
+    g.addColorStop(0.47,'#ffffff');
+    g.addColorStop(0.51,'#5e8cb8');
+    g.addColorStop(0.75,'#18324e');
+    g.addColorStop(1.00,'#091728');
+    x.fillStyle=g;x.fillRect(0,0,256,128);
+    // Specular studio softbox strips for glossy reflections on bodywork & glass
+    x.fillStyle='rgba(255,255,255,0.88)';x.fillRect(18,16,90,10);x.fillRect(148,18,88,8);
+    x.fillStyle='rgba(175,228,255,0.55)';x.fillRect(42,36,170,6);
+    const tex=new THREE.CanvasTexture(c);
+    tex.mapping=THREE.EquirectangularReflectionMapping;
+    tex.colorSpace=THREE.SRGBColorSpace;
+    tex.needsUpdate=true;
+    return tex;
+  }
+  function makeShadowTexture(THREE){
+    const c=document.createElement('canvas');c.width=256;c.height=256;
+    const x=c.getContext('2d');
+    const g=x.createRadialGradient(128,128,18,128,128,122);
+    g.addColorStop(0.00,'rgba(2,10,22,0.72)');
+    g.addColorStop(0.45,'rgba(3,14,30,0.48)');
+    g.addColorStop(0.76,'rgba(5,20,40,0.18)');
+    g.addColorStop(1.00,'rgba(5,20,40,0)');
+    x.fillStyle=g;x.fillRect(0,0,256,256);
+    const tex=new THREE.CanvasTexture(c);
+    tex.colorSpace=THREE.SRGBColorSpace;
+    tex.needsUpdate=true;
+    return tex;
+  }
+  function makeBeamTexture(THREE){
+    const c=document.createElement('canvas');c.width=128;c.height=256;
+    const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,256,0,0);
+    g.addColorStop(0.00,'rgba(255,253,240,0.98)');
+    g.addColorStop(0.24,'rgba(195,240,255,0.58)');
+    g.addColorStop(0.66,'rgba(130,220,255,0.18)');
+    g.addColorStop(1.00,'rgba(100,200,255,0)');
+    x.beginPath();x.moveTo(46,256);x.lineTo(2,0);x.lineTo(126,0);x.lineTo(82,256);x.closePath();
+    x.fillStyle=g;x.fill();
+    const tex=new THREE.CanvasTexture(c);
+    tex.colorSpace=THREE.SRGBColorSpace;
+    tex.needsUpdate=true;
+    return tex;
+  }
+  function makeHaloTexture(THREE){
+    const c=document.createElement('canvas');c.width=128;c.height=128;
+    const x=c.getContext('2d');
+    const g=x.createRadialGradient(64,64,6,64,64,60);
+    g.addColorStop(0.00,'rgba(255,255,250,0.98)');
+    g.addColorStop(0.28,'rgba(210,245,255,0.68)');
+    g.addColorStop(0.65,'rgba(125,211,252,0.22)');
+    g.addColorStop(1.00,'rgba(125,211,252,0)');
+    x.fillStyle=g;x.fillRect(0,0,128,128);
+    const tex=new THREE.CanvasTexture(c);
+    tex.colorSpace=THREE.SRGBColorSpace;
+    tex.needsUpdate=true;
+    return tex;
+  }
+  function applyWeatherLook(isWet,isNight){
+    const key=(isWet?1:0)+'|'+(isNight?1:0);
+    if(key===lastStateKey)return;
+    lastStateKey=key;
+    for(const m of bodyMats){
+      if('roughness' in m)m.roughness=isWet?0.06:0.20;
+      if('clearcoat' in m)m.clearcoat=isWet?1.0:0.80;
+      if('clearcoatRoughness' in m)m.clearcoatRoughness=isWet?0.02:0.12;
+      if('envMapIntensity' in m)m.envMapIntensity=isWet?2.4:1.35;
+      m.needsUpdate=true;
+    }
+    for(const m of glassMats){
+      if('envMapIntensity' in m)m.envMapIntensity=isWet?2.2:1.4;
+      if('roughness' in m)m.roughness=isWet?0.04:0.07;
+      m.needsUpdate=true;
+    }
+    for(const m of headMats){
+      if('emissiveIntensity' in m)m.emissiveIntensity=isNight?4.4:0.85;
+    }
+    for(const m of tailMats){
+      if('emissiveIntensity' in m)m.emissiveIntensity=isNight?3.6:2.2;
+    }
+    if(beamGroup)beamGroup.visible=!!isNight;
+    if(haloGroup)haloGroup.visible=!!isNight;
+    for(const bm of beamMats)bm.opacity=isNight?0.78:0;
+    for(const hm of haloMats)hm.opacity=isNight?0.90:0;
+  }
+  function loadModel(){
+    const lib=window.SkyThree;
+    if(!lib||!lib.GLTFLoader||loading||ready||failed)return;
+    loading=true;
+    try{
+      const loader=new lib.GLTFLoader();
+      loader.load(MODEL_URL,gltf=>{
+        loading=false;
+        if(!gltf||!gltf.scene){failed=true;syncMarkerClass();return;}
+        const THREE=window.SkyThree;
+        const root=gltf.scene;
+        const box=new THREE.Box3().setFromObject(root);
+        const size=new THREE.Vector3();
+        box.getSize(size);
+        const maxLen=Math.max(size.x,size.z)||4.5;
+        const targetScale=4.5/maxLen;
+        root.scale.setScalar(targetScale);
+        box.setFromObject(root);
+        const cx=(box.min.x+box.max.x)*0.5;
+        const cz=(box.min.z+box.max.z)*0.5;
+        root.position.set(-cx,-box.min.y,-cz);
+
+        bodyMats=[];glassMats=[];headMats=[];tailMats=[];
+        const seen=new Set();
+        root.traverse(o=>{
+          if(!o.isMesh)return;
+          o.frustumCulled=false;
+          const mats=Array.isArray(o.material)?o.material:[o.material];
+          for(const m of mats){
+            if(!m||seen.has(m))continue;
+            seen.add(m);
+            const nm=(m.name||o.name||'');
+            if(/^Body/i.test(nm))bodyMats.push(m);
+            else if(/^Glass/i.test(nm))glassMats.push(m);
+            else if(/^Headlight/i.test(nm))headMats.push(m);
+            else if(/^Taillight/i.test(nm))tailMats.push(m);
+          }
+        });
+        if(modelGroup){
+          modelGroup.add(root);
+        }
+        lastStateKey='';
+        ready=true;
+        failed=false;
+        syncMarkerClass();
+        map?.triggerRepaint();
+      },undefined,()=>{
+        loading=false;
+        failed=true;
+        ready=false;
+        syncMarkerClass();
+      });
+    }catch(_){
+      loading=false;
+      failed=true;
+      ready=false;
+      syncMarkerClass();
+    }
+  }
+  function setupScene(gl){
+    const THREE=window.SkyThree;
+    if(!THREE)return false;
+    isSoftwareGl=detectSoftwareGl(gl);
+    renderer=new THREE.WebGLRenderer({canvas:map.getCanvas(),context:gl,antialias:!isSoftwareGl});
+    renderer.autoClear=false;
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.08;
+
+    scene=new THREE.Scene();
+    scene.environment=makeEnvTexture(THREE);
+    camera=new THREE.PerspectiveCamera();
+
+    projMat=new THREE.Matrix4();
+    transMat=new THREE.Matrix4();
+    scaleMat=new THREE.Matrix4();
+    rotXMat=new THREE.Matrix4().makeRotationX(Math.PI/2);
+
+    const amb=new THREE.AmbientLight(0xdbeeff,0.45);
+    const hemi=new THREE.HemisphereLight(0xf0f9ff,0x1d3552,1.25);
+    const key=new THREE.DirectionalLight(0xffffff,1.85);
+    key.position.set(5,11,7);
+    const fill=new THREE.DirectionalLight(0x88ccff,0.9);
+    fill.position.set(-7,6,-5);
+    scene.add(amb,hemi,key,fill);
+
+    carRoot=new THREE.Group();
+    modelGroup=new THREE.Group();
+    carRoot.add(modelGroup);
+
+    // Ombre douce au sol sous la voiture
+    const shMat=new THREE.MeshBasicMaterial({map:makeShadowTexture(THREE),transparent:true,depthWrite:false,opacity:0.86,side:THREE.DoubleSide});
+    shadowMesh=new THREE.Mesh(new THREE.PlaneGeometry(3.2,5.6),shMat);
+    shadowMesh.rotation.x=-Math.PI/2;
+    shadowMesh.position.set(0,0.015,0.04);
+    shadowMesh.frustumCulled=false;
+    shadowMesh.renderOrder=1;
+    modelGroup.add(shadowMesh);
+
+    // Halos & faisceaux de phares pour la nuit
+    beamGroup=new THREE.Group();
+    beamGroup.visible=false;
+    const beamTex=makeBeamTexture(THREE);
+    beamMats=[];
+    for(const sx of [-0.72,0.72]){
+      const bm=new THREE.MeshBasicMaterial({map:beamTex,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+      beamMats.push(bm);
+      const plane=new THREE.Mesh(new THREE.PlaneGeometry(3.2,11.5),bm);
+      plane.rotation.x=-Math.PI/2;
+      plane.position.set(sx,0.09,-7.6);
+      plane.frustumCulled=false;
+      plane.renderOrder=4;
+      beamGroup.add(plane);
+    }
+    modelGroup.add(beamGroup);
+
+    haloGroup=new THREE.Group();
+    haloGroup.visible=false;
+    const haloTex=makeHaloTexture(THREE);
+    haloMats=[];
+    for(const sx of [-0.68,0.68]){
+      const hm=new THREE.MeshBasicMaterial({map:haloTex,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+      haloMats.push(hm);
+      const hPlane=new THREE.Mesh(new THREE.PlaneGeometry(1.18,1.18),hm);
+      hPlane.rotation.x=-Math.PI/2.5;
+      hPlane.position.set(sx,0.62,-2.28);
+      hPlane.frustumCulled=false;
+      hPlane.renderOrder=5;
+      haloGroup.add(hPlane);
+    }
+    modelGroup.add(haloGroup);
+
+    scene.add(carRoot);
+    return true;
+  }
+  const customLayer={
+    id:'sky-car-3d',
+    type:'custom',
+    renderingMode:'3d',
+    onAdd(mapRef,gl){
+      if(window.SkyThree){
+        if(!renderer)setupScene(gl);
+        loadModel();
+      }else{
+        window.addEventListener('load',()=>{if(map&&window.SkyThree&&!renderer){setupScene(gl);loadModel();}},{once:true});
+      }
+    },
+    render(gl,options){
+      if(!DRIVE.active||!GPS.fix||!Number.isFinite(GPS.fix.lon)||!Number.isFinite(GPS.fix.lat))return;
+      if(!renderer&&window.SkyThree){
+        if(setupScene(gl))loadModel();
+      }
+      if(!ready||!renderer||!scene||!camera||!modelGroup)return;
+      const lngLat=[GPS.fix.lon,GPS.fix.lat];
+      let elev=0;
+      try{
+        const q=map?.queryTerrainElevation?.(lngLat);
+        if(Number.isFinite(q))elev=q;
+      }catch(_){}
+      const merc=maplibregl.MercatorCoordinate.fromLngLat(lngLat,elev);
+      const mScale=merc.meterInMercatorCoordinateUnits();
+      const headingDeg=Number.isFinite(GPS.fix.heading)?GPS.fix.heading:(DRIVE.heading??0);
+      modelGroup.rotation.y=-(headingDeg*Math.PI)/180;
+
+      const cur=S.w?.cur;
+      const wxMode=typeof WXFX!=='undefined'?WXFX.state.mode:'clear';
+      const isWet=wxMode==='rain'||wxMode==='storm'||(cur?.pr||0)>0||(cur?.code>=51&&cur?.code<=82);
+      const isNight=(cur?.day===0)||(typeof WXFX!=='undefined'&&WXFX.state.day===0);
+      applyWeatherLook(isWet,isNight);
+
+      const rawMvp=options?.defaultProjectionData?.mainMatrix||options?.modelViewProjectionMatrix||options;
+      if(!rawMvp)return;
+      projMat.fromArray(rawMvp);
+      transMat.makeTranslation(merc.x,merc.y,merc.z)
+        .multiply(scaleMat.makeScale(mScale,-mScale,mScale))
+        .multiply(rotXMat);
+      camera.projectionMatrix.copy(projMat).multiply(transMat);
+      camera.projectionMatrixInverse.identity();
+
+      renderer.resetState();
+      renderer.render(scene,camera);
+    }
+  };
+  function ensureLayer(beforeId){
+    if(!map)return;
+    if(!map.getLayer('sky-car-3d')){
+      map.addLayer(customLayer,beforeId);
+      layerAdded=true;
+    }
+    syncMarkerClass();
+  }
+  function trigger(){
+    syncMarkerClass();
+    if(ready&&DRIVE.active)map?.triggerRepaint();
+  }
+  return {ensureLayer,trigger,syncMarkerClass,isReady:()=>ready,hasFailed:()=>failed,layerId:'sky-car-3d'};
+})();
 function updateCarStreetBadge(){
   const b=GPS.marker?.getElement()?.querySelector('.gps-car-street');
   if(!b)return;
@@ -2019,6 +2339,7 @@ function drawGPS(){
   el.setAttribute('aria-label','Votre position, précision '+Math.round(p.accuracy)+' mètres');
   el.classList.toggle('has-heading',Number.isFinite(p.heading)||DRIVE.active);
   if(Number.isFinite(p.heading)||DRIVE.active)GPS.marker.setRotation(Number.isFinite(p.heading)?p.heading:(DRIVE.heading??0));
+  if(typeof CAR3D!=='undefined')CAR3D.trigger();
   updateCarStreetBadge();
   try{setGeo('sky-accuracy',C.collection([C.circle(p,p.accuracy)]));}catch(_){}
 }
@@ -2410,10 +2731,11 @@ function renderCarCockpit(){
       const frame=RAD.frames[RAD.frames.length-1];
       $('carRadarStatus').textContent='Radar · '+hmFromTs(frame.time);
     }else{
-      $('carRadarStatus').textContent=DRIVE.radar?'Chargement radar…':'Radar masqué';
+      $('carRadarStatus').textContent='Chargement radar…';
     }
-  }else if($('carRadarStatus')&&!DRIVE.radar){
-    $('carRadarStatus').textContent='Radar masqué';
+    syncMiniRadarEmptyNotice();
+  }else{
+    syncMiniRadarEmptyNotice();
   }
   syncCarRadarBtn();
   const hasRoute=TR.routes.length>0;
@@ -2438,7 +2760,7 @@ function centerDriving(p,instant=false){
   const h=$('map').clientHeight||640,mobile=!isDesk();
   const cur=map.getCenter();
   const dist=C.distance({lat:cur.lat,lon:cur.lng},p);
-  const targetZoom=p.isIp?14.2:Math.max(map.getZoom(),mobile?17.2:17.0);
+  const targetZoom=p.isIp?14.2:Math.max(map.getZoom(),mobile?18.0:18.2);
   const opts={
     center:[p.lon,p.lat],
     bearing:Number.isFinite(heading)?heading:map.getBearing(),
@@ -2553,17 +2875,53 @@ function toggleCarSim(){
   DRIVE.simTimer=setInterval(stepSim,380);
   stepSim();
 }
+const MINI_RADAR_ZOOM=9.2;
 const MINI_RADAR={map:null,ready:false,failed:false,framePath:'',radarAt:0,center:null,initTimer:null};
+function hasNearbyPrecipitation(){
+  const pt=GPS.fix||sel;
+  const cur=S.w?.cur;
+  if(cur){
+    const code=Number(cur.code)||0;
+    if((Number(cur.pr)||0)>0||(code>=51&&code<=86)||code>=95)return true;
+  }
+  if(typeof WXFX!=='undefined'&&(WXFX.state.mode==='rain'||WXFX.state.mode==='storm'))return true;
+  if(pt&&C.validPoint(pt)){
+    if(Array.isArray(TR.weatherPoints)){
+      for(const rp of TR.weatherPoints){
+        if(rp.routeIdx===TR.index&&C.distance(pt,rp)<=60000){
+          const code=Number(rp.code)||0;
+          if((Number(rp.pr)||0)>0||(code>=51&&code<=86)||code>=95)return true;
+        }
+      }
+    }
+    if(Array.isArray(GRID.cells)){
+      for(const c of GRID.cells){
+        if(C.distance(pt,c)<=60000){
+          const code=Number(c.code)||0;
+          if((code>=51&&code<=86)||code>=95)return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+function syncMiniRadarEmptyNotice(){
+  const msg=$('carRadarEmptyMsg');
+  if(!msg)return;
+  msg.hidden=MINI_RADAR.failed||hasNearbyPrecipitation();
+}
 function showMiniRadarFallback(on){
   MINI_RADAR.failed=!!on;
   const host=$('carRadarMiniMap'),fb=$('carRadarFallback');
   if(host)host.classList.toggle('failed',!!on);
   if(fb)fb.hidden=!on;
+  syncMiniRadarEmptyNotice();
 }
 function updateMiniMapRadarLayer(){
   const mm=MINI_RADAR.map;
   if(!mm||!MINI_RADAR.ready||MINI_RADAR.failed)return;
   if($('carWeatherPanel')?.classList.contains('collapsed'))return;
+  syncMiniRadarEmptyNotice();
   const now=Date.now();
   if(!RAD.frames.length||(now-RAD.fetchedAt)>=RADAR_REFRESH_MS){
     if(!RAD.loading&&(now-RAD.lastToast)>=8000)loadRadar();
@@ -2609,6 +2967,7 @@ function syncCarMiniMap(){
   if(!panel||panel.classList.contains('collapsed')||!host)return;
   const pt=GPS.fix||sel;
   if(!pt||!C.validPoint(pt))return;
+  syncMiniRadarEmptyNotice();
   if(typeof maplibregl==='undefined'){showMiniRadarFallback(true);return;}
   if(!MINI_RADAR.map){
     showMiniRadarFallback(false);
@@ -2619,7 +2978,7 @@ function syncCarMiniMap(){
         container:host,
         style:BASES[1].style,
         center:[pt.lon,pt.lat],
-        zoom:7.4,
+        zoom:MINI_RADAR_ZOOM,
         pitch:0,
         bearing:0,
         interactive:false,
@@ -2655,9 +3014,9 @@ function syncCarMiniMap(){
     return;
   }
   try{MINI_RADAR.map.resize();}catch(_){}
-  if(!MINI_RADAR.center||C.distance(MINI_RADAR.center,pt)>=2500){
+  if(!MINI_RADAR.center||C.distance(MINI_RADAR.center,pt)>=1200){
     MINI_RADAR.center={lat:pt.lat,lon:pt.lon};
-    try{MINI_RADAR.map.jumpTo({center:[pt.lon,pt.lat],zoom:7.4});}catch(_){}
+    try{MINI_RADAR.map.jumpTo({center:[pt.lon,pt.lat],zoom:MINI_RADAR_ZOOM});}catch(_){}
   }
   updateMiniMapRadarLayer();
 }
@@ -2680,7 +3039,6 @@ function syncCarRadarBtn(){
     card.classList.toggle('radar-off',!on);
     card.setAttribute('aria-pressed',String(on));
   }
-  if($('carRadarStatus')&&!on)$('carRadarStatus').textContent='Radar masqué';
 }
 function toggleDrivingRadar(){
   if(!DRIVE.active)return;
@@ -2735,6 +3093,7 @@ async function startDriving(freeRoam=false){
   if(MAP.ready)try{reapplyMapSurfaceTheme();}catch(_){}
   if(MAP.ready)renderPills();
   applyRadarVisibility();
+  if(typeof CAR3D!=='undefined')CAR3D.trigger();
   if(!DRIVE.clockTimer)DRIVE.clockTimer=setInterval(renderCarCockpit,15000);
   renderCarCockpit();
   if(map)map.resize();
@@ -2757,7 +3116,7 @@ async function startDriving(freeRoam=false){
   if(!DRIVE.active)return;
   if(!focusPt)focusPt=GPS.fix||(TR.routes.length&&TR.from?{lat:TR.from.lat,lon:TR.from.lon,accuracy:15,time:Date.now()}:null);
   if(focusPt){GPS.zoomPending=false;updateDriving(focusPt,null);drawGPS();centerDriving(focusPt,true);}
-  else if(map){map.easeTo({pitch:isDesk()?60:58,zoom:Math.max(map.getZoom(),17.0),duration:600,essential:true});}
+  else if(map){map.easeTo({pitch:isDesk()?60:58,zoom:Math.max(map.getZoom(),17.6),duration:600,essential:true});}
   if(typeof WXFX!=='undefined')WXFX.sync();
   startGPS(true,!focusPt);
 }
@@ -2771,6 +3130,7 @@ function stopDriving(){
   $('app').classList.remove('driving-mode');$('driveHUD').hidden=true;$('driveHUD').classList.remove('mobile-search-open');
   if($('startDriving')){$('startDriving').disabled=false;$('startDriving').textContent='▶ Démarrer';}
   if(GPS.marker){GPS.marker.getElement().classList.remove('driving');drawGPS();}
+  if(typeof CAR3D!=='undefined')CAR3D.trigger();
   GPS.follow=false;
   if(MAP.ready)try{reapplyMapSurfaceTheme();}catch(_){}
   setGeo('sky-route-past',empty());
@@ -3177,7 +3537,8 @@ if(map){
   // Le SVG de secours n'est recalculé que si le tracé natif est absent.
   map.on('move',()=>{if(!routeNativeHasGeometry||!MAP.ready||!map.getLayer('sky-route-line'))scheduleRouteOverlay();});
   map.on('resize',scheduleRouteOverlay);
-  map.on('error',e=>{if(!MAP.ready){$('mapNotice').hidden=false;$('mapNotice').textContent='Le fond de carte ne se charge pas. Vérifiez votre connexion puis choisissez à nouveau un fond dans Carte.';}});
+  map.on('sourcedata',e=>{if(e?.sourceId==='sky-dem'&&e.isSourceLoaded&&!demFailed){demReady=true;if(cfg.mode3d&&!map.getTerrain()){try{map.setTerrain({source:'sky-dem',exaggeration:1.2});}catch(_){}}}});
+  map.on('error',e=>{const sid=e&&(e.sourceId||e.source?.id);if(sid==='sky-dem'){demFailed=true;demReady=false;try{if(map.getTerrain())map.setTerrain(null);}catch(_){}return;}if(!MAP.ready){$('mapNotice').hidden=false;$('mapNotice').textContent='Le fond de carte ne se charge pas. Vérifiez votre connexion puis choisissez à nouveau un fond dans Carte.';}});
   map.on('click',async e=>{
     if($('layerPanel').classList.contains('on')){closeLayers();return;}
     const lat=e.lngLat.lat,lon=((e.lngLat.lng+540)%360)-180;
@@ -3841,19 +4202,20 @@ const WXFX=(function(){
         const flA=sp.flash[v],flB=sp.flash[1-v];
         const elev=c.altPx*elevScale*clamp(zoomScale,0.75,1.28);
         const cy=c._py-elev;
+        const carClearFade=DRIVE.active?clamp((height*0.60-cy)/(height*0.22),0.12,1):1;
         const cw=268*c.scale*zoomScale,ch=cw*(0.52+0.20*flatY);
         const shiftX=(v===0?1:-1)*cw*0.14;
         // Banc principal (volume de base + sous-face sombre)
-        ctx.globalAlpha=Math.min(0.95,c.alpha);
+        ctx.globalAlpha=Math.min(0.95,c.alpha)*carClearFade;
         ctx.drawImage(imgA,c._px-cw*0.5,cy-ch*0.5,cw,ch);
         // Tourelle cumulus supérieure décalée (relief 3D)
-        ctx.globalAlpha=Math.min(0.92,c.alpha*0.86);
+        ctx.globalAlpha=Math.min(0.92,c.alpha*0.86)*carClearFade;
         ctx.drawImage(imgB,c._px+shiftX-cw*0.41,cy-ch*0.62,cw*0.82,ch*0.82);
         // Bourgeonnement frontal pour densifier la crête
-        ctx.globalAlpha=Math.min(0.82,c.alpha*0.65);
+        ctx.globalAlpha=Math.min(0.82,c.alpha*0.65)*carClearFade;
         ctx.drawImage(imgA,c._px-shiftX*0.75-cw*0.34,cy-ch*0.42,cw*0.68,ch*0.68);
         if(flashAlpha>0.03){
-          ctx.globalAlpha=Math.min(0.72,flashAlpha*2.6);
+          ctx.globalAlpha=Math.min(0.72,flashAlpha*2.6)*carClearFade;
           ctx.drawImage(flA,c._px-cw*0.5,cy-ch*0.5,cw,ch);
           ctx.drawImage(flB,c._px+shiftX-cw*0.41,cy-ch*0.62,cw*0.82,ch*0.82);
         }
@@ -3919,6 +4281,8 @@ const WXFX=(function(){
     if(raf){cancelAnimationFrame(raf);raf=0;}
   }
   function sync(){
+    if(typeof CAR3D!=='undefined')CAR3D.trigger();
+    if(typeof syncMiniRadarEmptyNotice==='function'&&DRIVE.active)syncMiniRadarEmptyNotice();
     if(!map)return;
     ensureCanvas();
     resize();
