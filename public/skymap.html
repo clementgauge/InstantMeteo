@@ -1296,6 +1296,25 @@ function styleFor(i){return i!==2?BASES[i].style:{version:8,sources:{imagery:{ty
 let map=null,userInteracted=false;
 try{
   map=new maplibregl.Map({container:'map',style:styleFor(cfg.base),center:[sel.lon,sel.lat],zoom:startZoom,pitch:cfg.mode3d?55:0,bearing:cfg.mode3d?-18:0,minZoom:3,maxZoom:19,maxPitch:65,scrollZoom:true,boxZoom:true,dragRotate:true,dragPan:true,touchZoomRotate:true,doubleClickZoom:true,keyboard:true,attributionControl:false,canvasContextAttributes:{antialias:true}});
+  const origPrepElev=map._prepareElevation?.bind(map);
+  if(origPrepElev)map._prepareElevation=function(lngLat){
+    const ll=lngLat||this.getCenter();
+    if(!ll||!Number.isFinite(ll.lng)||!Number.isFinite(ll.lat))return;
+    const res=origPrepElev(ll);
+    if(!Number.isFinite(this._elevationStart))this._elevationStart=Number.isFinite(this.transform?.elevation)?this.transform.elevation:0;
+    if(!Number.isFinite(this._elevationTarget))this._elevationTarget=this._elevationStart;
+    return res;
+  };
+  const origUpdElev=map._updateElevation?.bind(map);
+  if(origUpdElev)map._updateElevation=function(k){
+    if(!this._elevationCenter||!Number.isFinite(this._elevationCenter.lng)||!Number.isFinite(this._elevationCenter.lat)){
+      this._elevationCenter=this.getCenter();
+    }
+    if(!Number.isFinite(this._elevationStart))this._elevationStart=Number.isFinite(this.transform?.elevation)?this.transform.elevation:0;
+    if(!Number.isFinite(this._elevationTarget))this._elevationTarget=this._elevationStart;
+    if(!Number.isFinite(k))return;
+    return origUpdElev(k);
+  };
   map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   map.addControl(new maplibregl.ScaleControl({maxWidth:100,unit:'metric'}),'bottom-left');
 }catch(e){
@@ -4186,6 +4205,25 @@ if(map){
     if(token===S.req&&Math.abs(sel.lat-lat)<1e-6&&Math.abs(sel.lon-lon)<1e-6){sel.name=name;store.set('sel',sel);setSelMarker();$('wPlace').textContent=name;updateHash();}
   });
   const cc=map.getCanvasContainer();
+  let dragTrack=null;
+  cc.addEventListener('pointerdown',e=>{if(e.button===0||e.pointerType!=='mouse'){dragTrack={x:e.clientX,y:e.clientY,moved:false};}},{passive:true});
+  window.addEventListener('pointermove',e=>{
+    if(!dragTrack)return;
+    if(!dragTrack.moved&&Math.hypot(e.clientX-dragTrack.x,e.clientY-dragTrack.y)>4){
+      dragTrack.moved=true;
+      userInteracted=true;GPS.zoomPending=false;
+      if(DRIVE.active){DRIVE.draggingNow=true;pauseDrivingFollow('drag');}else pauseFollow();
+    }
+  },{passive:true});
+  const endDragTrack=()=>{
+    if(dragTrack&&dragTrack.moved&&DRIVE.draggingNow){
+      DRIVE.draggingNow=false;
+      if(DRIVE.active)pauseDrivingFollow('dragend');
+    }
+    dragTrack=null;
+  };
+  window.addEventListener('pointerup',endDragTrack,{passive:true});
+  window.addEventListener('pointercancel',endDragTrack,{passive:true});
   cc.addEventListener('wheel',()=>{if(!GPS.zoomPending||GPS.fix)userInteracted=true;if(GPS.fix)GPS.zoomPending=false;if(DRIVE.active){DRIVE.userZoomed=true;pauseDrivingFollow('zoom');}},{passive:true});
   cc.addEventListener('touchstart',e=>{if(GPS.fix){userInteracted=true;GPS.zoomPending=false;}if(DRIVE.active){if(e.touches?.length>=2)DRIVE.userZoomed=true;pauseDrivingFollow('touch');}},{passive:true});
   map.on('dragstart',e=>{if(e.originalEvent){userInteracted=true;GPS.zoomPending=false;if(DRIVE.active){DRIVE.draggingNow=true;pauseDrivingFollow('drag');}else pauseFollow();}});
