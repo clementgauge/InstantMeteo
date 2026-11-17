@@ -160,7 +160,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
     { id: 'historicalTrends', label: 'Évolution', shortLabel: 'Évolution', icon: History, badge: '2000' },
     { id: 'sportsActivities', label: 'Sport & Trajet', shortLabel: 'Trajet', icon: TrendingUp },
-    { id: 'worldDisasters', label: 'Monde & Catastrophes', shortLabel: 'Monde', icon: Radio },
+    { id: 'worldDisasters', label: 'Atlas des catastrophes', shortLabel: 'Catastrophes', icon: Radio },
     { id: 'weatherArchive', label: 'Archives Journalières', shortLabel: 'Archives', icon: Calendar, badge: 'Nouveau' },
     { id: 'bulletin', label: 'Bulletins', shortLabel: 'Bulletins', icon: FileText },
     { id: 'competitive', label: 'Compétitif & Classement', shortLabel: 'Défis 🏆', icon: Trophy, badge: '🔥 +Pts' },
@@ -202,7 +202,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       categoryName: '🗺️ Analyses Territoriales, Trajets & Histoire',
       items: [
         { id: 'sportsActivities', label: '8. Activités Sportives & Calculateur de Trajet', icon: TrendingUp, desc: 'Index 0-10, météo d\'itinéraire pas à pas selon moyen de transport (voiture, train, vélo, à pied)' },
-        { id: 'worldDisasters', label: '9. Météo Monde, Tornades & Tsunamis (24h)', icon: Radio, desc: 'Suivi mondial vérifié (Franceinfo, Le Monde, TF1, France 2, BFMTV, Le Figaro)' },
+        { id: 'worldDisasters', label: '9. Atlas des catastrophes (Monde en temps réel)', icon: Radio, desc: 'Carte mondiale en direct (NASA EONET, USGS, GDACS, NASA Black Marble, RainViewer & records météo)' },
         { id: 'weatherArchive', label: '10. Archives Journalières & Historique Météo', icon: Calendar, desc: 'Recherche de date passée, météo quotidienne (pluie, soleil, vent, T°C) et journal local' },
         { id: 'bulletin', label: '11. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
       ]

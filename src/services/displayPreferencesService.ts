@@ -113,10 +113,10 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   {
     id: 'worldDisasters',
     number: 9,
-    label: '9. Météo Monde, Tornades & Tsunamis (24h)',
-    description: 'Événements extrêmes vérifiés par les grandes agences internationales',
+    label: '9. Atlas des catastrophes (Monde en temps réel)',
+    description: 'Surveillance mondiale en direct (NASA EONET, USGS, GDACS, RainViewer)',
     blocks: [
-      { id: 'disasters_feed', label: 'Fil d\'actualités catastrophes mondiales', description: 'Dépêches géolocalisées et bilans' }
+      { id: 'disasters_feed', label: 'Carte interactive Atlas des catastrophes', description: 'Séismes, incendies, cyclones, inondations, volcans et records' }
     ]
   },
   {

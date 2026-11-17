@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas des catastrophes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<style>
+  :root{
+    --bg:#070b13; --card:#0d1320; --card2:#111a2a; --line:#1b2638; --txt:#e9eef6; --muted:#8d9bb0;
+    --red:#ff3b3b; --accent:#e5262d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{min-height:100vh;display:flex;flex-direction:column;
+    background:radial-gradient(1100px 420px at 18% -8%,#1b0f17 0,transparent 62%),var(--bg)}
+  svg{display:block}
+  button{font-family:inherit;cursor:pointer}
+
+  /* ---------- En-tête ---------- */
+  .top{display:flex;align-items:center;gap:16px;padding:12px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .logo{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;color:#ff5a5f;flex:none;
+    background:radial-gradient(circle at 40% 35%,#3a1218,#12070b);border:2px solid #7b1f27;box-shadow:0 0 20px rgba(229,38,45,.45)}
+  .logo svg{width:26px;height:26px}
+  .brand h1{font-size:1.65rem;font-weight:800;letter-spacing:.2px;line-height:1.1}
+  .brand p{font-size:.85rem;color:var(--muted);margin-top:2px}
+  .grow{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;font-size:.9rem;font-weight:600;
+    background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);color:#d9ffe8}
+  .pill i{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
+  .pill.warn{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.45);color:#ffe9c2}
+  .pill.warn i{background:#f59e0b;box-shadow:0 0 8px #f59e0b}
+  .pill.bad{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.45);color:#ffd5d5}
+  .pill.bad i{background:#ef4444;box-shadow:0 0 8px #ef4444}
+  .last{font-size:.85rem;color:var(--muted);padding-left:16px;border-left:1px solid var(--line)}
+  .btn-top{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:12px;border:1px solid #2a3850;
+    background:var(--card);color:var(--txt);font-weight:600;font-size:.92rem}
+  .btn-top:hover{border-color:#4a5d7c}
+  .btn-top svg{width:18px;height:18px}
+  .btn-top.spin svg{animation:rot 1s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .iconbtn{width:42px;height:42px;padding:0;justify-content:center}
+  .lang{padding:8px 12px;border-radius:12px;border:1px solid #2a3850;background:var(--card);font-size:.9rem;font-weight:600}
+
+  /* ---------- Chiffres clés ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px 22px 0}
+  .kpi{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);
+    background:linear-gradient(135deg,rgba(var(--rgb),.16),rgba(13,19,32,.9) 55%)}
+  .kpi .ic{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;flex:none;color:var(--c);
+    background:rgba(var(--rgb),.14);border:1px solid rgba(var(--rgb),.35)}
+  .kpi .ic svg{width:28px;height:28px}
+  .kpi .tx{min-width:0}
+  .kpi .tl{font-weight:700;font-size:.95rem}
+  .kpi .nb{display:flex;align-items:baseline;gap:10px}
+  .kpi .nb b{font-size:2rem;line-height:1.1}
+  .kpi .dl{font-size:.78rem;color:#6ee7a0;font-weight:700}
+  .kpi .sb{font-size:.74rem;color:var(--muted)}
+  .kpi .sp{margin-left:auto;width:36%;max-width:130px;height:40px;flex:none}
+  .kpi .sp svg{width:100%;height:100%}
+
+  /* ---------- Barre de filtres ---------- */
+  .bar{display:flex;gap:10px;padding:14px 22px;align-items:center;overflow-x:auto;scrollbar-width:thin}
+  .search{display:flex;align-items:center;gap:10px;min-width:260px;flex:0 0 300px;padding:0 14px;height:44px;border-radius:12px;
+    background:var(--card);border:1px solid var(--line);color:var(--muted)}
+  .search svg{width:18px;height:18px;flex:none}
+  .search input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--txt);font-size:.92rem}
+  .sel{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);flex:none}
+  .sel svg{width:18px;height:18px;color:var(--muted)}
+  .sel select{background:none;border:none;outline:none;color:var(--txt);font-size:.92rem;font-weight:600;cursor:pointer}
+  .sel select option{background:#0d1320}
+  .tab{display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;white-space:nowrap;flex:none;
+    border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:.92rem;font-weight:600}
+  .tab svg{width:20px;height:20px;color:var(--c)}
+  .tab:hover{border-color:#34476a}
+  .tab.on{background:linear-gradient(180deg,#e5262d,#b51a21);border-color:#ff6a6f;color:#fff}
+  .tab.on svg{color:#fff}
+  .vig{margin-left:auto;flex:none;font-size:.82rem;color:var(--muted);text-decoration:none;white-space:nowrap}
+  .vig:hover{color:var(--txt)}
+
+  /* ---------- Zone principale ---------- */
+  .main{flex:1;min-height:600px;display:grid;grid-template-columns:1fr 430px;gap:14px;padding:0 22px 18px}
+  .mapbox{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);min-height:560px}
+  #map{position:absolute;inset:0;background:#05080e}
+  .leaflet-container{font-family:inherit;background:#05080e}
+  .leaflet-bar{border:none!important;box-shadow:none!important}
+  .leaflet-bar a,.ctl-btn{width:38px!important;height:38px!important;line-height:36px!important;background:rgba(10,15,26,.92)!important;
+    color:var(--txt)!important;border:1px solid var(--line)!important;border-radius:10px!important;margin-bottom:8px;font-size:1.3rem}
+  .leaflet-bar a:hover,.ctl-btn:hover{border-color:#4a5d7c!important}
+  .leaflet-top.leaflet-left{top:6px}
+  .ctl-btn{display:grid;place-items:center;cursor:pointer;padding:0}
+  .ctl-btn svg{width:20px;height:20px}
+  .leaflet-control-layers{background:rgba(10,15,26,.95)!important;color:var(--txt)!important;border:1px solid var(--line)!important;border-radius:10px!important;box-shadow:none!important}
+  .leaflet-control-layers-toggle{width:38px!important;height:38px!important;background-size:20px!important;filter:invert(1) brightness(1.4)}
+  .leaflet-control-layers-expanded{padding:10px 14px!important;font-size:.85rem}
+  .leaflet-control-layers-separator{border-top-color:var(--line)!important}
+  .leaflet-control-attribution{background:rgba(7,11,19,.8)!important;color:var(--muted)!important;font-size:10px!important}
+  .leaflet-control-attribution a{color:var(--muted)!important}
+
+  /* Marqueurs */
+  .ico{background:none;border:none}
+  .mk{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;color:var(--c);
+    background:rgba(8,12,20,.9);border:2px solid var(--c);box-shadow:0 0 12px var(--c);transition:transform .15s,background .15s}
+  .mk svg{width:58%;height:58%}
+  .mk.crit{animation:ping 2s infinite}
+  .mk.act{transform:scale(1.55);background:var(--c);color:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.12),0 0 24px var(--c)}
+  @keyframes ping{0%{box-shadow:0 0 0 0 var(--c)}70%{box-shadow:0 0 0 16px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+  .cl{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;
+    background:rgba(8,12,20,.88);border:3px solid var(--c);box-shadow:0 0 18px var(--c),inset 0 0 12px rgba(255,255,255,.06)}
+
+  /* Événements récents */
+  .recent{position:absolute;left:12px;bottom:30px;width:350px;max-width:calc(100% - 24px);z-index:800;
+    background:rgba(8,12,21,.9);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .rhead{display:flex;align-items:center;gap:10px;padding:12px 14px;font-weight:700}
+  .rhead svg{width:18px;height:18px;color:var(--muted)}
+  .rhead button{margin-left:auto;background:none;border:none;color:#ff5a5f;font-weight:700;font-size:.85rem}
+  .rlist{max-height:268px;overflow-y:auto}
+  .ritem{display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line);cursor:pointer}
+  .ritem:hover,.ritem.on{background:rgba(229,38,45,.14)}
+  .ritem .ri{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--c);
+    background:rgba(255,255,255,.04);border:1px solid var(--c)}
+  .ritem .ri svg{width:20px;height:20px}
+  .ritem .rt{min-width:0;flex:1}
+  .ritem .rt b{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ritem .rt span{display:block;font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ritem time{font-size:.74rem;color:var(--muted);white-space:nowrap;flex:none}
+  .rempty{padding:14px;font-size:.85rem;color:var(--muted);border-top:1px solid var(--line)}
+
+  /* Légende */
+  .legend{position:absolute;left:374px;right:12px;bottom:30px;z-index:800;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:12px 16px;background:rgba(8,12,21,.9);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;font-size:.82rem}
+  .legend b{font-size:.88rem}
+  .legend .it{display:flex;align-items:center;gap:7px;color:#cdd7e6}
+  .legend .it i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+  .legend .src{margin-left:auto;display:flex;align-items:center;gap:7px;color:var(--muted);font-size:.76rem;padding-left:16px;border-left:1px solid var(--line)}
+  .legend .src svg{width:15px;height:15px}
+
+  #msg{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:900;background:rgba(8,12,21,.95);
+    border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:.85rem;max-width:80%;text-align:center;display:none}
+
+  /* ---------- Panneau de détail ---------- */
+  .detail{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow-y:auto;max-height:calc(100vh - 20px);position:relative}
+  .dclose{display:none}
+  .dimg{position:relative;height:215px;background:linear-gradient(135deg,#17233a,#0b111d);overflow:hidden}
+  .dimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .dimg .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--c);opacity:.5}
+  .dimg .ph svg{width:64px;height:64px}
+  .expand{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
+    background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;text-decoration:none}
+  .expand svg{width:18px;height:18px}
+  .dcap{font-size:.68rem;color:var(--muted);padding:6px 18px 0;min-height:20px}
+  .dbody{padding:10px 18px 18px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .bdg{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:10px;font-size:.78rem;font-weight:800;letter-spacing:.4px;
+    color:var(--c);background:rgba(255,255,255,.04);border:1px solid var(--c)}
+  .bdg svg{width:16px;height:16px}
+  .bdg.alert{--c:#ff5a5f;background:rgba(255,59,59,.12)}
+  .bdg.alert.o{--c:#ffa63d;background:rgba(255,154,31,.12)}
+  .dbody h2{font-size:1.55rem;line-height:1.2;margin:12px 0 6px}
+  .loc{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:.9rem;margin-bottom:14px}
+  .loc svg{width:16px;height:16px;flex:none;margin-top:2px;color:#ff5a5f}
+  .stats{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:8px;margin-bottom:14px}
+  .st{display:flex;gap:9px;align-items:center;padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line);min-width:0}
+  .st svg{width:22px;height:22px;flex:none;color:#ff5a5f}
+  .st small{display:block;font-size:.68rem;color:var(--muted)}
+  .st b{display:block;font-size:.95rem;line-height:1.25;word-break:break-word}
+  .st em{display:block;font-style:normal;font-size:.68rem;color:var(--muted);margin-top:1px}
+  .dd{font-size:.92rem;line-height:1.55;color:#cfd8e6;margin-bottom:14px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:11px 15px;border-radius:11px;font-size:.88rem;font-weight:700;text-decoration:none;border:1px solid var(--line);color:var(--txt);background:var(--card2)}
+  .btn svg{width:17px;height:17px}
+  .btn.pri{background:linear-gradient(180deg,#e5262d,#b51a21);border-color:#ff6a6f;color:#fff}
+  .btn:hover{filter:brightness(1.15)}
+  .xl{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:14px;font-size:.8rem}
+  .xl a{color:#9cc4ff;text-decoration:none}
+  .xl a:hover{text-decoration:underline}
+  .chart{border:1px solid var(--line);border-radius:14px;background:var(--card2);padding:12px 12px 8px;margin-bottom:12px}
+  .chart h3{display:flex;align-items:center;gap:8px;font-size:.92rem;margin-bottom:8px}
+  .chart h3 svg{width:17px;height:17px;color:#ff5a5f}
+  .chart h3 span{color:var(--muted);font-weight:400;font-size:.8rem}
+  .chart .cm{font-size:.82rem;color:var(--muted);padding:18px 4px}
+  .note{font-size:.72rem;color:var(--muted);line-height:1.5}
+  .empty{padding:30px 22px;color:var(--muted);font-size:.92rem;line-height:1.6}
+
+  /* ---------- Paramètres ---------- */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;z-index:5000;padding:16px}
+  .modal.on{display:grid}
+  .mbox{width:min(440px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .mbox h3{margin-bottom:6px}
+  .mbox p{font-size:.84rem;color:var(--muted);line-height:1.5;margin-bottom:12px}
+  .mbox input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);margin-bottom:14px}
+  .mrow{display:flex;gap:10px;justify-content:flex-end}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1250px){ .legend .it:nth-child(n+5){display:none} }
+  @media (max-width:1100px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .legend{display:none}
+  }
+  @media (max-width:980px){
+    .main{grid-template-columns:1fr;min-height:0}
+    .mapbox{height:68vh;min-height:420px}
+    .detail{position:fixed;left:0;right:0;bottom:0;max-height:76vh;border-radius:18px 18px 0 0;z-index:3000;
+      transform:translateY(105%);transition:transform .3s ease;box-shadow:0 -12px 40px rgba(0,0,0,.6)}
+    .detail.open{transform:translateY(0)}
+    .dclose{display:grid;position:absolute;top:10px;left:10px;z-index:5;width:36px;height:36px;border-radius:50%;place-items:center;
+      border:none;background:rgba(0,0,0,.65);color:#fff;font-size:1.1rem}
+  }
+  @media (max-width:640px){
+    .top{padding:10px 14px}
+    .brand h1{font-size:1.25rem}
+    .last{display:none}
+    .kpis,.bar,.main{padding-left:14px;padding-right:14px}
+    .kpi .sp{display:none}
+    .recent{width:calc(100% - 24px)}
+    .rlist{max-height:170px}
+    .stats{grid-template-columns:1fr 1fr}
+    .stats .st:last-child{grid-column:1 / -1}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16.5 0 19M12 2.5c-3 3-3 16.5 0 19M4.5 7.5c4.5 2 10.5 2 15 0M4.5 16.5c4.5-2 10.5-2 15 0"/></svg>
+  </div>
+  <div class="brand">
+    <h1>Atlas des catastrophes</h1>
+    <p>Surveillance mondiale en temps réel</p>
+  </div>
+  <div class="grow"></div>
+  <span class="pill" id="pill"><i></i><span id="pilltxt">Connexion…</span></span>
+  <span class="last" id="last">Dernier rafraîchissement : …</span>
+  <button class="btn-top" id="refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4M5.5 22v-4h4"/></svg>
+    Actualiser
+  </button>
+  <button class="btn-top iconbtn" id="settings" title="Paramètres">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+  <span class="lang">🇫🇷 FR</span>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<section class="bar">
+  <label class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Rechercher un lieu ou un événement…" autocomplete="off">
+  </label>
+  <label class="sel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+    <select id="range">
+      <option value="1">24 dernières heures</option>
+      <option value="3">3 derniers jours</option>
+      <option value="7" selected>7 derniers jours</option>
+    </select>
+  </label>
+  <div id="tabs" style="display:flex;gap:10px"></div>
+  <a class="vig" href="https://vigilance.meteofrance.fr/" target="_blank" rel="noopener">🇫🇷 Vigilance Météo-France ↗</a>
+</section>
+
+<main class="main">
+  <div class="mapbox">
+    <div id="map"></div>
+    <div id="msg"></div>
+
+    <div class="recent" id="recent">
+      <div class="rhead">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Événements récents
+        <button id="seeall">Voir tout →</button>
+      </div>
+      <div class="rlist" id="rlist"></div>
+    </div>
+
+    <div class="legend" id="legend">
+      <b>Légende – Types d'événements</b>
+      <span class="src">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>
+        Données : NASA EONET, USGS, GDACS
+      </span>
+    </div>
+  </div>
+
+  <aside class="detail" id="detail">
+    <button class="dclose" id="dclose" aria-label="Fermer">✕</button>
+    <div class="empty" id="detailbody">Chargement des événements…</div>
+  </aside>
+</main>
+
+<div class="modal" id="modal">
+  <div class="mbox">
+    <h3>Paramètres</h3>
+    <p>Pour afficher les couches météo OpenWeatherMap (nuages, précipitations, température, vent, pression), colle ici une clé gratuite créée sur openweathermap.org/api. Elle reste dans ton navigateur. Laisse vide pour la retirer.</p>
+    <input id="owminput" type="text" placeholder="Clé OpenWeatherMap" autocomplete="off">
+    <div class="mrow">
+      <button class="btn" id="mcancel">Annuler</button>
+      <button class="btn pri" id="msave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const HOUR = 3600000, DAY = 24 * HOUR, WINDOW = 7 * DAY;
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+const dec = (n, d = 1) => Number(n).toFixed(d).replace('.', ',');
+
+/* ====================== Types et icônes ====================== */
+const ICONS = {
+  seisme:'<path d="M2 12h4l3-8 4 16 3-8h6"/>',
+  incendie:'<path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-10z"/>',
+  cyclone:'<circle cx="12" cy="12" r="1.6"/><path d="M12 8.5a3.5 3.5 0 0 1 3.5 3.5M12 15.5A3.5 3.5 0 0 1 8.5 12M9 4.5A8 8 0 0 1 20 12M15 19.5A8 8 0 0 1 4 12"/>',
+  inondation:'<path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/>',
+  volcan:'<path d="M12 3L2 21h20L12 3z"/><path d="M12 10v5M12 18v.4"/>',
+  record:'<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>',
+  autre:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>',
+  all:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  globe:'<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16.5 0 19M12 2.5c-3 3-3 16.5 0 19"/>',
+  alert:'<path d="M12 3L2 21h20L12 3z"/><path d="M12 10v5M12 18v.4"/>',
+  pin:'<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  layers:'<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+  ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  stack:'<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 12.5l9 5 9-5M3 17l9 5 9-5"/>'
+};
+const svg = (k, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+
+const TYPES = {
+  seisme:    {tab:'Séismes',        one:'Séisme',       badge:'SÉISME',       color:'#ff3b3b', rgb:'255,59,59'},
+  incendie:  {tab:'Incendies',      one:'Incendie',     badge:'INCENDIE',     color:'#ff9a1f', rgb:'255,154,31'},
+  cyclone:   {tab:'Cyclones',       one:'Cyclone',      badge:'CYCLONE',      color:'#22d3c5', rgb:'34,211,197'},
+  inondation:{tab:'Inondations',    one:'Inondation',   badge:'INONDATION',   color:'#3b9dff', rgb:'59,157,255'},
+  volcan:    {tab:'Volcans',        one:'Volcan',       badge:'ÉRUPTION',     color:'#b05cff', rgb:'176,92,255'},
+  record:    {tab:'Records météo',  one:'Record météo', badge:'RECORD MÉTÉO', color:'#7fd0ff', rgb:'127,208,255'},
+  autre:     {tab:'Autres',         one:'Autre',        badge:'AUTRE',        color:'#9aa7b8', rgb:'154,167,184'}
+};
+
+/* ====================== Carte ====================== */
+const map = L.map('map', {zoomControl:false, worldCopyJump:true, minZoom:2, zoomSnap:.5}).setView([22, 10], 2.5);
+L.control.zoom({position:'topleft'}).addTo(map);
+
+const yesterday = new Date(Date.now() - DAY).toISOString().slice(0, 10);
+const gibs = (layer, level, ext) =>
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/${yesterday}/GoogleMapsCompatible_Level${level}/{z}/{y}/{x}.${ext}`;
+const esri = (path, o) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${path}/MapServer/tile/{z}/{y}/{x}`, o);
+
+const blackMarble = L.tileLayer(
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png',
+  {maxNativeZoom:8, maxZoom:18, attribution:'Nuit © NASA Black Marble'});
+const darkRef = esri('Canvas/World_Dark_Gray_Reference', {maxNativeZoom:16, maxZoom:18, attribution:'Tiles © Esri'});
+const darkBase = esri('Canvas/World_Dark_Gray_Base', {maxNativeZoom:16, maxZoom:18, attribution:'Tiles © Esri'});
+
+const baseMaps = {
+  '🌃 Nuit (NASA Black Marble)': L.layerGroup([blackMarble, darkRef]),
+  '🗺️ Plan sombre': L.layerGroup([darkBase, darkRef]),
+  '🏔️ Relief': esri('World_Topo_Map', {maxNativeZoom:19, maxZoom:19, attribution:'Tiles © Esri'}),
+  '🛰️ Satellite': L.layerGroup([
+    esri('World_Imagery', {maxNativeZoom:19, maxZoom:19, attribution:'Tiles © Esri'}),
+    esri('Reference/World_Boundaries_and_Places', {maxNativeZoom:19, maxZoom:19})
+  ]),
+  '🌍 Terre vue par la NASA (hier)': L.tileLayer(gibs('MODIS_Terra_CorrectedReflectance_TrueColor', 9, 'jpg'),
+    {maxNativeZoom:9, maxZoom:18, attribution:'Imagerie © NASA GIBS / MODIS'})
+};
+baseMaps['🌃 Nuit (NASA Black Marble)'].addTo(map);
+
+// Si les tuiles « nuit » ne se chargent pas, on bascule sur le plan sombre
+let bmErrors = 0;
+blackMarble.on('tileerror', () => {
+  if (++bmErrors === 6){
+    map.removeLayer(baseMaps['🌃 Nuit (NASA Black Marble)']);
+    baseMaps['🗺️ Plan sombre'].addTo(map);
+  }
+});
+
+const overlays = {
+  '🔥 Feux actifs NASA (hier)': L.tileLayer(gibs('MODIS_Terra_Thermal_Anomalies_All', 6, 'png'),
+    {maxNativeZoom:6, maxZoom:18, opacity:.9, attribution:'Feux © NASA FIRMS / GIBS'})
+};
+const OWM_KEY = (() => { try { return localStorage.getItem('owmKey') || ''; } catch { return ''; } })();
+if (OWM_KEY){
+  [['☁️ Nuages','clouds_new'],['🌧️ Précipitations','precipitation_new'],['🌡️ Température','temp_new'],
+   ['💨 Vent','wind_new'],['⏲️ Pression','pressure_new']].forEach(([label, id]) => {
+    overlays[label + ' (OpenWeatherMap)'] = L.tileLayer(
+      `https://tile.openweathermap.org/map/${id}/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+      {opacity:.75, maxZoom:18, attribution:'Météo © OpenWeatherMap'});
+  });
+}
+const layersCtl = L.control.layers(baseMaps, overlays, {position:'topleft', collapsed:true}).addTo(map);
+
+// Radar de pluie (RainViewer), affiché par défaut
+fetch('https://api.rainviewer.com/public/weather-maps.json')
+  .then(r => r.json())
+  .then(d => {
+    const frames = d.radar && d.radar.past;
+    if (!frames || !frames.length) return;
+    const last = frames[frames.length - 1];
+    const radar = L.tileLayer(`${d.host}${last.path}/256/{z}/{x}/{y}/2/1_1.png`,
+      {opacity:.6, maxNativeZoom:7, maxZoom:18, attribution:'Radar © RainViewer'});
+    layersCtl.addOverlay(radar, '☔ Radar de pluie (RainViewer)');
+    radar.addTo(map);
+  })
+  .catch(() => {});
+
+// Bouton « recentrer »
+const LocateCtl = L.Control.extend({
+  options:{position:'topleft'},
+  onAdd(){
+    const b = L.DomUtil.create('button', 'ctl-btn');
+    b.innerHTML = svg('target'); b.title = 'Recentrer sur les événements';
+    L.DomEvent.disableClickPropagation(b);
+    b.onclick = () => {
+      const pts = visibleList().map(e => [e.lat, e.lng]);
+      if (pts.length > 1) map.fitBounds(pts, {padding:[60, 60], maxZoom:5});
+      else map.setView([22, 10], 2.5);
+    };
+    return b;
+  }
+});
+map.addControl(new LocateCtl());
+
+const cluster = L.markerClusterGroup({
+  showCoverageOnHover:false, maxClusterRadius:44, spiderfyOnMaxZoom:true, disableClusteringAtZoom:7,
+  iconCreateFunction(c){
+    const ms = c.getAllChildMarkers(), n = ms.length, cnt = {};
+    ms.forEach(m => cnt[m.ev.type] = (cnt[m.ev.type] || 0) + 1);
+    const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+    const s = n < 10 ? 40 : n < 30 ? 48 : 56;
+    return L.divIcon({className:'ico', iconSize:[s, s], iconAnchor:[s/2, s/2],
+      html:`<div class="cl" style="--c:${TYPES[top].color};font-size:${n < 10 ? 15 : 17}px">${n}</div>`});
+  }
+}).addTo(map);
+
+setTimeout(() => map.invalidateSize(), 150);
+window.addEventListener('resize', () => map.invalidateSize());
+
+/* ====================== Données en direct ====================== */
+async function getJSON(url, ms = 20000){
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(url, {signal: ctl.signal});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+const recent = d => d instanceof Date && !isNaN(d) && (Date.now() - d) <= WINDOW && (d - Date.now()) < DAY;
+
+/* ---- NASA EONET ---- */
+const EONET_MAP = {
+  wildfires:'incendie', severeStorms:'cyclone', volcanoes:'volcan', floods:'inondation', earthquakes:'seisme',
+  landslides:'autre', drought:'autre', dustHaze:'autre', snow:'autre', tempExtremes:'record'
+};
+function geomPos(g){
+  if (!g || !g.coordinates) return null;
+  if (g.type === 'Point') return [g.coordinates[1], g.coordinates[0]];
+  if (g.type === 'Polygon' && g.coordinates[0] && g.coordinates[0].length){
+    const ring = g.coordinates[0];
+    return [ring.reduce((s, c) => s + c[1], 0) / ring.length, ring.reduce((s, c) => s + c[0], 0) / ring.length];
+  }
+  return null;
+}
+function eonetConv(g){
+  if (g.magnitudeValue == null) return null;
+  const u = (g.magnitudeUnit || '').toLowerCase(), v = Number(g.magnitudeValue);
+  if (u === 'acres') return {kind:'ha',  v:v * 0.404686};
+  if (u === 'kts')   return {kind:'kmh', v:v * 1.852};
+  if (u === 'mag_b' || u === 'mw') return {kind:'mag', v};
+  return null;
+}
+async function loadEONET(){
+  const d = await getJSON('https://eonet.gsfc.nasa.gov/api/v3/events?status=all&days=7&limit=300');
+  const out = [];
+  for (const e of d.events || []){
+    const cat = e.categories && e.categories[0];
+    const type = cat && EONET_MAP[cat.id];
+    if (!type) continue;
+    const geoms = (e.geometry || []).filter(g => g.date && g.coordinates)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (!geoms.length) continue;
+    const last = geoms[geoms.length - 1], pos = geomPos(last), when = new Date(last.date);
+    if (!pos || !recent(when)) continue;
+
+    const convs = geoms.map(g => ({t:new Date(g.date), c:eonetConv(g)}));
+    const cur = [...convs].reverse().find(x => x.c);
+    if (type === 'incendie' && !(cur && cur.c.kind === 'ha' && cur.c.v >= 4000)) continue;
+
+    let m1 = {label:'Intensité', value:'Non précisée'}, series = null, seriesTitle = '', seriesUnit = '', level = null;
+    if (cur){
+      const k = cur.c.kind, v = cur.c.v;
+      if (k === 'ha')  { m1 = {label:'Surface brûlée', value:`≈ ${fmt(v)} ha`};  seriesTitle = 'Évolution de la surface brûlée'; seriesUnit = 'ha'; if (v >= 20000) level = 'orange'; }
+      if (k === 'kmh') { m1 = {label:'Vents soutenus', value:`≈ ${fmt(v)} km/h`}; seriesTitle = 'Évolution des vents'; seriesUnit = 'km/h'; if (v >= 178) level = 'orange'; }
+      if (k === 'mag') { m1 = {label:'Magnitude', value:`M ${dec(v)}`}; }
+      const s = convs.filter(x => x.c && x.c.kind === k).map(x => ({t:x.t, v:x.c.v}));
+      if (s.length >= 2) series = s;
+    }
+    const srcs = (e.sources || []).filter(s => s.url).slice(0, 2)
+      .map(s => ({label:`Source (${s.id})`, url:s.url}));
+    out.push({
+      key:'eonet-' + e.id, type, src:'NASA EONET',
+      titre:e.title, lat:pos[0], lng:pos[1], date:when, lieu:'',
+      m1, m2:{label:'Statut', value:e.closed ? 'Clos' : 'En cours'},
+      level, levelLabel:level ? 'Intensité élevée' : '',
+      series, seriesTitle, seriesUnit,
+      desc:(e.description ? e.description + ' ' : '') +
+        `Événement suivi par le programme EONET de la NASA (catégorie : ${cat.title}).` +
+        (e.closed ? ' Événement désormais clos.' : ' Événement toujours en cours.'),
+      links:[{label:'Voir la source officielle (NASA EONET)', url:e.link || 'https://eonet.gsfc.nasa.gov/'}, ...srcs]
+    });
+  }
+  return out;
+}
+
+/* ---- USGS ---- */
+async function loadUSGS(){
+  const d = await getJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson');
+  const out = [];
+  for (const f of d.features || []){
+    const p = f.properties, c = f.geometry.coordinates;
+    if (!p || p.mag == null || p.mag < 5.5) continue;
+    const when = new Date(p.time);
+    if (!recent(when)) continue;
+    let level = null, levelLabel = '';
+    if (p.alert === 'red')    { level = 'red';    levelLabel = 'Alerte rouge'; }
+    else if (p.alert === 'orange') { level = 'orange'; levelLabel = 'Alerte orange'; }
+    else if (p.mag >= 7)      { level = 'orange'; levelLabel = 'Intensité élevée'; }
+    out.push({
+      key:'usgs-' + f.id, type:'seisme', src:'USGS',
+      titre:`Séisme de magnitude ${dec(p.mag)}`,
+      lat:c[1], lng:c[0], date:when, lieu:p.place || '',
+      m1:{label:'Magnitude', value:`M ${dec(p.mag)}`}, m2:{label:'Profondeur', value:`${Math.round(c[2])} km`},
+      level, levelLabel,
+      desc:`Séisme enregistré par l'USGS (service géologique américain).` +
+        (p.alert ? ` Niveau d'alerte PAGER : ${ {green:'vert', yellow:'jaune', orange:'orange', red:'rouge'}[p.alert] || p.alert }.` : '') +
+        (p.tsunami ? ' Un message tsunami a été émis par les autorités.' : '') +
+        (p.felt ? ` ${fmt(p.felt)} témoignages de ressenti recueillis.` : ''),
+      links:[{label:'Voir la source officielle (USGS)', url:p.url}]
+    });
+  }
+  return out;
+}
+
+/* ---- GDACS ---- */
+const GDACS_MAP = {EQ:'seisme', TC:'cyclone', FL:'inondation', VO:'volcan', WF:'incendie', DR:'autre'};
+async function loadGDACS(){
+  const d = await getJSON('https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP');
+  const out = [], seen = new Set();
+  for (const f of d.features || []){
+    const p = f.properties || {};
+    if (!f.geometry || f.geometry.type !== 'Point') continue;
+    const type = GDACS_MAP[p.eventtype], lv = (p.alertlevel || '').toLowerCase();
+    if (!type || (lv !== 'orange' && lv !== 'red')) continue;
+    const key = 'gdacs-' + p.eventtype + p.eventid;
+    if (seen.has(key)) continue;
+    const start = new Date(p.fromdate), end = new Date(p.todate);
+    if (isNaN(start) || (Date.now() - (isNaN(end) ? start : end)) > WINDOW) continue;
+    seen.add(key);
+    const url = p.url && (p.url.report || p.url.details);
+    const sev = p.severitydata && p.severitydata.severitytext;
+    out.push({
+      key, type, src:'GDACS',
+      titre:p.name || p.description || 'Événement GDACS',
+      lat:f.geometry.coordinates[1], lng:f.geometry.coordinates[0],
+      date:start > Date.now() ? new Date() : start, lieu:p.country || '',
+      m1:{label:"Niveau d'alerte", value:lv === 'red' ? 'Rouge' : 'Orange'},
+      m2:{label:'Gravité', value:sev || '—'},
+      level:lv, levelLabel:lv === 'red' ? 'Alerte rouge' : 'Alerte orange',
+      desc:`Alerte ${lv === 'red' ? 'rouge' : 'orange'} émise par GDACS, le système mondial d'alerte et de coordination aux catastrophes (ONU / Commission européenne).` +
+        (p.description && p.description !== p.name ? ' ' + p.description : ''),
+      links:[{label:'Voir la source officielle (GDACS)', url:url || 'https://www.gdacs.org/'}]
+    });
+  }
+  return out;
+}
+
+/* ---- Records météo ----
+   Liste établie le 15/11/2026 à partir de bulletins de services météo et de la presse.
+   Chaque entrée disparaît toute seule 7 jours après sa date. Pour en ajouter : copier un bloc. */
+const NOTE_LIVE = "Données en direct d'organismes officiels (NASA, USGS, ONU/UE via GDACS), limitées aux 7 derniers jours. Les bilans humains ne figurent pas dans ces flux : consulte la couverture médias pour les chiffres à jour.";
+const NOTE_REC = "Valeurs préliminaires relevées dans les bulletins des services météo et la presse, susceptibles d'être revues. Les records de date (quotidiens) ne sont pas des records absolus.";
+const RECORDS = [
+  {id:'co', src:'IDEAM', date:new Date('2026-11-09T12:00:00Z'), lat:3.62, lng:-75.09,
+   titre:'Records de chaleur de novembre en Colombie', lieu:'Natagaima (Tolima), Colombie',
+   m1:{label:'Température max', value:'41,2 °C'}, m2:{label:'Stations en record', value:'17'},
+   desc:"Le 9 novembre, 17 stations colombiennes ont dépassé leur maximum historique pour un mois de novembre, de 0,1 à 1,9 °C. Le pays est en phase El Niño, déclarée officiellement par l'IDEAM le 8 octobre 2026.",
+   links:[{label:'Article ColombiaOne (rapport IDEAM)', url:'https://colombiaone.com/2026/11/11/colombia-records-november-temperature-highs-17-stations/'}]},
+  {id:'bc', src:'Environnement Canada', date:new Date('2026-11-11T20:00:00Z'), lat:50.81, lng:-121.32,
+   titre:'27 records de chaleur battus en Colombie-Britannique', lieu:'Cache Creek, Colombie-Britannique, Canada',
+   m1:{label:'Température max', value:'21,5 °C'}, m2:{label:'Records battus', value:'27'},
+   desc:"Le 11 novembre, 27 localités ont battu leur record quotidien et 2 l'ont égalé, selon des données préliminaires d'Environnement Canada. À Cache Creek, l'ancien record était de 17 °C (1981). Lillooet (20,3 °C) a effacé une marque qui datait de 1917. Cette douceur accompagne des pluies qui font monter le risque d'inondation sur l'île de Vancouver.",
+   links:[{label:'CP24 – record vieux de 109 ans', url:'https://www.cp24.com/news/canada/2026/11/13/109-year-old-high-temperature-record-broken-in-bc-wednesday/'},
+          {label:'Castanet – 27 records battus', url:'https://castanet.net/news/BC/637539/B-C-shatters-27-temperature-records-on-Remembrance-Day'}]},
+  {id:'tn', src:'La Presse de Tunisie', date:new Date('2026-11-11T12:00:00Z'), lat:36.40, lng:10.14,
+   titre:'Chaleur record de novembre en Tunisie', lieu:'Zaghouan, Tunisie',
+   m1:{label:'Température max', value:'32,4 °C'}, m2:{label:'Villes en record', value:'6'},
+   desc:"Avec 5 à 10 °C de plus que les normales, des niveaux records ont été atteints cette semaine à Tunis, Béja, Jendouba, Bizerte, Siliana et Zaghouan. Un spécialiste estime que novembre pourrait être le mois le plus chaud depuis 1950.",
+   links:[{label:'Article La Presse de Tunisie', url:'https://lapresse.tn/2026/11/14/jusqua-324-c-cette-semaine-la-chaleur-va-t-elle-durer-jusqua-la-fin-novembre'}]},
+  {id:'pr', src:'NOAA / NWS', date:new Date('2026-11-14T12:00:00Z'), lat:18.44, lng:-66.00,
+   titre:'Cinq jours de records de chaleur à San Juan', lieu:'San Juan, Porto Rico',
+   m1:{label:'Température max', value:'93 °F (34 °C)'}, m2:{label:'Jours de record', value:'5'},
+   desc:"L'aéroport de San Juan a égalé ou battu son record quotidien cinq jours de suite, du 10 au 14 novembre, avec 92 à 93 °F, jusqu'à 7 °F au-dessus de la normale. Le 12 novembre, 93 °F a égalé la marque de 1983. Données issues de la base NOAA ACIS, rapportées par la presse.",
+   links:[{label:'Article Rio Times (données NOAA)', url:'https://www.riotimesonline.com/san-juan-record-temperatures-five-days-november-2026'},
+          {label:'NWS San Juan', url:'https://www.weather.gov/sju/'}]},
+  {id:'pb', src:'Météo-Paris', date:new Date('2026-11-10T06:00:00Z'), lat:43.39, lng:-1.66,
+   titre:'Record de nuit chaude au Pays basque', lieu:'Saint-Jean-de-Luz, Pyrénées-Atlantiques, France',
+   m1:{label:'Minimale nocturne', value:'20,5 °C'}, m2:{label:'Type', value:'Record nocturne'},
+   desc:"Une douceur remarquable pour la saison a touché le Sud-Ouest en début de semaine, avec jusqu'à 25 °C relevés. Une chute de 5 à 10 °C et le retour des gelées ont suivi en fin de semaine.",
+   links:[{label:'Article Météo-Paris', url:'https://www.meteo-paris.com/actualites/de-250c-a-l-arrivee-du-gel-un-refroidissement-attendu-en-france-en-fin-de-semaine'},
+          {label:'Vigilance Météo-France', url:'https://vigilance.meteofrance.fr/'}]},
+  {id:'ly', src:'Synop (Météo-France)', date:new Date('2026-11-10T14:00:00Z'), lat:45.73, lng:4.94,
+   titre:'Record de date de chaleur à Lyon', lieu:'Lyon-Bron, Rhône, France',
+   m1:{label:'Température max', value:'21,2 °C'}, m2:{label:'Type', value:'Record de date'},
+   desc:"Le relevé de la station Lyon-Bron signale un record de date égalé ou battu pour la température maximale du 10 novembre.",
+   links:[{label:'Relevés de la station Lyon-Bron', url:'https://previmet.com/fr/france/observations/synop/station-07480-lyon-bron/journalier'}]}
+];
+async function loadRecords(){
+  return RECORDS.filter(r => recent(r.date)).map(r => ({...r, type:'record', rec:true, key:'rec-' + r.id, level:null, levelLabel:''}));
+}
+
+/* ---- Fusion + dédoublonnage ---- */
+function dist(a, b){
+  let dLng = Math.abs(a.lng - b.lng); if (dLng > 180) dLng = 360 - dLng;
+  return Math.hypot(a.lat - b.lat, dLng);
+}
+function dedupe(list){
+  const kept = [];
+  for (const ev of list){
+    const radius = ev.type === 'cyclone' ? 6 : 2.5;
+    if (!kept.some(k => k.type === ev.type && dist(k, ev) < radius && Math.abs(k.date - ev.date) < 2 * DAY)) kept.push(ev);
+  }
+  return kept;
+}
+
+/* ====================== État et affichage ====================== */
+let EVENTS = [], activeKey = null, tabType = 'all', query = '', rangeDays = 7, showAll = false;
+const markerByKey = {};
+
+const ago = d => {
+  const m = Math.round((Date.now() - d) / 60000);
+  if (m < 1) return "à l'instant";
+  if (m < 60) return `il y a ${m} min`;
+  const h = Math.round(m / 60);
+  return h < 48 ? `il y a ${h} h` : `il y a ${Math.round(h / 24)} j`;
+};
+const coords = ev => `${dec(Math.abs(ev.lat), 2)}° ${ev.lat < 0 ? 'S' : 'N'} ; ${dec(Math.abs(ev.lng), 2)}° ${ev.lng < 0 ? 'O' : 'E'}`;
+const showMsg = t => { const m = $('msg'); m.textContent = t || ''; m.style.display = t ? 'block' : 'none'; };
+
+function baseList(){
+  const q = query.trim().toLowerCase();
+  return EVENTS.filter(ev =>
+    (Date.now() - ev.date) <= rangeDays * DAY &&
+    (!q || (ev.titre + ' ' + ev.lieu + ' ' + ev.src + ' ' + TYPES[ev.type].one).toLowerCase().includes(q)));
+}
+function visibleList(){ return baseList().filter(ev => tabType === 'all' || ev.type === tabType); }
+
+/* ---- Chiffres clés ---- */
+function spark(vals, color){
+  const w = 100, h = 34, mx = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - 3 - (v / mx) * (h - 8)}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function daily(list){
+  const v = Array(7).fill(0);
+  list.forEach(e => { const i = Math.min(6, Math.max(0, Math.floor((Date.now() - e.date) / DAY))); v[6 - i]++; });
+  return v;
+}
+function renderKpis(){
+  const all = EVENTS;
+  const defs = [
+    {t:'Événements détectés', list:all, icon:'seisme', c:'#ff3b3b', rgb:'255,59,59', sub:'sur 7 jours'},
+    {t:'Séismes majeurs',     list:all.filter(e => e.type === 'seisme'), icon:'seisme', c:'#ff9a1f', rgb:'255,154,31', sub:'(≥ M5,5) sur 7 jours'},
+    {t:'Alertes critiques',   list:all.filter(e => e.level), icon:'alert', c:'#ff3b3b', rgb:'255,59,59', sub:'alerte orange/rouge ou intensité élevée'},
+    {t:'Records météo',       list:all.filter(e => e.type === 'record'), icon:'record', c:'#7fd0ff', rgb:'127,208,255', sub:'sur 7 jours'}
+  ];
+  $('kpis').innerHTML = defs.map(d => {
+    const d24 = d.list.filter(e => Date.now() - e.date <= DAY).length;
+    return `<div class="kpi" style="--c:${d.c};--rgb:${d.rgb}">
+      <div class="ic">${svg(d.icon)}</div>
+      <div class="tx"><div class="tl">${d.t}</div>
+        <div class="nb"><b>${d.list.length}</b>${d24 ? `<span class="dl">▲ ${d24} en 24 h</span>` : ''}</div>
+        <div class="sb">${d.sub}</div></div>
+      <div class="sp">${spark(daily(d.list), d.c)}</div></div>`;
+  }).join('');
+}
+
+/* ---- Onglets ---- */
+function renderTabs(){
+  const base = baseList();
+  const cnt = k => k === 'all' ? base.length : base.filter(e => e.type === k).length;
+  const keys = ['all', 'seisme', 'incendie', 'cyclone', 'inondation', 'volcan', 'record', 'autre'];
+  $('tabs').innerHTML = keys.filter(k => k !== 'autre' || cnt('autre')).map(k => {
+    const t = k === 'all' ? {tab:'Tous', color:'#fff'} : TYPES[k];
+    return `<button class="tab ${tabType === k ? 'on' : ''}" data-k="${k}" style="--c:${t.color}">${svg(k === 'all' ? 'all' : k)}${t.tab} (${cnt(k)})</button>`;
+  }).join('');
+  $('tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => { tabType = b.dataset.k; drawAll(); });
+  const lg = $('legend');
+  lg.querySelectorAll('.it').forEach(n => n.remove());
+  const src = lg.querySelector('.src');
+  ['seisme', 'incendie', 'cyclone', 'inondation', 'volcan', 'record'].forEach(k => {
+    const s = document.createElement('span');
+    s.className = 'it'; s.style.setProperty('--c', TYPES[k].color);
+    s.innerHTML = `<i></i>${TYPES[k].one}`;
+    lg.insertBefore(s, src);
+  });
+}
+
+/* ---- Marqueurs ---- */
+function makeIcon(ev, active){
+  const T = TYPES[ev.type], size = ev.level ? 36 : 28;
+  return L.divIcon({className:'ico', iconSize:[size, size], iconAnchor:[size / 2, size / 2],
+    html:`<div class="mk ${ev.level ? 'crit' : ''} ${active ? 'act' : ''}" style="--c:${T.color}">${svg(ev.type)}</div>`});
+}
+function drawMarkers(){
+  cluster.clearLayers();
+  Object.keys(markerByKey).forEach(k => delete markerByKey[k]);
+  const ms = visibleList().map(ev => {
+    const m = L.marker([ev.lat, ev.lng], {icon:makeIcon(ev, ev.key === activeKey), title:ev.titre});
+    m.ev = ev;
+    m.on('click', e => { L.DomEvent.stopPropagation(e); select(ev, false); });
+    markerByKey[ev.key] = m;
+    return m;
+  });
+  cluster.addLayers(ms);
+}
+
+/* ---- Liste « Événements récents » ---- */
+function drawRecent(){
+  const list = visibleList().slice().sort((a, b) => b.date - a.date);
+  const shown = showAll ? list : list.slice(0, 4);
+  $('seeall').textContent = showAll ? 'Réduire ↑' : 'Voir tout →';
+  $('rlist').style.maxHeight = showAll ? '340px' : '268px';
+  if (!list.length){ $('rlist').innerHTML = '<div class="rempty">Aucun événement pour ces filtres.</div>'; return; }
+  $('rlist').innerHTML = shown.map(ev => {
+    const T = TYPES[ev.type];
+    return `<div class="ritem ${ev.key === activeKey ? 'on' : ''}" data-k="${esc(ev.key)}" style="--c:${T.color}">
+      <div class="ri">${svg(ev.type)}</div>
+      <div class="rt"><b>${esc(ev.titre)}</b><span>${esc(ev.m1.value)} • ${esc(ev.lieu || T.one)}</span></div>
+      <time>${ago(ev.date)}</time></div>`;
+  }).join('');
+  $('rlist').querySelectorAll('.ritem').forEach(n => n.onclick = () => {
+    const ev = EVENTS.find(e => e.key === n.dataset.k);
+    if (ev){ select(ev, true); }
+  });
+}
+$('seeall').onclick = () => { showAll = !showAll; drawRecent(); };
+
+function drawAll(){
+  renderTabs(); drawMarkers(); drawRecent();
+  const n = visibleList().length;
+  if (!EVENTS.length) return;
+  showMsg(n ? '' : 'Aucun événement ne correspond aux filtres sélectionnés.');
+}
+
+/* ---- Panneau de détail ---- */
+function snapshotURL(ev){
+  const half = {cyclone:6, incendie:1.5, volcan:1, seisme:2.5, inondation:3, record:3, autre:3}[ev.type] || 3;
+  const shift = (c, h, min, max) => { let a = c - h, b = c + h; if (a < min){ b += min - a; a = min; } if (b > max){ a -= b - max; b = max; } return [Math.max(min, a), Math.min(max, b)]; };
+  const [s, n] = shift(ev.lat, half, -90, 90), [w, e] = shift(ev.lng, half * 1.6, -180, 180);
+  let date = ev.date.toISOString().slice(0, 10); if (date > yesterday) date = yesterday;
+  let layers = 'MODIS_Terra_CorrectedReflectance_TrueColor,Coastlines_15m';
+  if (ev.type === 'incendie' || ev.type === 'volcan') layers += ',MODIS_Terra_Thermal_Anomalies_All';
+  return {date, url:`https://wvs.earthdata.nasa.gov/api/v1/snapshot?REQUEST=GetSnapshot&LAYERS=${layers}&CRS=EPSG:4326&TIME=${date}&BBOX=${s},${w},${n},${e}&FORMAT=image/jpeg&WIDTH=720&HEIGHT=440`};
+}
+const mediaNews = ev => 'https://www.google.com/search?tbm=nws&tbs=qdr:w&q=' + encodeURIComponent(`${ev.titre} ${TYPES[ev.type].one}`);
+const mediaSites = ev => 'https://www.google.com/search?tbs=qdr:w&q=' + encodeURIComponent(
+  `${ev.titre} (` + ['franceinfo.fr','lemonde.fr','lefigaro.fr','tf1info.fr','m6info.fr','meteofrance.fr'].map(s => 'site:' + s).join(' OR ') + ')');
+
+function chartSVG(pts, o){
+  const W = 400, H = 150, L = 46, R = 10, T = 8, B = 24;
+  const ts = pts.map(p => +p.t), t0 = Math.min(...ts), t1 = Math.max(...ts), span = Math.max(t1 - t0, HOUR);
+  const vs = pts.map(p => p.v);
+  let lo = o.lo != null ? o.lo : Math.floor(Math.min(...vs)), hi = o.hi != null ? o.hi : Math.ceil(Math.max(...vs));
+  if (hi <= lo) hi = lo + 1;
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const x = t => L + (W - L - R) * ((t - t0) / span);
+  const bw = Math.max(3, Math.min(16, (W - L - R) / pts.length * 0.6));
+  let g = '';
+  for (let i = 0; i <= 3; i++){
+    const v = lo + (hi - lo) * i / 3;
+    g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#1f2b40" stroke-width="1"/>` +
+         `<text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end" fill="#8d9bb0" font-size="10">${esc(o.fy(v))}</text>`;
+  }
+  const long = span > 36 * HOUR;
+  for (let i = 0; i <= 3; i++){
+    const t = t0 + span * i / 3, d = new Date(t);
+    const lab = long ? d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', timeZone:'UTC'})
+                     : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'});
+    g += `<text x="${x(t)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === 3 ? 'end' : 'middle'}" fill="#8d9bb0" font-size="10">${lab}</text>`;
+  }
+  const bars = pts.map(p => {
+    const yy = y(p.v);
+    return `<rect x="${x(+p.t) - bw / 2}" y="${yy}" width="${bw}" height="${Math.max(1, H - B - yy)}" fill="#ff3b3b" opacity=".9" rx="1"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}${bars}</svg>`;
+}
+const seqCache = {};
+async function loadSequence(ev){
+  if (seqCache[ev.key]) return seqCache[ev.key];
+  const start = new Date(ev.date.getTime() - 3 * HOUR).toISOString();
+  const d = await getJSON(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=${ev.lat}&longitude=${ev.lng}&maxradiuskm=250&starttime=${start}&minmagnitude=3.5&orderby=time-asc&limit=300`);
+  return seqCache[ev.key] = (d.features || []).map(f => ({t:new Date(f.properties.time), v:f.properties.mag}));
+}
+
+function renderDetail(ev){
+  const T = TYPES[ev.type];
+  const d = ev.date;
+  const dateStr = d.toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'});
+  const timeStr = ev.rec ? ev.src : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'}) + ' UTC · ' + ev.src;
+  const loc = ev.lieu ? `${ev.lieu} (${coords(ev)})` : coords(ev);
+  const main = ev.links[0], others = ev.links.slice(1);
+  $('detailbody').className = '';
+  $('detailbody').innerHTML = `
+    <div class="dimg" style="--c:${T.color}"><div class="ph">${svg(ev.type)}</div>
+      <a class="expand" id="expand" target="_blank" rel="noopener" title="Agrandir l'image" hidden>${svg('expand')}</a></div>
+    <div class="dcap" id="dcap">Chargement de l'image satellite NASA…</div>
+    <div class="dbody">
+      <div class="badges">
+        <span class="bdg" style="--c:${T.color}">${svg(ev.type)}${T.badge}</span>
+        ${ev.level ? `<span class="bdg alert ${ev.level === 'red' ? '' : 'o'}">${svg('alert')}${esc(ev.levelLabel)}</span>` : ''}
+      </div>
+      <h2>${esc(ev.titre)}</h2>
+      <div class="loc">${svg('pin')}<span>${esc(loc)}</span></div>
+      <div class="stats">
+        <div class="st">${svg(ev.type)}<div><small>${esc(ev.m1.label)}</small><b>${esc(ev.m1.value)}</b></div></div>
+        <div class="st">${svg('layers')}<div><small>${esc(ev.m2.label)}</small><b>${esc(ev.m2.value)}</b></div></div>
+        <div class="st">${svg('cal')}<div><small>Date et source</small><b>${esc(dateStr)}</b><em>${esc(timeStr)}</em></div></div>
+      </div>
+      <p class="dd">${esc(ev.desc)}</p>
+      <div class="btns">
+        <a class="btn pri" href="${esc(main.url)}" target="_blank" rel="noopener">${svg('ext')}${esc(main.label)}</a>
+        <button class="btn" id="locbtn">${svg('pin')}Localiser sur la carte</button>
+      </div>
+      <div class="xl">
+        <a href="${esc(mediaNews(ev))}" target="_blank" rel="noopener">📰 Actualités de la semaine ↗</a>
+        <a href="${esc(mediaSites(ev))}" target="_blank" rel="noopener">Franceinfo · Le Monde · Le Figaro · TF1 · M6 ↗</a>
+        ${others.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}
+      </div>
+      <div class="chart" id="chartbox" hidden></div>
+      <p class="note">${esc(ev.rec ? NOTE_REC : NOTE_LIVE)}</p>
+    </div>`;
+  $('detail').scrollTop = 0;
+  $('locbtn').onclick = () => locate(ev);
+
+  // Image satellite
+  const snap = snapshotURL(ev), key = ev.key;
+  const im = new Image(); im.alt = ev.titre;
+  im.onload = () => {
+    if (activeKey !== key) return;
+    const box = document.querySelector('.dimg'); if (!box) return;
+    box.insertBefore(im, box.firstChild);
+    const ex = $('expand'); ex.href = snap.url; ex.hidden = false;
+    $('dcap').textContent = `Image satellite NASA Worldview (MODIS Terra, ${snap.date}) — les nuages peuvent masquer la zone.`;
+  };
+  im.onerror = () => { if (activeKey === key && $('dcap')) $('dcap').textContent = 'Image satellite indisponible pour cette zone.'; };
+  im.src = snap.url;
+
+  // Graphique
+  const cb = $('chartbox');
+  if (ev.type === 'seisme'){
+    loadSequence(ev).then(pts => {
+      if (activeKey !== key) return;
+      cb.hidden = false;
+      cb.innerHTML = `<h3>${svg('seisme')}Chronologie des secousses <span>(≥ M3,5 · 250 km)</span></h3>` +
+        (pts.length >= 2 ? chartSVG(pts, {fy:v => 'M ' + dec(v)}) : `<div class="cm">Aucune autre secousse ≥ M3,5 recensée dans un rayon de 250 km.</div>`);
+    }).catch(() => {});
+  } else if (ev.series){
+    cb.hidden = false;
+    cb.innerHTML = `<h3>${svg('seisme')}${esc(ev.seriesTitle)} <span>(${esc(ev.seriesUnit)})</span></h3>` +
+      chartSVG(ev.series, {lo:0, fy:v => fmt(v)});
+  }
+}
+
+function select(ev, fly){
+  const prev = activeKey;
+  activeKey = ev.key;
+  [prev, ev.key].forEach(k => { const m = markerByKey[k]; if (m) m.setIcon(makeIcon(m.ev, m.ev.key === activeKey)); });
+  document.querySelectorAll('.ritem').forEach(n => n.classList.toggle('on', n.dataset.k === ev.key));
+  renderDetail(ev);
+  $('detail').classList.add('open');
+  if (fly) locate(ev);
+}
+function locate(ev){
+  const m = markerByKey[ev.key];
+  map.flyTo([ev.lat, ev.lng], Math.max(map.getZoom(), 5), {duration:.8});
+  if (m) setTimeout(() => cluster.zoomToShowLayer(m, () => {}), 900);
+  if (window.innerWidth <= 980) $('detail').classList.remove('open');
+}
+$('dclose').onclick = () => $('detail').classList.remove('open');
+map.on('click', () => { if (window.innerWidth <= 980) $('detail').classList.remove('open'); });
+
+/* ---- Filtres ---- */
+$('q').addEventListener('input', e => { query = e.target.value; drawAll(); });
+$('range').addEventListener('change', e => { rangeDays = Number(e.target.value); drawAll(); });
+
+/* ---- Paramètres ---- */
+$('settings').onclick = () => { $('owminput').value = OWM_KEY; $('modal').classList.add('on'); };
+$('mcancel').onclick = () => $('modal').classList.remove('on');
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').classList.remove('on'); });
+$('msave').onclick = () => {
+  const k = $('owminput').value.trim();
+  try { k ? localStorage.setItem('owmKey', k) : localStorage.removeItem('owmKey'); } catch {}
+  location.reload();
+};
+
+/* ====================== Chargement ====================== */
+async function refresh(){
+  $('refresh').classList.add('spin');
+  const loaders = [['GDACS', loadGDACS], ['NASA EONET', loadEONET], ['USGS', loadUSGS], ['Records météo', loadRecords]];
+  const results = await Promise.allSettled(loaders.map(([, fn]) => fn()));
+  let all = [], parts = [], failed = 0;
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled'){ all = all.concat(r.value); parts.push(`${loaders[i][0]} : ${r.value.length}`); }
+    else { failed++; parts.push(`${loaders[i][0]} : indisponible`); }
+  });
+  // priorité GDACS > EONET > USGS, puis records (jamais dédoublonnés avec le reste)
+  const rec = all.filter(e => e.rec), live = all.filter(e => !e.rec);
+  EVENTS = dedupe(live).concat(rec).sort((a, b) => b.date - a.date);
+
+  const pill = $('pill');
+  pill.className = 'pill' + (failed === loaders.length ? ' bad' : failed ? ' warn' : '');
+  $('pilltxt').textContent = failed === loaders.length ? 'Sources indisponibles' : failed ? 'Sources partielles' : 'Sources connectées';
+  pill.title = parts.join('\n');
+  $('last').textContent = "Dernier rafraîchissement : aujourd'hui à " +
+    new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'}) + ' (UTC)';
+
+  renderKpis();
+  drawAll();
+  if (failed === loaders.length) showMsg('Impossible de joindre les sources de données. Vérifie ta connexion, puis recharge la page.');
+  else if (!EVENTS.length) showMsg('Aucun événement majeur recensé sur les 7 derniers jours.');
+
+  // Sélection : on conserve l'événement ouvert, sinon le plus critique/récent (bureau uniquement)
+  const keep = EVENTS.find(e => e.key === activeKey);
+  if (keep) { renderDetail(keep); }
+  else if (EVENTS.length && window.innerWidth > 980){
+    const top = EVENTS.slice().sort((a, b) =>
+      ((b.level === 'red' ? 2 : b.level ? 1 : 0) - (a.level === 'red' ? 2 : a.level ? 1 : 0)) || (b.date - a.date))[0];
+    select(top, false);
+  } else if (!EVENTS.length){
+    $('detailbody').className = 'empty';
+    $('detailbody').textContent = 'Aucun événement à afficher pour le moment.';
+  }
+  $('refresh').classList.remove('spin');
+}
+$('refresh').onclick = refresh;
+refresh();
+setInterval(refresh, 30 * 60 * 1000);
+</script>
+</body>
+</html>

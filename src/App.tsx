@@ -783,7 +783,7 @@ function WeatherApp() {
     { id: 'eightMonths', category: 'LONG', label: '7. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
     { id: 'historicalTrends', category: 'LONG', label: '8. 📈 Évolution depuis 2000 & Temps Réel (1 min)', icon: History, highlight: true },
     { id: 'sportsActivities', category: 'MAPS', label: '9. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
-    { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Météo Monde, Tornades & Tsunamis', icon: Radio },
+    { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Atlas des catastrophes — Monde en direct', icon: Radio },
     { id: 'weatherArchive', category: 'LONG', label: '11. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
     { id: 'bulletin', category: 'MEDIUM', label: '12. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
     { id: 'competitive', category: 'DIRECT', label: '13. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },

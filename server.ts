@@ -2545,6 +2545,18 @@ async function startServer() {
     return res.sendFile(distFilePath);
   });
 
+  // Route directe pour Atlas des catastrophes (Page 9)
+  app.get('/assets/aistudio/carte-catastrophes_6__98caa0f3.html', (req, res) => {
+    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    if (fs.existsSync(primaryPath)) {
+      return res.sendFile(primaryPath);
+    }
+    const distFilePath = path.join(distPath, 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
+    return res.sendFile(distFilePath);
+  });
+
   // Servir les fichiers de public/ avant Vite et avant le routeur SPA
   app.use(express.static(publicPath, { index: false }));
 
