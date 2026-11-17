@@ -610,6 +610,34 @@
   .wx-callout-pill::before{bottom:-18px;width:5px;height:5px}
   .wx-callout-pill svg{width:14px;height:14px}
 }
+#chipMapWeather:not(.on){opacity:.84}
+.car-dock button#carDockWxMap.active{background:linear-gradient(135deg,#38bdf8,#0284c7)!important;box-shadow:0 6px 20px rgba(2,132,199,0.45);border-color:rgba(186,230,253,0.48)!important}
+.route-toll-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin:8px 0 10px;border-radius:12px;background:rgba(128,176,225,0.09);border:1px solid rgba(180,214,248,0.22)}
+.route-toll-opt[hidden]{display:none}
+.route-toll-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:650;color:#e8f3ff;cursor:pointer;user-select:none}
+.route-toll-label input{width:16px;height:16px;accent-color:#38bdf8;cursor:pointer;margin:0}
+.route-toll-hint{font-size:10px;color:#9fc2e3;text-align:right;line-height:1.25}
+.toll-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(245,158,11,0.2);border:1px solid rgba(251,191,36,0.55);color:#fde68a;font-size:10px;font-weight:750;letter-spacing:.03em;white-space:nowrap;vertical-align:middle}
+.toll-badge .ic{width:12px;height:12px;flex:none;color:#fbbf24}
+.route-summary-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.route-summary-badges[hidden]{display:none}
+.toll-note{font-size:11px;font-weight:600;color:#fcd34d}
+#routeAlternatives.toll-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#routeAlternatives.toll-compare .route-alternative{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:10px 11px}
+.alt-title{font-size:11px;font-weight:750;color:#e9f4ff;line-height:1.25}
+.alt-metrics{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.alt-diff{font-size:10.5px;font-weight:650;color:#9fd3ff}
+.alt-toll-txt{font-size:10px;font-weight:600;color:#fcd34d}
+.toll-booth-marker{z-index:22;pointer-events:auto}
+.toll-booth-pin{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);border:1.5px solid #fffbeb;color:#111827;font-size:10px;font-weight:800;line-height:1;box-shadow:0 5px 14px rgba(0,0,0,0.45);white-space:nowrap}
+.toll-booth-pin .ic{width:12px;height:12px;stroke:#111827;flex:none}
+.car-toll-alert{display:flex;align-items:center;gap:8px;padding:7px 14px;background:rgba(245,158,11,0.24);border-top:1px solid rgba(251,191,36,0.46);color:#fef3c7;font-size:12px;font-weight:750}
+.car-toll-alert[hidden]{display:none}
+.car-toll-alert .ic{width:16px;height:16px;color:#fbbf24;flex:none}
+.toll-compare-title{display:block;font-size:10.5px;font-weight:750;color:#e9f4ff;line-height:1.25;margin-top:2px}
+.toll-diff{display:block;font-size:9.5px;font-weight:600;color:#93c5fd;margin-top:2px}
+#app.driving-mode #toast{bottom:96px}
+.car-trip-toll[hidden]{display:none}
 </style>
 <!-- MapLibre GL JS license
 Copyright (c) 2023, MapLibre contributors
@@ -737,7 +765,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <symbol id="weather-partly" viewBox="0 0 100 100"><use href="#weather-sun" x="32" width="67" height="67"/><use href="#weather-cloud" y="19" width="90" height="80"/></symbol>
 <symbol id="weather-moon" viewBox="0 0 100 100"><path d="M69 14a35 35 0 1 0 18 56 37 37 0 0 1-18-56Z" fill="#dee9ff" stroke="#eef5ff" stroke-width="2"/><path d="m77 25 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#9cb7f8"/></symbol>
 <symbol id="weather-snow" viewBox="0 0 100 100"><use href="#weather-cloud" width="100" height="88"/><g fill="#b6ecff"><circle cx="26" cy="77" r="4"/><circle cx="49" cy="83" r="4"/><circle cx="72" cy="77" r="4"/></g></symbol>
-<symbol id="weather-storm" viewBox="0 0 100 100"><use href="#weather-cloud" width="100" height="88"/><path d="m49 59-13 20h13l-7 17 25-24H53l9-13Z" fill="#ffdb5b"/></symbol><symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h9a4 4 0 0 1 0 8H8a3 3 0 0 0 0 6h9"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol><symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 3v18m-4-4 4 4 4-4M17 21V3m-4 4 4-4 4 4"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="m4 9 2-6h12l2 6M3 9h18v10H3V9Zm1 10v3m16-3v3M6 13h2m8 0h2M8 17h8"/></symbol><symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="m5.5 17.5 4.2-8h5.1l3.7 8M9.7 9.5 12 17.5M14.8 9.5 13.5 6h2.7M7.8 7h3"/></symbol><symbol id="i-foot" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2"/><path d="m10 21 2-6.5 2.5 2V21M9 12l2.5-3.5L15 11l3 1.5M8.5 15.5 11 12"/></symbol></svg>
+<symbol id="weather-storm" viewBox="0 0 100 100"><use href="#weather-cloud" width="100" height="88"/><path d="m49 59-13 20h13l-7 17 25-24H53l9-13Z" fill="#ffdb5b"/></symbol><symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h9a4 4 0 0 1 0 8H8a3 3 0 0 0 0 6h9"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol><symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 3v18m-4-4 4 4 4-4M17 21V3m-4 4 4-4 4 4"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="m4 9 2-6h12l2 6M3 9h18v10H3V9Zm1 10v3m16-3v3M6 13h2m8 0h2M8 17h8"/></symbol><symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="m5.5 17.5 4.2-8h5.1l3.7 8M9.7 9.5 12 17.5M14.8 9.5 13.5 6h2.7M7.8 7h3"/></symbol><symbol id="i-foot" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2"/><path d="m10 21 2-6.5 2.5 2V21M9 12l2.5-3.5L15 11l3 1.5M8.5 15.5 11 12"/></symbol><symbol id="i-toll" viewBox="0 0 24 24"><path d="M3 20h10M4 20V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v12M12 10l9-3M6 10h4M6 14h4"/></symbol></svg>
 <main id="app" data-state="peek">
   <div id="map" aria-label="Carte interactive en 3D"></div>
   <div class="map-vignette" aria-hidden="true"></div>
@@ -755,7 +783,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </div>
     <nav class="chips" id="chips" aria-label="Affichage de la carte">
       <button class="chip map-chip" id="chipMap" aria-label="Choisir le fond de carte"><svg class="ic " aria-hidden="true"><use href="#i-map"/></svg><span>Carte</span></button>
-      <button class="chip weather-chip" data-layer="cloud" aria-pressed="true"><svg class="ic " aria-hidden="true"><use href="#i-rain"/></svg><span>Météo</span><span class="chip-check"><svg class="ic " aria-hidden="true"><use href="#i-check"/></svg></span></button>
+      <button class="chip weather-chip on" id="chipMapWeather" aria-pressed="true" title="Afficher ou masquer toute la météo sur la carte (nuages, pluie, éclairs)"><svg class="ic " aria-hidden="true"><use href="#i-rain"/></svg><span>Météo</span><span class="chip-check"><svg class="ic " aria-hidden="true"><use href="#i-check"/></svg></span></button>
       <button class="chip route-chip" id="routeBtn" aria-label="Préparer un trajet" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-route"/></svg><span>Trajet</span></button>
       <button class="chip" id="moreBtn" aria-label="Plus de couches et d’options"><svg class="ic " aria-hidden="true"><use href="#i-more"/></svg><span>Plus</span></button>
     </nav>
@@ -805,6 +833,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <div class="h3">Fond de carte</div><div class="bases" id="bases"></div>
     <div class="view-controls"><div class="row"><label for="pitch">Inclinaison 3D</label><b id="pitchValue">55°</b></div><input id="pitch" type="range" min="0" max="65" step="1" value="55" aria-label="Inclinaison de la carte"><div class="rotation-controls"><button id="rotateLeft" aria-label="Tourner la carte à gauche">↶ Tourner</button><span>Glissez avec deux doigts pour incliner</span><button id="rotateRight" aria-label="Tourner la carte à droite">Tourner ↷</button></div></div><div class="h3">Couches météo</div><div class="layer-options" id="layerOptions"></div>
     <div class="row"><div><label for="swPills">Un pictogramme par zone</label><small>Masquer ou afficher les étiquettes</small></div><button class="switch" id="swPills" role="switch" aria-checked="true" aria-label="Afficher les pictogrammes des zones"></button></div>
+    <div class="row"><div><label for="swMapWeather">Météo sur la carte</label><small>Nuages, pluie, éclairs, radar et zones</small></div><button class="switch on" id="swMapWeather" role="switch" aria-checked="true" aria-label="Afficher ou masquer la météo sur la carte"></button></div>
     <div class="row"><label for="opacity">Intensité du radar</label><input type="range" id="opacity" min="20" max="100" step="5" aria-label="Opacité du radar"></div>
     <button class="places-link" id="chipPlaces"><svg class="ic " aria-hidden="true"><use href="#i-star"/></svg>Mes lieux favoris<svg class="ic " aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <p class="layer-note">Les surfaces grises regroupent les secteurs nuageux. Les zones sont estimées à partir des prévisions, pas d’une image satellite des nuages.</p>
@@ -827,15 +856,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <p class="route-help">Saisissez une adresse puis appuyez sur Entrée, ou choisissez un point sur la carte.</p>
       <button id="routeCalculate" class="route-primary"><svg class="ic" aria-hidden="true"><use href="#i-route"/></svg>Calculer le trajet</button>
     </div>
+    <div class="route-toll-opt" id="routeTollWrap">
+      <label for="avoidTollsCheck" class="route-toll-label"><input type="checkbox" id="avoidTollsCheck"><span>Éviter les péages</span></label>
+      <small class="route-toll-hint">Compare avec péages et sans péage</small>
+    </div>
     <p id="routeMessage" role="status" aria-live="polite"></p>
     <div id="routeResults" hidden>
-      <div class="route-summary"><div><strong id="routeDuration"></strong><span id="routeDistance"></span><p id="routeArrival"></p></div><button id="routeFit" aria-label="Afficher tout le trajet"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg></button></div>
+      <div class="route-summary"><div><strong id="routeDuration"></strong><span id="routeDistance"></span><p id="routeArrival"></p><div id="routeSummaryToll" class="route-summary-badges" hidden><span class="toll-badge"><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg>Péages</span><span class="toll-note">Trajet avec péages</span></div></div><button id="routeFit" aria-label="Afficher tout le trajet"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg></button></div>
       <div id="routeAlternatives" aria-label="Itinéraires proposés"></div>
       <p id="routeWeather" role="status">Météo du trajet : analyse en attente.</p><p id="routeDisclaimer"></p>
       <div class="route-result-actions"><button id="startDriving" class="drive-start">▶ Démarrer</button><button id="routeEdit">Modifier</button><button id="routeStepsBtn" aria-expanded="false" aria-controls="routeSteps">Étapes</button><button id="clearRoute">Effacer</button></div>
       <div id="routeSteps" hidden></div>
     </div>
-    <p class="route-attribution">Adresses © OpenStreetMap · Calcul OSRM</p>
+    <p class="route-attribution" id="routeAttribution">Adresses © OpenStreetMap · Calcul Valhalla / OSRM</p>
   </section>
 
   <section id="driveHUD" class="car-cockpit" hidden role="region" aria-label="Vue voiture trajet en direct">
@@ -879,7 +912,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <button id="carMobileSearchBtn" class="car-mobile-only" type="button" aria-label="Rechercher une destination" title="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></button>
       <button id="carDockNav" class="active" type="button" aria-label="Navigation et recentrage GPS" title="Navigation / Recentrer"><svg aria-hidden="true"><use href="#i-locate"/></svg></button>
       <button id="carDockMap" type="button" aria-label="Cartes et couches 3D" title="Carte et couches"><svg aria-hidden="true"><use href="#i-map"/></svg></button>
-      <button id="carDockWeather" type="button" aria-label="Afficher ou masquer la météo" title="Météo"><svg aria-hidden="true"><use href="#i-cloud"/></svg></button>
+      <button id="carDockWeather" type="button" aria-label="Ouvrir ou fermer le panneau météo" title="Panneau météo"><svg aria-hidden="true"><use href="#i-cloud"/></svg></button>
+      <button id="carDockWxMap" class="active" type="button" aria-label="Afficher ou masquer la météo sur la carte (nuages, pluie, éclairs)" aria-pressed="true" title="Météo sur la carte (nuages, pluie, éclairs)"><svg aria-hidden="true"><use href="#i-sun"/></svg></button>
       <button id="carDockRadar" class="active" type="button" aria-label="Afficher ou masquer le radar pluie" aria-pressed="true" title="Radar pluie"><svg aria-hidden="true"><use href="#i-rain"/></svg></button>
       <button id="carDockFav" type="button" aria-label="Mes lieux favoris" title="Mes lieux favoris"><svg aria-hidden="true"><use href="#i-star"/></svg></button>
       <button id="carDockSettings" type="button" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.82 1 1.48 1.04H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51.96Z"/></svg></button>
@@ -903,6 +937,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <div class="car-maneuver-lanes" id="carLanes">
         <button type="button" id="carChooseDestBtn" class="car-pick-dest-btn">+ Choisir une destination</button>
       </div>
+      <div id="carTollAlert" class="car-toll-alert" hidden role="status"><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg><span id="carTollAlertText">Péage dans 2 km</span></div>
     </div>
 
     <aside class="car-weather car-cockpit-glass" id="carWeatherPanel" aria-label="Météo et radar du trajet">
@@ -953,6 +988,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <div class="car-eta-group"><span>Arrivée</span><strong id="carEta">--:--</strong></div>
         <div class="car-trip-dur" id="carDurRemain">-- min</div>
         <div class="car-trip-dist" id="carDistRemain">-- km</div>
+        <span id="carTripTollBadge" class="toll-badge car-trip-toll" hidden><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg>Péages</span>
         <div class="car-trip-wx" id="carTripWeather"><svg class="weather-art" aria-hidden="true"><use href="#weather-cloud"/></svg><span>Météo locale en direct</span></div>
         <div class="car-trip-actions">
           <button id="carSimBtn" type="button" hidden title="Aperçu animé du trajet"><span>▶</span><span class="sim-lbl"> Aperçu</span></button>
@@ -1211,10 +1247,14 @@ function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.style.display=
 
 
 /* =====================  RÉGLAGES  ===================== */
-const cfg = Object.assign({ temp:'C', wind:'kmh', theme:'dark', notif:false, base:0, layer:'cloud', pills:true, opacity:65, mode3d:true, wxFx:true, reduceAnim:false, travelMode:'car', schema:0 }, store.get('cfg', {}));
+const cfg = Object.assign({ temp:'C', wind:'kmh', theme:'dark', notif:false, base:0, layer:'cloud', pills:true, opacity:65, mode3d:true, wxFx:true, showMapWeather:true, reduceAnim:false, travelMode:'car', avoidTolls:false, schema:0 }, store.get('cfg', {}));
 if(!['car','bike','foot'].includes(cfg.travelMode))cfg.travelMode='car';
 if(typeof cfg.wxFx!=='boolean')cfg.wxFx=true;
+if(typeof cfg.showMapWeather!=='boolean')cfg.showMapWeather=true;
 if(typeof cfg.reduceAnim!=='boolean')cfg.reduceAnim=false;
+if(typeof cfg.avoidTolls!=='boolean')cfg.avoidTolls=false;
+const isMapWeatherOn = () => cfg.showMapWeather !== false;
+const isWxFxOn = () => isMapWeatherOn() && !!cfg.wxFx;
 const isReducedAnim = () => reducedMotion || !!cfg.reduceAnim;
 const upgrading=cfg.schema<4; if(upgrading){cfg.base=0;cfg.layer='cloud';cfg.mode3d=true;cfg.pills=true;cfg.schema=4;}
 if(!Number.isInteger(cfg.base)||cfg.base<0||cfg.base>3)cfg.base=0;
@@ -1335,12 +1375,8 @@ function apply3D(){
   map.getStyle().layers.filter(l=>l.type==='fill-extrusion').forEach(l=>map.setLayoutProperty(l.id,'visibility',cfg.mode3d?'visible':'none'));
   putLayer({id:'sky-flat-buildings',type:'fill',source,'source-layer':'building',minzoom:14,paint:{'fill-color':cfg.base===1?'#374759':'#d8d4cc','fill-opacity':.8}});
   map.setLayoutProperty('sky-flat-buildings','visibility',cfg.mode3d?'none':'visible');
-  if(!demFailed&&!map.getSource('sky-dem')){
-    try{map.addSource('sky-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',encoding:'terrarium',tileSize:512,maxzoom:12});}catch(_){demFailed=true;}
-  }
-  const demSrc=!demFailed?map.getSource('sky-dem'):null;
-  const canTerrain=!!(cfg.mode3d&&demReady&&!demFailed&&demSrc&&map.isSourceLoaded('sky-dem'));
-  try{map.setTerrain(canTerrain?{source:'sky-dem',exaggeration:1.2}:null);}catch(_){try{map.setTerrain(null);}catch(__){}}
+  // Maintenir setTerrain(null) évite les pannes de drapage WebGL/FBO et les crashs _updateElevation tout en conservant la perspective 3D, les bâtiments extrudés et la voiture 3D.
+  try{if(map.getTerrain())map.setTerrain(null);}catch(_){}
   $('mode3d').classList.toggle('active',cfg.mode3d);$('mode3d').setAttribute('aria-pressed',String(cfg.mode3d));
   $('pitch').value=map.getPitch();$('pitchValue').textContent=Math.round(map.getPitch())+'°';
 }
@@ -1390,8 +1426,8 @@ function reapplyMapSurfaceTheme(){
     appNode.classList.toggle('driving-day',wantCar&&!night);
   }
   const regime=(typeof WXFX!=='undefined'&&WXFX.state)?WXFX.state:{mode:'clear'};
-  const wantWet=!!cfg.wxFx&&(regime.mode==='rain'||regime.mode==='storm');
-  const wantStorm=!!cfg.wxFx&&regime.mode==='storm';
+  const wantWet=isWxFxOn()&&(regime.mode==='rain'||regime.mode==='storm');
+  const wantStorm=isWxFxOn()&&regime.mode==='storm';
   BASE_STYLE_SNAPSHOT.forEach(entry=>{
     try{
       if(!map.getLayer(entry.id))return;
@@ -1440,28 +1476,28 @@ function reapplyMapSurfaceTheme(){
           }
         }
       }else if(wantCar&&!night){
-        // Mode Journée réel : carte blanche/claire et routes blanches lumineuses
-        if(l.type==='background')setStyledPaint(id,'background-color',wantStorm?'#dde5ee':'#f4f7fa');
+        // Mode Journée réel : carte blanche/claire et routes blanches bien contrastées
+        if(l.type==='background')setStyledPaint(id,'background-color',wantStorm?'#d6e0ea':'#eaeff5');
         else if(id==='natural_earth')setStyledLayout(id,'visibility','none');
-        else if(id==='water'||id.startsWith('water'))setStyledPaint(id,l.type==='line'?'line-color':'fill-color',l.type==='line'?'#9cc4e8':'#cbe2f6');
+        else if(id==='water'||id.startsWith('water'))setStyledPaint(id,l.type==='line'?'line-color':'fill-color',l.type==='line'?'#7ab5e8':'#b3d8f7');
         else if(/^(park|landcover|landuse)/.test(id)){
-          if(l.type==='fill')setStyledPaint(id,'fill-color',id.includes('wood')||id.includes('park')||id.includes('grass')?'#dfeedf':'#ecf1f6');
-          else if(l.type==='line')setStyledPaint(id,'line-color','#cedae6');
+          if(l.type==='fill')setStyledPaint(id,'fill-color',id.includes('wood')||id.includes('park')||id.includes('grass')?'#d4ebd4':'#e3eaf1');
+          else if(l.type==='line')setStyledPaint(id,'line-color','#c0cedc');
         }else if(/^(road|bridge|tunnel|aeroway)/.test(id)){
           if(l.type==='line'){
-            if(id.includes('casing'))setStyledPaint(id,'line-color',wantWet?'#8fb4d6':'#c5d3e2');
-            else if(id.includes('motorway')||id.includes('trunk')||id.includes('primary'))setStyledPaint(id,'line-color',wantWet?'#dce7f2':'#ffffff');
-            else if(id.includes('secondary')||id.includes('tertiary'))setStyledPaint(id,'line-color',wantWet?'#e2ebf4':'#fcfdff');
-            else if(id.includes('rail'))setStyledPaint(id,'line-color','#c0cedc');
-            else setStyledPaint(id,'line-color',wantWet?'#e6eef6':'#ffffff');
+            if(id.includes('casing'))setStyledPaint(id,'line-color',wantWet?'#7ca4c9':'#99acc0');
+            else if(id.includes('motorway')||id.includes('trunk')||id.includes('primary'))setStyledPaint(id,'line-color',wantWet?'#e6f0fa':'#ffffff');
+            else if(id.includes('secondary')||id.includes('tertiary'))setStyledPaint(id,'line-color',wantWet?'#ebf3fb':'#ffffff');
+            else if(id.includes('rail'))setStyledPaint(id,'line-color','#aebfce');
+            else setStyledPaint(id,'line-color',wantWet?'#eef4fa':'#ffffff');
           }else if(l.type==='fill'){
             setStyledPaint(id,'fill-color',wantWet?'#dbe6f1':'#f8fafc');
           }
         }else if(id==='building'||id==='sky-flat-buildings'){
-          setStyledPaint(id,'fill-color',wantStorm?'#d3dde7':'#e4ebf2');
-          setStyledPaint(id,'fill-outline-color','#c1cedc');
+          setStyledPaint(id,'fill-color',wantStorm?'#cbd6e2':'#dbe3ec');
+          setStyledPaint(id,'fill-outline-color','#b2c1d1');
         }else if(l.type==='fill-extrusion'){
-          setStyledPaint(id,'fill-extrusion-color',['interpolate',['linear'],['coalesce',['get','render_height'],10],0,wantStorm?'#d6e0ea':'#e8eef4',28,wantStorm?'#c6d3e0':'#d8e2ec',80,wantStorm?'#b4c4d4':'#c7d4e2']);
+          setStyledPaint(id,'fill-extrusion-color',['interpolate',['linear'],['coalesce',['get','render_height'],10],0,wantStorm?'#cfd9e4':'#dfe6ee',28,wantStorm?'#becbd9':'#cfd9e5',80,wantStorm?'#acbcca':'#becbd9']);
           setStyledPaint(id,'fill-extrusion-opacity',0.90);
         }else if(l.type==='symbol'){
           if(l.layout&&l.layout['text-field']){
@@ -1489,13 +1525,13 @@ function reapplyMapSurfaceTheme(){
   }
   if(wantCar&&night){
     try{map.setLight({anchor:'viewport',color:wantStorm?'#6e98c0':'#86c2f5',intensity:wantStorm?0.36:0.48,position:[1.3,210,38]});}catch(_){}
-    try{map.setSky({'sky-color':wantStorm?'#050b16':'#081529','horizon-color':wantStorm?'#11243d':'#18365b','fog-color':wantStorm?'#091424':'#0d2038','sky-horizon-blend':0.55,'horizon-fog-blend':0.65,'fog-ground-blend':0.7});}catch(_){}
+    try{map.setSky({'sky-color':wantStorm?'#050b16':'#081529','horizon-color':wantStorm?'#11243d':'#18365b','fog-color':wantStorm?'#091424':'#0d2038','sky-horizon-blend':0.48,'horizon-fog-blend':0.42,'fog-ground-blend':0.24});}catch(_){}
   }else if(wantCar&&!night){
     try{map.setLight({anchor:'viewport',color:'#ffffff',intensity:wantStorm?0.52:0.68,position:[1.3,200,45]});}catch(_){}
-    try{map.setSky({'sky-color':wantStorm?'#8ba2ba':'#aed5f5','horizon-color':wantStorm?'#c6d4e2':'#e4f1fc','fog-color':wantStorm?'#cedae6':'#eef6fd','sky-horizon-blend':0.55,'horizon-fog-blend':0.6,'fog-ground-blend':0.55});}catch(_){}
+    try{map.setSky({'sky-color':wantStorm?'#8ba2ba':'#aed5f5','horizon-color':wantStorm?'#c6d4e2':'#e4f1fc','fog-color':wantStorm?'#cedae6':'#eef6fd','sky-horizon-blend':0.48,'horizon-fog-blend':0.4,'fog-ground-blend':0.18});}catch(_){}
   }else if(wantWet){
     try{map.setLight({anchor:'viewport',color:wantStorm?'#84a7c9':'#b4d5ee',intensity:wantStorm?0.36:0.46,position:[1.2,210,36]});}catch(_){}
-    try{map.setSky({'sky-color':wantStorm?'#1d2f47':'#496987','horizon-color':wantStorm?'#334c69':'#7191ad','fog-color':wantStorm?'#28415c':'#6584a1','sky-horizon-blend':0.5,'horizon-fog-blend':0.65,'fog-ground-blend':0.65});}catch(_){}
+    try{map.setSky({'sky-color':wantStorm?'#1d2f47':'#496987','horizon-color':wantStorm?'#334c69':'#7191ad','fog-color':wantStorm?'#28415c':'#6584a1','sky-horizon-blend':0.45,'horizon-fog-blend':0.42,'fog-ground-blend':0.25});}catch(_){}
   }
 }
 function applyCarMapTheme(enable){
@@ -1567,7 +1603,7 @@ const LAYERS={
 function colorAt(layer,value){const s=layer.stops;if(value<=s[0][0])return s[0][1];for(let i=1;i<s.length;i++){if(value<=s[i][0]){const t=(value-s[i-1][0])/(s[i][0]-s[i-1][0]);return s[i-1][1].map((v,k)=>Math.round(v+(s[i][1][k]-v)*t));}}return s[s.length-1][1];}
 function gradCss(l){return 'linear-gradient(90deg,'+l.stops.map(x=>'rgb('+x[1].join(',')+')').join(',')+')';}
 const GRID={rows:5,cols:5,cells:null,zones:null,req:0,time:0,bounds:null};
-const needGrid=()=>cfg.layer!=='none';
+const needGrid=()=>isMapWeatherOn()&&cfg.layer!=='none';
 let gridTimer=null;
 function scheduleGrid(){clearTimeout(gridTimer);gridTimer=setTimeout(()=>refreshGrid(),850);}
 function gridReusable(b){const g=GRID.bounds;return g&&GRID.cells&&Date.now()-GRID.time<5*60*1000&&b.getWest()>=g.west&&b.getEast()<=g.east&&b.getSouth()>=g.south&&b.getNorth()<=g.north&&(g.east-g.west)<(b.getEast()-b.getWest())*3;}
@@ -1593,7 +1629,7 @@ function clearLabels(){MAP.zoneMarkers.forEach(m=>m.remove());MAP.zoneMarkers=[]
 function clearZones(){clearLabels();['sky-zone-fill','sky-zone-edges','sky-field'].forEach(id=>setGeo(id,empty()));}
 function drawField(){
   if(!MAP.ready)return;
-  if(!GRID.cells||!GRID.zones||cfg.layer==='none'){clearZones();return;}
+  if(!isMapWeatherOn()||!GRID.cells||!GRID.zones||cfg.layer==='none'){clearZones();return;}
   const zones=cfg.layer==='cloud';
   setGeo('sky-zone-fill',zones?GRID.zones.fill:empty());setGeo('sky-zone-edges',zones?GRID.zones.outline:empty());
   const l=LAYERS[cfg.layer],b=GRID.bounds,dx=(b.east-b.west)/GRID.cols,dy=(b.north-b.south)/GRID.rows;
@@ -1603,7 +1639,7 @@ function drawField(){
   })):empty());
 }
 function renderPills(){
-  clearLabels();if(!map||!cfg.pills||!GRID.zones||cfg.layer==='none')return;
+  clearLabels();if(!map||!isMapWeatherOn()||!cfg.pills||!GRID.zones||cfg.layer==='none')return;
   const size=sizeOfMap(),desktop=size.x>=900,occupied=[];
   GRID.zones.zones.slice().sort((a,b)=>b.count-a.count).forEach(z=>{
     const rect=DRIVE.active?(desktop?{left:100,right:size.x-335,top:185,bottom:size.y-105}:{left:20,right:size.x-60,top:165,bottom:size.y-145}):{left:desktop?475:45,right:size.x-65,top:desktop?90:size.y<740?185:205,bottom:size.y-(desktop?80:sheetH().peek+110)},candidates=z.candidates.slice();
@@ -1622,15 +1658,48 @@ function renderPills(){
   });
 }
 function updateLegend(){
-  const l=LAYERS[cfg.layer];$('mapctl').classList.toggle('hidden',!l);if(!l)return;
+  const l=isMapWeatherOn()?LAYERS[cfg.layer]:null;$('mapctl').classList.toggle('hidden',!l);if(!l)return;
   $('lgTitle').textContent=l.title;$('player').classList.toggle('hidden',cfg.layer!=='radar');
   if(cfg.layer==='cloud'){$('lgUnit').textContent='Par zone';$('lgBar').style.background='linear-gradient(90deg,#d6e0e6,#7c8e9f,#4f6376)';$('lgMin').textContent='Gris : nuages';$('lgMax').textContent='Bleu : pluie';}
   else if(cfg.layer==='radar'){$('lgUnit').textContent=RAD.frames.length?'Radar · '+hmFromTs(RAD.frames[RAD.idx].time):'Chargement';$('lgBar').style.background='linear-gradient(90deg,#9be3ff,#4aa8ff,#1f5fff,#1b2fbf,#ffd23a,#ff7a1a,#e0201f,#ff5ad0)';$('lgMin').textContent='Faible';$('lgMax').textContent='Forte';}
   else{$('lgBar').style.background=gradCss(l);$('lgUnit').textContent='Estimations';const f=v=>l.kind==='temp'?fTU(v):l.kind==='wind'?fW(v):v+(l.unit?' '+l.unit:'');$('lgMin').textContent=f(l.min);$('lgMax').textContent=f(l.max);}
 }
-function updateChips(){document.querySelectorAll('[data-layer]').forEach(b=>{const active=b.dataset.layer===cfg.layer;b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active));});}
+function syncMapWeatherUi(){
+  const on=isMapWeatherOn();
+  const chip=$('chipMapWeather');
+  if(chip){chip.classList.toggle('on',on);chip.setAttribute('aria-pressed',String(on));}
+  const sw=$('swMapWeather');
+  if(sw){sw.classList.toggle('on',on);sw.setAttribute('aria-checked',String(on));}
+  const dock=$('carDockWxMap');
+  if(dock){
+    dock.classList.toggle('active',on);
+    dock.setAttribute('aria-pressed',String(on));
+    dock.title=on?'Masquer la météo sur la carte (nuages, pluie, éclairs)':'Afficher la météo sur la carte (nuages, pluie, éclairs)';
+  }
+}
+function toggleMapWeather(forceVal,silent=false){
+  const next=typeof forceVal==='boolean'?forceVal:!isMapWeatherOn();
+  cfg.showMapWeather=next;
+  if(next&&cfg.layer==='none')cfg.layer=cfg._lastLayer||'cloud';
+  saveCfg();
+  if(!next&&RAD.playing)togglePlay();
+  ++GRID.req;
+  syncMapWeatherUi();updateChips();updateLegend();applyRadarVisibility();drawField();renderPills();
+  if(next&&needGrid()&&!GRID.cells)refreshGrid();
+  if(MAP.ready)try{reapplyMapSurfaceTheme();}catch(_){}
+  if(typeof WXFX!=='undefined')WXFX.sync();
+  if(!silent)toast(next?'Météo affichée sur la carte':'Météo masquée sur la carte (nuages, pluie, éclairs)');
+}
+function updateChips(){
+  syncMapWeatherUi();
+  document.querySelectorAll('#layerOptions [data-layer]').forEach(b=>{const active=isMapWeatherOn()&&b.dataset.layer===cfg.layer;b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active));});
+}
 function setLayer(name){
-  if(name!=='none'&&!LAYERS[name])return;cfg.layer=cfg.layer===name?'none':name;saveCfg();++GRID.req;
+  if(name!=='none'&&!LAYERS[name])return;
+  if(!isMapWeatherOn()&&name!=='none'){cfg.showMapWeather=true;cfg.layer=name;}
+  else cfg.layer=cfg.layer===name?'none':name;
+  if(cfg.layer!=='none')cfg._lastLayer=cfg.layer;
+  saveCfg();++GRID.req;
   if(cfg.layer!=='radar'&&RAD.playing)togglePlay();updateChips();updateLegend();applyRadarVisibility();drawField();renderPills();
   if(needGrid()&&!GRID.cells)refreshGrid();
   if(typeof WXFX!=='undefined')WXFX.sync();
@@ -1640,7 +1709,7 @@ function setLayer(name){
 const RADAR_REFRESH_MS=10*60*1000;
 const RAD={frames:[],host:'',idx:0,cur:null,pending:null,playing:false,speed:1,ver:0,cancel:null,fetchedAt:0,loading:null,lastToast:0,seq:0,reqTimes:[],tileCache:new Map()};
 const hmFromTs=t=>new Date(t*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-const isRadarVisible=()=>DRIVE.active?!!DRIVE.radar:cfg.layer==='radar';
+const isRadarVisible=()=>isMapWeatherOn()&&(DRIVE.active?!!DRIVE.radar:cfg.layer==='radar');
 const radarOpacity=()=>DRIVE.active?Math.min(0.68,Math.max(0.50,(cfg.opacity||65)/100)):((cfg.opacity||65)/100);
 function radarToast(msg,ms=3600){
   const now=Date.now();
@@ -2711,7 +2780,7 @@ function freshPosition(){
 function locate(){GPS.zoomedAccurate=false;return startGPS(true,true);}
 
 /* ===================== ITINÉRAIRES MULTI-MODES & MAP MATCHING ===================== */
-const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',provider:'OSRM',routes:[],index:0,waypoints:[],markers:[],weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,busyToken:null,weatherReady:false};
+const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',avoidTolls:!!cfg.avoidTolls,provider:'Valhalla',routes:[],index:0,waypoints:[],markers:[],tollMarkers:[],tollAnnounced:new Set(),weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,busyToken:null,weatherReady:false};
 function updateModeUi(){
   const mode=TR.mode||'car',mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
   document.querySelectorAll('#routeModeSwitch [data-mode], #carModeSwitch [data-mode]').forEach(btn=>{
@@ -2720,10 +2789,13 @@ function updateModeUi(){
     btn.setAttribute('aria-pressed',String(on));
   });
   if($('routeEyebrow'))$('routeEyebrow').textContent=mCfg.eyebrow;
+  const tollWrap=$('routeTollWrap'),tollChk=$('avoidTollsCheck');
+  if(tollWrap)tollWrap.hidden=mode!=='car';
+  if(tollChk)tollChk.checked=!!TR.avoidTolls;
   const badge=$('carWxModeBadge');
   if(badge)badge.innerHTML=icon(mode==='bike'?'bike':mode==='foot'?'foot':'car')+'<span>'+esc(mCfg.label)+'</span>';
   const attr=$('routeAttribution')||document.querySelector('#routePanel .route-attribution');
-  if(attr)attr.textContent=mode==='car'?'Adresses © OpenStreetMap · Calcul OSRM':'Adresses © OpenStreetMap · Profil '+mCfg.label+' ('+(TR.provider||'FOSSGIS')+')';
+  if(attr)attr.textContent=mode==='car'?'Adresses © OpenStreetMap · Calcul '+(TR.provider||'Valhalla')+' & barrières © Overpass':'Adresses © OpenStreetMap · Profil '+mCfg.label+' ('+(TR.provider||'FOSSGIS')+')';
 }
 function routeMessage(text,error=false){$('routeMessage').textContent=text;$('routeMessage').classList.toggle('error',error);}
 function syncRouteFields(){
@@ -2752,12 +2824,19 @@ function resetDriveMatching(){
   DRIVE.uturnCount=0;DRIVE.lastMatchedCoord=null;DRIVE.lastProgress=0;DRIVE.offCount=0;
   if(typeof VEH_ANIM!=='undefined')VEH_ANIM.clear();
 }
+function clearTollMarkers(){
+  TR.tollMarkers.forEach(m=>{try{m.remove();}catch(_){}});
+  TR.tollMarkers=[];
+}
 function clearTrip(){
-  if(DRIVE.active)stopDriving();TR.weatherReady=false;TR.weatherPoints=[];
-  resetDriveMatching();
+  if(DRIVE.active)stopDriving();TR.weatherReady=false;TR.weatherPoints=[];TR.tollAnnounced.clear();
+  resetDriveMatching();clearTollMarkers();
   ++TR.req;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.waypoints=[];TR.index=0;TR.steps=false;
   routeNativeHasGeometry=false;TR.markers.forEach(m=>m.remove());TR.markers=[];setGeo('sky-route',empty());setGeo('sky-route-alt',empty());drawRouteOverlay();
   $('routeResults').hidden=true;$('routePanel').classList.remove('has-route');$('routePanel').classList.add('editing');$('activeTrip').hidden=true;$('app').classList.remove('route-active');$('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
+  if($('routeSummaryToll'))$('routeSummaryToll').hidden=true;
+  if($('carTripTollBadge'))$('carTripTollBadge').hidden=true;
+  if($('carTollAlert'))$('carTollAlert').hidden=true;
   if(typeof WXFX!=='undefined')WXFX.sync();
 }
 function invalidateRoute(){clearTrip();routeMessage('Choisissez un départ et une arrivée.');}
@@ -2822,27 +2901,50 @@ function normalizeRouteForMode(route,mode){
   }
   return route;
 }
+function valhallaManeuverToOsrm(m){
+  const t=Number(m?.type)||0,inst=String(m?.instruction||'');
+  if(t===1||t===2||t===3)return {type:'depart',modifier:'straight'};
+  if(t===4||t===5||t===6)return {type:'arrive',modifier:'straight'};
+  if(t===26||t===27||/roundabout|rond-point/i.test(inst))return {type:t===27?'exit roundabout':'roundabout',modifier:/left|gauche/i.test(inst)?'left':'right'};
+  if(t===12||t===13||t===14||/u-?turn|demi-tour/i.test(inst))return {type:'turn',modifier:'uturn'};
+  if(t===9)return {type:'turn',modifier:'slight right'};
+  if(t===10)return {type:'turn',modifier:'right'};
+  if(t===11)return {type:'turn',modifier:'sharp right'};
+  if(t===15)return {type:'turn',modifier:'sharp left'};
+  if(t===16)return {type:'turn',modifier:'left'};
+  if(t===17)return {type:'turn',modifier:'slight left'};
+  if(t===18||t===19)return {type:'on ramp',modifier:/left|gauche/i.test(inst)?'left':'right'};
+  if(t===20||t===21)return {type:'off ramp',modifier:t===21?'left':'right'};
+  if(t===22)return {type:'continue',modifier:'straight'};
+  if(t===23||t===24)return {type:'fork',modifier:t===24?'left':'right'};
+  if(t===25)return {type:'merge',modifier:'straight'};
+  if(/left|gauche/i.test(inst))return {type:'turn',modifier:'left'};
+  if(/right|droite/i.test(inst))return {type:'turn',modifier:'right'};
+  return {type:'continue',modifier:'straight'};
+}
 function valhallaToOsrmRoute(trip,mode){
   const leg=trip?.legs?.[0];
   if(!leg||!leg.shape)return null;
   const coords=decodePolyline6(leg.shape);
   if(coords.length<2)return null;
+  let tripHasToll=Boolean(trip.summary?.has_toll||leg.summary?.has_toll);
   const steps=(leg.maneuvers||[]).map(m=>{
     const pt=coords[clamp(m.begin_shape_index||0,0,coords.length-1)]||coords[0];
-    const road=(m.street_names&&m.street_names[0])||m.instruction||'';
-    const isTurnLeft=/left|gauche/i.test(m.instruction||'');
-    const isTurnRight=/right|droite/i.test(m.instruction||'');
-    const isArrive=m.type===4||m.type===5||m.type===6;
-    const isRound=/roundabout|rond-point/i.test(m.instruction||'');
+    const road=(m.street_names&&m.street_names[0])||'';
+    const isToll=Boolean(m.toll);
+    if(isToll)tripHasToll=true;
+    const mv=valhallaManeuverToOsrm(m);
     return {
       distance:(Number(m.length)||0)*1000,
       duration:Number(m.time)||0,
-      name:road,
-      mode:mode==='bike'?'cycling':'walking',
+      name:road||m.instruction||'',
+      valhallaInstruction:m.instruction||'',
+      isToll,
+      mode:mode==='car'?'driving':mode==='bike'?'cycling':'walking',
       intersections:m.highway?[{classes:['motorway']}]:[],
       maneuver:{
-        type:isArrive?'arrive':isRound?'roundabout':'turn',
-        modifier:isTurnLeft?'left':isTurnRight?'right':'straight',
+        type:mv.type,
+        modifier:mv.modifier,
         location:pt
       }
     };
@@ -2852,19 +2954,27 @@ function valhallaToOsrmRoute(trip,mode){
   return normalizeRouteForMode({
     distance:distM,
     duration:durS,
+    hasToll:tripHasToll,
+    tollBooths:[],
     geometry:{type:'LineString',coordinates:coords},
     legs:[{steps,distance:distM,duration:durS}]
   },mode);
 }
-async function routeViaValhalla(start,end,mode){
+async function routeViaValhalla(start,end,mode,opt={}){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
   try{
+    const loc0={lat:start.lat,lon:start.lon};
+    if(Number.isFinite(opt.heading)){loc0.heading=Math.round((opt.heading+360)%360);loc0.heading_tolerance=65;}
+    const costing=(TRAVEL_MODES[mode]||TRAVEL_MODES.car).valhallaCosting;
     const body={
-      locations:[{lat:start.lat,lon:start.lon},{lat:end.lat,lon:end.lon}],
-      costing:(TRAVEL_MODES[mode]||TRAVEL_MODES.car).valhallaCosting,
+      locations:[loc0,{lat:end.lat,lon:end.lon}],
+      costing,
       directions_options:{language:'fr-FR',units:'kilometers'},
-      alternates:1
+      alternates:opt.alternates??1
     };
+    if(mode==='car'){
+      body.costing_options={auto:{use_tolls:opt.useTolls===0?0:1}};
+    }
     const r=await fetch('https://valhalla1.openstreetmap.de/route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
@@ -2873,16 +2983,165 @@ async function routeViaValhalla(start,end,mode){
     return {routes,waypoints:[{distance:0},{distance:0}],provider:'Valhalla'};
   }finally{clearTimeout(timer);}
 }
+function routesNearlySame(a,b){
+  if(!a||!b)return false;
+  const dd=Math.abs((a.distance||0)-(b.distance||0));
+  const dt=Math.abs((a.duration||0)-(b.duration||0));
+  return dd<120&&dt<25&&Boolean(a.hasToll)===Boolean(b.hasToll);
+}
+function formatSignedTollDelta(diffSec,diffM){
+  const min=Math.round(diffSec/60);
+  const minStr=Math.abs(diffSec)<45?'même durée':(min>0?'+'+min+' min':min+' min');
+  const absM=Math.abs(diffM);
+  const dStr=absM<150?'même dist.':(diffM>0?'+':'-')+(absM>=1000?(absM/1000).toFixed(1).replace('.',',')+' km':Math.round(absM/10)*10+' m');
+  return minStr+' · '+dStr;
+}
 function unavailableModeMsg(mode){
   if(mode==='bike')return 'Aucun itinéraire à vélo possible, essayez un autre mode.';
   if(mode==='foot')return 'Aucun itinéraire à pied possible, essayez un autre mode.';
   return 'Aucun itinéraire routier trouvé entre ces points.';
 }
+const TOLL_CACHE=new Map();
+const TOLL_INFLIGHT=new Map();
+const TOLL_RL={lastAt:0,stamps:[],maxPerMin:6,minIntervalMs:4000};
+function tollBboxKey(coords){
+  let s=90,w=180,n=-90,e=-180;
+  for(const c of coords){
+    if(c[1]<s)s=c[1];if(c[1]>n)n=c[1];
+    if(c[0]<w)w=c[0];if(c[0]>e)e=c[0];
+  }
+  const pad=0.006;
+  s=Math.floor((s-pad)*100)/100;
+  w=Math.floor((w-pad)*100)/100;
+  n=Math.ceil((n+pad)*100)/100;
+  e=Math.ceil((e+pad)*100)/100;
+  // Si le trajet dépasse ~4 degrés (~440 km), centrer sur le premier tronçon pour ne pas surcharger Overpass
+  if(n-s>4||e-w>4){
+    const anchor=coords[Math.min(coords.length-1,Math.floor(coords.length*0.25))];
+    s=Math.floor((Math.min(coords[0][1],anchor[1])-0.2)*100)/100;
+    n=Math.ceil((Math.max(coords[0][1],anchor[1])+0.2)*100)/100;
+    w=Math.floor((Math.min(coords[0][0],anchor[0])-0.2)*100)/100;
+    e=Math.ceil((Math.max(coords[0][0],anchor[0])+0.2)*100)/100;
+  }
+  return {s,w,n,e,key:s.toFixed(2)+','+w.toFixed(2)+','+n.toFixed(2)+','+e.toFixed(2)};
+}
+async function queryOverpassTollBooths(box){
+  const now=Date.now();
+  const cached=TOLL_CACHE.get(box.key);
+  if(cached&&(now-cached.ts)<1800000)return cached.items;
+  if(TOLL_INFLIGHT.has(box.key))return TOLL_INFLIGHT.get(box.key);
+  TOLL_RL.stamps=TOLL_RL.stamps.filter(t=>now-t<60000);
+  if(TOLL_RL.stamps.length>=TOLL_RL.maxPerMin||(now-TOLL_RL.lastAt)<TOLL_RL.minIntervalMs){
+    return cached?.items||[];
+  }
+  TOLL_RL.lastAt=now;TOLL_RL.stamps.push(now);
+  const ql='[out:json][timeout:12];(node["barrier"="toll_booth"]('+box.s+','+box.w+','+box.n+','+box.e+');way["barrier"="toll_booth"]('+box.s+','+box.w+','+box.n+','+box.e+'););out center;';
+  const p=(async()=>{
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+    try{
+      const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(ql),signal:controller.signal});
+      if(!r.ok)throw new Error('Overpass HTTP '+r.status);
+      const d=await r.json();
+      const items=(d?.elements||[]).map(el=>{
+        const lat=Number(el.lat??el.center?.lat),lon=Number(el.lon??el.center?.lon);
+        if(!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+        return {id:String(el.type||'node')+'-'+String(el.id),lat,lon,name:el.tags?.name||'Péage'};
+      }).filter(Boolean);
+      if(TOLL_CACHE.size>=30){const first=TOLL_CACHE.keys().next().value;if(first)TOLL_CACHE.delete(first);}
+      TOLL_CACHE.set(box.key,{ts:Date.now(),items});
+      return items;
+    }catch(_){
+      return cached?.items||[];
+    }finally{
+      clearTimeout(timer);TOLL_INFLIGHT.delete(box.key);
+    }
+  })();
+  TOLL_INFLIGHT.set(box.key,p);
+  return p;
+}
+function projectBoothsOntoRoute(route,booths){
+  const meta=MAP_MATCH.metaFor(route);
+  if(!meta||meta.coords.length<2||!booths?.length)return [];
+  const coords=meta.coords,cum=meta.cum,out=[];
+  for(const b of booths){
+    const rad=Math.PI/180,scaleX=111320*Math.max(.1,Math.cos(b.lat*rad)),scaleY=111195;
+    let bestD=Infinity,bestProg=0,bestPt=[b.lon,b.lat];
+    for(let i=0;i<coords.length-1;i++){
+      const c1=coords[i],c2=coords[i+1];
+      const ax=(c1[0]-b.lon)*scaleX,ay=(c1[1]-b.lat)*scaleY;
+      const bx=(c2[0]-b.lon)*scaleX,by=(c2[1]-b.lat)*scaleY;
+      const dx=bx-ax,dy=by-ay,den=dx*dx+dy*dy;
+      const t=den?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/den)):0;
+      const d=Math.hypot(ax+t*dx,ay+t*dy);
+      if(d<bestD){bestD=d;bestProg=cum[i]+(cum[i+1]-cum[i])*t;bestPt=[c1[0]+(c2[0]-c1[0])*t,c1[1]+(c2[1]-c1[1])*t];}
+    }
+    if(bestD<=75){
+      const existing=out.find(x=>Math.abs(x.progress-bestProg)<220);
+      if(!existing)out.push({id:b.id,lat:b.lat,lon:b.lon,name:b.name||'Péage',dist:bestD,progress:bestProg,pt:bestPt});
+      else if(bestD<existing.dist)Object.assign(existing,{id:b.id,lat:b.lat,lon:b.lon,name:b.name||existing.name,dist:bestD,progress:bestProg,pt:bestPt});
+    }
+  }
+  return out.sort((a,b)=>a.progress-b.progress);
+}
+async function fetchTollBoothsForRoutes(token){
+  if((TR.mode||'car')!=='car'||!TR.routes.length)return;
+  const allCoords=TR.routes.flatMap(r=>r?.geometry?.coordinates||[]);
+  if(allCoords.length<2)return;
+  const box=tollBboxKey(allCoords);
+  const items=await queryOverpassTollBooths(box);
+  if(token!==TR.req||!TR.routes.length)return;
+  let updated=false;
+  for(const r of TR.routes){
+    const snapped=projectBoothsOntoRoute(r,items);
+    r.tollBooths=snapped;
+    if(snapped.length>0&&!r.hasToll&&r.tollRole!=='no-toll'){r.hasToll=true;updated=true;}
+    else if(snapped.length>0)updated=true;
+  }
+  if(updated){
+    renderRouteResult();renderRoute();
+    if(DRIVE.active)renderCarCockpit();
+  }
+}
 async function fetchRoutesForMode(start,end,mode,heading=null){
   const mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
   const pair=start.lon+','+start.lat+';'+end.lon+','+end.lat;
+  const validShape=r=>Number.isFinite(r.duration)&&Number.isFinite(r.distance)&&r.geometry?.type==='LineString'&&r.geometry.coordinates.length>1&&r.geometry.coordinates.every(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
+  if(mode==='car'){
+    const [resToll,resFree]=await Promise.allSettled([
+      routeViaValhalla(start,end,'car',{useTolls:1,alternates:1,heading}),
+      routeViaValhalla(start,end,'car',{useTolls:0,alternates:0,heading})
+    ]);
+    const tollRoutes=resToll.status==='fulfilled'?resToll.value.routes.filter(validShape):[];
+    const freeRoutes=resFree.status==='fulfilled'?resFree.value.routes.filter(validShape):[];
+    if(tollRoutes.length||freeRoutes.length){
+      const rToll=tollRoutes[0]||null;
+      const rFree=freeRoutes[0]||null;
+      if(rToll&&rToll.hasToll&&rFree){
+        rToll.tollRole='fastest-toll';
+        rToll.tollLabel='Le plus rapide (avec péages)';
+        rFree.tollRole='no-toll';
+        rFree.tollLabel=rFree.hasToll?'Péages minimisés':'Sans péage';
+        rFree.tollDiffDur=Math.round(rFree.duration-rToll.duration);
+        rFree.tollDiffDist=Math.round(rFree.distance-rToll.distance);
+        rToll.tollDiffDur=Math.round(rToll.duration-rFree.duration);
+        rToll.tollDiffDist=Math.round(rToll.distance-rFree.distance);
+        const list=[rToll,rFree];
+        for(const extra of tollRoutes.slice(1)){
+          if(list.length<3&&!list.some(x=>routesNearlySame(x,extra)))list.push(extra);
+        }
+        return {routes:list,waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:TR.avoidTolls?1:0};
+      }
+      if(TR.avoidTolls&&rFree){
+        const list=[rFree,...tollRoutes.filter(x=>!routesNearlySame(x,rFree))];
+        return {routes:list.slice(0,3),waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:0};
+      }
+      const list=tollRoutes.length?tollRoutes:freeRoutes;
+      return {routes:list.slice(0,3),waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:0};
+    }
+  }
   const radiusParam=mode==='car'?'&radiuses=1500;1500':'&radiuses=800;800';
-  const baseUrl=mCfg.osrmBase+'/'+pair+'?alternatives=true&steps=true&geometries=geojson&overview=full';
+  const excludeToll=mode==='car'&&TR.avoidTolls?'&exclude=toll':'';
+  const baseUrl=mCfg.osrmBase+'/'+pair+'?alternatives=true&steps=true&geometries=geojson&overview=full'+excludeToll;
   const reqUrls=[];
   if(mode==='car'&&Number.isFinite(heading))reqUrls.push(baseUrl+'&radiuses=150;1000&bearings='+Math.round((heading+360)%360)+',65;');
   reqUrls.push(baseUrl+radiusParam);
@@ -2894,27 +3153,27 @@ async function fetchRoutesForMode(start,end,mode,heading=null){
       if(resp&&resp.code==='Ok'&&Array.isArray(resp.routes)&&resp.routes.length){osrmData=resp;break;}
     }catch(_){}
   }
-  const validShape=r=>Number.isFinite(r.duration)&&Number.isFinite(r.distance)&&r.geometry?.type==='LineString'&&r.geometry.coordinates.length>1&&r.geometry.coordinates.every(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
   if(osrmData){
     const shaped=osrmData.routes.filter(validShape);
     const allowed=shaped.filter(r=>{
       if(isRouteForbiddenForMode(r,mode)){forbiddenSaw=true;return false;}
+      r.hasToll=false;r.tollBooths=[];
       normalizeRouteForMode(r,mode);
       return true;
     });
     if(allowed.length){
-      return {routes:allowed.slice(0,3),waypoints:osrmData.waypoints||[{distance:0},{distance:0}],provider:mode==='car'?'OSRM':'FOSSGIS OSRM'};
+      return {routes:allowed.slice(0,3),waypoints:osrmData.waypoints||[{distance:0},{distance:0}],provider:mode==='car'?'OSRM':'FOSSGIS OSRM',defaultIndex:0};
     }
   }
   // Pour vélo et piéton : ne JAMAIS se replier sur le profil voiture OSRM. Tenter Valhalla vélo/piéton.
   if(mode==='bike'||mode==='foot'){
     try{
-      const vRes=await routeViaValhalla(start,end,mode);
+      const vRes=await routeViaValhalla(start,end,mode,{alternates:1});
       const allowed=vRes.routes.filter(r=>{
         if(isRouteForbiddenForMode(r,mode)){forbiddenSaw=true;return false;}
         return true;
       });
-      if(allowed.length)return {routes:allowed.slice(0,3),waypoints:vRes.waypoints,provider:'Valhalla'};
+      if(allowed.length)return {routes:allowed.slice(0,3),waypoints:vRes.waypoints,provider:'Valhalla',defaultIndex:0};
     }catch(_){}
     if(forbiddenSaw)throw new Error(unavailableModeMsg(mode));
     throw new Error(unavailableModeMsg(mode));
@@ -2933,10 +3192,11 @@ async function calculateRoute(){
     routeMessage('Recherche des trajets '+mCfg.label.toLowerCase()+'…');
     const res=await fetchRoutesForMode(start,end,mode,null);
     if(token!==TR.req)return;
-    TR.from=start;TR.routes=res.routes;TR.index=0;TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;resetDriveMatching();pauseFollow();
+    TR.from=start;TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();resetDriveMatching();pauseFollow();
     $('routePanel').classList.add('has-route');$('routePanel').classList.remove('editing');$('app').classList.add('route-active');$('routeResults').hidden=false;
     renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();$('activeTrip').hidden=!$('routePanel').hidden;routeMessage('');
     assessRouteWeather(token);
+    fetchTollBoothsForRoutes(token);
   }catch(e){if(token!==TR.req)return;clearTrip();routeMessage(e.message.startsWith('HTTP')||e.name==='AbortError'?'Service de trajet indisponible. Réessayez dans un instant.':e.message,true);}
   finally{if(TR.busyToken===token){TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';}}
 }
@@ -2967,7 +3227,9 @@ async function assessRouteWeather(token){
     const fastest=Math.min(...TR.routes.map(r=>r.duration));
     TR.routes.forEach((r,i)=>{const a=sums[i];r.weatherScore=a.score;r.weatherLabel=a.storm?'⚠ Orages':a.snow?'⚠ Neige':a.rain>=2?'🌧 Pluie forte':a.rain>0?'🌦 Pluie':(mode==='bike'?a.wind>=35:a.wind>=55)?'💨 Vent fort':'☀ Météo calme';r.combinedScore=r.duration/60+Math.min(a.score,75)*1.7;});
     TR.weatherReady=true;
-    const chosen=TR.routes.reduce((best,r,i)=>r.combinedScore<TR.routes[best].combinedScore?i:best,0);
+    let candidates=TR.routes.map((r,i)=>i);
+    if(TR.avoidTolls&&TR.routes.some(r=>!r.hasToll))candidates=candidates.filter(i=>!TR.routes[i].hasToll);
+    const chosen=candidates.reduce((best,i)=>TR.routes[i].combinedScore<TR.routes[best].combinedScore?i:best,candidates[0]||0);
     TR.index=chosen;const r=TR.routes[chosen],a=sums[chosen];
     el.classList.toggle('warning',!!(a.storm||a.snow||a.rain>=2||(mode==='bike'?a.wind>=35:a.wind>=55)));
     el.textContent='🌦 Choix météo ('+(TRAVEL_MODES[mode]||TRAVEL_MODES.car).label.toLowerCase()+') : '+r.weatherLabel+' · '+(r.duration-fastest>=60?'+'+Math.round((r.duration-fastest)/60)+' min face au plus rapide. ':'')+'Conditions actuelles indicatives (Open-Meteo).';
@@ -3086,12 +3348,13 @@ async function recalculateDrivingRoute(p){
     const res=await fetchRoutesForMode({lat:p.lat,lon:p.lon,name:'Position actuelle'},destination,mode,heading);
     if(id!==DRIVE.rerouteId||!DRIVE.active||tripRequest!==TR.req)return;
     TR.from={lat:p.lat,lon:p.lon,name:'Position actuelle'};TR.fromGPS=true;
-    TR.routes=res.routes;TR.index=0;TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;
+    TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
     DRIVE.lastProgress=0;DRIVE.snapped=false;DRIVE.uturnCount=0;
     renderRouteResult();renderRoute();
     $('driveInstruction').textContent='✓ Nouveau parcours trouvé · suivez la ligne bleue';
     updateDriving(GPS.fix||p,null);
     assessRouteWeather(tripRequest);
+    fetchTollBoothsForRoutes(tripRequest);
   }catch(e){
     if(id===DRIVE.rerouteId&&DRIVE.active){
       $('driveInstruction').textContent=e?.message&&e.message.includes('essayez un autre mode')?e.message:'Nouveau trajet indisponible · nouvel essai automatique bientôt';
@@ -3214,6 +3477,11 @@ function renderCarCockpit(){
     const cdb=$('carChooseDestBtn');if(cdb)cdb.onclick=()=>{openRoute();};
   }
   const rec=$('driveRecenter');if(rec)rec.classList.toggle('paused',DRIVE.active&&(!GPS.follow||DRIVE.userZoomed||DRIVE.followPausedUntil>Date.now()));
+  const nightNow=isRealNightTime(),appEl=$('app');
+  if(appEl&&MAP.ready&&(appEl.classList.contains('driving-night')!==nightNow||appEl.classList.contains('driving-day')===nightNow)){
+    try{reapplyMapSurfaceTheme();}catch(_){}
+    if(typeof CAR3D!=='undefined')CAR3D.trigger();
+  }
   updateModeUi();
 }
 function acquireWakeLock(){
@@ -3365,13 +3633,32 @@ function updateDrivingRouteRibbon(p){
   }
   if(!routeNativeHasGeometry)drawRouteOverlay(split.active);
 }
+function nextUpcomingToll(route,progress,matchPoint){
+  if(!route||(TR.mode||'car')!=='car')return null;
+  const booths=route.tollBooths||[];
+  for(const b of booths){
+    const d=b.progress-progress;
+    if(d>=-20&&d<=2500)return {id:b.id,dist:Math.max(10,d),name:b.name||'Péage'};
+  }
+  const steps=route.legs?.flatMap(l=>l.steps||[])||[];
+  for(let i=0;i<steps.length;i++){
+    const s=steps[i];
+    if(!s.isToll||!s.maneuver?.location)continue;
+    const loc=s.maneuver.location;
+    const approx=C.distance(matchPoint,{lat:loc[1],lon:loc[0]});
+    if(approx<=2500){
+      return {id:'step-toll-'+i,dist:approx,name:s.name||'Péage'};
+    }
+  }
+  return null;
+}
 function updateDriving(p,old){
   if(!DRIVE.active)return;
   const mode=TR.mode||'car',mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
   if(Number.isFinite(p.heading)&&(!Number.isFinite(p.speed)||p.speed>0.8))DRIVE.heading=p.heading;
   else if(old&&C.distance(old,p)>3){const y=Math.sin((p.lon-old.lon)*Math.PI/180)*Math.cos(p.lat*Math.PI/180),x=Math.cos(old.lat*Math.PI/180)*Math.sin(p.lat*Math.PI/180)-Math.sin(old.lat*Math.PI/180)*Math.cos(p.lat*Math.PI/180)*Math.cos((p.lon-old.lon)*Math.PI/180);DRIVE.heading=(Math.atan2(y,x)*180/Math.PI+360)%360;}
   const r=TR.routes[TR.index];
-  let matched={lon:p.lon,lat:p.lat,heading:DRIVE.heading,dist:Infinity,snapped:false,remaining:0};
+  let matched={lon:p.lon,lat:p.lat,heading:DRIVE.heading,dist:Infinity,snapped:false,remaining:0,progress:DRIVE.lastProgress||0};
   if(r){
     matched=MAP_MATCH.match(p,DRIVE.heading);
     const matchPoint={lat:matched.lat,lon:matched.lon,heading:matched.heading,speed:p.speed,accuracy:p.accuracy,time:p.time};
@@ -3394,6 +3681,24 @@ function updateDriving(p,old){
       $('carLanes').innerHTML='<span class="lane-arrow">'+turnArrowSvg({type:'continue',modifier:'straight'})+'</span><span class="lane-arrow active">'+turnArrowSvg(nxt.step.maneuver)+'</span>'+(nxt.after?'<span class="lane-arrow">'+turnArrowSvg(nxt.after.maneuver)+'</span>':'');
       if(nxt.step.name){GPS.street=nxt.step.name;updateCarStreetBadge();}
     }
+    const tollAlert=$('carTollAlert'),tollAlertTxt=$('carTollAlertText');
+    const upcomingToll=nextUpcomingToll(r,matched.progress||0,matchPoint);
+    if(tollAlert&&tollAlertTxt){
+      if(upcomingToll){
+        const dT=upcomingToll.dist;
+        const msg=dT>=1650?'Péage dans 2 km':dT>=1150?'Péage dans 1,5 km':dT>=800?'Péage dans 1 km':'Péage dans '+Math.max(50,Math.round(dT/50)*50)+' m';
+        tollAlertTxt.textContent=msg;
+        tollAlert.hidden=false;
+        if(dT<=2250&&!TR.tollAnnounced.has(upcomingToll.id)){
+          TR.tollAnnounced.add(upcomingToll.id);
+          toast(dT>=1200?'Péage dans 2 km':msg,3600);
+        }
+      }else{
+        tollAlert.hidden=true;
+      }
+    }
+    const tripToll=$('carTripTollBadge');
+    if(tripToll)tripToll.hidden=!r.hasToll;
     const cur=S.w?.cur;
     const wxLabel=r.weatherLabel?(r.weatherLabel.replace(/^[^\s]+\s+/,'')||'Trajet suivi'):(cur?wmo(cur.code,cur.day)[1]:'En direct');
     $('carTripWeather').innerHTML=(cur?weatherIcon(cur.code,cur.day):'')+'<span class="car-trip-mode">'+icon(mode==='bike'?'bike':mode==='foot'?'foot':'car')+'</span><span>'+esc(mCfg.label)+' · '+esc(wxLabel.toLowerCase())+'</span>';
@@ -3401,6 +3706,8 @@ function updateDriving(p,old){
   }else{
     resetDriveMatching();
     VEH_ANIM.setTarget(p.lon,p.lat,DRIVE.heading,DRIVE.simTimer?360:950);
+    if($('carTollAlert'))$('carTollAlert').hidden=true;
+    if($('carTripTollBadge'))$('carTripTollBadge').hidden=true;
     const cur=S.w?.cur;
     $('carTripWeather').innerHTML=(cur?weatherIcon(cur.code,cur.day):'')+'<span class="car-trip-mode">'+icon(mode==='bike'?'bike':mode==='foot'?'foot':'car')+'</span><span>'+esc(mCfg.label)+'</span>';
   }
@@ -3771,9 +4078,20 @@ function scheduleRouteOverlay(){
   scheduleRouteOverlay.pending=true;
   requestAnimationFrame(()=>{scheduleRouteOverlay.pending=false;drawRouteOverlay();});
 }
+function renderTollMarkers(route){
+  clearTollMarkers();
+  if(!map||!route?.tollBooths?.length||(TR.mode||'car')!=='car')return;
+  route.tollBooths.forEach(b=>{
+    const el=document.createElement('div');
+    el.className='toll-booth-marker';
+    el.innerHTML='<div class="toll-booth-pin" title="'+esc(b.name||'Barrière de péage')+'">'+icon('toll')+'<span>Péage</span></div>';
+    el.setAttribute('aria-label',b.name||'Barrière de péage');
+    TR.tollMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(b.pt||[b.lon,b.lat]).addTo(map));
+  });
+}
 function renderRoute(){
   const route=TR.routes[TR.index];
-  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;setGeo('sky-route-past',empty());drawRouteOverlay();return;}
+  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;clearTollMarkers();setGeo('sky-route-past',empty());drawRouteOverlay();return;}
   routeNativeHasGeometry=false;
   if(!MAP.ready&&map?.isStyleLoaded()){try{initMapLayers();}catch(_){}}
   if(MAP.ready && map){
@@ -3804,6 +4122,7 @@ function renderRoute(){
     el.textContent=text;el.setAttribute('aria-label',text==='A'?'Départ du trajet':'Arrivée du trajet');
     TR.markers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(point).addTo(map));
   });
+  renderTollMarkers(route);
 }
 
 function fitRoute(){
@@ -3824,12 +4143,30 @@ function renderRouteResult(){
   updateModeUi();
   $('routeDuration').textContent=C.formatDuration(r.duration);$('routeDistance').textContent=C.formatDistance(r.distance);
   $('routeArrival').textContent='Arrivée estimée à '+new Date(Date.now()+r.duration*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  $('routeAlternatives').innerHTML=TR.routes.map((x,i)=>'<button class="route-alternative '+(i===TR.index?'selected':'')+'" data-route="'+i+'" aria-pressed="'+(i===TR.index)+'"><b>'+C.formatDuration(x.duration)+'</b><span>'+C.formatDistance(x.distance)+'</span><small>'+(TR.weatherReady?(x.weatherLabel||'Météo inconnue'):(i===0?'Plus rapide':'Alternative '+i))+'</small></button>').join('');
-  $('activeTrip').innerHTML=icon(mode==='bike'?'bike':mode==='foot'?'foot':'route')+'<span>'+esc(mCfg.label)+' · '+C.formatDuration(r.duration)+' · '+C.formatDistance(r.distance)+'</span>'+icon('chevron');
+  if($('routeSummaryToll'))$('routeSummaryToll').hidden=!r.hasToll;
+  if($('carTripTollBadge'))$('carTripTollBadge').hidden=!r.hasToll;
+  const hasTollCompare=TR.routes.some(x=>x.tollRole==='fastest-toll')&&TR.routes.some(x=>x.tollRole==='no-toll');
+  const altBox=$('routeAlternatives');
+  altBox.classList.toggle('toll-compare',hasTollCompare);
+  altBox.innerHTML=TR.routes.map((x,i)=>{
+    let sub='';
+    if(x.tollRole==='fastest-toll'){
+      sub='<span class="toll-compare-title">Le plus rapide (avec péages)</span><span class="toll-badge">'+icon('toll')+'Péages</span>'+(Number.isFinite(x.tollDiffDur)?'<span class="toll-diff">Trajet avec péages · '+esc(formatSignedTollDelta(x.tollDiffDur,x.tollDiffDist))+'</span>':'<span class="toll-diff">Trajet avec péages</span>');
+    }else if(x.tollRole==='no-toll'){
+      sub='<span class="toll-compare-title">'+(x.hasToll?'Péages minimisés':'Sans péage')+'</span>'+(Number.isFinite(x.tollDiffDur)?'<span class="toll-diff">'+esc(formatSignedTollDelta(x.tollDiffDur,x.tollDiffDist))+'</span>':'');
+    }else if(x.hasToll){
+      sub='<span class="toll-badge">'+icon('toll')+'Péages</span> Trajet avec péages'+(TR.weatherReady&&x.weatherLabel?' · '+esc(x.weatherLabel):'');
+    }else{
+      sub=esc(TR.weatherReady?(x.weatherLabel||'Météo calme'):(i===0?'Le plus rapide':'Alternative '+i));
+    }
+    return '<button class="route-alternative '+(i===TR.index?'selected':'')+'" data-route="'+i+'" aria-pressed="'+(i===TR.index)+'"><b>'+C.formatDuration(x.duration)+'</b><span>'+C.formatDistance(x.distance)+'</span><small>'+sub+'</small></button>';
+  }).join('');
+  const tollChip=r.hasToll?'<span class="toll-badge">'+icon('toll')+'Péages</span>':'';
+  $('activeTrip').innerHTML=icon(mode==='bike'?'bike':mode==='foot'?'foot':'route')+'<span>'+esc(mCfg.label)+' · '+C.formatDuration(r.duration)+' · '+C.formatDistance(r.distance)+'</span>'+tollChip+icon('chevron');
   const snap=Math.max(...TR.waypoints.map(p=>p.distance||0),0);
-  const modeExtra=mode==='bike'?' · voies et pistes cyclables, hors autoroutes.':mode==='foot'?' · trottoirs, chemins et zones piétonnes.':' · sans trafic en temps réel.';
+  const modeExtra=mode==='bike'?' · voies et pistes cyclables, hors autoroutes.':mode==='foot'?' · trottoirs, chemins et zones piétonnes.':(r.hasToll?' · Trajet avec péages · sans trafic en temps réel.':(TR.routes.some(x=>x.hasToll)?' · Sans péage · sans trafic en temps réel.':' · sans trafic en temps réel.'));
   $('routeDisclaimer').textContent='Ligne bleue : trajet calculé · '+mCfg.label+modeExtra+(snap>25?' Raccordé à '+C.formatDistance(snap)+' du point choisi.':'');
-  const steps=r.legs.flatMap(l=>l.steps||[]);$('routeSteps').innerHTML=steps.length?'<ol>'+steps.map((s,i)=>'<li><button data-step="'+i+'"><span class="step-number">'+(i+1)+'</span><span>'+esc(C.instruction(s,mode))+'<small>'+C.formatDistance(s.distance)+'</small></span></button></li>').join('')+'</ol>':'<p class="note">Les étapes ne sont pas disponibles pour ce trajet.</p>';
+  const steps=r.legs.flatMap(l=>l.steps||[]);$('routeSteps').innerHTML=steps.length?'<ol>'+steps.map((s,i)=>'<li><button data-step="'+i+'"><span class="step-number">'+(i+1)+'</span><span>'+esc(C.instruction(s,mode))+'<small>'+C.formatDistance(s.distance)+(s.isToll?' · Péage':'')+'</small></span></button></li>').join('')+'</ol>':'<p class="note">Les étapes ne sont pas disponibles pour ce trajet.</p>';
   $('routeSteps').onclick=e=>{const b=e.target.closest('[data-step]');if(!b)return;const p=steps[+b.dataset.step]?.maneuver?.location;if(p)focusMap(p[1],p[0],17);};
 }
 async function setTravelMode(mode){
@@ -3849,13 +4186,14 @@ async function setTravelMode(mode){
         try{
           const res=await fetchRoutesForMode(startPt,TR.to,mode,null);
           if((TR.mode||'car')!==mode)return;
-          TR.from=startPt;TR.routes=res.routes;TR.index=0;TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;
+          TR.from=startPt;TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
           resetDriveMatching();
           renderRouteResult();renderRoute();
           updateDriving(GPS.fix||{...startPt,accuracy:15,time:Date.now()},null);
           drawGPS();
           if(GPS.fix)centerDriving(GPS.fix,true);
           assessRouteWeather(TR.req);
+          fetchTollBoothsForRoutes(TR.req);
         }catch(e){
           toast(e?.message||unavailableModeMsg(mode),3600);
           $('driveInstruction').textContent=e?.message||unavailableModeMsg(mode);
@@ -3875,6 +4213,19 @@ function setupTravel(){
     const mBtn=e.target.closest('#routeModeSwitch [data-mode], #carModeSwitch [data-mode]');
     if(mBtn){setTravelMode(mBtn.dataset.mode);return;}
   });
+  if($('avoidTollsCheck'))$('avoidTollsCheck').onchange=()=>{
+    TR.avoidTolls=$('avoidTollsCheck').checked;cfg.avoidTolls=TR.avoidTolls;saveCfg();
+    if(TR.routes.length){
+      const targetIdx=TR.avoidTolls?TR.routes.findIndex(r=>r.tollRole==='no-toll'||!r.hasToll):TR.routes.findIndex(r=>r.tollRole==='fastest-toll');
+      if(targetIdx>=0){
+        if(DRIVE.active)stopDriving();
+        TR.index=targetIdx;TR.tollAnnounced.clear();resetDriveMatching();
+        renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();
+        return;
+      }
+      if(!DRIVE.active)calculateRoute();
+    }
+  };
   if($('carModePromptSwitch'))$('carModePromptSwitch').onclick=()=>setTravelMode('car');
   if($('carModePromptDismiss'))$('carModePromptDismiss').onclick=()=>{DRIVE.modePromptDismissedAt=Date.now();$('carModePrompt').hidden=true;};
   if($('carWxModeBadge')){
@@ -3927,6 +4278,7 @@ function setupTravel(){
     if(GPS.fix&&!GPS.fix.isIp){centerDriving(GPS.fix,true);renderCarCockpit();}else locate();
   };
   $('carDockWeather').onclick=()=>setCarWeatherOpen($('carWeatherPanel').classList.contains('collapsed'));
+  if($('carDockWxMap'))$('carDockWxMap').onclick=()=>toggleMapWeather();
   if($('carDockRadar'))$('carDockRadar').onclick=toggleDrivingRadar;
   if($('carMobileWxBtn'))$('carMobileWxBtn').onclick=()=>setCarWeatherOpen($('carWeatherPanel').classList.contains('collapsed'));
   if($('carCloseWeather'))$('carCloseWeather').onclick=()=>setCarWeatherOpen(false);
@@ -4119,19 +4471,20 @@ function openSettings(){
     '<div class="row"><label>Température</label>'+seg('temp',[['C','°C'],['F','°F']])+'</div>'+
     '<div class="row"><label>Vent</label>'+seg('wind',[['kmh','km/h'],['ms','m/s'],['mph','mph'],['kn','nds']])+'</div>'+
     '<div class="row"><label>Thème</label>'+seg('theme',[['auto','Auto'],['dark','Sombre'],['light','Clair']])+'</div>'+
-    '<div class="row"><div><label for="swWxFx">Effets météo 3D sur la carte</label><small>Nuages, flaques, pluie et éclairs selon la météo réelle</small></div><button role="switch" aria-checked="'+cfg.wxFx+'" aria-label="Effets météo 3D" class="switch '+(cfg.wxFx?'on':'')+'" id="swWxFx"></button></div>'+
+    '<div class="row"><div><label for="swWxFx">Effets météo 3D sur la carte</label><small>Nuages, flaques, pluie et éclairs selon la météo réelle</small></div><button role="switch" aria-checked="'+isWxFxOn()+'" aria-label="Effets météo 3D" class="switch '+(isWxFxOn()?'on':'')+'" id="swWxFx"></button></div>'+
     '<div class="row"><div><label for="swReduceAnim">Réduire les animations</label><small>Supprime les flashs lumineux et adoucit les mouvements</small></div><button role="switch" aria-checked="'+cfg.reduceAnim+'" aria-label="Réduire les animations" class="switch '+(cfg.reduceAnim?'on':'')+'" id="swReduceAnim"></button></div>'+
     '<div class="row"><div><label>Alerte pluie imminente</label><small>Notification quand SkyMap est ouvert</small></div><button role="switch" aria-checked="'+cfg.notif+'" aria-label="Notifications de pluie" class="switch '+(cfg.notif?'on':'')+'" id="swNotif"></button></div>'+
     '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn ghost" id="bRefresh">↻ Actualiser</button><button class="btn ghost" id="bClear">Effacer mes données</button></div>'+
-    '<div class="note" style="margin-top:12px">SkyMap v4 · Cartes : OpenFreeMap / OpenStreetMap · Relief : Mapterhorn · Météo : Open-Meteo · Radar : RainViewer · Trajets Voiture, Vélo, Piéton : OSRM / FOSSGIS / Valhalla, sans trafic temps réel.</div>', () => {
+    '<div class="note" style="margin-top:12px">SkyMap v4 · Cartes : OpenFreeMap / OpenStreetMap · Météo : Open-Meteo · Radar : RainViewer · Trajets Voiture, Vélo, Piéton : Valhalla / OSRM / FOSSGIS, péages &amp; Overpass OSM.</div>', () => {
     $('modalBody').onclick = e => {
       const b = e.target.closest('[data-set]');
       if (b){ cfg[b.dataset.set] = b.dataset.val; saveCfg(); applyTheme(); openSettings(); refreshUnits(); }
     };
     $('swWxFx').onclick = () => {
-      cfg.wxFx = !cfg.wxFx; saveCfg();
-      $('swWxFx').classList.toggle('on', cfg.wxFx);
-      $('swWxFx').setAttribute('aria-checked', String(cfg.wxFx));
+      cfg.wxFx = !isWxFxOn(); if(cfg.wxFx)cfg.showMapWeather=true; saveCfg();
+      $('swWxFx').classList.toggle('on', isWxFxOn());
+      $('swWxFx').setAttribute('aria-checked', String(isWxFxOn()));
+      syncMapWeatherUi();
       if(typeof WXFX!=='undefined')WXFX.sync();
     };
     $('swReduceAnim').onclick = () => {
@@ -4159,10 +4512,13 @@ function refreshUnits(){ renderAll(); updateLegend(); if(GRID.cells)renderPills(
 function renderBases(){
   $('bases').innerHTML = BASES.map((b,i) => '<button class="base '+(cfg.base===i?'on':'')+'" data-i="'+i+'"><span>'+b.icon+'</span>'+b.name+'</button>').join('');
   $('swPills').classList.toggle('on', cfg.pills); $('swPills').setAttribute('aria-checked',String(cfg.pills));
+  syncMapWeatherUi();
   $('opacity').value = cfg.opacity;
 }
 $('bases').addEventListener('click', e => { const b = e.target.closest('.base'); if (b) setBase(+b.dataset.i); });
 $('swPills').onclick=()=>{cfg.pills=!cfg.pills;saveCfg();renderBases();renderPills();};
+if($('swMapWeather'))$('swMapWeather').onclick=()=>{toggleMapWeather();};
+if($('chipMapWeather'))$('chipMapWeather').onclick=()=>{toggleMapWeather();};
 $('opacity').addEventListener('input',e=>{cfg.opacity=+e.target.value;saveCfg();if(MAP.ready&&RAD.cur&&map.getLayer(RAD.cur)){const op=radarOpacity();map.setPaintProperty(RAD.cur,'raster-opacity',['interpolate',['linear'],['zoom'],6,op,13,op*0.92,17,op*0.80]);}});
 
 /* =====================  ÉVÉNEMENTS  ===================== */
@@ -4194,7 +4550,6 @@ if(map){
   // Le SVG de secours n'est recalculé que si le tracé natif est absent.
   map.on('move',()=>{if(!routeNativeHasGeometry||!MAP.ready||!map.getLayer('sky-route-line'))scheduleRouteOverlay();});
   map.on('resize',scheduleRouteOverlay);
-  map.on('sourcedata',e=>{if(e?.sourceId==='sky-dem'&&e.isSourceLoaded&&!demFailed){demReady=true;if(cfg.mode3d&&!map.getTerrain()){try{map.setTerrain({source:'sky-dem',exaggeration:1.2});}catch(_){}}}});
   map.on('error',e=>{const sid=e&&(e.sourceId||e.source?.id);if(sid==='sky-dem'){demFailed=true;demReady=false;try{if(map.getTerrain())map.setTerrain(null);}catch(_){}return;}if(!MAP.ready){$('mapNotice').hidden=false;$('mapNotice').textContent='Le fond de carte ne se charge pas. Vérifiez votre connexion puis choisissez à nouveau un fond dans Carte.';}});
   map.on('click',async e=>{
     if($('layerPanel').classList.contains('on')){closeLayers();return;}
@@ -4429,7 +4784,7 @@ const WXFX=(function(){
     scanRoads(true);
   }
   function onIdle(){
-    if(!map||!MAP.ready||!cfg.wxFx)return;
+    if(!map||!MAP.ready||!isWxFxOn())return;
     if((state.mode==='rain'||state.mode==='storm')&&!puddles.length&&map.getZoom()>=13.8){
       scanRoads(true);
     }
@@ -4452,7 +4807,7 @@ const WXFX=(function(){
   }
   function syncRainViewerOverlay(){
     if(!map||!MAP.ready)return;
-    const activeRain=cfg.wxFx&&(state.mode==='rain'||state.mode==='storm')&&!isRadarVisible();
+    const activeRain=isWxFxOn()&&(state.mode==='rain'||state.mode==='storm')&&!isRadarVisible();
     if(!activeRain){dropWxRadarLayer();return;}
     if(!RAD.frames.length||(Date.now()-RAD.fetchedAt)>=RADAR_REFRESH_MS){
       if(!RAD.loading&&(Date.now()-RAD.lastToast)>=8000)loadRadar();
@@ -4493,7 +4848,7 @@ const WXFX=(function(){
     }catch(_){}
   }
   function scanRoads(force){
-    if(!map||!MAP.ready||!cfg.wxFx||(state.mode!=='rain'&&state.mode!=='storm'))return;
+    if(!map||!MAP.ready||!isWxFxOn()||(state.mode!=='rain'&&state.mode!=='storm'))return;
     const z=map.getZoom();
     if(z<13.8){puddles=[];return;}
     if(width<=2||height<=2)resize();
@@ -4563,7 +4918,7 @@ const WXFX=(function(){
   function syncCloudsAndPills(){
     if(!map||!MAP.ready)return;
     clearCallouts();
-    if(!cfg.wxFx||state.mode==='clear'){clouds=[];return;}
+    if(!isWxFxOn()||state.mode==='clear'){clouds=[];return;}
     const center=map.getCenter();
     const bounds=map.getBounds();
     const spanLon=Math.max(0.015,bounds.getEast()-bounds.getWest());
@@ -4761,7 +5116,7 @@ const WXFX=(function(){
   }
   function tick(ts){
     raf=0;
-    if(!map||!cfg.wxFx||state.mode==='clear'||document.hidden)return;
+    if(!map||!isWxFxOn()||state.mode==='clear'||document.hidden)return;
     if(!lastTs)lastTs=ts;
     const dt=Math.min(0.05,(ts-lastTs)/1000);
     lastTs=ts;
@@ -4951,7 +5306,7 @@ const WXFX=(function(){
     raf=requestAnimationFrame(tick);
   }
   function startLoop(){
-    if(raf||document.hidden||!cfg.wxFx||state.mode==='clear')return;
+    if(raf||document.hidden||!isWxFxOn()||state.mode==='clear')return;
     lastTs=0;
     raf=requestAnimationFrame(tick);
   }
@@ -4964,20 +5319,21 @@ const WXFX=(function(){
     if(!map)return;
     ensureCanvas();
     resize();
+    const on=isWxFxOn();
     const refPt=DRIVE.active&&GPS.fix?GPS.fix:(map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:sel);
     const activePts=Array.isArray(TR.weatherPoints)?TR.weatherPoints.filter(pt=>pt.routeIdx===TR.index):[];
-    const next=cfg.wxFx?C.resolveWeatherRegime(S.w?.cur,activePts,refPt):{mode:'clear',cloudDensity:0,rainIntensity:'none',rainMm:0,rainLabel:'',windSpeed:0,windGust:0,windDir:240,code:0,cl:0,day:1};
+    const next=on?C.resolveWeatherRegime(S.w?.cur,activePts,refPt):{mode:'clear',cloudDensity:0,rainIntensity:'none',rainMm:0,rainLabel:'',windSpeed:0,windGust:0,windDir:240,code:0,cl:0,day:1};
     const prevDrive=state._drive;
     const modeChanged=next.mode!==state.mode||next.rainIntensity!==state.rainIntensity||Math.abs(next.cloudDensity-state.cloudDensity)>0.12||prevDrive!==!!DRIVE.active;
     Object.assign(state,next);
     state._drive=!!DRIVE.active;
-    const themeKey=(cfg.wxFx?state.mode:'off')+'|'+(DRIVE.active?1:0)+'|'+cfg.base;
+    const themeKey=(on?state.mode:'off')+'|'+(DRIVE.active?1:0)+'|'+cfg.base+'|'+(isRealNightTime()?1:0);
     if(themeKey!==lastThemeKey){
       lastThemeKey=themeKey;
       reapplyMapSurfaceTheme();
     }
     syncRainViewerOverlay();
-    if(!cfg.wxFx||state.mode==='clear'){
+    if(!on||state.mode==='clear'){
       stopLoop();
       clearCallouts();
       clouds=[];puddles=[];drops=[];activeBolt=null;flashAlpha=0;nextBoltAt=0;
@@ -4991,7 +5347,7 @@ const WXFX=(function(){
   }
   function onVisibility(){
     if(document.hidden)stopLoop();
-    else if(cfg.wxFx&&state.mode!=='clear')startLoop();
+    else if(isWxFxOn()&&state.mode!=='clear')startLoop();
   }
   return {state,sync,resize,onStyleLoad,onMoveEnd,onIdle,onVisibility};
 })();
