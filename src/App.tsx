@@ -931,6 +931,11 @@ function WeatherApp() {
           onSelectStation={handleSelectStationWithSeo}
           isLightMode={themeMode === 'light'}
         />
+      ) : activeTab === 'worldDisasters' ? (
+        <WorldDisastersView
+          seniorMode={seniorMode}
+          simplifiedMode={simplifiedMode}
+        />
       ) : (
         <>
           {/* Header */}
@@ -1222,13 +1227,6 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 simplifiedMode={simplifiedMode}
                 tempUnit={tempUnit}
-              />
-            )}
-
-            {activeTab === 'worldDisasters' && (
-              <WorldDisastersView
-                seniorMode={seniorMode}
-                simplifiedMode={simplifiedMode}
               />
             )}
 
@@ -1831,7 +1829,7 @@ function WeatherApp() {
       )}
 
       {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}
-      {showFloatingBubble && weather && activeTab !== 'skymap' && (
+      {showFloatingBubble && weather && activeTab !== 'skymap' && activeTab !== 'worldDisasters' && (
         <FloatingWeatherBubble
           station={currentStation}
           weather={weather}
