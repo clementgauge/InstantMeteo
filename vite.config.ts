@@ -70,6 +70,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,ico,png,svg}'],
         globIgnores: ['**/paratonnerre.html'],
+        navigateFallbackDenylist: [/^\/assets\//, /^\/skymap/, /^\/paratonnerre/, /\.html$/],
       },
       devOptions: {
         enabled: true,

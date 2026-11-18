@@ -125,7 +125,10 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
       </div>
 
       {/* Conteneur de l'Atlas des catastrophes */}
-      <div className={`relative w-full bg-[#070b13] ${isFullscreen ? 'flex-1' : ''}`}>
+      <div
+        className={`relative w-full bg-[#070b13] ${isFullscreen ? 'flex-1' : ''}`}
+        style={isFullscreen ? undefined : { height: 'clamp(760px, 84vh, 1100px)' }}
+      >
         {!isLoaded && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070b13] text-slate-300 pointer-events-none">
             <div className="h-9 w-9 rounded-full border-3 border-rose-500 border-t-transparent animate-spin mb-3" />
@@ -137,13 +140,12 @@ export const WorldDisastersView: React.FC<WorldDisastersViewProps> = ({
 
         <iframe
           ref={iframeRef}
-          src={ATLAS_URL}
-          title="Atlas des catastrophes — Surveillance mondiale en temps réel"
+          src="/assets/aistudio/carte-catastrophes_6__98caa0f3.html"
+          title="Atlas des catastrophes"
+          loading="lazy"
           onLoad={() => setIsLoaded(true)}
-          className="w-full border-0 block bg-[#070b13]"
-          style={{
-            height: isFullscreen ? '100%' : 'clamp(760px, 84vh, 1100px)',
-          }}
+          style={{ width: '100%', height: '100%', border: 0 }}
+          className="block bg-[#070b13]"
           allow="geolocation; fullscreen"
         />
       </div>

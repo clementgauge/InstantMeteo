@@ -296,12 +296,33 @@ export default {
       // =========================================================================
       // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE
       // =========================================================================
-      if (!path.startsWith('/api/')) {
-        // Fichiers d'assets statiques (js, css, images, favicons, fonts, manifest) et jeu standalone
-        const isStaticAsset = (path.includes('.') && !path.endsWith('.html')) || path === '/paratonnerre.html' || path === '/paratonnerre';
-        if (isStaticAsset && env.ASSETS) {
+      if (!path.startsWith('/api/') && path !== '/health') {
+        // Fichiers d'assets statiques (/assets/** dont HTML autonomes, js, css, images, favicons, fonts, manifest) et pages autonomes
+        const isStaticAsset =
+          path.startsWith('/assets/') ||
+          (path.includes('.') && !path.endsWith('.html')) ||
+          path === '/paratonnerre.html' ||
+          path === '/paratonnerre' ||
+          (path.startsWith('/google') && path.endsWith('.html'));
+        if ((request.method === 'GET' || request.method === 'HEAD') && isStaticAsset && env.ASSETS) {
           try {
-            const assetRes = await env.ASSETS.fetch(request);
+            let assetRes = await env.ASSETS.fetch(request);
+            // Si Cloudflare Assets renvoie une redirection canonique (ex: 307 .html -> sans .html),
+            // la résoudre directement via ASSETS pour servir le fichier HTML autonome en 200 OK
+            if (assetRes.status >= 300 && assetRes.status < 400) {
+              const location = assetRes.headers.get('location');
+              if (location) {
+                const redirectUrl = new URL(location, request.url);
+                if (redirectUrl.origin === url.origin) {
+                  assetRes = await env.ASSETS.fetch(
+                    new Request(redirectUrl.toString(), {
+                      method: request.method === 'HEAD' ? 'HEAD' : 'GET',
+                      headers: request.headers,
+                    })
+                  );
+                }
+              }
+            }
             if (assetRes.status !== 404) {
               return assetRes;
             }
