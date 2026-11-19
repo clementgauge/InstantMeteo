@@ -728,6 +728,53 @@
 .rsw-traffic-badge.ORANGE{background:rgba(249,115,22,.18);color:#fdba74;border:1px solid rgba(249,115,22,.45)}
 .rsw-traffic-badge.ROUGE{background:rgba(244,63,94,.2);color:#fda4af;border:1px solid rgba(244,63,94,.5)}
 .rsw-loading{display:flex;align-items:center;gap:9px;padding:14px;border-radius:13px;background:rgba(12,28,45,.72);border:1px solid rgba(176,213,249,.18);font-size:11.5px;color:#cfe4f7}
+/* Graph Routing Engine, Live Traffic, Incidents & Dynamic Reroute */
+.route-graph-card{margin:10px 0 8px;padding:10px 11px;border-radius:13px;background:rgba(11,26,44,.72);border:1px solid rgba(147,197,253,.24);display:flex;flex-direction:column;gap:7px;font-variant-numeric:tabular-nums}
+.route-graph-card[hidden]{display:none}
+.rg-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rg-title{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:750;color:#e0f2fe}
+.rg-algo-switch{display:inline-flex;padding:2px;border-radius:8px;background:rgba(7,18,32,.8);border:1px solid rgba(148,184,218,.22);gap:2px}
+.rg-algo-btn{border:0;background:transparent;color:#9cc0de;font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;cursor:pointer}
+.rg-algo-btn.on{background:rgba(56,189,248,.24);color:#ffffff;box-shadow:0 1px 4px rgba(2,12,24,.35)}
+.rg-metrics{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:10.5px;color:#b8d4ea}
+.rg-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rg-stat{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:7px;background:rgba(15,36,58,.82);border:1px solid rgba(176,213,249,.16);color:#dbeafe;font-weight:650}
+.rg-stat.delay{border-color:rgba(251,191,36,.4);color:#fde68a;background:rgba(245,158,11,.14)}
+.rg-stat.incident{border-color:rgba(248,113,113,.45);color:#fecaca;background:rgba(239,68,68,.16)}
+.rg-stat.smooth{border-color:rgba(52,211,153,.35);color:#a7f3d0;background:rgba(16,185,129,.12)}
+.rg-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:#8cb2d1}
+.rg-report-btn{border:1px solid rgba(251,191,36,.42);background:rgba(245,158,11,.15);color:#fde68a;border-radius:8px;padding:4px 9px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.rg-report-btn:hover{background:rgba(245,158,11,.26)}
+.route-inc-form{margin:0 0 10px;padding:10px 11px;border-radius:12px;background:rgba(17,33,54,.88);border:1px solid rgba(251,191,36,.35);display:flex;flex-direction:column;gap:8px}
+.route-inc-form[hidden]{display:none}
+.rif-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:750;color:#fef3c7}
+.rif-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.rif-types button,.rif-locs button{border:1px solid rgba(176,213,249,.22);background:rgba(10,24,40,.78);color:#e2f1ff;border-radius:8px;padding:6px 5px;font-size:10px;font-weight:650;cursor:pointer;text-align:center}
+.rif-types button:hover,.rif-locs button.on{border-color:rgba(251,191,36,.6);background:rgba(245,158,11,.22);color:#fff}
+.rif-locs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.alt-traffic-delta{display:inline-block;margin-top:2px;font-size:9.5px;font-weight:700;color:#fcd34d}
+.incident-marker{z-index:24;pointer-events:auto;cursor:pointer}
+.incident-pin{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(127,29,29,.92);border:1.5px solid #fecaca;color:#fff;font-size:10.5px;font-weight:750;box-shadow:0 6px 16px rgba(0,0,0,.5);white-space:nowrap}
+.incident-pin.roadworks,.incident-pin.jam{background:rgba(146,64,14,.92);border-color:#fde68a;color:#fef3c7}
+.incident-pin.weather{background:rgba(30,58,138,.92);border-color:#bfdbfe;color:#eff6ff}
+.car-incident-picker{position:absolute;left:72px;top:52%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;padding:8px;border-radius:16px;min-width:168px;pointer-events:auto;z-index:25}
+.car-incident-picker[hidden]{display:none!important}
+.car-incident-picker-head{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;font-weight:750;color:#fde68a;padding:0 4px 3px}
+.car-incident-picker button.cip-btn{border:1px solid rgba(186,225,255,.22)!important;background:rgba(15,38,62,.85)!important;color:#f1f8ff!important;border-radius:10px!important;padding:7px 10px!important;font-size:11.5px;font-weight:650;text-align:left;display:flex;align-items:center;gap:7px}
+.car-incident-picker button.cip-btn:hover{background:rgba(245,158,11,.24)!important;border-color:rgba(251,191,36,.55)!important}
+.car-reroute-offer{position:absolute;top:calc(env(safe-area-inset-top) + 216px);left:84px;width:min(340px,calc(100vw - 108px));padding:11px 13px;border-radius:16px;background:linear-gradient(145deg,rgba(15,43,72,.95),rgba(9,27,48,.96));border:1.5px solid rgba(52,211,153,.62);box-shadow:0 16px 36px rgba(2,12,26,.58);backdrop-filter:blur(20px);pointer-events:auto;z-index:20;display:flex;flex-direction:column;gap:8px}
+.car-reroute-offer[hidden]{display:none!important}
+.cro-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cro-head strong{display:block;font-size:14px;font-weight:800;color:#6ee7b7}
+.cro-head span{display:block;font-size:11px;color:#d6eaf8;line-height:1.3;margin-top:2px}
+.cro-actions{display:flex;gap:7px}
+.cro-actions button{flex:1;height:34px;border-radius:10px!important;font-size:11.5px;font-weight:750;cursor:pointer}
+.cro-go{border:0!important;background:linear-gradient(135deg,#10b981,#059669)!important;color:#fff!important}
+.cro-skip{border:1px solid rgba(186,225,255,.26)!important;background:rgba(255,255,255,.08)!important;color:#cde4f7!important}
+@media(max-width:899px){
+  .car-incident-picker{left:auto;right:56px;top:calc(env(safe-area-inset-top) + 122px);transform:none}
+  .car-reroute-offer{top:calc(env(safe-area-inset-top) + 170px);left:10px;right:10px;width:auto}
+}
 </style>
 <!-- MapLibre GL JS license
 Copyright (c) 2023, MapLibre contributors
@@ -954,6 +1001,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <div id="routeResults" hidden>
       <div class="route-summary"><div><strong id="routeDuration"></strong><span id="routeDistance"></span><p id="routeArrival"></p><div id="routeSummaryToll" class="route-summary-badges" hidden><span class="toll-badge"><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg>Péages</span><span class="toll-note">Trajet avec péages</span></div></div><button id="routeFit" aria-label="Afficher tout le trajet"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg></button></div>
       <div id="routeAlternatives" aria-label="Itinéraires proposés"></div>
+      <div id="routeGraphSummary" class="route-graph-card" hidden></div>
+      <div id="routeIncidentForm" class="route-inc-form" hidden></div>
       <p id="routeWeather" role="status">Météo du trajet : analyse en attente.</p><p id="routeDisclaimer"></p>
       <div class="route-result-actions"><button id="startDriving" class="drive-start">▶ Démarrer</button><button id="routeEdit">Modifier</button><button id="routeStepsBtn" aria-expanded="false" aria-controls="routeSteps">Étapes</button><button id="routeStepWeatherBtn" class="step-weather-btn" type="button" aria-expanded="false" aria-controls="routeStepWeather"><svg class="ic" aria-hidden="true"><use href="#i-cloud"/></svg><span>Météo étape par étape</span></button><button id="clearRoute">Effacer</button></div>
       <div id="routeSteps" hidden></div>
@@ -1007,8 +1056,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <button id="carDockWxMap" class="active" type="button" aria-label="Afficher ou masquer la météo sur la carte (nuages, pluie, éclairs)" aria-pressed="true" title="Météo sur la carte (nuages, pluie, éclairs)"><svg aria-hidden="true"><use href="#i-sun"/></svg></button>
       <button id="carDockRadar" class="active" type="button" aria-label="Afficher ou masquer le radar pluie" aria-pressed="true" title="Radar pluie"><svg aria-hidden="true"><use href="#i-rain"/></svg></button>
       <button id="carDockFav" type="button" aria-label="Mes lieux favoris" title="Mes lieux favoris"><svg aria-hidden="true"><use href="#i-star"/></svg></button>
+      <button id="carDockIncident" type="button" aria-label="Signaler un incident routier" title="Signaler un incident"><svg aria-hidden="true"><use href="#i-alert"/></svg></button>
       <button id="carDockSettings" type="button" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.82 1 1.48 1.04H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51.96Z"/></svg></button>
     </nav>
+    <div id="carIncidentPicker" class="car-incident-picker car-cockpit-glass" hidden role="dialog" aria-label="Signaler un incident">
+      <div class="car-incident-picker-head"><span>Signaler devant vous</span><button type="button" id="carCloseIncidentPicker" class="car-mode-prompt-close" aria-label="Fermer">✕</button></div>
+      <button type="button" class="cip-btn" data-inc-type="jam">🚗 Ralentissement / Bouchon</button>
+      <button type="button" class="cip-btn" data-inc-type="roadworks">🚧 Travaux</button>
+      <button type="button" class="cip-btn" data-inc-type="accident">⚠️ Accident</button>
+      <button type="button" class="cip-btn" data-inc-type="closure">⛔ Route fermée</button>
+      <button type="button" class="cip-btn" data-inc-type="weather">🌧️ Danger chaussée</button>
+    </div>
 
     <div class="car-maneuver" id="carManeuver" role="status" aria-live="polite">
       <div class="car-maneuver-main">
@@ -1029,6 +1087,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <button type="button" id="carChooseDestBtn" class="car-pick-dest-btn">+ Choisir une destination</button>
       </div>
       <div id="carTollAlert" class="car-toll-alert" hidden role="status"><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg><span id="carTollAlertText">Péage dans 2 km</span></div>
+    </div>
+    <div id="carRerouteOffer" class="car-reroute-offer" hidden role="status" aria-live="polite">
+      <div class="cro-head">
+        <div><strong id="carRerouteTitle">⚡ Gagnez 0 min</strong><span id="carRerouteReason">Itinéraire alternatif plus rapide détecté</span></div>
+      </div>
+      <div class="cro-actions">
+        <button type="button" id="carRerouteAccept" class="cro-go">Prendre ce trajet</button>
+        <button type="button" id="carRerouteSkip" class="cro-skip">Ignorer</button>
+      </div>
     </div>
 
     <aside class="car-weather car-cockpit-glass" id="carWeatherPanel" aria-label="Météo et radar du trajet">
@@ -2871,7 +2938,7 @@ function freshPosition(){
 function locate(){GPS.zoomedAccurate=false;return startGPS(true,true);}
 
 /* ===================== ITINÉRAIRES MULTI-MODES & MAP MATCHING ===================== */
-const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',avoidTolls:!!cfg.avoidTolls,provider:'Valhalla',routes:[],index:0,waypoints:[],markers:[],tollMarkers:[],tollAnnounced:new Set(),weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,stepWeather:false,stepWeatherReq:0,busyToken:null,weatherReady:false};
+const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',avoidTolls:!!cfg.avoidTolls,provider:'Valhalla',routes:[],rawRoutes:[],index:0,waypoints:[],markers:[],tollMarkers:[],incidentMarkers:[],tollAnnounced:new Set(),weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,stepWeather:false,stepWeatherReq:0,busyToken:null,weatherReady:false};
 function updateModeUi(){
   const mode=TR.mode||'car',mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
   document.querySelectorAll('#routeModeSwitch [data-mode], #carModeSwitch [data-mode]').forEach(btn=>{
@@ -2919,17 +2986,24 @@ function clearTollMarkers(){
   TR.tollMarkers.forEach(m=>{try{m.remove();}catch(_){}});
   TR.tollMarkers=[];
 }
+function clearIncidentMarkers(){
+  TR.incidentMarkers.forEach(m=>{try{m.remove();}catch(_){}});
+  TR.incidentMarkers=[];
+}
 function clearTrip(){
   if(DRIVE.active)stopDriving();TR.weatherReady=false;TR.weatherPoints=[];TR.tollAnnounced.clear();
-  resetDriveMatching();clearTollMarkers();
-  ++TR.req;++TR.stepWeatherReq;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.waypoints=[];TR.index=0;TR.steps=false;TR.stepWeather=false;
+  resetDriveMatching();clearTollMarkers();clearIncidentMarkers();
+  ++TR.req;++TR.stepWeatherReq;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.rawRoutes=[];TR.waypoints=[];TR.index=0;TR.steps=false;TR.stepWeather=false;
   routeNativeHasGeometry=false;TR.markers.forEach(m=>m.remove());TR.markers=[];setGeo('sky-route',empty());setGeo('sky-route-alt',empty());drawRouteOverlay();
   $('routeResults').hidden=true;$('routePanel').classList.remove('has-route','step-weather-open');$('routePanel').classList.add('editing');$('activeTrip').hidden=true;$('app').classList.remove('route-active');$('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
+  if($('routeGraphSummary')){$('routeGraphSummary').hidden=true;$('routeGraphSummary').innerHTML='';}
+  if($('routeIncidentForm')){$('routeIncidentForm').hidden=true;$('routeIncidentForm').innerHTML='';}
   if($('routeStepWeather')){$('routeStepWeather').hidden=true;$('routeStepWeather').innerHTML='';}
   if($('routeStepWeatherBtn'))$('routeStepWeatherBtn').setAttribute('aria-expanded','false');
   if($('routeSummaryToll'))$('routeSummaryToll').hidden=true;
   if($('carTripTollBadge'))$('carTripTollBadge').hidden=true;
   if($('carTollAlert'))$('carTollAlert').hidden=true;
+  if($('carRerouteOffer'))$('carRerouteOffer').hidden=true;
   if(typeof WXFX!=='undefined')WXFX.sync();
 }
 function invalidateRoute(){clearTrip();routeMessage('Choisissez un départ et une arrivée.');}
@@ -3195,99 +3269,581 @@ async function fetchTollBoothsForRoutes(token){
     if(DRIVE.active)renderCarCockpit();
   }
 }
-async function fetchRoutesForMode(start,end,mode,heading=null){
-  const mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
-  const pair=start.lon+','+start.lat+';'+end.lon+','+end.lat;
-  const validShape=r=>Number.isFinite(r.duration)&&Number.isFinite(r.distance)&&r.geometry?.type==='LineString'&&r.geometry.coordinates.length>1&&r.geometry.coordinates.every(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
-  if(mode==='car'){
-    const [resToll,resFree]=await Promise.allSettled([
-      routeViaValhalla(start,end,'car',{useTolls:1,alternates:1,heading}),
-      routeViaValhalla(start,end,'car',{useTolls:0,alternates:0,heading})
-    ]);
-    const tollRoutes=resToll.status==='fulfilled'?resToll.value.routes.filter(validShape):[];
-    const freeRoutes=resFree.status==='fulfilled'?resFree.value.routes.filter(validShape):[];
-    if(tollRoutes.length||freeRoutes.length){
-      const rToll=tollRoutes[0]||null;
-      const rFree=freeRoutes[0]||null;
-      if(rToll&&rToll.hasToll&&rFree){
+/* ===================== MOTEUR GRAPHE (DIJKSTRA / A*), TRAFIC TEMPS RÉEL, HISTORIQUE & INCIDENTS ===================== */
+const TRAFFIC_STATE={
+  algo:'astar',
+  corridor:null,
+  osmHazards:[],
+  lastTelemetryAt:0,
+  lastDynamicCheckAt:0,
+  dynBusy:false,
+  rerouteOffer:null,
+  dismissedUntil:0,
+  incPreset:'ahead'
+};
+const HAZARD_CACHE=new Map();
+const HAZARD_INFLIGHT=new Map();
+const HAZARD_RL={lastAt:0,stamps:[],maxPerMin:5,minIntervalMs:4500};
+
+function corridorBboxForRoutes(routes,start,end){
+  const pts=[];
+  for(const r of (routes||[])){
+    const c=r?.geometry?.coordinates;
+    if(Array.isArray(c)){
+      const step=Math.max(1,Math.floor(c.length/60));
+      for(let i=0;i<c.length;i+=step)pts.push(c[i]);
+      if(c.length)pts.push(c[c.length-1]);
+    }
+  }
+  if(start&&C.validPoint(start))pts.push([start.lon,start.lat]);
+  if(end&&C.validPoint(end))pts.push([end.lon,end.lat]);
+  if(!pts.length)return {s:48.8,w:2.2,n:48.95,e:2.45,key:'48.80,2.20,48.95,2.45'};
+  return tollBboxKey(pts);
+}
+
+async function fetchTrafficCorridor(box){
+  const now=new Date();
+  const q=new URLSearchParams({
+    south:String(box.s),west:String(box.w),north:String(box.n),east:String(box.e),
+    hour:String(now.getHours()),day:String(now.getDay())
+  });
+  try{
+    const data=await getJSON('/api/traffic/corridor?'+q.toString());
+    if(data&&data.success){
+      TRAFFIC_STATE.corridor={
+        historical:data.historical||{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'},
+        liveCells:Array.isArray(data.liveCells)?data.liveCells:[],
+        incidents:Array.isArray(data.incidents)?data.incidents:[],
+        fetchedAt:Date.now()
+      };
+      return TRAFFIC_STATE.corridor;
+    }
+  }catch(_){}
+  const fb=TRAFFIC_STATE.corridor||{historical:{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Profil nominal'},liveCells:[],incidents:[],fetchedAt:Date.now()};
+  TRAFFIC_STATE.corridor=fb;
+  return fb;
+}
+
+async function queryOverpassRoadHazards(box){
+  const now=Date.now();
+  const cached=HAZARD_CACHE.get(box.key);
+  if(cached&&(now-cached.ts)<1800000)return cached.items;
+  if(HAZARD_INFLIGHT.has(box.key))return HAZARD_INFLIGHT.get(box.key);
+  HAZARD_RL.stamps=HAZARD_RL.stamps.filter(t=>now-t<60000);
+  if(HAZARD_RL.stamps.length>=HAZARD_RL.maxPerMin||(now-HAZARD_RL.lastAt)<HAZARD_RL.minIntervalMs){
+    return cached?.items||[];
+  }
+  HAZARD_RL.lastAt=now;HAZARD_RL.stamps.push(now);
+  const ql='[out:json][timeout:10];(way["highway"="construction"]('+box.s+','+box.w+','+box.n+','+box.e+');node["barrier"="block"]('+box.s+','+box.w+','+box.n+','+box.e+');node["highway"="roadworks"]('+box.s+','+box.w+','+box.n+','+box.e+'););out center 35;';
+  const p=(async()=>{
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+    try{
+      const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(ql),signal:controller.signal});
+      if(!r.ok)throw new Error('Overpass HTTP '+r.status);
+      const d=await r.json();
+      const items=(d?.elements||[]).map(el=>{
+        const lat=Number(el.lat??el.center?.lat),lon=Number(el.lon??el.center?.lon);
+        if(!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+        const isBlock=el.tags?.barrier==='block';
+        return {
+          id:'osm-'+String(el.type||'n')+'-'+String(el.id),
+          type:isBlock?'closure':'roadworks',
+          lat,lon,
+          title:el.tags?.name||(isBlock?'Voie barrée (OSM)':'Travaux routiers (OSM)'),
+          delaySec:isBlock?99999:240,
+          radiusM:isBlock?160:280,
+          severity:isBlock?'critical':'medium',
+          source:'osm',
+          confirmations:1
+        };
+      }).filter(Boolean);
+      if(HAZARD_CACHE.size>=24){const first=HAZARD_CACHE.keys().next().value;if(first)HAZARD_CACHE.delete(first);}
+      HAZARD_CACHE.set(box.key,{ts:Date.now(),items});
+      return items;
+    }catch(_){
+      return cached?.items||[];
+    }finally{clearTimeout(timer);HAZARD_INFLIGHT.delete(box.key);}
+  })();
+  HAZARD_INFLIGHT.set(box.key,p);
+  return p;
+}
+
+const GRAPH_ROUTER=(function(){
+  class MinHeap{
+    constructor(){this.a=[];}
+    get size(){return this.a.length;}
+    push(item){
+      this.a.push(item);
+      let i=this.a.length-1;
+      while(i>0){
+        const p=(i-1)>>1;
+        if(this.a[p].f<=this.a[i].f)break;
+        const t=this.a[p];this.a[p]=this.a[i];this.a[i]=t;i=p;
+      }
+    }
+    pop(){
+      const top=this.a[0];
+      const last=this.a.pop();
+      if(this.a.length&&last){
+        this.a[0]=last;
+        let i=0,n=this.a.length;
+        while(true){
+          let l=i*2+1,r=l+1,m=i;
+          if(l<n&&this.a[l].f<this.a[m].f)m=l;
+          if(r<n&&this.a[r].f<this.a[m].f)m=r;
+          if(m===i)break;
+          const t=this.a[i];this.a[i]=this.a[m];this.a[m]=t;i=m;
+        }
+      }
+      return top;
+    }
+  }
+
+  function inferRoadClass(step,mode){
+    if(mode==='bike')return 'cycleway';
+    if(mode==='foot')return 'footway';
+    const name=String(step?.name||'').trim();
+    const cls=(step?.intersections||[]).flatMap(ix=>ix.classes||[]);
+    if(cls.includes('motorway')||/^A\s?\d{1,3}\b/i.test(name)||/\bautoroute\b/i.test(name))return 'motorway';
+    if(cls.includes('trunk')||/^N\s?\d{1,4}\b/i.test(name)||/\b(p[ée]riph[ée]rique|rocade|voie\s+rapide|voie\s+express)\b/i.test(name))return 'trunk';
+    if(/^D\s?\d{1,4}\b/i.test(name)||/\b(nationale|route\s+d[ée]partementale|boulevard|avenue)\b/i.test(name))return 'primary';
+    return 'urban';
+  }
+  function inferMaxSpeedKmh(roadClass,mode){
+    if(mode==='bike')return 18;
+    if(mode==='foot')return 5;
+    if(roadClass==='motorway')return 130;
+    if(roadClass==='trunk')return 90;
+    if(roadClass==='primary')return 70;
+    return 45;
+  }
+  function pointToSegmentDistM(pt,coords){
+    const rad=Math.PI/180,scaleX=111320*Math.max(.1,Math.cos(pt.lat*rad)),scaleY=111195;
+    let best=Infinity;
+    for(let i=0;i<coords.length-1;i++){
+      const c1=coords[i],c2=coords[i+1];
+      const ax=(c1[0]-pt.lon)*scaleX,ay=(c1[1]-pt.lat)*scaleY;
+      const bx=(c2[0]-pt.lon)*scaleX,by=(c2[1]-pt.lat)*scaleY;
+      const dx=bx-ax,dy=by-ay,den=dx*dx+dy*dy;
+      const t=den?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/den)):0;
+      best=Math.min(best,Math.hypot(ax+t*dx,ay+t*dy));
+    }
+    return best;
+  }
+  function slicePolylineByDist(coords,totalDistM){
+    if(!Array.isArray(coords)||coords.length<2)return [];
+    const cum=[0];let tot=0;
+    for(let i=0;i<coords.length-1;i++){
+      tot+=C.distance({lat:coords[i][1],lon:coords[i][0]},{lat:coords[i+1][1],lon:coords[i+1][0]});
+      cum.push(tot);
+    }
+    return {coords,cum,total:Math.max(1,tot,totalDistM||0)};
+  }
+  function subCoordsBetween(polyMeta,d0,d1){
+    const {coords,cum}=polyMeta;
+    const out=[];
+    for(let i=0;i<coords.length-1;i++){
+      const a=coords[i],b=coords[i+1],ca=cum[i],cb=cum[i+1];
+      if(cb<d0)continue;
+      if(ca>d1)break;
+      const seg=Math.max(1e-6,cb-ca);
+      if(!out.length){
+        const t0=clamp((d0-ca)/seg,0,1);
+        out.push([a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0]);
+      }
+      if(cb<=d1)out.push(b);
+      else{
+        const t1=clamp((d1-ca)/seg,0,1);
+        out.push([a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1]);
+        break;
+      }
+    }
+    if(out.length<2)return [coords[0],coords[coords.length-1]];
+    return out;
+  }
+  function quantizeKey(lon,lat){
+    return Math.round(lat*5200)+':'+Math.round(lon*5200);
+  }
+  function buildGraph(rawRoutes,mode,corridor,osmHazards){
+    const nodes=new Map();
+    const adj=new Map();
+    const edges=[];
+    const hist=corridor?.historical||{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'};
+    const liveCells=corridor?.liveCells||[];
+    const allIncidents=[...(corridor?.incidents||[]),...(osmHazards||[])];
+    const startPt=rawRoutes[0]?.geometry?.coordinates?.[0];
+    const endPt=rawRoutes[0]?.geometry?.coordinates?.[rawRoutes[0].geometry.coordinates.length-1];
+    const startKey=startPt?quantizeKey(startPt[0],startPt[1]):'start';
+    const endKey=endPt?quantizeKey(endPt[0],endPt[1]):'end';
+
+    function ensureNode(lon,lat,kind,forceKey){
+      const id=forceKey||quantizeKey(lon,lat);
+      if(!nodes.has(id)){
+        nodes.set(id,{id,lon,lat,kind:kind||'intersection'});
+        adj.set(id,[]);
+      }else if(kind==='roundabout'||kind==='endpoint'){
+        nodes.get(id).kind=kind;
+      }
+      return id;
+    }
+
+    rawRoutes.forEach((route,rIdx)=>{
+      const polyMeta=slicePolylineByDist(route.geometry?.coordinates||[],route.distance);
+      const steps=(route.legs||[]).flatMap(l=>l.steps||[]);
+      const safeSteps=steps.length?steps:[{distance:route.distance,duration:route.duration,name:'Itinéraire',maneuver:{type:'depart',location:polyMeta.coords[0]},isToll:!!route.hasToll}];
+      let cursorDist=0;
+      const ratioScale=polyMeta.total/Math.max(1,safeSteps.reduce((s,st)=>s+(Number(st.distance)||0),0)||polyMeta.total);
+      let prevNodeId=ensureNode(polyMeta.coords[0][0],polyMeta.coords[0][1],'endpoint',startKey);
+
+      safeSteps.forEach((step,sIdx)=>{
+        const stepDist=Math.max(5,(Number(step.distance)||0)*ratioScale);
+        const stepDur=Math.max(1,Number(step.duration)||stepDist/(mode==='bike'?4.2:mode==='foot'?1.4:14));
+        const chunks=Math.max(1,Math.min(8,Math.ceil(stepDist/900)));
+        const roadClass=inferRoadClass(step,mode);
+        const maxSpeedKmh=inferMaxSpeedKmh(roadClass,mode);
+        const isLastStep=sIdx===safeSteps.length-1;
+        const mvType=step.maneuver?.type||'';
+        const nodeKind=(mvType.includes('roundabout')||mvType==='rotary')?'roundabout':'intersection';
+
+        for(let c=0;c<chunks;c++){
+          const d0=cursorDist+(stepDist*c)/chunks;
+          const d1=cursorDist+(stepDist*(c+1))/chunks;
+          const subCoords=subCoordsBetween(polyMeta,d0,d1);
+          const pEnd=subCoords[subCoords.length-1];
+          const isFinalChunk=isLastStep&&c===chunks-1;
+          const toId=ensureNode(pEnd[0],pEnd[1],isFinalChunk?'endpoint':nodeKind,isFinalChunk?endKey:null);
+          if(toId===prevNodeId)continue;
+
+          const subDist=stepDist/chunks;
+          const baseTimeS=stepDur/chunks;
+          let histFactor=1.0;
+          if(mode==='car'){
+            histFactor=roadClass==='motorway'?(hist.motorwayFactor||1):(roadClass==='trunk'||roadClass==='primary')?(hist.trunkPrimaryFactor||1):(hist.urbanFactor||1.04);
+          }
+          const mid=subCoords[Math.floor(subCoords.length/2)];
+          let liveRatio=1.0;
+          if(mode==='car'&&liveCells.length){
+            let bestCell=null,bestD=650;
+            for(const cell of liveCells){
+              if(cell.mode&&cell.mode!==mode)continue;
+              const dc=C.distance({lat:mid[1],lon:mid[0]},cell);
+              if(dc<bestD){bestD=dc;bestCell=cell;}
+            }
+            if(bestCell&&Number.isFinite(bestCell.ratio))liveRatio=Math.max(1,bestCell.ratio);
+          }
+          let incidentDelayS=0,blocked=false,incidentHit=null;
+          for(const inc of allIncidents){
+            const rad=Math.max(120,Number(inc.radiusM)||350);
+            const dInc=pointToSegmentDistM(inc,subCoords);
+            if(dInc<=rad){
+              if(inc.type==='closure'||Number(inc.delaySec)>=50000){
+                blocked=true;
+                incidentHit=inc;
+              }else{
+                const edgeShare=Math.min(1,Math.max(0.35,subDist/Math.max(400,rad*2)));
+                incidentDelayS+=Math.round((Number(inc.delaySec)||240)*edgeShare);
+                incidentHit=inc;
+              }
+            }
+          }
+          const weightS=Math.max(0.5,baseTimeS*histFactor*liveRatio+incidentDelayS+(blocked?28800:0));
+          const edge={
+            id:edges.length,
+            from:prevNodeId,
+            to:toId,
+            routeIdx:rIdx,
+            stepIdx:sIdx,
+            step,
+            coords:subCoords,
+            distM:subDist,
+            baseTimeS,
+            roadClass,
+            maxSpeedKmh,
+            isToll:Boolean(step.isToll||(route.hasToll&&roadClass==='motorway'&&route.tollRole!=='no-toll')),
+            histFactor,
+            liveRatio,
+            incidentDelayS,
+            blocked,
+            incidentHit,
+            weightS
+          };
+          edges.push(edge);
+          adj.get(prevNodeId).push(edge);
+          prevNodeId=toId;
+        }
+        cursorDist+=stepDist;
+      });
+    });
+
+    return {nodes,adj,edges,startId:startKey,endId:endKey,histLabel:hist.label||'Fluide'};
+  }
+
+  function solveShortestPath(graph,opts={}){
+    const {nodes,adj,startId,endId}=graph;
+    const endNode=nodes.get(endId);
+    if(!startId||!endId||!nodes.has(startId)||!endNode)return null;
+    const mode=opts.mode||'car';
+    const algo=opts.algorithm||TRAFFIC_STATE.algo||'astar';
+    const maxSpeedMps=mode==='bike'?(25/3.6):mode==='foot'?(6.5/3.6):(135/3.6);
+    const excludeToll=!!opts.excludeToll;
+    const penalized=opts.penalizedEdges||null;
+
+    const gScore=new Map([[startId,0]]);
+    const prevEdge=new Map();
+    const closed=new Set();
+    const pq=new MinHeap();
+    const h0=algo==='dijkstra'?0:(C.distance(nodes.get(startId),endNode)/maxSpeedMps);
+    pq.push({id:startId,g:0,f:h0});
+    let explored=0;
+
+    while(pq.size){
+      const cur=pq.pop();
+      if(!cur||closed.has(cur.id))continue;
+      closed.add(cur.id);
+      explored++;
+      if(cur.id===endId)break;
+
+      const outs=adj.get(cur.id)||[];
+      for(const e of outs){
+        if(excludeToll&&e.isToll)continue;
+        let cost=e.weightS;
+        if(penalized&&penalized.has(e.id))cost*=1.55;
+        const ng=cur.g+cost;
+        const oldG=gScore.get(e.to);
+        if(oldG===undefined||ng<oldG){
+          gScore.set(e.to,ng);
+          prevEdge.set(e.to,e);
+          const toNode=nodes.get(e.to);
+          const h=algo==='dijkstra'?0:(toNode?C.distance(toNode,endNode)/maxSpeedMps:0);
+          pq.push({id:e.to,g:ng,f:ng+h});
+        }
+      }
+    }
+
+    if(!prevEdge.has(endId))return null;
+    const pathEdges=[];
+    let cur=endId,guard=0;
+    while(cur!==startId&&guard++<10000){
+      const e=prevEdge.get(cur);
+      if(!e)break;
+      pathEdges.push(e);
+      cur=e.from;
+    }
+    pathEdges.reverse();
+    if(!pathEdges.length)return null;
+
+    const coords=[];
+    const steps=[];
+    let lastStepKey='';
+    let distM=0,baseDurS=0,weightedDurS=0,incidentDelayS=0,blockedCount=0,hasToll=false;
+    const hits=[];
+    for(const e of pathEdges){
+      distM+=e.distM;
+      baseDurS+=e.baseTimeS;
+      weightedDurS+=e.blocked?(e.baseTimeS*e.histFactor*e.liveRatio):e.weightS;
+      incidentDelayS+=e.incidentDelayS;
+      if(e.blocked)blockedCount++;
+      if(e.isToll)hasToll=true;
+      if(e.incidentHit&&!hits.some(x=>x.id===e.incidentHit.id))hits.push(e.incidentHit);
+      for(let i=0;i<e.coords.length;i++){
+        if(coords.length&&i===0)continue;
+        coords.push(e.coords[i]);
+      }
+      const sKey=e.routeIdx+':'+e.stepIdx;
+      if(sKey!==lastStepKey){
+        steps.push({...e.step});
+        lastStepKey=sKey;
+      }
+    }
+    const trafficDelayS=Math.max(0,Math.round(weightedDurS-baseDurS-incidentDelayS));
+    const displayDurS=Math.max(30,Math.round(weightedDurS));
+    return {
+      distance:Math.round(distM),
+      duration:displayDurS,
+      baseDuration:Math.max(30,Math.round(baseDurS)),
+      trafficDelayS,
+      incidentDelayS:Math.round(incidentDelayS),
+      blockedByClosure:blockedCount>0,
+      hasToll,
+      tollBooths:[],
+      geometry:{type:'LineString',coordinates:coords},
+      legs:[{steps,distance:Math.round(distM),duration:displayDurS}],
+      incidentsOnRoute:hits,
+      usedEdgeIds:pathEdges.map(e=>e.id),
+      graphStats:{
+        algorithm:algo,
+        nodesCount:graph.nodes.size,
+        edgesCount:graph.edges.length,
+        exploredNodes:explored,
+        histLabel:graph.histLabel
+      }
+    };
+  }
+
+  function evaluateRoutes(rawRoutes,mode,corridor,osmHazards,algoOverride){
+    if(!Array.isArray(rawRoutes)||!rawRoutes.length)return [];
+    const graph=buildGraph(rawRoutes,mode,corridor,osmHazards);
+    const algo=algoOverride||TRAFFIC_STATE.algo||'astar';
+    const hasTollOpt=rawRoutes.some(r=>r.hasToll);
+    const hasFreeOpt=rawRoutes.some(r=>!r.hasToll);
+
+    const bestAll=solveShortestPath(graph,{mode,algorithm:algo,excludeToll:false});
+    let out=[];
+
+    if(mode==='car'&&hasTollOpt&&hasFreeOpt){
+      const bestNoToll=solveShortestPath(graph,{mode,algorithm:algo,excludeToll:true});
+      const rToll=bestAll&&bestAll.hasToll?bestAll:null;
+      const rFree=bestNoToll||null;
+      if(rToll&&rFree&&!routesNearlySame(rToll,rFree)){
         rToll.tollRole='fastest-toll';
         rToll.tollLabel='Le plus rapide (avec péages)';
         rFree.tollRole='no-toll';
-        rFree.tollLabel=rFree.hasToll?'Péages minimisés':'Sans péage';
+        rFree.tollLabel='Sans péage';
         rFree.tollDiffDur=Math.round(rFree.duration-rToll.duration);
         rFree.tollDiffDist=Math.round(rFree.distance-rToll.distance);
         rToll.tollDiffDur=Math.round(rToll.duration-rFree.duration);
         rToll.tollDiffDist=Math.round(rToll.distance-rFree.distance);
-        const list=[rToll,rFree];
-        for(const extra of tollRoutes.slice(1)){
-          if(list.length<3&&!list.some(x=>routesNearlySame(x,extra)))list.push(extra);
-        }
-        return {routes:list,waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:TR.avoidTolls?1:0};
+        out=[rToll,rFree];
       }
-      if(TR.avoidTolls&&rFree){
-        const list=[rFree,...tollRoutes.filter(x=>!routesNearlySame(x,rFree))];
-        return {routes:list.slice(0,3),waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:0};
-      }
-      const list=tollRoutes.length?tollRoutes:freeRoutes;
-      return {routes:list.slice(0,3),waypoints:[{distance:0},{distance:0}],provider:'Valhalla',defaultIndex:0};
     }
-  }
-  const radiusParam=mode==='car'?'&radiuses=1500;1500':'&radiuses=800;800';
-  const excludeToll=mode==='car'&&TR.avoidTolls?'&exclude=toll':'';
-  const baseUrl=mCfg.osrmBase+'/'+pair+'?alternatives=true&steps=true&geometries=geojson&overview=full'+excludeToll;
-  const reqUrls=[];
-  if(mode==='car'&&Number.isFinite(heading))reqUrls.push(baseUrl+'&radiuses=150;1000&bearings='+Math.round((heading+360)%360)+',65;');
-  reqUrls.push(baseUrl+radiusParam);
-  reqUrls.push(baseUrl);
-  let osrmData=null,forbiddenSaw=false;
-  for(const url of reqUrls){
-    try{
-      const resp=await getJSON(url);
-      if(resp&&resp.code==='Ok'&&Array.isArray(resp.routes)&&resp.routes.length){osrmData=resp;break;}
-    }catch(_){}
-  }
-  if(osrmData){
-    const shaped=osrmData.routes.filter(validShape);
-    const allowed=shaped.filter(r=>{
-      if(isRouteForbiddenForMode(r,mode)){forbiddenSaw=true;return false;}
-      r.hasToll=false;r.tollBooths=[];
-      normalizeRouteForMode(r,mode);
-      return true;
+
+    if(!out.length&&bestAll)out.push(bestAll);
+
+    if(bestAll&&out.length<3){
+      const pen=new Set(bestAll.usedEdgeIds);
+      const alt=solveShortestPath(graph,{mode,algorithm:algo,penalizedEdges:pen});
+      if(alt&&!out.some(x=>routesNearlySame(x,alt)))out.push(alt);
+    }
+
+    // Ajouter d'éventuelles branches alternatives distinctes pondérées sur le graphe
+    for(let i=0;i<rawRoutes.length&&out.length<3;i++){
+      const singleGraph=buildGraph([rawRoutes[i]],mode,corridor,osmHazards);
+      const ev=solveShortestPath(singleGraph,{mode,algorithm:algo});
+      if(ev&&!out.some(x=>routesNearlySame(x,ev))){
+        ev.graphStats={...ev.graphStats,nodesCount:graph.nodes.size,edgesCount:graph.edges.length};
+        out.push(ev);
+      }
+    }
+
+    // Trier hors fermeture critique, en respectant l'option sans péage
+    out.sort((a,b)=>{
+      if(a.blockedByClosure!==b.blockedByClosure)return a.blockedByClosure?1:-1;
+      if(TR.avoidTolls&&mode==='car'&&a.hasToll!==b.hasToll)return a.hasToll?1:-1;
+      return a.duration-b.duration;
     });
-    if(allowed.length){
-      return {routes:allowed.slice(0,3),waypoints:osrmData.waypoints||[{distance:0},{distance:0}],provider:mode==='car'?'OSRM':'FOSSGIS OSRM',defaultIndex:0};
+    return out.slice(0,3);
+  }
+
+  async function recomputeTR(){
+    if(!TR.rawRoutes?.length)return;
+    const box=corridorBboxForRoutes(TR.rawRoutes,TR.from,TR.to);
+    const corridor=await fetchTrafficCorridor(box);
+    const solved=evaluateRoutes(TR.rawRoutes,TR.mode||'car',corridor,TRAFFIC_STATE.osmHazards,TRAFFIC_STATE.algo);
+    if(!solved.length)return;
+    TR.routes=solved;
+    TR.index=0;
+    if(TR.avoidTolls&&(TR.mode||'car')==='car'){
+      const noTollIdx=TR.routes.findIndex(r=>!r.hasToll||r.tollRole==='no-toll');
+      if(noTollIdx>=0)TR.index=noTollIdx;
+    }
+    renderIncidentMarkers();
+    renderRouteResult();
+    renderRoute();
+    if(DRIVE.active)renderCarCockpit();
+  }
+
+  return {evaluateRoutes,recomputeTR};
+})();
+
+async function fetchRoutesForMode(start,end,mode,heading=null){
+  const mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
+  const pair=start.lon+','+start.lat+';'+end.lon+','+end.lat;
+  const validShape=r=>Number.isFinite(r.duration)&&Number.isFinite(r.distance)&&r.geometry?.type==='LineString'&&r.geometry.coordinates.length>1&&r.geometry.coordinates.every(c=>Number.isFinite(c[0])&&Number.isFinite(c[1]));
+  let rawList=[],waypoints=[{distance:0},{distance:0}],provider=mode==='car'?'Valhalla':'FOSSGIS OSRM';
+
+  if(mode==='car'){
+    const [resToll,resFree]=await Promise.allSettled([
+      routeViaValhalla(start,end,'car',{useTolls:1,alternates:2,heading}),
+      routeViaValhalla(start,end,'car',{useTolls:0,alternates:1,heading})
+    ]);
+    const tollRoutes=resToll.status==='fulfilled'?resToll.value.routes.filter(validShape):[];
+    const freeRoutes=resFree.status==='fulfilled'?resFree.value.routes.filter(validShape):[];
+    if(tollRoutes.length||freeRoutes.length){
+      rawList=[...tollRoutes,...freeRoutes];
+      provider='Valhalla + Graphe A*';
     }
   }
-  // Pour vélo et piéton : ne JAMAIS se replier sur le profil voiture OSRM. Tenter Valhalla vélo/piéton.
-  if(mode==='bike'||mode==='foot'){
-    try{
-      const vRes=await routeViaValhalla(start,end,mode,{alternates:1});
-      const allowed=vRes.routes.filter(r=>{
+  if(!rawList.length){
+    const radiusParam=mode==='car'?'&radiuses=1500;1500':'&radiuses=800;800';
+    const excludeToll=mode==='car'&&TR.avoidTolls?'&exclude=toll':'';
+    const baseUrl=mCfg.osrmBase+'/'+pair+'?alternatives=true&steps=true&geometries=geojson&overview=full'+excludeToll;
+    const reqUrls=[];
+    if(mode==='car'&&Number.isFinite(heading))reqUrls.push(baseUrl+'&radiuses=150;1000&bearings='+Math.round((heading+360)%360)+',65;');
+    reqUrls.push(baseUrl+radiusParam);
+    reqUrls.push(baseUrl);
+    let osrmData=null,forbiddenSaw=false;
+    for(const url of reqUrls){
+      try{
+        const resp=await getJSON(url);
+        if(resp&&resp.code==='Ok'&&Array.isArray(resp.routes)&&resp.routes.length){osrmData=resp;break;}
+      }catch(_){}
+    }
+    if(osrmData){
+      const shaped=osrmData.routes.filter(validShape);
+      const allowed=shaped.filter(r=>{
         if(isRouteForbiddenForMode(r,mode)){forbiddenSaw=true;return false;}
+        r.hasToll=false;r.tollBooths=[];
+        normalizeRouteForMode(r,mode);
         return true;
       });
-      if(allowed.length)return {routes:allowed.slice(0,3),waypoints:vRes.waypoints,provider:'Valhalla',defaultIndex:0};
-    }catch(_){}
-    if(forbiddenSaw)throw new Error(unavailableModeMsg(mode));
-    throw new Error(unavailableModeMsg(mode));
+      if(allowed.length){
+        rawList=allowed;waypoints=osrmData.waypoints||waypoints;
+        provider=(mode==='car'?'OSRM':'FOSSGIS OSRM')+' + Graphe A*';
+      }
+    }
+    if(!rawList.length&&(mode==='bike'||mode==='foot')){
+      try{
+        const vRes=await routeViaValhalla(start,end,mode,{alternates:2});
+        const allowed=vRes.routes.filter(r=>!isRouteForbiddenForMode(r,mode));
+        if(allowed.length){rawList=allowed;waypoints=vRes.waypoints;provider='Valhalla + Graphe A*';}
+      }catch(_){}
+      if(!rawList.length)throw new Error(unavailableModeMsg(mode));
+    }
   }
-  throw new Error('Aucun itinéraire routier trouvé entre ces points.');
+  if(!rawList.length)throw new Error('Aucun itinéraire routier trouvé entre ces points.');
+
+  const box=corridorBboxForRoutes(rawList,start,end);
+  const [corridor,osmHazards]=await Promise.all([
+    fetchTrafficCorridor(box),
+    mode==='car'?queryOverpassRoadHazards(box):Promise.resolve([])
+  ]);
+  TRAFFIC_STATE.osmHazards=osmHazards;
+
+  const solved=GRAPH_ROUTER.evaluateRoutes(rawList,mode,corridor,osmHazards,TRAFFIC_STATE.algo);
+  const routes=solved.length?solved:rawList.slice(0,3);
+  let defaultIndex=0;
+  if(TR.avoidTolls&&mode==='car'){
+    const idx=routes.findIndex(r=>!r.hasToll||r.tollRole==='no-toll');
+    if(idx>=0)defaultIndex=idx;
+  }
+  return {routes,rawRoutes:rawList,waypoints,provider,defaultIndex,corridor,osmHazards};
 }
+
 async function calculateRoute(){
   if(!TR.fromGPS&&!TR.from){routeMessage('Recherchez puis sélectionnez votre adresse de départ.',true);$('routeFrom').focus();return;}
   if(!TR.to){routeMessage('Recherchez puis sélectionnez votre destination.',true);$('routeTo').focus();return;}
   const mode=TR.mode||'car',mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
-  const token=++TR.req;TR.busyToken=token;$('routeCalculate').disabled=true;$('routeCalculate').innerHTML='<span class="small-spinner"></span> Calcul en cours…';routeMessage(TR.fromGPS?'Recherche de votre position…':'Calcul de l’itinéraire ('+mCfg.label.toLowerCase()+')…');
+  const token=++TR.req;TR.busyToken=token;$('routeCalculate').disabled=true;$('routeCalculate').innerHTML='<span class="small-spinner"></span> Calcul A* en cours…';routeMessage(TR.fromGPS?'Recherche de votre position…':'Modélisation du graphe & calcul ('+mCfg.label.toLowerCase()+')…');
   try{
     const start=TR.fromGPS?{...await freshPosition(),name:'Ma position'}:TR.from,end={...TR.to};if(token!==TR.req)return;
     if(!C.validPoint(start)||!C.validPoint(end))throw new Error('Les coordonnées sélectionnées sont invalides.');
     if(C.distance(start,end)<20)throw new Error('Le départ et l’arrivée sont au même endroit.');
-    routeMessage('Recherche des trajets '+mCfg.label.toLowerCase()+'…');
+    routeMessage('Pondération trafic, historique & incidents…');
     const res=await fetchRoutesForMode(start,end,mode,null);
     if(token!==TR.req)return;
-    TR.from=start;TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();resetDriveMatching();pauseFollow();
+    TR.from=start;TR.routes=res.routes;TR.rawRoutes=res.rawRoutes||res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();resetDriveMatching();pauseFollow();
     $('routePanel').classList.add('has-route');$('routePanel').classList.remove('editing');$('app').classList.add('route-active');$('routeResults').hidden=false;
-    renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();$('activeTrip').hidden=!$('routePanel').hidden;routeMessage('');
+    renderIncidentMarkers();renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();$('activeTrip').hidden=!$('routePanel').hidden;routeMessage('');
     assessRouteWeather(token);
     fetchTollBoothsForRoutes(token);
   }catch(e){if(token!==TR.req)return;clearTrip();routeMessage(e.message.startsWith('HTTP')||e.name==='AbortError'?'Service de trajet indisponible. Réessayez dans un instant.':e.message,true);}
@@ -3441,9 +3997,9 @@ async function recalculateDrivingRoute(p){
     const res=await fetchRoutesForMode({lat:p.lat,lon:p.lon,name:'Position actuelle'},destination,mode,heading);
     if(id!==DRIVE.rerouteId||!DRIVE.active||tripRequest!==TR.req)return;
     TR.from={lat:p.lat,lon:p.lon,name:'Position actuelle'};TR.fromGPS=true;
-    TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
+    TR.routes=res.routes;TR.rawRoutes=res.rawRoutes||res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
     DRIVE.lastProgress=0;DRIVE.snapped=false;DRIVE.uturnCount=0;
-    renderRouteResult();renderRoute();
+    renderIncidentMarkers();renderRouteResult();renderRoute();
     $('driveInstruction').textContent='✓ Nouveau parcours trouvé · suivez la ligne bleue';
     updateDriving(GPS.fix||p,null);
     assessRouteWeather(tripRequest);
@@ -3756,7 +4312,11 @@ function updateDriving(p,old){
     matched=MAP_MATCH.match(p,DRIVE.heading);
     const matchPoint={lat:matched.lat,lon:matched.lon,heading:matched.heading,speed:p.speed,accuracy:p.accuracy,time:p.time};
     VEH_ANIM.setTarget(matched.lon,matched.lat,matched.heading,DRIVE.simTimer?360:950);
-    if(!DRIVE.simTimer)checkDrivingDeviation(p,old);
+    if(!DRIVE.simTimer){
+      checkDrivingDeviation(p,old);
+      maybeSendTrafficTelemetry(p,old,r);
+      if(Date.now()-TRAFFIC_STATE.lastDynamicCheckAt>25000)checkDynamicReroute(false);
+    }
     const metres=Math.max(0,matched.snapped?matched.remaining:drivingDistance(p).remaining);
     const remSec=mCfg.targetSpeedMps?(metres/mCfg.targetSpeedMps):(r.duration*Math.min(1,metres/Math.max(1,r.distance)));
     const etaStr=new Date(Date.now()+remSec*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -4114,6 +4674,9 @@ function stopDriving(){
   if(DRIVE.clockTimer){clearInterval(DRIVE.clockTimer);DRIVE.clockTimer=null;}
   resetDriveMatching();
   DRIVE.active=false;DRIVE.radar=false;DRIVE.rerouteId++;DRIVE.rerouting=false;DRIVE.offCount=0;DRIVE.heading=null;DRIVE.userZoomed=false;DRIVE.followPausedUntil=0;DRIVE.draggingNow=false;DRIVE.camBearing=null;
+  TRAFFIC_STATE.rerouteOffer=null;TRAFFIC_STATE.dynBusy=false;
+  if($('carIncidentPicker'))$('carIncidentPicker').hidden=true;
+  if($('carRerouteOffer'))$('carRerouteOffer').hidden=true;
   if(typeof CAR3D!=='undefined')CAR3D.clearPose();
   syncCarRadarBtn();
   $('app').classList.remove('driving-mode','driving-night','driving-day');$('driveHUD').hidden=true;$('driveHUD').classList.remove('mobile-search-open');
@@ -4182,9 +4745,187 @@ function renderTollMarkers(route){
     TR.tollMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(b.pt||[b.lon,b.lat]).addTo(map));
   });
 }
+function incidentEmoji(type){
+  return type==='accident'?'⚠️':type==='closure'?'⛔':type==='roadworks'?'🚧':type==='weather'?'🌧️':'🚗';
+}
+function incidentLabel(type){
+  return type==='accident'?'Accident':type==='closure'?'Route fermée':type==='roadworks'?'Travaux':type==='weather'?'Chaussée dangereuse':'Bouchon';
+}
+function openIncidentModal(inc){
+  const isOsm=inc.source==='osm';
+  const delayTxt=inc.type==='closure'||Number(inc.delaySec)>=50000?'Axe fermé (contournement A* actif)':'Retard estimé : +'+Math.max(1,Math.round((Number(inc.delaySec)||240)/60))+' min';
+  openModal(
+    '<div class="mhead"><h2>'+incidentEmoji(inc.type)+' '+esc(inc.title||incidentLabel(inc.type))+'</h2><button class="mini" data-close aria-label="Fermer">✕</button></div>'+
+    '<p class="note" style="margin-bottom:10px">'+esc(delayTxt)+(inc.confirmations>1?' · '+inc.confirmations+' confirmations':'')+' · Source : '+(isOsm?'OpenStreetMap':'Signalement en direct')+'</p>'+
+    (!isOsm?'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="incConfirmBtn" style="flex:1">👍 Confirmer</button><button class="btn ghost" id="incRemoveBtn" style="flex:1">✓ Trafic rétabli</button></div>':'<div class="note">Donnée issue d’OpenStreetMap · prise en compte automatique dans les poids du graphe.</div>'),
+    ()=>{
+      if($('incConfirmBtn'))$('incConfirmBtn').onclick=async()=>{
+        try{
+          await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id)+'/confirm',{method:'POST'});
+          closeModal();toast('Incident confirmé');
+          await GRAPH_ROUTER.recomputeTR();
+        }catch(_){closeModal();}
+      };
+      if($('incRemoveBtn'))$('incRemoveBtn').onclick=async()=>{
+        try{
+          await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id),{method:'DELETE'});
+          closeModal();toast('Incident retiré · recalcul du graphe');
+          await GRAPH_ROUTER.recomputeTR();
+        }catch(_){closeModal();}
+      };
+    }
+  );
+}
+function renderIncidentMarkers(){
+  clearIncidentMarkers();
+  if(!map)return;
+  const list=[...(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])];
+  const seen=new Set();
+  list.forEach(inc=>{
+    if(!inc||!Number.isFinite(inc.lat)||!Number.isFinite(inc.lon))return;
+    const key=inc.type+':'+inc.lat.toFixed(3)+':'+inc.lon.toFixed(3);
+    if(seen.has(key))return;seen.add(key);
+    const el=document.createElement('button');
+    el.type='button';
+    el.className='incident-marker';
+    el.setAttribute('aria-label',inc.title||incidentLabel(inc.type));
+    el.innerHTML='<span class="incident-pin '+esc(inc.type||'jam')+'">'+incidentEmoji(inc.type)+' '+esc(incidentLabel(inc.type))+'</span>';
+    el.onclick=e=>{e.stopPropagation();openIncidentModal(inc);};
+    TR.incidentMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([inc.lon,inc.lat]).addTo(map));
+  });
+}
+function sampleAheadOnRoute(metersAhead=2500){
+  const route=TR.routes[TR.index];
+  if(!route)return GPS.fix||sel;
+  const meta=MAP_MATCH.metaFor(route);
+  if(!meta||meta.coords.length<2)return GPS.fix||sel;
+  const baseProg=DRIVE.active?(DRIVE.lastProgress||0):(meta.total*0.25);
+  const target=Math.min(meta.total*0.92,baseProg+metersAhead);
+  const cum=meta.cum,coords=meta.coords;
+  for(let i=0;i<cum.length-1;i++){
+    if(target<=cum[i+1]){
+      const seg=Math.max(1e-6,cum[i+1]-cum[i]);
+      const t=clamp((target-cum[i])/seg,0,1);
+      return {lat:coords[i][1]+(coords[i+1][1]-coords[i][1])*t,lon:coords[i][0]+(coords[i+1][0]-coords[i][0])*t};
+    }
+  }
+  const mid=coords[Math.floor(coords.length*0.4)];
+  return {lat:mid[1],lon:mid[0]};
+}
+async function reportTrafficIncident(type,point){
+  if(!point||!Number.isFinite(point.lat)||!Number.isFinite(point.lon))return;
+  try{
+    const r=await fetch('/api/traffic/incidents',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type,lat:point.lat,lon:point.lon,title:incidentLabel(type)+' signalé'})
+    });
+    const d=await r.json();
+    if(!r.ok||!d.success)throw new Error(d?.error||'Erreur serveur');
+    if(!TRAFFIC_STATE.corridor)TRAFFIC_STATE.corridor={historical:{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'},liveCells:[],incidents:[]};
+    TRAFFIC_STATE.corridor.incidents.push(d.incident);
+    renderIncidentMarkers();
+    toast(incidentEmoji(type)+' '+incidentLabel(type)+' signalé · réévaluation du graphe');
+    if(TR.rawRoutes?.length&&!DRIVE.active){
+      await GRAPH_ROUTER.recomputeTR();
+    }
+    if(DRIVE.active&&TR.routes.length&&TR.to){
+      TRAFFIC_STATE.dismissedUntil=0;
+      checkDynamicReroute(true,d.incident);
+    }
+  }catch(_){
+    toast('Impossible d’enregistrer le signalement pour le moment.');
+  }
+}
+function maybeSendTrafficTelemetry(p,old,route){
+  const now=Date.now();
+  if(now-TRAFFIC_STATE.lastTelemetryAt<12000)return;
+  let spdKmh=Number.isFinite(p.speed)?p.speed*3.6:NaN;
+  if(!Number.isFinite(spdKmh)&&old&&p.time>old.time){
+    const dt=(p.time-old.time)/1000;
+    if(dt>=2&&dt<60)spdKmh=(C.distance(old,p)/dt)*3.6;
+  }
+  if(!Number.isFinite(spdKmh)||spdKmh<1||spdKmh>190)return;
+  TRAFFIC_STATE.lastTelemetryAt=now;
+  const mode=TR.mode||'car';
+  const freeFlowKmh=mode==='car'?80:mode==='bike'?18:5;
+  fetch('/api/traffic/telemetry',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    keepalive:true,
+    body:JSON.stringify({lat:p.lat,lon:p.lon,speedKmh:Math.round(spdKmh*10)/10,freeFlowKmh,roadName:GPS.street||'',mode})
+  }).catch(()=>{});
+}
+function hideRerouteOffer(){
+  TRAFFIC_STATE.rerouteOffer=null;
+  if($('carRerouteOffer'))$('carRerouteOffer').hidden=true;
+}
+function acceptDynamicReroute(){
+  const offer=TRAFFIC_STATE.rerouteOffer;
+  if(!offer||!offer.routes?.length){hideRerouteOffer();return;}
+  TR.routes=offer.routes;
+  TR.rawRoutes=offer.rawRoutes||offer.routes;
+  TR.index=offer.bestIdx||0;
+  TR.tollAnnounced.clear();
+  DRIVE.lastProgress=0;DRIVE.snapped=false;DRIVE.uturnCount=0;
+  hideRerouteOffer();
+  renderIncidentMarkers();
+  renderRouteResult();
+  renderRoute();
+  updateDriving(GPS.fix||{...TR.from,accuracy:15,time:Date.now()},null);
+  toast('⚡ Nouvel itinéraire A* appliqué (-'+offer.gainMin+' min)',3500);
+}
+function dismissDynamicReroute(){
+  TRAFFIC_STATE.dismissedUntil=Date.now()+90000;
+  hideRerouteOffer();
+}
+async function checkDynamicReroute(force=false,triggerIncident=null){
+  if(!DRIVE.active||!TR.routes.length||!TR.to||TRAFFIC_STATE.dynBusy)return;
+  const now=Date.now();
+  if(!force&&now<TRAFFIC_STATE.dismissedUntil)return;
+  if(!force&&now-TRAFFIC_STATE.lastDynamicCheckAt<22000)return;
+  TRAFFIC_STATE.lastDynamicCheckAt=now;
+  TRAFFIC_STATE.dynBusy=true;
+  try{
+    const curRoute=TR.routes[TR.index];
+    const origin=GPS.fix&&!GPS.fix.isIp?{lat:GPS.fix.lat,lon:GPS.fix.lon,name:'Position actuelle'}:(DRIVE.matchedPt?{lat:DRIVE.matchedPt[1],lon:DRIVE.matchedPt[0],name:'Position actuelle'}:TR.from);
+    if(!origin||!C.validPoint(origin))return;
+    const heading=Number.isFinite(DRIVE.heading)?DRIVE.heading:null;
+    const mode=TR.mode||'car';
+    const metaCur=MAP_MATCH.metaFor(curRoute);
+    const remFrac=metaCur?clamp((metaCur.total-(DRIVE.lastProgress||0))/Math.max(1,metaCur.total),0.05,1):1;
+
+    const box=corridorBboxForRoutes(TR.rawRoutes?.length?TR.rawRoutes:TR.routes,origin,TR.to);
+    const corridor=await fetchTrafficCorridor(box);
+    // Réévaluer la route active avec les derniers poids trafic/incidents
+    const revalCur=GRAPH_ROUTER.evaluateRoutes([curRoute],mode,corridor,TRAFFIC_STATE.osmHazards,TRAFFIC_STATE.algo)[0]||curRoute;
+    const curRemainingS=(revalCur.blockedByClosure?1800:0)+revalCur.duration*remFrac;
+
+    const fresh=await fetchRoutesForMode(origin,TR.to,mode,heading);
+    if(!DRIVE.active||!fresh?.routes?.length)return;
+    let bestAltIdx=0;
+    if(TR.avoidTolls&&mode==='car'){
+      const idx=fresh.routes.findIndex(r=>!r.hasToll||r.tollRole==='no-toll');
+      if(idx>=0)bestAltIdx=idx;
+    }
+    const bestAlt=fresh.routes[bestAltIdx];
+    if(!bestAlt||bestAlt.blockedByClosure)return;
+    const savingS=Math.round(curRemainingS-bestAlt.duration);
+    if(savingS>=120&&!routesNearlySame(curRoute,bestAlt)){
+      const gainMin=Math.max(2,Math.round(savingS/60));
+      const incReason=triggerIncident?(incidentEmoji(triggerIncident.type)+' '+incidentLabel(triggerIncident.type)+' devant vous'):(revalCur.incidentsOnRoute?.length?'Contournement : '+(revalCur.incidentsOnRoute[0].title||'incident devant'):'Itinéraire A* mathématiquement plus rapide');
+      TRAFFIC_STATE.rerouteOffer={routes:fresh.routes,rawRoutes:fresh.rawRoutes,bestIdx:bestAltIdx,gainMin,reason:incReason,createdAt:Date.now()};
+      if($('carRerouteTitle'))$('carRerouteTitle').textContent='⚡ Gagnez '+gainMin+' min';
+      if($('carRerouteReason'))$('carRerouteReason').textContent=incReason;
+      if($('carRerouteOffer'))$('carRerouteOffer').hidden=false;
+      toast('⚡ Gagnez '+gainMin+' min en changeant d’itinéraire',3400);
+    }
+  }catch(_){}
+  finally{TRAFFIC_STATE.dynBusy=false;}
+}
 function renderRoute(){
   const route=TR.routes[TR.index];
-  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;clearTollMarkers();setGeo('sky-route-past',empty());drawRouteOverlay();return;}
+  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;clearTollMarkers();clearIncidentMarkers();setGeo('sky-route-past',empty());drawRouteOverlay();return;}
   routeNativeHasGeometry=false;
   if(!MAP.ready&&map?.isStyleLoaded()){try{initMapLayers();}catch(_){}}
   if(MAP.ready && map){
@@ -4216,6 +4957,7 @@ function renderRoute(){
     TR.markers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(point).addTo(map));
   });
   renderTollMarkers(route);
+  renderIncidentMarkers();
 }
 
 function fitRoute(){
@@ -4229,6 +4971,86 @@ function fitRoute(){
   const usableY=size.y-padding.top-padding.bottom,usableX=size.x-padding.left-padding.right;
   if(usableY<95||usableX<95){map.fitBounds(bounds,{padding:30,retainPadding:false,maxZoom:16,pitch:0,bearing:0,duration:reducedMotion?0:900});return;}
   map.fitBounds(bounds,{padding,retainPadding:false,maxZoom:17,pitch:cfg.mode3d?38:0,bearing:0,duration:reducedMotion?0:900});
+}
+function toggleRouteIncidentForm(force){
+  const box=$('routeIncidentForm');
+  if(!box)return;
+  const open=typeof force==='boolean'?force:box.hidden;
+  if(!open){box.hidden=true;box.innerHTML='';return;}
+  if(!TRAFFIC_STATE.incLocChoice)TRAFFIC_STATE.incLocChoice='ahead';
+  const loc=TRAFFIC_STATE.incLocChoice;
+  box.hidden=false;
+  box.innerHTML=
+    '<div class="rif-head"><span>Signaler un incident sur le réseau</span><button type="button" class="mini" id="rifCloseBtn" aria-label="Fermer">✕</button></div>'+
+    '<div class="rif-locs" role="group" aria-label="Position de l’incident">'+
+      '<button type="button" data-loc="ahead" class="'+(loc==='ahead'?'on':'')+'">~3 km devant</button>'+
+      '<button type="button" data-loc="mid" class="'+(loc==='mid'?'on':'')+'">Mi-parcours</button>'+
+      '<button type="button" data-loc="center" class="'+(loc==='center'?'on':'')+'">Centre carte</button>'+
+    '</div>'+
+    '<div class="rif-types">'+
+      '<button type="button" data-inc="jam">🚗 Bouchon</button>'+
+      '<button type="button" data-inc="accident">⚠️ Accident</button>'+
+      '<button type="button" data-inc="roadworks">🚧 Travaux</button>'+
+      '<button type="button" data-inc="closure">⛔ Route fermée</button>'+
+      '<button type="button" data-inc="weather">🌧️ Chaussée</button>'+
+    '</div>';
+  if($('rifCloseBtn'))$('rifCloseBtn').onclick=()=>toggleRouteIncidentForm(false);
+  box.querySelectorAll('[data-loc]').forEach(btn=>{
+    btn.onclick=()=>{TRAFFIC_STATE.incLocChoice=btn.dataset.loc;toggleRouteIncidentForm(true);};
+  });
+  box.querySelectorAll('[data-inc]').forEach(btn=>{
+    btn.onclick=async()=>{
+      const chosen=TRAFFIC_STATE.incLocChoice||'ahead';
+      let pt=null;
+      if(chosen==='center'&&map){const c=map.getCenter();pt={lat:c.lat,lon:c.lng};}
+      else if(chosen==='mid'&&TR.routes[TR.index]){pt=sampleRoutePointByDistance(TR.routes[TR.index],0.5);}
+      else{pt=sampleAheadOnRoute(3000);}
+      toggleRouteIncidentForm(false);
+      await reportTrafficIncident(btn.dataset.inc,pt);
+    };
+  });
+}
+function renderRouteGraphSummary(route){
+  const box=$('routeGraphSummary');
+  if(!box)return;
+  if(!route?.graphStats){box.hidden=true;box.innerHTML='';return;}
+  const gs=route.graphStats;
+  const algo=gs.algorithm==='dijkstra'?'dijkstra':'astar';
+  const totalDelayMin=Math.round(((route.trafficDelayS||0)+(route.incidentDelayS||0))/60);
+  const liveCount=(TRAFFIC_STATE.corridor?.liveCells||[]).length;
+  const incTotal=((TRAFFIC_STATE.corridor?.incidents||[]).length)+((TRAFFIC_STATE.osmHazards||[]).length);
+  const statusCls=route.blockedByClosure?'incident':(totalDelayMin>=1?'delay':'smooth');
+  const statusTxt=route.blockedByClosure?'⛔ Fermeture détectée':(totalDelayMin>=1?'+'+totalDelayMin+' min trafic':'Fluide · '+(gs.histLabel||'Normal'));
+  box.hidden=false;
+  box.innerHTML=
+    '<div class="rg-top">'+
+      '<span class="rg-title">Graphe routier &amp; temps réel</span>'+
+      '<div class="rg-algo-switch" role="group" aria-label="Algorithme de chemin">'+
+        '<button type="button" class="rg-algo-btn '+(algo==='astar'?'on':'')+'" data-algo="astar">A*</button>'+
+        '<button type="button" class="rg-algo-btn '+(algo==='dijkstra'?'on':'')+'" data-algo="dijkstra">Dijkstra</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="rg-metrics">'+
+      '<div class="rg-stats">'+
+        '<span class="rg-stat">'+gs.nodesCount+' nœuds · '+gs.edgesCount+' arêtes</span>'+
+        '<span class="rg-stat">'+gs.exploredNodes+' explorés</span>'+
+        '<span class="rg-stat '+statusCls+'">'+esc(statusTxt)+'</span>'+
+        (incTotal?'<span class="rg-stat incident">'+incTotal+' incident'+(incTotal>1?'s':'')+'</span>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="rg-foot">'+
+      '<span>Historique ('+esc(gs.histLabel||'Standard')+') · '+(liveCount?liveCount+' relevé'+(liveCount>1?'s':'')+' GPS':'Télémétrie prête')+'</span>'+
+      '<button type="button" class="rg-report-btn" id="rgReportToggleBtn">+ Signaler</button>'+
+    '</div>';
+  box.querySelectorAll('[data-algo]').forEach(btn=>{
+    btn.onclick=async()=>{
+      const next=btn.dataset.algo==='dijkstra'?'dijkstra':'astar';
+      if(TRAFFIC_STATE.algo===next)return;
+      TRAFFIC_STATE.algo=next;
+      await GRAPH_ROUTER.recomputeTR();
+    };
+  });
+  if($('rgReportToggleBtn'))$('rgReportToggleBtn').onclick=()=>toggleRouteIncidentForm();
 }
 function renderRouteResult(){
   const r=TR.routes[TR.index];if(!r)return;
@@ -4252,12 +5074,15 @@ function renderRouteResult(){
     }else{
       sub=esc(TR.weatherReady?(x.weatherLabel||'Météo calme'):(i===0?'Le plus rapide':'Alternative '+i));
     }
-    return '<button class="route-alternative '+(i===TR.index?'selected':'')+'" data-route="'+i+'" aria-pressed="'+(i===TR.index)+'"><b>'+C.formatDuration(x.duration)+'</b><span>'+C.formatDistance(x.distance)+'</span><small>'+sub+'</small></button>';
+    const delayMin=Math.round(((x.trafficDelayS||0)+(x.incidentDelayS||0))/60);
+    const trafficTag=x.blockedByClosure?'<span class="alt-traffic-delta">⛔ Route fermée</span>':(delayMin>=1?'<span class="alt-traffic-delta">+'+delayMin+' min trafic</span>':'');
+    return '<button class="route-alternative '+(i===TR.index?'selected':'')+'" data-route="'+i+'" aria-pressed="'+(i===TR.index)+'"><b>'+C.formatDuration(x.duration)+'</b><span>'+C.formatDistance(x.distance)+'</span><small>'+sub+'</small>'+trafficTag+'</button>';
   }).join('');
+  renderRouteGraphSummary(r);
   const tollChip=r.hasToll?'<span class="toll-badge">'+icon('toll')+'Péages</span>':'';
   $('activeTrip').innerHTML=icon(mode==='bike'?'bike':mode==='foot'?'foot':'route')+'<span>'+esc(mCfg.label)+' · '+C.formatDuration(r.duration)+' · '+C.formatDistance(r.distance)+'</span>'+tollChip+icon('chevron');
   const snap=Math.max(...TR.waypoints.map(p=>p.distance||0),0);
-  const modeExtra=mode==='bike'?' · voies et pistes cyclables, hors autoroutes.':mode==='foot'?' · trottoirs, chemins et zones piétonnes.':(r.hasToll?' · Trajet avec péages · sans trafic en temps réel.':(TR.routes.some(x=>x.hasToll)?' · Sans péage · sans trafic en temps réel.':' · sans trafic en temps réel.'));
+  const modeExtra=mode==='bike'?' · voies et pistes cyclables, hors autoroutes.':mode==='foot'?' · trottoirs, chemins et zones piétonnes.':(r.hasToll?' · Trajet avec péages · graphe pondéré temps réel.':(TR.routes.some(x=>x.hasToll)?' · Sans péage · graphe pondéré temps réel.':' · graphe pondéré temps réel.'));
   $('routeDisclaimer').textContent='Ligne bleue : trajet calculé · '+mCfg.label+modeExtra+(snap>25?' Raccordé à '+C.formatDistance(snap)+' du point choisi.':'');
   const steps=r.legs.flatMap(l=>l.steps||[]);$('routeSteps').innerHTML=steps.length?'<ol>'+steps.map((s,i)=>'<li><button data-step="'+i+'"><span class="step-number">'+(i+1)+'</span><span>'+esc(C.instruction(s,mode))+'<small>'+C.formatDistance(s.distance)+(s.isToll?' · Péage':'')+'</small></span></button></li>').join('')+'</ol>':'<p class="note">Les étapes ne sont pas disponibles pour ce trajet.</p>';
   $('routeSteps').onclick=e=>{const b=e.target.closest('[data-step]');if(!b)return;const p=steps[+b.dataset.step]?.maneuver?.location;if(p)focusMap(p[1],p[0],17);};
@@ -4601,9 +5426,9 @@ async function setTravelMode(mode){
         try{
           const res=await fetchRoutesForMode(startPt,TR.to,mode,null);
           if((TR.mode||'car')!==mode)return;
-          TR.from=startPt;TR.routes=res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
+          TR.from=startPt;TR.routes=res.routes;TR.rawRoutes=res.rawRoutes||res.routes;TR.index=clamp(res.defaultIndex||0,0,Math.max(0,res.routes.length-1));TR.waypoints=res.waypoints;TR.provider=res.provider;TR.weatherReady=false;TR.tollAnnounced.clear();
           resetDriveMatching();
-          renderRouteResult();renderRoute();
+          renderIncidentMarkers();renderRouteResult();renderRoute();
           updateDriving(GPS.fix||{...startPt,accuracy:15,time:Date.now()},null);
           drawGPS();
           if(GPS.fix)centerDriving(GPS.fix,true);
@@ -4702,6 +5527,20 @@ function setupTravel(){
   if($('carMobileSearchBtn'))$('carMobileSearchBtn').onclick=()=>{$('driveHUD').classList.add('mobile-search-open');setCarWeatherOpen(false);$('carQ').focus();};
   if($('carCloseSearchBtn'))$('carCloseSearchBtn').onclick=()=>{$('driveHUD').classList.remove('mobile-search-open');$('carSuggestions').hidden=true;};
   $('carDockFav').onclick=openPlaces;$('carDockSettings').onclick=openSettings;
+  if($('carDockIncident'))$('carDockIncident').onclick=()=>{
+    const p=$('carIncidentPicker');if(!p)return;
+    p.hidden=!p.hidden;
+  };
+  if($('carCloseIncidentPicker'))$('carCloseIncidentPicker').onclick=()=>{if($('carIncidentPicker'))$('carIncidentPicker').hidden=true;};
+  if($('carIncidentPicker'))$('carIncidentPicker').onclick=async e=>{
+    const b=e.target.closest('[data-inc-type]');
+    if(!b)return;
+    $('carIncidentPicker').hidden=true;
+    const pt=TR.routes.length?sampleAheadOnRoute(2500):(GPS.fix||sel);
+    await reportTrafficIncident(b.dataset.incType,pt);
+  };
+  if($('carRerouteAccept'))$('carRerouteAccept').onclick=acceptDynamicReroute;
+  if($('carRerouteSkip'))$('carRerouteSkip').onclick=dismissDynamicReroute;
   $('carFullscreenBtn').onclick=()=>{try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}catch(_){}};
   $('carRadarCard').onclick=openDrivingRadarFromPreview;
   $('carExpandWeather').onclick=()=>{stopDriving();activateTab('today');setSheet('half');};

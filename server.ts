@@ -1459,6 +1459,261 @@ app.post('/api/database/repair', (req, res) => {
   res.json({ success: true, message: 'Base de données vérifiée et réparée avec succès.' });
 });
 
+// 13b. Moteur Trafic Temps Réel, Données Historiques & Incidents Routiers pour SkyMap Trajet
+interface TrafficProbeCell {
+  key: string;
+  lat: number;
+  lon: number;
+  speedSum: number;
+  count: number;
+  avgSpeedKmh: number;
+  freeFlowKmh: number;
+  ratio: number;
+  roadName: string;
+  mode: string;
+  updatedAt: number;
+}
+
+interface TrafficIncidentRecord {
+  id: string;
+  type: 'accident' | 'roadworks' | 'jam' | 'closure' | 'weather';
+  lat: number;
+  lon: number;
+  title: string;
+  description?: string;
+  delaySec: number;
+  radiusM: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  source: 'community' | 'osm' | 'telemetry';
+  confirmations: number;
+  reportedAt: number;
+  expiresAt: number;
+}
+
+const TRAFFIC_INCIDENTS_FILE = path.join('/tmp', 'skymap_traffic_incidents.json');
+const trafficSpeedCells = new Map<string, TrafficProbeCell>();
+let trafficIncidents: TrafficIncidentRecord[] = [];
+
+function loadTrafficIncidents(): void {
+  try {
+    if (fs.existsSync(TRAFFIC_INCIDENTS_FILE)) {
+      const raw = fs.readFileSync(TRAFFIC_INCIDENTS_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const now = Date.now();
+        trafficIncidents = parsed.filter((x: any) => x && Number(x.expiresAt) > now);
+      }
+    }
+  } catch (_) {}
+}
+
+function saveTrafficIncidents(): void {
+  try {
+    const now = Date.now();
+    trafficIncidents = trafficIncidents.filter((x) => x.expiresAt > now).slice(-250);
+    fs.writeFileSync(TRAFFIC_INCIDENTS_FILE, JSON.stringify(trafficIncidents), 'utf-8');
+  } catch (_) {}
+}
+
+loadTrafficIncidents();
+
+function cleanupTrafficState(): void {
+  const now = Date.now();
+  for (const [key, cell] of trafficSpeedCells.entries()) {
+    if (now - cell.updatedAt > 15 * 60 * 1000) {
+      trafficSpeedCells.delete(key);
+    }
+  }
+  const before = trafficIncidents.length;
+  trafficIncidents = trafficIncidents.filter((inc) => inc.expiresAt > now);
+  if (trafficIncidents.length !== before) {
+    saveTrafficIncidents();
+  }
+}
+
+function computeHistoricalTrafficProfile(hour: number, dayOfWeek: number) {
+  // Modèle statistique horaire/hebdomadaire (0=Dimanche .. 6=Samedi)
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  let motorwayFactor = 1.0;
+  let trunkPrimaryFactor = 1.0;
+  let urbanFactor = 1.05;
+  let label = 'Fluide (profil historique normal)';
+
+  if (!isWeekend) {
+    if (hour >= 7 && hour <= 9) {
+      motorwayFactor = dayOfWeek === 1 ? 1.24 : 1.18;
+      trunkPrimaryFactor = dayOfWeek === 1 ? 1.32 : 1.25;
+      urbanFactor = 1.38;
+      label = dayOfWeek === 1 ? 'Pointe du lundi matin (dense)' : 'Pointe matinale en semaine';
+    } else if (hour >= 16 && hour <= 19) {
+      motorwayFactor = dayOfWeek === 5 ? 1.34 : 1.22;
+      trunkPrimaryFactor = dayOfWeek === 5 ? 1.40 : 1.28;
+      urbanFactor = dayOfWeek === 5 ? 1.45 : 1.36;
+      label = dayOfWeek === 5 ? 'Départs vendredi soir (très dense)' : 'Pointe du soir en semaine';
+    } else if (hour >= 12 && hour <= 14) {
+      motorwayFactor = 1.04;
+      trunkPrimaryFactor = 1.09;
+      urbanFactor = 1.14;
+      label = 'Circulation modérée (mi-journée)';
+    } else if (hour >= 22 || hour <= 5) {
+      motorwayFactor = 0.96;
+      trunkPrimaryFactor = 0.97;
+      urbanFactor = 0.96;
+      label = 'Voies dégagées (nuit)';
+    }
+  } else if (dayOfWeek === 6 && hour >= 10 && hour <= 13) {
+    motorwayFactor = 1.12;
+    trunkPrimaryFactor = 1.18;
+    urbanFactor = 1.22;
+    label = 'Activité samedi matin';
+  } else if (dayOfWeek === 0 && hour >= 17 && hour <= 21) {
+    motorwayFactor = 1.26;
+    trunkPrimaryFactor = 1.22;
+    urbanFactor = 1.16;
+    label = 'Retours du dimanche soir';
+  }
+
+  return { hour, dayOfWeek, motorwayFactor, trunkPrimaryFactor, urbanFactor, label };
+}
+
+// Télémétrie GPS anonymisée des véhicules pour estimer la vitesse réelle des segments
+app.post('/api/traffic/telemetry', (req, res) => {
+  cleanupTrafficState();
+  const { lat, lon, speedKmh, freeFlowKmh, roadName, mode = 'car' } = req.body || {};
+  const nLat = Number(lat);
+  const nLon = Number(lon);
+  const nSpd = Number(speedKmh);
+  if (!Number.isFinite(nLat) || !Number.isFinite(nLon) || Math.abs(nLat) > 85 || Math.abs(nLon) > 180) {
+    res.status(400).json({ error: 'Coordonnées invalides' });
+    return;
+  }
+  if (!Number.isFinite(nSpd) || nSpd < 0 || nSpd > 220) {
+    res.status(400).json({ error: 'Vitesse invalide' });
+    return;
+  }
+
+  const key = `${Math.round(nLat * 200) / 200}:${Math.round(nLon * 200) / 200}:${String(mode)}`;
+  const refFreeFlow = Math.max(15, Math.min(130, Number(freeFlowKmh) || (mode === 'car' ? 70 : 18)));
+  const existing = trafficSpeedCells.get(key);
+  const count = existing ? Math.min(40, existing.count + 1) : 1;
+  const speedSum = existing ? (existing.avgSpeedKmh * (count - 1) + nSpd) : nSpd;
+  const avgSpeedKmh = Math.round((speedSum / count) * 10) / 10;
+  const ratio = Math.max(1.0, Math.min(4.5, refFreeFlow / Math.max(6, avgSpeedKmh)));
+
+  const cell: TrafficProbeCell = {
+    key,
+    lat: Math.round(nLat * 200) / 200,
+    lon: Math.round(nLon * 200) / 200,
+    speedSum,
+    count,
+    avgSpeedKmh,
+    freeFlowKmh: refFreeFlow,
+    ratio: Math.round(ratio * 100) / 100,
+    roadName: typeof roadName === 'string' ? roadName.slice(0, 80) : '',
+    mode: String(mode),
+    updatedAt: Date.now()
+  };
+  trafficSpeedCells.set(key, cell);
+
+  res.json({ success: true, cell });
+});
+
+// Lecture des données trafic en direct, profil historique et incidents actifs sur un corridor
+app.get('/api/traffic/corridor', (req, res) => {
+  cleanupTrafficState();
+  const s = Number(req.query.south);
+  const w = Number(req.query.west);
+  const n = Number(req.query.north);
+  const e = Number(req.query.east);
+  const hasBox = [s, w, n, e].every(Number.isFinite);
+  const nowDate = new Date();
+  const hour = Number.isFinite(Number(req.query.hour)) ? Number(req.query.hour) : nowDate.getHours();
+  const day = Number.isFinite(Number(req.query.day)) ? Number(req.query.day) : nowDate.getDay();
+
+  const liveCells = Array.from(trafficSpeedCells.values()).filter((c) => {
+    if (!hasBox) return true;
+    return c.lat >= s - 0.05 && c.lat <= n + 0.05 && c.lon >= w - 0.05 && c.lon <= e + 0.05;
+  });
+
+  const incidents = trafficIncidents.filter((inc) => {
+    if (!hasBox) return true;
+    return inc.lat >= s - 0.08 && inc.lat <= n + 0.08 && inc.lon >= w - 0.08 && inc.lon <= e + 0.08;
+  });
+
+  res.json({
+    success: true,
+    timestamp: Date.now(),
+    historical: computeHistoricalTrafficProfile(hour, day),
+    liveCells,
+    incidents
+  });
+});
+
+// Signalement d'un incident routier (accident, travaux, bouchon, route fermée)
+app.post('/api/traffic/incidents', (req, res) => {
+  cleanupTrafficState();
+  const { type = 'jam', lat, lon, title, description } = req.body || {};
+  const nLat = Number(lat);
+  const nLon = Number(lon);
+  if (!Number.isFinite(nLat) || !Number.isFinite(nLon) || Math.abs(nLat) > 85 || Math.abs(nLon) > 180) {
+    res.status(400).json({ error: 'Localisation invalide' });
+    return;
+  }
+
+  const validTypes = ['accident', 'roadworks', 'jam', 'closure', 'weather'] as const;
+  const incType = (validTypes.includes(type) ? type : 'jam') as TrafficIncidentRecord['type'];
+
+  const defaults: Record<TrafficIncidentRecord['type'], { title: string; delaySec: number; radiusM: number; severity: TrafficIncidentRecord['severity']; ttlMs: number }> = {
+    accident: { title: 'Accident signalé', delaySec: 540, radiusM: 450, severity: 'high', ttlMs: 3 * 3600 * 1000 },
+    roadworks: { title: 'Zone de travaux', delaySec: 300, radiusM: 500, severity: 'medium', ttlMs: 6 * 3600 * 1000 },
+    jam: { title: 'Ralentissement / Bouchon', delaySec: 420, radiusM: 600, severity: 'high', ttlMs: 90 * 60 * 1000 },
+    closure: { title: 'Route fermée / Barrée', delaySec: 99999, radiusM: 320, severity: 'critical', ttlMs: 6 * 3600 * 1000 },
+    weather: { title: 'Danger météo chaussée', delaySec: 240, radiusM: 800, severity: 'medium', ttlMs: 2 * 3600 * 1000 }
+  };
+  const d = defaults[incType];
+  const now = Date.now();
+  const record: TrafficIncidentRecord = {
+    id: `inc-${now}-${Math.random().toString(36).slice(2, 7)}`,
+    type: incType,
+    lat: nLat,
+    lon: nLon,
+    title: typeof title === 'string' && title.trim() ? title.trim().slice(0, 100) : d.title,
+    description: typeof description === 'string' ? description.trim().slice(0, 180) : '',
+    delaySec: d.delaySec,
+    radiusM: d.radiusM,
+    severity: d.severity,
+    source: 'community',
+    confirmations: 1,
+    reportedAt: now,
+    expiresAt: now + d.ttlMs
+  };
+  trafficIncidents.push(record);
+  saveTrafficIncidents();
+
+  res.status(201).json({ success: true, incident: record });
+});
+
+app.post('/api/traffic/incidents/:id/confirm', (req, res) => {
+  cleanupTrafficState();
+  const inc = trafficIncidents.find((x) => x.id === req.params.id);
+  if (!inc) {
+    res.status(404).json({ error: 'Incident expiré ou introuvable' });
+    return;
+  }
+  inc.confirmations += 1;
+  inc.expiresAt = Math.max(inc.expiresAt, Date.now() + 90 * 60 * 1000);
+  saveTrafficIncidents();
+  res.json({ success: true, incident: inc });
+});
+
+app.delete('/api/traffic/incidents/:id', (req, res) => {
+  cleanupTrafficState();
+  const prev = trafficIncidents.length;
+  trafficIncidents = trafficIncidents.filter((x) => x.id !== req.params.id);
+  if (trafficIncidents.length !== prev) saveTrafficIncidents();
+  res.json({ success: true, removed: trafficIncidents.length !== prev });
+});
+
 // 14. Récupération d'un profil joueur individuel (persistance inter-sessions et après mise à jour)
 app.get('/api/player/:pseudo', (req, res) => {
   const pseudoParam = (req.params.pseudo || '').toLowerCase().trim();
