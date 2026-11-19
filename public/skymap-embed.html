@@ -638,6 +638,96 @@
 .toll-diff{display:block;font-size:9.5px;font-weight:600;color:#93c5fd;margin-top:2px}
 #app.driving-mode #toast{bottom:96px}
 .car-trip-toll[hidden]{display:none}
+/* Route Result Actions & Step-by-Step Weather + Page 8 Sports Drawer */
+.route-result-actions{display:flex;flex-wrap:wrap;gap:7px}
+.route-result-actions button{border:1px solid #b5cdeb26;background:#a8bce812;color:#cfe0f2;border-radius:10px;flex:1 1 78px;min-height:35px;height:auto;padding:6px 10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.route-result-actions button.drive-start{flex:1.15 1 98px;background:linear-gradient(135deg,rgba(56,189,248,.22),rgba(129,140,248,.22));border-color:rgba(125,211,252,.42);color:#eff8ff;font-weight:700}
+.route-result-actions button.step-weather-btn{flex:1.8 1 168px;background:linear-gradient(135deg,rgba(20,184,166,.16),rgba(56,189,248,.16));border-color:rgba(94,234,212,.38);color:#ccfbf1}
+.route-result-actions button.step-weather-btn .ic{width:14px;height:14px;color:#5eead4;flex:none}
+.route-result-actions button.step-weather-btn[aria-expanded=true]{background:linear-gradient(135deg,rgba(20,184,166,.3),rgba(56,189,248,.26));border-color:rgba(94,234,212,.75);color:#ffffff;box-shadow:0 4px 14px rgba(20,184,166,.22)}
+@media(min-width:900px){.route-panel.step-weather-open{width:486px}}
+#routeStepWeather{margin-top:14px;border-top:1px solid rgba(181,203,225,.18);padding-top:14px;font-variant-numeric:tabular-nums}
+.rsw-trip-meta{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.rsw-route-line{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:750;color:#f1f6ff;line-height:1.25;flex-wrap:wrap}
+.rsw-route-line .ic{width:16px;height:16px;color:#7dd3fc;flex:none}
+.rsw-route-arrow{color:#7dd3fc;font-weight:600}
+.rsw-meta-pills{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rsw-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:9px;background:rgba(15,34,53,.72);border:1px solid rgba(176,213,249,.2);color:#d7e9f8;font-size:10.5px;font-weight:650}
+.rsw-pill.emerald{color:#6ee7b7;border-color:rgba(52,211,153,.35);background:rgba(16,185,129,.12)}
+.rsw-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+@media(max-width:410px){.rsw-kpis{grid-template-columns:1fr}}
+.rsw-kpi{padding:10px 11px;border-radius:13px;background:rgba(12,28,45,.66);border:1px solid rgba(176,213,249,.18);display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-width:0}
+.rsw-kpi-lbl{font-size:9.5px;font-weight:650;color:#9fc0d9;line-height:1.2}
+.rsw-kpi-val{display:flex;align-items:baseline;gap:4px;line-height:1}
+.rsw-kpi-val strong{font-size:24px;font-weight:800;letter-spacing:-.6px}
+.rsw-kpi-val span{font-size:11px;font-weight:700;color:#94b2cc}
+.rsw-kpi-sub{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;line-height:1.25}
+.rsw-kpi-sub.ok{color:#34d399}.rsw-kpi-sub.warn{color:#fbbf24}.rsw-kpi-sub.bad{color:#fb7185}
+.rsw-kpi-prof{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:750;color:#f1f6ff;line-height:1.2}
+.rsw-kpi-prof .weather-art{width:24px;height:24px;flex:none}
+.rsw-kpi-steps{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#e5f2ff}
+.rsw-kpi-steps .ic{width:17px;height:17px;color:#7dd3fc;flex:none}
+.rsw-sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 8px}
+.rsw-sec-title{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:750;letter-spacing:1.1px;color:#cfe4f7;text-transform:uppercase}
+.rsw-sec-title .ic{width:14px;height:14px;color:#5eead4;flex:none}
+.rsw-sec-hint{font-size:9.5px;color:#89abcb}
+.rsw-timeline{position:relative;display:flex;flex-direction:column;gap:7px}
+.rsw-step{position:relative;display:grid;grid-template-columns:14px minmax(0,1.25fr) auto minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 10px;border-radius:13px;background:rgba(13,31,49,.76);border:1px solid rgba(176,213,249,.18);color:#e9f4ff;transition:border-color .2s,background .2s}
+.rsw-step:hover{border-color:rgba(125,211,252,.5);background:rgba(20,45,69,.86)}
+.rsw-track{position:relative;display:flex;align-items:center;justify-content:center;align-self:stretch}
+.rsw-track::before{content:"";position:absolute;top:-11px;bottom:-11px;left:50%;width:1.5px;transform:translateX(-50%);background:rgba(148,184,218,.26)}
+.rsw-step:first-child .rsw-track::before{top:50%}
+.rsw-step:last-child .rsw-track::before{bottom:50%}
+.rsw-dot{position:relative;z-index:1;width:8px;height:8px;border-radius:50%;background:#f472b6;border:2px solid #10253b;box-shadow:0 0 0 2px rgba(244,114,182,.25)}
+.rsw-step:first-child .rsw-dot{background:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.3)}
+.rsw-step:last-child .rsw-dot{background:#e2e8f0;box-shadow:0 0 0 2px rgba(226,232,240,.3)}
+.rsw-loc{min-width:0}
+.rsw-kind{display:block;font-size:9px;font-weight:700;color:#8cb2cf;letter-spacing:.2px;margin-bottom:1px}
+.rsw-step:first-child .rsw-kind{color:#34d399}
+.rsw-place{display:block;font-size:11.5px;font-weight:750;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsw-km{display:block;font-size:9.5px;color:#8dabca;margin-top:1px}
+.rsw-wx{display:flex;flex-direction:column;align-items:center;gap:3px}
+.rsw-eta{padding:2px 7px;border-radius:7px;background:rgba(8,21,36,.85);border:1px solid rgba(176,213,249,.22);font-size:10px;font-weight:700;color:#e2f2ff}
+.rsw-temp-row{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:750;color:#fff;white-space:nowrap}
+.rsw-temp-row .weather-art{width:22px;height:22px;flex:none}
+.rsw-metrics{display:flex;flex-direction:column;gap:2px;font-size:9.5px;color:#b4cde2;line-height:1.25;white-space:nowrap}
+.rsw-metrics b{color:#f1f6ff;font-weight:700}
+.rsw-road{padding:4px 7px;border-radius:8px;font-size:8.5px;font-weight:800;text-align:center;line-height:1.15;text-transform:uppercase;letter-spacing:.35px;border:1px solid transparent;max-width:86px}
+.rsw-road.dry{color:#34d399;background:rgba(16,185,129,.14);border-color:rgba(52,211,153,.38)}
+.rsw-road.wet{color:#60a5fa;background:rgba(59,130,246,.16);border-color:rgba(96,165,250,.45)}
+.rsw-road.aqua{color:#f59e0b;background:rgba(245,158,11,.18);border-color:rgba(251,191,36,.5)}
+.rsw-road.ice{color:#fda4af;background:rgba(244,63,94,.2);border-color:rgba(251,113,133,.52)}
+@media(max-width:440px){
+  .rsw-step{grid-template-columns:12px minmax(0,1fr) auto;gap:6px 8px}
+  .rsw-metrics{grid-column:2 / -1;flex-direction:row;flex-wrap:wrap;gap:6px 10px}
+  .rsw-road{grid-column:2 / -1;justify-self:start;max-width:none}
+}
+.rsw-hazard-note{grid-column:2 / -1;margin-top:2px;padding:4px 8px;border-radius:7px;background:rgba(245,158,11,.14);border:1px solid rgba(251,191,36,.34);color:#fde68a;font-size:9.5px;font-weight:600;line-height:1.3}
+.rsw-card{padding:11px 12px;border-radius:13px;background:rgba(12,28,45,.72);border:1px solid rgba(176,213,249,.18);margin-top:8px}
+.rsw-outdoor-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.rsw-outdoor-score{display:flex;align-items:baseline;gap:5px}
+.rsw-outdoor-score strong{font-size:22px;font-weight:800;color:#34d399}
+.rsw-outdoor-score span{font-size:11px;color:#93b3cf;font-weight:700}
+.rsw-gear{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.rsw-gear span{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:8px;background:rgba(9,22,36,.75);border:1px solid rgba(176,213,249,.18);font-size:9.5px;font-weight:600;color:#dbeafe}
+.rsw-gear .ic{width:11px;height:11px;color:#5eead4}
+.rsw-sports-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+@media(max-width:400px){.rsw-sports-grid{grid-template-columns:1fr}}
+.rsw-sport-item{padding:8px 9px;border-radius:10px;background:rgba(9,23,38,.72);border:1px solid rgba(176,213,249,.14);display:flex;flex-direction:column;gap:3px}
+.rsw-sport-head{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:10.5px;font-weight:750;color:#f1f6ff}
+.rsw-sport-head .ic{width:13px;height:13px;color:#5eead4;flex:none}
+.rsw-sport-score{font-size:10px;font-weight:750}
+.rsw-sport-score.ok{color:#34d399}.rsw-sport-score.warn{color:#fbbf24}.rsw-sport-score.muted{color:#94a3b8}
+.rsw-sport-tip{font-size:9.5px;color:#a8c3da;line-height:1.35}
+.rsw-sport-slot{font-size:9px;color:#5eead4;font-weight:650;margin-top:1px}
+.rsw-list{margin:6px 0 0;padding-left:15px;display:flex;flex-direction:column;gap:4px;font-size:10.5px;color:#cfe2f3;line-height:1.4}
+.rsw-traffic-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rsw-traffic-badge{padding:3px 8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.4px}
+.rsw-traffic-badge.VERT{background:rgba(16,185,129,.16);color:#6ee7b7;border:1px solid rgba(52,211,153,.4)}
+.rsw-traffic-badge.JAUNE{background:rgba(250,204,21,.16);color:#fde047;border:1px solid rgba(250,204,21,.4)}
+.rsw-traffic-badge.ORANGE{background:rgba(249,115,22,.18);color:#fdba74;border:1px solid rgba(249,115,22,.45)}
+.rsw-traffic-badge.ROUGE{background:rgba(244,63,94,.2);color:#fda4af;border:1px solid rgba(244,63,94,.5)}
+.rsw-loading{display:flex;align-items:center;gap:9px;padding:14px;border-radius:13px;background:rgba(12,28,45,.72);border:1px solid rgba(176,213,249,.18);font-size:11.5px;color:#cfe4f7}
 </style>
 <!-- MapLibre GL JS license
 Copyright (c) 2023, MapLibre contributors
@@ -865,8 +955,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <div class="route-summary"><div><strong id="routeDuration"></strong><span id="routeDistance"></span><p id="routeArrival"></p><div id="routeSummaryToll" class="route-summary-badges" hidden><span class="toll-badge"><svg class="ic" aria-hidden="true"><use href="#i-toll"/></svg>Péages</span><span class="toll-note">Trajet avec péages</span></div></div><button id="routeFit" aria-label="Afficher tout le trajet"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg></button></div>
       <div id="routeAlternatives" aria-label="Itinéraires proposés"></div>
       <p id="routeWeather" role="status">Météo du trajet : analyse en attente.</p><p id="routeDisclaimer"></p>
-      <div class="route-result-actions"><button id="startDriving" class="drive-start">▶ Démarrer</button><button id="routeEdit">Modifier</button><button id="routeStepsBtn" aria-expanded="false" aria-controls="routeSteps">Étapes</button><button id="clearRoute">Effacer</button></div>
+      <div class="route-result-actions"><button id="startDriving" class="drive-start">▶ Démarrer</button><button id="routeEdit">Modifier</button><button id="routeStepsBtn" aria-expanded="false" aria-controls="routeSteps">Étapes</button><button id="routeStepWeatherBtn" class="step-weather-btn" type="button" aria-expanded="false" aria-controls="routeStepWeather"><svg class="ic" aria-hidden="true"><use href="#i-cloud"/></svg><span>Météo étape par étape</span></button><button id="clearRoute">Effacer</button></div>
       <div id="routeSteps" hidden></div>
+      <div id="routeStepWeather" hidden></div>
     </div>
     <p class="route-attribution" id="routeAttribution">Adresses © OpenStreetMap · Calcul Valhalla / OSRM</p>
   </section>
@@ -2780,7 +2871,7 @@ function freshPosition(){
 function locate(){GPS.zoomedAccurate=false;return startGPS(true,true);}
 
 /* ===================== ITINÉRAIRES MULTI-MODES & MAP MATCHING ===================== */
-const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',avoidTolls:!!cfg.avoidTolls,provider:'Valhalla',routes:[],index:0,waypoints:[],markers:[],tollMarkers:[],tollAnnounced:new Set(),weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,busyToken:null,weatherReady:false};
+const TR={from:null,to:null,fromGPS:false,mode:cfg.travelMode||'car',avoidTolls:!!cfg.avoidTolls,provider:'Valhalla',routes:[],index:0,waypoints:[],markers:[],tollMarkers:[],tollAnnounced:new Set(),weatherPoints:[],req:0,searchReq:0,pick:null,steps:false,stepWeather:false,stepWeatherReq:0,busyToken:null,weatherReady:false};
 function updateModeUi(){
   const mode=TR.mode||'car',mCfg=TRAVEL_MODES[mode]||TRAVEL_MODES.car;
   document.querySelectorAll('#routeModeSwitch [data-mode], #carModeSwitch [data-mode]').forEach(btn=>{
@@ -2831,9 +2922,11 @@ function clearTollMarkers(){
 function clearTrip(){
   if(DRIVE.active)stopDriving();TR.weatherReady=false;TR.weatherPoints=[];TR.tollAnnounced.clear();
   resetDriveMatching();clearTollMarkers();
-  ++TR.req;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.waypoints=[];TR.index=0;TR.steps=false;
+  ++TR.req;++TR.stepWeatherReq;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.waypoints=[];TR.index=0;TR.steps=false;TR.stepWeather=false;
   routeNativeHasGeometry=false;TR.markers.forEach(m=>m.remove());TR.markers=[];setGeo('sky-route',empty());setGeo('sky-route-alt',empty());drawRouteOverlay();
-  $('routeResults').hidden=true;$('routePanel').classList.remove('has-route');$('routePanel').classList.add('editing');$('activeTrip').hidden=true;$('app').classList.remove('route-active');$('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
+  $('routeResults').hidden=true;$('routePanel').classList.remove('has-route','step-weather-open');$('routePanel').classList.add('editing');$('activeTrip').hidden=true;$('app').classList.remove('route-active');$('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
+  if($('routeStepWeather')){$('routeStepWeather').hidden=true;$('routeStepWeather').innerHTML='';}
+  if($('routeStepWeatherBtn'))$('routeStepWeatherBtn').setAttribute('aria-expanded','false');
   if($('routeSummaryToll'))$('routeSummaryToll').hidden=true;
   if($('carTripTollBadge'))$('carTripTollBadge').hidden=true;
   if($('carTollAlert'))$('carTollAlert').hidden=true;
@@ -4169,6 +4262,328 @@ function renderRouteResult(){
   const steps=r.legs.flatMap(l=>l.steps||[]);$('routeSteps').innerHTML=steps.length?'<ol>'+steps.map((s,i)=>'<li><button data-step="'+i+'"><span class="step-number">'+(i+1)+'</span><span>'+esc(C.instruction(s,mode))+'<small>'+C.formatDistance(s.distance)+(s.isToll?' · Péage':'')+'</small></span></button></li>').join('')+'</ol>':'<p class="note">Les étapes ne sont pas disponibles pour ce trajet.</p>';
   $('routeSteps').onclick=e=>{const b=e.target.closest('[data-step]');if(!b)return;const p=steps[+b.dataset.step]?.maneuver?.location;if(p)focusMap(p[1],p[0],17);};
 }
+
+/* ===================== MÉTÉO ÉTAPE PAR ÉTAPE & ACTIVITÉS SPORTIVES (PAGE 8) ===================== */
+function sampleRoutePointByDistance(route,fraction){
+  const meta=MAP_MATCH.metaFor(route);
+  const coords=meta?.coords||route?.geometry?.coordinates||[];
+  if(!coords.length)return null;
+  if(coords.length===1||fraction<=0)return {lon:coords[0][0],lat:coords[0][1],distM:0};
+  const total=meta?.total||0;
+  if(fraction>=1||total<=0){
+    const last=coords[coords.length-1];
+    return {lon:last[0],lat:last[1],distM:total};
+  }
+  const target=total*fraction,cum=meta.cum;
+  for(let i=0;i<cum.length-1;i++){
+    if(target<=cum[i+1]){
+      const seg=Math.max(1e-6,cum[i+1]-cum[i]);
+      const t=clamp((target-cum[i])/seg,0,1);
+      return {lon:coords[i][0]+(coords[i+1][0]-coords[i][0])*t,lat:coords[i][1]+(coords[i+1][1]-coords[i][1])*t,distM:target};
+    }
+  }
+  const last=coords[coords.length-1];
+  return {lon:last[0],lat:last[1],distM:total};
+}
+function inferStepRoadLabel(route,targetDistM,index){
+  const steps=(route?.legs||[]).flatMap(l=>l.steps||[]);
+  let acc=0;
+  for(const s of steps){
+    const d=Number(s.distance)||0;
+    acc+=d;
+    if(acc>=targetDistM){
+      const raw=String(s.name||'').trim();
+      if(raw&&!/^(route|rue|chemin|voie)\s*$/i.test(raw))return raw;
+    }
+  }
+  return 'Étape '+index;
+}
+function fmtTempSigned(c){
+  if(c===null||c===undefined||isNaN(c))return '--';
+  const v=cfg.temp==='C'?c:(c*9/5+32);
+  const rounded=Math.round(v*10)/10;
+  const txt=Number.isInteger(rounded)?String(rounded):rounded.toFixed(1);
+  return (rounded>0?'+':'')+txt+'°'+(cfg.temp==='C'?'C':'F');
+}
+function computePage8Outdoors(w){
+  let score=10;
+  const temp=w.temp,feels=w.feelsLike,precip=w.precipMm,wind=w.windSpeed,gusts=w.windGusts,hum=w.humidity,uv=w.uvIndex,code=w.code;
+  if(temp<-5)score-=5.5;else if(temp<2)score-=4.0;else if(temp<8)score-=2.6;else if(temp<14)score-=1.4;else if(temp<18)score-=0.6;else if(temp<=24)score-=0;else if(temp<=28)score-=0.8;else if(temp<=32)score-=2.2;else if(temp<=36)score-=3.8;else score-=5.5;
+  if(feels<temp-3)score-=0.8;
+  if(feels>temp+3&&temp>26)score-=1.2;
+  if(precip>5.0)score-=6.5;else if(precip>2.0)score-=4.8;else if(precip>0.5)score-=3.2;else if(precip>0)score-=1.8;
+  if(gusts>80)score-=4.5;else if(gusts>55||wind>40)score-=2.8;else if(gusts>35||wind>25)score-=1.4;else if(wind>18)score-=0.5;
+  if(hum>88&&temp>20)score-=1.4;else if(hum>85&&temp<10)score-=1.0;else if(hum<20)score-=0.8;
+  if(code>=95)score-=5.0;else if(code>=71&&code<=86)score-=3.5;else if(code>=45&&code<=48)score-=2.5;else if(code===3)score-=0.5;
+  if(uv>=10)score-=2.0;else if(uv>=8)score-=1.0;
+  return Math.max(1.0,Math.min(10.0,Math.round(score*10)/10));
+}
+async function reverseLocalityLabel(lat,lon){
+  try{
+    const d=await geocodeJSON('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&accept-language=fr&lat='+lat.toFixed(4)+'&lon='+lon.toFixed(4));
+    const a=d?.address||{};
+    return a.city||a.town||a.village||a.municipality||a.suburb||a.county||d?.name||'';
+  }catch(_){return '';}
+}
+async function fetchRouteStepWeather(route,mode,token){
+  if(route._stepWeatherData&&route._stepWeatherData.mode===mode&&(Date.now()-route._stepWeatherData.createdAt)<600000){
+    return route._stepWeatherData;
+  }
+  const now=new Date();
+  const fractions=[0,0.25,0.5,0.75,1.0];
+  const fromName=TR.from?.name||(TR.fromGPS?'Ma position':'Départ');
+  const toName=TR.to?.name||'Arrivée';
+  const totalDistM=Math.max(route.distance||0,MAP_MATCH.metaFor(route)?.total||0);
+  const totalDurS=Math.max(60,route.duration||0);
+  const rawSteps=fractions.map((f,idx)=>{
+    const pt=sampleRoutePointByDistance(route,f)||{lat:TR.from?.lat||sel.lat,lon:TR.from?.lon||sel.lon,distM:totalDistM*f};
+    const etaMs=now.getTime()+totalDurS*f*1000;
+    const etaDate=new Date(etaMs);
+    const roadHint=idx===0?fromName:idx===4?toName:inferStepRoadLabel(route,pt.distM,idx);
+    return {
+      idx,
+      fraction:f,
+      kind:idx===0?'▶ Départ':idx===4?'🏁 Arrivée':'Étape '+idx,
+      name:roadHint,
+      lat:pt.lat,
+      lon:pt.lon,
+      distKm:Math.round((totalDistM*f)/1000),
+      etaMs,
+      etaLabel:etaDate.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
+    };
+  });
+  const lats=rawSteps.map(s=>s.lat.toFixed(4)).join(',');
+  const lons=rawSteps.map(s=>s.lon.toFixed(4)).join(',');
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+lats+'&longitude='+lons+'&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index,is_day&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,visibility&wind_speed_unit=kmh&timezone=auto&forecast_days=2';
+  let raw=await getJSON(url);
+  if(token!==TR.stepWeatherReq)return null;
+  if(!Array.isArray(raw))raw=[raw];
+  const waypoints=rawSteps.map((st,i)=>{
+    const data=raw[i]||raw[0]||{};
+    const times=data.hourly?.time||[];
+    let hIdx=0,bestDiff=Infinity;
+    for(let k=0;k<times.length;k++){
+      const diff=Math.abs(new Date(times[k]).getTime()-st.etaMs);
+      if(diff<bestDiff){bestDiff=diff;hIdx=k;}
+    }
+    const temp=Number(data.hourly?.temperature_2m?.[hIdx]??data.current?.temperature_2m??15);
+    const feelsLike=Number(data.hourly?.apparent_temperature?.[hIdx]??data.current?.apparent_temperature??temp);
+    const wCode=Number(data.hourly?.weather_code?.[hIdx]??data.current?.weather_code??0);
+    const precipProb=Math.round(Number(data.hourly?.precipitation_probability?.[hIdx]??((Number(data.current?.precipitation)||0)>0?90:10)));
+    const precipMm=Math.round(Number(data.hourly?.precipitation?.[hIdx]??data.current?.precipitation??0)*10)/10;
+    const windSpeed=Math.round(Number(data.hourly?.wind_speed_10m?.[hIdx]??data.current?.wind_speed_10m??12));
+    const windGusts=Math.round(Number(data.hourly?.wind_gusts_10m?.[hIdx]??data.current?.wind_gusts_10m??windSpeed*1.3));
+    const humidity=Math.round(Number(data.hourly?.relative_humidity_2m?.[hIdx]??data.current?.relative_humidity_2m??65));
+    const visMeters=Number(data.hourly?.visibility?.[hIdx]??20000);
+    const visKm=Math.round((visMeters/1000)*10)/10;
+    const uvIndex=Number(data.current?.uv_index??3);
+    const etaHr=new Date(st.etaMs).getHours();
+    const day=(i===0&&data.current?.is_day!==undefined)?data.current.is_day:((etaHr>=7&&etaHr<20)?1:0);
+    let roadCondition='SÈCHE',roadClass='dry',hazardAlert='';
+    const isFreezing=temp<=1.0,isColdSnow=temp<=3.0;
+    const isSnowPrecip=(wCode>=71&&wCode<=86)||(wCode>=56&&wCode<=57)||(wCode>=66&&wCode<=67);
+    if(isFreezing&&(precipMm>0||humidity>85)){
+      roadCondition='VERGLAS / GLISSANTE';roadClass='ice';hazardAlert='❄️ Risque de verglas ou chaussée gelée';
+    }else if(isSnowPrecip&&isColdSnow){
+      roadCondition='ENNEIGÉE';roadClass='ice';hazardAlert='❄️ Neige possible : équipement hiver recommandé';
+    }else if(precipMm>=3.5||precipProb>=85){
+      roadCondition='RISQUE AQUAPLANING';roadClass='aqua';hazardAlert='🌊 Fortes pluies : risque d’aquaplaning, réduisez l’allure';
+    }else if(precipMm>0||precipProb>=45){
+      roadCondition='MOUILLÉE';roadClass='wet';
+    }else if(humidity>85&&visKm<4){
+      roadCondition='HUMIDE';roadClass='wet';
+    }
+    if(windGusts>=65)hazardAlert='💨 Rafales violentes ('+windGusts+' km/h) : vigilance sur ponts et zones exposées';
+    else if(visKm<0.5)hazardAlert='🌫️ Brouillard très dense (< 500 m) : visibilité fortement réduite';
+    return {...st,temp,feelsLike,code:wCode,day,precipProb,precipMm,windSpeed,windGusts,humidity,visKm,uvIndex,roadCondition,roadClass,hazardAlert};
+  });
+  let score=10;
+  const hazards=[],recs=[];
+  const maxGusts=Math.max(...waypoints.map(w=>w.windGusts));
+  const maxWind=Math.max(...waypoints.map(w=>w.windSpeed));
+  const maxPrecip=Math.max(...waypoints.map(w=>w.precipMm));
+  const minVis=Math.min(...waypoints.map(w=>w.visKm));
+  const hasIceOrSnow=waypoints.some(w=>w.roadCondition==='VERGLAS / GLISSANTE'||w.roadCondition==='ENNEIGÉE');
+  const hasAquaplaning=waypoints.some(w=>w.roadCondition==='RISQUE AQUAPLANING');
+  const hasWet=waypoints.some(w=>w.roadCondition==='MOUILLÉE'||w.roadCondition==='HUMIDE');
+  const distKm=Math.max(1,Math.round(totalDistM/1000));
+  if(hasIceOrSnow){score-=4;hazards.push('Passages glissants ou enneigés (température proche de 0°C).');recs.push(mode==='car'?'Équipez le véhicule de pneus hiver ou vérifiez l’adhérence.':'Évitez les zones ombragées verglacées.');}
+  if(hasAquaplaning||maxPrecip>3.0){score-=2.5;hazards.push('Fortes pluies avec risque d’aquaplaning sur le parcours.');recs.push(mode==='car'?'Réduisez la vitesse de 20 km/h et allongez les distances de sécurité.':'Vêtements imperméables indispensables et freinage anticipé.');}
+  else if(maxPrecip>0.5||hasWet){score-=0.8;hazards.push('Chaussée potentiellement mouillée sur une partie du trajet.');}
+  if(maxGusts>=70){score-=3;hazards.push('Rafales sévères jusqu’à '+maxGusts+' km/h.');recs.push(mode==='car'?'Tenez fermement le volant lors des dépassements et sur les viaducs.':'Attention aux rafales latérales importantes.');}
+  else if(maxGusts>=50){score-=1;hazards.push('Vent soutenu avec rafales jusqu’à '+maxGusts+' km/h.');}
+  if(minVis<0.8){score-=2.5;hazards.push('Brouillard épais réduisant la visibilité (< 800 m).');recs.push(mode==='car'?'Activez les feux de brouillard et adaptez votre vitesse.':'Éclairage et gilet haute visibilité recommandés.');}
+  if(mode==='car'){
+    if(distKm>400)recs.push('Trajet > 400 km : prévoyez au moins 2 pauses de 15 minutes.');
+    else if(distKm>200)recs.push('Prévoyez une pause détente toutes les 2 heures.');
+  }else if(mode==='bike'){
+    if(maxWind>25)recs.push('Vent soutenu à vélo : prévoyez un effort majoré face au vent.');
+    if(maxPrecip>0)recs.push('Sol glissant sur marquages au sol et pistes cyclables : anticipez les freinages.');
+  }else{
+    recs.push('Parcours pédestre analysé heure par heure selon votre allure.');
+  }
+  if(score>=8.5)recs.push('Conditions très favorables et chaussée globalement sûre.');
+  const finalScore=Math.max(1.0,Math.min(10.0,Math.round(score*10)/10));
+  const verdict=finalScore>=8.5?'Trajet très favorable & serein':finalScore>=6.5?'Bon trajet · vigilances ponctuelles':finalScore>=4.5?'Conditions délicates · prudence':'Conditions exigeantes · vigilance';
+  const dominant=hasIceOrSnow?'Risque hivernal':maxPrecip>1.5?'Pluvieux':maxGusts>55?'Venteux':waypoints.some(w=>w.code>=95)?'Risque orageux':waypoints.every(w=>w.code<=1)?'Clair & Sec':'Variable & Sec';
+  const domCode=hasIceOrSnow?73:maxPrecip>1.5?63:waypoints.some(w=>w.code>=95)?95:waypoints[2]?.code??0;
+  // Indice Page 8 Sports & Activités de plein air basé sur la moyenne/médiane du trajet
+  const mid=waypoints[2]||waypoints[0];
+  const avgTemp=Math.round((waypoints.reduce((a,w)=>a+w.temp,0)/waypoints.length)*10)/10;
+  const maxUv=Math.max(...waypoints.map(w=>w.uvIndex||3));
+  const outdoorInput={temp:avgTemp,feelsLike:mid.feelsLike,precipMm:maxPrecip,windSpeed:maxWind,windGusts:maxGusts,humidity:mid.humidity,uvIndex:maxUv,code:mid.code};
+  const outdoorScore=computePage8Outdoors(outdoorInput);
+  const sports=[
+    {name:'Running',ic:'foot',score:outdoorScore>=7?'9/10 • Idéal':outdoorScore>=4?'6/10 • Faisable':'3/10 • Déconseillé',cls:outdoorScore>=7?'ok':'warn',tip:'Effort aérobie · '+fmtTempSigned(avgTemp)+', pensez à bien vous hydrater.',slot:'08h00 - 11h30'},
+    {name:'Cyclisme',ic:'bike',score:(maxWind>30||maxPrecip>0)?'4/10 • Prudence':'8.5/10 • Excellent',cls:(maxWind>30||maxPrecip>0)?'warn':'ok',tip:'Vent max '+maxWind+' km/h. Vigilance aux rafales en découvert.',slot:'14h00 - 18h00'},
+    {name:'Randonnée',ic:'compass',score:maxPrecip===0?'9.2/10 • Remarquable':'5/10 • Chaussures étanches',cls:maxPrecip===0?'ok':'warn',tip:'Visibilité '+minVis+' km. Prenez une veste adaptée.',slot:'Journée entière'},
+    {name:'Baignade',ic:'sun',score:(avgTemp>=22&&maxPrecip===0)?'8.8/10 • Très propice':'4.5/10 • Frais',cls:(avgTemp>=22&&maxPrecip===0)?'ok':'muted',tip:'Indice UV '+Math.round(maxUv)+'. Protection solaire conseillée.',slot:'12h00 - 17h00'}
+  ];
+  let traffic=null;
+  if(mode==='car'){
+    const h=now.getHours()+now.getMinutes()/60,d=now.getDay();
+    const depStr=(fromName+' '+toName).toLowerCase();
+    const isMetro=/paris|boulogne|versailles|lyon|marseille|île-de-france/.test(depStr);
+    const isRush=(h>=7.25&&h<=9.5)||(h>=16.75&&h<=19.5)||(d===6&&h>=9&&h<=13.5);
+    const isWknd=(d===5&&h>=15&&h<=20.5)||(d===0&&h>=16&&h<=21);
+    let level='VERT',label='Trafic fluide estimé',summary='Conditions de circulation globalement normales (indicateurs Bison Futé / Sytadin).';
+    if(hasIceOrSnow){level='ROUGE';label='Trafic très perturbé (hiver)';summary='Fort risque de ralentissements lié aux conditions hivernales (Vigilance Météo-France / Bison Futé).';}
+    else if(hasAquaplaning||(isWknd&&isMetro)){level='ORANGE';label='Trafic dense sur les axes';summary='Affluence marquée ou météo pluvieuse ralentissant les grands axes.';}
+    else if(isRush){level=isMetro?'ORANGE':'JAUNE';label='Heure de pointe';summary='Créneau de trafic soutenu en approche des agglomérations (Sytadin / Bison Futé).';}
+    else if(maxPrecip>0.8||maxGusts>=65||minVis<1){level='JAUNE';label='Vigilance météo routière';summary='Prudence recommandée sur le réseau principal suite aux conditions météo.';}
+    traffic={level,label,summary};
+  }
+  const result={
+    mode,
+    createdAt:Date.now(),
+    fromName,
+    toName,
+    distKm,
+    durStr:C.formatDuration(route.duration),
+    depTime:waypoints[0].etaLabel,
+    arrTime:waypoints[waypoints.length-1].etaLabel,
+    serenity:finalScore,
+    verdict,
+    dominant,
+    domCode,
+    waypoints,
+    hazards,
+    recs,
+    outdoorScore,
+    avgTemp,
+    maxPrecip,
+    maxWind,
+    outdoorFeels:mid.feelsLike,
+    sports,
+    traffic
+  };
+  route._stepWeatherData=result;
+  // Résolution douce en arrière-plan des noms de communes pour les 3 étapes intermédiaires
+  [1,2,3].forEach(idx=>{
+    const w=result.waypoints[idx];
+    reverseLocalityLabel(w.lat,w.lon).then(city=>{
+      if(!city)return;
+      const road=w.name&&w.name!==('Étape '+idx)&&!w.name.toLowerCase().includes(city.toLowerCase())?' / '+w.name:'';
+      w.name=city+road;
+      if(token===TR.stepWeatherReq&&TR.stepWeather&&TR.routes[TR.index]===route){
+        const node=document.querySelector('[data-rsw-place="'+idx+'"]');
+        if(node)node.textContent=w.name;
+      }
+    });
+  });
+  return result;
+}
+function renderRouteStepWeather(res){
+  const box=$('routeStepWeather');
+  if(!box||!res)return;
+  const sCls=res.serenity>=8.5?'ok':res.serenity>=6?'warn':'bad';
+  const sCol=res.serenity>=8.5?'#34d399':res.serenity>=6?'#fbbf24':'#fb7185';
+  const roadLabel=(w)=>{
+    if(w.roadCondition==='VERGLAS / GLISSANTE')return 'VERGLAS<br>GLISSANTE';
+    if(w.roadCondition==='RISQUE AQUAPLANING')return 'RISQUE<br>AQUAPLANING';
+    return 'CHAUSSÉE<br>'+esc(w.roadCondition);
+  };
+  const mLabel=(TRAVEL_MODES[res.mode]||TRAVEL_MODES.car).label;
+  const gearHtml=[
+    '<span>'+icon('thermo')+(res.avgTemp<15?'Veste respirante':'T-shirt technique')+'</span>',
+    '<span>'+icon('sun')+'Protection UV</span>',
+    ...(res.maxPrecip>0?['<span>'+icon('rain')+'Imperméable</span>']:[]),
+    ...(res.maxWind>25?['<span>'+icon('wind')+'Coupe-vent</span>']:[])
+  ].join('');
+  box.innerHTML=
+    '<div class="rsw-trip-meta">'+
+      '<div class="rsw-route-line">'+icon(res.mode==='bike'?'bike':res.mode==='foot'?'foot':'car')+'<span>'+esc(res.fromName)+'</span><span class="rsw-route-arrow">→</span><span>'+esc(res.toName)+'</span></div>'+
+      '<div class="rsw-meta-pills">'+
+        '<span class="rsw-pill">'+icon('route')+res.distKm+' km</span>'+
+        '<span class="rsw-pill emerald">'+icon('clock')+'~'+esc(res.durStr)+'</span>'+
+        '<span class="rsw-pill">Départ '+esc(res.depTime)+' → Arrivée ~'+esc(res.arrTime)+'</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="rsw-kpis">'+
+      '<div class="rsw-kpi"><span class="rsw-kpi-lbl">Indice de sérénité</span><div class="rsw-kpi-val"><strong style="color:'+sCol+'">'+res.serenity+'</strong><span>/10</span></div><div class="rsw-kpi-sub '+sCls+'">'+esc(res.verdict)+'</div></div>'+
+      '<div class="rsw-kpi"><span class="rsw-kpi-lbl">Profil météo</span><div class="rsw-kpi-prof">'+weatherIcon(res.domCode,1)+'<span>'+esc(res.dominant)+'</span></div><span class="rsw-sec-hint">'+esc(mLabel)+'</span></div>'+
+      '<div class="rsw-kpi"><span class="rsw-kpi-lbl">Analyse du parcours</span><div class="rsw-kpi-steps">'+icon('layers')+'<span>'+res.waypoints.length+' étapes<br><small style="color:#9fc0d9;font-weight:500">analysées</small></span></div></div>'+
+    '</div>'+
+    '<div class="rsw-sec-head"><span class="rsw-sec-title">'+icon('cloud')+'Météo étape par étape</span><span class="rsw-sec-hint">Touchez une étape pour centrer</span></div>'+
+    '<div class="rsw-timeline">'+
+      res.waypoints.map((w,i)=>
+        '<button type="button" class="rsw-step" data-rsw-step="'+i+'">'+
+          '<div class="rsw-track"><span class="rsw-dot"></span></div>'+
+          '<div class="rsw-loc"><span class="rsw-kind">'+esc(w.kind)+'</span><span class="rsw-place" data-rsw-place="'+i+'">'+esc(w.name)+'</span><span class="rsw-km">'+w.distKm+' km</span></div>'+
+          '<div class="rsw-wx"><span class="rsw-eta">'+esc(w.etaLabel)+'</span><div class="rsw-temp-row">'+weatherIcon(w.code,w.day)+'<span>'+esc(fmtTempSigned(w.temp))+'</span></div></div>'+
+          '<div class="rsw-metrics"><span>Pluie : <b>'+w.precipProb+'%</b> ('+w.precipMm+' mm)</span><span>Vent : <b>'+esc(fW(w.windSpeed))+'</b></span><span>Visibilité : <b>'+w.visKm+' km</b></span></div>'+
+          '<span class="rsw-road '+w.roadClass+'">'+roadLabel(w)+'</span>'+
+          (w.hazardAlert?'<div class="rsw-hazard-note">'+esc(w.hazardAlert)+'</div>':'')+
+        '</button>'
+      ).join('')+
+    '</div>'+
+    '<div class="rsw-sec-head"><span class="rsw-sec-title">'+icon('sun')+'Activités sportives &amp; Sortie (Page 8)</span><span class="rsw-sec-hint">Conditions du parcours</span></div>'+
+    '<div class="rsw-card">'+
+      '<div class="rsw-outdoor-top">'+
+        '<div><div class="rsw-kpi-lbl">Index global de sortie</div><div class="rsw-outdoor-score"><strong>'+res.outdoorScore+'</strong><span>/ 10</span></div></div>'+
+        '<div class="rsw-kpi-sub '+(res.outdoorScore>=7?'ok':'warn')+'">'+(res.outdoorScore>=7.5?'Conditions très favorables':res.outdoorScore>=5?'Conditions correctes':'Conditions délicates')+'</div>'+
+      '</div>'+
+      '<div class="rsw-sec-hint">Basé sur '+esc(fmtTempSigned(res.avgTemp))+' (ressenti '+esc(fmtTempSigned(res.outdoorFeels))+'), pluie max '+res.maxPrecip+' mm, vent '+esc(fW(res.maxWind))+'.</div>'+
+      '<div class="rsw-gear">'+gearHtml+'</div>'+
+      '<div class="rsw-sports-grid">'+
+        res.sports.map(sp=>
+          '<div class="rsw-sport-item">'+
+            '<div class="rsw-sport-head"><span>'+esc(sp.name)+'</span>'+icon(sp.ic)+'</div>'+
+            '<div class="rsw-sport-score '+sp.cls+'">'+esc(sp.score)+'</div>'+
+            '<div class="rsw-sport-tip">'+esc(sp.tip)+'</div>'+
+            '<div class="rsw-sport-slot">Créneau : '+esc(sp.slot)+'</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="rsw-sec-head"><span class="rsw-sec-title">'+icon('alert')+'Vigilance &amp; Conseils de trajet</span></div>'+
+    '<div class="rsw-card">'+
+      (res.hazards.length?'<div class="rsw-kpi-lbl" style="color:#fbbf24">Points de vigilance météo</div><ul class="rsw-list">'+res.hazards.map(h=>'<li>'+esc(h)+'</li>').join('')+'</ul>':'<div class="rsw-kpi-sub ok">Aucun aléa météo majeur détecté sur le trajet.</div>')+
+      '<div class="rsw-kpi-lbl" style="margin-top:9px;color:#7dd3fc">Conseils ('+esc(mLabel)+')</div>'+
+      '<ul class="rsw-list">'+res.recs.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul>'+
+      (res.traffic?'<div style="margin-top:10px;padding-top:9px;border-top:1px solid rgba(176,213,249,.14)"><div class="rsw-traffic-row"><span class="rsw-kpi-lbl">Vigilance trafic routier</span><span class="rsw-traffic-badge '+res.traffic.level+'">'+esc(res.traffic.level)+' · '+esc(res.traffic.label)+'</span></div><div class="rsw-sec-hint" style="margin-top:4px">'+esc(res.traffic.summary)+'</div></div>':'')+
+    '</div>';
+  box.onclick=e=>{
+    const b=e.target.closest('[data-rsw-step]');
+    if(!b)return;
+    const st=res.waypoints[+b.dataset.rswStep];
+    if(st)focusMap(st.lat,st.lon,13.5);
+  };
+}
+async function openOrRenderStepWeather(){
+  const route=TR.routes[TR.index],box=$('routeStepWeather');
+  if(!route||!box)return;
+  const tok=++TR.stepWeatherReq;
+  box.innerHTML='<div class="rsw-loading"><span class="small-spinner" style="border-color:rgba(94,234,212,.25);border-top-color:#5eead4"></span><span>Calcul météo étape par étape et activités sportives…</span></div>';
+  try{
+    const data=await fetchRouteStepWeather(route,TR.mode||'car',tok);
+    if(tok!==TR.stepWeatherReq||!TR.stepWeather)return;
+    renderRouteStepWeather(data);
+  }catch(_){
+    if(tok!==TR.stepWeatherReq||!TR.stepWeather)return;
+    box.innerHTML='<div class="rsw-card"><div class="rsw-kpi-sub warn">Impossible de charger les prévisions détaillées pour le moment.</div></div>';
+  }
+}
 async function setTravelMode(mode){
   if(!TRAVEL_MODES[mode]||mode===TR.mode)return;
   TR.mode=mode;cfg.travelMode=mode;saveCfg();
@@ -4221,6 +4636,7 @@ function setupTravel(){
         if(DRIVE.active)stopDriving();
         TR.index=targetIdx;TR.tollAnnounced.clear();resetDriveMatching();
         renderRouteResult();renderRoute();if(!DRIVE.active)fitRoute();
+        if(TR.stepWeather)openOrRenderStepWeather();
         return;
       }
       if(!DRIVE.active)calculateRoute();
@@ -4306,10 +4722,34 @@ function setupTravel(){
   $('carSearchGo').onclick=runCarSearch;
   $('carQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runCarSearch();}});
   document.addEventListener('click',e=>{if(!e.target.closest('.car-search-wrap'))$('carSuggestions').hidden=true;});
-  $('routeAlternatives').onclick=e=>{const b=e.target.closest('[data-route]');if(!b)return;if(DRIVE.active)stopDriving();TR.index=+b.dataset.route;renderRouteResult();renderRoute();fitRoute();};
+  $('routeAlternatives').onclick=e=>{const b=e.target.closest('[data-route]');if(!b)return;if(DRIVE.active)stopDriving();TR.index=+b.dataset.route;renderRouteResult();renderRoute();fitRoute();if(TR.stepWeather)openOrRenderStepWeather();};
   $('routeEdit').onclick=()=>{$('routePanel').classList.add('editing');syncRouteFields();};
   $('clearRoute').onclick=()=>{clearTrip();closeRoute();};
-  $('routeStepsBtn').onclick=()=>{TR.steps=!TR.steps;$('routeSteps').hidden=!TR.steps;$('routeStepsBtn').setAttribute('aria-expanded',String(TR.steps));};
+  $('routeStepsBtn').onclick=()=>{
+    TR.steps=!TR.steps;
+    if(TR.steps){
+      TR.stepWeather=false;
+      if($('routeStepWeather'))$('routeStepWeather').hidden=true;
+      if($('routeStepWeatherBtn'))$('routeStepWeatherBtn').setAttribute('aria-expanded','false');
+      $('routePanel').classList.remove('step-weather-open');
+    }
+    $('routeSteps').hidden=!TR.steps;$('routeStepsBtn').setAttribute('aria-expanded',String(TR.steps));
+  };
+  if($('routeStepWeatherBtn'))$('routeStepWeatherBtn').onclick=()=>{
+    TR.stepWeather=!TR.stepWeather;
+    if(TR.stepWeather){
+      TR.steps=false;
+      $('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
+      $('routePanel').classList.add('step-weather-open');
+      $('routeStepWeather').hidden=false;
+      $('routeStepWeatherBtn').setAttribute('aria-expanded','true');
+      openOrRenderStepWeather();
+    }else{
+      $('routePanel').classList.remove('step-weather-open');
+      $('routeStepWeather').hidden=true;
+      $('routeStepWeatherBtn').setAttribute('aria-expanded','false');
+    }
+  };
   $('routeFit').onclick=fitRoute;
   window.addEventListener('pagehide',()=>stopGPS());
 }
