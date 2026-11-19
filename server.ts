@@ -1492,7 +1492,21 @@ interface TrafficIncidentRecord {
 
 const TRAFFIC_INCIDENTS_FILE = path.join('/tmp', 'skymap_traffic_incidents.json');
 const trafficSpeedCells = new Map<string, TrafficProbeCell>();
+const trafficSseClients = new Set<express.Response>();
+const lastTelemetryBroadcastAt = new Map<string, number>();
 let trafficIncidents: TrafficIncidentRecord[] = [];
+
+function broadcastTrafficUpdate(reason: string, payload?: Record<string, unknown>): void {
+  if (!trafficSseClients.size) return;
+  const msg = `event: traffic\ndata: ${JSON.stringify({ reason, ts: Date.now(), ...(payload || {}) })}\n\n`;
+  for (const client of trafficSseClients) {
+    try {
+      client.write(msg);
+    } catch (_) {
+      trafficSseClients.delete(client);
+    }
+  }
+}
 
 function loadTrafficIncidents(): void {
   try {
@@ -1576,7 +1590,29 @@ function computeHistoricalTrafficProfile(hour: number, dayOfWeek: number) {
   return { hour, dayOfWeek, motorwayFactor, trunkPrimaryFactor, urbanFactor, label };
 }
 
-// Télémétrie GPS anonymisée des véhicules pour estimer la vitesse réelle des segments
+// Flux temps réel Server-Sent Events pour diffuser instantanément bouchons & incidents aux autres utilisateurs
+app.get('/api/traffic/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+  res.write(`event: connected\ndata: ${JSON.stringify({ ts: Date.now() })}\n\n`);
+  trafficSseClients.add(res);
+  const keepalive = setInterval(() => {
+    try {
+      res.write(': keepalive\n\n');
+    } catch (_) {
+      clearInterval(keepalive);
+      trafficSseClients.delete(res);
+    }
+  }, 25000);
+  req.on('close', () => {
+    clearInterval(keepalive);
+    trafficSseClients.delete(res);
+  });
+});
+
+// Télémétrie GPS anonymisée des véhicules pour estimer la vitesse réelle des segments et détecter les bouchons
 app.post('/api/traffic/telemetry', (req, res) => {
   cleanupTrafficState();
   const { lat, lon, speedKmh, freeFlowKmh, roadName, mode = 'car' } = req.body || {};
@@ -1592,6 +1628,7 @@ app.post('/api/traffic/telemetry', (req, res) => {
     return;
   }
 
+  const now = Date.now();
   const key = `${Math.round(nLat * 200) / 200}:${Math.round(nLon * 200) / 200}:${String(mode)}`;
   const refFreeFlow = Math.max(15, Math.min(130, Number(freeFlowKmh) || (mode === 'car' ? 70 : 18)));
   const existing = trafficSpeedCells.get(key);
@@ -1611,9 +1648,49 @@ app.post('/api/traffic/telemetry', (req, res) => {
     ratio: Math.round(ratio * 100) / 100,
     roadName: typeof roadName === 'string' ? roadName.slice(0, 80) : '',
     mode: String(mode),
-    updatedAt: Date.now()
+    updatedAt: now
   };
   trafficSpeedCells.set(key, cell);
+
+  // Détection automatique de bouchon lorsque la vitesse chute fortement sur la zone
+  const autoId = `inc-tel-${key}`;
+  let autoIncidentChanged = false;
+  const prevAutoIdx = trafficIncidents.findIndex((x) => x.id === autoId);
+  if (mode === 'car' && cell.ratio >= 1.95 && (count >= 2 || avgSpeedKmh <= 14)) {
+    const cleanRoad = cell.roadName ? ` · ${cell.roadName}` : '';
+    const autoRec: TrafficIncidentRecord = {
+      id: autoId,
+      type: 'jam',
+      lat: cell.lat,
+      lon: cell.lon,
+      title: `Bouchon détecté${cleanRoad}`,
+      description: `Vitesse mesurée : ${cell.avgSpeedKmh} km/h`,
+      delaySec: Math.min(960, Math.round(cell.ratio * 180)),
+      radiusM: 480,
+      severity: cell.ratio >= 2.6 ? 'high' : 'medium',
+      source: 'telemetry',
+      confirmations: count,
+      reportedAt: prevAutoIdx >= 0 ? trafficIncidents[prevAutoIdx].reportedAt : now,
+      expiresAt: now + 15 * 60 * 1000
+    };
+    if (prevAutoIdx >= 0) {
+      trafficIncidents[prevAutoIdx] = autoRec;
+    } else {
+      trafficIncidents.push(autoRec);
+      autoIncidentChanged = true;
+    }
+    saveTrafficIncidents();
+  } else if (cell.ratio < 1.35 && prevAutoIdx >= 0) {
+    trafficIncidents.splice(prevAutoIdx, 1);
+    saveTrafficIncidents();
+    autoIncidentChanged = true;
+  }
+
+  const lastB = lastTelemetryBroadcastAt.get(key) || 0;
+  if (autoIncidentChanged || (cell.ratio >= 1.35 && now - lastB > 8000)) {
+    lastTelemetryBroadcastAt.set(key, now);
+    broadcastTrafficUpdate('telemetry-congestion', { key, ratio: cell.ratio });
+  }
 
   res.json({ success: true, cell });
 });
@@ -1689,6 +1766,7 @@ app.post('/api/traffic/incidents', (req, res) => {
   };
   trafficIncidents.push(record);
   saveTrafficIncidents();
+  broadcastTrafficUpdate('incident-added', { id: record.id, type: record.type, lat: record.lat, lon: record.lon });
 
   res.status(201).json({ success: true, incident: record });
 });
@@ -1703,6 +1781,7 @@ app.post('/api/traffic/incidents/:id/confirm', (req, res) => {
   inc.confirmations += 1;
   inc.expiresAt = Math.max(inc.expiresAt, Date.now() + 90 * 60 * 1000);
   saveTrafficIncidents();
+  broadcastTrafficUpdate('incident-confirmed', { id: inc.id, confirmations: inc.confirmations });
   res.json({ success: true, incident: inc });
 });
 
@@ -1710,8 +1789,12 @@ app.delete('/api/traffic/incidents/:id', (req, res) => {
   cleanupTrafficState();
   const prev = trafficIncidents.length;
   trafficIncidents = trafficIncidents.filter((x) => x.id !== req.params.id);
-  if (trafficIncidents.length !== prev) saveTrafficIncidents();
-  res.json({ success: true, removed: trafficIncidents.length !== prev });
+  const removed = trafficIncidents.length !== prev;
+  if (removed) {
+    saveTrafficIncidents();
+    broadcastTrafficUpdate('incident-removed', { id: req.params.id });
+  }
+  res.json({ success: true, removed });
 });
 
 // 14. Récupération d'un profil joueur individuel (persistance inter-sessions et après mise à jour)
