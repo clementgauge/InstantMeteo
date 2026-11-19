@@ -794,8 +794,8 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       'Consultez l’historique météo jour par jour en France depuis 1950 : températures passées, cumuls de pluie, records et normales climatiques 1991-2020.',
     h1: 'Historique météo et normales de saison',
     sectionTitle: 'Recherche dans les archives climatiques et comparaison aux normales',
-    breadcrumbName: 'Archives & Normales',
-    tabId: 'weatherArchive',
+    breadcrumbName: 'Évolution & Archives',
+    tabId: 'historicalTrends',
     changefreq: 'daily',
     priority: '0.80',
     introParagraph:
@@ -1926,6 +1926,7 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
     bulletin: '/bulletins',
     fourWeeks: '/bulletins',
     nationalDigest: '/bulletins',
+    historicalTrends: '/archives',
     weatherArchive: '/archives',
     historicalArchive: '/archives',
     historical: '/archives',

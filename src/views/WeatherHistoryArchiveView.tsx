@@ -47,6 +47,7 @@ interface WeatherHistoryArchiveViewProps {
   tempUnit?: 'C' | 'F';
   onOpenSearchModal?: () => void;
   onBackToMain?: () => void;
+  embedded?: boolean;
 }
 
 export type WeatherMainCondition = 
@@ -113,7 +114,8 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
   seniorMode = false,
   tempUnit = 'C',
   onOpenSearchModal,
-  onBackToMain
+  onBackToMain,
+  embedded = false
 }) => {
   // Date Picker state (defaults to yesterday)
   const defaultYesterday = useMemo(() => {
@@ -302,51 +304,65 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
 
   return (
     <div id="weather-history-archive-page" className="space-y-6">
-      {/* 1. Header Banner */}
+      {/* 1. Header Banner / Integrated Archive Selector */}
       <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-1">
-              <History className="h-4 w-4 text-amber-400" />
-              <span>Archives climatologiques et carnet d'observations</span>
+        {!embedded ? (
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-1">
+                <History className="h-4 w-4 text-amber-400" />
+                <span>Archives climatologiques et carnet d'observations</span>
+              </div>
+              <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
+                Historique météo et recherche par date
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                Consultez les conditions météorologiques enregistrées dans le passé (températures, précipitations, vent) pour n'importe quelle date et consignez vos observations.
+              </p>
             </div>
-            <h2 className={`font-black text-white ${seniorMode ? 'text-2xl' : 'text-xl sm:text-2xl'}`}>
-              Historique météo et recherche par date
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Consultez les conditions météorologiques enregistrées dans le passé (températures, précipitations, vent) pour n'importe quelle date et consignez vos observations.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2">
-            {onBackToMain && (
-              <button
-                onClick={onBackToMain}
-                className="flex items-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3 py-2 text-xs border border-slate-700 transition cursor-pointer"
-                title="Retourner à la météo en direct"
-              >
-                <span>← Retour au direct</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {onBackToMain && (
+                <button
+                  onClick={onBackToMain}
+                  className="flex items-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3 py-2 text-xs border border-slate-700 transition cursor-pointer"
+                  title="Retourner à la météo en direct"
+                >
+                  <span>← Retour au direct</span>
+                </button>
+              )}
 
-            {onOpenSearchModal && (
-              <button
-                onClick={onOpenSearchModal}
-                className="flex items-center gap-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold px-3 py-2 text-xs border border-sky-500 transition cursor-pointer"
-              >
-                <MapPin className="h-3.5 w-3.5" />
-                <span>Changer de ville ({station.name})</span>
-              </button>
-            )}
+              {onOpenSearchModal && (
+                <button
+                  onClick={onOpenSearchModal}
+                  className="flex items-center gap-1.5 rounded-md bg-[#0284C7] hover:bg-sky-600 text-white font-semibold px-3 py-2 text-xs border border-sky-500 transition cursor-pointer"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>Changer de ville ({station.name})</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-0.5">
+                <Calendar className="h-4 w-4 text-amber-400" />
+                <span>Archives Journalières depuis 1950 &amp; Carnet d'Observations</span>
+              </div>
+              <h3 className={`font-bold text-white ${seniorMode ? 'text-xl' : 'text-base sm:text-lg'}`}>
+                Historique météo jour par jour &amp; Recherche par date ({station.name})
+              </h3>
+            </div>
+          </div>
+        )}
 
         {/* Date Selector Form */}
-        <div className="mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className={`${embedded ? 'mt-3 pt-3' : 'mt-4 pt-4'} border-t border-slate-800 flex flex-wrap items-center justify-between gap-3`}>
+          <div className="flex items-center gap-2 flex-wrap">
             <label htmlFor="history-date-input" className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-amber-400" />
-              <span>Date consultée :</span>
+              <span>Date consultée (depuis 1950) :</span>
             </label>
             <input
               id="history-date-input"
@@ -359,7 +375,7 @@ export const WeatherHistoryArchiveView: React.FC<WeatherHistoryArchiveViewProps>
             />
           </div>
 
-          {onBackToMain && (
+          {!embedded && onBackToMain && (
             <button
               onClick={onBackToMain}
               className="text-xs text-sky-400 hover:text-sky-300 font-medium transition cursor-pointer"

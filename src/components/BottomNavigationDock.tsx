@@ -5,7 +5,6 @@ import {
   CloudRain, 
   FileText, 
   Clock, 
-  Calendar, 
   Globe2, 
   Layers, 
   Sparkles, 
@@ -158,10 +157,9 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'droughtFire', label: 'Sécheresse & Incendie', shortLabel: 'Sécheresse', icon: Flame, badge: 'VigiEau' },
     { id: 'watercourses', label: 'Vigie Cours d\'Eau', shortLabel: 'Cours d\'Eau', icon: Droplets, badge: 'Vigicrues' },
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
-    { id: 'historicalTrends', label: 'Évolution', shortLabel: 'Évolution', icon: History, badge: '2000' },
+    { id: 'historicalTrends', label: 'Évolution & Archives', shortLabel: 'Évolution & Archives', icon: History, badge: '2000+' },
     { id: 'sportsActivities', label: 'Sport & Trajet', shortLabel: 'Trajet', icon: TrendingUp },
     { id: 'worldDisasters', label: 'Atlas des catastrophes', shortLabel: 'Catastrophes', icon: Radio },
-    { id: 'weatherArchive', label: 'Archives Journalières', shortLabel: 'Archives', icon: Calendar, badge: 'Nouveau' },
     { id: 'bulletin', label: 'Bulletins', shortLabel: 'Bulletins', icon: FileText },
     { id: 'competitive', label: 'Compétitif & Classement', shortLabel: 'Défis 🏆', icon: Trophy, badge: '🔥 +Pts' },
     { id: 'discussionGroup', label: 'Groupe de Discussion', shortLabel: 'Salon 💬', icon: MessageSquare, badge: 'Direct' },
@@ -186,7 +184,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       items: [
         { id: 'scenarios14d', label: '5. Tendances & Scénarios 14 Jours', icon: Split, desc: 'Ensembles probabilistes, faisceaux de scénarios et indices de confiance' },
         { id: 'eightMonths', label: '6. Tendances 8 Mois (Département / Région / Pays)', icon: Globe2, desc: '24 Décades spatialisées par département (101), région (13) et pays' },
-        { id: 'historicalTrends', label: '7. Évolution depuis 2000 & Temps Réel (1 min)', icon: History, desc: 'Trajectoire climatique annuelle depuis 2000 et courbe haute fréquence à la minute' },
+        { id: 'historicalTrends', label: '7. Évolution 2000, Temps Réel & Archives Météo', icon: History, desc: 'Trajectoire depuis 2000, courbe à la minute, recherche par date (depuis 1950) et carnet météo' },
       ]
     },
     {
@@ -203,15 +201,14 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       items: [
         { id: 'sportsActivities', label: '8. Activités Sportives & Calculateur de Trajet', icon: TrendingUp, desc: 'Index 0-10, météo d\'itinéraire pas à pas selon moyen de transport (voiture, train, vélo, à pied)' },
         { id: 'worldDisasters', label: '9. Atlas des catastrophes (Monde en temps réel)', icon: Radio, desc: 'Carte mondiale en direct (NASA EONET, USGS, GDACS, NASA Black Marble, RainViewer & records météo)' },
-        { id: 'weatherArchive', label: '10. Archives Journalières & Historique Météo', icon: Calendar, desc: 'Recherche de date passée, météo quotidienne (pluie, soleil, vent, T°C) et journal local' },
-        { id: 'bulletin', label: '11. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
+        { id: 'bulletin', label: '10. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
       ]
     },
     {
       categoryName: '🏆 Communauté, Compétition & Discussion',
       items: [
-        { id: 'competitive', label: '12. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
-        { id: 'discussionGroup', label: '13. Groupe de Discussion & Salon Météo', icon: MessageSquare, desc: 'Échangez en direct avec la communauté météo, partagez vos relevés et discutez des alertes' },
+        { id: 'competitive', label: '11. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
+        { id: 'discussionGroup', label: '12. Groupe de Discussion & Salon Météo', icon: MessageSquare, desc: 'Échangez en direct avec la communauté météo, partagez vos relevés et discutez des alertes' },
       ]
     }
   ];
@@ -331,7 +328,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                         ? 'bg-blue-50 border-blue-200 text-blue-800' 
                         : 'bg-blue-950 border-blue-500/30 text-blue-300'
                     }`}>
-                      19 Modules Experts
+                      18 Modules Experts
                     </span>
                   </h2>
                   <p className={`text-xs ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -601,11 +598,11 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => setIsMenuDrawerOpen(true)}
-                title="Consulter les 20 modules et cartes météo"
+                title="Consulter les 19 modules et cartes météo"
                 className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition active:scale-95 shrink-0 cursor-pointer"
               >
                 <Layers className="h-3.5 w-3.5" />
-                <span className="text-xs font-black whitespace-nowrap">20 Pages</span>
+                <span className="text-xs font-black whitespace-nowrap">19 Pages</span>
               </button>
 
               <button

@@ -930,8 +930,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
       'Look up day-by-day historical weather in France since 1950: past temperatures, rainfall totals, records and 1991-2020 climate normals.',
     h1: 'Historical Weather Archives and Seasonal Normals',
     sectionTitle: 'Searching Historical Climate Records and Comparing with Normals',
-    breadcrumbName: 'Archives & Normals',
-    tabId: 'weatherArchive',
+    breadcrumbName: 'Evolution & Archives',
+    tabId: 'historicalTrends',
     changefreq: 'daily',
     priority: '0.80',
     introParagraph:

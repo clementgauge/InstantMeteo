@@ -4,7 +4,6 @@ import {
   Map, 
   FileText, 
   CloudRain, 
-  Calendar, 
   Globe, 
   Clock, 
   Split, 
@@ -65,7 +64,6 @@ import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
 import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
-import { WeatherHistoryArchiveView } from './views/WeatherHistoryArchiveView';
 import { CompetitiveGamingView } from './views/CompetitiveGamingView';
 import { DiscussionGroupView } from './views/DiscussionGroupView';
 import { MountainWeatherView } from './views/MountainWeatherView';
@@ -766,10 +764,10 @@ function WeatherApp() {
   };
 
   const categories = [
-    { id: 'ALL', label: 'Toutes les prévisions (18)' },
+    { id: 'ALL', label: 'Toutes les prévisions (17)' },
     { id: 'DIRECT', label: '⚡ Direct, Nuages, Alertes, Neige & Gel (6)' },
     { id: 'MEDIUM', label: '⏱️ 0 à 14 Jours (3)' },
-    { id: 'LONG', label: '📅 30 Jours, 8 Mois & Évolution 2000 (3)' },
+    { id: 'LONG', label: '📅 30 Jours, 8 Mois & Évolution / Archives (2)' },
     { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Carte & Monde (5)' },
   ];
 
@@ -781,17 +779,16 @@ function WeatherApp() {
     { id: 'scenarios14d', category: 'MEDIUM', label: '5. 📊 Tendances & Scénarios 14 Jours', icon: Split, highlight: true },
     { id: 'radar', category: 'MAPS', label: '6. 📡 Radar Précipitations, Feux NASA & Vents', icon: CloudRain, highlight: true },
     { id: 'eightMonths', category: 'LONG', label: '7. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
-    { id: 'historicalTrends', category: 'LONG', label: '8. 📈 Évolution depuis 2000 & Temps Réel (1 min)', icon: History, highlight: true },
+    { id: 'historicalTrends', category: 'LONG', label: '8. 📈 Évolution 2000, Temps Réel & Archives Météo', icon: History, highlight: true },
     { id: 'sportsActivities', category: 'MAPS', label: '9. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
     { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Atlas des catastrophes — Monde en direct', icon: Radio },
-    { id: 'weatherArchive', category: 'LONG', label: '11. 📅 Archives Journalières & Historique Météo', icon: Calendar, highlight: true },
-    { id: 'bulletin', category: 'MEDIUM', label: '12. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
-    { id: 'competitive', category: 'DIRECT', label: '13. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
-    { id: 'discussionGroup', category: 'DIRECT', label: '14. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
-    { id: 'mountain', category: 'MAPS', label: '15. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
-    { id: 'beaches', category: 'MAPS', label: '16. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
-    { id: 'droughtFire', category: 'DIRECT', label: '17. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
-    { id: 'watercourses', category: 'DIRECT', label: '18. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
+    { id: 'bulletin', category: 'MEDIUM', label: '11. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
+    { id: 'competitive', category: 'DIRECT', label: '12. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
+    { id: 'discussionGroup', category: 'DIRECT', label: '13. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
+    { id: 'mountain', category: 'MAPS', label: '14. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
+    { id: 'beaches', category: 'MAPS', label: '15. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
+    { id: 'droughtFire', category: 'DIRECT', label: '16. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
+    { id: 'watercourses', category: 'DIRECT', label: '17. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
   // Quick navigation helper
@@ -986,7 +983,6 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
-          onOpenSkyMapTab={() => { window.location.href = '/skymap'; }}
           onOpenAuraModal={() => setIsAuraModalOpen(true)}
           onSelectTab={(tabId) => {
             if (tabId === 'skymap') {
@@ -1000,10 +996,6 @@ function WeatherApp() {
           onOpenStatsModal={() => setIsStatsModalOpen(true)}
           onOpenShareModal={() => {
             setShareModalTab('share');
-            setIsShareModalOpen(true);
-          }}
-          onOpenQrCodeModal={() => {
-            setShareModalTab('qrcode');
             setIsShareModalOpen(true);
           }}
         />
@@ -1209,12 +1201,13 @@ function WeatherApp() {
               />
             )}
 
-            {activeTab === 'historicalTrends' && (
+            {(activeTab === 'historicalTrends' || activeTab === 'weatherArchive') && (
               <HistoricalTrendsAndRealtimeView
                 station={currentStation}
                 weather={weather}
                 seniorMode={seniorMode}
                 tempUnit={tempUnit}
+                onOpenSearchModal={() => setIsSearchModalOpen(true)}
               />
             )}
 
@@ -1227,17 +1220,6 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 simplifiedMode={simplifiedMode}
                 tempUnit={tempUnit}
-              />
-            )}
-
-            {activeTab === 'weatherArchive' && (
-              <WeatherHistoryArchiveView
-                station={currentStation}
-                weather={weather}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onBackToMain={() => setActiveTab('realtime')}
               />
             )}
 
@@ -1624,10 +1606,10 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/archives"
-                onClick={(e) => { e.preventDefault(); setActiveTab('weatherArchive'); window.history.pushState(null, '', '/archives'); }}
+                onClick={(e) => { e.preventDefault(); setActiveTab('historicalTrends'); window.history.pushState(null, '', '/archives'); }}
                 className="text-amber-300 hover:text-amber-200 hover:underline font-medium"
               >
-                Archives Journalières
+                Évolution 2000 &amp; Archives
               </a>
               <span className="text-slate-700">•</span>
               <a

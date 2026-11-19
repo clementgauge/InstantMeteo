@@ -38,6 +38,7 @@ import {
   ReferenceLine 
 } from 'recharts';
 import { LocationPoint, CurrentWeather } from '../types/weather';
+import { WeatherHistoryArchiveView } from './WeatherHistoryArchiveView';
 
 interface HistoricalTrendsAndRealtimeViewProps {
   station: LocationPoint;
@@ -197,7 +198,7 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
   tempUnit = 'C',
   onOpenSearchModal
 }) => {
-  const [activeTab, setActiveTab] = useState<'historical' | 'realtimeMinute'>('historical');
+  const [activeTab, setActiveTab] = useState<'all' | 'historical' | 'realtimeMinute' | 'archives'>('all');
   const [historicalMetric, setHistoricalMetric] = useState<'temperature' | 'rain' | 'extremes'>('temperature');
   const [periodFilter, setPeriodFilter] = useState<'all' | '2000-2010' | '2011-2020' | '2021-2026'>('all');
   const [realtimeMetric, setRealtimeMetric] = useState<'temp' | 'wind' | 'pressure' | 'humidity' | 'solar'>('temp');
@@ -242,13 +243,13 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
           <div>
             <div className="flex items-center gap-1.5 text-sky-400 text-xs font-semibold mb-1">
               <History className="h-4 w-4 text-sky-400" />
-              <span>Observatoire Climatologique &amp; Haute Fréquence</span>
+              <span>Observatoire Climatologique, Haute Fréquence &amp; Archives depuis 1950</span>
             </div>
             <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-lg sm:text-xl'}`}>
-              Évolution : Trajectoire depuis 2000 &amp; Temps Réel à la Minute
+              Évolution depuis 2000, Temps Réel (1 min) &amp; Archives Journalières
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Trajectoire climatique annuelle depuis l'an 2000 et suivi à la minute depuis 00h00 à la station de <strong>{station.name}</strong>.
+              Trajectoire climatique annuelle depuis l'an 2000, courbe haute fréquence à la minute depuis 00h00, recherche d'archives météo jour par jour depuis 1950 et carnet d'observations pour <strong>{station.name}</strong>.
             </p>
           </div>
 
@@ -265,8 +266,20 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
           </div>
         </div>
 
-        {/* Switcher Tabs */}
+        {/* Section Filter Bar (All displayed by default) */}
         <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
+              activeTab === 'all'
+                ? 'bg-[#0284C7] text-white border-sky-400'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Tout afficher (Toutes les données)</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('historical')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
@@ -276,7 +289,7 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
             }`}
           >
             <History className="h-3.5 w-3.5" />
-            <span>Évolution Climatologique depuis 2000</span>
+            <span>Évolution depuis 2000</span>
           </button>
 
           <button
@@ -288,14 +301,34 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
             }`}
           >
             <Activity className="h-3.5 w-3.5" />
-            <span>Temps Réel à la Minute (Aujourd'hui)</span>
+            <span>Temps Réel à la Minute</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('archives')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition cursor-pointer border ${
+              activeTab === 'archives'
+                ? 'bg-amber-600 text-white border-amber-400'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850'
+            }`}
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Archives Journalières (1950+) &amp; Carnet</span>
           </button>
         </div>
       </div>
 
-      {/* 2. TAB 1: CLIMATE EVOLUTION SINCE 2000 */}
-      {activeTab === 'historical' && (
+      {/* 2. SECTION 1: CLIMATE EVOLUTION SINCE 2000 */}
+      {(activeTab === 'all' || activeTab === 'historical') && (
         <div className="space-y-4">
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-2 px-1 pt-1">
+              <History className="h-4 w-4 text-sky-400" />
+              <h3 className="text-sm sm:text-base font-bold text-white">
+                1. Évolution Climatologique depuis 2000
+              </h3>
+            </div>
+          )}
           {/* Key Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-md border border-slate-800 bg-[#0F172A] p-4 space-y-1">
@@ -479,9 +512,17 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
         </div>
       )}
 
-      {/* 3. TAB 2: REAL-TIME 1-MINUTE EVOLUTION TODAY */}
-      {activeTab === 'realtimeMinute' && (
+      {/* 3. SECTION 2: REAL-TIME 1-MINUTE EVOLUTION TODAY */}
+      {(activeTab === 'all' || activeTab === 'realtimeMinute') && (
         <div className="space-y-4">
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-2 px-1 pt-2">
+              <Activity className="h-4 w-4 text-sky-400" />
+              <h3 className="text-sm sm:text-base font-bold text-white">
+                2. Temps Réel à la Minute (Aujourd'hui)
+              </h3>
+            </div>
+          )}
           {/* Live High-Frequency Metric Tiles */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
             <div className="rounded-md border border-slate-800 bg-[#0F172A] p-3 space-y-0.5">
@@ -649,6 +690,28 @@ export const HistoricalTrendsAndRealtimeView: React.FC<HistoricalTrendsAndRealti
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 4. SECTION 3: DAILY HISTORICAL ARCHIVES (SINCE 1950) & JOURNAL */}
+      {(activeTab === 'all' || activeTab === 'archives') && (
+        <div className="space-y-4">
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-2 px-1 pt-2">
+              <Calendar className="h-4 w-4 text-amber-400" />
+              <h3 className="text-sm sm:text-base font-bold text-white">
+                3. Archives Journalières (depuis 1950) &amp; Carnet Météo Personnel
+              </h3>
+            </div>
+          )}
+          <WeatherHistoryArchiveView
+            station={station}
+            weather={weather}
+            seniorMode={seniorMode}
+            tempUnit={tempUnit}
+            onOpenSearchModal={onOpenSearchModal}
+            embedded={true}
+          />
         </div>
       )}
     </div>

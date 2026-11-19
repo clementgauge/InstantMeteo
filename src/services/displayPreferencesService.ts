@@ -93,11 +93,12 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   {
     id: 'historicalTrends',
     number: 7,
-    label: '7. Évolution depuis 2000 & Temps Réel (1 min)',
-    description: 'Trajectoire climatique 2000-présent et courbe minute par minute',
+    label: '7. Évolution 2000, Temps Réel & Archives Météo',
+    description: 'Trajectoire climatique 2000-présent, courbe minute par minute et archives depuis 1950',
     blocks: [
       { id: 'history_since_2000', label: 'Tendances pluriannuelles depuis 2000', description: 'Réchauffement local et records' },
-      { id: 'minute_chart', label: 'Relevé haute fréquence à la minute', description: 'Évolution instantanée continue' }
+      { id: 'minute_chart', label: 'Relevé haute fréquence à la minute', description: 'Évolution instantanée continue' },
+      { id: 'archive_search', label: 'Archives journalières depuis 1950 & Carnet', description: 'Recherche par date passée, profil horaire et journal local' }
     ]
   },
   {
@@ -120,18 +121,9 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
     ]
   },
   {
-    id: 'weatherArchive',
-    number: 10,
-    label: '10. Archives Journalières & Historique Météo',
-    description: 'Météo d\'une date passée, pluie, soleil, température et journal local',
-    blocks: [
-      { id: 'archive_search', label: 'Sélecteur de date historique', description: 'Recherche par date passée' }
-    ]
-  },
-  {
     id: 'bulletin',
-    number: 11,
-    label: '11. Bulletins Prévisions (J+7 & 4 Semaines)',
+    number: 10,
+    label: '10. Bulletins Prévisions (J+7 & 4 Semaines)',
     description: 'Synthèse textuelle rédigée pour la commune, département et pays',
     blocks: [
       { id: 'bulletin_text', label: 'Bulletins rédigés officiels', description: 'Analyse synoptique et tendance globale' }
@@ -139,8 +131,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'competitive',
-    number: 12,
-    label: '12. Mode Compétitif, Flammes & Classement',
+    number: 11,
+    label: '11. Mode Compétitif, Flammes & Classement',
     description: 'Défis de chasseur météo, points GPS réels, badges et classement',
     blocks: [
       { id: 'player_card', label: 'Carte Chasseur & Flammes', description: 'Statut, points et multiplicateurs' },
@@ -150,8 +142,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'discussionGroup',
-    number: 13,
-    label: '13. Groupe de Discussion & Salon Météo',
+    number: 12,
+    label: '12. Groupe de Discussion & Salon Météo',
     description: 'Échanges en direct entre passionnés, chasseurs d\'orages et observateurs',
     blocks: [
       { id: 'channels', label: 'Salons Thématiques', description: 'Général, Chasseurs d\'orages, Alertes, Photos du ciel' },
@@ -161,8 +153,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'mountain',
-    number: 14,
-    label: '14. Météo Montagne & Nivologie (BERA)',
+    number: 13,
+    label: '13. Météo Montagne & Nivologie (BERA)',
     description: 'Risque d\'avalanche 1 à 5, bulletins BERA Météo-France, balises Nivôse et isotherme 0°C',
     blocks: [
       { id: 'massif_bera', label: 'Bulletin BERA & Risque d\'avalanche', description: 'Massifs officiels, versants et altitudes critiques' },
@@ -172,8 +164,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'beaches',
-    number: 15,
-    label: '15. Météo des Plages & Littoral',
+    number: 14,
+    label: '14. Météo des Plages & Littoral',
     description: 'Température de la mer, annuaire des marées SHOM, état de la mer et drapeaux de baignade',
     blocks: [
       { id: 'beach_spot', label: 'Station balnéaire & Drapeaux de baignade', description: 'Conditions du plan d\'eau et sécurité' },
@@ -182,8 +174,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'droughtFire',
-    number: 16,
-    label: '16. Vigilance Sécheresse & Météo des Forêts',
+    number: 15,
+    label: '15. Vigilance Sécheresse & Météo des Forêts',
     description: 'Météo des forêts Météo-France, Indice Forêt Météo (IFM/FWI) et arrêtés VigiEau',
     blocks: [
       { id: 'forest_fire_danger', label: 'Météo des Forêts & Indice IFM', description: 'Indices FFMC, ISI, BUI et feux satellites' },
@@ -192,8 +184,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'watercourses',
-    number: 17,
-    label: '17. Vigie Cours d\'Eau & Vigicrues',
+    number: 16,
+    label: '16. Vigie Cours d\'Eau & Vigicrues',
     description: 'Hauteurs d\'eau en direct, débits instantanés m³/s, cotes d\'alerte SCHAPI et crues historiques',
     blocks: [
       { id: 'river_levels', label: 'Hauteurs d\'eau & Débits instantanés', description: 'Jauge limnimétrique et tendance' },
