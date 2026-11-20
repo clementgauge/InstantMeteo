@@ -1,12 +1,15 @@
 /**
- * Calculateur Dynamique de Fiabilité Météorologique & Convergence Multi-Modèles
- * 
- * Évalue scientifiquement la stabilité de l'atmosphère sans jamais décrédibiliser
- * l'application, en s'appuyant sur les méthodes du CEPMMT (ECMWF) et de Météo-France :
- * 1. Échéance temporelle calibrée (haute prévisibilité déterministe à J+3, tendance d'ensemble solide à J+14)
- * 2. Convergence multi-modèles (AROME, ECMWF IFS, ICON, GFS, UKMO, GEM, AIFS IA)
- * 3. Scénarios rapprochés qualifiés en convergence étroite plutôt qu'en incertitude disqualifiante
- * 4. Plancher de confiance garanti (minimum 72-74% même à longue échéance)
+ * Calculateur Dynamique de Fiabilité Météorologique & Dispersion Multi-Modèles
+ *
+ * Règles de calibration scientifique :
+ * 1. La fiabilité varie réellement selon les conditions synoptiques, la convection,
+ *    la limite pluie-neige, la dispersion inter-modèles / ensembliste (P90-P10)
+ *    et l'instabilité entre les 3 derniers runs.
+ * 2. Plancher absolu à 35 % : même dans les situations les plus chaotiques ou
+ *    catastrophiques, l'indice ne descend jamais en dessous de 35 %.
+ * 3. Plafond les 1ers jours à 98 % (rare, uniquement en consensus unanime très stable).
+ * 4. Plafond strict à 80 % après 5 jours : par principe, dès J+5 et au-delà,
+ *    la fiabilité ne peut jamais dépasser 80 %.
  */
 
 export interface ReliabilityFactors {
@@ -16,14 +19,17 @@ export interface ReliabilityFactors {
   precipitationMm?: number;
   precipitationProbability?: number;
   convectiveCape?: number; // J/kg
-  temperatureSpreadC?: number; // Écart max entre modèles
+  temperatureSpreadC?: number; // Écart max-min entre modèles (ou P90-P10)
+  ensembleSpreadP90P10C?: number; // Dispersion P90-P10 des scénarios d'ensemble
+  runToRunSwingC?: number; // Oscillation max entre les 3 derniers runs
   precipitationSpreadMm?: number;
   temperatureC?: number;
   altitudeM?: number;
+  modelsCount?: number;
 }
 
 export interface DynamicReliabilityResult {
-  scorePct: number; // 72% à 98%
+  scorePct: number; // 35 % minimum à ~97 % maximum (plafonné à 80 % après 5 jours)
   grade: 'EXCELLENTE' | 'BONNE' | 'MOYENNE' | 'DÉLICATE' | 'FAIBLE_SPÉCULATIVE';
   gradeLabel: string;
   divergenceLevel: 'TRÈS_FAIBLE' | 'FAIBLE_CONSENSUS' | 'MODEREE' | 'FORTE_DIVERGENCE' | 'DIVERGENCE_MAXIMALE';
@@ -40,125 +46,180 @@ export function calculateDynamicReliability(factors: ReliabilityFactors): Dynami
   const code = factors.weatherCode ?? 0;
   const rain = factors.precipitationMm ?? 0;
   const cape = factors.convectiveCape ?? 0;
-  const tSpread = factors.temperatureSpreadC ?? (d <= 2 ? 0.6 : d <= 5 ? 1.4 : d <= 8 ? 2.2 : 3.0);
+  const tSpread = factors.temperatureSpreadC ?? (d <= 1 ? 0.8 : d <= 3 ? 1.5 : d <= 6 ? 2.8 : d <= 9 ? 4.2 : 5.6);
+  const ensSpread = factors.ensembleSpreadP90P10C ?? tSpread;
+  const runSwing = factors.runToRunSwingC ?? 0;
   const temp = factors.temperatureC ?? 15;
   const alt = factors.altitudeM ?? 150;
 
-  // 1. Base chronologique de convergence multi-modèles (calibrage professionnel rigoureux)
-  let baseScore = 96;
-  if (d === 0) baseScore = 98;
-  else if (d === 1) baseScore = 96;
-  else if (d === 2) baseScore = 94;
-  else if (d === 3) baseScore = 91;
-  else if (d === 4) baseScore = 88;
-  else if (d === 5) baseScore = 86;
-  else if (d === 6) baseScore = 84;
-  else if (d === 7) baseScore = 82;
-  else if (d === 8) baseScore = 80;
-  else if (d === 9) baseScore = 78;
-  else if (d === 10) baseScore = 77;
-  else baseScore = Math.max(74, Math.round(76 - (d - 11) * 0.8));
+  // 1. Courbe de base réaliste par échéance (J+0 ~93% -> J+1 ~91% -> J+5 ~73% -> J+14 ~52% -> J+30 ~45%)
+  const baseCurve = [93, 91, 86, 82, 78, 73, 69, 65, 62, 59, 57, 55, 54, 53, 52, 51];
+  const baseScore = d < baseCurve.length
+    ? baseCurve[d]
+    : Math.max(44, Math.round(50 - (d - 15) * 0.4));
 
   let modifier = 0;
   const reasons: string[] = [];
 
-  // 2. Impact du champ de pression (Anticyclone protecteur vs circulation perturbée)
-  if (p >= 1025) {
-    const boost = d <= 2 ? 2 : d <= 6 ? 4 : 5;
+  // 2. Impact synoptique réel (anticyclone bloquant vs dépression creuse)
+  if (p >= 1028) {
+    const boost = d <= 5 ? 6 : d <= 10 ? 6 : 5;
     modifier += boost;
-    reasons.push(`Blocage anticyclonique robuste (${p} hPa) verrouillant la masse d'air`);
-  } else if (p >= 1020) {
-    const boost = d <= 2 ? 1 : d <= 6 ? 3 : 4;
+    reasons.push(`Dorsale / blocage anticyclonique solide (${p} hPa) stabilisant la masse d'air`);
+  } else if (p >= 1021) {
+    const boost = d <= 5 ? 3 : 3;
     modifier += boost;
-    reasons.push(`Champ de hautes pressions protecteur (${p} hPa)`);
-  } else if (p <= 1005) {
-    modifier -= (d <= 2 ? 1 : 2);
-    reasons.push(`Flux dépressionnaire dynamique (${p} hPa) avec trajectoire bien encadrée`);
-  } else if (p >= 1010 && p <= 1016 && cape > 400) {
-    modifier -= 2;
-    reasons.push(`Marais barométrique tempéré (${p} hPa) avec brises thermiques locales`);
+    reasons.push(`Champ de pression élevé (${p} hPa) limitant les creusements imprévus`);
+  } else if (p <= 995) {
+    const penalty = d <= 2 ? 7 : 10;
+    modifier -= penalty;
+    reasons.push(`Dépression très creuse (${p} hPa) : trajectoire et creusement particulièrement instables`);
+  } else if (p <= 1004) {
+    const penalty = d <= 2 ? 4 : 6;
+    modifier -= penalty;
+    reasons.push(`Régime dépressionnaire actif (${p} hPa) augmentant l'erreur de chronologie frontale`);
   }
 
-  // 3. Phénomènes atmosphériques
+  // 3. Phénomènes convectifs, fortes pluies et transitions critiques pluie/neige
   const isThunderstorm = (code >= 95 && code <= 99) || code === 17 || cape >= 700;
-  const isSnowNearFreezing = (code >= 71 && code <= 77) || (code === 68 || code === 69) || (rain > 0 && temp >= -0.5 && temp <= 2.2 && alt < 600);
-  const isFogStratus = code === 45 || code === 48;
+  const isSnowNearFreezing =
+    (code >= 71 && code <= 77) ||
+    code === 68 ||
+    code === 69 ||
+    (rain > 0 && temp >= -1.0 && temp <= 2.6 && alt < 1200);
+  const isHeavyRain = rain >= 15;
+  const isRainy = rain >= 4;
 
   if (isThunderstorm) {
-    modifier -= (d <= 1 ? 2 : 4);
-    reasons.push(`Instabilité orageuse convective : localisation microscopique des cellules affinée sous 24h`);
+    const stormPenalty = cape >= 1400 ? 12 : 9;
+    modifier -= stormPenalty;
+    reasons.push(`Instabilité orageuse convective : déclenchement et intensité très sensibles aux basses couches`);
   } else if (isSnowNearFreezing) {
-    modifier -= 2;
-    reasons.push(`Limite pluie-neige en plaine : transition thermique sous surveillance attentive`);
-  } else if (isFogStratus && p >= 1020) {
-    modifier -= 1;
-    reasons.push(`Grisaille matinale sous inversion : dissipation graduelle en mi-journée`);
-  } else if (code <= 1 && rain === 0) {
-    modifier += (d <= 4 ? 2 : 3);
-    reasons.push(`Ciel dégagé et sec : excellente stabilité thermique`);
+    modifier -= 7;
+    reasons.push(`Limite pluie-neige proche du niveau station : bascule thermique incertaine au degré près`);
+  } else if (isHeavyRain) {
+    modifier -= 6;
+    reasons.push(`Épisode pluvieux soutenu (${rain.toFixed(1)} mm) : cumuls locaux sensibles au blocage orographique`);
+  } else if (isRainy && d >= 2) {
+    modifier -= 3;
+    reasons.push(`Passage frontal humide : calage horaire variable entre les centres de calcul`);
   }
 
-  // 4. Dispersion inter-modèles & Scénarios rapprochés
-  // Lorsque les modèles ont des écarts faibles ou modérés, cela constitue une convergence étroite
-  if (tSpread <= 1.2) {
-    modifier += 2;
-    reasons.push(`Consensus unanime des modèles européens et mondiaux (écart < 1.2°C)`);
-  } else if (tSpread <= 2.5) {
-    reasons.push(`Scénarios en convergence étroite : consensus multi-modèles élevé sur le gabarit synoptique (écart de ${tSpread}°C)`);
-  } else {
-    modifier -= 2;
-    reasons.push(`Scénarios en convergence globale : accord solide sur la masse d'air avec légères variantes de timing`);
+  // 4. Dispersion réelle relative à l'échéance (évite d'écraser J+10 à 35% si la dispersion est normale pour J+10)
+  const effectiveSpread = Math.max(tSpread, ensSpread);
+  const expectedNormalSpread =
+    d <= 1 ? 1.1 : d <= 3 ? 2.0 : d <= 6 ? 3.5 : d <= 10 ? 5.2 : 6.6;
+  const excessSpread = Number((effectiveSpread - expectedNormalSpread).toFixed(1));
+
+  if (excessSpread <= -1.2) {
+    modifier += 6;
+    reasons.push(`Accord exceptionnellement resserré pour l'échéance (${effectiveSpread.toFixed(1)}°C d'amplitude P90-P10)`);
+  } else if (excessSpread <= -0.3) {
+    modifier += 3;
+    reasons.push(`Faisceau multi-modèles et ensembles plus groupé que la normale (${effectiveSpread.toFixed(1)}°C)`);
+  } else if (excessSpread >= 3.0) {
+    modifier -= 14;
+    reasons.push(`Chaos ensembliste majeur (${effectiveSpread.toFixed(1)}°C d'amplitude P90-P10, très au-dessus de la normale)`);
+  } else if (excessSpread >= 1.6) {
+    modifier -= 9;
+    reasons.push(`Forte dispersion inter-modèles pour cette échéance (${effectiveSpread.toFixed(1)}°C P90-P10)`);
+  } else if (excessSpread >= 0.6) {
+    modifier -= 4;
+    reasons.push(`Divergence thermique modérée (${effectiveSpread.toFixed(1)}°C entre scénarios)`);
   }
 
-  // Calcul final strictement bridé entre 72% et 98% (préservation totale de la crédibilité applicative)
-  const finalScore = Math.min(98, Math.max(72, Math.round(baseScore + modifier)));
+  // 5. Stabilité d'un run à l'autre (moyenne des 3 derniers runs)
+  if (runSwing >= 3.3) {
+    modifier -= 8;
+    reasons.push(`Forte instabilité inter-runs (${runSwing.toFixed(1)}°C de variation sur les 3 derniers runs)`);
+  } else if (runSwing >= 1.8) {
+    modifier -= 4;
+    reasons.push(`Hésitation notable des modèles sur les 3 derniers runs (±${(runSwing / 2).toFixed(1)}°C)`);
+  } else if (runSwing > 0 && runSwing <= 0.8) {
+    modifier += 3;
+    reasons.push(`Bonne continuité confirmée sur les 3 derniers runs`);
+  }
 
-  // Attribution des paliers qualitatifs valorisants et rigoureux
+  // Rare bonus d'unanimité totale les tous premiers jours (permet d'atteindre 98 % dans de rares cas limpides)
+  if (d <= 1 && p >= 1025 && rain === 0 && !isThunderstorm && !isSnowNearFreezing && effectiveSpread <= 0.7 && runSwing <= 0.6) {
+    modifier += 3;
+    reasons.push(`Unanimité quasi totale des modèles en régime sec anticyclonique (cas rare jusqu'à 98%)`);
+  }
+
+  // 6. Règles strictes et bornes claires :
+  //    - Plafond premiers jours (J+0, J+1) = 98 % (atteint uniquement dans les rares cas d'accord parfait)
+  //    - Plafond strict <= 80 % après 5 jours (appliqué dès J+5 pour ne jamais dépasser 80 %)
+  //    - Plancher absolu = 35 % même en cas de fiabilité catastrophique
+  const horizonCaps = [98, 98, 94, 90, 85, 80, 79, 77, 74, 71, 68, 65, 62, 59, 57, 55];
+  const horizonFloors = [65, 58, 50, 44, 38, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35];
+  const cap = d < horizonCaps.length ? horizonCaps[d] : 54;
+  const floor = d < horizonFloors.length ? horizonFloors[d] : 35;
+
+  const finalScore = Math.min(cap, Math.max(floor, Math.round(baseScore + modifier)));
+
+  // 7. Qualification nuancée et honnête des paliers (35% à 98%)
   let grade: DynamicReliabilityResult['grade'] = 'BONNE';
-  let gradeLabel = 'Fiabilité Très Élevée (Consensus Ensembliste)';
-  let badgeColor = 'text-emerald-400 bg-emerald-500/15 border-emerald-500/40';
+  let gradeLabel = 'Bonne Fiabilité (Consensus Multi-Modèles)';
+  let badgeColor = 'text-sky-400 bg-sky-500/15 border-sky-500/40';
   let divergenceLevel: DynamicReliabilityResult['divergenceLevel'] = 'FAIBLE_CONSENSUS';
-  let divergenceLabel = 'Consensus élevé : accord solide sur la masse d\'air';
+  let divergenceLabel = 'Accord synoptique globalement favorable';
 
-  if (finalScore >= 92) {
+  if (finalScore >= 82) {
     grade = 'EXCELLENTE';
-    gradeLabel = 'Fiabilité Exceptionnelle (Consensus Déterministe AROME / ECMWF)';
+    gradeLabel = 'Haute Fiabilité (Court Terme Déterministe)';
     badgeColor = 'text-emerald-400 bg-emerald-500/15 border-emerald-500/40';
     divergenceLevel = 'TRÈS_FAIBLE';
-    divergenceLabel = 'Consensus unanime : tous les modèles s\'alignent sur ce scénario';
-  } else if (finalScore >= 84) {
+    divergenceLabel = 'Consensus étroit : faible dispersion entre modèles et runs';
+  } else if (finalScore >= 68) {
     grade = 'BONNE';
-    gradeLabel = 'Très Haute Fiabilité (Moyenne Ensembliste Stable)';
+    gradeLabel = 'Bonne Fiabilité (Tendance Consolidée)';
     badgeColor = 'text-sky-400 bg-sky-500/15 border-sky-500/40';
     divergenceLevel = 'FAIBLE_CONSENSUS';
-    divergenceLabel = 'Bon accord synoptique : calage précis des centres d\'action';
-  } else if (finalScore >= 78) {
+    divergenceLabel = 'Accord majoritaire : marges d\'ajustement limitées';
+  } else if (finalScore >= 53) {
     grade = 'MOYENNE';
-    gradeLabel = 'Haute Fiabilité (Régime Synoptique Verrouillé)';
-    badgeColor = 'text-teal-400 bg-teal-500/15 border-teal-500/40';
+    gradeLabel = 'Fiabilité Modérée (Selon Régime Synoptique)';
+    badgeColor = 'text-amber-400 bg-amber-500/15 border-amber-500/40';
     divergenceLevel = 'MODEREE';
-    divergenceLabel = 'Scénarios en convergence étroite : accord sur la masse d\'air';
-  } else {
+    divergenceLabel = 'Divergence modérée : timing frontal et amplitude thermique à préciser';
+  } else if (finalScore >= 42) {
     grade = 'DÉLICATE';
-    gradeLabel = 'Fiabilité Solide (Convergence Synoptique Consolidée)';
-    badgeColor = 'text-cyan-400 bg-cyan-500/15 border-cyan-500/40';
+    gradeLabel = 'Fiabilité Délicate (Forte Dispersion)';
+    badgeColor = 'text-orange-400 bg-orange-500/15 border-orange-500/40';
     divergenceLevel = 'FORTE_DIVERGENCE';
-    divergenceLabel = 'Grande tendance thermique acquise : nuances de chronologie fine';
+    divergenceLabel = 'Forte divergence : large éclatement des scénarios ensemblistes';
+  } else {
+    grade = 'FAIBLE_SPÉCULATIVE';
+    gradeLabel = 'Fiabilité Très Dégradée / Chaotique (Plancher Critique)';
+    badgeColor = 'text-rose-400 bg-rose-500/15 border-rose-500/40';
+    divergenceLevel = 'DIVERGENCE_MAXIMALE';
+    divergenceLabel = 'Dispersion extrême ou instabilité critique : seule la médiane reste indicative';
   }
 
-  const meteorologicalReason = reasons.length > 0 
-    ? reasons.join(' • ') 
-    : `Évolution classique sous haute maîtrise ensembliste à échéance J+${d}.`;
+  const meteorologicalReason = reasons.length > 0
+    ? reasons.join(' • ')
+    : `Évolution de la prévisibilité atmosphérique selon les conditions à échéance J+${d}.`;
 
-  const whatIsCertain = `Consolidé à ${finalScore}% : La masse d'air dominante, le régime barométrique et l'intervalle thermique restent solidement encadrés par les modèles.`;
+  let whatIsCertain = '';
+  let whatIsUncertain = '';
 
-  const whatIsUncertain = isThunderstorm
-    ? `Ajustement orageux : Localisation microscopique des cellules convectives affinée en direct à court terme.`
-    : isSnowNearFreezing
-    ? `Aléa nivologique : Le passage pluie/neige dépendra de l'intensité précipitante et de l'isothermie en cours d'averse.`
-    : d >= 7
-    ? `Micro-calage du timing exact des ondulations atlantiques (ajustement temps réel run par run).`
-    : `Variations locales d'ensoleillement et brises thermiques de versant.`;
+  if (d <= 2) {
+    whatIsCertain = `Trajectoire thermique bien cadrée (${finalScore}% de confiance) via la moyenne des 3 derniers runs multi-modèles.`;
+    whatIsUncertain = isThunderstorm
+      ? `Localisation précise des cellules orageuses et intensité ponctuelle des pluies.`
+      : isSnowNearFreezing
+      ? `Altitude exacte de la limite pluie-neige en cas de précipitations.`
+      : `Ajustements fins de nébulosité matinale ou brises locales (±0.8°C).`;
+  } else if (d <= 5) {
+    whatIsCertain = `Signal synoptique de masse d'air encadré par la moyenne des 3 derniers runs (${finalScore}% de confiance, plafonné à 80% dès J+5).`;
+    whatIsUncertain = `Chronologie exacte des perturbations et amplitude diurne définitive (écart de ${effectiveSpread.toFixed(1)}°C entre scénarios).`;
+  } else if (d <= 9) {
+    whatIsCertain = `Tendance thermique générale et enveloppe probabiliste P10-P90 (${finalScore}% de confiance, plafond 80% après 5 jours).`;
+    whatIsUncertain = `Position exacte des dépressions/dorsales et températures quotidiennes précises (dispersion : ${effectiveSpread.toFixed(1)}°C).`;
+  } else {
+    whatIsCertain = `Tendance statistique médiane sur 200+ scénarios lissée sur 3 runs (${finalScore}% de confiance).`;
+    whatIsUncertain = `Timing précis des perturbations et valeurs journalières exactes (écart P90-P10 de ${effectiveSpread.toFixed(1)}°C).`;
+  }
 
   return {
     scorePct: finalScore,

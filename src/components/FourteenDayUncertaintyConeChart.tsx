@@ -108,15 +108,15 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
               <Activity className="h-3.5 w-3.5" />
               <span>Modélisation Ensembliste & Cône d'Incertitude</span>
             </span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-950 text-slate-400 border border-slate-800">
-              51 scénarios CEPMMT + 31 GEFS
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-950 text-sky-300 border border-slate-800">
+              212 scénarios d'ensemble + 16 modèles (Moy. 3 runs)
             </span>
           </div>
           <h3 className="text-lg font-bold text-white">
             Plume Thermique à 14 Jours — {stationName}
           </h3>
           <p className="text-xs text-slate-400 mt-0.5 max-w-2xl leading-relaxed">
-            Évolution de l'enveloppe prévisionnelle au fil de l'échéance : plus l'horizon s'éloigne, plus la divergence entre scénarios augmente naturellement.
+            Enveloppe P10–P90 calculée sur 6 systèmes d'ensemble (EPS, AIFS-ENS, GEFS, ICON-EPS, GEPS, UKMO-ENS) et stabilisée sur les 3 derniers runs : la fiabilité diminue nettement avec l'échéance.
           </p>
         </div>
 
@@ -376,7 +376,7 @@ export const FourteenDayUncertaintyConeChart: React.FC<FourteenDayUncertaintyCon
             <span>Médiane plutôt que valeur unique</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            À J+12, afficher un chiffre fixe est trompeur. La médiane d'ensemble et les bornes réelles des 51 membres du CEPMMT fournissent un repère fiable.
+            À J+12, afficher un chiffre fixe est trompeur. La médiane lissée sur 3 runs et l'enveloppe P10–P90 des 212 scénarios réels montrent l'ampleur réelle de l'incertitude.
           </p>
         </div>
 

@@ -15,6 +15,7 @@ import {
 } from '../utils/isothermCalculations';
 import { getRichWeatherInfo, getOctasFromPercent } from '../utils/weatherIcons';
 import { computeDayVigilanceAlerts, getDominantVigilance } from './dailyVigilanceService';
+import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
 
 /**
  * Calculates Frost Category and detailed label based on Tmin and Tmax
@@ -200,7 +201,9 @@ export function generateThirtyDayForecast(
       windSpeedKmh = realDay.windSpeedMax ?? 15;
       windGustKmh = realDay.windGustMax ?? Math.round(windSpeedKmh * 1.35);
       windDirection = realDay.dominantWindDir ?? 'SO';
-      pressureHpa = 1015;
+      pressureHpa = realDay.hourlyList && realDay.hourlyList.length > 0
+        ? Math.round(realDay.hourlyList.reduce((acc, h) => acc + (h.pressureHpa || 1015), 0) / realDay.hourlyList.length)
+        : 1015;
       humidityMeanPct = precipMm > 0 ? 80 : 60;
       sunshineHours = realDay.sunshineHours ?? Number((monthNormal.sunHours / 30).toFixed(1));
       uvIndexMax = realDay.uvIndexMax ?? 3;
@@ -346,8 +349,16 @@ export function generateThirtyDayForecast(
       snowDaysCount++;
     }
 
-    // Model Confidence (Decreases gently with horizon, grounded by sub-seasonal ECMWF IFS ensembles)
-    const modelConfidence = Math.max(72, Math.round(97 - (d - 1) * 0.85));
+    // Fiabilité dynamique selon conditions (plancher 35 %, plafond <= 80 % après 5 jours)
+    const modelConfidence = calculateDynamicReliability({
+      leadDayIndex: d,
+      pressureHpa,
+      weatherCode,
+      precipitationMm: precipMm,
+      precipitationProbability: precipProb,
+      temperatureC: tMax,
+      altitudeM: alt
+    }).scorePct;
 
     // Synoptic Regime tag
     const regimes = [

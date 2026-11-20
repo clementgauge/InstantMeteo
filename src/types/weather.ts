@@ -2099,7 +2099,7 @@ export interface FourteenDayDayDetail {
   
   // Honest Uncertainty & Scientific Transparency (Added fields)
   uncertaintyMarginC: number; // e.g. ±0.8°C at J+1, ±2.5°C at J+5, ±5.5°C at J+12
-  confidenceGrade: 'EXCELLENTE' | 'BONNE' | 'MOYENNE' | 'FAIBLE_SPÉCULATIVE';
+  confidenceGrade: 'EXCELLENTE' | 'BONNE' | 'MOYENNE' | 'DÉLICATE' | 'FAIBLE_SPÉCULATIVE';
   confidenceGradeLabel: string; // e.g. "Fiabilité Haute • Déterministe", "Tendance Probable", etc.
   whatIsCertain: string; // Ce qui est scientifiquement acquis pour cette date
   whatIsUncertain: string; // Ce qui reste incertain / le piège météo
@@ -2145,6 +2145,9 @@ export interface ModelForecastValue {
   isExcludedOutsideAsia?: boolean;
   exclusionReason?: string;
   ensembleMembersCount?: number;
+  runsAveragedCount?: number;
+  runSwingC?: number;
+  rawLatestTempMax?: number | null;
 }
 
 export interface DayMultiModelConsensus {
@@ -2152,6 +2155,13 @@ export interface DayMultiModelConsensus {
   date: string;
   models: Record<string, ModelForecastValue>;
   availableModelsCount: number;
+  totalScenariosAnalyzed?: number;
+  runsAveragedCount?: number;
+  runToRunSwingC?: number;
+  ensembleP10Max?: number;
+  ensembleP90Max?: number;
+  ensembleP10Min?: number;
+  ensembleP90Min?: number;
   tempMaxMin: number;
   tempMaxMax: number;
   tempMaxMedian: number;

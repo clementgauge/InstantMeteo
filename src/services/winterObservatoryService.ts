@@ -81,13 +81,14 @@ export function generateSnowNivologyObservatory(
   const isHighMountain = alt >= 1400;
 
   const now = new Date();
-  const mIdx = now.getMonth();
-  const isWinter = mIdx === 11 || mIdx === 0 || mIdx === 1 || mIdx === 2;
-  const isAutumn = mIdx >= 9 && mIdx <= 10;
-  const isSpring = mIdx >= 3 && mIdx <= 4;
+  const mIdx = now.getMonth(); // 0..11
+  const isSnowSeasonMountain = mIdx >= 10 || mIdx <= 3; // Nov à Avr
+  const isSnowSeasonHigh = mIdx >= 9 || mIdx <= 4; // Oct à Mai
 
-  const temp = currentWeather?.temperature ?? currentTemp ?? (isWinter ? (isMountain ? -2.5 : 3.5) : (isMountain ? 12 : 22));
+  const temp = currentWeather?.temperature ?? currentTemp ?? (isSnowSeasonMountain ? (isMountain ? -2.5 : 3.5) : (isMountain ? 12 : 22));
   const precipMm = currentWeather?.precipitation ?? 0;
+  const liveStationSnowCm = Math.max(0, Math.round(currentWeather?.snowDepthCm ?? ((currentWeather?.snowDepth ?? 0) * 100)));
+  const liveFresh24Cm = Math.max(0, Math.round(currentWeather?.snowFresh24hCm ?? (precipMm > 0 && temp <= 1.2 ? precipMm * 1.1 : 0)));
 
   // Isotherm 0°C and Rain-Snow limit from physical calculation or live telemetry
   let currentIsotherm0Meters: number;
@@ -117,11 +118,14 @@ export function generateSnowNivologyObservatory(
   if (dailyForecasts && dailyForecasts.length > 0) {
     dailyForecasts.slice(0, 7).forEach(df => {
       const pSum = df.precipitationSumMm ?? df.rainMm ?? 0;
-      if (pSum > 0 && alt >= (df.snowRainLimitAltitude ?? currentRainSnowLimitMeters) - 100) {
+      if (typeof df.snowfallCm === 'number' && df.snowfallCm > 0) {
+        forecast7dSnowTotal += df.snowfallCm;
+      } else if (pSum > 0 && alt >= (df.snowRainLimitAltitude ?? currentRainSnowLimitMeters) - 100) {
         forecast7dSnowTotal += pSum * (df.tempMax < 0 ? 1.2 : 0.8);
       }
     });
   }
+  forecast7dSnowTotal = Math.round(forecast7dSnowTotal);
 
   // Altitude Snow Layers
   const altitudeLayers: AltitudeSnowLayer[] = [];
@@ -139,7 +143,18 @@ export function generateSnowNivologyObservatory(
         { alt: alt + 80, label: `Points hauts locaux (${alt + 80} m)` }
       ];
 
-  layerDefs.forEach((ld, idx) => {
+  // Facteur saisonnier d'accumulation naturelle (novembre = début de couche, fév-mars = pic, été = 0 sauf > 2900m)
+  const monthProgressFactor =
+    mIdx === 10 ? 0.45 :
+    mIdx === 11 ? 0.75 :
+    mIdx === 0 ? 0.95 :
+    mIdx === 1 ? 1.15 :
+    mIdx === 2 ? 1.20 :
+    mIdx === 3 ? 0.85 :
+    mIdx === 4 ? 0.40 :
+    mIdx === 9 ? 0.20 : 0;
+
+  layerDefs.forEach((ld) => {
     const layerAlt = ld.alt;
     const layerAltDiff = layerAlt - alt;
     // Calculate exact layer air temperature from real station temperature
@@ -156,61 +171,61 @@ export function generateSnowNivologyObservatory(
     let baseTemp = Math.min(0, layerAirTemp + 0.5);
     let isContinuous = false;
 
-    if (!isMountain || temp > 2 || layerAirTemp > 1.5) {
-      // Station in plain or mild conditions: strictly 0 cm
+    const isLayerColdEnoughForAccum =
+      layerAlt >= Math.max(950, currentRainSnowLimitMeters - 120) ||
+      (liveStationSnowCm > 0 && layerAlt >= alt);
+
+    if (layerAlt === alt && liveStationSnowCm > 0) {
+      // Mesure en direct à la station
+      depth = liveStationSnowCm;
+    } else if (!isMountain && liveStationSnowCm === 0 && (layerAirTemp > 1.2 || precipMm <= 0)) {
       depth = 0;
-      fresh24 = 0;
-      fresh72 = 0;
-      fresh7d = 0;
-      quality = 'Absence de manteau neigeux';
-      density = 0;
-      surfTemp = layerAirTemp;
-      baseTemp = Math.max(1, layerAirTemp);
-      isContinuous = false;
-    } else {
-      // Real Mountain sub-zero logic
-      const isColdSeason = isWinter || temp <= 0;
-      if (layerAirTemp <= 0.0 && layerAlt >= Math.max(1200, currentRainSnowLimitMeters - 100) && isColdSeason) {
-        if (layerAirTemp <= -5 && isWinter) {
-          depth = 45;
-          fresh24 = precipMm > 0 ? Math.round(precipMm * 1.2) : 0;
-          fresh72 = fresh24 * 2;
-          fresh7d = fresh24 * 3;
-          quality = 'Poudreuse légère et froide (Champagne powder)';
-          density = 130;
-          surfTemp = Math.min(-1, layerAirTemp);
-          baseTemp = -0.5;
-          isContinuous = true;
-        } else if (layerAirTemp <= 0 && isWinter) {
-          depth = 20;
-          fresh24 = precipMm > 0 ? Math.round(precipMm * 1.0) : 0;
-          fresh72 = fresh24 * 2;
-          fresh7d = fresh24 * 3;
-          quality = 'Neige damée / tassée';
-          density = 240;
-          surfTemp = layerAirTemp;
-          baseTemp = 0.0;
-          isContinuous = depth > 5;
-        } else {
-          depth = 0;
-          fresh24 = 0;
-          quality = 'Absence de manteau neigeux';
-          density = 0;
-          surfTemp = 0.5;
-          baseTemp = 0.5;
-          isContinuous = false;
-        }
-      } else {
+    } else if (
+      (layerAlt >= 1400 && isSnowSeasonHigh && monthProgressFactor > 0) ||
+      (layerAlt >= 900 && isSnowSeasonMountain && layerAirTemp <= 2.5 && isLayerColdEnoughForAccum) ||
+      (liveStationSnowCm > 0 && layerAlt >= alt)
+    ) {
+      // Estimation physique continue par palier d'altitude sans jamais effacer la haute montagne sur un simple redoux en vallée
+      const anchorAbove1200 = Math.max(0, layerAlt - Math.max(1050, currentRainSnowLimitMeters - 250));
+      const seasonalOrographicCm = Math.round((anchorAbove1200 * 0.085) * monthProgressFactor);
+      const scaledFromLive =
+        liveStationSnowCm > 0
+          ? Math.round(liveStationSnowCm * (1 + Math.max(0, layerAlt - alt) / 950))
+          : 0;
+      depth = Math.max(scaledFromLive, seasonalOrographicCm);
+      if (layerAlt < alt && liveStationSnowCm === 0 && layerAirTemp > 1.8) {
         depth = 0;
-        fresh24 = 0;
-        fresh72 = 0;
-        fresh7d = 0;
-        quality = 'Absence de manteau neigeux';
-        density = 0;
-        surfTemp = layerAirTemp;
-        baseTemp = Math.max(1, layerAirTemp);
-        isContinuous = false;
       }
+    }
+
+    if (depth > 0) {
+      const layerPrecipSnowBoost = layerAlt >= currentRainSnowLimitMeters - 100 ? Math.max(0.5, 1 + Math.max(0, layerAlt - alt) / 1400) : 0;
+      fresh24 = liveFresh24Cm > 0 && layerPrecipSnowBoost > 0
+        ? Math.round(liveFresh24Cm * layerPrecipSnowBoost)
+        : (precipMm > 0 && layerAirTemp <= 0.8 ? Math.round(precipMm * 1.15 * Math.max(0.7, layerPrecipSnowBoost)) : 0);
+      fresh72 = Math.max(fresh24, Math.round(forecast7dSnowTotal * 0.45 * Math.max(0.6, layerPrecipSnowBoost)));
+      fresh7d = Math.max(fresh72, Math.round(forecast7dSnowTotal * Math.max(0.6, layerPrecipSnowBoost)));
+
+      if (layerAirTemp <= -5) {
+        quality = 'Poudreuse légère et froide (Champagne powder)';
+        density = 125;
+      } else if (fresh24 >= 8 && layerAirTemp <= -0.5) {
+        quality = 'Neige fraîche compacte';
+        density = 175;
+      } else if (layerAirTemp > 1.0) {
+        quality = 'Neige humide / lourde';
+        density = 320;
+      } else if (mIdx >= 2 && mIdx <= 4) {
+        quality = 'Neige de printemps / névé transformé';
+        density = 350;
+      } else {
+        quality = 'Neige damée / tassée';
+        density = 245;
+      }
+
+      surfTemp = Math.min(0, layerAirTemp);
+      baseTemp = Math.min(0, layerAirTemp * 0.4 - 0.3);
+      isContinuous = depth >= 10;
     }
 
     const swe = Math.round((depth * density) / 100); // Snow Water Equivalent in mm
@@ -233,7 +248,7 @@ export function generateSnowNivologyObservatory(
       freshSnow72hCm: fresh72,
       freshSnow7DaysCm: fresh7d,
       snowQuality: quality,
-      densityKgM3: layerDiag.densityKgM3 || density,
+      densityKgM3: depth > 0 ? (layerDiag.densityKgM3 || density) : 0,
       sweWaterEquivalentMm: swe,
       snowTemperatureSurfaceC: surfTemp,
       snowTemperatureBaseC: baseTemp,
@@ -243,7 +258,7 @@ export function generateSnowNivologyObservatory(
   });
 
   // Avalanche Report BERA adapted to season & temperature
-  const isColdSeason = isWinter || (isMountain && temp <= 2);
+  const isColdSeason = isSnowSeasonMountain || (isMountain && temp <= 2);
   const beraLevel = !isMountain ? 0 : (isColdSeason && isHighMountain) ? 3 : (isColdSeason && isMountain) ? 2 : 1;
   const beraLabel = !isMountain ? '0 - Nul (Plaine)' : beraLevel === 3 ? '3 - Marqué' : beraLevel === 2 ? '2 - Limité' : '1 - Faible';
   const beraColor = !isMountain ? 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40' : beraLevel === 3 ? 'text-amber-400 bg-amber-500/20 border-amber-500/40' : beraLevel === 2 ? 'text-yellow-400 bg-yellow-500/20 border-yellow-500/40' : 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40';

@@ -545,15 +545,15 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                     <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
                     <span>Jauge de Cumul de Neige en Temps Réel • Télémesure Nivôse</span>
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                    Certifié {selectedMassif.confidenceScorePercent || 98.4}%
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${selectedMassif.snowReliability?.badgeColorClass || 'bg-sky-500/20 text-sky-300 border-sky-500/40'}`}>
+                    Fiabilité Neige : {selectedMassif.snowReliability?.reliabilityPct ?? selectedMassif.confidenceScorePercent ?? 76}%
                   </span>
                 </div>
                 <h4 className="text-base sm:text-lg font-black text-white mt-0.5">
                   Balise de Référence : {selectedMassif.nivoseStationName} ({selectedMassif.nivoseElevationM} m)
                 </h4>
                 <div className="text-[11px] text-slate-400">
-                  Capteur automatique ultrasons sol Météo-France / SLF • Télémétrie continue
+                  Recalage physique 60j par altitude + Comparatif multi-modèles NWP (correction sous-estimation de maille)
                 </div>
               </div>
             </div>
@@ -574,14 +574,19 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Cumul au Sol Mesuré à la Balise Nivôse ({selectedMassif.nivoseElevationM} m) :
+                  Hauteur au Sol Fiabilisée à la Balise ({selectedMassif.nivoseElevationM} m) :
                 </span>
-                <div className="flex items-baseline gap-2 mt-1">
+                <div className="flex items-baseline gap-2.5 mt-1 flex-wrap">
                   <span className="text-3xl sm:text-4xl font-black text-sky-400 tracking-tight">
                     {nivoseSnowDepth} cm
                   </span>
+                  {selectedMassif.snowReliability && selectedMassif.snowReliability.rangeNivoseMaxCm > 0 && (
+                    <span className="text-xs font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded-lg">
+                      Fourchette Adret ↔ Ubac : {selectedMassif.snowReliability.rangeNivoseMinCm}–{selectedMassif.snowReliability.rangeNivoseMaxCm} cm
+                    </span>
+                  )}
                   <span className="text-xs font-bold text-slate-400">
-                    en direct sol • T° balise : <strong className="text-white">{nivoseTemp > 0 ? `+${nivoseTemp}` : nivoseTemp}°C</strong>
+                    • T° balise : <strong className="text-white">{nivoseTemp > 0 ? `+${nivoseTemp}` : nivoseTemp}°C</strong>
                   </span>
                 </div>
               </div>
@@ -589,7 +594,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               <div className="text-left sm:text-right">
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-400/40 text-sky-300">
                   {nivoseSnowDepth === 0
-                    ? 'Sol déneigé / Pistes fermées'
+                    ? 'Sol déneigé / Hors saison'
                     : nivoseSnowDepth < 25
                       ? 'Saupoudrage en altitude'
                       : nivoseSnowDepth < 70
@@ -604,7 +609,6 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
             {/* Barre de jauge horizontale graduée avec repères d'altitude */}
             <div className="space-y-2 pt-2">
               <div className="relative w-full h-8 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shadow-inner">
-                {/* Remplissage animé de la jauge */}
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 via-sky-400 to-indigo-500 transition-all duration-700 ease-out relative"
                   style={{ width: `${Math.min(100, Math.max(3, (nivoseSnowDepth / 250) * 100))}%` }}
@@ -612,7 +616,6 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                   <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
                 </div>
 
-                {/* Valeur numérique incrustée */}
                 <div className="absolute inset-0 flex items-center justify-between px-3 text-[11px] font-black text-white pointer-events-none drop-shadow">
                   <span>0 cm</span>
                   <span className="text-sky-200">
@@ -622,7 +625,6 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 </div>
               </div>
 
-              {/* Ticks et Graduations */}
               <div className="flex justify-between text-[10px] text-slate-400 font-mono px-1">
                 <span>0 cm</span>
                 <span>50 cm</span>
@@ -633,7 +635,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </div>
             </div>
 
-            {/* Repères comparatifs étagés : Pied de station / Balise Nivôse / Sommet (Unboxed) */}
+            {/* Repères comparatifs étagés : Pied de station / Balise Nivôse / Sommet */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-800/80">
               <div className="flex items-center justify-between sm:pr-4 sm:border-r sm:border-slate-800/70">
                 <div>
@@ -671,12 +673,17 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-black text-indigo-400">{selectedMassif.snowDepthTopCm} cm</div>
-                  <div className="text-[10px] text-slate-400">T° {selectedMassif.peakTempC ?? lpnAnalysis.peakTempC}°C</div>
+                  <div className="text-[10px] text-slate-400">
+                    {selectedMassif.snowReliability && selectedMassif.snowReliability.rangeTopMaxCm > 0
+                      ? `${selectedMassif.snowReliability.rangeTopMinCm}–${selectedMassif.snowReliability.rangeTopMaxCm} cm • `
+                      : ''}
+                    T° {selectedMassif.peakTempC ?? lpnAnalysis.peakTempC}°C
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Chutes fraîches 24h / 48h, LPN & Qualité (Unboxed Open Metrics) */}
+            {/* Chutes fraîches 24h / 48h, LPN & Qualité */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-slate-800/80">
               <div>
                 <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Neige Fraîche 24h</div>
@@ -715,7 +722,83 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </div>
             </div>
 
-            {/* Diagnostic d'enneigement en clair & horodatage (Unboxed) */}
+            {/* ANALYSE APPROFONDIE DE FIABILITÉ DES HAUTEURS DE NEIGE & CORRECTION SOUS-ESTIMATION NWP */}
+            {selectedMassif.snowReliability && (
+              <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4 text-cyan-400" />
+                    <span>Analyse & Fiabilité des Hauteurs de Neige (Correction Sous-Estimation Modèles)</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                    <span className={`px-2.5 py-0.5 rounded-full font-bold border ${selectedMassif.snowReliability.badgeColorClass}`}>
+                      {selectedMassif.snowReliability.reliabilityLabel} ({selectedMassif.snowReliability.reliabilityPct}%)
+                    </span>
+                    {selectedMassif.snowReliability.underestimationCorrectedCm > 0 && (
+                      <span className="px-2.5 py-0.5 rounded-full font-bold bg-indigo-500/20 border border-indigo-400/40 text-indigo-200">
+                        +{selectedMassif.snowReliability.underestimationCorrectedCm} cm recalés vs brut grille NWP
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/70 border border-slate-800/90 rounded-xl p-3">
+                  {selectedMassif.snowReliability.summaryExplanation}
+                </p>
+
+                {/* Comparatif Brut NWP vs Modèles vs Bilan Physique 60j */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {selectedMassif.snowReliability.modelsBreakdown.map((m) => (
+                    <div key={m.modelId} className="rounded-xl bg-slate-950/80 border border-slate-800 p-2.5">
+                      <div className="text-[10px] font-bold text-slate-400 truncate" title={m.modelName}>
+                        {m.modelName}
+                      </div>
+                      <div className="text-base font-black text-white mt-0.5">
+                        {m.rawSnowDepthCm !== null ? `${m.rawSnowDepthCm} cm` : 'N/D'}
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate" title={m.note}>
+                        {m.snowfall48hCm !== null ? `Fraîche 48h : ${m.snowfall48hCm} cm` : m.note}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Facteurs d'incertitude nivologique */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                  <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 px-3 py-2 flex items-center justify-between">
+                    <span className="text-slate-400">Biais Maille / Altitude :</span>
+                    <strong className={selectedMassif.snowReliability.demBiasLevel === 'FORT' ? 'text-amber-300' : 'text-emerald-300'}>
+                      {selectedMassif.snowReliability.demBiasLevel}
+                    </strong>
+                  </div>
+                  <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 px-3 py-2 flex items-center justify-between">
+                    <span className="text-slate-400">Risque Transition LPN :</span>
+                    <strong className={selectedMassif.snowReliability.lpnProximityRisk === 'ÉLEVÉ' ? 'text-rose-300' : selectedMassif.snowReliability.lpnProximityRisk === 'MODÉRÉ' ? 'text-amber-300' : 'text-emerald-300'}>
+                      {selectedMassif.snowReliability.lpnProximityRisk}
+                    </strong>
+                  </div>
+                  <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 px-3 py-2 flex items-center justify-between">
+                    <span className="text-slate-400">Transport Éolien Crêtes :</span>
+                    <strong className={selectedMassif.snowReliability.windRedistributionRisk === 'ÉLEVÉ' ? 'text-orange-300' : selectedMassif.snowReliability.windRedistributionRisk === 'MODÉRÉ' ? 'text-amber-300' : 'text-emerald-300'}>
+                      {selectedMassif.snowReliability.windRedistributionRisk}
+                    </strong>
+                  </div>
+                </div>
+
+                {selectedMassif.snowReliability.uncertaintyDrivers.length > 0 && (
+                  <ul className="space-y-1 text-[11px] text-slate-300 pl-1">
+                    {selectedMassif.snowReliability.uncertaintyDrivers.map((drv, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-cyan-400 font-bold">•</span>
+                        <span>{drv}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* Diagnostic d'enneigement en clair & horodatage */}
             <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2 text-slate-300">
                 <Snowflake className="w-4 h-4 text-sky-400 shrink-0" />

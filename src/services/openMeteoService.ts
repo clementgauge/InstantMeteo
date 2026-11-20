@@ -57,6 +57,9 @@ import {
   getDominantVigilance
 } from './dailyVigilanceService';
 import {
+  fetchMultiModelConsensusForStation,
+} from './multiModelConsensusService';
+import {
   calculateExactDewPoint,
   calculateVaporPressureHpa,
   calculateExactHumidex,
@@ -1321,14 +1324,15 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const lon = station.longitude;
     const alt = station.altitude ?? 0;
 
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
     const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,ecmwf_ifs025,icon_seamless,gfs_seamless&forecast_days=1&timezone=auto`;
 
-    const [weatherRes, aqiRes, multiModelLiveRes] = await Promise.all([
+    const [weatherRes, aqiRes, multiModelLiveRes, multiConsensus] = await Promise.all([
       fetch(weatherUrl),
       fetch(aqiUrl).catch(() => null),
-      fetch(multiModelLiveUrl).catch(() => null)
+      fetch(multiModelLiveUrl).catch(() => null),
+      fetchMultiModelConsensusForStation(station).catch(() => null)
     ]);
 
     if (!weatherRes.ok && !(weatherRes.status >= 200 && weatherRes.status < 400)) {
@@ -1440,7 +1444,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     });
 
     // Mountain inversion and slope warming
-    const isValley = (alt < 700 && station.region.includes('Alpes')) || station.name.includes('Mouthe') || station.department.includes('Jura');
+    const isValley = (alt < 700 && (station.region || '').includes('Alpes')) || (station.name || '').includes('Mouthe') || (station.department || '').includes('Jura');
     const thermalInversion: 'Nulle' | 'Modérée' | 'Forte (Lac d\'air froid en vallée)' = 
       (isValley && cur.temperature_2m <= 2 && !cur.is_day) ? 'Forte (Lac d\'air froid en vallée)' : (isValley && cur.temperature_2m <= 5) ? 'Modérée' : 'Nulle';
     const slopeWarmingBonus = (cur.is_day && cur.temperature_2m > 5 && alt >= 600) ? 2.5 : 0;
@@ -2017,6 +2021,25 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       isotherm0Meters: isoDiag.isotherm0Meters,
       freezingLevelHeight: isoDiag.isotherm0Meters,
       snowRainLimitMeters: isoDiag.snowRainLimitMeters,
+      snowDepth: typeof cur.snow_depth === 'number' ? cur.snow_depth : (hourlyData.snow_depth?.[currentHourIndexInHourly] ?? 0),
+      snowDepthCm: (() => {
+        const rawSnowM = typeof cur.snow_depth === 'number'
+          ? cur.snow_depth
+          : (hourlyData.snow_depth?.[currentHourIndexInHourly] ?? 0);
+        const rawCm = Math.round(Math.max(0, rawSnowM) * 100);
+        if (rawCm > 0 && alt >= 1000) {
+          // Légère correction orographique sub-maille pour stations d'altitude
+          const oroMult = 1 + Math.min(0.45, Math.max(0, (alt - 1000) * 0.00025));
+          return Math.round(rawCm * oroMult);
+        }
+        return rawCm;
+      })(),
+      snowfall: typeof cur.snowfall === 'number' ? cur.snowfall : 0,
+      snowFresh24hCm: (() => {
+        const sIdxStart = Math.max(0, currentHourIndexInHourly - 24);
+        const hSnow = (hourlyData.snowfall || []).slice(sIdxStart, currentHourIndexInHourly + 1);
+        return Number(hSnow.reduce((acc: number, v: number) => acc + (v || 0), 0).toFixed(1));
+      })(),
       altitudeMetrics,
       solarEphemeris,
       moonPhase,
@@ -2259,8 +2282,16 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       const dayLabel = isToday ? "Aujourd'hui" : isTomorrow ? "Demain" : `${dayShort[dateObj.getDay()]} ${dateObj.getDate()}`;
       const fullDateFormatted = `${dayNames[dateObj.getDay()]} ${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
       
-      let tMin = Math.round((dailyData.temperature_2m_min?.[srcDailyIdx] ?? cur.temperature_2m - 4) * 10) / 10;
-      let tMax = Math.round((dailyData.temperature_2m_max?.[srcDailyIdx] ?? cur.temperature_2m + 5) * 10) / 10;
+      const consensusDay =
+        multiConsensus?.daysByDate.get(dayDateStr) ??
+        (d < (multiConsensus?.days.length ?? 0) ? multiConsensus?.days[d] : undefined);
+
+      let tMin = consensusDay
+        ? consensusDay.consensusTMin
+        : Math.round((dailyData.temperature_2m_min?.[srcDailyIdx] ?? cur.temperature_2m - 4) * 10) / 10;
+      let tMax = consensusDay
+        ? consensusDay.consensusTMax
+        : Math.round((dailyData.temperature_2m_max?.[srcDailyIdx] ?? cur.temperature_2m + 5) * 10) / 10;
       if (isToday) {
         tMin = Number(Math.min(tMin, current.temperature).toFixed(1));
         tMax = Number(Math.max(tMax, current.temperature).toFixed(1));
@@ -2398,6 +2429,41 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
               thermalTierId: hTier.tierId,
               isDay: hIsDay
             });
+          }
+        }
+
+        // Harmonize future day hourly curve (J+1..J+15) with the 3-run multi-model consensus Tmin/Tmax
+        if (!isToday && consensusDay && dayHourlyList.length >= 2) {
+          const rawMin = Math.min(...dayHourlyList.map(h => h.temperature));
+          const rawMax = Math.max(...dayHourlyList.map(h => h.temperature));
+          const rawSpan = rawMax - rawMin;
+          const targetSpan = Math.max(0.5, tMax - tMin);
+          for (let hIdxLocal = 0; hIdxLocal < dayHourlyList.length; hIdxLocal++) {
+            const hObj = dayHourlyList[hIdxLocal];
+            const ratio = rawSpan >= 0.4 ? (hObj.temperature - rawMin) / rawSpan : 0.5;
+            const harmonizedT = Number((tMin + ratio * targetSpan).toFixed(1));
+            const deltaT = harmonizedT - hObj.temperature;
+            hObj.temperature = harmonizedT;
+            if (typeof hObj.feelsLike === 'number') {
+              hObj.feelsLike = Number((hObj.feelsLike + deltaT).toFixed(1));
+              hObj.apparentTemperature = hObj.feelsLike;
+            }
+            const hTierUpdated = getThermalTierForTemp(harmonizedT);
+            hObj.thermalTierLabel = `${hTierUpdated.iconEmoji} ${hTierUpdated.name}`;
+            hObj.thermalTierColor = hTierUpdated.colorHex;
+            hObj.thermalTierId = hTierUpdated.tierId;
+
+            const matchingRollIdx = hourly.findIndex(r => r.time === hObj.time);
+            if (matchingRollIdx !== -1) {
+              hourly[matchingRollIdx].temperature = harmonizedT;
+              if (typeof hourly[matchingRollIdx].feelsLike === 'number') {
+                hourly[matchingRollIdx].feelsLike = hObj.feelsLike;
+                hourly[matchingRollIdx].apparentTemperature = hObj.feelsLike;
+              }
+              hourly[matchingRollIdx].thermalTierLabel = hObj.thermalTierLabel;
+              hourly[matchingRollIdx].thermalTierColor = hObj.thermalTierColor;
+              hourly[matchingRollIdx].thermalTierId = hObj.thermalTierId;
+            }
           }
         }
 

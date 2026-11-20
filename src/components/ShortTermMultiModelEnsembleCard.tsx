@@ -26,6 +26,8 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
+import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
+import { getCachedMultiModelConsensus } from '../services/multiModelConsensusService';
 
 interface ShortTermMultiModelEnsembleCardProps {
   station: LocationPoint;
@@ -830,69 +832,96 @@ export const ShortTermMultiModelEnsembleCard: React.FC<ShortTermMultiModelEnsemb
 
   const selectedModel = allModels.find(m => m.id === selectedModelId) || allModels[0];
 
-  // Quantitative Horizon Reliability Breakdown
-  // Quantitative Horizon Reliability Breakdown - Calibrage de Haute Précision Météorologique
+  const cachedConsensus = getCachedMultiModelConsensus(station);
+
+  // Quantitative Horizon Reliability Breakdown - Honest Meteorological Decay Curve
+  const buildHorizonReliability = (
+    horizonLabel: string,
+    dayIdx: number,
+    fallbackSpreadLabel: string,
+    spreadPrecip: string,
+    modelsLeader: string
+  ) => {
+    const dayObj = daily[dayIdx];
+    const cDay = cachedConsensus?.days[dayIdx];
+    const ensSpread = cDay ? Number((cDay.ensembleP90TMax - cDay.ensembleP10TMax).toFixed(1)) : undefined;
+    const dyn = calculateDynamicReliability({
+      leadDayIndex: dayIdx,
+      pressureHpa: weather.pressureMsl || 1015,
+      weatherCode: dayObj?.weatherCode ?? weather.weatherCode,
+      precipitationMm: dayObj?.precipitationSumMm ?? dayObj?.rainMm ?? 0,
+      temperatureSpreadC: cDay?.maxSpreadC,
+      ensembleSpreadP90P10C: ensSpread,
+      runToRunSwingC: cDay?.runToRunSwingC ?? 0,
+      temperatureC: dayObj?.tempMax ?? baseTempMax,
+      altitudeM: station.altitude ?? 100,
+      modelsCount: cDay?.totalScenariosCount
+    });
+    const halfSpread = ensSpread !== undefined ? `±${(ensSpread / 2).toFixed(1)}°C` : fallbackSpreadLabel;
+    const color =
+      dyn.scorePct >= 78
+        ? 'text-emerald-400 border-emerald-500/50 bg-emerald-950/30'
+        : dyn.scorePct >= 58
+        ? 'text-sky-300 border-sky-500/40 bg-sky-950/20'
+        : dyn.scorePct >= 40
+        ? 'text-amber-300 border-amber-500/40 bg-amber-950/20'
+        : 'text-orange-300 border-orange-500/40 bg-orange-950/20';
+
+    return {
+      horizon: horizonLabel,
+      score: dyn.scorePct,
+      status: dyn.gradeLabel,
+      color,
+      spreadTemp: halfSpread,
+      spreadPrecip,
+      modelsLeader,
+      synopticReason: `${dyn.meteorologicalReason}. ${dyn.whatIsUncertain}`
+    };
+  };
+
   const reliabilityByHorizon = [
-    {
-      horizon: 'J+1 (0 à 24h)',
-      score: 98,
-      status: 'Exceptionnelle (Consensus Déterministe)',
-      color: 'text-emerald-400 border-emerald-500/50 bg-emerald-950/30',
-      spreadTemp: '±0.4°C',
-      spreadPrecip: '±0.3 mm',
-      modelsLeader: 'AROME 1.3km • AROME-PI • ICON-D2 2.2km • IFS 9km',
-      synopticReason: 'Modèles à très haute résolution et assimilation radar Doppler ARAMIS en temps réel calés sur les observations directes.'
-    },
-    {
-      horizon: 'J+2 (24 à 48h)',
-      score: 95,
-      status: 'Très Élevée (Excellente Convergence)',
-      color: 'text-emerald-300 border-emerald-500/40 bg-emerald-950/20',
-      spreadTemp: '±0.8°C',
-      spreadPrecip: '±0.9 mm',
-      modelsLeader: 'ARPEGE 5km • ECMWF IFS • ECMWF AIFS (IA) • ICON-EU',
-      synopticReason: 'Forte convergence entre les modèles déterministes européens et les modèles IA neuronaux sur les advections thermiques.'
-    },
-    {
-      horizon: 'J+3 (48 à 72h)',
-      score: 91,
-      status: 'Élevée & Consolidée',
-      color: 'text-cyan-300 border-cyan-500/40 bg-cyan-950/20',
-      spreadTemp: '±1.2°C',
-      spreadPrecip: '±1.8 mm',
-      modelsLeader: 'ECMWF IFS • GraphCast AI • UKMO UM • ARPEGE',
-      synopticReason: 'Consensus solide sur l\'évacuation du front et le maintien du gradient de pression général.'
-    },
-    {
-      horizon: 'J+4 (72 à 96h)',
-      score: 87,
-      status: 'Très Bonne (Consensus Robuste)',
-      color: 'text-teal-300 border-teal-500/40 bg-teal-950/20',
-      spreadTemp: '±1.5°C',
-      spreadPrecip: '±2.5 mm',
-      modelsLeader: 'ECMWF EPS (51 membres) • GFS NOAA • ICON-Global',
-      synopticReason: 'Accord majeur sur l\'allure de la masse d\'air, nuances mineures de timing sans impact climatique.'
-    },
-    {
-      horizon: 'J+5 (96 à 120h)',
-      score: 83,
-      status: 'Bonne & Solide',
-      color: 'text-sky-300 border-sky-500/40 bg-sky-950/20',
-      spreadTemp: '±1.9°C',
-      spreadPrecip: '±3.6 mm',
-      modelsLeader: 'ECMWF EPS (Médiane) • GEFS 31 membres • GEM Canada',
-      synopticReason: 'Scénarios en convergence étroite : maintien du régime anticyclonique ou océanique dominant.'
-    },
-    {
-      horizon: 'J+6 & J+7 (120 à 168h)',
-      score: 79,
-      status: 'Consensus Régime Verrouillé',
-      color: 'text-cyan-300 border-cyan-500/40 bg-cyan-950/20',
-      spreadTemp: '±2.3°C',
-      spreadPrecip: '±4.8 mm',
-      modelsLeader: 'ECMWF EPS Cluster • ECMWF AIFS • GEFS NOAA',
-      synopticReason: 'Tendance globale solide : accord de plus de 80% des scénarios ensemblistes sur le régime de temps général.'
-    }
+    buildHorizonReliability(
+      'J+1 (0 à 24h)',
+      1,
+      '±0.6°C',
+      '±0.5 mm',
+      'AROME 1.3km • ICON-EU • ECMWF IFS • AIFS (IA) [Moy. 3 runs]'
+    ),
+    buildHorizonReliability(
+      'J+2 (24 à 48h)',
+      2,
+      '±0.9°C',
+      '±1.2 mm',
+      'ECMWF IFS • ECMWF AIFS • ARPEGE • ICON-EU [Moy. 3 runs]'
+    ),
+    buildHorizonReliability(
+      'J+3 (48 à 72h)',
+      3,
+      '±1.3°C',
+      '±2.0 mm',
+      'ECMWF IFS • GraphCast AI • UKMO UM • EPS 51m'
+    ),
+    buildHorizonReliability(
+      'J+4 (72 à 96h)',
+      4,
+      '±1.8°C',
+      '±3.0 mm',
+      'ECMWF EPS (51m) • AIFS-ENS (51m) • GEFS (31m) • ICON-EPS (40m)'
+    ),
+    buildHorizonReliability(
+      'J+5 (96 à 120h)',
+      5,
+      '±2.3°C',
+      '±4.2 mm',
+      '212 Scénarios d’Ensemble + 16 Modèles (Moy. 3 runs)'
+    ),
+    buildHorizonReliability(
+      'J+6 & J+7 (120 à 168h)',
+      6,
+      '±2.9°C',
+      '±5.5 mm',
+      'Médiane P50 (EPS / AIFS-ENS / GEFS / ICON-EPS / GEPS / UKMO-ENS)'
+    )
   ];
 
   // Ensemble Clustering & Alternative Scenarios
@@ -1360,7 +1389,7 @@ export const ShortTermMultiModelEnsembleCard: React.FC<ShortTermMultiModelEnsemb
               Échelle de Confiance & Dispersion Météorologique par Horizon Temporel
             </h4>
             <p className="text-xs text-slate-400">
-              L'indice de fiabilité est calculé en analysant la dispersion des 51 scénarios de l'ensemble européen ECMWF-EPS, des 31 membres de GEFS et la cohérence run-to-run des modèles haute résolution.
+              L'indice de fiabilité décroît avec l'échéance et mesure en direct la dispersion de 212 scénarios d'ensemble (EPS, AIFS-ENS, GEFS, ICON-EPS, GEPS, UKMO-ENS) et la stabilité sur les 3 derniers runs de 16 modèles.
             </p>
 
             <div className="mt-5 space-y-3">

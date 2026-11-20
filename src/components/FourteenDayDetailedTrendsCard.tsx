@@ -137,7 +137,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
       if (d.dominantScenario.tempMin < coldest.dominantScenario.tempMin) coldest = d;
       if (d.dominantScenario.precipitationMm > wettest.dominantScenario.precipitationMm) wettest = d;
       if (d.dominantScenario.precipitationMm >= 1.0) rainDays++;
-      if (d.modelConsensusScorePct >= 75) highConfDays++;
+      if (d.modelConsensusScorePct >= 65) highConfDays++;
     }
 
     const avgTx = (totalTx / data.days.length).toFixed(1);
@@ -195,25 +195,25 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
         return {
           bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
           dot: 'bg-emerald-400',
-          label: 'Consensus unanime • Accord élevé'
+          label: 'Fiabilité élevée • Faible divergence'
         };
       case 'MODEREE':
         return {
-          bg: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
-          dot: 'bg-sky-400',
-          label: 'Bon accord synoptique • Timing frontal'
+          bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+          dot: 'bg-amber-400',
+          label: 'Divergence modérée • Timing incertain'
         };
       case 'FORTE_DIVERGENCE':
         return {
-          bg: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
-          dot: 'bg-teal-400',
-          label: 'Scénarios en convergence étroite • Accord masse d’air'
+          bg: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+          dot: 'bg-orange-400',
+          label: 'Forte divergence • Fiabilité faible'
         };
       case 'DIVERGENCE_MAXIMALE':
         return {
-          bg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-          dot: 'bg-cyan-400',
-          label: 'Tendance directrice solide • Consensus ensembliste'
+          bg: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+          dot: 'bg-rose-400',
+          label: 'Dispersion maximale • Tendance indicative'
         };
     }
   };
@@ -385,7 +385,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               Scénarios Probabilistes & Comparatif Annuel
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Prévisions pour <strong>{station.name}</strong> ({station.altitude} m) • Comparaison multi-modèles (ECMWF, GFS, ICON, ARPEGE, GEM) et historique N-1.
+              Prévisions pour <strong>{station.name}</strong> ({station.altitude} m) • Synthèse sur ~225 scénarios (16 modèles + IA &amp; 212 membres d'ensemble), moyenne des 3 derniers runs.
             </p>
           </div>
 
@@ -492,7 +492,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               }`}
             >
               <Globe className="h-3.5 w-3.5" />
-              <span>3. 10 Modèles Mondiaux</span>
+              <span>3. Modèles, IA &amp; Ensembles</span>
             </button>
 
             <button
@@ -547,8 +547,8 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <BarChart3 className="h-4 w-4" />
                       Synthèse des Tendances (14 Jours)
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                      10 Modèles Synoptiques
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-sky-300 border border-slate-700">
+                      ~225 Scénarios • Moy. 3 runs
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-white">Trajectoire Thermique & Chronologie Météo</h3>
@@ -627,20 +627,20 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   </span>
                 </button>
 
-                {/* 4. High Confidence Window */}
+                {/* 4. Honest High Confidence Window */}
                 <div className="rounded-md bg-slate-950 border border-slate-800 p-3">
                   <div className="flex items-center justify-between text-emerald-400 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Fenêtre Haute Certitude</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Fenêtre Fiable (≥ 65%)</span>
                     <ShieldCheck className="h-3.5 w-3.5" />
                   </div>
                   <div className="text-lg font-bold text-emerald-300">
-                    J+1 à J+4
+                    J+0 à J+{Math.max(1, stats14Day.highConfDays - 1)}
                   </div>
                   <div className="text-xs font-medium text-slate-200 mt-0.5">
-                    {stats14Day.highConfDays} jours à fort accord
+                    {stats14Day.highConfDays} jour{stats14Day.highConfDays > 1 ? 's' : ''} à fiabilité solide
                   </div>
                   <span className="text-[10px] text-slate-400 block mt-1">
-                    Run déterministe haute résolution
+                    Décroissance nette après J+4
                   </span>
                 </div>
               </div>
@@ -767,9 +767,10 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                           <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${
-                                d.modelConsensusScorePct >= 80 ? 'bg-emerald-400' :
-                                d.modelConsensusScorePct >= 65 ? 'bg-amber-400' :
-                                'bg-purple-400'
+                                d.modelConsensusScorePct >= 75 ? 'bg-emerald-400' :
+                                d.modelConsensusScorePct >= 55 ? 'bg-sky-400' :
+                                d.modelConsensusScorePct >= 35 ? 'bg-amber-400' :
+                                'bg-rose-400'
                               }`}
                               style={{ width: `${d.modelConsensusScorePct}%` }}
                             />
@@ -810,7 +811,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <div 
                         style={{ width: `${selectedDay.modelConsensusScorePct}%` }}
                         className={`h-full ${
-                          selectedDay.modelConsensusScorePct >= 80 ? 'bg-emerald-400' : selectedDay.modelConsensusScorePct >= 60 ? 'bg-sky-400' : 'bg-amber-400'
+                          selectedDay.modelConsensusScorePct >= 75 ? 'bg-emerald-400' : selectedDay.modelConsensusScorePct >= 55 ? 'bg-sky-400' : selectedDay.modelConsensusScorePct >= 35 ? 'bg-amber-400' : 'bg-rose-400'
                         }`}
                       ></div>
                     </div>
@@ -848,10 +849,12 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       selectedDay.confidenceGrade === 'EXCELLENTE'
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         : selectedDay.confidenceGrade === 'BONNE'
-                        ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                         : selectedDay.confidenceGrade === 'MOYENNE'
                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        : 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                        : selectedDay.confidenceGrade === 'DÉLICATE'
+                        ? 'bg-orange-500/20 text-orange-300 border-orange-500/40'
+                        : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                     }`}>
                       {selectedDay.confidenceGradeLabel || selectedDay.confidenceGrade}
                     </span>
@@ -1341,8 +1344,13 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                       <Globe className="h-3.5 w-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        Consensus Multi-Modèles (10 Modèles Mondiaux)
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
+                        <span>Consensus Multi-Modèles &amp; Ensembles ({selectedDay.multiModelConsensus.totalScenariosAnalyzed || selectedDay.multiModelConsensus.availableModelsCount} Scénarios)</span>
+                        {selectedDay.multiModelConsensus.runsAveragedCount && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                            Moy. {selectedDay.multiModelConsensus.runsAveragedCount} derniers runs
+                          </span>
+                        )}
                         {isLoadingMultiModel && (
                           <span className="text-[10px] font-normal text-amber-300 flex items-center gap-1">
                             <RefreshCw className="h-3 w-3 animate-spin" /> Actualisation...
@@ -1350,7 +1358,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                         )}
                       </h4>
                       <span className="text-xs text-slate-400">
-                        Comparaison des centres pour le {selectedDay.fullDateFormatted}
+                        Comparaison des centres (déterministes, IA &amp; ensembles) pour le {selectedDay.fullDateFormatted}
                       </span>
                     </div>
                   </div>
@@ -1540,7 +1548,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
                     <Globe className="h-3.5 w-3.5" />
-                    Comparatif Multi-Modèles (10 Centres Mondiaux)
+                    Comparatif Multi-Modèles, Modèles IA &amp; Ensembles (Moy. 3 runs)
                   </span>
                   {isLoadingMultiModel && (
                     <span className="text-[10px] font-semibold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
@@ -1550,10 +1558,10 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                   )}
                 </div>
                 <h3 className="text-lg font-bold text-white">
-                  Matrice Multi-Modèles sur 14 Jours à {station.name}
+                  Matrice 14 Jours : Modèles Mondiaux, IA &amp; 212 Scénarios d'Ensemble à {station.name}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Confrontation directe de 10 modèles pour identifier les certitudes et les écarts thermiques :
+                  Chaque modèle intègre la moyenne de ses 3 derniers runs opérationnels afin de lisser les variations inter-runs et fiabiliser la tendance :
                 </p>
               </div>
 
@@ -1622,23 +1630,26 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
               </div>
             </div>
 
-            {/* 14-Day Comparative Matrix Table with 10 Columns */}
+            {/* 14-Day Comparative Matrix Table with Deterministic, AI & Ensemble Systems */}
             <div className="overflow-x-auto rounded-md border border-slate-800">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950 text-slate-400 font-semibold uppercase text-[10px]">
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-2">Accord</th>
-                    <th className="py-2.5 px-2 text-center text-slate-300">Médiane</th>
+                    <th className="py-2.5 px-2 text-center text-slate-300">Médiane 3-Runs</th>
                     <th className="py-2.5 px-2 text-center text-amber-300">Écart</th>
                     <th className="py-2.5 px-2 text-center text-sky-300" title="ECMWF IFS (9 km)">🇪🇺 ECMWF</th>
-                    <th className="py-2.5 px-2 text-center text-sky-400" title="ECMWF EPS (51 membres)">🇪🇺 EPS</th>
+                    <th className="py-2.5 px-2 text-center text-violet-300" title="ECMWF AIFS (IA 25 km)">🤖 AIFS IA</th>
+                    <th className="py-2.5 px-2 text-center text-sky-400" title="ECMWF EPS (51 membres)">🇪🇺 EPS 51m</th>
+                    <th className="py-2.5 px-2 text-center text-fuchsia-300" title="ECMWF AIFS ENS (51 membres IA)">🤖 AIFS-ENS</th>
                     <th className="py-2.5 px-2 text-center text-emerald-300" title="AROME (1.3 km)">🇫🇷 AROME</th>
                     <th className="py-2.5 px-2 text-center text-emerald-400" title="ARPEGE (5 km)">🇫🇷 ARPEGE</th>
                     <th className="py-2.5 px-2 text-center text-cyan-300" title="ICON-EU (6.5 km)">🇩🇪 ICON-EU</th>
-                    <th className="py-2.5 px-2 text-center text-cyan-400" title="ICON Global (13 km)">🇩🇪 ICON</th>
+                    <th className="py-2.5 px-2 text-center text-cyan-400" title="ICON-EPS (40 membres)">🇩🇪 ICON-EPS</th>
                     <th className="py-2.5 px-2 text-center text-amber-300" title="NOAA GFS (25 km)">🇺🇸 GFS</th>
-                    <th className="py-2.5 px-2 text-center text-amber-400" title="NOAA GEFS (31 membres)">🇺🇸 GEFS</th>
+                    <th className="py-2.5 px-2 text-center text-indigo-300" title="NOAA GraphCast (IA 25 km)">🧠 GraphCast</th>
+                    <th className="py-2.5 px-2 text-center text-amber-400" title="NOAA GEFS (31 membres)">🇺🇸 GEFS 31m</th>
                     <th className="py-2.5 px-2 text-center text-rose-300" title="UK Met Office (10 km)">🇬🇧 UKMO</th>
                     <th className="py-2.5 px-2 text-center text-purple-300" title="CMC GEM (15 km)">🇨🇦 GEM</th>
                     <th className="py-2.5 px-3">Extrêmes</th>
@@ -1721,12 +1732,15 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
                           {mm.tempMaxSpread}°C
                         </td>
                         <td className="py-2.5 px-2 text-center">{renderCell('ecmwf')}</td>
+                        <td className="py-2.5 px-2 text-center">{renderCell('ecmwf_aifs')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('ecmwf_eps')}</td>
+                        <td className="py-2.5 px-2 text-center">{renderCell('ecmwf_aifs_eps')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('arome')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('meteofrance')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('iconEu')}</td>
-                        <td className="py-2.5 px-2 text-center">{renderCell('icon')}</td>
+                        <td className="py-2.5 px-2 text-center">{renderCell('icon_eps')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('gfs')}</td>
+                        <td className="py-2.5 px-2 text-center">{renderCell('gfs_graphcast')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('gefs')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('ukmo')}</td>
                         <td className="py-2.5 px-2 text-center">{renderCell('gem')}</td>
@@ -1755,28 +1769,28 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3">
               <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
-                  J+1 à J+4 : Période Déterministe
+                  J+1 à J+3 : Court Terme Cadré (~70 à 90%)
                 </span>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  L'accord entre modèles est généralement supérieur à 85%. Les écarts thermiques dépassent rarement 1.5°C. Les prévisions AROME et ECMWF sont privilégiées.
+                  Les modèles haute résolution (AROME, ICON-EU, ECMWF) convergent généralement à ±1°C. Le lissage sur 3 runs absorbe les ajustements ponctuels.
                 </p>
               </div>
 
               <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                  J+5 à J+8 : Divergence de Calage Frontal
+                  J+4 à J+7 : Baisse Nette (~42 à 68%)
                 </span>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Les ondulations du jet stream induisent des décalages chronologiques de 6h à 18h sur les fronts. Le modèle ICON affine souvent les creusements secondaires.
+                  La prévisibilité chute avec la croissance du chaos barocline. La moyenne sur 3 runs des ~225 scénarios évite les sauts brutaux mais les écarts montent à 2-4°C.
                 </p>
               </div>
 
               <div className="rounded-md bg-slate-950 border border-slate-800 p-3 space-y-1">
                 <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">
-                  J+9 à J+14 : Faisceaux Ensemblistes & Régimes
+                  J+8 à J+14 : Tendance Indicative (&lt; 40%)
                 </span>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  La dispersion s'élargit (3°C à 7°C d'écart). La moyenne d'ensemble (EPS CEPMMT / GEFS) et les régimes NAO dictent la tendance de fond.
+                  La dispersion P10-P90 atteint 5°C à 10°C. Seule la médiane lissée sur 3 runs des 212 membres d'ensemble reste pertinente comme ordre de grandeur.
                 </p>
               </div>
             </div>

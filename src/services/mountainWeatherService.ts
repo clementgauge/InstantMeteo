@@ -1,4 +1,11 @@
 import { CurrentWeather, LocationPoint } from '../types/weather';
+import {
+  DailyPastWeatherPoint,
+  MountainSnowModelEntry,
+  SnowDepthReliabilityAnalysis,
+  reconcileMountainSnowAndReliability,
+  simulateAltitudeSnowpack60d
+} from '../utils/mountainSnowPhysics';
 
 export type AspectDirection = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
 
@@ -56,6 +63,7 @@ export interface MountainMassif {
   peakTempC?: number;
   nivoseSnowDepthCm?: number;
   nivoseTempC?: number;
+  snowReliability?: SnowDepthReliabilityAnalysis;
 }
 
 export interface VersantDetailedAnalysis {
@@ -1383,19 +1391,27 @@ export function calculateContinuousSnowAndLpnAnalysis(
           ).toFixed(1))
         : airTempC;
 
-    // Courbe réaliste d'enneigement en fonction de l'altitude et de la LPN
+    // Courbe réaliste d'enneigement en fonction de l'altitude et du manteau vérifié
+    // Important : on ne met JAMAIS un manteau existant à 0 cm juste à cause d'un redoux diurne temporaire ou d'une LPN haute aujourd'hui.
     let snowDepthMeanCm = 0;
-    if (alt >= effectiveLpnM && airTempC <= 1.8) {
-      const normalizedElev = Math.max(
-        0,
-        (alt - effectiveLpnM) /
-          Math.max(300, massif.altitudePeak - effectiveLpnM)
-      );
-      // Croissance continue physique au-dessus de la limite pluie-neige
-      const curveFactor = Math.pow(Math.min(1.0, normalizedElev), 1.25);
+    const hasBottomSnow = massif.snowDepthBottomCm > 0;
+    const hasTopSnow = massif.snowDepthTopCm > 0;
+    // Seuil altitudinal effectif du manteau au sol (plus bas si la station a déjà de la neige au pied)
+    const effectiveSnowlineFloorM = hasBottomSnow
+      ? Math.min(massif.altitudeBase, effectiveLpnM)
+      : hasTopSnow
+      ? Math.min(effectiveLpnM, Math.round(massif.altitudeBase + (massif.altitudePeak - massif.altitudeBase) * 0.38))
+      : effectiveLpnM;
+
+    if (hasTopSnow && (alt >= effectiveSnowlineFloorM || (hasBottomSnow && alt >= massif.altitudeBase - 150))) {
+      const span = Math.max(300, massif.altitudePeak - effectiveSnowlineFloorM);
+      const normalizedElev = Math.max(0, (alt - effectiveSnowlineFloorM) / span);
+      const curveFactor = Math.pow(Math.min(1.0, normalizedElev), 1.15);
       const targetMaxSnow = Math.max(massif.snowDepthTopCm, massif.snowDepthBottomCm);
-      const rawSnow = massif.snowDepthBottomCm + curveFactor * (targetMaxSnow - massif.snowDepthBottomCm);
-      const meltPenalty = airTempC > 0.5 ? Math.max(0.15, 1 - (airTempC - 0.5) * 0.4) : 1;
+      const baseAnchorSnow = hasBottomSnow ? massif.snowDepthBottomCm : 0;
+      const rawSnow = baseAnchorSnow + curveFactor * (targetMaxSnow - baseAnchorSnow);
+      // Pénalité progressive uniquement en cas de douceur marquée hors sous-couche établie
+      const meltPenalty = !hasBottomSnow && airTempC > 2.5 ? Math.max(0.35, 1 - (airTempC - 2.5) * 0.18) : 1;
       snowDepthMeanCm = Math.max(0, Math.round(rawSnow * meltPenalty));
     }
 
@@ -1505,20 +1521,23 @@ export function calculateContinuousSnowAndLpnAnalysis(
 export async function fetchLiveSkiResortConditions(massif: MountainMassif): Promise<MountainMassif> {
   try {
     const ts = Date.now();
-    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&timezone=auto&forecast_days=2&_ts=${ts}`;
+    const peakUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&hourly=freezing_level_height,snowfall,snow_depth,temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum&past_days=60&timezone=auto&forecast_days=2&_ts=${ts}`;
     const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudeBase}&current=temperature_2m,relative_humidity_2m,precipitation,snowfall,snow_depth&timezone=auto&forecast_days=1&_ts=${ts}`;
     const nivoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.nivoseElevationM}&current=temperature_2m,snow_depth,snowfall&timezone=auto&forecast_days=1&_ts=${ts}`;
+    const multiModelSnowUrl = `https://api.open-meteo.com/v1/forecast?latitude=${massif.latitude}&longitude=${massif.longitude}&elevation=${massif.altitudePeak}&hourly=snow_depth,snowfall&models=ecmwf_ifs025,icon_seamless,meteofrance_seamless,gfs_seamless&timezone=auto&forecast_days=2&_ts=${ts}`;
 
-    const [peakRes, baseRes, nivoseRes] = await Promise.all([
+    const [peakRes, baseRes, nivoseRes, mmSnowRes] = await Promise.all([
       fetch(peakUrl),
       fetch(baseUrl).catch(() => null),
-      fetch(nivoseUrl).catch(() => null)
+      fetch(nivoseUrl).catch(() => null),
+      fetch(multiModelSnowUrl).catch(() => null)
     ]);
 
     if (!peakRes.ok) return massif;
     const peakData = await peakRes.json();
     const baseData = baseRes && baseRes.ok ? await baseRes.json() : null;
     const nivoseData = nivoseRes && nivoseRes.ok ? await nivoseRes.json() : null;
+    const mmSnowData = mmSnowRes && mmSnowRes.ok ? await mmSnowRes.json() : null;
 
     const curPeak = peakData?.current || {};
     const curBase = baseData?.current || {};
@@ -1551,7 +1570,6 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
     if (typeof modelIsoCandidate === 'number' && !isNaN(modelIsoCandidate) && modelIsoCandidate >= 0) {
       liveIsoZero = Math.round(modelIsoCandidate);
     } else {
-      // Diagnostic thermodynamique fin entre la base et le sommet
       const dAlt = Math.max(150, massif.altitudePeak - massif.altitudeBase);
       const dTemp = baseTemp - peakTemp;
       let effectiveLapseRate = 0.0065;
@@ -1561,10 +1579,8 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
       if (peakTemp <= 0 && baseTemp <= 0) {
         liveIsoZero = Math.max(0, Math.round(massif.altitudeBase + (baseTemp / 0.0065)));
       } else if (peakTemp <= 0) {
-        // Le niveau 0°C est situé entre la base et le sommet
         liveIsoZero = Math.round(massif.altitudeBase + (baseTemp / effectiveLapseRate));
       } else {
-        // Le niveau 0°C est au-dessus du sommet
         liveIsoZero = Math.round(massif.altitudePeak + (peakTemp / effectiveLapseRate));
       }
     }
@@ -1575,66 +1591,184 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
     const isothermyDrop = (isInternal ? 320 : 240) + (rh < 55 ? 80 : 0) + ((curPeak.precipitation ?? 0) > 1 ? 120 : 0);
     const liveLpn = Math.max(0, liveIsoZero - isothermyDrop);
 
-    // Mesures réelles de neige en temps réel (en cm)
-    const apiPeakSnowM = curPeak.snow_depth ?? 0;
-    const apiBaseSnowM = curBase.snow_depth ?? 0;
-    const sumSnow24h = Math.round(hourlySnowPeak.slice(0, 24).reduce((a, b) => a + (b || 0), 0));
-    const sumSnow48h = Math.round(hourlySnowPeak.slice(0, 48).reduce((a, b) => a + (b || 0), 0));
+    // Mesures brutes NWP + cumul 24h/48h (en prenant en compte les dernières heures actuelles)
+    const realPeakSnowCm = Math.round((curPeak.snow_depth ?? 0) * 100);
+    const realBaseSnowCm = Math.round((curBase.snow_depth ?? 0) * 100);
+    const realNivoseSnowCm = curNivose?.snow_depth !== undefined ? Math.round((curNivose.snow_depth ?? 0) * 100) : Math.round((realBaseSnowCm + realPeakSnowCm) / 2);
 
-    const realPeakSnowCm = Math.round(apiPeakSnowM * 100);
-    const realBaseSnowCm = Math.round(apiBaseSnowM * 100);
+    const past24Start = Math.max(0, matchedHourIdx - 24);
+    const past48Start = Math.max(0, matchedHourIdx - 48);
+    const sumSnow24h = Math.round(
+      Math.max(
+        hourlySnowPeak.slice(past24Start, matchedHourIdx + 1).reduce((a, b) => a + (b || 0), 0),
+        hourlySnowPeak.slice(Math.max(0, hourlySnowPeak.length - 48), Math.max(0, hourlySnowPeak.length - 24)).reduce((a, b) => a + (b || 0), 0)
+      )
+    );
+    const sumSnow48h = Math.round(
+      Math.max(
+        hourlySnowPeak.slice(past48Start, matchedHourIdx + 1).reduce((a, b) => a + (b || 0), 0),
+        hourlySnowPeak.slice(-48).reduce((a, b) => a + (b || 0), 0)
+      )
+    );
 
-    // Cohérence et fiabilisation nivologique en temps réel
-    // 1. Au bas de station : sol rigoureusement déneigé (0 cm) si température > 1.8°C ou sous la LPN
-    const isBaseWarmOrBelowLpn = baseTemp > 1.8 || massif.altitudeBase < (liveLpn - 50);
-    const verifiedSnowBottomCm = isBaseWarmOrBelowLpn ? 0 : Math.max(0, realBaseSnowCm);
+    // Historique quotidien 60 jours pour bilan physique à l'altitude exacte (corrige le biais de maille NWP)
+    const dailyTimes: string[] = peakData?.daily?.time || [];
+    const todayDateStr = curTimeIso.slice(0, 10);
+    const todayDailyIdx = dailyTimes.findIndex((t) => t === todayDateStr);
+    const pastCutoff = todayDailyIdx > 0 ? todayDailyIdx + 1 : Math.max(0, dailyTimes.length - 1);
 
-    // 2. Au sommet : mesure réelle modèle/satellite ou accumulation glaciaire / sous-couche pérenne
-    let verifiedSnowTopCm = 0;
-    if (massif.altitudePeak < liveLpn - 50 || peakTemp > 2.0) {
-      verifiedSnowTopCm = 0;
-    } else if (realPeakSnowCm > 0) {
-      verifiedSnowTopCm = realPeakSnowCm;
-    } else {
-      // Si au-dessus de la LPN et température négative, estimer l'enneigement d'altitude réaliste
-      const baselinePeakSnow = massif.snowDepthTopCm > 0 ? massif.snowDepthTopCm : 0;
-      verifiedSnowTopCm = Math.max(baselinePeakSnow, sumSnow24h);
-      if (verifiedSnowTopCm === 0 && massif.altitudePeak >= 3000 && peakTemp <= 0) {
-        verifiedSnowTopCm = Math.max(15, Math.round(sumSnow48h * 1.2));
+    const dailyHistory: DailyPastWeatherPoint[] = [];
+    for (let idx = 0; idx < pastCutoff; idx++) {
+      const tMin = peakData?.daily?.temperature_2m_min?.[idx];
+      const tMax = peakData?.daily?.temperature_2m_max?.[idx];
+      const pSum = peakData?.daily?.precipitation_sum?.[idx];
+      const sSum = peakData?.daily?.snowfall_sum?.[idx];
+      if (typeof tMin === 'number' && typeof tMax === 'number') {
+        dailyHistory.push({
+          tempMinC: tMin,
+          tempMaxC: tMax,
+          precipMm: typeof pSum === 'number' ? pSum : 0,
+          snowfallCm: typeof sSum === 'number' ? sSum : 0
+        });
       }
     }
 
-    // 3. À la balise Nivôse : mesure directe du capteur ultrason ou étagement physique
-    let verifiedNivoseSnowCm = 0;
-    if (massif.nivoseElevationM < (liveLpn - 50) || nivoseTemp > 2.0) {
-      verifiedNivoseSnowCm = 0;
-    } else if (curNivose?.snow_depth !== undefined && curNivose.snow_depth > 0) {
-      verifiedNivoseSnowCm = Math.round(curNivose.snow_depth * 100);
-    } else {
-      // Détermination physique hypsométrique entre la LPN et le sommet
-      const effectiveElevationSpan = Math.max(100, massif.altitudePeak - liveLpn);
-      const elevationAboveLpn = Math.max(0, massif.nivoseElevationM - liveLpn);
-      const ratio = Math.min(1, elevationAboveLpn / effectiveElevationSpan);
-      verifiedNivoseSnowCm = Math.round(verifiedSnowBottomCm + (verifiedSnowTopCm - verifiedSnowBottomCm) * ratio);
-    }
+    const dailyRefTempAltitudeM = typeof peakData?.elevation === 'number' ? peakData.elevation : massif.altitudePeak;
+    const nowMonth = new Date().getMonth();
+
+    const sim60dPeak = dailyHistory.length > 0
+      ? simulateAltitudeSnowpack60d({
+          targetAltitudeM: massif.altitudePeak,
+          dailyRefTempAltitudeM,
+          dailyHistory,
+          isInternalMassif: isInternal,
+          monthIndex: nowMonth,
+          latitude: massif.latitude
+        })
+      : null;
+
+    const sim60dNivose = dailyHistory.length > 0
+      ? simulateAltitudeSnowpack60d({
+          targetAltitudeM: massif.nivoseElevationM,
+          dailyRefTempAltitudeM,
+          dailyHistory,
+          isInternalMassif: isInternal,
+          monthIndex: nowMonth,
+          latitude: massif.latitude
+        })
+      : null;
+
+    const sim60dBase = dailyHistory.length > 0
+      ? simulateAltitudeSnowpack60d({
+          targetAltitudeM: massif.altitudeBase,
+          dailyRefTempAltitudeM,
+          dailyHistory,
+          isInternalMassif: isInternal,
+          monthIndex: nowMonth,
+          latitude: massif.latitude
+        })
+      : null;
+
+    // Extraction multi-modèles pour comparaison directe des hauteurs de neige brutes
+    const mmHourly = mmSnowData?.hourly || {};
+    const mmTimes: string[] = mmHourly?.time || [];
+    const mmIdx = Math.max(0, mmTimes.findIndex((t) => t.startsWith(curTimeIso.slice(0, 13))));
+    const readMmModelDepth = (key: string): number | null => {
+      const arr = mmHourly[`snow_depth_${key}`];
+      if (!Array.isArray(arr)) return null;
+      const val = arr[mmIdx] ?? arr.find((v: any) => typeof v === 'number');
+      return typeof val === 'number' && !isNaN(val) ? Math.round(val * 100) : null;
+    };
+    const readMmModelSnowfall = (key: string): number | null => {
+      const arr = mmHourly[`snowfall_${key}`];
+      if (!Array.isArray(arr)) return null;
+      const valid = arr.slice(0, 48).filter((v: any) => typeof v === 'number') as number[];
+      if (valid.length === 0) return null;
+      return Math.round(valid.reduce((a, b) => a + b, 0));
+    };
+
+    const multiModelEntries: MountainSnowModelEntry[] = [
+      {
+        modelId: 'best-match',
+        modelName: 'Synthèse NWP Haute Résolution',
+        rawSnowDepthCm: realPeakSnowCm,
+        snowfall48hCm: sumSnow48h,
+        note: `Maille DEM (${Math.round(dailyRefTempAltitudeM)} m)`
+      },
+      {
+        modelId: 'ecmwf_ifs025',
+        modelName: 'ECMWF IFS (9–25 km)',
+        rawSnowDepthCm: readMmModelDepth('ecmwf_ifs025'),
+        snowfall48hCm: readMmModelSnowfall('ecmwf_ifs025'),
+        note: 'Modèle européen de référence'
+      },
+      {
+        modelId: 'icon_seamless',
+        modelName: 'DWD ICON (7–13 km)',
+        rawSnowDepthCm: readMmModelDepth('icon_seamless'),
+        snowfall48hCm: readMmModelSnowfall('icon_seamless'),
+        note: 'Modèle allemand haute résolution'
+      },
+      {
+        modelId: 'meteofrance_seamless',
+        modelName: 'Météo-France AROME/ARPEGE',
+        rawSnowDepthCm: readMmModelDepth('meteofrance_seamless'),
+        snowfall48hCm: readMmModelSnowfall('meteofrance_seamless'),
+        note: 'Maille fine alpine 1.3–5 km'
+      },
+      {
+        modelId: 'gfs_seamless',
+        modelName: 'NOAA GFS (25 km)',
+        rawSnowDepthCm: readMmModelDepth('gfs_seamless'),
+        snowfall48hCm: readMmModelSnowfall('gfs_seamless'),
+        note: 'Modèle global américain'
+      }
+    ];
 
     const windSpeed = Math.round(curPeak.wind_speed_10m ?? massif.ridgeWindSpeedKmh);
     const windGust = Math.round(curPeak.wind_gusts_10m ?? Math.max(windSpeed * 1.4, massif.ridgeWindGustKmh));
     const windDir = Math.round(curPeak.wind_direction_10m ?? massif.ridgeWindDirectionDeg);
 
-    // Diagnostic d'enneigement certifié
+    // Réconciliation finale + Fiabilité dynamique des hauteurs de neige
+    const snowReliability = reconcileMountainSnowAndReliability({
+      altitudeBaseM: massif.altitudeBase,
+      altitudeNivoseM: massif.nivoseElevationM,
+      altitudePeakM: massif.altitudePeak,
+      baseTempC: baseTemp,
+      nivoseTempC: nivoseTemp,
+      peakTempC: peakTemp,
+      liveLpnM: liveLpn,
+      liveIsoZeroM: liveIsoZero,
+      ridgeWindGustKmh: windGust,
+      precip24hMm: Number(curPeak.precipitation ?? 0),
+      rawBestMatchBaseCm: realBaseSnowCm,
+      rawBestMatchNivoseCm: realNivoseSnowCm,
+      rawBestMatchPeakCm: realPeakSnowCm,
+      multiModelEntries,
+      sim60dBase,
+      sim60dNivose,
+      sim60dPeak,
+      catalogBottomCm: massif.snowDepthBottomCm,
+      catalogTopCm: massif.snowDepthTopCm
+    });
+
+    const verifiedSnowBottomCm = snowReliability.correctedBottomCm;
+    const verifiedNivoseSnowCm = snowReliability.correctedNivoseCm;
+    const verifiedSnowTopCm = snowReliability.correctedTopCm;
+
+    // Diagnostic d'enneigement fiabilisé
     let snowCoverDiagnostic = '';
     let snowQuality = massif.snowQuality;
 
     if (verifiedSnowTopCm === 0 && verifiedSnowBottomCm === 0) {
-      snowCoverDiagnostic = 'Hors saison hivernale active — Sol dégagé et déneigé jusqu\'aux crêtes (alpages au vert).';
+      snowCoverDiagnostic = 'Sol dégagé et déneigé jusqu\'aux crêtes (absence de sous-couche hivernale active).';
       snowQuality = 'Névés / Rocher sec';
     } else if (verifiedSnowTopCm > 0 && verifiedSnowBottomCm === 0) {
-      snowCoverDiagnostic = `Manteau d'altitude (${verifiedSnowTopCm} cm à ${massif.altitudePeak} m). Bas de station au vert (${massif.altitudeBase} m, ${baseTemp > 0 ? `+${baseTemp}` : baseTemp}°C).`;
-      snowQuality = peakTemp <= -3 ? 'Poudreuse froide' : 'Croûte de regel';
+      snowCoverDiagnostic = `Manteau d'altitude fiabilisé (${verifiedNivoseSnowCm} cm à la balise ${massif.nivoseElevationM} m • ${verifiedSnowTopCm} cm au sommet ${massif.altitudePeak} m, fourchette ${snowReliability.rangeTopMinCm}–${snowReliability.rangeTopMaxCm} cm). Bas de station dégagé (${massif.altitudeBase} m).`;
+      snowQuality = peakTemp <= -3 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Croûte de regel';
     } else {
-      snowCoverDiagnostic = `Manteau neigeux continu (${verifiedSnowBottomCm} cm en bas → ${verifiedSnowTopCm} cm au sommet).`;
-      snowQuality = peakTemp <= -4 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Croûte de regel';
+      snowCoverDiagnostic = `Manteau neigeux continu fiabilisé (${verifiedSnowBottomCm} cm en bas → ${verifiedNivoseSnowCm} cm à la balise → ${verifiedSnowTopCm} cm au sommet, fourchette sommet ${snowReliability.rangeTopMinCm}–${snowReliability.rangeTopMaxCm} cm).`;
+      snowQuality = peakTemp <= -4 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : baseTemp > 1 ? 'Neige humide' : 'Croûte de regel';
     }
 
     // Réajustement dynamique du niveau de risque BERA
@@ -1680,9 +1814,10 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
       peakTempC: peakTemp,
       nivoseSnowDepthCm: verifiedNivoseSnowCm,
       nivoseTempC: nivoseTemp,
-      confidenceScorePercent: 98.4,
+      confidenceScorePercent: snowReliability.reliabilityPct,
+      snowReliability,
       snowCoverDiagnostic,
-      nivoseLiveStatus: `Balise Nivôse vérifiée en continu • Télémesure sol certifiée (${verifiedAt})`
+      nivoseLiveStatus: `Recalage physique 60j + Multi-Modèles NWP • Fiabilité nivologique ${snowReliability.reliabilityPct}% (${verifiedAt})`
     };
   } catch {
     return massif;
@@ -1907,16 +2042,52 @@ export function buildDynamicMountainProfileFromLocation(
     return diffLee <= 68;
   });
 
+  const rawBaseSnowCm = Math.round(weather.snowDepthCm ?? ((weather.snowDepth || 0) * 100));
   const isColdAtPeak = physPeak.tempAtAltitude <= 1.5;
-  const snowDepthBottomCm = baseAlt >= physPeak.lpn && weather.temperature <= 2
-    ? Math.max(5, Math.round((weather.snowDepth || 0) * 100 + (weather.snowfall || 0) * 8))
+  const nivoseAlt = Math.round((baseAlt + peakAlt) / 2);
+  const nivoseTempC = Number((weather.temperature - (nivoseAlt - baseAlt) * 0.0065).toFixed(1));
+
+  // Ne jamais effacer une sous-couche existante uniquement parce que T° > 2°C
+  const snowDepthBottomCm = rawBaseSnowCm > 0
+    ? rawBaseSnowCm
+    : (baseAlt >= physPeak.lpn && weather.temperature <= 1.5 ? Math.max(2, Math.round((weather.snowfall || 0) * 8)) : 0);
+
+  const orographicExtraCm = isColdAtPeak
+    ? Math.round(Math.max(0, (peakAlt - physPeak.lpn) * 0.08) + (weather.precipitation || 0) * 6)
     : 0;
-  const snowDepthTopCm = isColdAtPeak
-    ? Math.max(snowDepthBottomCm + 15, Math.round(Math.max(0, (peakAlt - physPeak.lpn) * 0.12) + (weather.precipitation || 0) * 6))
-    : 0;
+  const snowDepthTopCm = Math.max(
+    snowDepthBottomCm > 0 ? snowDepthBottomCm + Math.round(orographicExtraCm * 0.6) : 0,
+    orographicExtraCm
+  );
+  const nivoseSnowDepthCm = Math.round((snowDepthBottomCm + snowDepthTopCm) / 2);
   const freshSnow24hCm = isColdAtPeak
     ? Math.round(Math.max(weather.snowfall || 0, (weather.precipitation || 0) * (physPeak.tempAtAltitude <= 0 ? 1.2 : 0.4)))
     : 0;
+
+  const snowReliability = reconcileMountainSnowAndReliability({
+    altitudeBaseM: baseAlt,
+    altitudeNivoseM: nivoseAlt,
+    altitudePeakM: peakAlt,
+    baseTempC: Number(weather.temperature.toFixed(1)),
+    nivoseTempC,
+    peakTempC: Number(physPeak.tempAtAltitude.toFixed(1)),
+    liveLpnM: physPeak.lpn,
+    liveIsoZeroM: physPeak.isoZero,
+    ridgeWindGustKmh: physPeak.windGustAtAltitude,
+    precip24hMm: weather.precipitation || 0,
+    rawBestMatchBaseCm: snowDepthBottomCm,
+    rawBestMatchNivoseCm: nivoseSnowDepthCm,
+    rawBestMatchPeakCm: snowDepthTopCm,
+    multiModelEntries: [
+      {
+        modelId: 'local-station',
+        modelName: 'Profil Station & Radiosondage',
+        rawSnowDepthCm: snowDepthTopCm,
+        snowfall48hCm: freshSnow24hCm,
+        note: `Altitude base ${baseAlt} m`
+      }
+    ]
+  });
 
   let beraRiskLevel: 1 | 2 | 3 | 4 | 5 = 1;
   if (snowDepthTopCm >= 120 && physPeak.windGustAtAltitude >= 75) beraRiskLevel = 4;
@@ -1953,8 +2124,8 @@ export function buildDynamicMountainProfileFromLocation(
     beraRiskLabel: beraLabels[beraRiskLevel],
     criticalSlopes: criticalSlopes.length > 0 ? criticalSlopes : ['N', 'NE', 'E'],
     criticalAltitudeThreshold: Math.round(baseAlt + (peakAlt - baseAlt) * 0.55),
-    snowDepthBottomCm,
-    snowDepthTopCm,
+    snowDepthBottomCm: snowReliability.correctedBottomCm,
+    snowDepthTopCm: snowReliability.correctedTopCm,
     freshSnow24hCm,
     isoZeroAltitudeM: physPeak.isoZero,
     rainSnowLimitM: physPeak.lpn,
@@ -1963,7 +2134,7 @@ export function buildDynamicMountainProfileFromLocation(
     ridgeWindDirectionDeg: windDir,
     snowQuality,
     nivoseStationName: `Profil Radiosondage ${station.name}`,
-    nivoseElevationM: Math.round((baseAlt + peakAlt) / 2),
+    nivoseElevationM: nivoseAlt,
     topographicRegime: baseAlt >= 1200 ? 'Massif Interne (Lac d\'air froid / Isothermie forte)' : 'Moyenne Montagne Exposée',
     beraSummary: snowDepthTopCm > 0
       ? `Analyse orographique directe pour ${station.name} : isotherme 0°C situé vers ${physPeak.isoZero} m (limite pluie-neige vers ${physPeak.lpn} m). Vent en crête de secteur ${windDir}° soufflant jusqu'à ${physPeak.windGustAtAltitude} km/h.`
@@ -1971,8 +2142,10 @@ export function buildDynamicMountainProfileFromLocation(
     isLiveCustomStation: true,
     baseTempC: Number(weather.temperature.toFixed(1)),
     peakTempC: Number(physPeak.tempAtAltitude.toFixed(1)),
-    nivoseTempC: Number((weather.temperature - ((Math.round((baseAlt + peakAlt) / 2) - baseAlt) * 0.0065)).toFixed(1)),
-    confidenceScorePercent: 99.4,
+    nivoseTempC,
+    nivoseSnowDepthCm: snowReliability.correctedNivoseCm,
+    confidenceScorePercent: snowReliability.reliabilityPct,
+    snowReliability,
     isRealTimeVerified: true
   };
 }
@@ -2022,12 +2195,47 @@ export async function searchAndBuildWorldMountainStation(query: string): Promise
           const windSpeed = Math.round(cur.wind_speed_10m ?? 35);
           const windGust = Math.round(cur.wind_gusts_10m ?? 58);
           const windDir = Math.round(cur.wind_direction_10m ?? 250);
-          const snowTopCm = Math.max(
-            Math.round((cur.snow_depth ?? 0) * 100),
-            cur.temperature_2m <= 0 ? Math.round(Math.max(0, (peakElev - lpn) * 0.13)) : 0
+          const baseTempC = Number((cur.temperature_2m !== undefined ? (cur.temperature_2m + (peakElev - baseElev) * 0.0065) : 8).toFixed(1));
+          const peakTempC = Number((cur.temperature_2m ?? -1).toFixed(1));
+          const nivoseElev = Math.round((baseElev + peakElev) / 2);
+          const nivoseTempC = Number(((baseTempC + peakTempC) / 2).toFixed(1));
+          const rawApiPeakCm = Math.round((cur.snow_depth ?? 0) * 100);
+          const snowTopRawCm = Math.max(
+            rawApiPeakCm,
+            peakTempC <= 0 ? Math.round(Math.max(0, (peakElev - lpn) * 0.12)) : 0
           );
-          const snowBottomCm = baseElev >= lpn ? Math.round(snowTopCm * 0.38) : 0;
-          const fresh24h = Math.round((cur.snowfall ?? 0) * 12);
+          const snowBottomRawCm = baseElev >= lpn
+            ? Math.round(snowTopRawCm * 0.38)
+            : (rawApiPeakCm > 30 && baseTempC <= 4.5 ? Math.round(snowTopRawCm * 0.18) : 0);
+          const fresh24h = Math.round((cur.snowfall ?? 0) * 10);
+
+          const snowReliability = reconcileMountainSnowAndReliability({
+            altitudeBaseM: baseElev,
+            altitudeNivoseM: nivoseElev,
+            altitudePeakM: peakElev,
+            baseTempC,
+            nivoseTempC,
+            peakTempC,
+            liveLpnM: lpn,
+            liveIsoZeroM: isoZero,
+            ridgeWindGustKmh: windGust,
+            precip24hMm: Number(cur.precipitation ?? 0),
+            rawBestMatchBaseCm: snowBottomRawCm,
+            rawBestMatchNivoseCm: Math.round((snowBottomRawCm + snowTopRawCm) / 2),
+            rawBestMatchPeakCm: snowTopRawCm,
+            multiModelEntries: [
+              {
+                modelId: 'best-match',
+                modelName: 'Synthèse NWP Station',
+                rawSnowDepthCm: rawApiPeakCm,
+                snowfall48hCm: fresh24h,
+                note: `Station ${peakElev} m`
+              }
+            ]
+          });
+
+          const snowTopCm = snowReliability.correctedTopCm;
+          const snowBottomCm = snowReliability.correctedBottomCm;
 
           const leeDeg = (windDir + 180) % 360;
           const allAspects: AspectDirection[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -2060,23 +2268,27 @@ export async function searchAndBuildWorldMountainStation(query: string): Promise
             beraRiskLevel: beraLevel,
             beraRiskLabel: beraLabels[beraLevel],
             criticalSlopes: criticalSlopes.length ? criticalSlopes : ['N', 'NE', 'E'],
-            criticalAltitudeThreshold: Math.round((baseElev + peakElev) / 2),
+            criticalAltitudeThreshold: nivoseElev,
             snowDepthBottomCm: snowBottomCm,
             snowDepthTopCm: snowTopCm,
+            nivoseSnowDepthCm: snowReliability.correctedNivoseCm,
             freshSnow24hCm: fresh24h,
             isoZeroAltitudeM: isoZero,
             rainSnowLimitM: lpn,
             ridgeWindSpeedKmh: windSpeed,
             ridgeWindGustKmh: windGust,
             ridgeWindDirectionDeg: windDir,
-            snowQuality: snowTopCm > 0 ? (cur.temperature_2m <= -3 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Neige de printemps') : 'Névés / Rocher sec',
+            snowQuality: snowTopCm > 0 ? (peakTempC <= -3 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Neige de printemps') : 'Névés / Rocher sec',
             nivoseStationName: `Station Altitude ${item.name}`,
-            nivoseElevationM: peakElev,
+            nivoseElevationM: nivoseElev,
             topographicRegime: baseElev >= 1100 ? 'Massif Interne (Lac d\'air froid / Isothermie forte)' : 'Préalpes & Flux Océanique',
             beraSummary: `Analyse nivologique et limite pluie-neige en direct pour ${item.name} (${item.country || ''}) : base ${baseElev} m, sommet ${peakElev} m. Isotherme 0°C mesuré à ${isoZero} m, limite pluie-neige adaptée à ${lpn} m.`,
             isLiveCustomStation: true,
-            baseTempC: Number((cur.temperature_2m !== undefined ? (cur.temperature_2m + (peakElev - baseElev) * 0.0065) : 8).toFixed(1)),
-            peakTempC: Number((cur.temperature_2m ?? -1).toFixed(1)),
+            baseTempC,
+            nivoseTempC,
+            peakTempC,
+            confidenceScorePercent: snowReliability.reliabilityPct,
+            snowReliability,
             isRealTimeVerified: true
           };
         } catch {
