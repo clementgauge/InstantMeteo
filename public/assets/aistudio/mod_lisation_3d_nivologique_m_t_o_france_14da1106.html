@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modèle 3D Nivologique - Instant Météo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/OBJExporter.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #0b1222;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.45);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.7);
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -5.5px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.55);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Conteneur 3D Principal -->
+    <div id="canvas-container"></div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-slate-800/95 border border-sky-500/40 text-white px-5 py-3 rounded-xl shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-3">
+        <svg class="w-5 h-5 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span id="toast-message" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <!-- En-tête Flottant Live Station -->
+    <header class="fixed top-3 left-3 z-20 pointer-events-none max-w-md pr-14 md:pr-0">
+        <div class="bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 p-3.5 rounded-2xl shadow-2xl pointer-events-auto space-y-2.5">
+            <div class="flex items-start justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="p-2 bg-sky-500/20 rounded-xl border border-sky-400/35 shrink-0">
+                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h1 id="hdr-station-name" class="text-sm sm:text-base font-bold tracking-tight text-white truncate">NivoModel 3D</h1>
+                            <span id="hdr-live-pill" class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Live</span>
+                        </div>
+                        <p id="hdr-station-sub" class="text-[11px] text-slate-400 truncate">Simulation nivologique 3D</p>
+                    </div>
+                </div>
+                <span id="hdr-bera-pill" class="shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold font-mono bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                    BERA --/5
+                </span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/90 text-[11px]">
+                <div class="bg-slate-950/60 rounded-lg px-2 py-1 border border-slate-800/80">
+                    <div class="text-[9px] text-slate-400 uppercase">Sommet / Base</div>
+                    <div id="hdr-alt-range" class="font-bold text-sky-300 font-mono truncate">2850 / 1000m</div>
+                </div>
+                <div class="bg-slate-950/60 rounded-lg px-2 py-1 border border-slate-800/80">
+                    <div class="text-[9px] text-slate-400 uppercase">LPN / Iso 0°</div>
+                    <div id="hdr-lpn-iso" class="font-bold text-indigo-300 font-mono truncate">-- / --m</div>
+                </div>
+                <div class="bg-slate-950/60 rounded-lg px-2 py-1 border border-slate-800/80">
+                    <div class="text-[9px] text-slate-400 uppercase">Pistes</div>
+                    <div id="hdr-slopes" class="font-bold text-emerald-300 font-mono truncate">-- / --</div>
+                </div>
+                <div class="bg-slate-950/60 rounded-lg px-2 py-1 border border-slate-800/80">
+                    <div class="text-[9px] text-slate-400 uppercase">Vent Crête</div>
+                    <div id="hdr-wind" class="font-bold text-cyan-300 font-mono truncate">-- km/h</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Bouton Toggle Mobile pour le panneau HUD -->
+    <button id="toggle-hud-btn" class="fixed top-3 right-3 z-30 md:hidden bg-slate-900/90 border border-slate-700 p-3 rounded-xl shadow-lg text-slate-200 hover:text-white" title="Afficher les données">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+    </button>
+
+    <!-- Panneau de Contrôle HUD (Droite) -->
+    <aside id="hud-panel" class="fixed top-3 right-3 bottom-3 w-[370px] max-w-[calc(100vw-1.5rem)] z-20 bg-slate-900/90 backdrop-blur-xl border border-slate-700/75 rounded-2xl shadow-2xl flex flex-col transition-transform duration-300 translate-x-full md:translate-x-0 overflow-hidden">
+
+        <!-- Titre & Mode Sync -->
+        <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 truncate">Relevés & Télémétrie 3D</h2>
+            </div>
+            <button id="btn-sync-live" onclick="resyncWithLivePage()" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 rounded-full hover:bg-emerald-500/30 transition shrink-0 cursor-pointer">
+                Sync Page Live
+            </button>
+        </div>
+
+        <!-- Barre d'onglets HUD -->
+        <div class="grid grid-cols-4 gap-1 p-1.5 bg-slate-950/80 border-b border-slate-800 shrink-0 text-[10px] font-bold">
+            <button onclick="switchHudTab('sim')" id="tab-btn-sim" class="hud-tab-btn px-1.5 py-1.5 rounded-lg bg-sky-500/25 text-sky-200 border border-sky-500/40 cursor-pointer transition">3D &amp; Neige</button>
+            <button onclick="switchHudTab('ops')" id="tab-btn-ops" class="hud-tab-btn px-1.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer transition">Domaine</button>
+            <button onclick="switchHudTab('nivo')" id="tab-btn-nivo" class="hud-tab-btn px-1.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer transition">Nivôse/LPN</button>
+            <button onclick="switchHudTab('aspects')" id="tab-btn-aspects" class="hud-tab-btn px-1.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer transition">Versants</button>
+        </div>
+
+        <!-- Contenu Défilant -->
+        <div class="p-3.5 overflow-y-auto flex-1 space-y-4 text-xs">
+
+            <!-- ONGLET 1 : 3D & NEIGE -->
+            <div id="tab-panel-sim" class="space-y-4">
+                <!-- Calques 3D -->
+                <div class="bg-slate-950/55 p-3 rounded-xl border border-slate-800/80 space-y-2">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Calques Topographiques 3D</div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <label class="flex items-center gap-2 bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+                            <input type="checkbox" id="chk-lpn-ring" checked class="accent-sky-500 rounded">
+                            <span>Anneaux LPN &amp; Iso 0°</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+                            <input type="checkbox" id="chk-bera-zones" checked class="accent-amber-500 rounded">
+                            <span>Zones BERA critiques</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+                            <input type="checkbox" id="chk-alt-target" checked class="accent-indigo-500 rounded">
+                            <span>Cible simulateur</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+                            <input type="checkbox" id="chk-wind-arrow" checked class="accent-cyan-500 rounded">
+                            <span>Vecteur Vent Crête</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Curseurs d'Altitude (Synchronisés aux paliers réels de la station) -->
+                <div class="space-y-3 bg-slate-950/55 p-3.5 rounded-xl border border-slate-800/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-200">Épaisseur par Palier (cm)</span>
+                        <button onclick="regenerateTerrain()" class="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer" title="Générer un nouveau relief">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Relief
+                        </button>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span id="lbl-1500" class="text-slate-400">Pied / 1 500 m</span>
+                            <span id="val-1500" class="font-mono font-bold text-sky-400">45 cm</span>
+                        </div>
+                        <input type="range" id="slider-1500" min="0" max="250" value="45" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span id="lbl-2000" class="text-slate-400">Balise Nivôse / 2 000 m</span>
+                            <span id="val-2000" class="font-mono font-bold text-sky-400">135 cm</span>
+                        </div>
+                        <input type="range" id="slider-2000" min="0" max="400" value="135" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span id="lbl-2500" class="text-slate-400">Sommet / 2 500 m</span>
+                            <span id="val-2500" class="font-mono font-bold text-sky-400">240 cm</span>
+                        </div>
+                        <input type="range" id="slider-2500" min="0" max="500" value="240" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Paramètres Physiques & Échelle -->
+                <div class="space-y-3 bg-slate-950/40 p-3 rounded-xl border border-slate-800/70">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Exagération visuelle neige</span>
+                            <span id="val-exag" class="font-mono text-slate-300">x15</span>
+                        </div>
+                        <input type="range" id="slider-exag" min="1" max="40" value="15" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Tenue sur pente raide (Falaise)</span>
+                            <span id="val-slope" class="font-mono text-slate-300">52° max</span>
+                        </div>
+                        <input type="range" id="slider-slope" min="25" max="80" value="52" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Présélections Massifs -->
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1.5">Profils de Simulation Manuelle</label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button onclick="applyPreset('alpes_nord')" id="btn-alpes_nord" class="preset-btn px-2.5 py-1.5 text-[11px] font-medium rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800 transition text-left cursor-pointer">
+                            <div class="font-semibold">Alpes du Nord</div>
+                            <div class="text-[10px] text-slate-400">Enneigement fort</div>
+                        </button>
+                        <button onclick="applyPreset('pyrenees')" id="btn-pyrenees" class="preset-btn px-2.5 py-1.5 text-[11px] font-medium rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800 transition text-left cursor-pointer">
+                            <div class="font-semibold">Pyrénées</div>
+                            <div class="text-[10px] text-slate-400">Enneigement moyen</div>
+                        </button>
+                        <button onclick="applyPreset('vosges')" id="btn-vosges" class="preset-btn px-2.5 py-1.5 text-[11px] font-medium rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800 transition text-left cursor-pointer">
+                            <div class="font-semibold">Vosges / Jura</div>
+                            <div class="text-[10px] text-slate-400">Moyenne montagne</div>
+                        </button>
+                        <button onclick="applyPreset('printemps')" id="btn-printemps" class="preset-btn px-2.5 py-1.5 text-[11px] font-medium rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800 transition text-left cursor-pointer">
+                            <div class="font-semibold">Fonte Printemps</div>
+                            <div class="text-[10px] text-slate-400">Limite haute</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Légende -->
+                <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-700/50 space-y-1.5">
+                    <div class="text-xs font-medium text-slate-300">Légende Topographique</div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-white inline-block shadow"></span> Manteau neigeux</span>
+                        <span id="snow-coverage-pct" class="font-mono text-slate-200">--%</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> Versant BERA critique</span>
+                        <span id="legend-bera-alt" class="font-mono text-amber-300">-- m</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-slate-500 inline-block"></span> Paroi rocheuse (&gt; pente max)</span>
+                        <span>Granit/Schiste</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-emerald-800 inline-block"></span> Étage subalpin / Vallée</span>
+                        <span>&lt; Limite neige</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ONGLET 2 : DOMAINE SKIABLE & BERA -->
+            <div id="tab-panel-ops" class="hidden space-y-3.5">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="ops-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-200">--</span>
+                        <span id="ops-source-badge" class="text-[10px] font-semibold text-sky-300 truncate">--</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Pistes ouvertes</div>
+                            <div id="ops-slopes" class="font-bold text-white font-mono text-sm">-- / --</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Kilomètres ouverts</div>
+                            <div id="ops-km" class="font-bold text-sky-300 font-mono text-sm">-- / -- km</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Remontées actives</div>
+                            <div id="ops-lifts" class="font-bold text-white font-mono text-sm">-- / --</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Nordique / Park</div>
+                            <div id="ops-nordic" class="font-bold text-cyan-300 font-mono text-xs">-- km</div>
+                        </div>
+                    </div>
+                    <div id="ops-linked-domain" class="hidden text-[11px] text-cyan-300 bg-cyan-950/40 border border-cyan-500/30 rounded-lg px-2.5 py-1.5"></div>
+                    <div class="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono text-[10px]">
+                        <div class="bg-emerald-950/50 border border-emerald-500/30 rounded-lg py-1">
+                            <div class="text-emerald-300 font-bold">Vertes</div>
+                            <div id="ops-green" class="text-white font-bold">--/--</div>
+                        </div>
+                        <div class="bg-sky-950/50 border border-sky-500/30 rounded-lg py-1">
+                            <div class="text-sky-300 font-bold">Bleues</div>
+                            <div id="ops-blue" class="text-white font-bold">--/--</div>
+                        </div>
+                        <div class="bg-rose-950/50 border border-rose-500/30 rounded-lg py-1">
+                            <div class="text-rose-300 font-bold">Rouges</div>
+                            <div id="ops-red" class="text-white font-bold">--/--</div>
+                        </div>
+                        <div class="bg-slate-800 border border-slate-600/50 rounded-lg py-1">
+                            <div class="text-slate-200 font-bold">Noires</div>
+                            <div id="ops-black" class="text-white font-bold">--/--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exploitation pratique -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="font-bold text-sky-400 uppercase tracking-wider text-[10px]">Exploitation &amp; Conditions Terrain</div>
+                    <div class="space-y-1.5 text-slate-300">
+                        <div><strong>Horaires &amp; Saison :</strong> <span id="ops-hours-season">--</span></div>
+                        <div><strong>Liaisons :</strong> <span id="ops-links">--</span> · <strong>Neige culture :</strong> <span id="ops-cannons">--</span></div>
+                        <div><strong>Damage :</strong> <span id="ops-grooming">--</span></div>
+                        <div><strong>Visibilité :</strong> <span id="ops-visibility">--</span></div>
+                        <div><strong>Accès routier :</strong> <span id="ops-road">--</span></div>
+                    </div>
+                </div>
+
+                <!-- Bulletin Risque Avalanche (BERA) complet -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-amber-500/30 space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-amber-300 uppercase tracking-wider text-[10px]">Bulletin Avalanche (BERA)</span>
+                        <span id="bera-stability-badge" class="font-bold text-amber-200">--</span>
+                    </div>
+                    <p id="bera-summary-text" class="text-slate-300 leading-relaxed"></p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Altitude critique</div>
+                            <div id="bera-crit-alt" class="font-bold text-white font-mono">-- m</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[10px] text-slate-400">Orientations</div>
+                            <div id="bera-crit-slopes" class="font-bold text-amber-300 font-mono">--</div>
+                        </div>
+                    </div>
+                    <div id="bera-mechanisms-list" class="space-y-1 text-slate-300"></div>
+                    <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-800 space-y-1">
+                        <div><strong>Spontanés :</strong> <span id="bera-spontaneous" class="text-slate-200">--</span></div>
+                        <div><strong>Skieur :</strong> <span id="bera-trigger" class="text-slate-200">--</span></div>
+                        <div><strong>Conseil :</strong> <span id="bera-offpiste" class="text-sky-200">--</span></div>
+                        <div><strong>Équipement :</strong> <span id="bera-gear" class="text-amber-200">--</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ONGLET 3 : NIVÔSE, FIABILITÉ & LPN -->
+            <div id="tab-panel-nivo" class="hidden space-y-3.5">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-sky-500/30 space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-bold text-sky-400 uppercase tracking-wider text-[10px]">Télémesure Nivôse</span>
+                        <span id="nivo-rel-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/35">Fiabilité --%</span>
+                    </div>
+                    <div id="nivo-station-title" class="font-bold text-white">--</div>
+                    <div class="grid grid-cols-3 gap-1.5 text-center">
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[9px] text-slate-400">Base</div>
+                            <div id="nivo-bottom" class="font-bold text-emerald-300 font-mono">-- cm</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-sky-500/30">
+                            <div class="text-[9px] text-sky-300">Balise</div>
+                            <div id="nivo-val" class="font-bold text-white font-mono">-- cm</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <div class="text-[9px] text-slate-400">Sommet</div>
+                            <div id="nivo-top" class="font-bold text-indigo-300 font-mono">-- cm</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 text-[10px] text-slate-300">
+                        <div>Fraîche 24h / 48h : <strong id="nivo-fresh" class="text-cyan-300">--</strong></div>
+                        <div>Qualité : <strong id="nivo-quality" class="text-white">--</strong></div>
+                        <div>Fourchette Ubac-Adret : <strong id="nivo-range" class="text-cyan-200">--</strong></div>
+                        <div>T° Balise : <strong id="nivo-temp" class="text-white">--</strong></div>
+                    </div>
+                    <p id="nivo-diagnostic" class="text-slate-300 leading-relaxed pt-1 border-t border-slate-800/80"></p>
+                </div>
+
+                <!-- Modèles NWP comparés -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-cyan-300 uppercase tracking-wider text-[10px]">Comparatif Multi-Modèles NWP</span>
+                        <span id="nivo-correction-badge" class="text-[10px] text-indigo-300 font-bold"></span>
+                    </div>
+                    <div id="nwp-models-grid" class="grid grid-cols-2 gap-1.5"></div>
+                    <p id="nivo-rel-summary" class="text-[10px] text-slate-400 leading-relaxed"></p>
+                </div>
+
+                <!-- Thermodynamique LPN & Evolution 24h -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-indigo-500/30 space-y-2 text-[11px]">
+                    <div class="font-bold text-indigo-300 uppercase tracking-wider text-[10px]">Thermodynamique &amp; Limite Pluie-Neige (LPN)</div>
+                    <div class="grid grid-cols-2 gap-1.5 font-mono text-center">
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">
+                            <div class="text-[9px] text-slate-400">Iso 0°C / Tw=0°C</div>
+                            <div id="lpn-iso-tw" class="font-bold text-amber-300">-- / --m</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">
+                            <div class="text-[9px] text-slate-400">LPN / Isothermie</div>
+                            <div id="lpn-eff-iso" class="font-bold text-sky-300">-- / --m</div>
+                        </div>
+                    </div>
+                    <div id="lpn-gradient-meta" class="text-[10px] text-slate-400"></div>
+                    <p id="lpn-explanation" class="text-[10px] text-slate-300 leading-relaxed"></p>
+                    <div id="lpn-timeline-list" class="divide-y divide-slate-800/80 pt-1"></div>
+                </div>
+            </div>
+
+            <!-- ONGLET 4 : 8 VERSANTS, PROFIL 200M & ALTITUDE -->
+            <div id="tab-panel-aspects" class="hidden space-y-3.5">
+                <!-- Simulateur d'altitude -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-sky-400 uppercase tracking-wider text-[10px]">Simulateur d'Altitude Réel</span>
+                        <span id="phys-alt-badge" class="font-mono font-bold text-sky-300">-- m</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 font-mono text-[10px]">
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">T° / Tw : <strong id="phys-temp" class="text-white">--</strong></div>
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">Wind Chill : <strong id="phys-chill" class="text-indigo-300">--</strong></div>
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">Vent / Raf. : <strong id="phys-wind" class="text-white">--</strong></div>
+                        <div class="bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">O₂ / QFE / UV : <strong id="phys-oxy" class="text-emerald-300">--</strong></div>
+                    </div>
+                </div>
+
+                <!-- 8 Versants -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="font-bold text-sky-400 uppercase tracking-wider text-[10px]">Diagnostic 8 Versants (Cliquer pour cibler)</div>
+                    <div id="aspects-grid" class="grid grid-cols-4 gap-1.5"></div>
+                    <div id="aspect-detail-box" class="bg-slate-900/85 p-2.5 rounded-lg border border-sky-500/30 space-y-1 text-[10px] text-slate-300"></div>
+                </div>
+
+                <!-- Profil Hypsométrique continu tous les 200m -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="font-bold text-sky-400 uppercase tracking-wider text-[10px]">Profil Vertical Tous les 200 m</div>
+                    <div id="bands-list" class="space-y-1 max-h-48 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Coupe 4 Étages -->
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+                    <div class="font-bold text-indigo-300 uppercase tracking-wider text-[10px]">Coupe 4 Étages Hypsométriques</div>
+                    <div id="stages-list" class="grid grid-cols-2 gap-1.5"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Pied de panneau : Exportation 3D -->
+        <div class="p-3 border-t border-slate-800 bg-slate-900/95 shrink-0">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="exportModel('stl')" class="flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold py-2 px-3 rounded-xl shadow-lg shadow-sky-900/30 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Export .STL
+                </button>
+                <button onclick="exportModel('obj')" class="flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold py-2 px-3 rounded-xl transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Export .OBJ
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contrôles Souris & Repères Cardinaux -->
+    <div class="fixed bottom-3 left-3 z-10 hidden sm:flex items-center space-x-3 bg-slate-900/75 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] text-slate-300 pointer-events-none">
+        <span>🖱️ Rotation</span>
+        <span>•</span>
+        <span>🖱️ Panoramique</span>
+        <span>•</span>
+        <span>⚙️ Zoom</span>
+        <span>•</span>
+        <span class="text-sky-300 font-semibold">Nord = -Z (Ubac)</span>
+    </div>
+
+    <script>
+        /**
+         * NivoModel 3D - Simulation Nivologique Connectée en Direct à Instant Météo
+         */
+
+        const CONFIG = {
+            gridSize: 160,
+            terrainWidth: 120,
+            minAltitude: 1000,
+            maxAltitude: 2850,
+            seed: 42.19
+        };
+
+        const STATE = {
+            snow1500: 45,
+            snow2000: 135,
+            snow2500: 240,
+            altMarkers: [1500, 2000, 2500],
+            exaggeration: 15,
+            maxSlopeDeg: 52,
+            syncWithLivePage: true,
+            showLpnRings: true,
+            showBeraZones: true,
+            showAltTarget: true,
+            showWindArrow: true,
+            liveData: null,
+            selectedAspect: 'N'
+        };
+
+        const PRESETS = {
+            alpes_nord: { s1500: 45, s2000: 135, s2500: 240, slope: 52 },
+            pyrenees:   { s1500: 25, s2000: 95,  s2500: 185, slope: 50 },
+            vosges:     { s1500: 65, s2000: 110, s2500: 140, slope: 55 },
+            printemps:  { s1500: 0,  s2000: 40,  s2500: 150, slope: 45 }
+        };
+
+        const ASPECT_AZIMUTH_MAP = {
+            N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315
+        };
+
+        let scene, camera, renderer, controls;
+        let mountainGroup, terrainMesh, snowMesh, baseSocleMesh, overlaysGroup, windArrowGroup;
+        let baseHeights = [];
+        let baseWorldY = [];
+        let slopesDeg = [];
+        let vertexAspectDirs = []; // 'N'|'NE'|...
+        let vertexAspectAzimuthDeg = [];
+
+        function setText(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        }
+
+        function computeDeterministicSeed(str) {
+            let h = 2166136261;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+            }
+            return (Math.abs(h) % 10000) / 100.0;
+        }
+
+        function hash2D(x, y) {
+            const h = Math.sin(x * 127.1 + y * 311.7 + CONFIG.seed) * 43758.5453123;
+            return h - Math.floor(h);
+        }
+
+        function valueNoise(x, y) {
+            const ix = Math.floor(x);
+            const iy = Math.floor(y);
+            const fx = x - ix;
+            const fy = y - iy;
+            const ux = fx * fx * fx * (fx * (fx * 6 - 15) + 10);
+            const uy = fy * fy * fy * (fy * (fy * 6 - 15) + 10);
+            const a = hash2D(ix, iy);
+            const b = hash2D(ix + 1, iy);
+            const c = hash2D(ix, iy + 1);
+            const d = hash2D(ix + 1, iy + 1);
+            return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+        }
+
+        function ridgedFBM(x, y, octaves = 6) {
+            let sum = 0;
+            let freq = 1.0;
+            let amp = 0.5;
+            let weight = 1.0;
+            for (let i = 0; i < octaves; i++) {
+                let n = valueNoise(x * freq, y * freq);
+                n = 1.0 - Math.abs(n * 2.0 - 1.0);
+                n = n * n * weight;
+                weight = Math.max(0.0, Math.min(1.0, n * 2.0));
+                sum += n * amp;
+                freq *= 2.12;
+                amp *= 0.48;
+            }
+            return sum;
+        }
+
+        function azimuthToAspect8(deg) {
+            const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+            return dirs[idx];
+        }
+
+        function createCompassLabelSprite(letter, color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 96;
+            canvas.height = 96;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.beginPath();
+            ctx.arc(48, 48, 38, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.fillStyle = color;
+            ctx.font = 'bold 42px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(letter, 48, 50);
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(7.5, 7.5, 1);
+            return sprite;
+        }
+
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b1222);
+            scene.fog = new THREE.FogExp2(0x0b1222, 0.0042);
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(88, 66, 98);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+            controls.maxPolarAngle = Math.PI / 2 - 0.03;
+            controls.minDistance = 25;
+            controls.maxDistance = 230;
+            controls.target.set(-4, 18, 0);
+
+            const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x334155, 0.68);
+            hemiLight.position.set(0, 100, 0);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.35);
+            dirLight.position.set(70, 110, 50);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 10;
+            dirLight.shadow.camera.far = 260;
+            const d = 75;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.38);
+            fillLight.position.set(-60, 40, -60);
+            scene.add(fillLight);
+
+            mountainGroup = new THREE.Group();
+            overlaysGroup = new THREE.Group();
+            windArrowGroup = new THREE.Group();
+            scene.add(mountainGroup);
+            mountainGroup.add(overlaysGroup);
+            mountainGroup.add(windArrowGroup);
+
+            const snowTexture = createSnowBumpTexture();
+            const segments = CONFIG.gridSize - 1;
+            const terrainGeo = new THREE.PlaneGeometry(CONFIG.terrainWidth, CONFIG.terrainWidth, segments, segments);
+            terrainGeo.rotateX(-Math.PI / 2);
+
+            const snowGeo = new THREE.PlaneGeometry(CONFIG.terrainWidth, CONFIG.terrainWidth, segments, segments);
+            snowGeo.rotateX(-Math.PI / 2);
+
+            const terrainMat = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                roughness: 0.88,
+                metalness: 0.05,
+                flatShading: false
+            });
+
+            const snowMat = new THREE.MeshStandardMaterial({
+                color: 0xf8fafc,
+                roughness: 0.42,
+                metalness: 0.02,
+                bumpMap: snowTexture,
+                bumpScale: 0.15,
+                vertexColors: true
+            });
+
+            terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+            terrainMesh.castShadow = true;
+            terrainMesh.receiveShadow = true;
+
+            snowMesh = new THREE.Mesh(snowGeo, snowMat);
+            snowMesh.castShadow = true;
+            snowMesh.receiveShadow = true;
+
+            const socleGeo = new THREE.BoxGeometry(CONFIG.terrainWidth, 8, CONFIG.terrainWidth);
+            const socleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+            baseSocleMesh = new THREE.Mesh(socleGeo, socleMat);
+            baseSocleMesh.position.y = -4.05;
+            baseSocleMesh.receiveShadow = true;
+
+            mountainGroup.add(terrainMesh);
+            mountainGroup.add(snowMesh);
+            mountainGroup.add(baseSocleMesh);
+
+            // Repères cardinaux autour du socle (Nord = -Z, Sud = +Z, Est = +X, Ouest = -X)
+            const compassSpecs = [
+                { label: 'N', x: 0, z: -66, color: '#38bdf8' },
+                { label: 'S', x: 0, z: 66, color: '#fbbf24' },
+                { label: 'E', x: 66, z: 0, color: '#94a3b8' },
+                { label: 'O', x: -66, z: 0, color: '#94a3b8' }
+            ];
+            compassSpecs.forEach((c) => {
+                const sp = createCompassLabelSprite(c.label, c.color);
+                sp.position.set(c.x, 3, c.z);
+                mountainGroup.add(sp);
+            });
+
+            generateTerrainData();
+            updateSnowLayer();
+            rebuildDynamicOverlays();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createSnowBumpTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.createImageData(256, 256);
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                const v = 128 + (Math.random() - 0.5) * 60;
+                imgData.data[i] = v;
+                imgData.data[i + 1] = v;
+                imgData.data[i + 2] = v;
+                imgData.data[i + 3] = 255;
+            }
+            ctx.putImageData(imgData, 0, 0);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(18, 18);
+            return tex;
+        }
+
+        function altitudeToWorldY(altMeters) {
+            const altSpan = Math.max(200, CONFIG.maxAltitude - CONFIG.minAltitude);
+            const ratio = (altMeters - CONFIG.minAltitude) / altSpan;
+            return Math.max(-2, Math.min(54, ratio * 46.0));
+        }
+
+        function generateTerrainData() {
+            const posAttr = terrainMesh.geometry.attributes.position;
+            const count = posAttr.count;
+            const halfW = CONFIG.terrainWidth / 2;
+
+            baseHeights = new Float32Array(count);
+            baseWorldY = new Float32Array(count);
+            slopesDeg = new Float32Array(count);
+            vertexAspectDirs = new Array(count);
+            vertexAspectAzimuthDeg = new Float32Array(count);
+
+            let rawMin = Infinity;
+            let rawMax = -Infinity;
+            const rawVals = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                const x = posAttr.getX(i);
+                const z = posAttr.getZ(i);
+                const nx = x / halfW;
+                const nz = z / halfW;
+                const distFromCenter = Math.sqrt(nx * nx + nz * nz);
+
+                const mainPeak = Math.exp(-2.1 * ((nx + 0.1) * (nx + 0.1) + (nz + 0.05) * (nz + 0.05)));
+                const subPeak = 0.65 * Math.exp(-3.5 * ((nx - 0.35) * (nx - 0.35) + (nz - 0.25) * (nz - 0.25)));
+                const envelope = Math.max(0, (mainPeak + subPeak) * (1 - Math.pow(Math.min(1, distFromCenter * 0.95), 3)));
+
+                const noiseVal = ridgedFBM(nx * 2.4 + 3.1, nz * 2.4 + 1.7, 6);
+                const detailVal = valueNoise(nx * 12, nz * 12) * 0.08;
+
+                const h = envelope * (0.45 + 0.85 * noiseVal) + detailVal * envelope;
+                rawVals[i] = h;
+                if (h < rawMin) rawMin = h;
+                if (h > rawMax) rawMax = h;
+            }
+
+            const altSpan = Math.max(200, CONFIG.maxAltitude - CONFIG.minAltitude);
+            const worldHeightScale = 46.0;
+
+            for (let i = 0; i < count; i++) {
+                const normH = (rawVals[i] - rawMin) / Math.max(0.0001, rawMax - rawMin);
+                const shapedH = Math.pow(normH, 1.15);
+                const altitudeMeters = CONFIG.minAltitude + shapedH * altSpan;
+
+                baseHeights[i] = altitudeMeters;
+                const wy = shapedH * worldHeightScale;
+                baseWorldY[i] = wy;
+                posAttr.setY(i, wy);
+            }
+
+            terrainMesh.geometry.computeVertexNormals();
+
+            const normAttr = terrainMesh.geometry.attributes.normal;
+            const colors = new Float32Array(count * 3);
+            const cValley = new THREE.Color(0x2d4a36);
+            const cAlpine = new THREE.Color(0x57534e);
+            const cRock   = new THREE.Color(0x334155);
+
+            const midAlt = CONFIG.minAltitude + altSpan * 0.35;
+
+            for (let i = 0; i < count; i++) {
+                const nx = normAttr.getX(i);
+                const ny = Math.max(-1, Math.min(1, normAttr.getY(i)));
+                const nz = normAttr.getZ(i);
+                const angleDeg = Math.acos(ny) * (180 / Math.PI);
+                slopesDeg[i] = angleDeg;
+
+                // Azimut de la pente (Nord = -Z => az = 0°, Est = +X => az = 90°, Sud = +Z => az = 180°)
+                const azRad = Math.atan2(nx, -nz);
+                const azDeg = ((azRad * 180) / Math.PI + 360) % 360;
+                vertexAspectAzimuthDeg[i] = azDeg;
+                vertexAspectDirs[i] = azimuthToAspect8(azDeg);
+
+                const alt = baseHeights[i];
+                const tempColor = new THREE.Color();
+
+                if (angleDeg > 46) {
+                    tempColor.copy(cRock);
+                } else if (alt < midAlt) {
+                    const t = (alt - CONFIG.minAltitude) / Math.max(100, midAlt - CONFIG.minAltitude);
+                    tempColor.lerpColors(cValley, cAlpine, Math.max(0, Math.min(1, t)));
+                } else {
+                    const t = Math.min(1, (alt - midAlt) / Math.max(100, altSpan * 0.4));
+                    tempColor.lerpColors(cAlpine, cRock, t);
+                }
+
+                const grain = 0.92 + hash2D(i % CONFIG.gridSize, Math.floor(i / CONFIG.gridSize)) * 0.16;
+                colors[i * 3]     = tempColor.r * grain;
+                colors[i * 3 + 1] = tempColor.g * grain;
+                colors[i * 3 + 2] = tempColor.b * grain;
+            }
+
+            terrainMesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            posAttr.needsUpdate = true;
+        }
+
+        function getSnowDepthCmAtAltitudeAndAspect(alt, aspectAzDeg) {
+            if (STATE.syncWithLivePage && STATE.liveData && Array.isArray(STATE.liveData.continuousBands) && STATE.liveData.continuousBands.length > 0) {
+                const bands = STATE.liveData.continuousBands;
+                // Interpolation sur la table hypsométrique réelle de la page Montagne (tous les 200m)
+                let lo = bands[0];
+                let hi = bands[bands.length - 1];
+                // bands est typiquement ordonné du haut vers le bas ou l'inverse : on trie mentalement
+                const sorted = bands.slice().sort((a, b) => a.altitudeM - b.altitudeM);
+                if (alt <= sorted[0].altitudeM) {
+                    lo = hi = sorted[0];
+                } else if (alt >= sorted[sorted.length - 1].altitudeM) {
+                    lo = hi = sorted[sorted.length - 1];
+                } else {
+                    for (let j = 0; j < sorted.length - 1; j++) {
+                        if (alt >= sorted[j].altitudeM && alt <= sorted[j + 1].altitudeM) {
+                            lo = sorted[j];
+                            hi = sorted[j + 1];
+                            break;
+                        }
+                    }
+                }
+                const span = Math.max(1, hi.altitudeM - lo.altitudeM);
+                const t = Math.max(0, Math.min(1, (alt - lo.altitudeM) / span));
+                const meanCm = lo.snowDepthMeanCm + t * (hi.snowDepthMeanCm - lo.snowDepthMeanCm);
+                const ubacCm = lo.snowDepthUbacCm + t * (hi.snowDepthUbacCm - lo.snowDepthUbacCm);
+                const adretCm = lo.snowDepthAdretCm + t * (hi.snowDepthAdretCm - lo.snowDepthAdretCm);
+
+                // Facteur Ubac vs Adret selon hémisphère & exposition de la facette 3D
+                const isNorthHem = (STATE.liveData.massif?.latitude ?? 45) >= 0;
+                const rad = (aspectAzDeg * Math.PI) / 180;
+                // cos(rad) = +1 au Nord, -1 au Sud
+                const northness = isNorthHem ? Math.cos(rad) : -Math.cos(rad);
+                if (northness >= 0) {
+                    return meanCm + northness * (ubacCm - meanCm);
+                } else {
+                    return meanCm + (-northness) * (adretCm - meanCm);
+                }
+            }
+
+            // Mode simulation manuelle via les 3 paliers
+            const a1 = STATE.altMarkers[0];
+            const a2 = STATE.altMarkers[1];
+            const a3 = STATE.altMarkers[2];
+            const s1 = STATE.snow1500;
+            const s2 = STATE.snow2000;
+            const s3 = STATE.snow2500;
+
+            if (alt <= a1) {
+                if (s1 <= 0) return 0;
+                const dropRate = Math.max(0.12, (s2 - s1) / Math.max(200, a2 - a1));
+                return Math.max(0, s1 - (a1 - alt) * dropRate);
+            } else if (alt <= a2) {
+                const t = (alt - a1) / Math.max(100, a2 - a1);
+                return s1 + t * (s2 - s1);
+            } else if (alt <= a3) {
+                const t = (alt - a2) / Math.max(100, a3 - a2);
+                return s2 + t * (s3 - s2);
+            } else {
+                const gradient = (s3 - s2) / Math.max(100, a3 - a2);
+                return Math.max(0, s3 + (alt - a3) * gradient * 0.85);
+            }
+        }
+
+        function updateSnowLayer() {
+            const snowPos = snowMesh.geometry.attributes.position;
+            const count = snowPos.count;
+            const altSpan = Math.max(200, CONFIG.maxAltitude - CONFIG.minAltitude);
+            const metersPerWorldUnit = altSpan / 46.0;
+            const cmToWorldUnits = (1 / (metersPerWorldUnit * 100)) * STATE.exaggeration;
+
+            const snowColors = new Float32Array(count * 3);
+            let coveredVertices = 0;
+
+            const cSnowPure = new THREE.Color(0xffffff);
+            const cSnowShadow = new THREE.Color(0xdbeafe);
+            const cBeraWarn = new THREE.Color(0xf59e0b);
+            const cBeraCrit = new THREE.Color(0xef4444);
+
+            const beraDetail = STATE.liveData?.skiOps?.avalancheDetail;
+            const beraAlt = beraDetail?.criticalAltitudeM ?? 2200;
+            const beraLevel = beraDetail?.beraLevel ?? 2;
+            const beraCritSlopes = new Set(beraDetail?.criticalSlopes ?? []);
+
+            const windDeg = STATE.liveData?.massif?.ridgeWindDirectionDeg ?? 270;
+            const windSpeed = STATE.liveData?.massif?.ridgeWindSpeedKmh ?? 20;
+            // Versant sous le vent = windDeg + 180 (dépôt de plaques à vent)
+            const leewardDeg = (windDeg + 180) % 360;
+
+            for (let i = 0; i < count; i++) {
+                const alt = baseHeights[i];
+                const slope = slopesDeg[i];
+                const azDeg = vertexAspectAzimuthDeg[i];
+                const aspectDir = vertexAspectDirs[i];
+                const x = snowPos.getX(i);
+                const z = snowPos.getZ(i);
+
+                let depthCm = getSnowDepthCmAtAltitudeAndAspect(alt, azDeg);
+
+                // Transport éolien réel vers le versant sous le vent
+                const angleDiffRad = ((azDeg - leewardDeg) * Math.PI) / 180;
+                const windDriftFactor = 1 + Math.cos(angleDiffRad) * Math.min(0.28, (windSpeed / 120));
+                const windNoise = valueNoise(x * 0.08 + 5.2, z * 0.08 - 3.4);
+                depthCm *= (0.86 + windNoise * 0.28) * windDriftFactor;
+
+                let slopeFactor = 1.0;
+                const transitionZone = 8.0;
+                if (slope > STATE.maxSlopeDeg) {
+                    slopeFactor = 0.0;
+                } else if (slope > STATE.maxSlopeDeg - transitionZone) {
+                    slopeFactor = 1.0 - (slope - (STATE.maxSlopeDeg - transitionZone)) / transitionZone;
+                }
+
+                const effectiveSnowCm = depthCm * slopeFactor;
+
+                if (effectiveSnowCm > 1.2) {
+                    const thickness3D = effectiveSnowCm * cmToWorldUnits;
+                    snowPos.setY(i, baseWorldY[i] + thickness3D);
+                    coveredVertices++;
+
+                    const depthRatio = Math.min(1, effectiveSnowCm / 120);
+                    const col = new THREE.Color().lerpColors(cSnowShadow, cSnowPure, depthRatio);
+
+                    // Mise en évidence optionnelle des zones avalancheuses BERA (pentes >= 27°, au-dessus du seuil et orientations sensibles)
+                    if (STATE.showBeraZones && STATE.liveData && alt >= beraAlt && slope >= 26 && slope <= STATE.maxSlopeDeg) {
+                        const isCritDir = beraCritSlopes.has(aspectDir);
+                        const isSelectedDir = aspectDir === STATE.selectedAspect;
+                        if (isSelectedDir) {
+                            col.lerp(new THREE.Color(0x38bdf8), 0.35);
+                        } else if (isCritDir) {
+                            const tintCol = beraLevel >= 4 ? cBeraCrit : cBeraWarn;
+                            col.lerp(tintCol, beraLevel >= 4 ? 0.38 : 0.24);
+                        }
+                    } else if (STATE.showBeraZones && aspectDir === STATE.selectedAspect && slope >= 15) {
+                        col.lerp(new THREE.Color(0x38bdf8), 0.22);
+                    }
+
+                    snowColors[i * 3] = col.r;
+                    snowColors[i * 3 + 1] = col.g;
+                    snowColors[i * 3 + 2] = col.b;
+                } else {
+                    snowPos.setY(i, baseWorldY[i] - 0.25);
+                    snowColors[i * 3] = 0.8;
+                    snowColors[i * 3 + 1] = 0.85;
+                    snowColors[i * 3 + 2] = 0.9;
+                }
+            }
+
+            snowMesh.geometry.setAttribute('color', new THREE.BufferAttribute(snowColors, 3));
+            snowPos.needsUpdate = true;
+            snowMesh.geometry.computeVertexNormals();
+
+            const pct = Math.round((coveredVertices / count) * 100);
+            setText('snow-coverage-pct', `${pct}% du massif`);
+        }
+
+        function addRingOverlay(altMeters, colorHex, opacity, radiusInner, radiusOuter) {
+            if (altMeters < CONFIG.minAltitude - 150 || altMeters > CONFIG.maxAltitude + 250) return;
+            const y = altitudeToWorldY(altMeters);
+            const ringGeo = new THREE.RingGeometry(radiusInner, radiusOuter, 80);
+            ringGeo.rotateX(-Math.PI / 2);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: colorHex,
+                transparent: true,
+                opacity: opacity,
+                side: THREE.DoubleSide
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.position.y = Math.max(0.2, y);
+            overlaysGroup.add(ring);
+        }
+
+        function rebuildDynamicOverlays() {
+            while (overlaysGroup.children.length > 0) {
+                const obj = overlaysGroup.children[0];
+                overlaysGroup.remove(obj);
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+            }
+            while (windArrowGroup.children.length > 0) {
+                const obj = windArrowGroup.children[0];
+                windArrowGroup.remove(obj);
+            }
+
+            // Anneaux de repère des 3 paliers
+            STATE.altMarkers.forEach((alt) => addRingOverlay(alt, 0x38bdf8, 0.14, 57.5, 58.0));
+
+            if (!STATE.liveData) return;
+
+            const lpn = STATE.liveData.lpnAnalysis;
+            const beraAlt = STATE.liveData.skiOps?.avalancheDetail?.criticalAltitudeM;
+            const customAlt = STATE.liveData.customAltitude;
+
+            if (STATE.showLpnRings && lpn) {
+                if (typeof lpn.isoZeroM === 'number') {
+                    addRingOverlay(lpn.isoZeroM, 0xfbbf24, 0.42, 58.2, 59.0);
+                }
+                if (typeof lpn.effectiveLpnM === 'number') {
+                    addRingOverlay(lpn.effectiveLpnM, 0x0ea5e9, 0.55, 59.1, 60.0);
+                }
+            }
+
+            if (STATE.showBeraZones && typeof beraAlt === 'number') {
+                addRingOverlay(beraAlt, 0xf97316, 0.45, 56.8, 57.4);
+            }
+
+            if (STATE.showAltTarget && typeof customAlt === 'number') {
+                addRingOverlay(customAlt, 0xa855f7, 0.65, 55.8, 56.6);
+            }
+
+            // Flèche 3D du vent en crête
+            if (STATE.showWindArrow && STATE.liveData.massif) {
+                const windDeg = STATE.liveData.massif.ridgeWindDirectionDeg || 270;
+                // Le vent vient de windDeg et souffle vers windDeg + 180
+                const blowDeg = (windDeg + 180) % 360;
+                const rad = (blowDeg * Math.PI) / 180;
+                // Nord = (0, 0, -1), Est = (1, 0, 0) => dir = (sin(rad), 0, -cos(rad))
+                const dir = new THREE.Vector3(Math.sin(rad), 0, -Math.cos(rad)).normalize();
+                const origin = new THREE.Vector3(-dir.x * 24, 49, -dir.z * 24);
+                const arrowHelper = new THREE.ArrowHelper(dir, origin, 48, 0x22d3ee, 6.5, 3.6);
+                windArrowGroup.add(arrowHelper);
+            }
+        }
+
+        function renderAllHudData(payload) {
+            if (!payload || !payload.massif) return;
+            const m = payload.massif;
+            const lpn = payload.lpnAnalysis || {};
+            const ski = payload.skiOps || {};
+            const bera = ski.avalancheDetail || {};
+            const rel = m.snowReliability;
+            const phys = payload.physics || {};
+
+            // Header flottant
+            setText('hdr-station-name', m.name || 'Station');
+            setText('hdr-station-sub', `${m.country || ''} • ${m.range || ''} (${m.department || ''})`);
+            setText('hdr-live-pill', m.isRealTimeVerified ? 'Direct Vérifié' : 'Modélisé');
+            setText('hdr-bera-pill', `BERA ${m.beraRiskLevel || '--'}/5`);
+            setText('hdr-alt-range', `${m.altitudePeak || 2850} / ${m.altitudeBase || 1000}m`);
+            setText('hdr-lpn-iso', `${lpn.effectiveLpnM ?? m.rainSnowLimitM ?? '--'} / ${lpn.isoZeroM ?? m.isoZeroAltitudeM ?? '--'}m`);
+            setText('hdr-slopes', `${ski.openSlopesCount ?? '--'} / ${ski.totalSlopesCount ?? '--'}`);
+            setText('hdr-wind', `${m.ridgeWindSpeedKmh ?? '--'} (${m.ridgeWindGustKmh ?? '--'}) km/h`);
+
+            setText('legend-bera-alt', `>= ${bera.criticalAltitudeM ?? '--'} m`);
+
+            // Onglet Domaine
+            setText('ops-status-badge', ski.domainStatusLabel || '--');
+            setText('ops-source-badge', ski.telemetryBadgeLabel || '--');
+            setText('ops-slopes', `${ski.openSlopesCount ?? 0} / ${ski.totalSlopesCount ?? 0} (${ski.openSlopesPct ?? 0}%)`);
+            setText('ops-km', `${ski.openKm ?? 0}${ski.isOpenKmEstimated && ski.openKm > 0 ? ' (est.)' : ''} / ${ski.totalKm ?? 0} km`);
+            setText('ops-lifts', `${ski.openLiftsCount ?? 0} / ${ski.totalLiftsCount ?? 0}`);
+            setText('ops-nordic', `${ski.nordicOpenKm ?? 0}/${ski.nordicTotalKm ?? 0} km • Park: ${ski.snowparkStatus || '--'}`);
+
+            const linkedEl = document.getElementById('ops-linked-domain');
+            if (linkedEl) {
+                if (ski.linkedDomainName && ski.linkedDomainKm) {
+                    linkedEl.textContent = `Grand domaine relié ${ski.linkedDomainName} : ${ski.linkedDomainKm} km`;
+                    linkedEl.classList.remove('hidden');
+                } else {
+                    linkedEl.classList.add('hidden');
+                }
+            }
+
+            setText('ops-green', `${ski.openGreen ?? 0}/${ski.totalGreen ?? 0}`);
+            setText('ops-blue', `${ski.openBlue ?? 0}/${ski.totalBlue ?? 0}`);
+            setText('ops-red', `${ski.openRed ?? 0}/${ski.totalRed ?? 0}`);
+            setText('ops-black', `${ski.openBlack ?? 0}/${ski.totalBlack ?? 0}`);
+
+            setText('ops-hours-season', `${ski.openingHours || '--'} · ${ski.seasonWindow || '--'}`);
+            setText('ops-links', ski.interResortLinksStatus || '--');
+            setText('ops-cannons', `${ski.snowCannonsCoveragePct ?? 0}% (${ski.snowmakingPotentialLabel || '--'})`);
+            setText('ops-grooming', ski.groomingQuality || '--');
+            setText('ops-visibility', ski.visibilityStatus || '--');
+            setText('ops-road', ski.roadAccessStatus || '--');
+
+            // BERA
+            setText('bera-stability-badge', `Stabilité : ${bera.snowpackStability || '--'}`);
+            setText('bera-summary-text', m.beraSummary || '');
+            setText('bera-crit-alt', `>= ${bera.criticalAltitudeM ?? '--'} m`);
+            setText('bera-crit-slopes', Array.isArray(bera.criticalSlopes) ? bera.criticalSlopes.join(', ') : '--');
+            setText('bera-spontaneous', bera.spontaneousActivity || '--');
+            setText('bera-trigger', bera.skierTriggerRisk || '--');
+            setText('bera-offpiste', bera.offPisteAdvice || '--');
+            setText('bera-gear', bera.safetyGearRequired || '--');
+
+            const mechContainer = document.getElementById('bera-mechanisms-list');
+            if (mechContainer) {
+                mechContainer.replaceChildren();
+                (bera.dominantMechanisms || []).forEach((mech) => {
+                    const row = document.createElement('div');
+                    row.textContent = `• ${mech}`;
+                    mechContainer.appendChild(row);
+                });
+            }
+
+            // Onglet Nivôse & LPN
+            setText('nivo-rel-badge', `Fiabilité ${rel?.reliabilityPct ?? m.confidenceScorePercent ?? 76}%`);
+            setText('nivo-station-title', `${m.nivoseStationName || 'Balise'} (${m.nivoseElevationM ?? '--'} m)`);
+            setText('nivo-bottom', `${m.snowDepthBottomCm ?? 0} cm`);
+            setText('nivo-val', `${payload.nivoseSnowDepth ?? m.nivoseSnowDepthCm ?? 0} cm`);
+            setText('nivo-top', `${m.snowDepthTopCm ?? 0} cm`);
+            setText('nivo-fresh', `+${m.freshSnow24hCm ?? 0} / +${m.freshSnow48hCm ?? 0} cm`);
+            setText('nivo-quality', m.snowQuality || '--');
+            setText('nivo-range', rel && rel.rangeNivoseMaxCm > 0 ? `${rel.rangeNivoseMinCm}–${rel.rangeNivoseMaxCm} cm` : '--');
+            setText('nivo-temp', `${payload.nivoseTemp ?? m.nivoseTempC ?? '--'} °C`);
+            setText('nivo-diagnostic', m.snowCoverDiagnostic || '');
+
+            setText('nivo-correction-badge', rel && rel.underestimationCorrectedCm > 0 ? `+${rel.underestimationCorrectedCm} cm recalés` : '');
+            setText('nivo-rel-summary', rel?.summaryExplanation || '');
+
+            const nwpGrid = document.getElementById('nwp-models-grid');
+            if (nwpGrid) {
+                nwpGrid.replaceChildren();
+                (rel?.modelsBreakdown || []).forEach((mod) => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-900/80 p-2 rounded-lg border border-slate-800';
+                    const t = document.createElement('div');
+                    t.className = 'text-[9px] text-slate-400 truncate';
+                    t.textContent = mod.modelName || mod.modelId;
+                    const v = document.createElement('div');
+                    v.className = 'font-bold text-white font-mono text-xs';
+                    v.textContent = mod.rawSnowDepthCm !== null ? `${mod.rawSnowDepthCm} cm` : 'N/D';
+                    card.appendChild(t);
+                    card.appendChild(v);
+                    nwpGrid.appendChild(card);
+                });
+            }
+
+            setText('lpn-iso-tw', `${lpn.isoZeroM ?? '--'} / ${lpn.wetBulbZeroM ?? '--'} m`);
+            setText('lpn-eff-iso', `${lpn.effectiveLpnM ?? '--'} / ${lpn.isothermyLpnM ?? '--'} m`);
+            setText('lpn-gradient-meta', `${lpn.topographicRegime || ''} • Gradient -${lpn.lapseRateCPer100m ?? 0.65}°C/100m • HR ${lpn.relativeHumidityPct ?? '--'}%`);
+            setText('lpn-explanation', lpn.physicalExplanation || '');
+
+            const lpnList = document.getElementById('lpn-timeline-list');
+            if (lpnList) {
+                lpnList.replaceChildren();
+                (lpn.timeline24h || []).forEach((slot) => {
+                    const row = document.createElement('div');
+                    row.className = 'py-1.5 flex items-center justify-between gap-2 text-[10px]';
+                    const left = document.createElement('div');
+                    left.className = 'text-slate-200 font-semibold';
+                    left.textContent = `${slot.slotLabel} — ${slot.snowLineStatus}`;
+                    const right = document.createElement('div');
+                    right.className = 'text-sky-300 font-mono font-bold shrink-0';
+                    right.textContent = `LPN ${slot.lpnM}m`;
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    lpnList.appendChild(row);
+                });
+            }
+
+            // Onglet Versants & Coupes
+            setText('phys-alt-badge', `${payload.customAltitude ?? '--'} m`);
+            setText('phys-temp', `${phys.tempAtAltitude ?? '--'}°C / Tw ${phys.wetBulbAtAltitude ?? '--'}°C`);
+            setText('phys-chill', `${phys.windChill ?? '--'} °C`);
+            setText('phys-wind', `${phys.windSpeedAtAltitude ?? '--'}/${phys.windGustAtAltitude ?? '--'} km/h`);
+            setText('phys-oxy', `${phys.oxygenPercentSeaLevel ?? '--'}% • ${phys.qfePressure ?? '--'}hPa • UV ${phys.uvAtAltitude ?? '--'}`);
+
+            const aspectsGrid = document.getElementById('aspects-grid');
+            if (aspectsGrid && Array.isArray(payload.versantsAnalysis)) {
+                aspectsGrid.replaceChildren();
+                payload.versantsAnalysis.forEach((v) => {
+                    const btn = document.createElement('button');
+                    const isSel = v.aspect === STATE.selectedAspect;
+                    btn.className = isSel
+                        ? 'p-1.5 rounded-lg border border-sky-400 bg-sky-500/25 text-white text-center cursor-pointer'
+                        : v.isCritical
+                            ? 'p-1.5 rounded-lg border border-amber-500/45 bg-amber-500/10 text-amber-200 text-center cursor-pointer'
+                            : 'p-1.5 rounded-lg border border-slate-800 bg-slate-900/75 text-slate-300 text-center cursor-pointer';
+                    const d1 = document.createElement('div');
+                    d1.className = 'font-bold text-xs';
+                    d1.textContent = v.aspect;
+                    const d2 = document.createElement('div');
+                    d2.className = 'text-[9px] font-mono';
+                    d2.textContent = `${v.estimatedSnowDepthCm}cm`;
+                    btn.appendChild(d1);
+                    btn.appendChild(d2);
+                    btn.onclick = () => {
+                        STATE.selectedAspect = v.aspect;
+                        renderSelectedAspectDetail(payload.versantsAnalysis);
+                        renderAllHudData(payload);
+                        updateSnowLayer();
+                        if (window.parent && window.parent !== window) {
+                            window.parent.postMessage({ type: 'IM_MOUNTAIN_3D_SELECT_ASPECT', aspect: v.aspect }, window.location.origin);
+                        }
+                    };
+                    aspectsGrid.appendChild(btn);
+                });
+                renderSelectedAspectDetail(payload.versantsAnalysis);
+            }
+
+            const bandsList = document.getElementById('bands-list');
+            if (bandsList && Array.isArray(payload.continuousBands)) {
+                bandsList.replaceChildren();
+                payload.continuousBands.forEach((b) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between gap-2 bg-slate-900/70 px-2 py-1 rounded border border-slate-800/80 text-[10px] cursor-pointer hover:border-sky-500/40';
+                    row.onclick = () => {
+                        if (window.parent && window.parent !== window) {
+                            window.parent.postMessage({ type: 'IM_MOUNTAIN_3D_SELECT_ALTITUDE', altitudeM: b.altitudeM }, window.location.origin);
+                        }
+                    };
+                    const l = document.createElement('span');
+                    l.className = 'font-mono font-bold text-sky-300';
+                    l.textContent = `${b.altitudeM}m (${b.airTempC}°C)`;
+                    const r = document.createElement('span');
+                    r.className = 'text-slate-200 font-mono';
+                    r.textContent = `${b.snowDepthMeanCm}cm (N:${b.snowDepthUbacCm} / S:${b.snowDepthAdretCm})`;
+                    row.appendChild(l);
+                    row.appendChild(r);
+                    bandsList.appendChild(row);
+                });
+            }
+
+            const stagesList = document.getElementById('stages-list');
+            if (stagesList && Array.isArray(payload.elevationStages)) {
+                stagesList.replaceChildren();
+                payload.elevationStages.forEach((st) => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-900/75 p-2 rounded-lg border border-slate-800 text-[10px]';
+                    const title = document.createElement('div');
+                    title.className = 'font-bold text-white truncate';
+                    title.textContent = `${st.stageName} (${st.altitudeM}m)`;
+                    const meta = document.createElement('div');
+                    meta.className = 'text-sky-300 font-mono mt-0.5';
+                    meta.textContent = `${st.tempC}°C • ${st.snowDepthCm}cm • ${st.oxygenPercentSeaLevel}% O₂`;
+                    card.appendChild(title);
+                    card.appendChild(meta);
+                    stagesList.appendChild(card);
+                });
+            }
+        }
+
+        function renderSelectedAspectDetail(versants) {
+            const box = document.getElementById('aspect-detail-box');
+            if (!box || !Array.isArray(versants)) return;
+            const detail = versants.find((v) => v.aspect === STATE.selectedAspect) || versants[0];
+            if (!detail) return;
+            box.replaceChildren();
+
+            const hdr = document.createElement('div');
+            hdr.className = 'font-bold text-white';
+            hdr.textContent = `Versant ${detail.aspectLabel} — ${detail.thermalRegime} (${detail.windExposure})`;
+
+            const stats = document.createElement('div');
+            stats.className = 'text-sky-300 font-mono';
+            stats.textContent = `Neige: ${detail.estimatedSnowDepthCm}cm · Plaques: ${detail.windSlabRiskPercent}% · Humide: ${detail.wetSnowAvalancheRiskPercent}% · Couche fragile: ${detail.persistentWeakLayerRiskPercent}% · BERA ${detail.localBeraLevel}/5`;
+
+            const extra = document.createElement('div');
+            extra.className = 'text-amber-300';
+            extra.textContent = `Insolation ${detail.solarIrradianceWm2} W/m² • T° neige ${detail.surfaceSnowTempC}°C • Créneau: ${detail.optimalTimeWindow}`;
+
+            const advice = document.createElement('div');
+            advice.className = 'text-slate-300 leading-relaxed pt-1';
+            advice.textContent = `${detail.snowpackStructure} — ${detail.tacticalAdvice}`;
+
+            box.appendChild(hdr);
+            box.appendChild(stats);
+            box.appendChild(extra);
+            box.appendChild(advice);
+        }
+
+        function applyLiveSyncPayload(payload) {
+            if (!payload || !payload.massif) return;
+            const prevStationId = STATE.liveData?.massif?.id;
+            STATE.liveData = payload;
+            if (payload.selectedAspect) {
+                STATE.selectedAspect = payload.selectedAspect;
+            }
+
+            const m = payload.massif;
+            const newMinAlt = Math.max(0, (m.altitudeBase || 1000) - 150);
+            const newMaxAlt = Math.max(newMinAlt + 400, (m.altitudePeak || 2850) + 100);
+            const newSeed = computeDeterministicSeed(`${m.id}-${m.latitude}-${m.longitude}`);
+
+            const needsTerrainRebuild =
+                prevStationId !== m.id ||
+                Math.abs(CONFIG.minAltitude - newMinAlt) > 5 ||
+                Math.abs(CONFIG.maxAltitude - newMaxAlt) > 5;
+
+            CONFIG.minAltitude = newMinAlt;
+            CONFIG.maxAltitude = newMaxAlt;
+            if (prevStationId !== m.id) {
+                CONFIG.seed = newSeed;
+            }
+
+            // Mise à jour des 3 paliers de référence dans les sliders
+            const a1 = m.altitudeBase || 1200;
+            const a2 = m.nivoseElevationM || Math.round((a1 + (m.altitudePeak || 2800)) / 2);
+            const a3 = m.altitudePeak || 2800;
+            STATE.altMarkers = [a1, a2, a3];
+
+            const s1 = Math.round(m.snowDepthBottomCm ?? 0);
+            const s2 = Math.round(payload.nivoseSnowDepth ?? m.nivoseSnowDepthCm ?? Math.round((s1 + (m.snowDepthTopCm ?? 0)) / 2));
+            const s3 = Math.round(m.snowDepthTopCm ?? 0);
+
+            if (STATE.syncWithLivePage) {
+                STATE.snow1500 = s1;
+                STATE.snow2000 = s2;
+                STATE.snow2500 = s3;
+                setText('lbl-1500', `Pied station (${a1} m)`);
+                setText('lbl-2000', `Balise Nivôse (${a2} m)`);
+                setText('lbl-2500', `Sommet (${a3} m)`);
+                const el1 = document.getElementById('slider-1500');
+                const el2 = document.getElementById('slider-2000');
+                const el3 = document.getElementById('slider-2500');
+                if (el1) { el1.max = String(Math.max(250, s1 + 100)); el1.value = String(s1); }
+                if (el2) { el2.max = String(Math.max(400, s2 + 120)); el2.value = String(s2); }
+                if (el3) { el3.max = String(Math.max(500, s3 + 150)); el3.value = String(s3); }
+                setText('val-1500', `${s1} cm`);
+                setText('val-2000', `${s2} cm`);
+                setText('val-2500', `${s3} cm`);
+            }
+
+            if (needsTerrainRebuild && terrainMesh) {
+                generateTerrainData();
+            }
+            if (snowMesh) {
+                updateSnowLayer();
+                rebuildDynamicOverlays();
+            }
+            renderAllHudData(payload);
+        }
+
+        window.resyncWithLivePage = function() {
+            STATE.syncWithLivePage = true;
+            const btn = document.getElementById('btn-sync-live');
+            if (btn) {
+                btn.textContent = 'Sync Page Live';
+                btn.className = 'px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 rounded-full hover:bg-emerald-500/30 transition shrink-0 cursor-pointer';
+            }
+            if (STATE.liveData) {
+                applyLiveSyncPayload(STATE.liveData);
+                showToast('Synchronisé sur les données temps réel de la station');
+            }
+        };
+
+        window.switchHudTab = function(tabName) {
+            ['sim', 'ops', 'nivo', 'aspects'].forEach((t) => {
+                const panel = document.getElementById(`tab-panel-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (panel) panel.classList.toggle('hidden', t !== tabName);
+                if (btn) {
+                    if (t === tabName) {
+                        btn.className = 'hud-tab-btn px-1.5 py-1.5 rounded-lg bg-sky-500/25 text-sky-200 border border-sky-500/40 cursor-pointer transition';
+                    } else {
+                        btn.className = 'hud-tab-btn px-1.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer transition';
+                    }
+                }
+            });
+        };
+
+        function setupUI() {
+            const s1500 = document.getElementById('slider-1500');
+            const s2000 = document.getElementById('slider-2000');
+            const s2500 = document.getElementById('slider-2500');
+            const sExag = document.getElementById('slider-exag');
+            const sSlope = document.getElementById('slider-slope');
+
+            const markManualMode = () => {
+                STATE.syncWithLivePage = false;
+                const btn = document.getElementById('btn-sync-live');
+                if (btn) {
+                    btn.textContent = '↺ Revenir au Live';
+                    btn.className = 'px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/35 rounded-full hover:bg-amber-500/30 transition shrink-0 cursor-pointer';
+                }
+            };
+
+            const updateSnowFromSliders = () => {
+                markManualMode();
+                STATE.snow1500 = parseInt(s1500.value, 10);
+                STATE.snow2000 = parseInt(s2000.value, 10);
+                STATE.snow2500 = parseInt(s2500.value, 10);
+                setText('val-1500', `${STATE.snow1500} cm`);
+                setText('val-2000', `${STATE.snow2000} cm`);
+                setText('val-2500', `${STATE.snow2500} cm`);
+                updateSnowLayer();
+            };
+
+            [s1500, s2000, s2500].forEach((el) => el.addEventListener('input', updateSnowFromSliders));
+
+            sExag.addEventListener('input', () => {
+                STATE.exaggeration = parseInt(sExag.value, 10);
+                setText('val-exag', `x${STATE.exaggeration}`);
+                updateSnowLayer();
+            });
+
+            sSlope.addEventListener('input', () => {
+                STATE.maxSlopeDeg = parseInt(sSlope.value, 10);
+                setText('val-slope', `${STATE.maxSlopeDeg}° max`);
+                updateSnowLayer();
+            });
+
+            document.getElementById('chk-lpn-ring').addEventListener('change', (e) => {
+                STATE.showLpnRings = e.target.checked;
+                rebuildDynamicOverlays();
+            });
+            document.getElementById('chk-bera-zones').addEventListener('change', (e) => {
+                STATE.showBeraZones = e.target.checked;
+                updateSnowLayer();
+                rebuildDynamicOverlays();
+            });
+            document.getElementById('chk-alt-target').addEventListener('change', (e) => {
+                STATE.showAltTarget = e.target.checked;
+                rebuildDynamicOverlays();
+            });
+            document.getElementById('chk-wind-arrow').addEventListener('change', (e) => {
+                STATE.showWindArrow = e.target.checked;
+                rebuildDynamicOverlays();
+            });
+
+            const toggleBtn = document.getElementById('toggle-hud-btn');
+            const hudPanel = document.getElementById('hud-panel');
+            let hudOpen = false;
+            toggleBtn.addEventListener('click', () => {
+                hudOpen = !hudOpen;
+                hudPanel.classList.toggle('translate-x-full', !hudOpen);
+            });
+        }
+
+        window.applyPreset = function(presetKey) {
+            const p = PRESETS[presetKey];
+            if (!p) return;
+            STATE.syncWithLivePage = false;
+            const btn = document.getElementById('btn-sync-live');
+            if (btn) {
+                btn.textContent = '↺ Revenir au Live';
+                btn.className = 'px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/35 rounded-full hover:bg-amber-500/30 transition shrink-0 cursor-pointer';
+            }
+
+            document.getElementById('slider-1500').value = p.s1500;
+            document.getElementById('slider-2000').value = p.s2000;
+            document.getElementById('slider-2500').value = p.s2500;
+            document.getElementById('slider-slope').value = p.slope;
+
+            STATE.snow1500 = p.s1500;
+            STATE.snow2000 = p.s2000;
+            STATE.snow2500 = p.s2500;
+            STATE.maxSlopeDeg = p.slope;
+
+            setText('val-1500', `${p.s1500} cm`);
+            setText('val-2000', `${p.s2000} cm`);
+            setText('val-2500', `${p.s2500} cm`);
+            setText('val-slope', `${p.slope}° max`);
+
+            document.querySelectorAll('.preset-btn').forEach((b) => {
+                b.classList.remove('border-sky-500', 'bg-sky-500/20', 'text-white');
+                b.classList.add('border-slate-700', 'bg-slate-800/60', 'text-slate-300');
+            });
+            const activeBtn = document.getElementById(`btn-${presetKey}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-700', 'bg-slate-800/60', 'text-slate-300');
+                activeBtn.classList.add('border-sky-500', 'bg-sky-500/20', 'text-white');
+            }
+
+            updateSnowLayer();
+            showToast(`Profil manuel activé : ${activeBtn ? activeBtn.querySelector('div').textContent : presetKey}`);
+        };
+
+        window.regenerateTerrain = function() {
+            CONFIG.seed = Math.random() * 100;
+            generateTerrainData();
+            updateSnowLayer();
+            rebuildDynamicOverlays();
+            showToast('Nouveau relief topographique généré');
+        };
+
+        window.exportModel = function(format) {
+            showToast(`Préparation de l'export .${format.toUpperCase()}...`);
+            const exportGroup = new THREE.Group();
+            exportGroup.add(terrainMesh.clone());
+            exportGroup.add(snowMesh.clone());
+            exportGroup.add(baseSocleMesh.clone());
+            const slug = (STATE.liveData?.massif?.id || 'montagne').replace(/[^a-z0-9_-]/gi, '_');
+
+            setTimeout(() => {
+                try {
+                    if (format === 'stl') {
+                        const exporter = new THREE.STLExporter();
+                        const result = exporter.parse(exportGroup, { binary: true });
+                        const blob = new Blob([result], { type: 'application/octet-stream' });
+                        triggerDownload(blob, `nivomodel_${slug}.stl`);
+                    } else if (format === 'obj') {
+                        const exporter = new THREE.OBJExporter();
+                        const result = exporter.parse(exportGroup);
+                        const blob = new Blob([result], { type: 'text/plain' });
+                        triggerDownload(blob, `nivomodel_${slug}.obj`);
+                    }
+                    showToast(`Fichier .${format.toUpperCase()} téléchargé avec succès !`);
+                } catch (err) {
+                    console.error(err);
+                    showToast("Erreur lors de l'exportation 3D.");
+                }
+            }, 100);
+        };
+
+        function triggerDownload(blob, filename) {
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            setText('toast-message', msg);
+            toast.classList.remove('opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data && event.data.type === 'IM_MOUNTAIN_3D_SYNC' && event.data.payload) {
+                applyLiveSyncPayload(event.data.payload);
+            }
+        });
+
+        window.onload = function() {
+            initThree();
+            setupUI();
+            animate();
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'IM_MOUNTAIN_3D_READY' }, window.location.origin);
+            }
+        };
+    </script>
+</body>
+</html>

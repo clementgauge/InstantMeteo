@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Mountain,
   Snowflake,
@@ -22,7 +22,10 @@ import {
   CableCar,
   Route,
   Eye,
-  Ticket
+  Ticket,
+  Box,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
@@ -340,6 +343,83 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
 
   const skiOps = useMemo(() => getSkiDomainOperations(selectedMassif), [selectedMassif]);
 
+  const model3dIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [is3dFullscreen, setIs3dFullscreen] = useState<boolean>(false);
+
+  const live3dPayload = useMemo(
+    () => ({
+      massif: selectedMassif,
+      lpnAnalysis: {
+        ...lpnAnalysis,
+        effectiveLpnM: activeLpn
+      },
+      continuousBands,
+      versantsAnalysis,
+      elevationStages,
+      skiOps,
+      physics,
+      customAltitude,
+      selectedAspect,
+      nivoseSnowDepth,
+      nivoseTemp
+    }),
+    [
+      selectedMassif,
+      lpnAnalysis,
+      activeLpn,
+      continuousBands,
+      versantsAnalysis,
+      elevationStages,
+      skiOps,
+      physics,
+      customAltitude,
+      selectedAspect,
+      nivoseSnowDepth,
+      nivoseTemp
+    ]
+  );
+
+  const live3dPayloadRef = useRef(live3dPayload);
+  live3dPayloadRef.current = live3dPayload;
+
+  const pushPayloadTo3dIframe = useCallback(() => {
+    const win = model3dIframeRef.current?.contentWindow;
+    if (!win || typeof window === 'undefined') return;
+    win.postMessage(
+      {
+        type: 'IM_MOUNTAIN_3D_SYNC',
+        payload: live3dPayloadRef.current
+      },
+      window.location.origin
+    );
+  }, []);
+
+  useEffect(() => {
+    pushPayloadTo3dIframe();
+  }, [live3dPayload, pushPayloadTo3dIframe]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle3dMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || !event.data) return;
+      if (event.data.type === 'IM_MOUNTAIN_3D_READY') {
+        pushPayloadTo3dIframe();
+      } else if (
+        event.data.type === 'IM_MOUNTAIN_3D_SELECT_ASPECT' &&
+        typeof event.data.aspect === 'string'
+      ) {
+        setSelectedAspect(event.data.aspect as AspectDirection);
+      } else if (
+        event.data.type === 'IM_MOUNTAIN_3D_SELECT_ALTITUDE' &&
+        typeof event.data.altitudeM === 'number'
+      ) {
+        setCustomAltitude(event.data.altitudeM);
+      }
+    };
+    window.addEventListener('message', handle3dMessage);
+    return () => window.removeEventListener('message', handle3dMessage);
+  }, [pushPayloadTo3dIframe]);
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -585,6 +665,66 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* MODÉLISATION 3D NIVOLOGIQUE EN DIRECT (SYNCHRONISÉE AVEC TOUTES LES DONNÉES DE LA PAGE MONTAGNE) */}
+      <div
+        className={
+          is3dFullscreen
+            ? 'fixed inset-0 z-50 w-screen h-screen bg-[#0b1222] flex flex-col'
+            : 'rounded-2xl bg-[#0F172A] border border-sky-500/35 shadow-2xl overflow-hidden'
+        }
+      >
+        <div className="px-4 sm:px-5 py-3 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-300 shrink-0">
+              <Box className="w-4 h-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-black text-white truncate">
+                Modélisation 3D Nivologique Temps Réel — {selectedMassif.name} ({selectedMassif.altitudeBase}m – {selectedMassif.altitudePeak}m)
+              </div>
+              <div className="text-[11px] text-slate-400 truncate">
+                Relief, anneaux LPN ({activeLpn}m) / Iso 0°C ({lpnAnalysis.isoZeroM}m), vent {selectedMassif.ridgeWindSpeedKmh} km/h, zones BERA {selectedMassif.beraRiskLevel}/5, 8 versants &amp; profils 200m synchronisés en direct
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Toutes données synchronisées
+            </span>
+            <button
+              type="button"
+              onClick={() => setIs3dFullscreen((prev) => !prev)}
+              className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow"
+            >
+              {is3dFullscreen ? (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>Réduire</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Plein écran 3D</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className={is3dFullscreen ? 'flex-1 w-full relative' : 'w-full h-[680px] relative'}>
+          <iframe
+            ref={model3dIframeRef}
+            src="/assets/aistudio/mod_lisation_3d_nivologique_m_t_o_france_14da1106.html"
+            title={`Modélisation 3D Nivologique — ${selectedMassif.name}`}
+            onLoad={pushPayloadTo3dIframe}
+            style={{ width: '100%', height: '100%', border: 0, display: 'block', backgroundColor: '#0b1222' }}
+            allow="fullscreen"
+          />
         </div>
       </div>
 
