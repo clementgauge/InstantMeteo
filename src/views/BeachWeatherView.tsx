@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Waves,
   Sun,
@@ -18,7 +18,10 @@ import {
   Sparkles,
   Activity,
   RefreshCw,
-  Radio
+  Radio,
+  Box,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
@@ -310,6 +313,71 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
 
   const flagStyle = getFlagStyle(selectedBeach.swimFlag);
 
+  const model3dIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [is3dFullscreen, setIs3dFullscreen] = useState<boolean>(false);
+
+  const live3dBeachPayload = useMemo(
+    () => ({
+      selectedBeach,
+      liveTides,
+      nauticalDisciplines,
+      flagStyle: { label: flagStyle.label },
+      isDirectCoastal,
+      nearestCoastalRef: {
+        distanceKm: nearestCoastalRef.distanceKm,
+        spot: {
+          id: nearestCoastalRef.spot.id,
+          name: nearestCoastalRef.spot.name
+        }
+      },
+      stationName: station.name,
+      lastBeachRefreshedAt
+    }),
+    [
+      selectedBeach,
+      liveTides,
+      nauticalDisciplines,
+      flagStyle.label,
+      isDirectCoastal,
+      nearestCoastalRef.distanceKm,
+      nearestCoastalRef.spot.id,
+      nearestCoastalRef.spot.name,
+      station.name,
+      lastBeachRefreshedAt
+    ]
+  );
+
+  const live3dBeachPayloadRef = useRef(live3dBeachPayload);
+  live3dBeachPayloadRef.current = live3dBeachPayload;
+
+  const pushPayloadTo3dIframe = useCallback(() => {
+    const win = model3dIframeRef.current?.contentWindow;
+    if (!win || typeof window === 'undefined') return;
+    win.postMessage(
+      {
+        type: 'IM_BEACH_3D_SYNC',
+        payload: live3dBeachPayloadRef.current
+      },
+      window.location.origin
+    );
+  }, []);
+
+  useEffect(() => {
+    pushPayloadTo3dIframe();
+  }, [live3dBeachPayload, pushPayloadTo3dIframe]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle3dMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || !event.data) return;
+      if (event.data.type === 'IM_BEACH_3D_READY') {
+        pushPayloadTo3dIframe();
+      }
+    };
+    window.addEventListener('message', handle3dMessage);
+    return () => window.removeEventListener('message', handle3dMessage);
+  }, [pushPayloadTo3dIframe]);
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -513,6 +581,66 @@ export const BeachWeatherView: React.FC<BeachWeatherViewProps> = ({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* MODÉLISATION 3D LITTORAL EN DIRECT (SYNCHRONISÉE AVEC TOUTES LES DONNÉES DE LA PAGE PLAGES) */}
+      <div
+        className={
+          is3dFullscreen
+            ? 'fixed inset-0 z-50 w-screen h-screen bg-[#123e3c] flex flex-col'
+            : 'rounded-2xl bg-[#0F172A] border border-cyan-500/35 shadow-2xl overflow-hidden'
+        }
+      >
+        <div className="px-4 sm:px-5 py-3 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 shrink-0">
+              <Box className="w-4 h-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-black text-white truncate">
+                Modélisation 3D Littoral Temps Réel — {selectedBeach.name}
+              </div>
+              <div className="text-[11px] text-slate-400 truncate">
+                Eau {selectedBeach.waterTempC}°C, vagues {selectedBeach.waveHeightM}m ({selectedBeach.wavePeriodSec}s), vent {selectedBeach.windSpeedKnots} nds {selectedBeach.windDirectionCompass}, {liveTides.isMicroTide ? 'micro-marée' : `coeff. ${liveTides.tideCoefficient}`}, drapeau {selectedBeach.swimFlag} &amp; 4 disciplines synchronisés
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Toutes données synchronisées
+            </span>
+            <button
+              type="button"
+              onClick={() => setIs3dFullscreen((prev) => !prev)}
+              className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow"
+            >
+              {is3dFullscreen ? (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>Réduire</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Plein écran 3D</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className={is3dFullscreen ? 'flex-1 w-full relative' : 'w-full h-[760px] relative'}>
+          <iframe
+            ref={model3dIframeRef}
+            src="/assets/aistudio/Littoral-3D-ameliore_58a25550.html"
+            title={`Modélisation 3D Littoral — ${selectedBeach.name}`}
+            onLoad={pushPayloadTo3dIframe}
+            style={{ width: '100%', height: '100%', border: 0, display: 'block', backgroundColor: '#f6f6ef' }}
+            allow="fullscreen"
+          />
         </div>
       </div>
 
