@@ -6,6 +6,10 @@ import {
   reconcileMountainSnowAndReliability,
   simulateAltitudeSnowpack60d
 } from '../utils/mountainSnowPhysics';
+import {
+  SkiDomainLiveOperations,
+  computeLiveSkiDomainOperations
+} from '../utils/skiResortDomainData';
 
 export type AspectDirection = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
 
@@ -64,6 +68,32 @@ export interface MountainMassif {
   nivoseSnowDepthCm?: number;
   nivoseTempC?: number;
   snowReliability?: SnowDepthReliabilityAnalysis;
+  skiOperations?: SkiDomainLiveOperations;
+}
+
+export function getSkiDomainOperations(massif: MountainMassif): SkiDomainLiveOperations {
+  if (massif.skiOperations) return massif.skiOperations;
+  return computeLiveSkiDomainOperations({
+    id: massif.id,
+    altitudeBase: massif.altitudeBase,
+    altitudePeak: massif.altitudePeak,
+    latitude: massif.latitude,
+    snowDepthBottomCm: massif.snowDepthBottomCm,
+    nivoseSnowDepthCm: massif.nivoseSnowDepthCm,
+    snowDepthTopCm: massif.snowDepthTopCm,
+    freshSnow24hCm: massif.freshSnow24hCm,
+    baseTempC: massif.baseTempC,
+    nivoseTempC: massif.nivoseTempC,
+    peakTempC: massif.peakTempC,
+    rainSnowLimitM: massif.rainSnowLimitM,
+    isoZeroAltitudeM: massif.isoZeroAltitudeM,
+    ridgeWindSpeedKmh: massif.ridgeWindSpeedKmh,
+    ridgeWindGustKmh: massif.ridgeWindGustKmh,
+    beraRiskLevel: massif.beraRiskLevel,
+    criticalSlopes: massif.criticalSlopes,
+    criticalAltitudeThreshold: massif.criticalAltitudeThreshold,
+    snowQuality: massif.snowQuality
+  });
 }
 
 export interface VersantDetailedAnalysis {
@@ -1816,6 +1846,27 @@ export async function fetchLiveSkiResortConditions(massif: MountainMassif): Prom
       nivoseTempC: nivoseTemp,
       confidenceScorePercent: snowReliability.reliabilityPct,
       snowReliability,
+      skiOperations: computeLiveSkiDomainOperations({
+        id: massif.id,
+        altitudeBase: massif.altitudeBase,
+        altitudePeak: massif.altitudePeak,
+        latitude: massif.latitude,
+        snowDepthBottomCm: verifiedSnowBottomCm,
+        nivoseSnowDepthCm: verifiedNivoseSnowCm,
+        snowDepthTopCm: verifiedSnowTopCm,
+        freshSnow24hCm: sumSnow24h,
+        baseTempC: baseTemp,
+        nivoseTempC: nivoseTemp,
+        peakTempC: peakTemp,
+        rainSnowLimitM: liveLpn,
+        isoZeroAltitudeM: liveIsoZero,
+        ridgeWindSpeedKmh: windSpeed,
+        ridgeWindGustKmh: windGust,
+        beraRiskLevel,
+        criticalSlopes: massif.criticalSlopes,
+        criticalAltitudeThreshold: massif.criticalAltitudeThreshold,
+        snowQuality
+      }),
       snowCoverDiagnostic,
       nivoseLiveStatus: `Recalage physique 60j + Multi-Modèles NWP • Fiabilité nivologique ${snowReliability.reliabilityPct}% (${verifiedAt})`
     };
@@ -2146,6 +2197,27 @@ export function buildDynamicMountainProfileFromLocation(
     nivoseSnowDepthCm: snowReliability.correctedNivoseCm,
     confidenceScorePercent: snowReliability.reliabilityPct,
     snowReliability,
+    skiOperations: computeLiveSkiDomainOperations({
+      id: `live-loc-${station.id}`,
+      altitudeBase: baseAlt,
+      altitudePeak: peakAlt,
+      latitude: station.latitude,
+      snowDepthBottomCm: snowReliability.correctedBottomCm,
+      nivoseSnowDepthCm: snowReliability.correctedNivoseCm,
+      snowDepthTopCm: snowReliability.correctedTopCm,
+      freshSnow24hCm,
+      baseTempC: Number(weather.temperature.toFixed(1)),
+      nivoseTempC,
+      peakTempC: Number(physPeak.tempAtAltitude.toFixed(1)),
+      rainSnowLimitM: physPeak.lpn,
+      isoZeroAltitudeM: physPeak.isoZero,
+      ridgeWindSpeedKmh: physPeak.windSpeedAtAltitude,
+      ridgeWindGustKmh: physPeak.windGustAtAltitude,
+      beraRiskLevel,
+      criticalSlopes: criticalSlopes.length > 0 ? criticalSlopes : ['N', 'NE', 'E'],
+      criticalAltitudeThreshold: Math.round(baseAlt + (peakAlt - baseAlt) * 0.55),
+      snowQuality
+    }),
     isRealTimeVerified: true
   };
 }
@@ -2289,6 +2361,27 @@ export async function searchAndBuildWorldMountainStation(query: string): Promise
             peakTempC,
             confidenceScorePercent: snowReliability.reliabilityPct,
             snowReliability,
+            skiOperations: computeLiveSkiDomainOperations({
+              id: `world-mtn-${item.id || `${lat}-${lon}`}`,
+              altitudeBase: baseElev,
+              altitudePeak: peakElev,
+              latitude: lat,
+              snowDepthBottomCm: snowBottomCm,
+              nivoseSnowDepthCm: snowReliability.correctedNivoseCm,
+              snowDepthTopCm: snowTopCm,
+              freshSnow24hCm: fresh24h,
+              baseTempC,
+              nivoseTempC,
+              peakTempC,
+              rainSnowLimitM: lpn,
+              isoZeroAltitudeM: isoZero,
+              ridgeWindSpeedKmh: windSpeed,
+              ridgeWindGustKmh: windGust,
+              beraRiskLevel: beraLevel,
+              criticalSlopes: criticalSlopes.length ? criticalSlopes : ['N', 'NE', 'E'],
+              criticalAltitudeThreshold: nivoseElev,
+              snowQuality: snowTopCm > 0 ? (peakTempC <= -3 ? 'Poudreuse froide' : windGust >= 55 ? 'Plaques à vent' : 'Neige de printemps') : 'Névés / Rocher sec'
+            }),
             isRealTimeVerified: true
           };
         } catch {

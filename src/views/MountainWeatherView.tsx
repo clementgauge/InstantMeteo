@@ -18,7 +18,11 @@ import {
   ArrowDownUp,
   Droplets,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  CableCar,
+  Route,
+  Eye,
+  Ticket
 } from 'lucide-react';
 import { CurrentWeather, LocationPoint } from '../types/weather';
 import {
@@ -32,7 +36,8 @@ import {
   calculateContinuousSnowAndLpnAnalysis,
   fetchLiveSkiResortConditions,
   buildDynamicMountainProfileFromLocation,
-  searchAndBuildWorldMountainStation
+  searchAndBuildWorldMountainStation,
+  getSkiDomainOperations
 } from '../services/mountainWeatherService';
 import { MountainAdaptivePhysicsCard } from '../components/MountainAdaptivePhysicsCard';
 
@@ -279,6 +284,8 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     ? selectedMassif.nivoseTempC
     : Number((lpnAnalysis.baseTempC - ((selectedMassif.nivoseElevationM - selectedMassif.altitudeBase) * (lpnAnalysis.lapseRateCPer100m / 100))).toFixed(1));
 
+  const skiOps = useMemo(() => getSkiDomainOperations(selectedMassif), [selectedMassif]);
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -470,10 +477,10 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
           {filteredMassifs.map((m) => {
             const isSelected = m.id === selectedMassif.id;
-            const badge = getBeraBadgeColor(m.beraRiskLevel);
+            const mOps = getSkiDomainOperations(m);
             return (
               <button
                 key={m.id}
@@ -487,21 +494,271 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                 <div>
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 truncate">
-                      {m.isLiveCustomStation ? '📍 Localité Directe' : m.country} • {m.range}
+                      {m.isLiveCustomStation ? 'Localité Directe' : m.country} • {m.range}
                     </span>
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${badge.dot}`} title={m.beraRiskLabel} />
+                    <span className={`text-[10px] font-mono tabular-nums font-bold shrink-0 ${m.beraRiskLevel >= 4 ? 'text-rose-400' : m.beraRiskLevel === 3 ? 'text-amber-400' : 'text-emerald-400'}`} title={m.beraRiskLabel}>
+                      BERA {m.beraRiskLevel}/5
+                    </span>
                   </div>
                   <div className="text-xs font-black text-white mt-1 line-clamp-1">
                     {m.name}
                   </div>
                 </div>
-                <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>{m.altitudeBase}m → {m.altitudePeak}m</span>
-                  <span className="font-bold text-sky-300">❄️ {m.snowDepthBottomCm}–{m.snowDepthTopCm} cm</span>
+                <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-1 text-[10px] text-slate-400 font-mono tabular-nums">
+                  <div className="flex items-center justify-between">
+                    <span>{m.altitudeBase}–{m.altitudePeak}m</span>
+                    <span className="font-bold text-sky-300">{m.snowDepthBottomCm}–{m.snowDepthTopCm} cm</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className={mOps.openSlopesCount > 0 ? 'text-emerald-300 font-semibold' : 'text-slate-500'}>
+                      Pistes {mOps.openSlopesCount}/{mOps.totalSlopesCount}
+                    </span>
+                    <span className="text-slate-400">
+                      Rem. {mOps.openLiftsCount}/{mOps.totalLiftsCount}
+                    </span>
+                  </div>
                 </div>
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* BLOC OPÉRATIONNEL DU DOMAINE SKIABLE : PISTES OUVERTES, REMONTÉES, BERA DÉTAILLÉ & EXPLOITATION */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0F172A] border border-slate-800 shadow-xl space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-sky-400">
+              <CableCar className="w-4 h-4 shrink-0" />
+              <span>Exploitation du Domaine Skiable & Sécurité Hors-Piste — {selectedMassif.name}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+              <span>Horaires : <strong className="text-white font-mono tabular-nums">{skiOps.openingHours}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>Saison : <strong className="text-slate-200">{skiOps.seasonWindow}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>Profil : <strong className="text-sky-300">{skiOps.recommendedSkierLevel}</strong></span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <span className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${skiOps.domainStatusColorClass}`}>
+              {skiOps.domainStatusLabel}
+            </span>
+            <span className={`px-3 py-1.5 rounded-lg border text-xs font-bold font-mono tabular-nums ${beraStyle.bg}`}>
+              Risque Avalanche {skiOps.avalancheDetail.beraLevel}/5 — {skiOps.avalancheDetail.beraShortLabel}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          {/* Colonne Gauche (7 cols) : Pistes ouvertes par couleur, Remontées & Paramètres station */}
+          <div className="lg:col-span-7 space-y-4">
+            {/* Bandeau KPI Pistes / Kilomètres / Remontées / Liaisons */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="text-[11px] font-semibold text-slate-400">Pistes ouvertes</div>
+                <div className="text-xl font-black text-white font-mono tabular-nums mt-0.5">
+                  {skiOps.openSlopesCount} <span className="text-xs font-semibold text-slate-400">/ {skiOps.totalSlopesCount}</span>
+                </div>
+                <div className="mt-2 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-400 rounded-full transition-all"
+                    style={{ width: `${skiOps.openSlopesPct}%` }}
+                  />
+                </div>
+                <div className="text-[11px] text-emerald-300 font-mono tabular-nums mt-1">{skiOps.openSlopesPct}% du domaine</div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="text-[11px] font-semibold text-slate-400">Kilomètres ouverts</div>
+                <div className="text-xl font-black text-sky-300 font-mono tabular-nums mt-0.5">
+                  {skiOps.openKm} <span className="text-xs font-semibold text-slate-400">/ {skiOps.totalKm} km</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-2">
+                  Liaison : <strong className="text-slate-200">{skiOps.interResortLinksStatus}</strong>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="text-[11px] font-semibold text-slate-400">Remontées actives</div>
+                <div className="text-xl font-black text-white font-mono tabular-nums mt-0.5">
+                  {skiOps.openLiftsCount} <span className="text-xs font-semibold text-slate-400">/ {skiOps.totalLiftsCount}</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-2 line-clamp-2" title={skiOps.liftsStatusNote}>
+                  {skiOps.liftsStatusNote}
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="text-[11px] font-semibold text-slate-400">Nordique & Snowpark</div>
+                <div className="text-xl font-black text-cyan-300 font-mono tabular-nums mt-0.5">
+                  {skiOps.nordicOpenKm} <span className="text-xs font-semibold text-slate-400">/ {skiOps.nordicTotalKm} km</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-2">
+                  Park : <strong className="text-slate-200">{skiOps.snowparkStatus}</strong> · Luge : <strong className="text-slate-200">{skiOps.tobogganStatus}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Détail des Pistes par Couleur (Vertes, Bleues, Rouges, Noires) */}
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-200">Répartition des Pistes Ouvertes par Niveau</span>
+                <span className="text-slate-400 font-mono tabular-nums">{skiOps.openSlopesCount} / {skiOps.totalSlopesCount} tracés</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: 'Vertes', open: skiOps.openGreen, total: skiOps.totalGreen, dotClass: 'bg-emerald-400', barClass: 'bg-emerald-500', textClass: 'text-emerald-300' },
+                  { label: 'Bleues', open: skiOps.openBlue, total: skiOps.totalBlue, dotClass: 'bg-sky-400', barClass: 'bg-sky-500', textClass: 'text-sky-300' },
+                  { label: 'Rouges', open: skiOps.openRed, total: skiOps.totalRed, dotClass: 'bg-rose-500', barClass: 'bg-rose-500', textClass: 'text-rose-300' },
+                  { label: 'Noires', open: skiOps.openBlack, total: skiOps.totalBlack, dotClass: 'bg-slate-200', barClass: 'bg-slate-400', textClass: 'text-slate-200' }
+                ].map((tier) => {
+                  const pct = tier.total > 0 ? Math.round((tier.open / tier.total) * 100) : 0;
+                  return (
+                    <div key={tier.label} className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/90 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-200">
+                          <span className={`w-2.5 h-2.5 rounded-full ${tier.dotClass}`} />
+                          {tier.label}
+                        </span>
+                        <span className={`font-mono tabular-nums font-bold ${tier.textClass}`}>
+                          {tier.total > 0 ? `${tier.open}/${tier.total}` : '—'}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                        <div className={`h-full rounded-full ${tier.barClass}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Conditions Pratiques : Neige de culture, Damage, Visibilité & Accès Routier */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-3">
+                <Snowflake className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <div className="font-bold text-slate-200">
+                    Neige de culture ({skiOps.snowCannonsCoveragePct}% couvert)
+                  </div>
+                  <div className="text-slate-300">{skiOps.snowmakingPotentialLabel}</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-3">
+                <Ticket className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <div className="font-bold text-slate-200">Damage & Qualité des Pistes</div>
+                  <div className="text-slate-300">{skiOps.groomingQuality}</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-3">
+                <Eye className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <div className="font-bold text-slate-200">Visibilité en Altitude</div>
+                  <div className="text-slate-300">{skiOps.visibilityStatus}</div>
+                </div>
+              </div>
+
+              <div className={`p-3.5 rounded-xl border flex items-start gap-3 ${
+                skiOps.roadAlertLevel === 'ÉQUIPEMENTS_OBLIGATOIRES'
+                  ? 'bg-amber-950/30 border-amber-500/40'
+                  : 'bg-slate-900/80 border-slate-800'
+              }`}>
+                <Route className={`w-4 h-4 mt-0.5 shrink-0 ${skiOps.roadAlertLevel === 'ÉQUIPEMENTS_OBLIGATOIRES' ? 'text-amber-400' : 'text-emerald-400'}`} />
+                <div className="space-y-0.5">
+                  <div className="font-bold text-slate-200">Accès Routier & Loi Montagne</div>
+                  <div className="text-slate-300">{skiOps.roadAccessStatus}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne Droite (5 cols) : Panneau Détaillé Risque d'Avalanche (BERA) */}
+          <div className="lg:col-span-5 p-4 sm:p-5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>Bulletin Risque Avalanche (BERA)</span>
+                </div>
+                <span className={`text-xs font-bold font-mono tabular-nums ${
+                  skiOps.avalancheDetail.snowpackStability === 'Critique'
+                    ? 'text-rose-400'
+                    : skiOps.avalancheDetail.snowpackStability === 'Fragile'
+                      ? 'text-amber-300'
+                      : 'text-emerald-300'
+                }`}>
+                  Stabilité : {skiOps.avalancheDetail.snowpackStability}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+                  <div className="text-[11px] text-slate-400">Altitude critique</div>
+                  <div className="text-base font-black text-white font-mono tabular-nums mt-0.5">
+                    &ge; {skiOps.avalancheDetail.criticalAltitudeM} m
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+                  <div className="text-[11px] text-slate-400">Orientations sensibles</div>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const).map((dir) => {
+                      const active = skiOps.avalancheDetail.criticalSlopes.includes(dir);
+                      return (
+                        <span
+                          key={dir}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                            active
+                              ? 'bg-amber-500/25 text-amber-200 border border-amber-500/50'
+                              : 'bg-slate-900 text-slate-500 border border-slate-800'
+                          }`}
+                        >
+                          {dir}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 mb-1">Mécanismes dominants</div>
+                  <ul className="space-y-1 text-slate-200">
+                    {skiOps.avalancheDetail.dominantMechanisms.map((mech, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-amber-400 font-bold">•</span>
+                        <span>{mech}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-400">Départs spontanés</div>
+                    <div className="text-slate-200 mt-0.5">{skiOps.avalancheDetail.spontaneousActivity}</div>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-400">Déclenchement skieur</div>
+                    <div className="text-slate-200 mt-0.5">{skiOps.avalancheDetail.skierTriggerRisk}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800 space-y-1.5 text-xs">
+              <div className="font-bold text-sky-300">Conseil Hors-Piste</div>
+              <p className="text-slate-300 leading-relaxed">{skiOps.avalancheDetail.offPisteAdvice}</p>
+              <div className="pt-1 border-t border-slate-800/80 text-[11px] text-amber-200 font-semibold">
+                Équipement : {skiOps.avalancheDetail.safetyGearRequired}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
