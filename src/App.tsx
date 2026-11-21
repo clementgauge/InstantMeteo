@@ -1012,6 +1012,17 @@ function WeatherApp() {
           seniorMode={seniorMode}
           simplifiedMode={simplifiedMode}
         />
+      ) : activeTab === 'scenarios14d' ? (
+        <FourteenDayDetailedTrendsCard
+          station={currentStation}
+          currentTemp={weather?.temperature}
+          currentAnomaly={anomaly?.tempAnomaly}
+          dailyForecasts={daily}
+          currentWeather={weather ?? undefined}
+          seniorMode={seniorMode}
+          tempUnit={tempUnit}
+          simplifiedMode={simplifiedMode}
+        />
       ) : (
         <>
           {/* Header */}
@@ -1233,19 +1244,6 @@ function WeatherApp() {
                   simplifiedMode={simplifiedMode}
                 />
               </div>
-            )}
-
-            {activeTab === 'scenarios14d' && (
-              <FourteenDayDetailedTrendsCard
-                station={currentStation}
-                currentTemp={weather.temperature}
-                currentAnomaly={anomaly.tempAnomaly}
-                dailyForecasts={daily}
-                currentWeather={weather}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-                simplifiedMode={simplifiedMode}
-              />
             )}
 
             {activeTab === 'bulletin' && (
@@ -1893,7 +1891,7 @@ function WeatherApp() {
       )}
 
       {/* Global Interactive Weather Bubble (Draggable, Detachable Picture-in-Picture & Home Screen Widget) */}
-      {showFloatingBubble && weather && activeTab !== 'skymap' && activeTab !== 'worldDisasters' && (
+      {showFloatingBubble && weather && activeTab !== 'skymap' && activeTab !== 'worldDisasters' && activeTab !== 'scenarios14d' && (
         <FloatingWeatherBubble
           station={currentStation}
           weather={weather}

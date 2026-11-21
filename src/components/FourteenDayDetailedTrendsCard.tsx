@@ -118,7 +118,7 @@ export const FourteenDayDetailedTrendsCard: React.FC<FourteenDayDetailedTrendsCa
   }, [iframeSrc]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-120px)] min-h-[780px] rounded-2xl overflow-hidden border border-slate-700/60 shadow-2xl bg-[#eef3fa]">
+    <div className="fixed inset-0 z-50 w-screen h-screen bg-[#eef3fa] m-0 p-0 overflow-hidden">
       {!isLoaded && !loadTimedOut && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#eef3fa] text-slate-700 pointer-events-none">
           <div className="h-9 w-9 rounded-full border-3 border-blue-600 border-t-transparent animate-spin mb-3" />
