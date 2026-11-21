@@ -5,6 +5,15 @@ import {
   ModelDatum,
   GeographicZoneType
 } from '../utils/robustModelConsensus';
+import { resolveAndRecordLocalityAltitude } from './worldAltitudeService';
+import {
+  regionForLocation,
+  computeHtmlModelRawWeight,
+  computeHtmlModelWeightAtDay,
+  computeWeightedMean,
+  TerrainMeta
+} from '../utils/unifiedWeatherEngine';
+import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
 
 export interface DeterministicModelMeta {
   openMeteoId: string;
@@ -358,6 +367,14 @@ export interface ConsensusDaySummary {
   modelsMap: Record<string, ModelForecastValue>;
   warmestModelName: string;
   coldestModelName: string;
+  consensusProbPct?: number;
+  consensusWindMaxKmh?: number;
+  consensusGustMaxKmh?: number;
+  consensusSnowCm?: number;
+  consensusUvMax?: number;
+  consensusSunHours?: number;
+  consensusConfidencePct?: number;
+  terrainMeta?: TerrainMeta;
 }
 
 export interface StationMultiModelConsensusResult {
@@ -465,7 +482,25 @@ export async function fetchMultiModelConsensusForStation(
   const runPromise = (async (): Promise<StationMultiModelConsensusResult> => {
     const lat = station.latitude;
     const lon = station.longitude;
-    const alt = station.altitude ?? 50;
+    const altEntry = await resolveAndRecordLocalityAltitude({
+      lat,
+      lon,
+      name: station.name,
+      country: station.country,
+      knownAltitude: station.altitude
+    });
+    const alt = altEntry.alt;
+    const terrainMeta: TerrainMeta = {
+      alt,
+      coastal: typeof altEntry.coastal === 'number' ? altEntry.coastal : 0,
+      relief: typeof altEntry.relief === 'number' ? altEntry.relief : Math.min(1, Math.max(0, alt / 1500)),
+      exposure: typeof altEntry.exposure === 'number' ? altEntry.exposure : Math.min(1.4, Math.max(0.2, 0.25 + alt / 2500))
+    };
+    const htmlRegion = regionForLocation(
+      station.countryCode || (station.isFrench ? 'FR' : ''),
+      lat,
+      lon
+    );
     const zone = determineGeographicZone(lat, lon, alt, station.department);
     const inAsia = isStationInAsia(lat, lon);
 
@@ -473,8 +508,8 @@ export async function fetchMultiModelConsensusForStation(
     const prevRunModelsParam = DETERMINISTIC_MODELS_CATALOG.filter(m => m.hasPrevRuns).map(m => m.openMeteoId).join(',');
     const ensModelsParam = 'ecmwf_ifs025,ecmwf_aifs025,gfs_seamless,icon_seamless,gem_global,ukmo_global_ensemble_20km';
 
-    const dailyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&models=${detModelsParam}&forecast_days=16&timezone=auto`;
-    const prevRunsUrl = `https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m,temperature_2m_previous_day1,temperature_2m_previous_day2&models=${prevRunModelsParam}&forecast_days=16&timezone=auto`;
+    const dailyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,uv_index_max,sunshine_duration,weather_code&models=${detModelsParam}&forecast_days=16&timezone=auto`;
+    const prevRunsUrl = `https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m,temperature_2m_previous_day1,temperature_2m_previous_day2,precipitation,precipitation_previous_day1,precipitation_previous_day2,snowfall,snowfall_previous_day1,snowfall_previous_day2,wind_speed_10m,wind_speed_10m_previous_day1,wind_speed_10m_previous_day2,wind_gusts_10m,wind_gusts_10m_previous_day1,wind_gusts_10m_previous_day2&models=${prevRunModelsParam}&forecast_days=16&timezone=auto`;
     const ensUrl = `https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&elevation=${alt}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=${ensModelsParam}&forecast_days=15&timezone=auto`;
 
     const [dailyRes, prevRes, ensRes] = await Promise.all([
@@ -497,8 +532,16 @@ export async function fetchMultiModelConsensusForStation(
     }
 
     // 1. Pre-index previous-runs-api hourly values per (modelId -> dateStr -> { r0, r1, r2 })
-    // so we obtain exact 3-run daily extrema for each deterministic & parent NWP model.
-    type RunExtrema = { min: number; max: number; count: number };
+    // including temperature extrema + 3-run smoothing for precipitation, snowfall, wind and gusts.
+    type RunExtrema = {
+      min: number;
+      max: number;
+      count: number;
+      rainSum?: number;
+      snowSum?: number;
+      windMax?: number;
+      gustMax?: number;
+    };
     const hourlyPrevRunsByModelDate = new Map<string, Map<string, { r0?: RunExtrema; r1?: RunExtrema; r2?: RunExtrema }>>();
 
     const prevHourly = prevJson?.hourly;
@@ -512,20 +555,61 @@ export async function fetchMultiModelConsensusForStation(
         else dateSliceIndices.set(dStr, [idx]);
       });
 
-      const extractExtrema = (series: any, indices: number[]): RunExtrema | undefined => {
-        if (!Array.isArray(series)) return undefined;
+      const extractExtrema = (
+        tempSeries: any,
+        rainSeries: any,
+        snowSeries: any,
+        windSeries: any,
+        gustSeries: any,
+        indices: number[]
+      ): RunExtrema | undefined => {
+        if (!Array.isArray(tempSeries)) return undefined;
         let min = Infinity;
         let max = -Infinity;
         let count = 0;
+        let rainSum = 0;
+        let rainCnt = 0;
+        let snowSum = 0;
+        let snowCnt = 0;
+        let windMax = -Infinity;
+        let gustMax = -Infinity;
+
         for (const idx of indices) {
-          const v = series[idx];
+          const v = tempSeries[idx];
           if (typeof v === 'number' && !isNaN(v)) {
             if (v < min) min = v;
             if (v > max) max = v;
             count++;
           }
+          const rv = rainSeries?.[idx];
+          if (typeof rv === 'number' && !isNaN(rv)) {
+            rainSum += rv;
+            rainCnt++;
+          }
+          const sv = snowSeries?.[idx];
+          if (typeof sv === 'number' && !isNaN(sv)) {
+            snowSum += sv;
+            snowCnt++;
+          }
+          const wv = windSeries?.[idx];
+          if (typeof wv === 'number' && !isNaN(wv) && wv > windMax) {
+            windMax = wv;
+          }
+          const gv = gustSeries?.[idx];
+          if (typeof gv === 'number' && !isNaN(gv) && gv > gustMax) {
+            gustMax = gv;
+          }
         }
-        return count >= 2 ? { min, max, count } : undefined;
+        if (count < 2) return undefined;
+        return {
+          min,
+          max,
+          count,
+          rainSum: rainCnt >= 2 ? rainSum : undefined,
+          snowSum: snowCnt >= 2 ? snowSum : undefined,
+          windMax: windMax > -Infinity ? windMax : undefined,
+          gustMax: gustMax > -Infinity ? gustMax : undefined
+        };
       };
 
       for (const meta of DETERMINISTIC_MODELS_CATALOG) {
@@ -535,11 +619,27 @@ export async function fetchMultiModelConsensusForStation(
         const s1 = prevHourly[`temperature_2m_previous_day1_${mId}`];
         const s2 = prevHourly[`temperature_2m_previous_day2_${mId}`];
 
+        const p0 = prevHourly[`precipitation_${mId}`];
+        const p1 = prevHourly[`precipitation_previous_day1_${mId}`];
+        const p2 = prevHourly[`precipitation_previous_day2_${mId}`];
+
+        const sn0 = prevHourly[`snowfall_${mId}`];
+        const sn1 = prevHourly[`snowfall_previous_day1_${mId}`];
+        const sn2 = prevHourly[`snowfall_previous_day2_${mId}`];
+
+        const w0 = prevHourly[`wind_speed_10m_${mId}`];
+        const w1 = prevHourly[`wind_speed_10m_previous_day1_${mId}`];
+        const w2 = prevHourly[`wind_speed_10m_previous_day2_${mId}`];
+
+        const g0 = prevHourly[`wind_gusts_10m_${mId}`];
+        const g1 = prevHourly[`wind_gusts_10m_previous_day1_${mId}`];
+        const g2 = prevHourly[`wind_gusts_10m_previous_day2_${mId}`];
+
         const byDate = new Map<string, { r0?: RunExtrema; r1?: RunExtrema; r2?: RunExtrema }>();
         dateSliceIndices.forEach((indices, dStr) => {
-          const r0 = extractExtrema(s0, indices);
-          const r1 = extractExtrema(s1, indices);
-          const r2 = extractExtrema(s2, indices);
+          const r0 = extractExtrema(s0, p0, sn0, w0, g0, indices);
+          const r1 = extractExtrema(s1, p1, sn1, w1, g1, indices);
+          const r2 = extractExtrema(s2, p2, sn2, w2, g2, indices);
           if (r0 || r1 || r2) {
             byDate.set(dStr, { r0, r1, r2 });
           }
@@ -619,22 +719,56 @@ export async function fetchMultiModelConsensusForStation(
       const allRunSwings: number[] = [];
       let maxRunsUsedOnDay = 1;
 
-      // A. Compute 3-run average for each deterministic / AI model
+      const detWeightedTx: number[] = [];
+      const detWeightedTn: number[] = [];
+      const detWeightedTempWeights: number[] = [];
+      const detWeightedRain: number[] = [];
+      const detWeightedRainWeights: number[] = [];
+      const detWeightedSnow: number[] = [];
+      const detWeightedSnowWeights: number[] = [];
+      const detWeightedProb: number[] = [];
+      const detWeightedProbWeights: number[] = [];
+      const detWeightedWind: number[] = [];
+      const detWeightedWindWeights: number[] = [];
+      const detWeightedGust: number[] = [];
+      const detWeightedGustWeights: number[] = [];
+      const detWeightedUv: number[] = [];
+      const detWeightedUvWeights: number[] = [];
+      const detWeightedSun: number[] = [];
+      const detWeightedSunWeights: number[] = [];
+
+      // A. Compute 3-run smoothed values & terrain weights for each deterministic / AI model
       for (const meta of DETERMINISTIC_MODELS_CATALOG) {
         const rawTxArr = detDaily[`temperature_2m_max_${meta.openMeteoId}`];
         const rawTnArr = detDaily[`temperature_2m_min_${meta.openMeteoId}`];
         const rawRainArr = detDaily[`precipitation_sum_${meta.openMeteoId}`];
+        const rawSnowArr = detDaily[`snowfall_sum_${meta.openMeteoId}`];
+        const rawProbArr = detDaily[`precipitation_probability_max_${meta.openMeteoId}`];
+        const rawWindArr = detDaily[`wind_speed_10m_max_${meta.openMeteoId}`];
+        const rawGustArr = detDaily[`wind_gusts_10m_max_${meta.openMeteoId}`];
+        const rawUvArr = detDaily[`uv_index_max_${meta.openMeteoId}`];
+        const rawSunArr = detDaily[`sunshine_duration_${meta.openMeteoId}`];
         const rawCodeArr = detDaily[`weather_code_${meta.openMeteoId}`];
 
         const rawTx = typeof rawTxArr?.[dIdx] === 'number' ? Number(rawTxArr[dIdx].toFixed(1)) : null;
         const rawTn = typeof rawTnArr?.[dIdx] === 'number' ? Number(rawTnArr[dIdx].toFixed(1)) : null;
         const rawRain = typeof rawRainArr?.[dIdx] === 'number' ? Number(rawRainArr[dIdx].toFixed(1)) : null;
+        const rawSnow = typeof rawSnowArr?.[dIdx] === 'number' ? Number(rawSnowArr[dIdx].toFixed(1)) : null;
+        const rawProb = typeof rawProbArr?.[dIdx] === 'number' ? Math.round(rawProbArr[dIdx]) : null;
+        const rawWind = typeof rawWindArr?.[dIdx] === 'number' ? Math.round(rawWindArr[dIdx]) : null;
+        const rawGust = typeof rawGustArr?.[dIdx] === 'number' ? Math.round(rawGustArr[dIdx]) : null;
+        const rawUv = typeof rawUvArr?.[dIdx] === 'number' ? Number(rawUvArr[dIdx].toFixed(1)) : null;
+        const rawSun = typeof rawSunArr?.[dIdx] === 'number' ? Number((rawSunArr[dIdx] / 3600).toFixed(1)) : null;
         const rawCode = typeof rawCodeArr?.[dIdx] === 'number' ? rawCodeArr[dIdx] : null;
 
         const prevEntry = hourlyPrevRunsByModelDate.get(meta.openMeteoId)?.get(dateStr);
 
         let avg3Tx = rawTx;
         let avg3Tn = rawTn;
+        let smoothedRain = rawRain;
+        let smoothedSnow = rawSnow;
+        let smoothedWind = rawWind;
+        let smoothedGust = rawGust;
         let runsCount = rawTx !== null ? 1 : 0;
         let modelSwing = 0;
 
@@ -666,16 +800,31 @@ export async function fetchMultiModelConsensusForStation(
             parentShiftMaxByModel.set(meta.openMeteoId, { shift: shiftMax, runsCount, swing: maxSwing });
             parentShiftMinByModel.set(meta.openMeteoId, { shift: shiftMin, runsCount, swing: minSwing });
 
-            if (rawTx !== null) {
-              avg3Tx = Number((rawTx + shiftMax).toFixed(1));
-            } else {
-              avg3Tx = Number(hrAvgMax.toFixed(1));
-            }
-            if (rawTn !== null) {
-              avg3Tn = Number((rawTn + shiftMin).toFixed(1));
-            } else {
-              avg3Tn = Number(hrAvgMin.toFixed(1));
-            }
+            avg3Tx = rawTx !== null ? Number((rawTx + shiftMax).toFixed(1)) : Number(hrAvgMax.toFixed(1));
+            avg3Tn = rawTn !== null ? Number((rawTn + shiftMin).toFixed(1)) : Number(hrAvgMin.toFixed(1));
+
+            // 3-run 0.50/0.30/0.20 smoothing for rain, snow, wind & gusts
+            const blend3 = (v0: number | undefined, v1: number | undefined, v2: number | undefined, fallback: number | null) => {
+              if (fallback === null && v0 === undefined) return null;
+              const arr = [
+                { v: v0, w: 0.50 },
+                { v: v1, w: 0.30 },
+                { v: v2, w: 0.20 }
+              ].filter((x): x is { v: number; w: number } => typeof x.v === 'number' && !isNaN(x.v));
+              if (arr.length < 2 || v0 === undefined) return fallback;
+              const wSum = arr.reduce((a, b) => a + b.w, 0);
+              const hrWeighted = arr.reduce((a, b) => a + b.v * b.w, 0) / wSum;
+              return fallback !== null ? Math.max(0, fallback + (hrWeighted - v0)) : Math.max(0, hrWeighted);
+            };
+
+            const rSm = blend3(prevEntry.r0.rainSum, prevEntry.r1?.rainSum, prevEntry.r2?.rainSum, rawRain);
+            if (rSm !== null) smoothedRain = Number(rSm.toFixed(1));
+            const snSm = blend3(prevEntry.r0.snowSum, prevEntry.r1?.snowSum, prevEntry.r2?.snowSum, rawSnow);
+            if (snSm !== null) smoothedSnow = Number(snSm.toFixed(1));
+            const wSm = blend3(prevEntry.r0.windMax, prevEntry.r1?.windMax, prevEntry.r2?.windMax, rawWind);
+            if (wSm !== null) smoothedWind = Math.round(wSm);
+            const gSm = blend3(prevEntry.r0.gustMax, prevEntry.r1?.gustMax, prevEntry.r2?.gustMax, rawGust);
+            if (gSm !== null) smoothedGust = Math.round(gSm);
           }
         }
 
@@ -684,7 +833,7 @@ export async function fetchMultiModelConsensusForStation(
 
         let sanitizedCode = rawCode;
         if (sanitizedCode !== null && [71, 73, 75, 77, 85, 86].includes(sanitizedCode) && (avg3Tx ?? 10) > 2.5) {
-          sanitizedCode = (rawRain ?? 0) >= 5 ? 63 : (rawRain ?? 0) > 0 ? 61 : 2;
+          sanitizedCode = (smoothedRain ?? 0) >= 5 ? 63 : (smoothedRain ?? 0) > 0 ? 61 : 2;
         }
 
         modelsMap[meta.appModelId] = {
@@ -698,7 +847,7 @@ export async function fetchMultiModelConsensusForStation(
           modelCategory: meta.category,
           tempMin: avg3Tn,
           tempMax: avg3Tx,
-          precipitationMm: rawRain,
+          precipitationMm: smoothedRain,
           weatherCode: sanitizedCode,
           isAvailable,
           runStatus: isExcluded
@@ -716,9 +865,44 @@ export async function fetchMultiModelConsensusForStation(
         };
 
         if (isAvailable && avg3Tx !== null && avg3Tn !== null) {
+          const rawW = computeHtmlModelRawWeight(meta.openMeteoId, terrainMeta, htmlRegion);
+          const dayW = computeHtmlModelWeightAtDay(meta.openMeteoId, rawW, dIdx);
+
           detMaxDataForConsensus.push({ modelId: meta.consensusWeightKey, value: avg3Tx });
           detMinDataForConsensus.push({ modelId: meta.consensusWeightKey, value: avg3Tn });
-          if (rawRain !== null) detRainVals.push(rawRain);
+          detWeightedTx.push(avg3Tx);
+          detWeightedTn.push(avg3Tn);
+          detWeightedTempWeights.push(dayW);
+
+          if (smoothedRain !== null) {
+            detRainVals.push(smoothedRain);
+            detWeightedRain.push(smoothedRain);
+            detWeightedRainWeights.push(dayW);
+          }
+          if (smoothedSnow !== null) {
+            detWeightedSnow.push(smoothedSnow);
+            detWeightedSnowWeights.push(dayW);
+          }
+          if (rawProb !== null) {
+            detWeightedProb.push(rawProb);
+            detWeightedProbWeights.push(dayW);
+          }
+          if (smoothedWind !== null) {
+            detWeightedWind.push(smoothedWind);
+            detWeightedWindWeights.push(dayW);
+          }
+          if (smoothedGust !== null) {
+            detWeightedGust.push(smoothedGust);
+            detWeightedGustWeights.push(dayW);
+          }
+          if (rawUv !== null) {
+            detWeightedUv.push(rawUv);
+            detWeightedUvWeights.push(dayW);
+          }
+          if (rawSun !== null) {
+            detWeightedSun.push(rawSun);
+            detWeightedSunWeights.push(dayW);
+          }
           if (sanitizedCode !== null) detWeatherCodes.push(sanitizedCode);
           if (modelSwing > 0) allRunSwings.push(modelSwing);
           if (runsCount > maxRunsUsedOnDay) maxRunsUsedOnDay = runsCount;
@@ -850,9 +1034,14 @@ export async function fetchMultiModelConsensusForStation(
         }
       }
 
-      // C. Compute canonical 3-run-averaged multi-model + ensemble consensus for this day
+      // C. Compute canonical terrain-weighted & 3-run-averaged multi-model + ensemble consensus
       const detMaxConsensus = calculateRobustTrimmedConsensus(detMaxDataForConsensus, zone, 1, leadDay);
       const detMinConsensus = calculateRobustTrimmedConsensus(detMinDataForConsensus, zone, 1, leadDay);
+
+      const htmlDetTx = computeWeightedMean(detWeightedTx, detWeightedTempWeights);
+      const htmlDetTn = computeWeightedMean(detWeightedTn, detWeightedTempWeights);
+      const effectiveDetTx = htmlDetTx !== null ? Number(htmlDetTx.toFixed(1)) : detMaxConsensus.trimmedConsensus;
+      const effectiveDetTn = htmlDetTn !== null ? Number(htmlDetTn.toFixed(1)) : detMinConsensus.trimmedConsensus;
 
       const sortedAllEnsMax = [...allEnsembleMaxValues3Run].sort((a, b) => a - b);
       const sortedAllEnsMin = [...allEnsembleMinValues3Run].sort((a, b) => a - b);
@@ -864,7 +1053,7 @@ export async function fetchMultiModelConsensusForStation(
               ensembleSystemMediansMax.reduce((s, x) => s + x.weight, 0)
             ).toFixed(1)
           )
-        : detMaxConsensus.trimmedConsensus;
+        : effectiveDetTx;
 
       const weightedEnsMin = ensembleSystemMediansMin.length > 0
         ? Number(
@@ -873,26 +1062,26 @@ export async function fetchMultiModelConsensusForStation(
               ensembleSystemMediansMin.reduce((s, x) => s + x.weight, 0)
             ).toFixed(1)
           )
-        : detMinConsensus.trimmedConsensus;
+        : effectiveDetTn;
 
-      // Blend weights by horizon:
-      // J+0..J+2: 65% deterministic fine+global (3-run avg) + 35% 212 ensemble scenarios (3-run stabilized)
-      // J+3..J+6: 45% deterministic (3-run avg) + 55% ensemble scenarios
-      // J+7..J+15: 25% deterministic (3-run avg) + 75% ensemble scenarios
+      // Coordinated horizon blend matching tendances-14-jours:
+      // J+0..J+2: 70% terrain-weighted fine+global (3-run avg) + 30% ensemble (3-run stabilized)
+      // J+3..J+6: 50% deterministic (3-run avg) + 50% ensemble scenarios
+      // J+7..J+15: 28% deterministic (3-run avg) + 72% ensemble scenarios
       const ensBlendWeight =
         ensembleMembersTotalCount === 0
           ? 0
           : leadDay <= 2
-          ? 0.35
+          ? 0.30
           : leadDay <= 6
-          ? 0.55
-          : 0.75;
+          ? 0.50
+          : 0.72;
 
       let consensusTMax = Number(
-        (detMaxConsensus.trimmedConsensus * (1 - ensBlendWeight) + weightedEnsMax * ensBlendWeight).toFixed(1)
+        (effectiveDetTx * (1 - ensBlendWeight) + weightedEnsMax * ensBlendWeight).toFixed(1)
       );
       let consensusTMin = Number(
-        (detMinConsensus.trimmedConsensus * (1 - ensBlendWeight) + weightedEnsMin * ensBlendWeight).toFixed(1)
+        (effectiveDetTn * (1 - ensBlendWeight) + weightedEnsMin * ensBlendWeight).toFixed(1)
       );
       if (consensusTMax < consensusTMin + 0.5) {
         consensusTMax = Number((consensusTMin + 0.5).toFixed(1));
@@ -922,15 +1111,52 @@ export async function fetchMultiModelConsensusForStation(
       const ensSpreadMin = ensP90Min - ensP10Min;
       const minSpreadC = Number(Math.max(detSpreadMin, ensSpreadMin).toFixed(1));
 
+      const weightedRain = computeWeightedMean(detWeightedRain, detWeightedRainWeights);
       const sortedDetRain = [...detRainVals].sort((a, b) => a - b);
-      const consensusRainMm = sortedDetRain.length > 0
+      const consensusRainMm = weightedRain !== null
+        ? Number(Math.max(0, weightedRain).toFixed(1))
+        : sortedDetRain.length > 0
         ? Number(quantile(sortedDetRain, 0.5).toFixed(1))
         : 0;
+
+      const weightedSnow = computeWeightedMean(detWeightedSnow, detWeightedSnowWeights);
+      const consensusSnowCm = weightedSnow !== null ? Number(Math.max(0, weightedSnow).toFixed(1)) : undefined;
+
+      const weightedProb = computeWeightedMean(detWeightedProb, detWeightedProbWeights);
+      const consensusProbPct = weightedProb !== null
+        ? Math.min(100, Math.max(0, Math.round(weightedProb)))
+        : undefined;
+
+      const weightedWind = computeWeightedMean(detWeightedWind, detWeightedWindWeights);
+      const consensusWindMaxKmh = weightedWind !== null ? Math.round(Math.max(0, weightedWind)) : undefined;
+
+      const weightedGust = computeWeightedMean(detWeightedGust, detWeightedGustWeights);
+      const consensusGustMaxKmh = weightedGust !== null ? Math.round(Math.max(0, weightedGust)) : undefined;
+
+      const weightedUv = computeWeightedMean(detWeightedUv, detWeightedUvWeights);
+      const consensusUvMax = weightedUv !== null ? Number(Math.max(0, weightedUv).toFixed(1)) : undefined;
+
+      const weightedSun = computeWeightedMean(detWeightedSun, detWeightedSunWeights);
+      const consensusSunHours = weightedSun !== null ? Number(Math.max(0, weightedSun).toFixed(1)) : undefined;
+
       const consensusWeatherCode = detWeatherCodes[0] ?? 2;
 
       const avgRunSwingC = allRunSwings.length > 0
         ? Number((allRunSwings.reduce((a, b) => a + b, 0) / allRunSwings.length).toFixed(1))
         : 0;
+
+      const dynRel = calculateDynamicReliability({
+        leadDayIndex: leadDay,
+        weatherCode: consensusWeatherCode,
+        precipitationMm: consensusRainMm,
+        precipitationProbability: consensusProbPct,
+        temperatureSpreadC: maxSpreadC,
+        ensembleSpreadP90P10C: ensSpreadMax,
+        runToRunSwingC: avgRunSwingC,
+        temperatureC: consensusTMax,
+        altitudeM: alt,
+        modelsCount: detMaxDataForConsensus.length + ensembleMembersTotalCount
+      });
 
       const warmestModel = [...activeModels].sort((a, b) => (b.tempMax ?? -99) - (a.tempMax ?? -99))[0];
       const coldestModel = [...activeModels].sort((a, b) => (a.tempMax ?? 99) - (b.tempMax ?? 99))[0];
@@ -942,8 +1168,8 @@ export async function fetchMultiModelConsensusForStation(
         consensusTMax,
         consensusRainMm,
         consensusWeatherCode,
-        deterministicTMax: detMaxConsensus.trimmedConsensus,
-        deterministicTMin: detMinConsensus.trimmedConsensus,
+        deterministicTMax: effectiveDetTx,
+        deterministicTMin: effectiveDetTn,
         ensembleMedianTMax: weightedEnsMax,
         ensembleMedianTMin: weightedEnsMin,
         ensembleP10TMax: ensP10Max,
@@ -963,7 +1189,15 @@ export async function fetchMultiModelConsensusForStation(
         minSpreadC,
         modelsMap,
         warmestModelName: warmestModel?.name || 'ECMWF IFS',
-        coldestModelName: coldestModel?.name || 'DWD ICON'
+        coldestModelName: coldestModel?.name || 'DWD ICON',
+        consensusProbPct,
+        consensusWindMaxKmh,
+        consensusGustMaxKmh,
+        consensusSnowCm,
+        consensusUvMax,
+        consensusSunHours,
+        consensusConfidencePct: dynRel.scorePct,
+        terrainMeta
       };
 
       days.push(summary);

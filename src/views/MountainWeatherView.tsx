@@ -37,7 +37,8 @@ import {
   fetchLiveSkiResortConditions,
   buildDynamicMountainProfileFromLocation,
   searchAndBuildWorldMountainStation,
-  getSkiDomainOperations
+  getSkiDomainOperations,
+  hydrateCatalogResortsWithLiveStatus
 } from '../services/mountainWeatherService';
 import { MountainAdaptivePhysicsCard } from '../components/MountainAdaptivePhysicsCard';
 
@@ -53,7 +54,7 @@ const REGION_TABS: Array<{ id: 'ALL' | 'LOCAL' | EuropeanMountainRegion; label: 
   { id: 'FRANCE_ALPES_NORD', label: '🇫🇷 Alpes du Nord' },
   { id: 'FRANCE_ALPES_SUD', label: '🇫🇷 Alpes du Sud' },
   { id: 'FRANCE_PYRENEES', label: '🇫🇷 Pyrénées' },
-  { id: 'FRANCE_VOSGES_JURA_MASSIF_CENTRAL', label: '🇫🇷 Vosges / Jura / Auvergne / Corse' },
+  { id: 'FRANCE_VOSGES_JURA_MASSIF_CENTRAL', label: '🇫🇷 Vosges / Jura / Massif Central' },
   { id: 'SUISSE', label: '🇨🇭 Suisse' },
   { id: 'AUTRICHE_ALLEMAGNE', label: '🇦🇹🇩🇪 Autriche & Allemagne' },
   { id: 'ITALIE', label: '🇮🇹 Italie (Dolomites & Aoste)' },
@@ -114,7 +115,60 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Synchronisation automatique en continu (polling continu toutes les 45s) avec Open-Meteo
+  // Synchronisation globale de l'ensemble du catalogue stations avec l'API temps réel LiftRadar / SkiRadar
+  useEffect(() => {
+    let isMounted = true;
+    const hydrateAllCatalogResorts = () => {
+      hydrateCatalogResortsWithLiveStatus(MOUNTAIN_MASSIFS).then((updates) => {
+        if (!isMounted || !updates || Object.keys(updates).length === 0) return;
+        setLiveOverrides((prev) => {
+          const next = { ...prev };
+          for (const [id, updatedMassif] of Object.entries(updates)) {
+            const existing = prev[id];
+            if (existing && (existing.isRealTimeVerified || existing.liveTelemetry?.slopesByDifficulty)) {
+              const mergedTelemetry = existing.liveTelemetry?.slopesByDifficulty
+                ? existing.liveTelemetry
+                : updatedMassif.liveTelemetry;
+              next[id] = {
+                ...existing,
+                snowDepthBottomCm: updatedMassif.liveTelemetry?.snowValleyCm !== null && updatedMassif.liveTelemetry?.snowValleyCm !== undefined
+                  ? updatedMassif.snowDepthBottomCm
+                  : existing.snowDepthBottomCm,
+                snowDepthTopCm: updatedMassif.liveTelemetry?.snowMountainCm !== null && updatedMassif.liveTelemetry?.snowMountainCm !== undefined
+                  ? updatedMassif.snowDepthTopCm
+                  : existing.snowDepthTopCm,
+                freshSnow24hCm: updatedMassif.liveTelemetry?.snowFreshCm !== null && updatedMassif.liveTelemetry?.snowFreshCm !== undefined
+                  ? updatedMassif.freshSnow24hCm
+                  : existing.freshSnow24hCm,
+                beraRiskLevel: updatedMassif.liveTelemetry?.avalancheDangerLevel
+                  ? updatedMassif.beraRiskLevel
+                  : existing.beraRiskLevel,
+                beraRiskLabel: updatedMassif.liveTelemetry?.avalancheDangerLevel
+                  ? updatedMassif.beraRiskLabel
+                  : existing.beraRiskLabel,
+                liveTelemetry: mergedTelemetry,
+                skiOperations: existing.liveTelemetry?.slopesByDifficulty
+                  ? existing.skiOperations
+                  : updatedMassif.skiOperations
+              };
+            } else {
+              next[id] = updatedMassif;
+            }
+          }
+          return next;
+        });
+      });
+    };
+
+    hydrateAllCatalogResorts();
+    const bulkInterval = setInterval(hydrateAllCatalogResorts, 180000);
+    return () => {
+      isMounted = false;
+      clearInterval(bulkInterval);
+    };
+  }, []);
+
+  // Synchronisation automatique en continu (polling continu toutes les 45s) avec Open-Meteo & détail station
   useEffect(() => {
     let isMounted = true;
     const fetchConditions = () => {
@@ -500,8 +554,18 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                       BERA {m.beraRiskLevel}/5
                     </span>
                   </div>
-                  <div className="text-xs font-black text-white mt-1 line-clamp-1">
-                    {m.name}
+                  <div className="flex items-center justify-between gap-1.5 mt-1">
+                    <div className="text-xs font-black text-white line-clamp-1">
+                      {m.name}
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black tracking-wide ${
+                      mOps.openSlopesCount > 0 || mOps.openLiftsCount > 0
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/35'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${mOps.openSlopesCount > 0 || mOps.openLiftsCount > 0 ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                      {mOps.openSlopesCount > 0 || mOps.openLiftsCount > 0 ? 'OUVERT' : 'FERMÉ'}
+                    </span>
                   </div>
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-1 text-[10px] text-slate-400 font-mono tabular-nums">
@@ -514,7 +578,7 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
                       Pistes {mOps.openSlopesCount}/{mOps.totalSlopesCount}
                     </span>
                     <span className="text-slate-400">
-                      Rem. {mOps.openLiftsCount}/{mOps.totalLiftsCount}
+                      {mOps.totalKm} km{mOps.linkedDomainKm ? ` · Relié ${mOps.linkedDomainKm}` : ''}
                     </span>
                   </div>
                 </div>
@@ -527,10 +591,18 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
       {/* BLOC OPÉRATIONNEL DU DOMAINE SKIABLE : PISTES OUVERTES, REMONTÉES, BERA DÉTAILLÉ & EXPLOITATION */}
       <div className="p-5 sm:p-6 rounded-2xl bg-[#0F172A] border border-slate-800 shadow-xl space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-sky-400">
               <CableCar className="w-4 h-4 shrink-0" />
               <span>Exploitation du Domaine Skiable & Sécurité Hors-Piste — {selectedMassif.name}</span>
+              <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold ${
+                skiOps.telemetrySource === 'LIVE_OFFICIAL'
+                  ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              }`}>
+                {skiOps.telemetryBadgeLabel}
+                {skiOps.telemetryTimestamp ? ` • MàJ ${new Date(skiOps.telemetryTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
               <span>Horaires : <strong className="text-white font-mono tabular-nums">{skiOps.openingHours}</strong></span>
@@ -538,6 +610,12 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               <span>Saison : <strong className="text-slate-200">{skiOps.seasonWindow}</strong></span>
               <span aria-hidden="true">·</span>
               <span>Profil : <strong className="text-sky-300">{skiOps.recommendedSkierLevel}</strong></span>
+              {skiOps.linkedDomainName && skiOps.linkedDomainKm && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>Grand domaine relié : <strong className="text-cyan-300">{skiOps.linkedDomainName} ({skiOps.linkedDomainKm} km)</strong></span>
+                </>
+              )}
             </div>
           </div>
 
@@ -573,10 +651,19 @@ export const MountainWeatherView: React.FC<MountainWeatherViewProps> = ({
               <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
                 <div className="text-[11px] font-semibold text-slate-400">Kilomètres ouverts</div>
                 <div className="text-xl font-black text-sky-300 font-mono tabular-nums mt-0.5">
-                  {skiOps.openKm} <span className="text-xs font-semibold text-slate-400">/ {skiOps.totalKm} km</span>
+                  {skiOps.openKm}
+                  {skiOps.isOpenKmEstimated && skiOps.openKm > 0 && (
+                    <span className="ml-1 text-[10px] font-semibold text-amber-300 align-middle">(est.)</span>
+                  )}{' '}
+                  <span className="text-xs font-semibold text-slate-400">/ {skiOps.totalKm} km</span>
                 </div>
                 <div className="text-[11px] text-slate-400 mt-2">
                   Liaison : <strong className="text-slate-200">{skiOps.interResortLinksStatus}</strong>
+                  {skiOps.linkedDomainName && skiOps.linkedDomainKm && (
+                    <div className="text-[10px] text-cyan-300/90 mt-0.5">
+                      Relié {skiOps.linkedDomainName} : {skiOps.linkedDomainKm} km
+                    </div>
+                  )}
                 </div>
               </div>
 

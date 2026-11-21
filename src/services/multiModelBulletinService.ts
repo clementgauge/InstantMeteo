@@ -15,6 +15,11 @@ import {
   ModelDatum 
 } from '../utils/robustModelConsensus';
 import { calculateDynamicReliability } from '../utils/dynamicReliabilityCalculator';
+import { resolveAndRecordLocalityAltitude } from './worldAltitudeService';
+import {
+  fetchMultiModelConsensusForStation,
+  StationMultiModelConsensusResult
+} from './multiModelConsensusService';
 
 export interface MeteorologicalCenterInfo {
   id: 'meteofrance' | 'ecmwf' | 'gfs' | 'icon' | 'ukmo' | 'gem';
@@ -306,20 +311,42 @@ export async function fetchLiveMultiModelBulletin(
   }
 
   try {
-    // 1. Appel Multi-Modèles sur Open-Meteo avec les 5 centres
-    const multiModelUrl = `https://api.open-meteo.com/v1/forecast?latitude=${targetLat}&longitude=${targetLon}&models=meteofrance_seamless,ecmwf_ifs025,gfs_seamless,icon_seamless,ukmo_seamless&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto`;
+    const altEntry = await resolveAndRecordLocalityAltitude({
+      lat: targetLat,
+      lon: targetLon,
+      name: locationName
+    });
+    const alt = altEntry.alt;
+
+    // 1. Appel Multi-Modèles sur Open-Meteo avec les 5 centres à l'altitude exacte
+    const multiModelUrl = `https://api.open-meteo.com/v1/forecast?latitude=${targetLat}&longitude=${targetLon}&elevation=${alt}&models=meteofrance_seamless,ecmwf_ifs025,gfs_seamless,icon_seamless,ukmo_seamless&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto`;
     
     // 2. Appel multi-villes pour les 10 métropoles nationales
     const lats = FRENCH_REFERENCE_CITIES.map(c => c.lat).join(',');
     const lons = FRENCH_REFERENCE_CITIES.map(c => c.lon).join(',');
     const citiesUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto`;
 
-    const [multiRes, citiesRes] = await Promise.all([
+    const [multiRes, citiesRes, unifiedConsensus] = await Promise.all([
       fetch(multiModelUrl).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch(citiesUrl).then(r => r.ok ? r.json() : null).catch(() => null)
+      fetch(citiesUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetchMultiModelConsensusForStation({
+        id: `bulletin-${targetLat.toFixed(2)}-${targetLon.toFixed(2)}`,
+        name: locationName,
+        department: '',
+        region: '',
+        country: 'France',
+        latitude: targetLat,
+        longitude: targetLon,
+        altitude: alt,
+        climateZone: '',
+        allTimeRecordMax: 41,
+        allTimeRecordMin: -20,
+        allTimeRecordRain24h: 110,
+        isFrench: targetLat >= 41 && targetLat <= 51.5 && targetLon >= -5.5 && targetLon <= 9.8
+      }).catch(() => null)
     ]);
 
-    const report = buildHonestReportFromRawData(multiRes, citiesRes, targetLat, targetLon, locationName);
+    const report = buildHonestReportFromRawData(multiRes, citiesRes, targetLat, targetLon, locationName, unifiedConsensus);
     cachedReport = { timestamp: now, dateKey: todayDateKey, data: report };
     return report;
   } catch (err) {
@@ -339,7 +366,8 @@ function buildHonestReportFromRawData(
   citiesRaw: any,
   lat: number,
   lon: number,
-  locName: string
+  locName: string,
+  unifiedConsensus?: StationMultiModelConsensusResult | null
 ): MultiModelBulletinReport {
   const daily = multiRaw?.daily;
   const timeArray: string[] = daily?.time || [];
@@ -540,6 +568,9 @@ function buildHonestReportFromRawData(
       }
     }
 
+    const unifiedDay = unifiedConsensus?.daysByDate.get(rawDate) ?? unifiedConsensus?.days[i];
+    const finalConfidencePct = unifiedDay?.consensusConfidencePct ?? confidencePct;
+
     dailyComparisons.push({
       date: rawDate,
       dayIndex: i,
@@ -606,16 +637,16 @@ function buildHonestReportFromRawData(
         precipAgreement,
         dominantWeatherCode: dominantCode,
         dominantWeatherLabel: getWeatherLabelFromCode(dominantCode),
-        trimmedTMinConsensus: tMinTrimmedRes.trimmedConsensus,
-        trimmedTMaxConsensus: tMaxTrimmedRes.trimmedConsensus,
-        trimmedPrecipConsensus: precipTrimmedRes.trimmedConsensus,
-        trimmedWindConsensus: windTrimmedRes.trimmedConsensus,
+        trimmedTMinConsensus: unifiedDay?.consensusTMin ?? tMinTrimmedRes.trimmedConsensus,
+        trimmedTMaxConsensus: unifiedDay?.consensusTMax ?? tMaxTrimmedRes.trimmedConsensus,
+        trimmedPrecipConsensus: unifiedDay?.consensusRainMm ?? precipTrimmedRes.trimmedConsensus,
+        trimmedWindConsensus: unifiedDay?.consensusWindMaxKmh ?? windTrimmedRes.trimmedConsensus,
         concordanceScorePct: Math.round((tMinTrimmedRes.concordanceScorePct + tMaxTrimmedRes.concordanceScorePct) / 2),
         concordanceLabel: tMaxTrimmedRes.concordanceLabel,
         appliedZone: localZone,
         eliminatedExtremesNotice: tMaxTrimmedRes.eliminatedExtremesCount > 0 
           ? `Neutralisation des 5% de scénarios extrêmes (${tMaxTrimmedRes.eliminatedExtremesCount} run(s) isolé(s) écarté(s) pour isoler le consensus à 90%)`
-          : 'Très forte convergence des 5 modèles au sein de l\'intervalle 5%-95%'
+          : 'Très forte convergence des modèles au sein de l\'intervalle 5%-95%'
       },
       divergence: {
         level: divergenceLevel,
@@ -627,7 +658,7 @@ function buildHonestReportFromRawData(
         wetterModel,
         dominantScenario
       },
-      confidencePct
+      confidencePct: finalConfidencePct
     });
   }
 

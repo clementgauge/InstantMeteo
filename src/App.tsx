@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { 
   Sun, 
   Map, 
@@ -101,6 +101,62 @@ import { CertifiedLiveSiteStatsCard } from './components/CertifiedLiveSiteStatsC
 import { PWASplashScreen } from './components/PWASplashScreen';
 import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
 
+interface ViewErrorBoundaryProps {
+  children: React.ReactNode;
+  onReset: () => void;
+}
+
+interface ViewErrorBoundaryState {
+  hasError: boolean;
+  message: string;
+}
+
+class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps, ViewErrorBoundaryState> {
+  constructor(props: ViewErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, message: '' };
+  }
+
+  static getDerivedStateFromError(error: Error): ViewErrorBoundaryState {
+    return { hasError: true, message: error?.message || 'Erreur inattendue lors de l’affichage' };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('ViewErrorBoundary caught:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/95 p-6 text-slate-100 shadow-xl my-4">
+          <h2 className="text-lg font-black text-amber-300">Affichage momentanément interrompu</h2>
+          <p className="mt-1 text-sm text-slate-300">{this.state.message}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => this.setState({ hasError: false, message: '' })}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold cursor-pointer"
+            >
+              Recharger la page
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                this.setState({ hasError: false, message: '' });
+                this.props.onReset();
+              }}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600 cursor-pointer"
+            >
+              Retour à l’accueil Direct
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function WeatherApp() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -181,6 +237,27 @@ function WeatherApp() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return typeof window !== 'undefined' ? window.location.pathname : '/';
   });
+
+  const scrollToTopInstant = () => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
+  const prevTabForScrollRef = useRef<NavTabId>(activeTab);
+  useLayoutEffect(() => {
+    if (prevTabForScrollRef.current !== activeTab) {
+      prevTabForScrollRef.current = activeTab;
+      scrollToTopInstant();
+      const rafId = window.requestAnimationFrame(() => scrollToTopInstant());
+      const timerId = window.setTimeout(() => scrollToTopInstant(), 60);
+      return () => {
+        window.cancelAnimationFrame(rafId);
+        window.clearTimeout(timerId);
+      };
+    }
+  }, [activeTab]);
 
   // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page et de commune
   useEffect(() => {
@@ -902,10 +979,12 @@ function WeatherApp() {
 
   const isDirectPage = activeTab === 'realtime';
 
+  const nonDirectBg = themeMode === 'light' ? '#eef2f6' : '#020617';
+
   return (
     <div 
-      className={`min-h-screen relative text-slate-100 flex flex-col w-full max-w-full overflow-x-hidden ${!isDirectPage ? 'bg-black' : ''} ${seniorMode ? 'senior-mode' : ''} ${themeMode === 'light' ? 'theme-light' : ''}`}
-      style={!isDirectPage ? { backgroundColor: '#000000' } : undefined}
+      className={`min-h-screen relative flex flex-col w-full max-w-full overflow-x-hidden ${themeMode === 'light' ? 'text-slate-900 theme-light' : 'text-slate-100'} ${!isDirectPage ? (themeMode === 'light' ? 'bg-[#eef2f6]' : 'bg-[#020617]') : ''} ${seniorMode ? 'senior-mode' : ''}`}
+      style={!isDirectPage ? { backgroundColor: nonDirectBg } : undefined}
     >
       {/* Atmospheric PWA Startup Splash Screen */}
       <PWASplashScreen />
@@ -1041,6 +1120,7 @@ function WeatherApp() {
             </p>
           </div>
         ) : (
+          <ViewErrorBoundary key={`${activeTab}-${currentStation.id}`} onReset={() => setActiveTab('realtime')}>
           <div id={`page-${activeTab}`} key={`${activeTab}-${currentStation.id}`} className="scroll-mt-28 space-y-5 motion-view-enter">
             {/* Offline IndexedDB Status Alert Banner */}
             {isUsingCachedData && (
@@ -1390,6 +1470,7 @@ function WeatherApp() {
               </div>
             </div>
           </div>
+          </ViewErrorBoundary>
         )}
 
         {/* Guide & FAQ Météo - Toujours présent dans le DOM dès le rendu initial pour l'indexation SEO */}
@@ -1402,15 +1483,16 @@ function WeatherApp() {
             setActiveTab(t as NavTabId);
             window.history.pushState(null, '', p);
             updateDocumentSeo(p, false);
+            scrollToTopInstant();
           }}
         />
 
         {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, AURA IA, Direct) */}
         <div className="w-full max-w-7xl mx-auto px-2 pt-4">
           <BottomIconCarousel
-            onOpenRadar={() => setActiveTab('radar')}
+            onOpenRadar={() => { setActiveTab('radar'); scrollToTopInstant(); }}
             onOpenAura={() => setIsAuraModalOpen(true)}
-            onNavigateDirect={() => setActiveTab('realtime')}
+            onNavigateDirect={() => { setActiveTab('realtime'); scrollToTopInstant(); }}
             onOpenSkyMap={() => { window.location.href = '/skymap'; }}
           />
         </div>
@@ -1486,7 +1568,7 @@ function WeatherApp() {
             <nav aria-label="Index des pages météorologiques" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
               <a
                 href="/"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/'); setActiveTab('realtime'); window.history.pushState(null, '', '/'); updateDocumentSeo('/', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/'); setActiveTab('realtime'); window.history.pushState(null, '', '/'); updateDocumentSeo('/', false); scrollToTopInstant(); }}
                 className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
               >
                 Accueil France
@@ -1494,7 +1576,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/direct"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/direct'); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); updateDocumentSeo('/direct', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/direct'); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); updateDocumentSeo('/direct', false); scrollToTopInstant(); }}
                 className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
               >
                 Météo en Direct
@@ -1502,7 +1584,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/radar"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/radar'); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); updateDocumentSeo('/radar', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/radar'); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); updateDocumentSeo('/radar', false); scrollToTopInstant(); }}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Radar Précipitations HD
@@ -1510,7 +1592,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/vigilances"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/vigilances'); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); updateDocumentSeo('/vigilances', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/vigilances'); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); updateDocumentSeo('/vigilances', false); scrollToTopInstant(); }}
                 className="text-rose-400 hover:text-rose-300 hover:underline font-medium"
               >
                 Vigilances Météo-France
@@ -1518,7 +1600,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/nuages"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/nuages'); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); updateDocumentSeo('/nuages', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/nuages'); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); updateDocumentSeo('/nuages', false); scrollToTopInstant(); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Nuages &amp; Néphologie
@@ -1526,7 +1608,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/14-jours"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/14-jours'); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); updateDocumentSeo('/14-jours', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/14-jours'); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); updateDocumentSeo('/14-jours', false); scrollToTopInstant(); }}
                 className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
               >
                 Tendances 14 Jours
@@ -1534,7 +1616,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/cartes-thematiques"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/cartes-thematiques'); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); updateDocumentSeo('/cartes-thematiques', false); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/cartes-thematiques'); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); updateDocumentSeo('/cartes-thematiques', false); scrollToTopInstant(); }}
                 className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
               >
                 Cartes Thématiques (OSM)
@@ -1550,7 +1632,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/climat"
-                onClick={(e) => { e.preventDefault(); setActiveTab('eightMonths'); window.history.pushState(null, '', '/climat'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/climat'); setActiveTab('eightMonths'); window.history.pushState(null, '', '/climat'); updateDocumentSeo('/climat', false); scrollToTopInstant(); }}
                 className="text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
               >
                 Tendances 8 Mois &amp; Climat
@@ -1558,7 +1640,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/montagne"
-                onClick={(e) => { e.preventDefault(); setActiveTab('mountain'); window.history.pushState(null, '', '/montagne'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/montagne'); setActiveTab('mountain'); window.history.pushState(null, '', '/montagne'); updateDocumentSeo('/montagne', false); scrollToTopInstant(); }}
                 className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
               >
                 Météo Montagne &amp; BERA
@@ -1566,7 +1648,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/plages"
-                onClick={(e) => { e.preventDefault(); setActiveTab('beaches'); window.history.pushState(null, '', '/plages'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/plages'); setActiveTab('beaches'); window.history.pushState(null, '', '/plages'); updateDocumentSeo('/plages', false); scrollToTopInstant(); }}
                 className="text-teal-400 hover:text-teal-300 hover:underline font-medium"
               >
                 Météo Plages &amp; SHOM
@@ -1574,7 +1656,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/secheresse-incendie"
-                onClick={(e) => { e.preventDefault(); setActiveTab('droughtFire'); window.history.pushState(null, '', '/secheresse-incendie'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/secheresse-incendie'); setActiveTab('droughtFire'); window.history.pushState(null, '', '/secheresse-incendie'); updateDocumentSeo('/secheresse-incendie', false); scrollToTopInstant(); }}
                 className="text-orange-400 hover:text-orange-300 hover:underline font-medium"
               >
                 Sécheresse &amp; Feux
@@ -1582,7 +1664,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/cours-d-eau"
-                onClick={(e) => { e.preventDefault(); setActiveTab('watercourses'); window.history.pushState(null, '', '/cours-d-eau'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/cours-d-eau'); setActiveTab('watercourses'); window.history.pushState(null, '', '/cours-d-eau'); updateDocumentSeo('/cours-d-eau', false); scrollToTopInstant(); }}
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Cours d'Eau &amp; Crues
@@ -1590,7 +1672,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/sports"
-                onClick={(e) => { e.preventDefault(); setActiveTab('sportsActivities'); window.history.pushState(null, '', '/sports'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/sports'); setActiveTab('sportsActivities'); window.history.pushState(null, '', '/sports'); updateDocumentSeo('/sports', false); scrollToTopInstant(); }}
                 className="text-lime-400 hover:text-lime-300 hover:underline font-medium"
               >
                 Météo Sport &amp; Itinéraire
@@ -1598,7 +1680,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/bulletins"
-                onClick={(e) => { e.preventDefault(); setActiveTab('bulletin'); window.history.pushState(null, '', '/bulletins'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/bulletins'); setActiveTab('bulletin'); window.history.pushState(null, '', '/bulletins'); updateDocumentSeo('/bulletins', false); scrollToTopInstant(); }}
                 className="text-violet-400 hover:text-violet-300 hover:underline font-medium"
               >
                 Bulletins &amp; 4 Semaines
@@ -1606,7 +1688,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/archives"
-                onClick={(e) => { e.preventDefault(); setActiveTab('historicalTrends'); window.history.pushState(null, '', '/archives'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/archives'); setActiveTab('historicalTrends'); window.history.pushState(null, '', '/archives'); updateDocumentSeo('/archives', false); scrollToTopInstant(); }}
                 className="text-amber-300 hover:text-amber-200 hover:underline font-medium"
               >
                 Évolution 2000 &amp; Archives
@@ -1614,7 +1696,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/monde-catastrophes"
-                onClick={(e) => { e.preventDefault(); setActiveTab('worldDisasters'); window.history.pushState(null, '', '/monde-catastrophes'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/monde-catastrophes'); setActiveTab('worldDisasters'); window.history.pushState(null, '', '/monde-catastrophes'); updateDocumentSeo('/monde-catastrophes', false); scrollToTopInstant(); }}
                 className="text-red-400 hover:text-red-300 hover:underline font-medium"
               >
                 Catastrophes Monde
@@ -1622,7 +1704,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/communaute"
-                onClick={(e) => { e.preventDefault(); setActiveTab('discussionGroup'); window.history.pushState(null, '', '/communaute'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/communaute'); setActiveTab('discussionGroup'); window.history.pushState(null, '', '/communaute'); updateDocumentSeo('/communaute', false); scrollToTopInstant(); }}
                 className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
               >
                 Salon Météo
@@ -1630,7 +1712,7 @@ function WeatherApp() {
               <span className="text-slate-700">•</span>
               <a
                 href="/competition"
-                onClick={(e) => { e.preventDefault(); setActiveTab('competitive'); window.history.pushState(null, '', '/competition'); }}
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/competition'); setActiveTab('competitive'); window.history.pushState(null, '', '/competition'); updateDocumentSeo('/competition', false); scrollToTopInstant(); }}
                 className="text-yellow-400 hover:text-yellow-300 hover:underline font-medium"
               >
                 Arène Compétitive
@@ -1658,7 +1740,7 @@ function WeatherApp() {
                         setActiveTab('realtime');
                         window.history.pushState(null, '', `${city.path}${window.location.search || ''}`);
                         updateDocumentSeo(city.path, false);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        scrollToTopInstant();
                       }}
                       className={`hover:underline font-medium cursor-pointer ${
                         currentPath === city.path

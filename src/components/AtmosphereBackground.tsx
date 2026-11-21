@@ -32,19 +32,14 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
   isLightMode = false,
   isDirectPage = true
 }) => {
-  if (!isDirectPage) {
-    return (
-      <div 
-        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-black" 
-        style={{ backgroundColor: '#000000' }} 
-      />
-    );
-  }
-
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const regionalPalette = useMemo(() => getRegionalPaletteForStation(station), [station?.department, station?.name, station?.country]);
+  const regionalPalette = useMemo(
+    () => getRegionalPaletteForStation(station),
+    [station?.department, station?.name, station?.country]
+  );
 
   useEffect(() => {
+    if (!isDirectPage) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -238,7 +233,7 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [theme, seniorMode]);
+  }, [theme, seniorMode, isDirectPage]);
 
   // Light mode dynamic sky palette
   const getLightModeBg = () => {
@@ -280,6 +275,15 @@ export const AtmosphereBackground: React.FC<AtmosphereBackgroundProps> = ({
     if (theme.particleType === 'rain') return 'rgba(203, 213, 225, 0.35)';
     return 'rgba(254, 240, 138, 0.3)';
   };
+
+  if (!isDirectPage) {
+    return (
+      <div
+        className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${isLightMode ? 'bg-[#eef2f6]' : 'bg-[#020617]'}`}
+        style={{ backgroundColor: isLightMode ? '#eef2f6' : '#020617' }}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden transition-all duration-1000 ease-in-out">

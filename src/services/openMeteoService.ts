@@ -69,6 +69,16 @@ import {
 } from '../utils/bioclimaticCalculations';
 import { getRecalibrationOffsetForStation } from './userObservationService';
 import { computeRealtimePollenTracking, RawCamsPollenInput } from './pollenService';
+import {
+  getRecordedAltitudeEntry,
+  recordLocalityAltitude,
+  resolveAndRecordLocalityAltitude
+} from './worldAltitudeService';
+import {
+  regionForLocation,
+  computeHtmlModelRawWeight,
+  TerrainMeta
+} from '../utils/unifiedWeatherEngine';
 
 export function getWeatherDescription(code: number, isDay: boolean = true): { label: string; icon: string; emoji: string; shortLabel: string } {
   const info = getRichWeatherInfo(code, isDay);
@@ -514,6 +524,16 @@ export async function searchLocalities(query: string): Promise<LocationPoint[]> 
               ? (item.latitude < 45 ? "Méditerranéen / Sud" : "Océanique / Tempéré")
               : `${countryName} (${altitude} m)`;
 
+          recordLocalityAltitude({
+            lat: Math.round(item.latitude * 10000) / 10000,
+            lon: Math.round(item.longitude * 10000) / 10000,
+            alt: altitude,
+            name: item.name,
+            country: countryName,
+            source: 'geocoding',
+            syncBackend: false
+          });
+
           openMeteoPoints.push({
             id: `geo-${item.id || Math.random().toString(36).substring(2, 9)}`,
             name: item.name,
@@ -541,6 +561,9 @@ export async function searchLocalities(query: string): Promise<LocationPoint[]> 
     }
 
     const resolveBestAltitude = (lat: number, lon: number, deptCode?: string): number => {
+      const recorded = getRecordedAltitudeEntry(lat, lon);
+      if (recorded) return recorded.alt;
+
       // Check if Open-Meteo or Mountain Catalog has a nearby point with exact elevation
       const nearCatalog = MOUNTAIN_VILLAGES_CATALOG.find(
         m => Math.abs(m.latitude - lat) < 0.03 && Math.abs(m.longitude - lon) < 0.03
@@ -801,6 +824,17 @@ export async function getLocalityFromCoordinates(latitude: number, longitude: nu
       localityName = `Position GPS (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°)`;
     }
 
+    const recordedGpsAlt = await resolveAndRecordLocalityAltitude({
+      lat: latitude,
+      lon: longitude,
+      name: localityName,
+      country: localityCountry,
+      knownAltitude: elevation
+    }).catch(() => null);
+    if (recordedGpsAlt && typeof recordedGpsAlt.alt === 'number') {
+      elevation = recordedGpsAlt.alt;
+    }
+
     return {
       id: `gps-${latitude.toFixed(4)}-${longitude.toFixed(4)}`,
       name: localityName,
@@ -811,13 +845,13 @@ export async function getLocalityFromCoordinates(latitude: number, longitude: nu
       latitude: Math.round(latitude * 10000) / 10000,
       longitude: Math.round(longitude * 10000) / 10000,
       altitude: elevation,
-      climateZone: `${stage} (${elevation} m)`,
+      climateZone: `${getBioclimaticStage(elevation)} (${elevation} m)`,
       allTimeRecordMax: elevation > 2000 ? 24.0 : 41.0,
       allTimeRecordMin: elevation > 2000 ? -32.0 : -19.0,
       allTimeRecordRain24h: 120.0,
       isFrench,
-      isMountain,
-      isHighAltitude,
+      isMountain: elevation >= 800,
+      isHighAltitude: elevation >= 1500,
       isWorldLocation: !isFrench
     };
   } catch (e) {
@@ -1322,17 +1356,35 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   try {
     const lat = station.latitude;
     const lon = station.longitude;
-    const alt = station.altitude ?? 0;
+    const altEntry = await resolveAndRecordLocalityAltitude({
+      lat,
+      lon,
+      name: station.name,
+      country: station.country,
+      knownAltitude: station.altitude
+    });
+    const alt = altEntry.alt;
+    const terrainMeta: TerrainMeta = {
+      alt,
+      coastal: typeof altEntry.coastal === 'number' ? altEntry.coastal : 0,
+      relief: typeof altEntry.relief === 'number' ? altEntry.relief : Math.min(1, Math.max(0, alt / 1500)),
+      exposure: typeof altEntry.exposure === 'number' ? altEntry.exposure : Math.min(1.4, Math.max(0.2, 0.25 + alt / 2500))
+    };
+    const htmlRegion = regionForLocation(
+      station.countryCode || (station.isFrench ? 'FR' : ''),
+      lat,
+      lon
+    );
 
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
-    const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,ecmwf_ifs025,icon_seamless,gfs_seamless&forecast_days=1&timezone=auto`;
+    const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,meteofrance_arome_france,ecmwf_ifs025,icon_seamless,icon_eu,gfs_seamless,ukmo_seamless&forecast_days=1&timezone=auto`;
 
     const [weatherRes, aqiRes, multiModelLiveRes, multiConsensus] = await Promise.all([
       fetch(weatherUrl),
       fetch(aqiUrl).catch(() => null),
       fetch(multiModelLiveUrl).catch(() => null),
-      fetchMultiModelConsensusForStation(station).catch(() => null)
+      fetchMultiModelConsensusForStation({ ...station, altitude: alt }).catch(() => null)
     ]);
 
     if (!weatherRes.ok && !(weatherRes.status >= 200 && weatherRes.status < 400)) {
@@ -1816,22 +1868,41 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
           if (mmIdx === -1) mmIdx = Math.min(12, mmHourly.time.length - 1);
           if (mmIdx >= 0) {
             mfTemp = mmHourly['temperature_2m_meteofrance_seamless']?.[mmIdx] ?? undefined;
+            const aromeTemp = mmHourly['temperature_2m_meteofrance_arome_france']?.[mmIdx] ?? undefined;
             ecTemp = mmHourly['temperature_2m_ecmwf_ifs025']?.[mmIdx] ?? undefined;
             iconTemp = mmHourly['temperature_2m_icon_seamless']?.[mmIdx] ?? undefined;
+            const iconEuTemp = mmHourly['temperature_2m_icon_eu']?.[mmIdx] ?? undefined;
             gfsTemp = mmHourly['temperature_2m_gfs_seamless']?.[mmIdx] ?? undefined;
+            const ukmoTemp = mmHourly['temperature_2m_ukmo_seamless']?.[mmIdx] ?? undefined;
 
-            const validTemps: number[] = [mfTemp, ecTemp, iconTemp, gfsTemp].filter((v): v is number => typeof v === 'number');
-            if (validTemps.length > 0) {
+            const candidatePairs: Array<{ id: string; val: number | undefined }> = [
+              { id: 'meteofrance_arome_france', val: aromeTemp },
+              { id: 'meteofrance_seamless', val: mfTemp },
+              { id: 'ecmwf_ifs025', val: ecTemp },
+              { id: 'icon_eu', val: iconEuTemp },
+              { id: 'icon_seamless', val: iconTemp },
+              { id: 'gfs_seamless', val: gfsTemp },
+              { id: 'ukmo_seamless', val: ukmoTemp },
+            ];
+            const activePairs = candidatePairs.filter(
+              (p): p is { id: string; val: number } => typeof p.val === 'number' && !isNaN(p.val)
+            );
+            if (activePairs.length > 0) {
+              const validTemps = activePairs.map(p => p.val);
               const minT = Math.min(...validTemps);
               const maxT = Math.max(...validTemps);
               const spread = Number((maxT - minT).toFixed(1));
 
-              // High-resolution Météo-France AROME + ECMWF IFS weighting
-              if (typeof mfTemp === 'number' && typeof ecTemp === 'number') {
-                weightedConsensus = Number(((mfTemp * 0.45) + (ecTemp * 0.35) + ((iconTemp ?? ecTemp) * 0.20)).toFixed(1));
-              } else {
-                weightedConsensus = Number((validTemps.reduce((a, b) => a + b, 0) / validTemps.length).toFixed(1));
+              let wSum = 0;
+              let vSum = 0;
+              for (const p of activePairs) {
+                const w = computeHtmlModelRawWeight(p.id, terrainMeta, htmlRegion);
+                vSum += p.val * w;
+                wSum += w;
               }
+              weightedConsensus = wSum > 0
+                ? Number((vSum / wSum).toFixed(1))
+                : Number((validTemps.reduce((a, b) => a + b, 0) / validTemps.length).toFixed(1));
 
               // Detect morning thermal inversion / radiative gradient
               const currentHour = nowTime.getHours();
@@ -1840,7 +1911,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
               }
 
               multiModelRealtime = {
-                meteoFrance: typeof mfTemp === 'number' ? Number(mfTemp.toFixed(1)) : undefined,
+                meteoFrance: typeof mfTemp === 'number' ? Number(mfTemp.toFixed(1)) : (typeof aromeTemp === 'number' ? Number(aromeTemp.toFixed(1)) : undefined),
                 ecmwf: typeof ecTemp === 'number' ? Number(ecTemp.toFixed(1)) : undefined,
                 icon: typeof iconTemp === 'number' ? Number(iconTemp.toFixed(1)) : undefined,
                 gfs: typeof gfsTemp === 'number' ? Number(gfsTemp.toFixed(1)) : undefined,
@@ -1860,11 +1931,9 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     const userRecalibOffset = getRecalibrationOffsetForStation(station.id);
     let finalCurTemp = weightedConsensus;
     if (userRecalibOffset !== 0) {
-      finalCurTemp = Number((cur.temperature_2m + userRecalibOffset).toFixed(1));
-    } else if (Math.abs(weightedConsensus - cur.temperature_2m) > 0.6) {
-      finalCurTemp = weightedConsensus;
+      finalCurTemp = Number((weightedConsensus + userRecalibOffset).toFixed(1));
     } else {
-      finalCurTemp = Math.round(cur.temperature_2m * 10) / 10;
+      finalCurTemp = weightedConsensus;
     }
 
     const regionalWindDiagnostic = detectRegionalWindAndImpact(
@@ -2299,14 +2368,16 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
         current.tempMax = tMax;
       }
       const tMean = Math.round(((tMin + tMax) / 2) * 10) / 10;
-      const rainSum = Math.round((dailyData.precipitation_sum?.[srcDailyIdx] ?? 0) * 10) / 10;
-      const probaMax = dailyData.precipitation_probability_max?.[srcDailyIdx] ?? (rainSum > 0 ? 70 : 10);
-      const windMax = Math.round(dailyData.wind_speed_10m_max?.[srcDailyIdx] ?? 20);
-      const windGustMax = Math.round(dailyData.wind_gusts_10m_max?.[srcDailyIdx] ?? windMax * 1.35);
+      const rawRainSum = Math.round((dailyData.precipitation_sum?.[srcDailyIdx] ?? 0) * 10) / 10;
+      const rainSum = consensusDay ? consensusDay.consensusRainMm : rawRainSum;
+      const probaMax = consensusDay?.consensusProbPct ?? (dailyData.precipitation_probability_max?.[srcDailyIdx] ?? (rainSum > 0 ? 70 : 10));
+      const windMax = consensusDay?.consensusWindMaxKmh ?? Math.round(dailyData.wind_speed_10m_max?.[srcDailyIdx] ?? 20);
+      const windGustMax = consensusDay?.consensusGustMaxKmh ?? Math.round(dailyData.wind_gusts_10m_max?.[srcDailyIdx] ?? windMax * 1.35);
       const dominantDir = getCompassDirection(dailyData.wind_direction_10m_dominant?.[srcDailyIdx] ?? 225);
-      const uvMax = Math.round((dailyData.uv_index_max?.[srcDailyIdx] ?? 3) * uvElevationFactor * 10) / 10;
+      const rawUvMax = dailyData.uv_index_max?.[srcDailyIdx] ?? 3;
+      const uvMax = Math.round(((consensusDay?.consensusUvMax ?? rawUvMax)) * uvElevationFactor * 10) / 10;
       const sunshineSec = dailyData.sunshine_duration?.[srcDailyIdx] ?? (dailyData.weather_code?.[srcDailyIdx] <= 1 ? 32400 : 18000);
-      const sunshineH = Math.round((sunshineSec / 3600) * 10) / 10;
+      const sunshineH = consensusDay?.consensusSunHours ?? Math.round((sunshineSec / 3600) * 10) / 10;
       const et0Day = Math.round((dailyData.et0_fao_evapotranspiration?.[srcDailyIdx] ?? 3.5) * 10) / 10;
 
       // Extract the 24 hours of this specific calendar day
@@ -2529,6 +2600,9 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       let totalDaySnowfallCm = 0;
       if (isScientificallyColdEnoughForSnow) {
         totalDaySnowfallCm = Number(dayHourlyList.reduce((acc, h) => acc + (h.snowfallCm || 0), 0).toFixed(1));
+        if (consensusDay?.consensusSnowCm && consensusDay.consensusSnowCm > totalDaySnowfallCm) {
+          totalDaySnowfallCm = consensusDay.consensusSnowCm;
+        }
         if (totalDaySnowfallCm === 0 && rainSum > 0) {
           totalDaySnowfallCm = Number((rainSum * (minRainTemp <= -2 ? 1.3 : 0.9)).toFixed(1));
         }

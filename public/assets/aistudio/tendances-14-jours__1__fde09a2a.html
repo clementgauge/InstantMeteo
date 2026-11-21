@@ -533,16 +533,102 @@ var MODELS = {
 };
 var EU_CC = ("AT BE BG HR CY CZ DK EE FI FR DE GR HU IS IE IT LV LI LU MT NL NO PL PT RO SK SI ES SE CH GB UK RS BA ME MK AL MD BY UA TR GI IM JE GG AX FO GL SJ").split(" ");
 var PRESETS = [
-  {n:"Paris", la:48.8566, lo:2.3522, cc:"FR"},{n:"Lyon", la:45.764, lo:4.8357, cc:"FR"},
-  {n:"Marseille", la:43.2965, lo:5.3698, cc:"FR"},{n:"Toulouse", la:43.6047, lo:1.4442, cc:"FR"},
-  {n:"Bordeaux", la:44.8378, lo:-0.5792, cc:"FR"},{n:"Lille", la:50.6292, lo:3.0573, cc:"FR"},
-  {n:"Strasbourg", la:48.5734, lo:7.7521, cc:"FR"},{n:"Nice", la:43.7102, lo:7.262, cc:"FR"},
-  {n:"Nantes", la:47.2184, lo:-1.5536, cc:"FR"},{n:"Montpellier", la:43.6108, lo:3.8767, cc:"FR"},
-  {n:"Brest", la:48.3904, lo:-4.4861, cc:"FR"},{n:"Chamonix", la:45.9237, lo:6.8694, cc:"FR"},
-  {n:"Bruxelles", la:50.8503, lo:4.3517, cc:"BE"},{n:"Genève", la:46.2044, lo:6.1432, cc:"CH"},
-  {n:"London", la:51.5074, lo:-0.1278, cc:"GB"},{n:"New York", la:40.7128, lo:-74.006, cc:"US"},
-  {n:"Tokyo", la:35.6762, lo:139.6503, cc:"JP"}
+  {n:"Paris", la:48.8566, lo:2.3522, cc:"FR", alt:35},{n:"Lyon", la:45.764, lo:4.8357, cc:"FR", alt:173},
+  {n:"Marseille", la:43.2965, lo:5.3698, cc:"FR", alt:12},{n:"Toulouse", la:43.6047, lo:1.4442, cc:"FR", alt:146},
+  {n:"Bordeaux", la:44.8378, lo:-0.5792, cc:"FR", alt:12},{n:"Lille", la:50.6292, lo:3.0573, cc:"FR", alt:21},
+  {n:"Strasbourg", la:48.5734, lo:7.7521, cc:"FR", alt:142},{n:"Nice", la:43.7102, lo:7.262, cc:"FR", alt:10},
+  {n:"Nantes", la:47.2184, lo:-1.5536, cc:"FR", alt:20},{n:"Montpellier", la:43.6108, lo:3.8767, cc:"FR", alt:27},
+  {n:"Brest", la:48.3904, lo:-4.4861, cc:"FR", alt:20},{n:"Chamonix", la:45.9237, lo:6.8694, cc:"FR", alt:1035},
+  {n:"Briançon", la:44.8962, lo:6.6436, cc:"FR", alt:1326},{n:"Bruxelles", la:50.8503, lo:4.3517, cc:"BE", alt:13},
+  {n:"Genève", la:46.2044, lo:6.1432, cc:"CH", alt:375},{n:"London", la:51.5074, lo:-0.1278, cc:"GB", alt:11},
+  {n:"New York", la:40.7128, lo:-74.006, cc:"US", alt:10},{n:"Tokyo", la:35.6762, lo:139.6503, cc:"JP", alt:40},
+  {n:"La Paz", la:-16.4897, lo:-68.1193, cc:"BO", alt:3640}
 ];
+var WORLD_ALT_SEED = [
+  {n:"Versailles", cc:"FR", la:48.8049, lo:2.1204, alt:132},{n:"Grenoble", cc:"FR", la:45.1885, lo:5.7245, alt:214},
+  {n:"Clermont-Ferrand", cc:"FR", la:45.7772, lo:3.087, alt:358},{n:"Ajaccio", cc:"FR", la:41.9192, lo:8.7386, alt:10},
+  {n:"Val Thorens", cc:"FR", la:45.298, lo:6.58, alt:2300},{n:"Tignes", cc:"FR", la:45.4694, lo:6.9065, alt:2100},
+  {n:"Val d'Isère", cc:"FR", la:45.448, lo:6.9806, alt:1850},{n:"Courchevel", cc:"FR", la:45.415, lo:6.6347, alt:1850},
+  {n:"La Plagne", cc:"FR", la:45.5067, lo:6.6772, alt:1970},{n:"L'Alpe d'Huez", cc:"FR", la:45.0924, lo:6.0704, alt:1860},
+  {n:"Les Deux Alpes", cc:"FR", la:45.0089, lo:6.1228, alt:1650},{n:"Avoriaz", cc:"FR", la:46.1917, lo:6.7747, alt:1800},
+  {n:"Chamrousse", cc:"FR", la:45.1119, lo:5.8758, alt:1750},{n:"Méribel", cc:"FR", la:45.3967, lo:6.5656, alt:1450},
+  {n:"Mouthe", cc:"FR", la:46.7106, lo:6.1939, alt:935},{n:"Font-Romeu", cc:"FR", la:42.5044, lo:2.0372, alt:1800},
+  {n:"Zermatt", cc:"CH", la:46.0207, lo:7.7491, alt:1608},{n:"Saint-Moritz", cc:"CH", la:46.4908, lo:9.8355, alt:1822},
+  {n:"Innsbruck", cc:"AT", la:47.2692, lo:11.4041, alt:574},{n:"Andorre-la-Vieille", cc:"AD", la:42.5063, lo:1.5218, alt:1023},
+  {n:"Madrid", cc:"ES", la:40.4168, lo:-3.7038, alt:657},{n:"Munich", cc:"DE", la:48.1351, lo:11.582, alt:519},
+  {n:"Berlin", cc:"DE", la:52.52, lo:13.405, alt:34},{n:"Rome", cc:"IT", la:41.9028, lo:12.4964, alt:21},
+  {n:"Montréal", cc:"CA", la:45.5017, lo:-73.5673, alt:36},{n:"Québec", cc:"CA", la:46.8139, lo:-71.208, alt:98},
+  {n:"Denver", cc:"US", la:39.7392, lo:-104.9903, alt:1609},{n:"Mexico", cc:"MX", la:19.4326, lo:-99.1332, alt:2240},
+  {n:"Bogota", cc:"CO", la:4.711, lo:-74.0721, alt:2625},{n:"Quito", cc:"EC", la:-0.1807, lo:-78.4678, alt:2850},
+  {n:"Cusco", cc:"PE", la:-13.5319, lo:-71.9675, alt:3399},{n:"Santiago", cc:"CL", la:-33.4489, lo:-70.6693, alt:570},
+  {n:"Buenos Aires", cc:"AR", la:-34.6037, lo:-58.3816, alt:25},{n:"São Paulo", cc:"BR", la:-23.5505, lo:-46.6333, alt:760},
+  {n:"Sydney", cc:"AU", la:-33.8688, lo:151.2093, alt:19},{n:"Katmandou", cc:"NP", la:27.7172, lo:85.324, alt:1400},
+  {n:"Lhassa", cc:"CN", la:29.652, lo:91.1721, alt:3656},{n:"Addis-Abeba", cc:"ET", la:9.032, lo:38.7469, alt:2355},
+  {n:"Nairobi", cc:"KE", la:-1.2921, lo:36.8219, alt:1795},{n:"Johannesburg", cc:"ZA", la:-26.2041, lo:28.0473, alt:1753},
+  {n:"Ifrane", cc:"MA", la:33.5228, lo:-5.111, alt:1665},{n:"Marrakech", cc:"MA", la:31.6295, lo:-7.9811, alt:466}
+];
+var WORLD_ALT_STORAGE_KEY = "im_world_altitudes_v1";
+function altCoordKey(la, lo){ return Number(la).toFixed(3)+","+Number(lo).toFixed(3); }
+function readWorldAltMap(){
+  var map = {};
+  PRESETS.concat(WORLD_ALT_SEED).forEach(function(p){
+    if(p.alt!=null){
+      var k = altCoordKey(p.la, p.lo);
+      map[k] = {key:k, name:p.n, country:p.cc, lat:p.la, lon:p.lo, alt:p.alt, source:"curated", updatedAt:0};
+    }
+  });
+  try{
+    var raw = store(WORLD_ALT_STORAGE_KEY);
+    if(raw){
+      var parsed = JSON.parse(raw);
+      if(parsed && typeof parsed==="object"){
+        Object.keys(parsed).forEach(function(k){
+          if(parsed[k] && typeof parsed[k].alt==="number" && !isNaN(parsed[k].alt)) map[k]=parsed[k];
+        });
+      }
+    }
+  }catch(e){}
+  return map;
+}
+function lookupWorldAlt(lat, lon){
+  var map = readWorldAltMap(), exact = map[altCoordKey(lat, lon)];
+  if(exact) return exact;
+  var best=null, bestD=0.025;
+  Object.keys(map).forEach(function(k){
+    var e = map[k];
+    var d = Math.hypot((e.lat||0)-lat, (e.lon||0)-lon);
+    if(d<bestD){ bestD=d; best=e; }
+  });
+  return best;
+}
+function saveWorldAlt(entry){
+  if(!entry || typeof entry.alt!=="number" || isNaN(entry.alt)) return;
+  try{
+    var k = altCoordKey(entry.lat, entry.lon);
+    var storedRaw = store(WORLD_ALT_STORAGE_KEY);
+    var stored = storedRaw? JSON.parse(storedRaw) : {};
+    stored[k] = {
+      key:k, name:entry.name||"Localité", country:entry.country||"",
+      lat:Number(Number(entry.lat).toFixed(4)), lon:Number(Number(entry.lon).toFixed(4)),
+      alt:Math.round(clamp(entry.alt,-430,6000)),
+      coastal:entry.coastal!=null? entry.coastal:null,
+      relief:entry.relief!=null? entry.relief:null,
+      exposure:entry.exposure!=null? entry.exposure:null,
+      source:entry.source||"dem_90m", updatedAt:Date.now()
+    };
+    var keys = Object.keys(stored);
+    if(keys.length>600){
+      keys.sort(function(a,b){ return (stored[b].updatedAt||0)-(stored[a].updatedAt||0); }).slice(600).forEach(function(rm){ delete stored[rm]; });
+    }
+    store(WORLD_ALT_STORAGE_KEY, JSON.stringify(stored));
+    if(typeof fetch==="function"){
+      fetch("/api/world-altitudes", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(stored[k])}).catch(function(){});
+    }
+    if(window.parent && window.parent!==window){
+      window.parent.postMessage({type:"IM_ALTITUDE_RECORDED", entry:stored[k]}, "*");
+    }
+  }catch(e){}
+}
 
 var state = {
   loc:null, meta:{alt:null, coastal:null, relief:null, exposure:null},
@@ -707,11 +793,15 @@ var TIER_A2 = ["apparent_temperature_min","apparent_temperature_max","precipitat
 var TIER_B = ["rain_sum","wind_direction_10m_dominant"];
 var CORE   = ["temperature_2m_max","temperature_2m_min","precipitation_sum","snowfall_sum","wind_speed_10m_max","wind_gusts_10m_max"];
 
+function elevParam(){
+  var a = (state.meta && state.meta.alt!=null && !isNaN(state.meta.alt))? state.meta.alt : (state.loc && state.loc.alt!=null && !isNaN(state.loc.alt)? state.loc.alt : null);
+  return a!=null? "&elevation="+Math.round(a) : "";
+}
 function buildDailyUrl(id,style,tierList,fc){
   var vars = CORE.concat(tierList);
   if(style) vars.push(style);
   return "https://api.open-meteo.com/v1/forecast?latitude="+state.loc.lat+"&longitude="+state.loc.lon+
-    "&daily="+vars.join(",")+"&models="+id+"&forecast_days="+fc+"&timezone=auto"+
+    elevParam()+"&daily="+vars.join(",")+"&models="+id+"&forecast_days="+fc+"&timezone=auto"+
     "&wind_speed_unit=kmh&temperature_unit=celsius&precipitation_unit=mm";
 }
 function normalizeDaily(j){
@@ -741,13 +831,12 @@ async function fetchModel(id){
     {style:"weathercode",tier:TIER_A,fc:14},{style:"weathercode",tier:TIER_A2,fc:14},
     {style:"weathercode",tier:TIER_B,fc:14},{style:"weathercode",tier:CORE,fc:14},
     {style:"weather_code",tier:TIER_A,fc:14},{style:"weather_code",tier:TIER_A2,fc:14},
-    {style:"weathercode",tier:CORE,fc:10},{style:"weathercode",tier:CORE,fc:7},
-    {style:"weather_code",tier:CORE,fc:14}
+    {style:"weathercode",tier:CORE,fc:10},{style:"weathercode",tier:CORE,fc:7}
   ];
   for(var i=0;i<attempts.length;i++){
     var a = attempts[i];
     try{
-      var j = await fetchJSON(buildDailyUrl(id,a.style,a.tier,a.fc),11000);
+      var j = await fetchJSON(buildDailyUrl(id,a.style,a.tier,a.fc),6500);
       var norm = normalizeDaily(j);
       if(norm) return norm;
     }catch(e){}
@@ -756,30 +845,60 @@ async function fetchModel(id){
 }
 async function fetchElevationMeta(){
   var la=state.loc.lat, lo=state.loc.lon, d=0.14;
+  var stored = lookupWorldAlt(la, lo);
+  var locAlt = (state.loc.alt!=null && !isNaN(state.loc.alt))? Number(state.loc.alt) : null;
   var url = "https://api.open-meteo.com/v1/elevation?latitude="+[la,la+d,la-d,la,la].join(",")+
             "&longitude="+[lo,lo,lo,lo+d,lo-d].join(",");
   try{
-    var j = await fetchJSON(url,8000);
+    var j = await fetchJSON(url,6500);
     var e = j.elevation || [];
     if(!e.length) throw new Error("empty");
-    var alt = e[0], pts = e.slice(1);
+    var demAlt = e[0], pts = e.slice(1);
+    var bestAlt = demAlt;
+    var src = "dem_90m";
+    if(stored && stored.source==="curated"){
+      bestAlt = Math.abs(stored.alt - demAlt) > 120 ? stored.alt : Math.round(stored.alt);
+      src = "curated";
+    } else if(locAlt!=null && Math.abs(locAlt - demAlt) > 150){
+      bestAlt = Math.round(locAlt);
+      src = "station";
+    } else if(demAlt!=null && !isNaN(demAlt)){
+      bestAlt = Math.round(demAlt);
+    } else if(locAlt!=null){
+      bestAlt = Math.round(locAlt); src = "geocoding";
+    }
     var sea = pts.filter(function(x){ return x!=null && x<=3; }).length;
     var mx = Math.max.apply(null,e), mn = Math.min.apply(null,e);
-    var coastal = alt>15 ? sea/4 : (sea>0 && mx>25 ? 0.6 : sea/4);
+    var coastal = bestAlt>15 ? sea/4 : (sea>0 && mx>25 ? 0.6 : sea/4);
     var relief = clamp((mx-mn)/250,0,1);
-    var altF = clamp(alt/1200,0,1);
-    return {alt:alt, coastal:coastal, relief:relief,
-            exposure:clamp(0.50*altF + 0.30*coastal + 0.20*relief, 0, 1.4),
-            spread:mx-mn, sea:sea};
+    var altF = clamp(bestAlt/1200,0,1);
+    var meta = {
+      alt:bestAlt, coastal:coastal, relief:relief,
+      exposure:clamp(0.50*altF + 0.30*coastal + 0.20*relief, 0, 1.4),
+      spread:mx-mn, sea:sea, source:src, demAlt:demAlt
+    };
+    saveWorldAlt({
+      name:state.loc.name, country:state.loc.country, lat:la, lon:lo,
+      alt:bestAlt, coastal:coastal, relief:relief, exposure:meta.exposure, source:src
+    });
+    return meta;
   }catch(e){
-    return {alt:null, coastal:null, relief:null, exposure:0.3, spread:null, sea:null};
+    var fbAlt = locAlt!=null? Math.round(locAlt) : (stored? stored.alt : null);
+    if(fbAlt!=null){
+      saveWorldAlt({name:state.loc.name, country:state.loc.country, lat:la, lon:lo, alt:fbAlt, source:stored?stored.source:"geocoding"});
+    }
+    return {
+      alt:fbAlt, coastal:stored&&stored.coastal!=null?stored.coastal:null,
+      relief:stored&&stored.relief!=null?stored.relief:null,
+      exposure:stored&&stored.exposure!=null?stored.exposure:0.3, spread:null, sea:null, source:stored?stored.source:"cache"
+    };
   }
 }
 async function fetchCurrent(){
   var url = "https://api.open-meteo.com/v1/forecast?latitude="+state.loc.lat+"&longitude="+state.loc.lon+
-    "&current=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,weather_code,"+
+    elevParam()+"&current=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,weather_code,"+
     "wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,is_day,uv_index&timezone=auto&wind_speed_unit=kmh";
-  try{ var j = await fetchJSON(url,9000); return j.current||null; }catch(e){ return null; }
+  try{ var j = await fetchJSON(url,6500); return j.current||null; }catch(e){ return null; }
 }
 /* ---------- Lissage sur les 3 derniers runs de chaque modèle ---------- */
 var BLEND_VARS = ["temperature_2m","temperature_2m_previous_day1","temperature_2m_previous_day2",
@@ -820,15 +939,15 @@ function mapLimit(arr, limit, fn){
 }
 async function fetchRunBlend(id){
   var url = "https://previous-runs-api.open-meteo.com/v1/forecast?latitude="+state.loc.lat+"&longitude="+state.loc.lon+
-    "&hourly="+BLEND_VARS.join(",")+"&forecast_days=14&timezone=auto&models="+id;
-  for(var attempt=0; attempt<4; attempt++){
+    elevParam()+"&hourly="+BLEND_VARS.join(",")+"&forecast_days=14&timezone=auto&models="+id;
+  for(var attempt=0; attempt<3; attempt++){
     var j = null;
     try{
-      j = await fetchJSON(url,16000);
+      j = await fetchJSON(url,9500);
     }catch(e){
       var msg = String((e && e.message) || e);
       var retryable = /HTTP (429|5\d\d)/.test(msg);
-      if(retryable && attempt<3){ await new Promise(function(r){ setTimeout(r, 900*(attempt+1)); }); continue; }
+      if(retryable && attempt<2){ await new Promise(function(r){ setTimeout(r, 800*(attempt+1)); }); continue; }
       return null;
     }
     var parsed = parseRunBlend(j);
@@ -1003,7 +1122,7 @@ function buildDays(){
     var aP = (precip==null||precip<0.3)? (sigmaP<0.5?1:0.6) : clamp(1-sigmaP/(precip+1.6),0,1);
     var lead = clamp(1.05 - d*0.052, 0.30, 1);
     var stabTerm = (stabScore!=null)? (0.55*lead+0.45*stabScore) : lead;
-    var conf = clamp(Math.round(100*(0.40*aT + 0.14*aP + 0.20*coverage + 0.26*stabTerm)), 12, 98);
+    var conf = clamp(Math.round(100*(0.40*aT + 0.14*aP + 0.20*coverage + 0.26*stabTerm)), 35, d>5? 80 : 98);
 
     var risks = {gel:0, verglas:0, pluie:0, vent:0, neige:0};
     var notes = {};
@@ -1085,7 +1204,8 @@ function demoModelDaily(seedBase, idx, n){
     var mm = lat<0? (now.getMonth()+6)%12 : now.getMonth();
     base = lat<0? mN[mm]-0.30*(absLat-35) : mN[mm]-0.48*(absLat-48.5);
   }
-  base = clamp(base,-35,34);
+  var altOff = ((state.meta && state.meta.alt!=null)? state.meta.alt : (state.loc.alt||0));
+  base = clamp(base - (altOff/1000)*6.5, -38, 34);
   var bias=(rnd()-0.5)*2.2;
   var out={time:[],tmax:[],tmin:[],tmaxApp:[],tminApp:[],precip:[],rain:[],snow:[],prob:[],phours:[],wspd:[],gust:[],wdir:[],uv:[],sunrise:[],sunset:[],sunshine:[],rad:[],code:[]};
   for(var d=0; d<n; d++){
@@ -1164,7 +1284,7 @@ function renderSug(list){
       box.classList.remove("on");
       $("q").value = r.name;
       pickLoc({name:r.name, admin:r.admin1||r.admin2||"", country:r.country||"", cc:r.country_code||"",
-               lat:r.latitude, lon:r.longitude, tz:r.timezone||""});
+               lat:r.latitude, lon:r.longitude, tz:r.timezone||"", alt:r.elevation!=null? Math.round(r.elevation):null});
     });
   });
 }
@@ -1267,7 +1387,9 @@ function renderLocation(){
   $("locName").textContent = L.name;
   var sub = [L.admin, L.country].filter(Boolean).join(" · ");
   $("locSub").textContent = (sub||"")+"  ·  "+fmt(L.lat,3)+"°, "+fmt(L.lon,3)+"°"+(state.demo? "  ·  valeurs indicatives (hors ligne)":"");
+  var altCount = Object.keys(readWorldAltMap()).length;
   $("stAlt").textContent = M.alt!=null? fmt(M.alt,0)+" m" : "n.c.";
+  $("stAlt").title = M.alt!=null? ("Altitude enregistrée ("+fmt(M.alt,0)+" m) · base mondiale : "+altCount+" localités") : "Altitude en cours de résolution";
   var exp = M.exposure||0;
   $("stExp").textContent = (exp<0.2?"faible":exp<0.45?"modérée":exp<0.7?"marquée":"forte")+" ("+fmt(exp*100,0)+"/140)";
   $("stCoast").textContent = M.coastal==null? "n.c." : (M.coastal>=0.5? "oui ("+fmt(M.coastal*100,0)+"%)":(M.coastal>0?"partiel":"non"));
@@ -1794,9 +1916,9 @@ async function fetchModelHourly(id, date){
   for(var i=0;i<tiers.length;i++){
     try{
       var url = "https://api.open-meteo.com/v1/forecast?latitude="+state.loc.lat+"&longitude="+state.loc.lon+
-        "&start_date="+date+"&end_date="+date+"&hourly="+tiers[i].join(",")+
+        elevParam()+"&start_date="+date+"&end_date="+date+"&hourly="+tiers[i].join(",")+
         "&models="+id+"&timezone=auto&wind_speed_unit=kmh&temperature_unit=celsius&precipitation_unit=mm";
-      var j = await fetchJSON(url,10000);
+      var j = await fetchJSON(url,8000);
       var norm = normalizeHourly(j);
       if(norm && norm.t.some(function(x){return x!=null;})) return norm;
     }catch(e){}
@@ -2274,7 +2396,7 @@ function bindSearch(){
         var r=list[0];
         sug.classList.remove("on");
         pickLoc({name:r.name, admin:r.admin1||r.admin2||"", country:r.country||"", cc:r.country_code||"",
-                 lat:r.latitude, lon:r.longitude, tz:r.timezone||""});
+                 lat:r.latitude, lon:r.longitude, tz:r.timezone||"", alt:r.elevation!=null? Math.round(r.elevation):null});
       }
     }
     if(e.key==="Escape") sug.classList.remove("on");
@@ -2287,7 +2409,8 @@ function bindSearch(){
     $("btnGeo").textContent="…";
     navigator.geolocation.getCurrentPosition(function(pos){
       $("btnGeo").textContent="📍 Ma position";
-      pickLoc({name:"Ma position", admin:"", country:"", cc:"", lat:pos.coords.latitude, lon:pos.coords.longitude, tz:""});
+      pickLoc({name:"Ma position", admin:"", country:"", cc:"", lat:pos.coords.latitude, lon:pos.coords.longitude, tz:"",
+               alt:pos.coords.altitude!=null? Math.round(pos.coords.altitude):null});
     }, function(){ $("btnGeo").textContent="📍 Ma position"; alert("Position inaccessible."); }, {timeout:8000});
   });
   $("btnRefresh").addEventListener("click", function(){ if(state.loc) pickLoc(state.loc); });
@@ -2298,7 +2421,7 @@ function bindSearch(){
     b.addEventListener("click", function(){
       var p=PRESETS[+b.dataset.i];
       $("q").value=p.n;
-      pickLoc({name:p.n, admin:"", country:p.cc, cc:p.cc, lat:p.la, lon:p.lo, tz:""});
+      pickLoc({name:p.n, admin:"", country:p.cc, cc:p.cc, lat:p.la, lon:p.lo, tz:"", alt:p.alt!=null?p.alt:null});
     });
   });
 
@@ -2326,12 +2449,14 @@ function init(){
   var params=new URLSearchParams(location.search);
   var loc=null;
   if(params.get("lat") && params.get("lon")){
+    var pAlt = params.get("alt")!=null && params.get("alt")!=="" ? parseFloat(params.get("alt")) : null;
     loc={name:params.get("name")||"Position", admin:params.get("admin")||"", country:params.get("country")||"",
-         cc:params.get("cc")||"", lat:parseFloat(params.get("lat")), lon:parseFloat(params.get("lon")), tz:""};
+         cc:params.get("cc")||"", lat:parseFloat(params.get("lat")), lon:parseFloat(params.get("lon")), tz:"",
+         alt:(pAlt!=null && !isNaN(pAlt))? Math.round(pAlt) : null};
   } else {
     try{ var s=store("wloc"); if(s) loc=JSON.parse(s); }catch(e){}
   }
-  if(!loc) loc={name:"Paris", admin:"Île-de-France", country:"France", cc:"FR", lat:48.8566, lon:2.3522, tz:"Europe/Paris"};
+  if(!loc) loc={name:"Paris", admin:"Île-de-France", country:"France", cc:"FR", lat:48.8566, lon:2.3522, tz:"Europe/Paris", alt:35};
   pickLoc(loc);
 }
 init();

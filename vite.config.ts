@@ -69,11 +69,11 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,ico,png,svg}'],
-        globIgnores: ['**/paratonnerre.html'],
+        globIgnores: ['**/paratonnerre.html', '**/assets/aistudio/**'],
         navigateFallbackDenylist: [/^\/assets\//, /^\/skymap/, /^\/paratonnerre/, /\.html$/],
       },
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
       },
     }),

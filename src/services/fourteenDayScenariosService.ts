@@ -551,7 +551,7 @@ export function generateFourteenDayScenarios(
       weatherCode: finalDomWeatherCode,
       weatherDescription: finalDomWeatherDesc,
       precipitationMm: rainDom,
-      precipitationProbPct: rainDom > 5 ? 80 : rainDom > 0 ? 50 : 15,
+      precipitationProbPct: realDay?.precipitationProbability ?? cDay?.consensusProbPct ?? (rainDom > 5 ? 80 : rainDom > 0 ? 50 : 15),
       precipitationType:
         rainDom > 12
           ? 'Pluie soutenue et continue'
@@ -561,9 +561,9 @@ export function generateFourteenDayScenarios(
           ? 'Bruine intermittente'
           : 'Temps sec',
       snowfallCm: snowfallDom,
-      windGustKmh: realDay?.windGustMax ?? Math.round(20 + r2 * 30),
-      windDirection: d % 2 === 0 ? 'Sud-Ouest' : 'Ouest-Nord-Ouest',
-      sunshineHours: rainDom > 5 ? 2.5 : rainDom > 0 ? 6.0 : 10.0,
+      windGustKmh: realDay?.windGustMax ?? cDay?.consensusGustMaxKmh ?? Math.round(20 + r2 * 30),
+      windDirection: realDay?.dominantWindDir || (d % 2 === 0 ? 'Sud-Ouest' : 'Ouest-Nord-Ouest'),
+      sunshineHours: realDay?.sunshineHours ?? cDay?.consensusSunHours ?? (rainDom > 5 ? 2.5 : rainDom > 0 ? 6.0 : 10.0),
       isotherm0Meters: iso0Dom,
       description: domNarrative,
       synopticTrigger:

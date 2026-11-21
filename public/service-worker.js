@@ -1,5 +1,5 @@
 // Service Worker for Instant Météo (PWA & Offline Resilience)
-const CACHE_NAME = 'instant-meteo-v8';
+const CACHE_NAME = 'instant-meteo-v9';
 const DB_NAME = 'instant-meteo-offline-db';
 const DB_VERSION = 2;
 const STORE_RAW_API = 'raw_api_responses';
@@ -158,16 +158,26 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D : Ne jamais intercepter ni détourner vers index.html
-  if (url.pathname.includes('skymap') || url.pathname.includes('SkyMap')) {
+  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D & PAGES HTML EMBARQUÉES (/assets/aistudio/)
+  if (
+    url.pathname.includes('skymap') ||
+    url.pathname.includes('SkyMap') ||
+    url.pathname.startsWith('/assets/aistudio/') ||
+    url.pathname.includes('tendances-14-jours') ||
+    url.pathname.includes('carte-catastrophes') ||
+    url.pathname.startsWith('/api/world-altitudes')
+  ) {
     return;
   }
 
   // 1. Pour les navigations HTML (pages complètes) :
-  // Réseau en priorité, puis fallback vers le shell de l'application en cache
+  // Réseau en priorité, puis fallback vers le shell de l'application en cache (hors assets HTML autonomes)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(async () => {
+        if (url.pathname.endsWith('.html')) {
+          return fetch(event.request);
+        }
         const cached = await caches.match('/');
         if (cached) return cached;
         const matched = await caches.match(event.request);

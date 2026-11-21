@@ -14,6 +14,11 @@ import {
   getSiteBrandForLocale,
   normalizeSupportedLocale,
 } from './src/i18n/siteTranslations';
+import {
+  CURATED_WORLD_ALTITUDES,
+  buildAltitudeCoordKey,
+  RecordedAltitudeEntry,
+} from './src/services/worldAltitudeService';
 
 const app = express();
 const PORT = 3000;
@@ -2883,6 +2888,237 @@ async function startServer() {
     return res.sendFile(distFilePath);
   });
 
+  // API persistante du registre mondial d'altitudes des localités
+  const ALTITUDES_DB_FILE = path.join(process.cwd(), 'data', 'world_altitudes_registry.json');
+  const worldAltRegistry = new Map<string, RecordedAltitudeEntry>();
+
+  for (const preset of CURATED_WORLD_ALTITUDES) {
+    const key = buildAltitudeCoordKey(preset.lat, preset.lon);
+    worldAltRegistry.set(key, {
+      key,
+      name: preset.name,
+      country: preset.country,
+      lat: preset.lat,
+      lon: preset.lon,
+      alt: preset.alt,
+      source: 'curated',
+      updatedAt: 0,
+    });
+  }
+  try {
+    if (fs.existsSync(ALTITUDES_DB_FILE)) {
+      const saved = JSON.parse(fs.readFileSync(ALTITUDES_DB_FILE, 'utf-8')) as Record<string, RecordedAltitudeEntry>;
+      if (saved && typeof saved === 'object') {
+        for (const [k, v] of Object.entries(saved)) {
+          if (v && typeof v.alt === 'number' && !isNaN(v.alt)) {
+            worldAltRegistry.set(k, v);
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore read failure on startup
+  }
+
+  const persistWorldAltitudes = () => {
+    try {
+      fs.mkdirSync(path.dirname(ALTITUDES_DB_FILE), { recursive: true });
+      const payload: Record<string, RecordedAltitudeEntry> = {};
+      for (const [k, v] of worldAltRegistry.entries()) {
+        if (v.source !== 'curated' || v.updatedAt > 0) {
+          payload[k] = v;
+        }
+      }
+      fs.writeFileSync(ALTITUDES_DB_FILE, JSON.stringify(payload), 'utf-8');
+    } catch {
+      // Ignore write failure
+    }
+  };
+
+  app.get('/api/world-altitudes', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    const lat = parseFloat(String(req.query.lat || ''));
+    const lon = parseFloat(String(req.query.lon || ''));
+    if (!isNaN(lat) && !isNaN(lon)) {
+      const exactKey = buildAltitudeCoordKey(lat, lon);
+      const exact = worldAltRegistry.get(exactKey);
+      if (exact) {
+        return res.json({ entry: exact, totalCount: worldAltRegistry.size });
+      }
+      let best: RecordedAltitudeEntry | null = null;
+      let bestDist = 0.02; // ~2 km deg threshold
+      for (const entry of worldAltRegistry.values()) {
+        const d = Math.hypot(entry.lat - lat, entry.lon - lon);
+        if (d < bestDist) {
+          bestDist = d;
+          best = entry;
+        }
+      }
+      return res.json({ entry: best, totalCount: worldAltRegistry.size });
+    }
+    return res.json({ totalCount: worldAltRegistry.size, entries: Array.from(worldAltRegistry.values()).slice(0, 500) });
+  });
+
+  app.post('/api/world-altitudes', (req, res) => {
+    const body = req.body || {};
+    const lat = Number(body.lat);
+    const lon = Number(body.lon);
+    const alt = Number(body.alt);
+    if (isNaN(lat) || isNaN(lon) || isNaN(alt) || alt < -430 || alt > 6000) {
+      return res.status(400).json({ error: 'Invalid locality coordinates or altitude' });
+    }
+    const key = buildAltitudeCoordKey(lat, lon);
+    const entry: RecordedAltitudeEntry = {
+      key,
+      name: String(body.name || 'Localité').slice(0, 120),
+      country: body.country ? String(body.country).slice(0, 80) : undefined,
+      lat: Number(lat.toFixed(4)),
+      lon: Number(lon.toFixed(4)),
+      alt: Math.round(alt),
+      coastal: typeof body.coastal === 'number' ? body.coastal : null,
+      relief: typeof body.relief === 'number' ? body.relief : null,
+      exposure: typeof body.exposure === 'number' ? body.exposure : null,
+      source: body.source === 'curated' || body.source === 'geocoding' || body.source === 'station' || body.source === 'user' ? body.source : 'dem_90m',
+      updatedAt: Date.now(),
+    };
+    worldAltRegistry.set(key, entry);
+    persistWorldAltitudes();
+    return res.json({ ok: true, entry, totalCount: worldAltRegistry.size });
+  });
+
+  // API temps réel des stations de ski (LiftRadar Europe + SkiRadar France Data.gouv)
+  const ALLOWED_LIFTRADAR_COUNTRIES = new Set([
+    'fr', 'ch', 'at', 'it', 'de', 'es', 'ad', 'no', 'fi', 'se', 'sk', 'pl', 'cz', 'si'
+  ]);
+  const LIFTRADAR_SLUG_REGEX = /^[a-z0-9-]{2,80}$/;
+
+  let skiStatusCache: { fetchedAt: number; payload: any } | null = null;
+  const skiDetailCache = new Map<string, { fetchedAt: number; payload: any }>();
+  const SKI_CACHE_TTL_MS = 10 * 60 * 1000;
+
+  async function fetchJsonWithTimeout(url: string, timeoutMs = 7000): Promise<any> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json', 'User-Agent': 'InstantMeteo/2.5' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  app.get('/api/ski-status', async (_req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=180');
+    const now = Date.now();
+    if (skiStatusCache && now - skiStatusCache.fetchedAt < SKI_CACHE_TTL_MS) {
+      return res.json(skiStatusCache.payload);
+    }
+
+    try {
+      const [lrRaw, srPage1, srPage2] = await Promise.all([
+        fetchJsonWithTimeout('https://liftradar.eu/json/index.json', 8000),
+        fetchJsonWithTimeout('https://api.skiradar.fr/api/v1/geo-feed?niche=montagne&page=1', 6000).catch(() => null),
+        fetchJsonWithTimeout('https://api.skiradar.fr/api/v1/geo-feed?niche=montagne&page=2', 6000).catch(() => null),
+      ]);
+
+      const resortsList = Array.isArray(lrRaw?.resorts) ? lrRaw.resorts : Array.isArray(lrRaw) ? lrRaw : [];
+      const liftradarBySlug: Record<string, any> = {};
+      for (const r of resortsList) {
+        if (!r || !r.country || !r.id) continue;
+        const country = String(r.country).toLowerCase();
+        const id = String(r.id).toLowerCase();
+        if (!ALLOWED_LIFTRADAR_COUNTRIES.has(country) || !LIFTRADAR_SLUG_REGEX.test(id)) continue;
+        const slug = `${country}/${id}`;
+        liftradarBySlug[slug] = {
+          slug,
+          name: r.name || id,
+          status: r.status === 'open' || r.status === 'closed' ? r.status : 'no_report',
+          slopes: r.slopes || null,
+          lifts: r.lifts || null,
+          snow: r.snow || null,
+          avalanche: r.avalanche || null,
+          linked_area: r.linked_area || null,
+          checked_at: r.checked_at || lrRaw?.generated_at || new Date(now).toISOString(),
+        };
+      }
+
+      const skiradarBySlug: Record<string, any> = {};
+      const srPages = [srPage1, srPage2];
+      for (const pg of srPages) {
+        const items = Array.isArray(pg?.stations) ? pg.stations : Array.isArray(pg?.data) ? pg.data : [];
+        for (const s of items) {
+          const slug = String(s?.slug || s?.id || '').toLowerCase();
+          if (!LIFTRADAR_SLUG_REGEX.test(slug)) continue;
+          skiradarBySlug[slug] = {
+            slug,
+            nom: s.nom || s.name || slug,
+            altitudes: s.altitudes || null,
+            pistes: s.pistes || null,
+          };
+        }
+      }
+
+      const payload = {
+        updatedAt: new Date(now).toISOString(),
+        liftradar: liftradarBySlug,
+        skiradar: skiradarBySlug,
+      };
+      skiStatusCache = { fetchedAt: now, payload };
+      return res.json(payload);
+    } catch (err) {
+      if (skiStatusCache) {
+        return res.json({ ...skiStatusCache.payload, stale: true });
+      }
+      return res.status(502).json({ error: 'Service temps réel stations temporairement indisponible' });
+    }
+  });
+
+  app.get('/api/ski-status/detail', async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=180');
+    const country = String(req.query.country || '').trim().toLowerCase();
+    const id = String(req.query.id || '').trim().toLowerCase();
+
+    if (!ALLOWED_LIFTRADAR_COUNTRIES.has(country) || !LIFTRADAR_SLUG_REGEX.test(id)) {
+      return res.status(400).json({ error: 'Paramètres station invalides' });
+    }
+
+    const slug = `${country}/${id}`;
+    const now = Date.now();
+    const cached = skiDetailCache.get(slug);
+    if (cached && now - cached.fetchedAt < SKI_CACHE_TTL_MS) {
+      return res.json(cached.payload);
+    }
+
+    try {
+      const detail = await fetchJsonWithTimeout(`https://liftradar.eu/json/${country}/${id}.json`, 6500);
+      const payload = {
+        slug,
+        name: detail?.name || id,
+        status: detail?.status === 'open' || detail?.status === 'closed' ? detail.status : 'no_report',
+        slopes: detail?.slopes || null,
+        slopes_by_difficulty: detail?.slopes_by_difficulty || null,
+        lifts: detail?.lifts || null,
+        snow: detail?.snow || null,
+        avalanche: detail?.avalanche || null,
+        linked_area: detail?.linked_area || null,
+        checked_at: detail?.checked_at || detail?.fetched_at || new Date(now).toISOString(),
+        fetched_at: detail?.fetched_at || null,
+        sources: Array.isArray(detail?.sources) ? detail.sources : [],
+      };
+      skiDetailCache.set(slug, { fetchedAt: now, payload });
+      return res.json(payload);
+    } catch {
+      if (cached) {
+        return res.json({ ...cached.payload, stale: true });
+      }
+      return res.status(502).json({ error: 'Détail station indisponible' });
+    }
+  });
+
   // Route directe pour Atlas des catastrophes (Page 9)
   app.get('/assets/aistudio/carte-catastrophes_6__98caa0f3.html', (req, res) => {
     const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
@@ -2892,6 +3128,18 @@ async function startServer() {
       return res.sendFile(primaryPath);
     }
     const distFilePath = path.join(distPath, 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
+    return res.sendFile(distFilePath);
+  });
+
+  // Route directe prioritaire pour Tendances 14 jours HTML (Page 5)
+  app.get('/assets/aistudio/tendances-14-jours__1__fde09a2a.html', (req, res) => {
+    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    if (fs.existsSync(primaryPath)) {
+      return res.sendFile(primaryPath);
+    }
+    const distFilePath = path.join(distPath, 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
     return res.sendFile(distFilePath);
   });
 
@@ -2965,6 +3213,14 @@ async function startServer() {
     app.use(express.static(publicPath, { index: false }));
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
+      if (req.path === '/assets/aistudio/tendances-14-jours__1__fde09a2a.html') {
+        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
+        const distFilePath = path.join(distPath, 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        if (fs.existsSync(primaryPath)) return res.sendFile(primaryPath);
+        return res.sendFile(distFilePath);
+      }
       if (req.path === '/skymap' || req.path === '/skymap/' || req.path === '/skymap3d' || req.path === '/carte-3d' || req.path === '/ciel-3d' || req.path.includes('skymap')) {
         const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
         const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');

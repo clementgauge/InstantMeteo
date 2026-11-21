@@ -468,7 +468,6 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
                 <input
                   type="text"
                   required
-                  autoFocus
                   maxLength={24}
                   value={pseudoInput}
                   onChange={(e) => setPseudoInput(e.target.value)}
