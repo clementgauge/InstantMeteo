@@ -1187,3 +1187,23 @@ button:active:not(:disabled) {
   color: #f8fafc !important;
   border-color: rgba(51, 65, 85, 0.7) !important;
 }
+
+/* ========================================================================= */
+/* BOUTONS DU HEADER SANS BORDURE (EFFET BOUTON NET EN MODE SOMBRE & CLAIR)  */
+/* ========================================================================= */
+header button,
+header [role="button"] {
+  border-width: 0 !important;
+}
+
+.theme-light header button[class*="bg-slate-100"],
+.theme-light header button[class*="bg-slate-800"] {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.theme-light header button[class*="bg-slate-100"]:hover,
+.theme-light header button[class*="bg-slate-800"]:hover {
+  background-color: #cbd5e1 !important;
+}
+

@@ -31,12 +31,14 @@ export interface GoogleTranslateWidgetProps {
   variant?: 'default' | 'pill' | 'mobile-action';
   dropdownAlign?: 'left' | 'right' | 'center';
   className?: string;
+  borderless?: boolean;
 }
 
 export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({ 
   compact = false,
   variant = 'default',
-  className = ''
+  className = '',
+  borderless = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('fr');
@@ -338,8 +340,12 @@ export const GoogleTranslateWidget: React.FC<GoogleTranslateWidgetProps> = ({
           title="Traduire le site"
           aria-label="Traduire le site"
           aria-expanded={isOpen}
-          className={`flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900/90 text-white font-bold transition hover:border-blue-400 hover:bg-slate-800 active:scale-95 cursor-pointer shadow shrink-0 whitespace-nowrap ${
-            compact ? 'px-2 py-1.5 text-[11px] leading-tight' : 'px-3 py-2 text-xs sm:text-sm'
+          className={`flex items-center gap-1 rounded-xl ${
+            borderless
+              ? 'border-0 bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700/90 shadow-sm'
+              : 'border border-slate-700 bg-slate-900/90 text-white hover:border-blue-400 hover:bg-slate-800 shadow'
+          } font-bold transition active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+            compact ? 'px-2.5 py-1.5 text-[11px] leading-tight' : 'px-3 py-2 text-xs sm:text-sm'
           }`}
         >
           <span className="text-xs leading-none">{selectedLangObj.flag}</span>

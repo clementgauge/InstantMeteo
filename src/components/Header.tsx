@@ -317,10 +317,10 @@ export const Header: React.FC<HeaderProps> = ({
                 id="mobile-header-simplified-mode-btn"
                 onClick={onToggleSimplifiedMode}
                 title={simplifiedMode ? "Mode Simple actif — Toucher pour Mode Expert" : "Mode Expert actif — Toucher pour Mode Simple"}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-black transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full border-0 text-[9px] font-black transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
                   simplifiedMode
-                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                    : 'bg-indigo-600/30 border-indigo-400 text-indigo-200'
+                    ? 'bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-700 dark:text-emerald-200'
+                    : 'bg-indigo-500/20 dark:bg-indigo-600/35 hover:bg-indigo-500/30 dark:hover:bg-indigo-600/50 text-indigo-700 dark:text-indigo-200'
                 }`}
               >
                 <SlidersHorizontal className="h-2.5 w-2.5 shrink-0" />
@@ -336,10 +336,10 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onToggleThemeMode}
                 title={themeMode === 'light' ? "Passer en Mode Nuit (Noir)" : "Passer en Mode Jour (Blanc)"}
                 aria-label={themeMode === 'light' ? "Mode Nuit" : "Mode Jour"}
-                className={`relative w-7 h-7 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
+                className={`relative w-7 h-7 rounded-full border-0 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
                   themeMode === 'light'
-                    ? 'border-amber-300 bg-amber-50 text-amber-600'
-                    : 'border-slate-800 bg-slate-900 text-sky-400'
+                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-600'
+                    : 'bg-slate-800/90 hover:bg-slate-700 text-sky-400'
                 }`}
               >
                 {themeMode === 'light' ? (
@@ -356,9 +356,9 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenAndroidModal}
               title="Télécharger l'application"
               aria-label="Télécharger l'application"
-              className="relative w-7 h-7 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-400 hover:text-amber-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+              className="relative w-7 h-7 rounded-full border-0 bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-300 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
             >
-              <Download className="h-3.5 w-3.5 text-amber-400" />
+              <Download className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
             </button>
 
             {/* 3b. Bouton Partager le site (inclut QR Code) */}
@@ -369,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenShareModal}
                 title="Partager le site ou créer un QR Code"
                 aria-label="Partager"
-                className="relative w-7 h-7 rounded-full border border-sky-500/40 bg-sky-500/15 text-sky-400 hover:text-sky-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+                className="relative w-7 h-7 rounded-full border-0 bg-sky-500/20 hover:bg-sky-500/30 text-sky-600 dark:text-sky-300 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
               >
                 <Share2 className="h-3.5 w-3.5" />
               </button>
@@ -377,7 +377,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* 4. Bouton Choix de la Langue */}
             <div className="shrink-0 flex items-center">
-              <GoogleTranslateWidget compact={true} />
+              <GoogleTranslateWidget compact={true} borderless={true} />
             </div>
 
             {/* 5. Bouton Options (Paramètres) */}
@@ -387,7 +387,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setSettingsSidebarOpen(true)}
               title="Ouvrir les Options et Paramètres"
               aria-label="Options"
-              className="relative w-7 h-7 rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+              className="relative w-7 h-7 rounded-full border-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
             >
               <Settings className="h-3.5 w-3.5" />
             </button>
@@ -398,10 +398,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenNotificationsModal}
               title="Centre d'alertes météo"
               aria-label="Alertes"
-              className="relative w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95 cursor-pointer shadow-sm shrink-0"
+              className="relative w-7 h-7 rounded-full border-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer shadow-sm shrink-0"
             >
               <Bell className="h-3 w-3" />
-              <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500 border border-slate-950" />
+              <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
             </button>
           </div>
         </div>
@@ -414,7 +414,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="mobile-station-selector-btn"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-[#0c1424] border border-slate-200 dark:border-slate-800 rounded-2xl px-2.5 sm:px-3 py-2 text-left hover:border-slate-300 dark:hover:border-slate-700 transition active:scale-98 shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/85 dark:hover:bg-slate-800 border-0 rounded-2xl px-2.5 sm:px-3 py-2 text-left transition active:scale-98 shadow-sm cursor-pointer"
               title="Changer de ville parmi les proposées"
             >
               <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
@@ -514,7 +514,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onOpenSearchModal}
-            className="flex-1 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-gradient-to-r dark:from-[#0e1a30] dark:to-[#0c1424] border border-slate-200 dark:border-sky-500/35 rounded-2xl px-3 py-2 text-xs text-slate-800 dark:text-slate-200 hover:border-sky-400 dark:hover:text-white transition active:scale-98 text-left shadow-sm cursor-pointer min-w-0"
+            className="flex-1 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/85 dark:hover:bg-slate-700/90 border-0 rounded-2xl px-3 py-2 text-xs text-slate-800 dark:text-slate-200 dark:hover:text-white transition active:scale-98 text-left shadow-sm cursor-pointer min-w-0"
           >
             <Search className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0" />
             <span className="truncate font-semibold text-[11px]">Recherche 34 965 communes...</span>
@@ -526,7 +526,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="mobile-header-aura-ai-btn"
               onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
-              className="flex items-center gap-1 px-2.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/25 via-sky-500/25 to-purple-500/25 border border-amber-400/60 shadow-md text-amber-300 font-extrabold text-[11px] transition active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-2.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/25 via-sky-500/25 to-purple-500/25 hover:from-amber-500/35 hover:to-purple-500/35 border-0 shadow-sm text-amber-600 dark:text-amber-300 font-extrabold text-[11px] transition active:scale-95 cursor-pointer shrink-0"
               title="Ouvrir l'IA Météo AURA"
             >
               <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse shrink-0" />
@@ -535,57 +535,57 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Row 4: Three Status Cards (Radar HD, Vigilance 5j, Alertes & Push) */}
+        {/* Row 4: Three Status Buttons (Radar HD, Vigilance 5j, Alertes & Push) */}
         <div className="grid grid-cols-3 gap-1.5 pt-1">
 
-          {/* Card 2: Radar HD (Teal) */}
+          {/* Button: Radar HD (Emerald) */}
           <button
             type="button"
             onClick={() => {
               if (onOpenRadarTab) onOpenRadarTab();
               else if (onSelectTab) onSelectTab('radar');
             }}
-            className="flex items-center gap-1.5 p-2 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 shadow-lg shadow-emerald-950/30 text-left active:scale-95 transition hover:border-emerald-400 cursor-pointer min-w-0"
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/70 border-0 shadow-sm text-left active:scale-95 transition cursor-pointer min-w-0"
             title="Radar Doppler des pluies en temps réel"
           >
-            <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
               <Radio className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-bold text-white truncate leading-tight">Radar HD</div>
-              <div className="text-[8px] text-slate-400 truncate">Temps réel</div>
+              <div className="text-[10px] font-bold text-emerald-950 dark:text-white truncate leading-tight">Radar HD</div>
+              <div className="text-[8px] text-emerald-700 dark:text-slate-300 truncate">Temps réel</div>
             </div>
           </button>
 
-          {/* Card 3: Vigilance 5j (Amber) */}
+          {/* Button: Vigilance 5j (Amber) */}
           <button
             type="button"
             onClick={onOpenVigilanceTab}
-            className="flex items-center gap-1.5 p-2 rounded-2xl bg-amber-950/40 border border-amber-500/40 shadow-lg shadow-amber-950/30 text-left active:scale-95 transition hover:border-amber-400 cursor-pointer min-w-0"
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/70 border-0 shadow-sm text-left active:scale-95 transition cursor-pointer min-w-0"
             title="Cartes officielles de vigilance Météo-France"
           >
-            <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400 shrink-0">
               <ShieldAlert className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-bold text-white truncate leading-tight">Vigilance</div>
-              <div className="text-[8px] text-slate-400 truncate">12 risques</div>
+              <div className="text-[10px] font-bold text-amber-950 dark:text-white truncate leading-tight">Vigilance</div>
+              <div className="text-[8px] text-amber-700 dark:text-slate-300 truncate">12 risques</div>
             </div>
           </button>
 
-          {/* Card 4: Alertes & Push (Red) */}
+          {/* Button: Alertes & Push (Rose) */}
           <button
             type="button"
             onClick={onOpenNotificationsModal}
-            className="flex items-center gap-1.5 p-2 rounded-2xl bg-rose-950/40 border border-rose-500/40 shadow-lg shadow-rose-950/30 text-left active:scale-95 transition hover:border-rose-400 cursor-pointer min-w-0"
+            className="flex items-center gap-1.5 p-2 rounded-2xl bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/60 dark:hover:bg-rose-900/70 border-0 shadow-sm text-left active:scale-95 transition cursor-pointer min-w-0"
             title="Centre d'alertes et notifications météo"
           >
-            <div className="w-7 h-7 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-700 dark:text-rose-400 shrink-0">
               <AlertTriangle className="h-3.5 w-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-bold text-white truncate leading-tight">Alertes</div>
-              <div className="text-[8px] text-slate-400 truncate">Push direct</div>
+              <div className="text-[10px] font-bold text-rose-950 dark:text-white truncate leading-tight">Alertes</div>
+              <div className="text-[8px] text-rose-700 dark:text-slate-300 truncate">Push direct</div>
             </div>
           </button>
         </div>
@@ -599,17 +599,17 @@ export const Header: React.FC<HeaderProps> = ({
         <AppLogo size="sm" showSubtitle={false} className="shrink-0" />
 
         {/* Right: All Actions, Search, Social Links & Settings on ONE line */}
-        <div className="flex flex-nowrap items-center gap-1 lg:gap-1.5 min-w-0">
+        <div className="flex flex-nowrap items-center gap-1.5 min-w-0">
           {/* Direct GPS Geolocation Button */}
           {onLocateGps && (
             <button
               id="header-gps-locate-btn"
               onClick={onLocateGps}
               title="Localiser automatiquement ma position GPS"
-              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-bold shadow transition active:scale-95 shrink-0 whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-xl border-0 px-2.5 py-1.5 text-[11px] leading-tight font-bold shadow-sm transition active:scale-95 shrink-0 whitespace-nowrap cursor-pointer ${
                 isGpsActive || currentStation.id.startsWith('gps')
-                  ? 'border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30'
-                  : 'border-blue-200 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-200 hover:border-emerald-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                  ? 'bg-emerald-100 dark:bg-emerald-900/55 text-emerald-700 dark:text-emerald-200 hover:bg-emerald-200 dark:hover:bg-emerald-800/65'
+                  : 'bg-blue-100/85 dark:bg-blue-900/45 text-blue-700 dark:text-blue-200 hover:bg-blue-200/90 dark:hover:bg-blue-800/60'
               }`}
             >
               <Navigation className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 fill-emerald-400/20 shrink-0" />
@@ -623,13 +623,13 @@ export const Header: React.FC<HeaderProps> = ({
             id="open-locality-search-btn"
             onClick={onOpenSearchModal}
             title="Chercher une commune, un sommet ou une ville dans le monde (34 965 communes)"
-            className="flex-1 min-w-[190px] max-w-sm lg:max-w-md xl:max-w-lg flex items-center justify-between gap-2 rounded-xl border border-blue-200 dark:border-blue-500/40 bg-blue-50/70 dark:bg-blue-950/40 px-3 py-1.5 text-[11px] xl:text-xs leading-tight font-semibold text-blue-800 dark:text-blue-200 shadow-sm transition hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-98 cursor-pointer text-left shrink"
+            className="flex-1 min-w-[190px] max-w-sm lg:max-w-md xl:max-w-lg flex items-center justify-between gap-2 rounded-xl border-0 bg-blue-50/90 hover:bg-blue-100 dark:bg-slate-800/85 dark:hover:bg-slate-700/85 px-3 py-1.5 text-[11px] xl:text-xs leading-tight font-semibold text-blue-900 dark:text-blue-100 shadow-sm transition active:scale-98 cursor-pointer text-left shrink"
           >
             <div className="flex items-center gap-2 truncate">
               <Search className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
               <span className="truncate">Rechercher 34 965 communes, sommets, monde...</span>
             </div>
-            <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 rounded border border-blue-300 dark:border-blue-500/30 shrink-0">
+            <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-slate-900/80 rounded border-0 shrink-0">
               Ctrl+K
             </kbd>
           </button>
@@ -640,7 +640,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="station-selector-button"
               type="button"
               onClick={() => setStationDropdownOpen(!stationDropdownOpen)}
-              className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/90 px-2.5 py-1.5 text-[11px] leading-tight font-bold text-slate-800 dark:text-white shadow transition hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 rounded-xl border-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700/90 px-2.5 py-1.5 text-[11px] leading-tight font-bold text-slate-800 dark:text-white shadow-sm transition cursor-pointer whitespace-nowrap"
             >
               {isHighAltitude ? (
                 <span className="text-xs">🗻</span>
@@ -762,10 +762,10 @@ export const Header: React.FC<HeaderProps> = ({
               id="header-simplified-mode-btn"
               onClick={onToggleSimplifiedMode}
               title={simplifiedMode ? "Mode Simplifié activé — Cliquez pour passer en Mode Complet (Expert)" : "Mode Complet Expert actif — Cliquez pour revenir au Mode Simplifié"}
-              className={`flex items-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] leading-tight font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
+              className={`flex items-center gap-1 rounded-xl border-0 px-2.5 py-1.5 text-[11px] leading-tight font-bold transition shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap ${
                 simplifiedMode
-                  ? 'border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 hover:border-emerald-400'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-emerald-100/90 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-200 hover:bg-emerald-200 dark:hover:bg-emerald-800/60'
+                  : 'bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/90 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <SlidersHorizontal className={`h-3 w-3 shrink-0 ${simplifiedMode ? 'text-emerald-500 dark:text-emerald-400' : 'text-indigo-500 dark:text-indigo-400'}`} />
@@ -781,10 +781,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onToggleThemeMode}
               title={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
               aria-label={themeMode === 'light' ? "Passer en Mode Nuit" : "Passer en Mode Jour"}
-              className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+              className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl border-0 transition shadow-sm active:scale-95 cursor-pointer shrink-0 ${
                 themeMode === 'light'
-                  ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                  : 'border-slate-700 bg-slate-900 text-sky-400 hover:border-slate-500 hover:bg-slate-800'
+                  ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                  : 'bg-slate-800/90 text-sky-400 hover:bg-slate-700/90'
               }`}
             >
               {themeMode === 'light' ? (
@@ -797,7 +797,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Language Selector (Compact) */}
           <div className="flex items-center shrink-0">
-            <GoogleTranslateWidget compact={true} />
+            <GoogleTranslateWidget compact={true} borderless={true} />
           </div>
 
           {/* Notification Bell Logo (Alertes Push) */}
@@ -808,10 +808,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenNotificationsModal}
               title="Ouvrir le Centre d'Alertes et Notifications Météo en Temps Réel"
               aria-label="Alertes et Notifications Météo"
-              className={`relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer ${
+              className={`relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border-0 transition shadow-sm active:scale-95 cursor-pointer ${
                 activeAlertCount > 0
-                  ? 'border-amber-300 dark:border-amber-500/60 bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/80'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-indigo-600 dark:text-indigo-300 hover:border-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-indigo-700 dark:hover:text-white'
+                  ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/70'
+                  : 'bg-slate-100 dark:bg-slate-800/90 text-indigo-600 dark:text-indigo-300 hover:bg-slate-200 dark:hover:bg-slate-700/90 hover:text-indigo-700 dark:hover:text-white'
               }`}
             >
               <BellRing className={`h-3.5 w-3.5 ${activeAlertCount > 0 ? 'animate-pulse text-amber-500 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
@@ -831,7 +831,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenShareModal}
               title="Partager le site ou créer un QR Code (WhatsApp, SMS, Réseaux...)"
               aria-label="Partager le site"
-              className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border border-sky-300 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 hover:border-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition shadow-sm active:scale-95 cursor-pointer"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border-0 bg-sky-100 hover:bg-sky-200 dark:bg-sky-900/45 dark:hover:bg-sky-800/65 text-sky-700 dark:text-sky-300 transition shadow-sm active:scale-95 cursor-pointer"
             >
               <Share2 className="h-3.5 w-3.5" />
             </button>
@@ -844,10 +844,10 @@ export const Header: React.FC<HeaderProps> = ({
             title="Ouvrir le panneau des paramètres"
             aria-label="Ouvrir les paramètres"
             aria-expanded={settingsSidebarOpen}
-            className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border transition shadow-sm active:scale-95 cursor-pointer ${
+            className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border-0 transition shadow-sm active:scale-95 cursor-pointer ${
               settingsSidebarOpen
-                ? 'border-blue-500 bg-blue-600 text-white'
-                : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700/90 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Settings className="h-3.5 w-3.5" />
