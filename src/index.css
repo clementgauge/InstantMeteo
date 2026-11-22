@@ -216,9 +216,9 @@ html.theme-light #root,
 
 /* 4. Headers, navbars, sidebars, modals and sticky banners */
 .theme-light header,
-.theme-light nav:not([aria-label="Navigation rapide inférieure"]),
+.theme-light nav:not([aria-label="Navigation rapide inférieure"]):not(.mobile-bottom-dock),
 .theme-light aside,
-.theme-light [role="navigation"]:not([aria-label="Navigation rapide inférieure"]),
+.theme-light [role="navigation"]:not([aria-label="Navigation rapide inférieure"]):not(.mobile-bottom-dock),
 .theme-light [role="dialog"] {
   background-color: rgba(255, 255, 255, 0.98) !important;
   border-color: #e2e8f0 !important;

@@ -249,6 +249,12 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   React.useEffect(() => {
+    const handleOpenSettings = () => setSettingsSidebarOpen(true);
+    window.addEventListener('instant_meteo_open_settings', handleOpenSettings);
+    return () => window.removeEventListener('instant_meteo_open_settings', handleOpenSettings);
+  }, []);
+
+  React.useEffect(() => {
     if (!settingsSidebarOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {

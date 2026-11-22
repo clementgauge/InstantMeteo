@@ -35,6 +35,12 @@ export const LegalAndPrivacyModal: React.FC<LegalAndPrivacyModalProps> = ({
   const [contactSubject, setContactSubject] = useState('Question générale');
   const [contactSent, setContactSent] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
+
   if (!isOpen) return null;
 
   return (

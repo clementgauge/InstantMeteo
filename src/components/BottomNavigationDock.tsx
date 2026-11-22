@@ -4,7 +4,6 @@ import {
   ShieldAlert, 
   CloudRain, 
   FileText, 
-  Clock, 
   Globe2, 
   Layers, 
   Sparkles, 
@@ -12,31 +11,36 @@ import {
   Compass, 
   ChevronUp, 
   ChevronDown,
+  ChevronRight,
+  ChevronLeft,
   Split,
   Mountain,
-  ThermometerSnowflake,
   Map,
+  MapPin,
   Waves,
-  LineChart,
   History,
   TrendingUp,
-  HelpCircle,
   Check,
   X,
   Radio,
   BellRing,
   Cloud,
   Trophy,
-  Users,
   MessageSquare,
-  Home,
-  MoreHorizontal,
   Bell,
-  Camera,
   Flame,
-  Droplets
+  Droplets,
+  Menu,
+  Star,
+  AlertTriangle,
+  Thermometer,
+  LayoutGrid,
+  Settings,
+  Info
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
+import { LocationPoint } from '../types/weather';
+import { FRENCH_STATIONS } from '../data/frenchStations';
 import { isPageVisible } from '../services/displayPreferencesService';
 
 export type NavTabId = 
@@ -67,10 +71,33 @@ interface BottomNavigationDockProps {
   onOpenAtmosphereModal: () => void;
   onOpenSearchModal: () => void;
   onOpenNotificationsModal?: () => void;
+  onOpenComparatorModal?: () => void;
+  onOpenAndroidModal?: () => void;
+  onSelectStation?: (station: LocationPoint) => void;
   currentTheme: AtmosphereThemeConfig;
   seniorMode: boolean;
   isLightMode?: boolean;
 }
+
+const FAVORITES_STORAGE_KEY = 'instant_meteo_favorite_stations_v1';
+
+const loadSavedFavoriteStations = (): LocationPoint[] => {
+  try {
+    const saved = localStorage.getItem(FAVORITES_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {}
+  return [
+    FRENCH_STATIONS.find((s) => s.name.toLowerCase().includes('paris')) || FRENCH_STATIONS[0],
+    FRENCH_STATIONS.find((s) => s.name.toLowerCase().includes('lyon')) || FRENCH_STATIONS[1],
+    FRENCH_STATIONS.find((s) => s.name.toLowerCase().includes('marseille')) || FRENCH_STATIONS[2],
+    FRENCH_STATIONS.find((s) => s.name.toLowerCase().includes('chamonix')) || FRENCH_STATIONS[4],
+  ].filter(Boolean);
+};
 
 export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   activeTab,
@@ -78,11 +105,17 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   onOpenAtmosphereModal,
   onOpenSearchModal,
   onOpenNotificationsModal,
+  onOpenComparatorModal,
+  onOpenAndroidModal,
+  onSelectStation,
   currentTheme,
   seniorMode,
   isLightMode = false,
 }) => {
   const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const [plusSubView, setPlusSubView] = useState<'main' | 'favorites'>('main');
+  const [savedFavorites, setSavedFavorites] = useState<LocationPoint[]>(() => loadSavedFavoriteStations());
   const [isDockMinimized, setIsDockMinimized] = useState(false);
   const dockScrollRef = useRef<HTMLDivElement>(null);
   const autoScrollDirectionRef = useRef<-1 | 0 | 1>(0);
@@ -140,9 +173,29 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     const handlePreferencesUpdate = () => {
       setDisplayTick((t) => t + 1);
     };
+    const handleFavoritesUpdate = () => {
+      setSavedFavorites(loadSavedFavoriteStations());
+    };
     window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
-    return () => window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+    window.addEventListener('instant_meteo_favorites_updated', handleFavoritesUpdate);
+    return () => {
+      window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
+      window.removeEventListener('instant_meteo_favorites_updated', handleFavoritesUpdate);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!isPlusMenuOpen) return;
+    setSavedFavorites(loadSavedFavoriteStations());
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsPlusMenuOpen(false);
+        setPlusSubView('main');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlusMenuOpen]);
 
   // Quick primary actions on the dock (filtrés dynamiquement par préférences de l'utilisateur)
   const allDockItems: { id: NavTabId; label: string; icon: any; shortLabel: string; badge?: string }[] = [
@@ -491,10 +544,401 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
         </div>
       )}
 
-      {/* Floating Bottom Dock */}
+      {/* =================================================================== */}
+      {/* PHONE-ONLY FLOATING "PLUS" POPOVER CARD & COMPACT 5-SLOT BOTTOM BAR */}
+      {/* =================================================================== */}
+      {isPlusMenuOpen && (
+        <>
+          <button
+            type="button"
+            aria-label="Fermer le menu Plus"
+            onClick={() => {
+              setIsPlusMenuOpen(false);
+              setPlusSubView('main');
+            }}
+            className="sm:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+          />
+
+          <div
+            role="dialog"
+            aria-label="Menu Plus"
+            className={`mobile-plus-popover sm:hidden fixed bottom-[76px] right-2.5 z-50 w-[276px] rounded-2xl border backdrop-blur-2xl overflow-hidden transition-all duration-200 ${
+              isLightMode
+                ? 'border-slate-200 bg-white/97 text-slate-900 shadow-[0_18px_45px_rgba(15,23,42,0.18)]'
+                : 'border-slate-700/80 bg-[#0b1220]/96 text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.88)] ring-1 ring-white/10'
+            }`}
+          >
+            {/* Subtle top drag/accent bar */}
+            <div className="pt-2 flex justify-center">
+              <span className={`w-10 h-1 rounded-full ${isLightMode ? 'bg-slate-300' : 'bg-slate-600/70'}`} />
+            </div>
+
+            {/* Popover Header */}
+            <div className="flex items-center justify-between px-4 pt-1.5 pb-2">
+              {plusSubView === 'favorites' ? (
+                <button
+                  type="button"
+                  onClick={() => setPlusSubView('main')}
+                  className={`flex items-center gap-1.5 text-sm font-black cursor-pointer ${
+                    isLightMode ? 'text-slate-900' : 'text-white'
+                  }`}
+                >
+                  <ChevronLeft className="h-4 w-4 text-sky-400" />
+                  <span>Favoris</span>
+                </button>
+              ) : (
+                <h3 className={`text-sm font-black tracking-tight ${isLightMode ? 'text-slate-900' : 'text-white'}`}>
+                  Plus
+                </h3>
+              )}
+
+              <button
+                type="button"
+                aria-label="Fermer"
+                onClick={() => {
+                  setIsPlusMenuOpen(false);
+                  setPlusSubView('main');
+                }}
+                className={`h-7 w-7 rounded-lg flex items-center justify-center transition active:scale-95 cursor-pointer ${
+                  isLightMode
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                    : 'bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white'
+                }`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {plusSubView === 'favorites' ? (
+              <div className="px-2 pb-3 max-h-[55vh] overflow-y-auto space-y-1">
+                {savedFavorites.map((fav) => (
+                  <button
+                    key={fav.id}
+                    type="button"
+                    onClick={() => {
+                      onSelectStation?.(fav);
+                      setIsPlusMenuOpen(false);
+                      setPlusSubView('main');
+                    }}
+                    className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-left transition active:scale-98 cursor-pointer ${
+                      isLightMode
+                        ? 'hover:bg-slate-100 text-slate-800'
+                        : 'hover:bg-slate-800/80 text-slate-100'
+                    }`}
+                  >
+                    <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold truncate">{fav.name}</div>
+                      <div className={`text-[10px] truncate ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {fav.department || 'Station météo'} • {fav.altitude ?? 0} m
+                      </div>
+                    </div>
+                    <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isLightMode ? 'text-slate-400' : 'text-slate-500'}`} />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPlusMenuOpen(false);
+                    setPlusSubView('main');
+                    onOpenSearchModal();
+                  }}
+                  className="w-full mt-1.5 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 py-2 px-3 text-xs font-bold text-white transition active:scale-98 cursor-pointer"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  <span>Rechercher / Ajouter un lieu</span>
+                </button>
+              </div>
+            ) : (
+              <div className="px-2 pb-2.5 space-y-0.5">
+                {[
+                  {
+                    id: 'favoris',
+                    label: 'Favoris',
+                    subtitle: 'Lieux enregistrés',
+                    icon: Star,
+                    iconClass: 'text-amber-400 fill-amber-400',
+                    onClick: () => {
+                      if (onSelectStation) {
+                        setPlusSubView('favorites');
+                      } else {
+                        setIsPlusMenuOpen(false);
+                        onOpenSearchModal();
+                      }
+                    }
+                  },
+                  {
+                    id: 'notifications',
+                    label: 'Notifications',
+                    subtitle: 'Gérer vos alertes',
+                    icon: Bell,
+                    iconClass: isLightMode ? 'text-slate-600' : 'text-slate-300',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      onOpenNotificationsModal?.();
+                    }
+                  },
+                  {
+                    id: 'vigilance',
+                    label: 'Vigilance',
+                    subtitle: 'Cartes et risques',
+                    icon: AlertTriangle,
+                    iconClass: 'text-rose-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      onSelectTab('vigilance');
+                    }
+                  },
+                  {
+                    id: 'radar',
+                    label: 'Radar HD',
+                    subtitle: 'Temps réel',
+                    icon: Radio,
+                    iconClass: 'text-emerald-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      onSelectTab('radar');
+                    }
+                  },
+                  {
+                    id: 'stations',
+                    label: 'Stations météo',
+                    subtitle: 'Données et graphiques',
+                    icon: Thermometer,
+                    iconClass: 'text-sky-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      if (onOpenComparatorModal) {
+                        onOpenComparatorModal();
+                      } else {
+                        onSelectTab('historicalTrends');
+                      }
+                    }
+                  },
+                  {
+                    id: 'widgets',
+                    label: 'Widgets',
+                    subtitle: "Écran d'accueil",
+                    icon: LayoutGrid,
+                    iconClass: 'text-blue-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      onOpenAndroidModal?.();
+                    }
+                  },
+                  {
+                    id: 'parametres',
+                    label: 'Paramètres',
+                    subtitle: "Préférences de l'app",
+                    icon: Settings,
+                    iconClass: isLightMode ? 'text-slate-600' : 'text-slate-300',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent('instant_meteo_open_settings'));
+                    }
+                  },
+                  {
+                    id: 'apropos',
+                    label: 'À propos',
+                    subtitle: 'Version et infos',
+                    icon: Info,
+                    iconClass: 'text-sky-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent('instant_meteo_open_legal', { detail: { tab: 'mentions' } }));
+                    }
+                  }
+                ].map((row) => {
+                  const RowIcon = row.icon;
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      onClick={row.onClick}
+                      className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-left transition active:scale-[0.98] cursor-pointer ${
+                        isLightMode
+                          ? 'hover:bg-slate-100 text-slate-900'
+                          : 'hover:bg-slate-800/75 text-white'
+                      }`}
+                    >
+                      <div className="w-6 flex items-center justify-center shrink-0">
+                        <RowIcon className={`h-[18px] w-[18px] ${row.iconClass}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-[12px] font-bold leading-tight truncate ${isLightMode ? 'text-slate-900' : 'text-white'}`}>
+                          {row.label}
+                        </div>
+                        <div className={`text-[10px] leading-tight truncate mt-0.5 ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                          {row.subtitle}
+                        </div>
+                      </div>
+                      <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isLightMode ? 'text-slate-400' : 'text-slate-500'}`} />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Mobile Bottom 5-Slot Bar (Phone Only: sm:hidden) */}
+      <nav
+        aria-label="Navigation mobile inférieure"
+        className="mobile-bottom-dock sm:hidden fixed bottom-2.5 left-2.5 right-2.5 z-40"
+      >
+        <div
+          className={`rounded-2xl border backdrop-blur-2xl p-1.5 grid grid-cols-5 items-center gap-1 transition-all duration-200 ${
+            isLightMode
+              ? 'border-slate-200/95 bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ring-1 ring-black/5'
+              : 'border-slate-700/75 bg-[#090f1d]/94 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_24px_rgba(59,130,246,0.16)] ring-1 ring-white/10'
+          }`}
+        >
+          {/* 1. Left Sparkles / Atmosphère Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsPlusMenuOpen(false);
+              onOpenAtmosphereModal();
+            }}
+            title={`Atmosphère actuelle : ${currentTheme.name}`}
+            aria-label="Atmosphère et ambiance du ciel"
+            className={`min-h-[48px] rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer ${
+              isLightMode
+                ? 'border-slate-200 bg-slate-100/90 hover:bg-slate-200/80 text-sky-600'
+                : 'border-slate-700/70 bg-slate-900/75 hover:bg-slate-800 text-sky-300'
+            }`}
+          >
+            <Sparkles className="h-5 w-5" style={{ color: isLightMode ? '#0284c7' : currentTheme.glowAccentColor || '#38bdf8' }} />
+          </button>
+
+          {/* 2. Direct (Active Red/Coral Glow when active) */}
+          <button
+            type="button"
+            id="mobile-dock-tab-realtime"
+            onClick={() => {
+              setIsPlusMenuOpen(false);
+              onSelectTab('realtime');
+            }}
+            className={`relative min-h-[48px] rounded-xl flex flex-col items-center justify-center px-1 transition active:scale-95 cursor-pointer ${
+              activeTab === 'realtime'
+                ? isLightMode
+                  ? 'bg-gradient-to-b from-red-500/15 to-rose-500/20 border border-red-500/50 text-red-700 shadow-[0_0_12px_rgba(239,68,68,0.22)]'
+                  : 'bg-gradient-to-b from-red-500/25 via-red-600/15 to-red-950/65 border border-red-500/70 text-white shadow-[0_0_16px_rgba(239,68,68,0.42)]'
+                : isLightMode
+                  ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+            }`}
+          >
+            {activeTab === 'realtime' && (
+              <span className="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]" />
+            )}
+            <CloudRain className={`h-[19px] w-[19px] shrink-0 ${
+              activeTab === 'realtime'
+                ? (isLightMode ? 'text-red-600' : 'text-red-400')
+                : (isLightMode ? 'text-slate-600' : 'text-slate-300')
+            }`} />
+            <span className={`text-[11px] leading-none mt-1 whitespace-nowrap ${
+              activeTab === 'realtime' ? 'font-extrabold' : 'font-semibold'
+            }`}>
+              Direct
+            </span>
+          </button>
+
+          {/* 3. SkyMap */}
+          <button
+            type="button"
+            id="mobile-dock-tab-skymap"
+            onClick={() => {
+              setIsPlusMenuOpen(false);
+              window.location.href = '/skymap';
+            }}
+            className={`min-h-[48px] rounded-xl flex flex-col items-center justify-center px-1 transition active:scale-95 cursor-pointer ${
+              activeTab === 'skymap'
+                ? isLightMode
+                  ? 'bg-sky-50 border border-sky-400 text-sky-700 shadow-sm'
+                  : 'bg-sky-500/20 border border-sky-400/60 text-white shadow-[0_0_14px_rgba(56,189,248,0.3)]'
+                : isLightMode
+                  ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+            }`}
+          >
+            <Map className={`h-[19px] w-[19px] shrink-0 ${
+              activeTab === 'skymap'
+                ? (isLightMode ? 'text-sky-600' : 'text-sky-400')
+                : (isLightMode ? 'text-slate-600' : 'text-slate-200')
+            }`} />
+            <span className="text-[11px] font-semibold leading-none mt-1 whitespace-nowrap">
+              SkyMap
+            </span>
+          </button>
+
+          {/* 4. Pages (with Blue Numeric Badge) */}
+          <button
+            type="button"
+            id="mobile-dock-pages-btn"
+            onClick={() => {
+              setIsPlusMenuOpen(false);
+              setIsMenuDrawerOpen(true);
+            }}
+            className={`min-h-[48px] rounded-xl flex flex-col items-center justify-center px-1 transition active:scale-95 cursor-pointer ${
+              activeTab !== 'realtime' && activeTab !== 'skymap'
+                ? isLightMode
+                  ? 'bg-blue-50 border border-blue-400/70 text-blue-700'
+                  : 'bg-blue-600/20 border border-blue-500/60 text-white shadow-[0_0_14px_rgba(37,99,235,0.28)]'
+                : isLightMode
+                  ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+            }`}
+          >
+            <div className="relative flex items-center justify-center">
+              <Layers className={`h-[19px] w-[19px] shrink-0 ${
+                activeTab !== 'realtime' && activeTab !== 'skymap'
+                  ? (isLightMode ? 'text-blue-600' : 'text-blue-400')
+                  : (isLightMode ? 'text-slate-600' : 'text-slate-200')
+              }`} />
+              <span className="absolute -top-1.5 -right-3 h-4 min-w-[20px] px-1 rounded-full bg-blue-600 text-white text-[10px] font-black leading-none flex items-center justify-center shadow-md tabular-nums">
+                {primaryDockItems.length}
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold leading-none mt-1 whitespace-nowrap">
+              Pages
+            </span>
+          </button>
+
+          {/* 5. Plus (Opens Floating Popover Menu) */}
+          <button
+            type="button"
+            id="mobile-dock-plus-btn"
+            aria-expanded={isPlusMenuOpen}
+            onClick={() => {
+              setPlusSubView('main');
+              setIsPlusMenuOpen((prev) => !prev);
+            }}
+            className={`min-h-[48px] rounded-xl flex flex-col items-center justify-center px-1 transition active:scale-95 cursor-pointer ${
+              isPlusMenuOpen
+                ? isLightMode
+                  ? 'bg-slate-200/80 text-slate-950'
+                  : 'bg-slate-800/90 text-white ring-1 ring-slate-600/70'
+                : isLightMode
+                  ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+            }`}
+          >
+            <Menu className={`h-[19px] w-[19px] shrink-0 ${isLightMode ? 'text-slate-700' : 'text-slate-200'}`} />
+            <span className="text-[11px] font-semibold leading-none mt-1 whitespace-nowrap">
+              Plus
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      {/* =================================================================== */}
+      {/* DESKTOP / TABLET FLOATING BOTTOM DOCK (Unchanged, hidden on phones) */}
+      {/* =================================================================== */}
       <nav 
         aria-label="Navigation rapide inférieure"
-        className="fixed bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-5xl transition-all duration-300 ease-out"
+        className="hidden sm:block fixed bottom-3.5 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-5xl transition-all duration-300 ease-out"
       >
         {isDockMinimized ? (
           /* Minimized Capsule */

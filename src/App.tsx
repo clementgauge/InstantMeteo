@@ -1883,6 +1883,9 @@ function WeatherApp() {
         onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
         onOpenSearchModal={() => setIsSearchModalOpen(true)}
         onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
+        onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
+        onOpenAndroidModal={() => setIsInstallModalOpen(true)}
+        onSelectStation={handleSelectStationWithSeo}
         currentTheme={currentTheme}
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}
