@@ -102,19 +102,9 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
     ]
   },
   {
-    id: 'sportsActivities',
-    number: 8,
-    label: '8. Météo Sportive & Calculateur de Trajet',
-    description: 'Index 0-10 par discipline et météo pas à pas pour itinéraire',
-    blocks: [
-      { id: 'sports_scores', label: 'Index sports (Running, Vélo, Rando...)', description: 'Conseils vestimentaires et créneaux idéaux' },
-      { id: 'route_calculator', label: 'Calculateur d\'itinéraire météo', description: 'Conditions le long du trajet (voiture, train, vélo)' }
-    ]
-  },
-  {
     id: 'worldDisasters',
-    number: 9,
-    label: '9. Atlas des catastrophes (Monde en temps réel)',
+    number: 8,
+    label: '8. Atlas des catastrophes (Monde en temps réel)',
     description: 'Surveillance mondiale en direct (NASA EONET, USGS, GDACS, RainViewer)',
     blocks: [
       { id: 'disasters_feed', label: 'Carte interactive Atlas des catastrophes', description: 'Séismes, incendies, cyclones, inondations, volcans et records' }
@@ -122,8 +112,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'bulletin',
-    number: 10,
-    label: '10. Bulletins Prévisions (J+7 & 4 Semaines)',
+    number: 9,
+    label: '9. Bulletins Prévisions (J+7 & 4 Semaines)',
     description: 'Synthèse textuelle rédigée pour la commune, département et pays',
     blocks: [
       { id: 'bulletin_text', label: 'Bulletins rédigés officiels', description: 'Analyse synoptique et tendance globale' }
@@ -131,8 +121,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'competitive',
-    number: 11,
-    label: '11. Mode Compétitif, Flammes & Classement',
+    number: 10,
+    label: '10. Mode Compétitif, Flammes & Classement',
     description: 'Défis de chasseur météo, points GPS réels, badges et classement',
     blocks: [
       { id: 'player_card', label: 'Carte Chasseur & Flammes', description: 'Statut, points et multiplicateurs' },
@@ -142,8 +132,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'discussionGroup',
-    number: 12,
-    label: '12. Groupe de Discussion & Salon Météo',
+    number: 11,
+    label: '11. Groupe de Discussion & Salon Météo',
     description: 'Échanges en direct entre passionnés, chasseurs d\'orages et observateurs',
     blocks: [
       { id: 'channels', label: 'Salons Thématiques', description: 'Général, Chasseurs d\'orages, Alertes, Photos du ciel' },
@@ -153,8 +143,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'mountain',
-    number: 13,
-    label: '13. Météo Montagne & Nivologie (BERA)',
+    number: 12,
+    label: '12. Météo Montagne & Nivologie (BERA)',
     description: 'Risque d\'avalanche 1 à 5, bulletins BERA Météo-France, balises Nivôse et isotherme 0°C',
     blocks: [
       { id: 'massif_bera', label: 'Bulletin BERA & Risque d\'avalanche', description: 'Massifs officiels, versants et altitudes critiques' },
@@ -164,8 +154,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'beaches',
-    number: 14,
-    label: '14. Météo des Plages & Littoral',
+    number: 13,
+    label: '13. Météo des Plages & Littoral',
     description: 'Température de la mer, annuaire des marées SHOM, état de la mer et drapeaux de baignade',
     blocks: [
       { id: 'beach_spot', label: 'Station balnéaire & Drapeaux de baignade', description: 'Conditions du plan d\'eau et sécurité' },
@@ -174,8 +164,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'droughtFire',
-    number: 15,
-    label: '15. Vigilance Sécheresse & Météo des Forêts',
+    number: 14,
+    label: '14. Vigilance Sécheresse & Météo des Forêts',
     description: 'Météo des forêts Météo-France, Indice Forêt Météo (IFM/FWI) et arrêtés VigiEau',
     blocks: [
       { id: 'forest_fire_danger', label: 'Météo des Forêts & Indice IFM', description: 'Indices FFMC, ISI, BUI et feux satellites' },
@@ -184,8 +174,8 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
   },
   {
     id: 'watercourses',
-    number: 16,
-    label: '16. Vigie Cours d\'Eau & Vigicrues',
+    number: 15,
+    label: '15. Vigie Cours d\'Eau & Vigicrues',
     description: 'Hauteurs d\'eau en direct, débits instantanés m³/s, cotes d\'alerte SCHAPI et crues historiques',
     blocks: [
       { id: 'river_levels', label: 'Hauteurs d\'eau & Débits instantanés', description: 'Jauge limnimétrique et tendance' },

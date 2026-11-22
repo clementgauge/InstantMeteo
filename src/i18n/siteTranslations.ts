@@ -825,54 +825,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/sports': {
-    slug: 'sports',
-    path: '/sports',
-    canonicalUrl: `${BASE_SITE_URL}/sports`,
-    title: 'Road Trip Weather & Outdoor Sports Indices | Instant Weather',
-    description:
-      'Step-by-step road route weather calculator and outdoor sports indices: cycling, running, hiking, golf, water sports and gardening.',
-    h1: 'Weather Conditions for Road Travel and Outdoor Sports',
-    sectionTitle: 'Planning Road Journeys and Outdoor Training Sessions',
-    breadcrumbName: 'Road & Sports Weather',
-    tabId: 'sportsActivities',
-    changefreq: 'hourly',
-    priority: '0.80',
-    introParagraph:
-      'Whether preparing a highway trip, a cycling ride or a running session, this page evaluates the concrete impact of hourly weather conditions on road safety and athletic performance.',
-    sections: [
-      {
-        heading: 'Step-by-step road itinerary weather calculator',
-        body: 'Enter your departure town, destination and departure time to estimate weather conditions along the entire route: wet pavement, aquaplaning risk, fog visibility, morning black ice or crosswind gusts.',
-      },
-      {
-        heading: 'Comfort indices for cycling, running and hiking',
-        body: 'For each sport, a 10-point score analyzes wind speed and direction, humid heat stress, precipitation absence and air quality.',
-      },
-      {
-        heading: 'Practical timing for gardening and outdoor activities',
-        body: 'Spot the best hourly windows of the day to mow the lawn, water plants, work outdoors or plan a family outing.',
-      },
-    ],
-    faq: [
-      {
-        question: 'At what wind speed does driving become hazardous?',
-        answer:
-          'Once crosswind gusts exceed 60 to 70 km/h, two-wheelers, campers and trailers should reduce speed and exercise caution when overtaking trucks.',
-      },
-      {
-        question: 'What is the best time of day to run in summer?',
-        answer:
-          'During summer heat, favor the 6:00 AM to 9:00 AM window when air temperature and ground-level ozone concentrations are lowest.',
-      },
-      {
-        question: 'How can I tell if a road might be icy at dawn?',
-        answer:
-          'When air temperature drops below +2 °C with high humidity or after an overnight shower, road surfaces can fall below 0 °C and form localized black ice.',
-      },
-    ],
-  },
-
   '/bulletins': {
     slug: 'bulletins',
     path: '/bulletins',

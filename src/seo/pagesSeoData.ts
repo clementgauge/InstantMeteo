@@ -689,54 +689,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/sports': {
-    slug: 'sports',
-    path: '/sports',
-    canonicalUrl: `${BASE_SITE_URL}/sports`,
-    title: 'Météo Route & Activités de Plein Air | Instant Météo',
-    description:
-      'Calculateur météo d’itinéraire routier et indices de praticabilité pour le vélo, la course à pied, la randonnée et le jardinage.',
-    h1: 'Conditions météo pour la route et le sport',
-    sectionTitle: 'Planification des déplacements routiers et des séances sportives',
-    breadcrumbName: 'Météo Route & Sports',
-    tabId: 'sportsActivities',
-    changefreq: 'hourly',
-    priority: '0.80',
-    introParagraph:
-      'Que vous prépariez un long trajet sur autoroute, une sortie à vélo ou une séance de course à pied, cette page évalue l’impact concret des conditions météo sur la sécurité routière et sur la pratique sportive au fil des heures.',
-    sections: [
-      {
-        heading: 'Calculateur météo d’itinéraire routier étape par étape',
-        body: 'En renseignant votre ville de départ, votre destination et votre heure de départ, le calculateur estime les conditions que vous rencontrerez tout au long du parcours : chaussée mouillée, risque d’aquaplaning, brouillard réduisant la visibilité, verglas matinal ou rafales de vent latéral sur les viaducs.',
-      },
-      {
-        heading: 'Indices de confort pour le cyclisme, le running et la randonnée',
-        body: 'Pour chaque discipline, un score de praticabilité sur 10 analyse la force et la direction du vent (vent de face ou porteur), le stress thermique lié à la chaleur humide, l’absence d’averse et la qualité de l’air.',
-      },
-      {
-        heading: 'Conseils pratiques pour le jardinage et les activités extérieures',
-        body: 'Identifiez les meilleurs créneaux horaires de la journée pour tondre, arroser, bricoler en extérieur ou organiser une sortie familiale à l’abri des averses et des fortes chaleurs.',
-      },
-    ],
-    faq: [
-      {
-        question: 'À partir de quelle vitesse de vent la conduite devient-elle délicate ?',
-        answer:
-          'Dès que les rafales latérales dépassent 60 à 70 km/h, les deux-roues, les camping-cars et les véhicules tractant une remorque doivent réduire leur vitesse et redoubler de vigilance lors des dépassements de poids lourds.',
-      },
-      {
-        question: 'Quel est le meilleur moment de la journée pour courir en été ?',
-        answer:
-          'En période estivale, privilégiez le créneau entre 6 h et 9 h du matin : la température est au plus bas et la concentration d’ozone troposphérique est nettement plus faible qu’en fin d’après-midi.',
-      },
-      {
-        question: 'Comment savoir si une route risque d’être glissante au petit matin ?',
-        answer:
-          'Lorsque la température de l’air descend sous +2 °C avec une humidité élevée ou après une averse nocturne, la chaussée peut descendre sous 0 °C et former des plaques de verglas localisées, notamment sur les ponts et en lisière de forêt.',
-      },
-    ],
-  },
-
   '/bulletins': {
     slug: 'bulletins',
     path: '/bulletins',
@@ -1780,9 +1732,10 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
     '/cartes': '/cartes-thematiques',
     '/carte-france': '/cartes-thematiques',
     '/comparateur': '/cartes-thematiques',
-    '/sport': '/sports',
-    '/route': '/sports',
-    '/trajets': '/sports',
+    '/sports': '/skymap',
+    '/sport': '/skymap',
+    '/route': '/skymap',
+    '/trajets': '/skymap',
     '/bulletin': '/bulletins',
     '/4-semaines': '/bulletins',
     '/methodologie': '/',
@@ -1922,7 +1875,6 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
     droughtFire: '/secheresse-incendie',
     watercourses: '/cours-d-eau',
     franceMap: '/cartes-thematiques',
-    sportsActivities: '/sports',
     bulletin: '/bulletins',
     fourWeeks: '/bulletins',
     nationalDigest: '/bulletins',
@@ -1973,7 +1925,7 @@ export function generateHreflangLinksHtml(canonicalUrl: string): string {
  * - Balises <lastmod> dynamiques au format ISO YYYY-MM-DD
  * - Balises <changefreq> et <priority> adaptées au rythme de mise à jour de chaque section
  * - Grappe complète de balises <xhtml:link rel="alternate" hreflang="..."> pour toutes les langues prises en charge + x-default
- * - Intègre les 18 sections thématiques principales + les 20 grandes agglomérations métropolitaines
+ * - Intègre les 17 sections thématiques principales + les 20 grandes agglomérations métropolitaines
  */
 export function generateSitemapXml(): string {
   const seenUrls = new Set<string>();

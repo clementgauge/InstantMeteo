@@ -352,33 +352,6 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/cartes-thematiques" />
   </url>
   <url>
-    <loc>https://instantmeteo.instantmeteofr.workers.dev/sports</loc>
-    <lastmod>2026-11-18</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.80</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-    <xhtml:link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-    <xhtml:link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
-    <xhtml:link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
-    <xhtml:link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
-    <xhtml:link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
-    <xhtml:link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=en" />
-    <xhtml:link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=de" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=es" />
-    <xhtml:link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=it" />
-    <xhtml:link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=pt" />
-    <xhtml:link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=nl" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ar" />
-    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=zh-CN" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ja" />
-    <xhtml:link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=ru" />
-    <xhtml:link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/sports?hl=uk" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/sports" />
-  </url>
-  <url>
     <loc>https://instantmeteo.instantmeteofr.workers.dev/bulletins</loc>
     <lastmod>2026-11-18</lastmod>
     <changefreq>hourly</changefreq>

@@ -2857,6 +2857,10 @@ app.get(['/modeles', '/modele', '/modeles-meteo', '/modeles/', '/modele/', '/mod
   res.redirect(301, '/nuages');
 });
 
+app.get(['/sports', '/sport', '/route', '/trajets', '/sports/', '/sport/', '/route/', '/trajets/'], (req, res) => {
+  res.redirect(301, '/skymap');
+});
+
 // -------------------------------------------------------------
 // DÉMARRAGE DU SERVEUR EXPRESS & MIDDLEWARE VITE
 // -------------------------------------------------------------

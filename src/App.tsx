@@ -57,12 +57,11 @@ import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration, a
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, TrendingUp, Radio, Flame, Droplets, Waves } from 'lucide-react';
+import { Mountain, ThermometerSnowflake, Cloud, History, Compass, Radio, Flame, Droplets, Waves } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
 import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
-import { SportsAndRouteView } from './views/SportsAndRouteView';
 import { WorldDisastersView } from './views/WorldDisastersView';
 import { CompetitiveGamingView } from './views/CompetitiveGamingView';
 import { DiscussionGroupView } from './views/DiscussionGroupView';
@@ -845,7 +844,7 @@ function WeatherApp() {
     { id: 'DIRECT', label: '⚡ Direct, Nuages, Alertes, Neige & Gel (6)' },
     { id: 'MEDIUM', label: '⏱️ 0 à 14 Jours (3)' },
     { id: 'LONG', label: '📅 30 Jours, 8 Mois & Évolution / Archives (2)' },
-    { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Carte & Monde (5)' },
+    { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Carte & Monde (4)' },
   ];
 
   const navItems = [
@@ -857,15 +856,14 @@ function WeatherApp() {
     { id: 'radar', category: 'MAPS', label: '6. 📡 Radar Précipitations, Feux NASA & Vents', icon: CloudRain, highlight: true },
     { id: 'eightMonths', category: 'LONG', label: '7. 📈 Tendances 8 Mois (Dép / Région / Pays)', icon: Globe, highlight: true },
     { id: 'historicalTrends', category: 'LONG', label: '8. 📈 Évolution 2000, Temps Réel & Archives Météo', icon: History, highlight: true },
-    { id: 'sportsActivities', category: 'MAPS', label: '9. 🏃‍♂️ Météo Sportive & Calculateur Trajet', icon: TrendingUp },
-    { id: 'worldDisasters', category: 'MAPS', label: '10. 🌍 Atlas des catastrophes — Monde en direct', icon: Radio },
-    { id: 'bulletin', category: 'MEDIUM', label: '11. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
-    { id: 'competitive', category: 'DIRECT', label: '12. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
-    { id: 'discussionGroup', category: 'DIRECT', label: '13. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
-    { id: 'mountain', category: 'MAPS', label: '14. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
-    { id: 'beaches', category: 'MAPS', label: '15. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
-    { id: 'droughtFire', category: 'DIRECT', label: '16. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
-    { id: 'watercourses', category: 'DIRECT', label: '17. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
+    { id: 'worldDisasters', category: 'MAPS', label: '9. 🌍 Atlas des catastrophes — Monde en direct', icon: Radio },
+    { id: 'bulletin', category: 'MEDIUM', label: '10. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
+    { id: 'competitive', category: 'DIRECT', label: '11. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
+    { id: 'discussionGroup', category: 'DIRECT', label: '12. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
+    { id: 'mountain', category: 'MAPS', label: '13. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
+    { id: 'beaches', category: 'MAPS', label: '14. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
+    { id: 'droughtFire', category: 'DIRECT', label: '15. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
+    { id: 'watercourses', category: 'DIRECT', label: '16. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
   // Quick navigation helper
@@ -1161,7 +1159,7 @@ function WeatherApp() {
               />
             )}
 
-            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'sportsActivities', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
+            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
               <div className="space-y-4">
                 <RealtimeView
                   station={currentStation}
@@ -1286,18 +1284,6 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 tempUnit={tempUnit}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
-              />
-            )}
-
-            {activeTab === 'sportsActivities' && (
-              <SportsAndRouteView
-                station={currentStation}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                seniorMode={seniorMode}
-                simplifiedMode={simplifiedMode}
-                tempUnit={tempUnit}
               />
             )}
 
@@ -1666,14 +1652,6 @@ function WeatherApp() {
                 className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
               >
                 Cours d'Eau &amp; Crues
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/sports"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/sports'); setActiveTab('sportsActivities'); window.history.pushState(null, '', '/sports'); updateDocumentSeo('/sports', false); scrollToTopInstant(); }}
-                className="text-lime-400 hover:text-lime-300 hover:underline font-medium"
-              >
-                Météo Sport &amp; Itinéraire
               </a>
               <span className="text-slate-700">•</span>
               <a

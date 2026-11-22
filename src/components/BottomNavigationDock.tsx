@@ -19,7 +19,6 @@ import {
   MapPin,
   Waves,
   History,
-  TrendingUp,
   Check,
   X,
   Radio,
@@ -60,7 +59,6 @@ export type NavTabId =
   | 'radar' 
   | 'eightMonths' 
   | 'historicalTrends'
-  | 'sportsActivities'
   | 'worldDisasters'
   | 'weatherArchive'
   | 'bulletin'
@@ -224,7 +222,6 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'watercourses', label: 'Vigie Cours d\'Eau', shortLabel: 'Cours d\'Eau', icon: Droplets, badge: 'Vigicrues' },
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
     { id: 'historicalTrends', label: 'Évolution & Archives', shortLabel: 'Évolution & Archives', icon: History, badge: '2000+' },
-    { id: 'sportsActivities', label: 'Sport & Trajet', shortLabel: 'Trajet', icon: TrendingUp },
     { id: 'worldDisasters', label: 'Atlas des catastrophes', shortLabel: 'Catastrophes', icon: Radio },
     { id: 'bulletin', label: 'Bulletins', shortLabel: 'Bulletins', icon: FileText },
     { id: 'competitive', label: 'Compétitif & Classement', shortLabel: 'Défis 🏆', icon: Trophy, badge: '🔥 +Pts' },
@@ -263,18 +260,17 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       ]
     },
     {
-      categoryName: '🗺️ Analyses Territoriales, Trajets & Histoire',
+      categoryName: '🗺️ Analyses Territoriales, Monde & Histoire',
       items: [
-        { id: 'sportsActivities', label: '8. Activités Sportives & Calculateur de Trajet', icon: TrendingUp, desc: 'Index 0-10, météo d\'itinéraire pas à pas selon moyen de transport (voiture, train, vélo, à pied)' },
-        { id: 'worldDisasters', label: '9. Atlas des catastrophes (Monde en temps réel)', icon: Radio, desc: 'Carte mondiale en direct (NASA EONET, USGS, GDACS, NASA Black Marble, RainViewer & records météo)' },
-        { id: 'bulletin', label: '10. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
+        { id: 'worldDisasters', label: '8. Atlas des catastrophes (Monde en temps réel)', icon: Radio, desc: 'Carte mondiale en direct (NASA EONET, USGS, GDACS, NASA Black Marble, RainViewer & records météo)' },
+        { id: 'bulletin', label: '9. Bulletins Météo J+1 à J+7 & 4 Semaines', icon: FileText, desc: 'Synthèse textuelle rédigée pour la commune, département et pays' },
       ]
     },
     {
       categoryName: '🏆 Communauté, Compétition & Discussion',
       items: [
-        { id: 'competitive', label: '11. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
-        { id: 'discussionGroup', label: '12. Groupe de Discussion & Salon Météo', icon: MessageSquare, desc: 'Échangez en direct avec la communauté météo, partagez vos relevés et discutez des alertes' },
+        { id: 'competitive', label: '10. Mode Compétitif, Flammes & Classement', icon: Trophy, desc: 'Gagnez des points par géolocalisation, météos rencontrées, séries de flammes (x2, x3, x10) et carte collaborative' },
+        { id: 'discussionGroup', label: '11. Groupe de Discussion & Salon Météo', icon: MessageSquare, desc: 'Échangez en direct avec la communauté météo, partagez vos relevés et discutez des alertes' },
       ]
     }
   ];
@@ -394,7 +390,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                         ? 'bg-blue-50 border-blue-200 text-blue-800' 
                         : 'bg-blue-950 border-blue-500/30 text-blue-300'
                     }`}>
-                      18 Modules Experts
+                      {primaryDockItems.length} Modules Experts
                     </span>
                   </h2>
                   <p className={`text-xs ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -1092,11 +1088,11 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => setIsMenuDrawerOpen(true)}
-                title="Consulter les 19 modules et cartes météo"
+                title={`Consulter les ${primaryDockItems.length} modules et cartes météo`}
                 className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition active:scale-95 shrink-0 cursor-pointer"
               >
                 <Layers className="h-3.5 w-3.5" />
-                <span className="text-xs font-black whitespace-nowrap">19 Pages</span>
+                <span className="text-xs font-black whitespace-nowrap">{primaryDockItems.length} Pages</span>
               </button>
 
               <button

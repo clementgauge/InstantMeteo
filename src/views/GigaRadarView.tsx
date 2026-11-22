@@ -576,20 +576,20 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigateTab ? onNavigateTab('sportsActivities') : window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => { window.location.href = '/skymap'; }}
                 className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg">🚗</span>
+                  <span className="text-lg">🗺️</span>
                   <span className="text-[10px] font-semibold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
-                    Itinéraire
+                    SkyMap 3D
                   </span>
                 </div>
                 <div className="font-bold text-xs text-white group-hover:text-sky-400 transition">
-                  Carte Routes
+                  Carte 3D &amp; Trajets
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1">
-                  Calculateur météo routier d'autoroutes et vent traversier.
+                  Itinéraires pas à pas, relief 3D, trafic et météo routière en direct.
                 </div>
               </button>
             </div>

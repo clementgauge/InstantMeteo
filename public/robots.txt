@@ -17,7 +17,6 @@ Allow: /montagne
 Allow: /plages
 Allow: /secheresse-incendie
 Allow: /cours-d-eau
-Allow: /sports
 Allow: /bulletins
 Allow: /archives
 Allow: /monde-catastrophes
