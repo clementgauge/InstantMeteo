@@ -1886,6 +1886,11 @@ function WeatherApp() {
         onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
         onOpenAndroidModal={() => setIsInstallModalOpen(true)}
         onSelectStation={handleSelectStationWithSeo}
+        simplifiedMode={simplifiedMode}
+        onToggleSimplifiedMode={handleToggleSimplifiedMode}
+        onToggleThemeMode={handleToggleThemeMode}
+        showFloatingBubble={showFloatingBubble}
+        onToggleFloatingBubble={handleToggleFloatingBubble}
         currentTheme={currentTheme}
         seniorMode={seniorMode}
         isLightMode={themeMode === 'light'}

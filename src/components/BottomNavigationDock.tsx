@@ -36,7 +36,10 @@ import {
   Thermometer,
   LayoutGrid,
   Settings,
-  Info
+  Info,
+  SlidersHorizontal,
+  Moon,
+  Download
 } from 'lucide-react';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { LocationPoint } from '../types/weather';
@@ -74,6 +77,11 @@ interface BottomNavigationDockProps {
   onOpenComparatorModal?: () => void;
   onOpenAndroidModal?: () => void;
   onSelectStation?: (station: LocationPoint) => void;
+  simplifiedMode?: boolean;
+  onToggleSimplifiedMode?: () => void;
+  onToggleThemeMode?: () => void;
+  showFloatingBubble?: boolean;
+  onToggleFloatingBubble?: () => void;
   currentTheme: AtmosphereThemeConfig;
   seniorMode: boolean;
   isLightMode?: boolean;
@@ -108,6 +116,11 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   onOpenComparatorModal,
   onOpenAndroidModal,
   onSelectStation,
+  simplifiedMode = false,
+  onToggleSimplifiedMode,
+  onToggleThemeMode,
+  showFloatingBubble = false,
+  onToggleFloatingBubble,
   currentTheme,
   seniorMode,
   isLightMode = false,
@@ -650,7 +663,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="px-2 pb-2.5 space-y-0.5">
+              <div className="px-2 pb-2.5 space-y-0.5 max-h-[68vh] overflow-y-auto">
                 {[
                   {
                     id: 'favoris',
@@ -718,14 +731,51 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                   {
                     id: 'widgets',
                     label: 'Widgets',
-                    subtitle: "Écran d'accueil",
+                    subtitle: showFloatingBubble ? 'Bulle écran active' : "Écran d'accueil",
                     icon: LayoutGrid,
                     iconClass: 'text-blue-400',
                     onClick: () => {
                       setIsPlusMenuOpen(false);
-                      onOpenAndroidModal?.();
+                      if (onToggleFloatingBubble) {
+                        onToggleFloatingBubble();
+                      } else {
+                        onOpenAndroidModal?.();
+                      }
                     }
                   },
+                  ...(onToggleSimplifiedMode ? [{
+                    id: 'simplified-mode',
+                    label: simplifiedMode ? 'Mode Simple' : 'Mode Expert',
+                    subtitle: simplifiedMode ? 'Toucher pour Mode Expert' : 'Toucher pour Mode Simple',
+                    icon: SlidersHorizontal,
+                    iconClass: simplifiedMode ? 'text-emerald-400' : 'text-indigo-400',
+                    onClick: () => {
+                      onToggleSimplifiedMode();
+                      setIsPlusMenuOpen(false);
+                    }
+                  }] : []),
+                  ...(onToggleThemeMode ? [{
+                    id: 'theme-mode',
+                    label: isLightMode ? 'Mode Jour (Blanc)' : 'Mode Nuit (Noir)',
+                    subtitle: isLightMode ? 'Passer en Mode Nuit' : 'Passer en Mode Blanc',
+                    icon: isLightMode ? Sun : Moon,
+                    iconClass: isLightMode ? 'text-amber-500' : 'text-sky-400',
+                    onClick: () => {
+                      onToggleThemeMode();
+                      setIsPlusMenuOpen(false);
+                    }
+                  }] : []),
+                  ...(onOpenAndroidModal ? [{
+                    id: 'download-app',
+                    label: "Télécharger l'appli",
+                    subtitle: 'Installer sur téléphone',
+                    icon: Download,
+                    iconClass: 'text-amber-400',
+                    onClick: () => {
+                      setIsPlusMenuOpen(false);
+                      onOpenAndroidModal();
+                    }
+                  }] : []),
                   {
                     id: 'parametres',
                     label: 'Paramètres',

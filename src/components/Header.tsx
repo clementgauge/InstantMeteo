@@ -30,7 +30,6 @@ import {
   Bell,
   Sun,
   Moon,
-  Download,
   Watch,
   Activity,
   Share2
@@ -316,58 +315,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Inline Action Controls on the SAME SINGLE ROW */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* 1. Bouton Mode Simple / Expert */}
-            {onToggleSimplifiedMode && (
-              <button
-                type="button"
-                id="mobile-header-simplified-mode-btn"
-                onClick={onToggleSimplifiedMode}
-                title={simplifiedMode ? "Mode Simple actif — Toucher pour Mode Expert" : "Mode Expert actif — Toucher pour Mode Simple"}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full border-0 text-[9px] font-black transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
-                  simplifiedMode
-                    ? 'bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-700 dark:text-emerald-200'
-                    : 'bg-indigo-500/20 dark:bg-indigo-600/35 hover:bg-indigo-500/30 dark:hover:bg-indigo-600/50 text-indigo-700 dark:text-indigo-200'
-                }`}
-              >
-                <SlidersHorizontal className="h-2.5 w-2.5 shrink-0" />
-                <span className="hidden xs:inline">{simplifiedMode ? 'Simple' : 'Expert'}</span>
-              </button>
-            )}
-
-            {/* 2. Mode Jour / Nuit Toggle (Blanc / Noir) */}
-            {onToggleThemeMode && (
-              <button
-                type="button"
-                id="mobile-header-theme-mode-btn"
-                onClick={onToggleThemeMode}
-                title={themeMode === 'light' ? "Passer en Mode Nuit (Noir)" : "Passer en Mode Jour (Blanc)"}
-                aria-label={themeMode === 'light' ? "Mode Nuit" : "Mode Jour"}
-                className={`relative w-7 h-7 rounded-full border-0 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0 ${
-                  themeMode === 'light'
-                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-600'
-                    : 'bg-slate-800/90 hover:bg-slate-700 text-sky-400'
-                }`}
-              >
-                {themeMode === 'light' ? (
-                  <Sun className="h-3.5 w-3.5 text-amber-500" />
-                ) : (
-                  <Moon className="h-3.5 w-3.5 text-sky-400" />
-                )}
-              </button>
-            )}
-
-            {/* 3. Bouton Télécharger l'Appli */}
-            <button
-              type="button"
-              onClick={onOpenAndroidModal}
-              title="Télécharger l'application"
-              aria-label="Télécharger l'application"
-              className="relative w-7 h-7 rounded-full border-0 bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-300 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
-            >
-              <Download className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
-            </button>
-
-            {/* 3b. Bouton Partager le site (inclut QR Code) */}
+            {/* Bouton Partager le site (inclut QR Code) */}
             {onOpenShareModal && (
               <button
                 type="button"
@@ -381,24 +329,12 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {/* 4. Bouton Choix de la Langue */}
+            {/* Bouton Choix de la Langue */}
             <div className="shrink-0 flex items-center">
               <GoogleTranslateWidget compact={true} borderless={true} />
             </div>
 
-            {/* 5. Bouton Options (Paramètres) */}
-            <button
-              type="button"
-              id="mobile-header-options-btn"
-              onClick={() => setSettingsSidebarOpen(true)}
-              title="Ouvrir les Options et Paramètres"
-              aria-label="Options"
-              className="relative w-7 h-7 rounded-full border-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shadow-sm shrink-0"
-            >
-              <Settings className="h-3.5 w-3.5" />
-            </button>
-
-            {/* 6. Notification Bell Circle */}
+            {/* Notification Bell Circle */}
             <button
               type="button"
               onClick={onOpenNotificationsModal}
