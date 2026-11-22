@@ -1,38 +1,13 @@
 import React, { useState } from 'react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { GigaRadarMap } from '../components/GigaRadarMap';
-import { FireProximityRadarCard } from '../components/FireProximityRadarCard';
-import { ThunderstormConvectiveDetailsCard } from '../components/ThunderstormConvectiveDetailsCard';
-import { calculateThunderstormAnalysis } from '../services/thunderstormService';
-import { FRENCH_STATIONS } from '../data/frenchStations';
-import { WORLD_STATIONS } from '../data/worldStations';
 import { 
   CloudRain, 
   Globe2, 
-  Zap, 
-  Compass, 
   Layers, 
-  Info, 
-  Eye, 
   MapPin, 
-  Mountain,
-  Sparkles,
-  ShieldAlert,
-  ArrowRight,
-  Radio,
-  Sliders,
-  Target,
-  Clock,
-  Activity,
-  Droplets,
-  Snowflake,
-  Wind,
-  Maximize2,
-  Flame,
-  CheckCircle2,
   Thermometer,
-  Users,
-  Map
+  Users
 } from 'lucide-react';
 import { WorldAverageTemperatureMap } from '../components/WorldAverageTemperatureMap';
 import { CommunityWeatherMap } from '../components/CommunityWeatherMap';
@@ -65,15 +40,10 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
 }) => {
   const [activeMapMode, setActiveMapMode] = useState<'radar' | 'worldTemperature' | 'communityReports' | 'thematic'>(initialMapMode);
   const [thematicType, setThematicType] = useState<ThematicMapType>('airQuality');
-  const [activeSubBlock, setActiveSubBlock] = useState<'storm' | 'fire' | null>(null);
   const [showOtherMapsModal, setShowOtherMapsModal] = useState<boolean>(false);
 
-  const thunderstormAnalysis = React.useMemo(() => {
-    return calculateThunderstormAnalysis(currentStation, weather, hourly);
-  }, [currentStation, weather, hourly]);
-
   return (
-    <div id="giga-radar-view" className="space-y-3">
+    <div id="giga-radar-view" className="space-y-2.5">
       {/* Top Map Mode Switcher & Station Action Ribbon */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 p-2 rounded-xl bg-[#0F172A] border border-slate-800">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -167,147 +137,20 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         />
       ) : (
         <>
-      {/* 1. Main Interactive High-Performance Radar Map Component */}
+      {/* 1. Main Interactive High-Performance Radar Map Component (Full-Screen Viewport Fit) */}
       <GigaRadarMap
         currentStation={currentStation}
         onSelectStation={onSelectStation}
         seniorMode={seniorMode}
         onOpenSearchModal={onOpenSearchModal}
         weather={weather}
+        fullScreenLayout={true}
       />
-
-      {/* Interactive Toggle Buttons for Storm and Fire Blocks */}
-      {!simplifiedMode && (
-        <div className="flex flex-wrap items-center justify-center gap-3 py-1">
-          <button
-            id="radar-toggle-storm-btn"
-            onClick={() => setActiveSubBlock(activeSubBlock === 'storm' ? null : 'storm')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm transition border cursor-pointer ${
-              activeSubBlock === 'storm'
-                ? 'bg-amber-600 text-white border-amber-500'
-                : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
-            }`}
-          >
-            <Zap className="h-4 w-4 text-amber-400" />
-            <span>Risque d'Orage &amp; Évolution Convective</span>
-          </button>
-
-          <button
-            id="radar-toggle-fire-btn"
-            onClick={() => setActiveSubBlock(activeSubBlock === 'fire' ? null : 'fire')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm transition border cursor-pointer ${
-              activeSubBlock === 'fire'
-                ? 'bg-orange-600 text-white border-orange-500'
-                : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
-            }`}
-          >
-            <Flame className="h-4 w-4 text-orange-400" />
-            <span>Indice Risque Feux de Forêt (10 km)</span>
-          </button>
-        </div>
-      )}
-
-      {/* 2. Analyse Convective & Modélisation des Orages Haute Définition (Appears on click Orage) */}
-      {!simplifiedMode && activeSubBlock === 'storm' && (
-        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-          <ThunderstormConvectiveDetailsCard
-            thunderstormAnalysis={thunderstormAnalysis}
-            station={currentStation}
-            seniorMode={seniorMode}
-          />
-        </div>
-      )}
-
-      {/* 3. Feux de Forêt & Départs d'Incendies dans un rayon de 10 km (Appears on click Feu) */}
-      {!simplifiedMode && activeSubBlock === 'fire' && (
-        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-          <FireProximityRadarCard
-            station={currentStation}
-            weather={weather}
-            hourly={hourly}
-            daily={daily}
-            seniorMode={seniorMode}
-          />
-        </div>
-      )}
-
-      {/* 4. Meteorological & Radar Guide */}
-      {!simplifiedMode && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Card 1: RainViewer Radar Precision */}
-          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-[#0284C7] text-xs font-bold uppercase tracking-wider mb-2">
-                <CloudRain className="h-3.5 w-3.5" />
-                <span>Réseau Radar Doppler ARAMIS</span>
-              </div>
-              <h3 className="font-bold text-white text-sm mb-1.5">Précipitations Réelles</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Données radar temps réel croisées avec les mailles AROME 1.3 km et ECMWF pour éliminer les faux échos et garantir une concordance physique absolue avec le terrain.
-              </p>
-            </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
-              Mise à jour en continu 24h/24
-            </div>
-          </div>
-
-          {/* Card 2: 10 KM Fire Radar */}
-          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Flame className="h-3.5 w-3.5" />
-                <span>Surveillance 10 km</span>
-              </div>
-              <h3 className="font-bold text-white text-sm mb-1.5">Détection Incendies</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Surveillance satellitaire thermique et calcul de l'Indice Forêt Météo pour évaluer la sécheresse de surface et le risque de départ de feu.
-              </p>
-            </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
-              Consignes de sécurité SDIS intégrées
-            </div>
-          </div>
-
-          {/* Card 3: Wind Particle Streams */}
-          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-teal-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Wind className="h-3.5 w-3.5" />
-                <span>Champs de Vent</span>
-              </div>
-              <h3 className="font-bold text-white text-sm mb-1.5">Flux &amp; Propagation</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Visualisation des vecteurs de vent pour anticiper le déplacement des lignes de grains et la progression des masses d'air.
-              </p>
-            </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
-              Vitesse, rafales et direction
-            </div>
-          </div>
-
-          {/* Card 4: Convective Storm Cells */}
-          <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Zap className="h-3.5 w-3.5" />
-                <span>Orages &amp; Foudre</span>
-              </div>
-              <h3 className="font-bold text-white text-sm mb-1.5">Activité Électrique</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Détection des impacts d'éclairs et modélisation de l'instabilité (CAPE) pour repérer les cellules orageuses virulentes.
-              </p>
-            </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 font-medium">
-              Traçage des impacts réseau Météorage
-            </div>
-          </div>
-        </div>
-      )}
       </>
       )}
 
-      {/* 4. Bottom Section: See other map button */}
-      <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
+      {/* Bottom Section: Cartes Thématiques Complémentaires */}
+      <div className="rounded-xl border border-slate-800 bg-[#0F172A] p-3 sm:p-3.5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-800 text-[#0284C7] border border-slate-700">

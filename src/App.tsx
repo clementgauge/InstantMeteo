@@ -47,6 +47,7 @@ import { PWAInstallNotificationBanner } from './components/PWAInstallNotificatio
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
 import { BottomNavigationDock, NavTabId } from './components/BottomNavigationDock';
+import { DesktopLeftSidebar } from './components/DesktopLeftSidebar';
 import { TimeOfDay, Season, AtmosphereMode } from './types/atmosphere';
 import { calculateTimeOfDay, calculateSeason, getAtmosphereTheme, isChristmasEventActive, setChristmasEventOverride } from './utils/atmosphereTheme';
 import { FranceMapView } from './views/FranceMapView';
@@ -981,7 +982,7 @@ function WeatherApp() {
 
   return (
     <div 
-      className={`min-h-screen relative flex flex-col w-full max-w-full overflow-x-hidden ${themeMode === 'light' ? 'text-slate-900 theme-light' : 'text-slate-100'} ${!isDirectPage ? (themeMode === 'light' ? 'bg-[#eef2f6]' : 'bg-[#020617]') : ''} ${seniorMode ? 'senior-mode' : ''}`}
+      className={`min-h-screen relative flex flex-col w-full max-w-full overflow-x-clip ${themeMode === 'light' ? 'text-slate-900 theme-light' : 'text-slate-100'} ${!isDirectPage ? (themeMode === 'light' ? 'bg-[#eef2f6]' : 'bg-[#020617]') : ''} ${seniorMode ? 'senior-mode' : ''}`}
       style={!isDirectPage ? { backgroundColor: nonDirectBg } : undefined}
     >
       {/* Atmospheric PWA Startup Splash Screen */}
@@ -1023,9 +1024,40 @@ function WeatherApp() {
         />
       ) : (
         <>
-          {/* Header */}
-          <div className="relative z-30 w-full max-w-full">
-            <Header
+          <div className="sm:flex flex-1 w-full min-w-0">
+            {/* PC-ONLY LEFT SIDEBAR (hidden on phones < 640px) */}
+            <DesktopLeftSidebar
+              activeTab={activeTab as NavTabId}
+              onSelectTab={(tab) => {
+                if (tab === 'skymap') {
+                  window.location.href = '/skymap';
+                  return;
+                }
+                setActiveTab(tab);
+              }}
+              currentStation={currentStation}
+              weather={weather}
+              tempUnit={tempUnit}
+              lastUpdatedTime={lastUpdatedTime}
+              activeAlertCount={activeAlertCount}
+              currentTheme={currentTheme}
+              isLightMode={themeMode === 'light'}
+              onToggleThemeMode={handleToggleThemeMode}
+              onOpenAuraModal={() => setIsAuraModalOpen(true)}
+              onOpenSearchModal={() => setIsSearchModalOpen(true)}
+              onOpenAllPagesModal={() => {
+                window.dispatchEvent(new CustomEvent('instant_meteo_open_pages_hub'));
+              }}
+              onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
+              onSelectStation={handleSelectStationWithSeo}
+            />
+
+            {/* RIGHT CONTENT COLUMN (Header + Main + Footer) */}
+            <div className="flex-1 min-w-0 flex flex-col">
+              {/* Header (masqué sur la page Radar pour affichage plein écran) */}
+              {activeTab !== 'radar' && (
+                <div className="relative z-30 w-full max-w-full">
+                  <Header
           currentStation={currentStation}
           onSelectStation={handleSelectStationWithSeo}
           seniorMode={seniorMode}
@@ -1087,10 +1119,15 @@ function WeatherApp() {
             setIsShareModalOpen(true);
           }}
         />
-      </div>
+                </div>
+              )}
 
-      {/* Main Container - Expansive wide screen layout without left sidebar */}
-      <main className="relative z-20 flex-1 mx-auto w-full max-w-[1920px] px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2.5 pb-40 sm:pb-36 overflow-x-hidden">
+      {/* Main Container - Full-screen edge-to-edge on Radar, expansive layout otherwise */}
+      <main className={`relative z-20 flex-1 w-full overflow-x-hidden ${
+        activeTab === 'radar'
+          ? 'max-w-none px-2 sm:px-3 py-2 pb-24 sm:pb-2.5'
+          : 'mx-auto max-w-[1920px] px-2 sm:px-4 lg:px-6 xl:px-8 py-1.5 sm:py-2.5 pb-28 sm:pb-10'
+      }`}>
 
         <section className="min-w-0 w-full">
         {/* En-tête sémantique unique H1 propre à chaque URL (conservé dans le DOM pour Google / SEO / SEA) */}
@@ -1367,8 +1404,9 @@ function WeatherApp() {
               </div>
             )}
 
-            {/* Recommandations de sites partenaires - Observatoire Climatique Mondial & Cin-Scope */}
-            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {/* Recommandations de sites partenaires - Observatoire Climatique Mondial & Cin-Scope (masqué sur Radar) */}
+            {activeTab !== 'radar' && (
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
               {/* Partenaire 1 : Observatoire Climatique Mondial */}
               <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl p-4 border shadow-sm transition-all ${
                 themeMode === 'light'
@@ -1453,38 +1491,44 @@ function WeatherApp() {
                 </a>
               </div>
             </div>
+            )}
           </div>
           </ViewErrorBoundary>
         )}
 
-        {/* Guide & FAQ Météo - Toujours présent dans le DOM dès le rendu initial pour l'indexation SEO */}
-        <SeoPageGuideCard
-          activeTab={activeTab}
-          currentPath={currentPath}
-          isLightMode={themeMode === 'light'}
-          onNavigateRoute={(p, t) => {
-            setCurrentPath(p);
-            setActiveTab(t as NavTabId);
-            window.history.pushState(null, '', p);
-            updateDocumentSeo(p, false);
-            scrollToTopInstant();
-          }}
-        />
+        {/* Guide & FAQ Météo & Carrousel d'icônes (masqués sur Radar pour mode plein écran pur) */}
+        {activeTab !== 'radar' && (
+          <>
+            <SeoPageGuideCard
+              activeTab={activeTab}
+              currentPath={currentPath}
+              isLightMode={themeMode === 'light'}
+              onNavigateRoute={(p, t) => {
+                setCurrentPath(p);
+                setActiveTab(t as NavTabId);
+                window.history.pushState(null, '', p);
+                updateDocumentSeo(p, false);
+                scrollToTopInstant();
+              }}
+            />
 
-        {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, AURA IA, Direct) */}
-        <div className="w-full max-w-7xl mx-auto px-2 pt-4">
-          <BottomIconCarousel
-            onOpenRadar={() => { setActiveTab('radar'); scrollToTopInstant(); }}
-            onOpenAura={() => setIsAuraModalOpen(true)}
-            onNavigateDirect={() => { setActiveTab('realtime'); scrollToTopInstant(); }}
-            onOpenSkyMap={() => { window.location.href = '/skymap'; }}
-          />
-        </div>
+            {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, AURA IA, Direct) */}
+            <div className="w-full max-w-7xl mx-auto px-2 pt-4">
+              <BottomIconCarousel
+                onOpenRadar={() => { setActiveTab('radar'); scrollToTopInstant(); }}
+                onOpenAura={() => setIsAuraModalOpen(true)}
+                onNavigateDirect={() => { setActiveTab('realtime'); scrollToTopInstant(); }}
+                onOpenSkyMap={() => { window.location.href = '/skymap'; }}
+              />
+            </div>
+          </>
+        )}
         </section>
       </main>
 
-      {/* Footer avec maillage interne complet et URLs canoniques strictes pour Google Search Console */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-40 sm:pb-36">
+      {/* Footer avec maillage interne complet et URLs canoniques strictes (masqué sur Radar) */}
+      {activeTab !== 'radar' && (
+      <footer className="border-t border-slate-800/80 bg-slate-950/70 py-8 px-4 text-center text-xs text-slate-500 pb-28 sm:pb-10">
         <div className="mx-auto max-w-7xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
             <p className="text-left font-medium">
@@ -1847,32 +1891,36 @@ function WeatherApp() {
           </div>
         </div>
       </footer>
+      )}
 
-      {/* Floating Bottom Navigation Dock & Full Hub Drawer */}
-      <BottomNavigationDock
-        activeTab={activeTab as NavTabId}
-        onSelectTab={(tab) => {
-          if (tab === 'skymap') {
-            window.location.href = '/skymap';
-            return;
-          }
-          setActiveTab(tab);
-        }}
-        onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
-        onOpenSearchModal={() => setIsSearchModalOpen(true)}
-        onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
-        onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
-        onOpenAndroidModal={() => setIsInstallModalOpen(true)}
-        onSelectStation={handleSelectStationWithSeo}
-        simplifiedMode={simplifiedMode}
-        onToggleSimplifiedMode={handleToggleSimplifiedMode}
-        onToggleThemeMode={handleToggleThemeMode}
-        showFloatingBubble={showFloatingBubble}
-        onToggleFloatingBubble={handleToggleFloatingBubble}
-        currentTheme={currentTheme}
-        seniorMode={seniorMode}
-        isLightMode={themeMode === 'light'}
-      />
+            </div>
+          </div>
+
+          {/* Mobile-Only Bottom 5-Slot Navigation Dock & Universal Pages Hub Modal */}
+          <BottomNavigationDock
+            activeTab={activeTab as NavTabId}
+            onSelectTab={(tab) => {
+              if (tab === 'skymap') {
+                window.location.href = '/skymap';
+                return;
+              }
+              setActiveTab(tab);
+            }}
+            onOpenAtmosphereModal={() => setIsAtmosphereModalOpen(true)}
+            onOpenSearchModal={() => setIsSearchModalOpen(true)}
+            onOpenNotificationsModal={() => setIsNotificationModalOpen(true)}
+            onOpenComparatorModal={() => setIsComparatorModalOpen(true)}
+            onOpenAndroidModal={() => setIsInstallModalOpen(true)}
+            onSelectStation={handleSelectStationWithSeo}
+            simplifiedMode={simplifiedMode}
+            onToggleSimplifiedMode={handleToggleSimplifiedMode}
+            onToggleThemeMode={handleToggleThemeMode}
+            showFloatingBubble={showFloatingBubble}
+            onToggleFloatingBubble={handleToggleFloatingBubble}
+            currentTheme={currentTheme}
+            seniorMode={seniorMode}
+            isLightMode={themeMode === 'light'}
+          />
         </>
       )}
 

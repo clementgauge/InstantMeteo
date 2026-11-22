@@ -57,6 +57,7 @@ interface GigaRadarMapProps {
   seniorMode: boolean;
   onOpenSearchModal?: () => void;
   weather?: CurrentWeather;
+  fullScreenLayout?: boolean;
 }
 
 interface RainViewerFrame {
@@ -172,7 +173,8 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   currentStation,
   onSelectStation,
   seniorMode,
-  weather
+  weather,
+  fullScreenLayout = false
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -1156,7 +1158,9 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       className={`rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
         isFullscreen
           ? '!fixed !inset-0 !z-[99999] !rounded-none !border-0 !m-0 !h-[100dvh] !w-screen overscroll-none'
-          : 'relative h-[600px] sm:h-[680px] lg:h-[780px]'
+          : fullScreenLayout
+            ? 'relative h-[calc(100dvh-205px)] sm:h-[calc(100dvh-148px)] min-h-[460px]'
+            : 'relative h-[600px] sm:h-[680px] lg:h-[780px]'
       }`}
     >
       {/* 1. TOP METEOCIEL + SKYMAP FLOATING HEADER BAR */}

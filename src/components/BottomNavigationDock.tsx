@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Sun, 
   ShieldAlert, 
@@ -9,8 +9,6 @@ import {
   Sparkles, 
   Search, 
   Compass, 
-  ChevronUp, 
-  ChevronDown,
   ChevronRight,
   ChevronLeft,
   Split,
@@ -127,57 +125,6 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [plusSubView, setPlusSubView] = useState<'main' | 'favorites'>('main');
   const [savedFavorites, setSavedFavorites] = useState<LocationPoint[]>(() => loadSavedFavoriteStations());
-  const [isDockMinimized, setIsDockMinimized] = useState(false);
-  const dockScrollRef = useRef<HTMLDivElement>(null);
-  const autoScrollDirectionRef = useRef<-1 | 0 | 1>(0);
-  const autoScrollFrameRef = useRef<number | null>(null);
-
-  const stopDockAutoScroll = () => {
-    autoScrollDirectionRef.current = 0;
-    if (autoScrollFrameRef.current !== null) {
-      cancelAnimationFrame(autoScrollFrameRef.current);
-      autoScrollFrameRef.current = null;
-    }
-  };
-
-  const runDockAutoScroll = () => {
-    const scroller = dockScrollRef.current;
-    const direction = autoScrollDirectionRef.current;
-
-    if (!scroller || direction === 0) {
-      autoScrollFrameRef.current = null;
-      return;
-    }
-
-    scroller.scrollLeft += direction * 2.6;
-    autoScrollFrameRef.current = requestAnimationFrame(runDockAutoScroll);
-  };
-
-  const startDockAutoScroll = (direction: -1 | 1) => {
-    if (autoScrollDirectionRef.current === direction && autoScrollFrameRef.current !== null) return;
-    stopDockAutoScroll();
-    autoScrollDirectionRef.current = direction;
-    autoScrollFrameRef.current = requestAnimationFrame(runDockAutoScroll);
-  };
-
-  const handleDockPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const scroller = dockScrollRef.current;
-    if (!scroller) return;
-
-    const rect = scroller.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const edgeZone = Math.min(95, rect.width * 0.2);
-
-    if (x <= edgeZone) {
-      startDockAutoScroll(-1);
-    } else if (x >= rect.width - edgeZone) {
-      startDockAutoScroll(1);
-    } else {
-      stopDockAutoScroll();
-    }
-  };
-
-  useEffect(() => () => stopDockAutoScroll(), []);
 
   const [, setDisplayTick] = useState(0);
   useEffect(() => {
@@ -187,11 +134,17 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     const handleFavoritesUpdate = () => {
       setSavedFavorites(loadSavedFavoriteStations());
     };
+    const handleOpenPagesHub = () => {
+      setIsPlusMenuOpen(false);
+      setIsMenuDrawerOpen(true);
+    };
     window.addEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
     window.addEventListener('instant_meteo_favorites_updated', handleFavoritesUpdate);
+    window.addEventListener('instant_meteo_open_pages_hub', handleOpenPagesHub);
     return () => {
       window.removeEventListener('instant_meteo_display_preferences_updated', handlePreferencesUpdate);
       window.removeEventListener('instant_meteo_favorites_updated', handleFavoritesUpdate);
+      window.removeEventListener('instant_meteo_open_pages_hub', handleOpenPagesHub);
     };
   }, []);
 
@@ -281,81 +234,6 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       items: cat.items.filter(it => isPageVisible(it.id))
     }))
     .filter(cat => cat.items.length > 0);
-
-  const getDockItemStyle = (id: string, isActive: boolean) => {
-    if (isActive) {
-      switch (id) {
-        case 'realtime':
-          return 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/35 border border-amber-300 font-black';
-        case 'auraAI':
-          return 'bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 text-white shadow-lg shadow-purple-500/35 border border-sky-400 font-black';
-        case 'cloudNephology':
-          return 'bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-sky-500/35 border border-sky-400 font-black';
-        case 'vigilance':
-          return 'bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 text-white shadow-lg shadow-rose-500/35 border border-rose-300 font-black';
-        case 'scenarios14d':
-          return 'bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white shadow-lg shadow-indigo-500/35 border border-indigo-400 font-black';
-        case 'bulletin':
-          return 'bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/35 border border-cyan-300 font-black';
-        case 'radar':
-          return 'bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/35 border border-cyan-300 font-black';
-        case 'mountain':
-          return 'bg-gradient-to-r from-slate-700 via-cyan-800 to-blue-900 text-white shadow-lg shadow-cyan-500/35 border border-cyan-400 font-black';
-        case 'beaches':
-          return 'bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-lg shadow-teal-500/35 border border-teal-300 font-black';
-        case 'droughtFire':
-          return 'bg-gradient-to-r from-orange-600 via-amber-600 to-red-600 text-white shadow-lg shadow-orange-500/35 border border-amber-300 font-black';
-        case 'watercourses':
-          return 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-500/35 border border-cyan-300 font-black';
-        default:
-          return 'bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 text-white shadow-lg shadow-blue-500/35 border border-blue-400 font-black';
-      }
-    }
-
-    if (isLightMode) {
-      return 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 border border-slate-200/80';
-    }
-
-    switch (id) {
-      case 'realtime':
-        return 'bg-slate-900/80 hover:bg-amber-950/40 text-slate-300 hover:text-amber-300 border border-slate-800/80 hover:border-amber-500/40';
-      case 'auraAI':
-        return 'bg-slate-900/80 hover:bg-purple-950/40 text-slate-300 hover:text-purple-300 border border-slate-800/80 hover:border-purple-500/40';
-      case 'cloudNephology':
-        return 'bg-slate-900/80 hover:bg-sky-950/40 text-slate-300 hover:text-sky-300 border border-slate-800/80 hover:border-sky-500/40';
-      case 'vigilance':
-        return 'bg-slate-900/80 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-800/80 hover:border-rose-500/40';
-      case 'radar':
-        return 'bg-slate-900/80 hover:bg-cyan-950/40 text-slate-300 hover:text-cyan-300 border border-slate-800/80 hover:border-cyan-500/40';
-      case 'mountain':
-        return 'bg-slate-900/80 hover:bg-cyan-950/40 text-slate-300 hover:text-cyan-300 border border-slate-800/80 hover:border-cyan-500/40';
-      case 'beaches':
-        return 'bg-slate-900/80 hover:bg-teal-950/40 text-slate-300 hover:text-teal-300 border border-slate-800/80 hover:border-teal-500/40';
-      case 'droughtFire':
-        return 'bg-slate-900/80 hover:bg-orange-950/40 text-slate-300 hover:text-orange-300 border border-slate-800/80 hover:border-orange-500/40';
-      default:
-        return 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700';
-    }
-  };
-
-  const getDockIconColor = (id: string, isActive: boolean) => {
-    if (isActive) return id === 'realtime' ? 'text-slate-950' : 'text-white';
-    if (isLightMode) return 'text-slate-600';
-    switch (id) {
-      case 'realtime': return 'text-amber-400';
-      case 'auraAI': return 'text-purple-400';
-      case 'cloudNephology': return 'text-sky-400';
-      case 'vigilance': return 'text-rose-400';
-      case 'scenarios14d': return 'text-indigo-400';
-      case 'bulletin': return 'text-blue-400';
-      case 'radar': return 'text-cyan-400';
-      case 'mountain': return 'text-sky-300';
-      case 'beaches': return 'text-teal-400';
-      case 'droughtFire': return 'text-orange-400';
-      case 'watercourses': return 'text-blue-400';
-      default: return 'text-slate-400';
-    }
-  };
 
   return (
     <>
@@ -977,138 +855,6 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
             </span>
           </button>
         </div>
-      </nav>
-
-      {/* =================================================================== */}
-      {/* DESKTOP / TABLET FLOATING BOTTOM DOCK (Unchanged, hidden on phones) */}
-      {/* =================================================================== */}
-      <nav 
-        aria-label="Navigation rapide inférieure"
-        className="hidden sm:block fixed bottom-3.5 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-5xl transition-all duration-300 ease-out"
-      >
-        {isDockMinimized ? (
-          /* Minimized Capsule */
-          <div className="flex items-center justify-center">
-            <button
-              onClick={() => setIsDockMinimized(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold transition active:scale-95 animate-bounce shadow-xl ${
-                isLightMode 
-                  ? 'border-blue-300 bg-white/95 text-slate-800 hover:text-blue-600' 
-                  : 'border-blue-500/40 bg-[#070d18]/95 text-slate-200 hover:text-white'
-              }`}
-              style={{
-                boxShadow: isLightMode ? '0 8px 25px -4px rgba(37, 99, 235, 0.25)' : `0 8px 25px -4px ${currentTheme.glowAccentColor}50`
-              }}
-            >
-              <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span>Afficher la navigation ({primaryDockItems.length} modules)</span>
-              <ChevronUp className={`h-3.5 w-3.5 ${isLightMode ? 'text-slate-500' : 'text-slate-400'}`} />
-            </button>
-          </div>
-        ) : (
-          /* Full High-Craft Floating Glass Dock */
-          <div 
-            className={`relative rounded-full border backdrop-blur-2xl p-1.5 flex items-center justify-between gap-1.5 transition-all duration-300 ${
-              isLightMode 
-                ? 'border-slate-200/90 shadow-[0_12px_35px_rgba(15,23,42,0.12)] ring-1 ring-black/5' 
-                : 'border-slate-700/80 shadow-[0_12px_45px_rgba(0,0,0,0.85)] ring-1 ring-white/10'
-            }`}
-            style={{
-              background: isLightMode ? 'rgba(255, 255, 255, 0.94)' : 'rgba(7, 13, 24, 0.96)',
-              boxShadow: isLightMode 
-                ? '0 12px 35px -5px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8)' 
-                : `0 12px 35px -5px ${currentTheme.glowAccentColor}35, 0 0 1px 1px rgba(255,255,255,0.08)`
-            }}
-          >
-            {/* 1. Left: Atmosphere Theme Selector */}
-            <button
-              onClick={onOpenAtmosphereModal}
-              title={`Atmosphère actuelle : ${currentTheme.name}. Cliquez pour changer.`}
-              className={`flex items-center justify-center h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-full border transition active:scale-95 shrink-0 ${
-                isLightMode 
-                  ? 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800' 
-                  : 'border-slate-700/60 bg-slate-900/80 hover:bg-slate-800 text-white'
-              }`}
-              style={{
-                borderColor: isLightMode ? undefined : `${currentTheme.glowAccentColor}50`
-              }}
-            >
-              <Sparkles className="h-4 w-4 animate-pulse shrink-0" style={{ color: currentTheme.glowAccentColor }} />
-              <span className="text-[11px] font-bold hidden md:inline ml-1.5 whitespace-nowrap">
-                {currentTheme.skyToneLabel}
-              </span>
-            </button>
-
-            {/* 2. Center: Smooth Touch Horizontal Scroll Track */}
-            <div
-              ref={dockScrollRef}
-              onPointerMove={handleDockPointerMove}
-              onPointerLeave={stopDockAutoScroll}
-              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 justify-start px-1 scroll-smooth min-w-0"
-              style={{ scrollbarWidth: 'none', overscrollBehaviorX: 'contain' }}
-            >
-              {primaryDockItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    id={`dock-tab-${item.id}`}
-                    onClick={() => {
-                      if (item.id === 'skymap') {
-                        window.location.href = '/skymap';
-                        return;
-                      }
-                      onSelectTab(item.id);
-                    }}
-                    className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs transition-all relative shrink-0 active:scale-95 ${
-                      getDockItemStyle(item.id, isActive)
-                    } ${seniorMode ? 'py-2 px-3 text-sm' : ''}`}
-                  >
-                    <div className="relative">
-                      <Icon className={`h-4 w-4 shrink-0 transition-colors ${getDockIconColor(item.id, isActive)}`} />
-                      {item.badge && !isActive && (
-                        <span className="absolute -top-1.5 -right-2 px-1 py-0.2 text-[8px] font-extrabold bg-amber-500 text-slate-950 rounded-full leading-tight">
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                    <span className="whitespace-nowrap tracking-tight">
-                      {item.shortLabel}
-                    </span>
-                    {isActive && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 3. Right: 20 Pages Hub Drawer & Minimize Button */}
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => setIsMenuDrawerOpen(true)}
-                title={`Consulter les ${primaryDockItems.length} modules et cartes météo`}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition active:scale-95 shrink-0 cursor-pointer"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span className="text-xs font-black whitespace-nowrap">{primaryDockItems.length} Pages</span>
-              </button>
-
-              <button
-                onClick={() => setIsDockMinimized(true)}
-                title="Masquer la barre"
-                className={`flex items-center justify-center h-8 w-8 rounded-full border transition shrink-0 active:scale-95 cursor-pointer ${
-                  isLightMode 
-                    ? 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900' 
-                    : 'border-slate-800 bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
       </nav>
     </>
   );

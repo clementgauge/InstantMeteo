@@ -537,11 +537,8 @@ export const Header: React.FC<HeaderProps> = ({
       {/* DESKTOP EXCLUSIVE HEADER - Single line compact layout                    */}
       {/* ========================================================================= */}
       <div className="hidden sm:flex w-full flex-nowrap items-center justify-between gap-2">
-        {/* Brand & Logo (Compact to keep everything on 1 single line) */}
-        <AppLogo size="sm" showSubtitle={false} className="shrink-0" />
-
-        {/* Right: All Actions, Search, Social Links & Settings on ONE line */}
-        <div className="flex flex-nowrap items-center gap-1.5 min-w-0">
+        {/* All Actions, Search & Settings on ONE full-width line (logo lives in PC left sidebar) */}
+        <div className="flex w-full flex-nowrap items-center justify-between gap-2 min-w-0">
           {/* Direct GPS Geolocation Button */}
           {onLocateGps && (
             <button
