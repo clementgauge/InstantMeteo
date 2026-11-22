@@ -1150,6 +1150,40 @@ button:active:not(:disabled) {
   }
 }
 
+/* ========================================================================= */
+/* RADAR SKYMAP HUD FROSTED GLASS PRESERVATION (DARK & LIGHT THEMES)         */
+/* ========================================================================= */
+.radar-hud-panel {
+  background-color: rgba(11, 17, 32, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(51, 65, 85, 0.75) !important;
+  color: #f8fafc !important;
+}
 
+.theme-light .radar-hud-panel [class*="text-white"],
+.theme-light .radar-hud-panel [class*="text-slate-100"],
+.theme-light .radar-hud-panel [class*="text-slate-200"] {
+  color: #f8fafc !important;
+}
 
+.theme-light .radar-hud-panel [class*="text-slate-300"] {
+  color: #cbd5e1 !important;
+}
 
+.theme-light .radar-hud-panel [class*="text-slate-400"] {
+  color: #94a3b8 !important;
+}
+
+.theme-light .radar-hud-panel input {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  color: #f8fafc !important;
+  border-color: rgba(71, 85, 105, 0.8) !important;
+}
+
+.theme-light .radar-hud-panel [class*="bg-slate-900"],
+.theme-light .radar-hud-panel [class*="bg-slate-950"] {
+  background-color: rgba(15, 23, 42, 0.72) !important;
+  color: #f8fafc !important;
+  border-color: rgba(51, 65, 85, 0.7) !important;
+}

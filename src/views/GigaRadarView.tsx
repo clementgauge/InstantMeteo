@@ -73,87 +73,77 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
   }, [currentStation, weather, hourly]);
 
   return (
-    <div id="giga-radar-view" className="space-y-4">
-      {/* ========================================================================= */}
-      {/* EN-TÊTE H1 SÉMANTIQUE : RADAR PLUIE HD & PRÉCIPITATIONS TEMPS RÉEL        */}
-      {/* ========================================================================= */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg backdrop-blur-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span>Mosaïque Nationale Doppler ARAMIS &bull; Rafraîchissement 5 min</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
-              Suivi des précipitations, des nuages et des orages sur la carte
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Suivi haute résolution des fronts pluvieux, orages de grêle, averses et chutes de neige en temps réel. Visualisation interactive de la réflectivité en dBZ et intensités en mm/h sur l'ensemble de la métropole.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
-            <span className="px-3 py-1 rounded-xl bg-sky-950/80 border border-sky-800 text-xs font-bold text-sky-200">
-              Échos Radar Live
-            </span>
-          </div>
+    <div id="giga-radar-view" className="space-y-3">
+      {/* Top Map Mode Switcher & Station Action Ribbon */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 p-2 rounded-xl bg-[#0F172A] border border-slate-800">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setActiveMapMode('radar')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              activeMapMode === 'radar'
+                ? 'bg-[#0284C7] text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <CloudRain className="h-4 w-4" />
+            <span>Radar &amp; Modèles HD</span>
+          </button>
+
+          <button
+            id="radar-tab-world-temperatures"
+            onClick={() => setActiveMapMode('worldTemperature')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              activeMapMode === 'worldTemperature'
+                ? 'bg-[#0284C7] text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Thermometer className="h-4 w-4" />
+            <span>Températures Moyennes Mondiales</span>
+          </button>
+
+          <button
+            id="radar-tab-community-reports"
+            onClick={() => setActiveMapMode('communityReports')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              activeMapMode === 'communityReports'
+                ? 'bg-[#0284C7] text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Carte Collaborative Terrain</span>
+          </button>
+
+          <button
+            id="radar-tab-thematic-maps"
+            onClick={() => {
+              setActiveMapMode('thematic');
+              setThematicType('airQuality');
+            }}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
+              activeMapMode === 'thematic'
+                ? 'bg-[#0284C7] text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Layers className="h-4 w-4" />
+            <span>Cartes Thématiques</span>
+          </button>
         </div>
-      </div>
 
-      {/* Top Map Mode Switcher */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-[#0F172A] border border-slate-800 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setActiveMapMode('radar')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'radar'
-              ? 'bg-[#0284C7] text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <CloudRain className="h-4 w-4" />
-          <span>Radar Précipitations &amp; Vents HD</span>
-        </button>
-
-        <button
-          id="radar-tab-world-temperatures"
-          onClick={() => setActiveMapMode('worldTemperature')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'worldTemperature'
-              ? 'bg-[#0284C7] text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Thermometer className="h-4 w-4" />
-          <span>Températures Moyennes Mondiales</span>
-        </button>
-
-        <button
-          id="radar-tab-community-reports"
-          onClick={() => setActiveMapMode('communityReports')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'communityReports'
-              ? 'bg-[#0284C7] text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          <span>Carte Collaborative Terrain</span>
-        </button>
-
-        <button
-          id="radar-tab-thematic-maps"
-          onClick={() => {
-            setActiveMapMode('thematic');
-            setThematicType('airQuality');
-          }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap shrink-0 ${
-            activeMapMode === 'thematic'
-              ? 'bg-[#0284C7] text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Layers className="h-4 w-4" />
-          <span>Cartes Thématiques</span>
-        </button>
+        <div className="flex items-center justify-between lg:justify-end gap-2 px-1 shrink-0">
+          <span className="text-xs text-slate-400 hidden xl:inline truncate max-w-[220px]">
+            Station : <strong className="text-slate-200">{currentStation.name}</strong>
+          </span>
+          <button
+            onClick={onOpenSearchModal}
+            className="flex items-center justify-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-3.5 py-2 text-xs transition cursor-pointer whitespace-nowrap shrink-0"
+          >
+            <MapPin className="h-3.5 w-3.5" />
+            <span>Changer de commune</span>
+          </button>
+        </div>
       </div>
 
       {activeMapMode === 'worldTemperature' ? (
@@ -177,60 +167,6 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
         />
       ) : (
         <>
-      {/* Top Banner - In Simplified Mode: ONLY the search button. In Normal Mode: clean structured header */}
-      {simplifiedMode ? (
-        <div className="flex items-center justify-between gap-3 p-1">
-          <button
-            onClick={onOpenSearchModal}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-4 py-2.5 text-xs transition cursor-pointer"
-          >
-            <MapPin className="h-3.5 w-3.5" />
-            <span>Rechercher une commune, ville ou station...</span>
-          </button>
-        </div>
-      ) : (
-        <div className="rounded-lg border border-slate-800 bg-[#0F172A] p-4 sm:p-5">
-          {/* Mobile Search Button */}
-          <div className="sm:hidden flex items-center justify-end">
-            <button
-              onClick={onOpenSearchModal}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-3 py-2 text-xs transition cursor-pointer"
-            >
-              <MapPin className="h-3.5 w-3.5" />
-              <span>Changer de commune</span>
-            </button>
-          </div>
-
-          {/* Desktop / Tablet Header */}
-          <div className="hidden sm:block">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-[#0284C7] text-xs font-bold uppercase tracking-wider mb-1">
-                  <Radio className="h-3.5 w-3.5 text-[#0284C7]" />
-                  <span>Réseau ARAMIS &amp; Imagerie Satellite HD</span>
-                </div>
-                <h2 className={`font-bold text-white ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
-                  Radar Météorologique &amp; Détection des Précipitations
-                </h2>
-                <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
-                  Échos de précipitations, détection Doppler et surveillance du risque d'incendie autour de votre commune.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={onOpenSearchModal}
-                  className="flex items-center gap-2 rounded-md bg-[#0284C7] hover:bg-[#0369a1] text-white font-semibold px-4 py-2 text-xs transition cursor-pointer"
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>Changer de commune...</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 1. Main Interactive High-Performance Radar Map Component */}
       <GigaRadarMap
         currentStation={currentStation}

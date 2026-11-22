@@ -1,51 +1,54 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import L from 'leaflet';
 import { LocationPoint, CurrentWeather } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
 import { WORLD_STATIONS } from '../data/worldStations';
 import { getLocalityFromCoordinates, searchLocalities } from '../services/openMeteoService';
 import { createSeamlessCloudLayer } from '../utils/cloudSatelliteTileLayer';
-import { 
-  fetchLiveRadarDetections, 
-  LiveRadarStormDetection, 
-  LiveLightningStrike 
+import {
+  fetchLiveRadarDetections,
+  LiveLightningStrike
 } from '../services/radarDetectionApiService';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Layers, 
-  Eye, 
-  Maximize2, 
-  Minimize2, 
-  Zap, 
-  CloudRain, 
-  Globe2, 
-  Search, 
-  MapPin, 
-  Sliders, 
-  Sun, 
-  Mountain,
-  ChevronRight,
-  Info,
-  Radar as RadarIcon,
+import {
+  WEATHER_MODELS,
+  WeatherModelId,
+  WeatherLayerMode,
+  SpatialGridData,
+  PointTelemetry,
+  fetchSpatialWeatherGrid,
+  samplePointTelemetry,
+  findCurrentHourIndex
+} from '../services/radarGridService';
+import { COLOR_SCALES, getScaleCssGradient } from '../utils/weatherColorScales';
+import { WeatherScientificCanvasEngine } from '../utils/weatherContourCanvasLayer';
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Layers,
+  Maximize2,
+  Minimize2,
+  Zap,
+  CloudRain,
+  Globe2,
+  Search,
+  MapPin,
+  Sun,
   Compass,
-  Ruler,
-  Clock,
-  ShieldAlert,
   Target,
   ZoomIn,
   ZoomOut,
   Crosshair,
-  Volume2,
-  VolumeX,
-  Radio,
-  Flame,
   Snowflake,
   Wind,
-  Navigation,
-  Sparkles,
-  RefreshCw
+  Gauge,
+  Thermometer,
+  ChevronLeft,
+  ChevronRight,
+  SkipBack,
+  SkipForward,
+  RefreshCw,
+  Grid
 } from 'lucide-react';
 
 interface GigaRadarMapProps {
@@ -69,7 +72,7 @@ interface RainViewerData {
     past: RainViewerFrame[];
     nowcast: RainViewerFrame[];
   };
-  satellite: {
+  satellite?: {
     infrared: RainViewerFrame[];
   };
 }
@@ -79,7 +82,7 @@ interface StormCell {
   name: string;
   lat: number;
   lon: number;
-  intensity: 'Faible' | 'Modéré' | 'Fort' | 'Sévère' | 'Violent / Grêligène' | string;
+  intensity: string;
   dbz: number;
   movementSpeedKmH: number;
   movementBearingDeg: number;
@@ -89,59 +92,96 @@ interface StormCell {
   hailRiskPercent: number;
 }
 
-/**
- * Calculates geodesic Haversine distance in km
- */
+type BaseMapId = 'meteo_light' | 'dark' | 'topo' | 'hybrid';
+
+function escapeHtml(raw: string | undefined | null): string {
+  if (!raw) return '';
+  return String(raw)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Number((R * c).toFixed(1));
 }
 
-/**
- * Calculates compass azimuth bearing
- */
 function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): { deg: number; compass: string } {
-  const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
-  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-            Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
-  const brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  const y = Math.sin(((lon2 - lon1) * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180);
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos(((lon2 - lon1) * Math.PI) / 180);
+  const brng = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
   const compassPoints = [
-    "Nord", "Nord-Nord-Est", "Nord-Est", "Est-Nord-Est",
-    "Est", "Est-Sud-Est", "Sud-Est", "Sud-Sud-Est",
-    "Sud", "Sud-Sud-Ouest", "Sud-Ouest", "Ouest-Sud-Ouest",
-    "Ouest", "Ouest-Nord-Ouest", "Nord-Ouest", "Nord-Nord-Ouest"
+    'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+    'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'
   ];
   const compass = compassPoints[Math.floor(((brng + 11.25) % 360) / 22.5)];
   return { deg: Math.round(brng), compass };
 }
 
-// Convert dBZ to estimated rain rate in mm/h (Marshall-Palmer relation Z = 200 * R^1.6)
-function dbzToRainRate(dbz: number): number {
-  if (dbz <= 10) return 0;
-  const z = Math.pow(10, dbz / 10);
-  const r = Math.pow(z / 200, 1 / 1.6);
-  return Number(r.toFixed(1));
+function degToCompassShort(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+  return dirs[Math.round(deg / 45) % 8];
 }
+
+function formatUtcIsoToLocalLabel(iso: string): string {
+  const d = new Date(iso + 'Z');
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('fr-FR', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+const LAYER_MENU: {
+  id: WeatherLayerMode;
+  label: string;
+  shortDesc: string;
+  icon: React.FC<{ className?: string }>;
+  accentClass: string;
+}[] = [
+  { id: 'radar', label: 'Précipitations & Radar', shortDesc: 'Doppler HD + cumuls mm/h', icon: CloudRain, accentClass: 'text-sky-400' },
+  { id: 'temperatures', label: 'Températures 2 m', shortDesc: 'Champ lissé + isothermes', icon: Thermometer, accentClass: 'text-amber-400' },
+  { id: 'temp850', label: 'Masse d’Air 850 hPa', shortDesc: 'Altitude ~1500 m (ECMWF)', icon: Sun, accentClass: 'text-orange-400' },
+  { id: 'wind', label: 'Vent & Flux Animés', shortDesc: 'Particules + rafales km/h', icon: Wind, accentClass: 'text-teal-400' },
+  { id: 'pressure', label: 'Pression & Isobares', shortDesc: 'MSLP hPa + centres D / A', icon: Gauge, accentClass: 'text-indigo-400' },
+  { id: 'lightning', label: 'Orages (CAPE) & Foudre', shortDesc: 'Instabilité J/kg + éclairs', icon: Zap, accentClass: 'text-yellow-400' },
+  { id: 'snow', label: 'Neige & Massifs', shortDesc: 'Chutes cm/h + LPN', icon: Snowflake, accentClass: 'text-cyan-300' },
+  { id: 'satellite', label: 'Nébulosité Satellite', shortDesc: 'Couverture nuageuse %', icon: Globe2, accentClass: 'text-slate-300' }
+];
 
 export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   currentStation,
   onSelectStation,
   seniorMode,
-  onOpenSearchModal,
   weather
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenWrapperRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const canvasEngineRef = useRef<WeatherScientificCanvasEngine | null>(null);
+
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const labelsLayerRef = useRef<L.TileLayer | null>(null);
-  const radarOverlayRef = useRef<L.TileLayer | null>(null);
+  const bordersGroupRef = useRef<L.LayerGroup | null>(null);
   const satelliteOverlayRef = useRef<L.Layer | null>(null);
   const markerGroupRef = useRef<L.LayerGroup | null>(null);
   const lightningGroupRef = useRef<L.LayerGroup | null>(null);
@@ -149,58 +189,248 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
   const rangeRingsGroupRef = useRef<L.LayerGroup | null>(null);
   const measurementLineGroupRef = useRef<L.LayerGroup | null>(null);
   const probeMarkerRef = useRef<L.Marker | null>(null);
-  const windGroupRef = useRef<L.LayerGroup | null>(null);
-  const radarEchoesGroupRef = useRef<L.LayerGroup | null>(null);
+  const windStationsGroupRef = useRef<L.LayerGroup | null>(null);
   const snowGroupRef = useRef<L.LayerGroup | null>(null);
   const radarTileLayersPoolRef = useRef<Map<number, L.TileLayer>>(new Map());
 
-  // States: Sélection du fond cartographique et des couches météo
-  const [baseMap, setBaseMap] = useState<'hybrid' | 'dark' | 'topo' | 'satellite'>('hybrid');
-  const [activeLayerMode, setActiveLayerMode] = useState<'radar' | 'snow' | 'wind' | 'satellite' | 'temperatures' | 'lightning' | 'multi'>('radar');
-  const [showLegendMobile, setShowLegendMobile] = useState<boolean>(false);
-  const [liveStrikes, setLiveStrikes] = useState<LiveLightningStrike[]>([]);
-  const [isLiveThunderstormCalm, setIsLiveThunderstormCalm] = useState<boolean>(true);
-  
-  // Layer visibility toggles in Multi-Spectre mode
-  const [showRadar, setShowRadar] = useState<boolean>(true);
-  const [showSatellite, setShowSatellite] = useState<boolean>(true);
-  const [showLightning, setShowLightning] = useState<boolean>(true);
-  const [showStormCells, setShowStormCells] = useState<boolean>(true);
-  const [showWind, setShowWind] = useState<boolean>(true);
-  const [showSnow, setShowSnow] = useState<boolean>(true);
+  // Core View & Layer State
+  const [baseMap, setBaseMap] = useState<BaseMapId>('meteo_light');
+  const [activeLayerMode, setActiveLayerMode] = useState<WeatherLayerMode>('radar');
+  const [activeModel, setActiveModel] = useState<WeatherModelId>('meteofrance_seamless');
+  const [precipSource, setPrecipSource] = useState<'live' | 'model'>('live');
 
-  // Palette & Opacities
-  const [radarColor, setRadarColor] = useState<number>(2); // 2 = Universal Blue, 1 = Titan, 4 = Rainbow, 6 = Snow/Winter
-  const [radarOpacity, setRadarOpacity] = useState<number>(0.85);
-  const [satelliteOpacity, setSatelliteOpacity] = useState<number>(0.85);
-  const [smoothRadarTiles, setSmoothRadarTiles] = useState<boolean>(true);
-  const [soundAlerts, setSoundAlerts] = useState<boolean>(false);
+  // Floating HUD Drawer & Display Options
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
+  const [showColorField, setShowColorField] = useState<boolean>(true);
+  const [showIsolines, setShowIsolines] = useState<boolean>(true);
+  const [showWindParticles, setShowWindParticles] = useState<boolean>(false);
+  const [showBorders, setShowBorders] = useState<boolean>(true);
+  const [showStations, setShowStations] = useState<boolean>(true);
+  const [showGraticule, setShowGraticule] = useState<boolean>(false);
+  const [showDistanceRings, setShowDistanceRings] = useState<boolean>(false);
+  const [overlayOpacity, setOverlayOpacity] = useState<number>(0.82);
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [showStations, setShowStations] = useState<boolean>(false);
-  const [showDistanceRings, setShowDistanceRings] = useState<boolean>(false);
-  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(7);
+  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(6.5);
 
-  // User location auto-detection & live temperature for temperatures mode
-  const [userLocationPoint, setUserLocationPoint] = useState<LocationPoint | null>(currentStation || null);
-  const [userLocationTemp, setUserLocationTemp] = useState<number | null>(
-    weather?.temperature !== undefined ? Number(weather.temperature.toFixed(1)) : null
+  // Spatial Open-Meteo Multi-Model Grid State
+  const [spatialGrid, setSpatialGrid] = useState<SpatialGridData | null>(null);
+  const [isGridLoading, setIsGridLoading] = useState<boolean>(false);
+  const [gridHourIndex, setGridHourIndex] = useState<number>(0);
+  const [baseNowHourIndex, setBaseNowHourIndex] = useState<number>(0);
+  const [isModelPlaying, setIsModelPlaying] = useState<boolean>(false);
+  const [lastUpdatedLabel, setLastUpdatedLabel] = useState<string>(() =>
+    new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
   );
 
-  // Synchronisation dynamique si la météo ou la station change
-  useEffect(() => {
-    if (weather?.temperature !== undefined) {
-      setUserLocationTemp(Number(weather.temperature.toFixed(1)));
-    }
-  }, [weather?.temperature]);
+  // RainViewer Live Radar State
+  const [rvData, setRvData] = useState<RainViewerData | null>(null);
+  const [rvFrames, setRvFrames] = useState<RainViewerFrame[]>([]);
+  const [rvFrameIndex, setRvFrameIndex] = useState<number>(0);
+  const [isRvPlaying, setIsRvPlaying] = useState<boolean>(true);
+  const [playbackSpeedMs, setPlaybackSpeedMs] = useState<number>(750);
+
+  // Live Lightning & Storm Cells
+  const [liveStrikes, setLiveStrikes] = useState<LiveLightningStrike[]>([]);
+  const [activeStormsList, setActiveStormsList] = useState<StormCell[]>([]);
+  const [lightningCount, setLightningCount] = useState<number>(0);
+
+  // Live Stations Temperatures & Probe State
+  const [liveStationTemps, setLiveStationTemps] = useState<Record<string, number>>({});
+  const [hoverProbe, setHoverProbe] = useState<{
+    lat: number;
+    lon: number;
+    telemetry: PointTelemetry | null;
+  } | null>(null);
+  const [measuredTarget, setMeasuredTarget] = useState<{
+    lat: number;
+    lon: number;
+    distanceKm: number;
+    bearingDeg: number;
+    bearingCompass: string;
+    localityName: string;
+    telemetry: PointTelemetry | null;
+    liveTemp?: number;
+    livePrecip?: number;
+  } | null>(null);
+
+  // GeoJSON Borders Cache
+  const [franceGeoJson, setFranceGeoJson] = useState<any>(null);
+  const [worldGeoJson, setWorldGeoJson] = useState<any>(null);
+
+  // GPS & Search State
+  const [isLocatingUser, setIsLocatingUser] = useState<boolean>(false);
+  const [userLocationError, setUserLocationError] = useState<string | null>(null);
+  const [mapSearchQuery, setMapSearchQuery] = useState<string>('');
+  const [mapSearchResults, setMapSearchResults] = useState<LocationPoint[]>([]);
+
+  const gridRef = useRef<SpatialGridData | null>(null);
+  const hourIdxRef = useRef<number>(0);
+  const currentStationRef = useRef<LocationPoint>(currentStation);
 
   useEffect(() => {
-    if (currentStation) {
-      setUserLocationPoint(prev => prev || currentStation);
-    }
+    gridRef.current = spatialGrid;
+  }, [spatialGrid]);
+
+  useEffect(() => {
+    hourIdxRef.current = gridHourIndex;
+  }, [gridHourIndex]);
+
+  useEffect(() => {
+    currentStationRef.current = currentStation;
   }, [currentStation]);
 
-  // Sync native HTML5 Fullscreen API & body scroll lock with component state
+  // 1. Load local static GeoJSON boundaries once for crisp Meteociel borders
+  useEffect(() => {
+    let active = true;
+    fetch('/data/france-departements.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (active && data) setFranceGeoJson(data);
+      })
+      .catch(() => {});
+
+    fetch('/data/world-countries.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (active && data) setWorldGeoJson(data);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // 2. Fetch RainViewer Live Doppler Frames
+  const fetchRainViewer = useCallback(async () => {
+    try {
+      const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+      if (!res.ok) throw new Error('RainViewer unavailable');
+      const data: RainViewerData = await res.json();
+      setRvData(data);
+
+      const allFrames = [...(data.radar?.past || []), ...(data.radar?.nowcast || [])];
+      if (allFrames.length > 0) {
+        setRvFrames(allFrames);
+        const lastObserved = Math.max(0, (data.radar?.past?.length || 1) - 1);
+        setRvFrameIndex(lastObserved);
+      }
+      setLastUpdatedLabel(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+    } catch {
+      const now = Math.floor(Date.now() / 1000);
+      const fallback: RainViewerFrame[] = Array.from({ length: 12 }).map((_, i) => ({
+        time: now - (11 - i) * 600,
+        path: `/v2/radar/${now - (11 - i) * 600}`
+      }));
+      setRvFrames(fallback);
+      setRvFrameIndex(fallback.length - 3);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRainViewer();
+    const interval = setInterval(fetchRainViewer, 300000);
+    return () => clearInterval(interval);
+  }, [fetchRainViewer]);
+
+  // 3. Fetch Live Convective Storms & Lightning Detections
+  const loadDetections = useCallback(async () => {
+    try {
+      const res = await fetchLiveRadarDetections(currentStation.latitude, currentStation.longitude);
+      const mappedStorms: StormCell[] = res.storms.map((s) => ({
+        id: s.id,
+        name: s.name,
+        lat: s.latitude,
+        lon: s.longitude,
+        intensity: s.intensity,
+        dbz: s.dbz || 48,
+        movementSpeedKmH: 42,
+        movementBearingDeg: 55,
+        movementCompass: 'NE',
+        topAltitudeM: s.intensity === 'VIOLENT' ? 12800 : 10200,
+        lightningRatePerMin: s.lightningRateMin,
+        hailRiskPercent: s.hailProbabilityPct
+      }));
+      setActiveStormsList(mappedStorms);
+      setLiveStrikes(res.strikes);
+      setLightningCount(res.strikeCount);
+    } catch {
+      // silent fallback
+    }
+  }, [currentStation.latitude, currentStation.longitude]);
+
+  useEffect(() => {
+    loadDetections();
+    const interval = setInterval(loadDetections, 180000);
+    return () => clearInterval(interval);
+  }, [loadDetections]);
+
+  // 4. Fetch Live French Station Temperatures for crisp map readouts
+  useEffect(() => {
+    let mounted = true;
+    const loadStations = async () => {
+      try {
+        const subset = FRENCH_STATIONS.slice(0, 32);
+        const lats = subset.map((s) => s.latitude.toFixed(2)).join(',');
+        const lons = subset.map((s) => s.longitude.toFixed(2)).join(',');
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=auto`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && mounted) {
+          const mapped: Record<string, number> = {};
+          data.forEach((item, idx) => {
+            if (item?.current?.temperature_2m !== undefined && subset[idx]) {
+              mapped[subset[idx].id] = Number(item.current.temperature_2m.toFixed(1));
+            }
+          });
+          setLiveStationTemps(mapped);
+        }
+      } catch {
+        // fallback handled dynamically
+      }
+    };
+    loadStations();
+    const interval = setInterval(loadStations, 300000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // 5. Load Spatial Open-Meteo Grid for current viewport & active model
+  const refreshGridForMap = useCallback(
+    async (modelToFetch: WeatherModelId) => {
+      const map = mapInstanceRef.current;
+      if (!map) return;
+      const b = map.getBounds();
+      setIsGridLoading(true);
+      try {
+        const grid = await fetchSpatialWeatherGrid(modelToFetch, {
+          south: b.getSouth(),
+          north: b.getNorth(),
+          west: b.getWest(),
+          east: b.getEast()
+        });
+        setSpatialGrid(grid);
+        const nowIdx = findCurrentHourIndex(grid.times);
+        setBaseNowHourIndex(nowIdx);
+        setGridHourIndex((prev) => (prev === 0 || prev >= grid.times.length ? nowIdx : prev));
+        setLastUpdatedLabel(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+      } catch (err) {
+        console.warn('[GigaRadarMap] Spatial grid fetch notice:', err);
+      } finally {
+        setIsGridLoading(false);
+      }
+    },
+    []
+  );
+
+  // Fullscreen handlers
   useEffect(() => {
     const handleFsChange = () => {
       const fsEl =
@@ -213,27 +443,17 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       } else if (fsEl === fullscreenWrapperRef.current || fsEl === document.documentElement) {
         setIsFullscreen(true);
       }
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 100);
+      setTimeout(() => mapInstanceRef.current?.invalidateSize(), 120);
     };
 
     document.addEventListener('fullscreenchange', handleFsChange);
     document.addEventListener('webkitfullscreenchange', handleFsChange);
-    document.addEventListener('mozfullscreenchange', handleFsChange);
-    document.addEventListener('MSFullscreenChange', handleFsChange);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFsChange);
       document.removeEventListener('webkitfullscreenchange', handleFsChange);
-      document.removeEventListener('mozfullscreenchange', handleFsChange);
-      document.removeEventListener('MSFullscreenChange', handleFsChange);
     };
   }, []);
 
-  // Lock page scroll and elevate radar container when fullscreen is active
   useEffect(() => {
     if (isFullscreen) {
       document.body.setAttribute('data-radar-fullscreen', 'true');
@@ -245,276 +465,54 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       document.documentElement.style.overflow = '';
     }
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false);
-      }
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false);
     };
-    window.addEventListener('keydown', handleKeyDown);
-
-    const t1 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 60);
-    const t2 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 250);
+    window.addEventListener('keydown', onEsc);
+    const t = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 100);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(t1);
-      clearTimeout(t2);
+      window.removeEventListener('keydown', onEsc);
+      clearTimeout(t);
       document.body.removeAttribute('data-radar-fullscreen');
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
   }, [isFullscreen]);
 
-  // Lock user strictly on the radar container in Fullscreen mode
   const handleToggleTrueFullscreen = async () => {
     const nextState = !isFullscreen;
     setIsFullscreen(nextState);
-
     try {
-      const isCurrentlyNativeFs = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-
-      if (nextState && !isCurrentlyNativeFs) {
-        const targetEl = fullscreenWrapperRef.current || document.documentElement;
-        if (targetEl.requestFullscreen) {
-          await targetEl.requestFullscreen();
-        } else if ((targetEl as any).webkitRequestFullscreen) {
-          await (targetEl as any).webkitRequestFullscreen();
-        } else if ((targetEl as any).mozRequestFullScreen) {
-          await (targetEl as any).mozRequestFullScreen();
-        } else if ((targetEl as any).msRequestFullscreen) {
-          await (targetEl as any).msRequestFullscreen();
-        }
-      } else if (!nextState && isCurrentlyNativeFs) {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-          await (document as any).webkitExitFullscreen();
-        } else if ((document as any).mozCancelFullScreen) {
-          await (document as any).mozCancelFullScreen();
-        } else if ((document as any).msExitFullscreen) {
-          await (document as any).msExitFullscreen();
-        }
+      const isNativeFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      if (nextState && !isNativeFs) {
+        const el = fullscreenWrapperRef.current || document.documentElement;
+        await el.requestFullscreen?.();
+      } else if (!nextState && isNativeFs) {
+        await document.exitFullscreen?.();
       }
     } catch {
-      // CSS fullscreen lock (`isFullscreen`) remains active even inside iframes or iOS Safari
+      // CSS fullscreen remains active
     }
-
-    setTimeout(() => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    }, 150);
+    setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150);
   };
 
-  // Auto-detect user's GPS position automatically for live temperatures
+  // 6. Initialize Leaflet Map & Scientific Canvas Engine
   useEffect(() => {
-    if (!userLocationPoint && currentStation) {
-      setUserLocationPoint(currentStation);
-    }
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          try {
-            const locality = await getLocalityFromCoordinates(latitude, longitude);
-            setUserLocationPoint(locality);
-          } catch {
-            setUserLocationPoint({
-              id: `user-gps-${latitude.toFixed(3)}-${longitude.toFixed(3)}`,
-              name: 'Ma position GPS',
-              latitude,
-              longitude,
-              altitude: 120,
-              department: 'Position GPS actuelle',
-              region: 'France',
-              climateZone: 'Tempéré',
-              allTimeRecordMax: 42.0,
-              allTimeRecordMin: -15.0,
-              allTimeRecordRain24h: 80.0
-            });
-          }
-        },
-        (err) => {
-          console.log('Auto geolocation fallback to current station:', err);
-          if (currentStation) {
-            setUserLocationPoint(currentStation);
-          }
-        },
-        { timeout: 7000, enableHighAccuracy: true }
-      );
-    }
-  }, [activeLayerMode, currentStation]);
-
-  // Fetch live measured temperature from Open-Meteo for user's exact coordinates
-  useEffect(() => {
-    const targetLoc = userLocationPoint || currentStation;
-    if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
-      let isMounted = true;
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${targetLoc.latitude}&longitude=${targetLoc.longitude}&current=temperature_2m&timezone=auto`)
-        .then(res => res.json())
-        .then(data => {
-          if (isMounted && data?.current?.temperature_2m !== undefined) {
-            setUserLocationTemp(Number(data.current.temperature_2m.toFixed(1)));
-          }
-        })
-        .catch(() => {
-          // handled by fallback calculation
-        });
-      return () => { isMounted = false; };
-    }
-  }, [userLocationPoint, currentStation]);
-
-  // Températures réelles mesurées pour l'ensemble des stations françaises du réseau
-  const [liveStationTemps, setLiveStationTemps] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchLiveFrenchStationsTemps = async () => {
-      try {
-        const lats = FRENCH_STATIONS.map(s => s.latitude.toFixed(2)).join(',');
-        const lons = FRENCH_STATIONS.map(s => s.longitude.toFixed(2)).join(',');
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=auto`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          const mapTemps: Record<string, number> = {};
-          data.forEach((item, idx) => {
-            if (item?.current?.temperature_2m !== undefined && FRENCH_STATIONS[idx]) {
-              mapTemps[FRENCH_STATIONS[idx].id] = Number(item.current.temperature_2m.toFixed(1));
-            }
-          });
-          if (isMounted) setLiveStationTemps(mapTemps);
-        }
-      } catch (err) {
-        console.warn('Erreur chargement températures réelles stations:', err);
-      }
-    };
-
-    fetchLiveFrenchStationsTemps();
-    const interval = setInterval(fetchLiveFrenchStationsTemps, 300000); // Actualisation toutes les 5 min
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Target probe & distance measurement
-  const [measuredTarget, setMeasuredTarget] = useState<{
-    lat: number;
-    lon: number;
-    distanceKm: number;
-    bearingDeg: number;
-    bearingCompass: string;
-    localityName: string;
-    estimatedDbz?: number;
-    estimatedRainRate?: number;
-    temperature?: number;
-  } | null>(null);
-
-  const [hoverCoord, setHoverCoord] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLocatingUser, setIsLocatingUser] = useState<boolean>(false);
-  const [userLocationError, setUserLocationError] = useState<string | null>(null);
-
-  // RainViewer Data & Animation Playback
-  const [rvData, setRvData] = useState<RainViewerData | null>(null);
-  const [frames, setFrames] = useState<RainViewerFrame[]>([]);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(800); // ms per frame
-  const [lightningCount, setLightningCount] = useState<number>(0);
-  const [activeStormsList, setActiveStormsList] = useState<StormCell[]>([]);
-  
-  // Search state
-  const [mapSearchQuery, setMapSearchQuery] = useState<string>('');
-  const [mapSearchResults, setMapSearchResults] = useState<LocationPoint[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-
-  // 1. Fetch RainViewer API data with resilient fallback
-  const fetchRainViewer = useCallback(async () => {
-    try {
-      const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-      if (!res.ok) throw new Error('RainViewer offline');
-      const data: RainViewerData = await res.json();
-      setRvData(data);
-
-      const allRadar = [...(data.radar.past || []), ...(data.radar.nowcast || [])];
-      if (allRadar.length > 0) {
-        setFrames(allRadar);
-        // Default to the last observed frame (transition between past and nowcast)
-        const lastPastIndex = Math.max(0, (data.radar.past?.length || 1) - 1);
-        setCurrentFrameIndex(lastPastIndex);
-      }
-    } catch (err) {
-      console.warn('RainViewer fetch error, using synthetic timestamps', err);
-      const now = Math.floor(Date.now() / 1000);
-      const fallback: RainViewerFrame[] = Array.from({ length: 12 }).map((_, i) => ({
-        time: now - (11 - i) * 600,
-        path: `/v2/radar/${now - (11 - i) * 600}`
-      }));
-      setFrames(fallback);
-      setCurrentFrameIndex(fallback.length - 3);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRainViewer();
-    const interval = setInterval(fetchRainViewer, 300000); // 5 min auto refresh
-    return () => clearInterval(interval);
-  }, [fetchRainViewer]);
-
-  // 2. Fetch authentic Convective Storms & Lightning from Open-Meteo Synoptic network & NASA EONET
-  const loadDetections = useCallback(async () => {
-    try {
-      const res = await fetchLiveRadarDetections(currentStation.latitude, currentStation.longitude);
-      const mappedStorms: StormCell[] = res.storms.map((s) => ({
-        id: s.id,
-        name: s.name,
-        lat: s.latitude,
-        lon: s.longitude,
-        intensity: s.intensity,
-        dbz: s.dbz || 48,
-        movementSpeedKmH: 45,
-        movementBearingDeg: 55,
-        movementCompass: 'Nord-Est',
-        topAltitudeM: s.intensity === 'VIOLENT' ? 12800 : 10500,
-        lightningRatePerMin: s.lightningRateMin,
-        hailRiskPercent: s.hailProbabilityPct
-      }));
-      setActiveStormsList(mappedStorms);
-      setLiveStrikes(res.strikes);
-      setLightningCount(res.strikeCount);
-      setIsLiveThunderstormCalm(mappedStorms.length === 0);
-    } catch (err) {
-      console.warn('Real-time radar detections fetch note', err);
-    }
-  }, [currentStation.latitude, currentStation.longitude]);
-
-  useEffect(() => {
-    loadDetections();
-    const interval = setInterval(loadDetections, 180000); // 3 min refresh
-    return () => clearInterval(interval);
-  }, [loadDetections]);
-
-  // 3. Initialize Leaflet Map with continuous free zooming down to level 19
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return;
-
-    const initialLat = currentStation.latitude || 46.603354;
-    const initialLon = currentStation.longitude || 2.888334;
+    // Default centered cleanly over France (or selected international city) so the full synoptic panorama shines immediately
+    const isFrance = !currentStation.countryCode || currentStation.countryCode === 'FR';
+    const initCenter: [number, number] = isFrance
+      ? [46.65, 2.35]
+      : [currentStation.latitude || 46.65, currentStation.longitude || 2.35];
+    const initZoom = isFrance ? 6.0 : 5.5;
 
     const map = L.map(mapContainerRef.current, {
-      center: [initialLat, initialLon],
-      zoom: 7,
+      center: initCenter,
+      zoom: initZoom,
       minZoom: 2,
-      maxZoom: 19,
+      maxZoom: 18,
       worldCopyJump: true,
       zoomControl: false,
       attributionControl: false,
@@ -523,51 +521,108 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
       wheelPxPerZoomLevel: 90
     });
 
-    // Custom layer groups
+    // Dedicated crisp border pane above weather color contours
+    const bordersPane = map.createPane('bordersPane');
+    bordersPane.style.zIndex = '420';
+    bordersPane.style.pointerEvents = 'none';
+
+    bordersGroupRef.current = L.layerGroup().addTo(map);
     markerGroupRef.current = L.layerGroup().addTo(map);
-    radarEchoesGroupRef.current = L.layerGroup().addTo(map);
     snowGroupRef.current = L.layerGroup().addTo(map);
-    windGroupRef.current = L.layerGroup().addTo(map);
+    windStationsGroupRef.current = L.layerGroup().addTo(map);
     lightningGroupRef.current = L.layerGroup().addTo(map);
     stormCellsGroupRef.current = L.layerGroup().addTo(map);
     rangeRingsGroupRef.current = L.layerGroup().addTo(map);
     measurementLineGroupRef.current = L.layerGroup().addTo(map);
 
-    // Zoom listener for HUD
-    map.on('zoomend', () => {
+    // Mount native HTML5 Canvas meteorological field / isoline / wind particle engine
+    canvasEngineRef.current = new WeatherScientificCanvasEngine(map, {
+      grid: null,
+      hourIndex: 0,
+      scale: COLOR_SCALES.radar,
+      opacity: 0.82,
+      showColorField: false,
+      showIsolines: true,
+      showGraticule: false,
+      showWindParticles: false,
+      darkBasemap: false
+    });
+
+    let moveDebounce: ReturnType<typeof setTimeout> | null = null;
+    map.on('moveend zoomend', () => {
       setCurrentZoomLevel(Number(map.getZoom().toFixed(1)));
+      if (moveDebounce) clearTimeout(moveDebounce);
+      moveDebounce = setTimeout(() => {
+        refreshGridForMap(activeModel);
+      }, 280);
     });
 
-    // Mousemove for real-time cursor coordinate probe
     map.on('mousemove', (e: L.LeafletMouseEvent) => {
-      setHoverCoord({ lat: e.latlng.lat, lng: e.latlng.lng });
+      const { lat, lng } = e.latlng;
+      const g = gridRef.current;
+      const t = g ? samplePointTelemetry(g, hourIdxRef.current, lat, lng) : null;
+      setHoverProbe({ lat, lon: lng, telemetry: t });
     });
 
-    // Map Click Handler -> Probe locality, real telemetry and set measurement
+    map.on('mouseout', () => {
+      setHoverProbe(null);
+    });
+
     map.on('click', async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      const distance = calculateHaversineDistance(currentStation.latitude, currentStation.longitude, lat, lng);
-      const bearing = calculateBearing(currentStation.latitude, currentStation.longitude, lat, lng);
+      const refSt = currentStationRef.current;
+      const distance = calculateHaversineDistance(refSt.latitude, refSt.longitude, lat, lng);
+      const bearing = calculateBearing(refSt.latitude, refSt.longitude, lat, lng);
+
+      const g = gridRef.current;
+      const gridTelem = g ? samplePointTelemetry(g, hourIdxRef.current, lat, lng) : null;
+
+      setMeasuredTarget({
+        lat,
+        lon: lng,
+        distanceKm: distance,
+        bearingDeg: bearing.deg,
+        bearingCompass: bearing.compass,
+        localityName: `${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E`,
+        telemetry: gridTelem
+      });
+
+      if (probeMarkerRef.current) {
+        map.removeLayer(probeMarkerRef.current);
+      }
+
+      const probeIcon = L.divIcon({
+        html: `
+          <div class="relative flex items-center justify-center pointer-events-none">
+            <div class="h-4 w-4 rounded-full bg-sky-500 border-2 border-white shadow-lg flex items-center justify-center">
+              <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
+            </div>
+          </div>
+        `,
+        className: 'probe-pin',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+      probeMarkerRef.current = L.marker([lat, lng], { icon: probeIcon }).addTo(map);
 
       try {
-        const pointPromise = getLocalityFromCoordinates(lat, lng);
-        const liveWeatherPromise = fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=auto`)
-          .then(r => r.json())
-          .catch(() => null);
+        const [point, liveJson] = await Promise.all([
+          getLocalityFromCoordinates(lat, lng),
+          fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current=temperature_2m,precipitation&timezone=auto`
+          )
+            .then((r) => r.json())
+            .catch(() => null)
+        ]);
 
-        const [point, liveData] = await Promise.all([pointPromise, liveWeatherPromise]);
-
-        const precip = liveData?.current?.precipitation !== undefined ? Number(liveData.current.precipitation) : 0;
-        const liveTemp = liveData?.current?.temperature_2m !== undefined ? Number(liveData.current.temperature_2m.toFixed(1)) : undefined;
-
-        // Marshall-Palmer relation Z = 200 * R^1.6 -> dBZ = 10 * log10(Z)
-        let calcDbz = 0;
-        if (precip > 0.05) {
-          const z = 200 * Math.pow(precip, 1.6);
-          calcDbz = Math.min(65, Math.max(12, Math.round(10 * Math.log10(z))));
-        } else if (liveData?.current?.weather_code && [51, 53, 55, 61, 80].includes(liveData.current.weather_code)) {
-          calcDbz = 18;
-        }
+        const liveTemp =
+          liveJson?.current?.temperature_2m !== undefined
+            ? Number(liveJson.current.temperature_2m.toFixed(1))
+            : undefined;
+        const livePrecip =
+          liveJson?.current?.precipitation !== undefined
+            ? Number(liveJson.current.precipitation.toFixed(1))
+            : undefined;
 
         setMeasuredTarget({
           lat,
@@ -576,901 +631,453 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
           bearingDeg: bearing.deg,
           bearingCompass: bearing.compass,
           localityName: point.name,
-          estimatedDbz: calcDbz,
-          estimatedRainRate: Number(precip.toFixed(1)),
-          temperature: liveTemp
+          telemetry: gridTelem,
+          liveTemp,
+          livePrecip
         });
-
-        // Add visual click probe pin
-        if (probeMarkerRef.current) {
-          map.removeLayer(probeMarkerRef.current);
-        }
-
-        const probeIcon = L.divIcon({
-          html: `
-            <div class="relative flex items-center justify-center pointer-events-none">
-              <span class="absolute h-8 w-8 rounded-full bg-cyan-400/40 animate-ping"></span>
-              <div class="h-4 w-4 rounded-full bg-cyan-500 border-2 border-white shadow-xl flex items-center justify-center">
-                <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
-              </div>
-            </div>
-          `,
-          className: 'probe-pin',
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-
-        probeMarkerRef.current = L.marker([lat, lng], { icon: probeIcon }).addTo(map);
-
-        onSelectStation(point);
-      } catch (err) {
-        console.error('Click geocode error', err);
+      } catch {
+        // Keep coordinate telemetry cleanly displayed
       }
     });
 
     mapInstanceRef.current = map;
+    refreshGridForMap(activeModel);
 
     return () => {
+      if (moveDebounce) clearTimeout(moveDebounce);
+      canvasEngineRef.current?.destroy();
+      canvasEngineRef.current = null;
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []);
 
-  // 4. Update Base Map and City/Road Labels
+  // Trigger model grid reload whenever activeModel changes
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    refreshGridForMap(activeModel);
+  }, [activeModel, refreshGridForMap]);
+
+  // 7. Update Base Map Tiles cleanly
+  useEffect(() => {
     const map = mapInstanceRef.current;
+    if (!map) return;
 
     if (tileLayerRef.current) {
       map.removeLayer(tileLayerRef.current);
+      tileLayerRef.current = null;
     }
     if (labelsLayerRef.current) {
       map.removeLayer(labelsLayerRef.current);
       labelsLayerRef.current = null;
     }
 
-    // Configuration cartographique haute définition sélectionnable
-    const baseMapConfigs = {
-      hybrid: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    const configs: Record<BaseMapId, { url: string; maxNativeZoom: number; subdomains?: string }> = {
+      meteo_light: {
+        url: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
         maxNativeZoom: 18,
-        maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '© Esri, Maxar'
+        subdomains: 'abcd'
       },
       dark: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-        maxNativeZoom: 16,
-        maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '© Esri Dark Gray Canvas'
+        url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+        maxNativeZoom: 18,
+        subdomains: 'abcd'
       },
       topo: {
         url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         maxNativeZoom: 19,
-        maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '© OpenStreetMap contributors'
+        subdomains: 'abc'
       },
-      satellite: {
+      hybrid: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        maxNativeZoom: 18,
-        maxZoom: 19,
-        subdomains: 'abc',
-        attribution: '© Esri, Maxar'
+        maxNativeZoom: 18
       }
     };
 
-    const currentConfig = baseMapConfigs[baseMap] || baseMapConfigs.hybrid;
-    tileLayerRef.current = L.tileLayer(currentConfig.url, {
-      maxNativeZoom: currentConfig.maxNativeZoom,
-      maxZoom: currentConfig.maxZoom,
-      subdomains: currentConfig.subdomains as any,
-      attribution: currentConfig.attribution
+    const cfg = configs[baseMap];
+    tileLayerRef.current = L.tileLayer(cfg.url, {
+      maxNativeZoom: cfg.maxNativeZoom,
+      maxZoom: 18,
+      subdomains: (cfg.subdomains as any) || 'abc'
     }).addTo(map);
 
-    // Frontières administratives et noms de villes en surimpression nette sur Satellite Hybride
-    if (baseMap === 'hybrid') {
+    // Subtle city labels layer above borders
+    if (baseMap === 'meteo_light') {
+      labelsLayerRef.current = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+        { maxNativeZoom: 18, maxZoom: 18, subdomains: 'abcd', pane: 'bordersPane', opacity: 0.72 }
+      ).addTo(map);
+    } else if (baseMap === 'dark') {
+      labelsLayerRef.current = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
+        { maxNativeZoom: 18, maxZoom: 18, subdomains: 'abcd', pane: 'bordersPane', opacity: 0.78 }
+      ).addTo(map);
+    } else if (baseMap === 'hybrid') {
       labelsLayerRef.current = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-        {
-          maxNativeZoom: 16,
-          maxZoom: 19,
-          opacity: 0.9,
-          zIndex: 14
-        }
+        { maxNativeZoom: 16, maxZoom: 18, pane: 'bordersPane', opacity: 0.85 }
       ).addTo(map);
     }
-
-    // Ensure radar overlays remain on top
-    if (satelliteOverlayRef.current && (satelliteOverlayRef.current as any).bringToFront) (satelliteOverlayRef.current as any).bringToFront();
-    if (radarOverlayRef.current && (radarOverlayRef.current as any).bringToFront) (radarOverlayRef.current as any).bringToFront();
-    if (labelsLayerRef.current && (labelsLayerRef.current as any).bringToFront) (labelsLayerRef.current as any).bringToFront();
   }, [baseMap]);
 
-  // 5. High-performance Radar tile caching and smooth frame switching
+  // 8. Render Crisp French Departements & Country Borders above weather field
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
-    const map = mapInstanceRef.current;
-    const host = rvData?.host || 'https://tilecache.rainviewer.com';
-    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
+    const group = bordersGroupRef.current;
+    if (!group) return;
+    group.clearLayers();
+    if (!showBorders) return;
 
-    // Clear previous tile layer pool if radarColor, smoothRadarTiles or frames changed
-    radarTileLayersPoolRef.current.forEach((layer) => {
-      map.removeLayer(layer);
+    const isDarkSurface = baseMap === 'dark' || baseMap === 'hybrid';
+    const countryStroke = isDarkSurface ? 'rgba(226, 232, 240, 0.55)' : 'rgba(15, 23, 42, 0.65)';
+    const deptStroke = isDarkSurface ? 'rgba(203, 213, 225, 0.42)' : 'rgba(30, 41, 59, 0.48)';
+
+    if (worldGeoJson) {
+      const worldLayer = L.geoJSON(worldGeoJson, {
+        pane: 'bordersPane',
+        interactive: false,
+        style: {
+          color: countryStroke,
+          weight: 1.25,
+          fill: false
+        }
+      });
+      group.addLayer(worldLayer);
+    }
+
+    if (franceGeoJson) {
+      const frLayer = L.geoJSON(franceGeoJson, {
+        pane: 'bordersPane',
+        interactive: false,
+        style: {
+          color: deptStroke,
+          weight: 0.85,
+          fill: false
+        }
+      });
+      group.addLayer(frLayer);
+    }
+  }, [showBorders, franceGeoJson, worldGeoJson, baseMap]);
+
+  // 9. Sync Native Scientific Canvas Engine with Active Mode / Grid / Isolines / Wind Particles
+  useEffect(() => {
+    if (!canvasEngineRef.current) return;
+    const scale = COLOR_SCALES[activeLayerMode];
+
+    // In live Doppler mode on 'radar', RainViewer tiles provide crisp observed echoes on top,
+    // while in 'model' mode (or any other layer) our bicubic continuous contour field draws smoothly!
+    const renderModelColorField =
+      showColorField && (activeLayerMode !== 'radar' || precipSource === 'model');
+
+    const enableWindParticles =
+      showWindParticles || activeLayerMode === 'wind';
+
+    const enableIsolines =
+      showIsolines &&
+      (activeLayerMode === 'temperatures' ||
+        activeLayerMode === 'temp850' ||
+        activeLayerMode === 'pressure' ||
+        activeLayerMode === 'lightning' ||
+        (activeLayerMode === 'radar' && precipSource === 'model'));
+
+    canvasEngineRef.current.updateConfig({
+      grid: spatialGrid,
+      hourIndex: gridHourIndex,
+      scale,
+      opacity: overlayOpacity,
+      showColorField: renderModelColorField,
+      showIsolines: enableIsolines,
+      showGraticule,
+      showWindParticles: enableWindParticles,
+      darkBasemap: baseMap === 'dark' || baseMap === 'hybrid'
     });
+  }, [
+    spatialGrid,
+    gridHourIndex,
+    activeLayerMode,
+    precipSource,
+    showColorField,
+    showIsolines,
+    showWindParticles,
+    showGraticule,
+    overlayOpacity,
+    baseMap
+  ]);
+
+  // 10. RainViewer Live Doppler Tiles Pool (Active only when on 'radar' + 'live')
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    radarTileLayersPoolRef.current.forEach((layer) => map.removeLayer(layer));
     radarTileLayersPoolRef.current.clear();
 
-    if (!isRadarActive || frames.length === 0) return;
+    const isLiveRain = activeLayerMode === 'radar' && precipSource === 'live';
+    if (!isLiveRain || rvFrames.length === 0) return;
 
-    // Create TileLayers for each frame with initial opacity (preloads tiles in browser)
-    frames.forEach((frame, idx) => {
-      const radarUrl = `${host}${frame.path}/256/{z}/{x}/{y}/${radarColor}/1_1.png`;
-      const layer = L.tileLayer(radarUrl, {
-        opacity: idx === currentFrameIndex ? radarOpacity : 0,
-        zIndex: 12,
+    const host = rvData?.host || 'https://tilecache.rainviewer.com';
+    // RainViewer color scheme 2 = Universal Blue, 4 = Meteociel-like Spectrum
+    const colorScheme = 4;
+
+    rvFrames.forEach((frame, idx) => {
+      const url = `${host}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/1_1.png`;
+      const layer = L.tileLayer(url, {
+        opacity: idx === rvFrameIndex ? overlayOpacity : 0,
+        zIndex: 365,
         tileSize: 256,
         maxNativeZoom: 12,
-        maxZoom: 19,
-        keepBuffer: 3,
+        maxZoom: 18,
+        keepBuffer: 2,
         updateWhenIdle: false,
-        className: smoothRadarTiles ? 'radar-tile-smooth' : 'radar-tile-crisp'
+        className: 'radar-tile-smooth'
       }).addTo(map);
-
       radarTileLayersPoolRef.current.set(idx, layer);
     });
 
     return () => {
-      radarTileLayersPoolRef.current.forEach((layer) => {
-        map.removeLayer(layer);
-      });
+      radarTileLayersPoolRef.current.forEach((layer) => map.removeLayer(layer));
       radarTileLayersPoolRef.current.clear();
     };
-  }, [frames, activeLayerMode, showRadar, radarColor, smoothRadarTiles, rvData]);
+  }, [rvFrames, rvData, activeLayerMode, precipSource]);
 
-  // Fast frame opacity switcher (instant 60 fps, zero tile re-creation during playback!)
+  // Fast RainViewer frame opacity switcher
   useEffect(() => {
-    const isRadarActive = activeLayerMode === 'multi' ? showRadar : activeLayerMode === 'radar';
+    const isLiveRain = activeLayerMode === 'radar' && precipSource === 'live';
     radarTileLayersPoolRef.current.forEach((layer, idx) => {
-      if (idx === currentFrameIndex && isRadarActive) {
-        layer.setOpacity(radarOpacity);
-        if ((layer as any).bringToFront) (layer as any).bringToFront();
-      } else {
-        layer.setOpacity(0);
-      }
+      layer.setOpacity(isLiveRain && idx === rvFrameIndex ? overlayOpacity : 0);
     });
-  }, [currentFrameIndex, radarOpacity, activeLayerMode, showRadar]);
+  }, [rvFrameIndex, overlayOpacity, activeLayerMode, precipSource]);
 
-  // Satellite Cloud Layer update
+  // 11. Satellite Seamless Cloud Cover Layer (Active in 'satellite' mode)
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
+    if (!map) return;
+
     if (satelliteOverlayRef.current) {
       map.removeLayer(satelliteOverlayRef.current);
       satelliteOverlayRef.current = null;
     }
-    const isSatActive = activeLayerMode === 'multi' ? showSatellite : activeLayerMode === 'satellite';
-    if (isSatActive) {
-      const frameTime = frames[currentFrameIndex]?.time || Math.floor(Date.now() / 1000);
+
+    if (activeLayerMode === 'satellite') {
+      const hourIso = spatialGrid?.times?.[gridHourIndex];
+      const ts = hourIso ? Math.floor(Date.parse(hourIso + 'Z') / 1000) : Math.floor(Date.now() / 1000);
       satelliteOverlayRef.current = createSeamlessCloudLayer({
-        opacity: satelliteOpacity,
-        zIndex: 8,
-        timestamp: frameTime,
+        opacity: overlayOpacity * 0.72,
+        zIndex: 360,
+        timestamp: ts
       }).addTo(map);
     }
-  }, [activeLayerMode, showSatellite, satelliteOpacity, currentFrameIndex, frames]);
+  }, [activeLayerMode, overlayOpacity, gridHourIndex, spatialGrid]);
 
-  // 6. Animation Playback Loop
+  // 12. Playback Animation Loops (RainViewer Live vs Model Timeline)
   useEffect(() => {
-    if (!isPlaying || frames.length <= 1) return;
+    const isLiveRain = activeLayerMode === 'radar' && precipSource === 'live';
+    if (isLiveRain) {
+      if (!isRvPlaying || rvFrames.length <= 1) return;
+      const timer = setInterval(() => {
+        setRvFrameIndex((prev) => (prev + 1) % rvFrames.length);
+      }, playbackSpeedMs);
+      return () => clearInterval(timer);
+    } else {
+      const maxSteps = spatialGrid?.times?.length || 0;
+      if (!isModelPlaying || maxSteps <= 1) return;
+      const timer = setInterval(() => {
+        setGridHourIndex((prev) => (prev + 1 >= maxSteps ? baseNowHourIndex : prev + 1));
+      }, playbackSpeedMs);
+      return () => clearInterval(timer);
+    }
+  }, [activeLayerMode, precipSource, isRvPlaying, rvFrames.length, isModelPlaying, spatialGrid, baseNowHourIndex, playbackSpeedMs]);
 
-    const timer = setInterval(() => {
-      setCurrentFrameIndex((prev) => (prev + 1) % frames.length);
-    }, playbackSpeed);
-
-    return () => clearInterval(timer);
-  }, [isPlaying, frames.length, playbackSpeed]);
-
-  // 7. Update Concentric Range Rings (10 km, 25 km, 50 km, 100 km, 200 km)
+  // 13. City / Station Markers Layer (Clean typography badges, non-cluttered)
   useEffect(() => {
-    if (!rangeRingsGroupRef.current) return;
-    rangeRingsGroupRef.current.clearLayers();
+    const group = markerGroupRef.current;
+    if (!group) return;
+    group.clearLayers();
+    if (!showStations) return;
 
-    const isRingsVisible = showDistanceRings && (activeLayerMode === 'radar' || activeLayerMode === 'multi');
-    if (!isRingsVisible || !currentStation) return;
-
-    const rings = [
-      { radiusMeters: 10000, label: "10 km (Local)", color: "#38bdf8", weight: 1.5, dash: "4, 4" },
-      { radiusMeters: 25000, label: "25 km (Communes)", color: "#34d399", weight: 1.5, dash: "5, 5" },
-      { radiusMeters: 50000, label: "50 km (Département)", color: "#fbbf24", weight: 1.5, dash: "6, 6" },
-      { radiusMeters: 100000, label: "100 km (Région)", color: "#f97316", weight: 1.5, dash: "7, 7" },
-      { radiusMeters: 200000, label: "200 km (Bassin)", color: "#c084fc", weight: 1.5, dash: "8, 8" }
+    // Show concise key stations on French/European zoom without overflowing map
+    const keyStations: LocationPoint[] = [
+      currentStation,
+      ...FRENCH_STATIONS.filter((s) => s.id !== currentStation.id).slice(0, currentZoomLevel >= 7 ? 28 : 16),
+      ...(currentZoomLevel <= 5 ? WORLD_STATIONS.slice(0, 12) : [])
     ];
 
-    const center = [currentStation.latitude, currentStation.longitude] as [number, number];
+    keyStations.forEach((st) => {
+      const isSelected = st.id === currentStation.id;
+      const g = gridRef.current;
+      let displayVal = '';
+      if (activeLayerMode === 'temperatures') {
+        const t =
+          isSelected && weather?.temperature !== undefined
+            ? Number(weather.temperature.toFixed(1))
+            : liveStationTemps[st.id] !== undefined
+              ? liveStationTemps[st.id]
+              : g
+                ? Number(samplePointTelemetry(g, gridHourIndex, st.latitude, st.longitude).temp2m.toFixed(0))
+                : null;
+        if (t !== null) displayVal = `${t}°`;
+      } else if (g) {
+        const telem = samplePointTelemetry(g, gridHourIndex, st.latitude, st.longitude);
+        if (activeLayerMode === 'wind') displayVal = `${telem.windSpeed} km/h`;
+        else if (activeLayerMode === 'pressure') displayVal = `${telem.pressure}`;
+        else if (activeLayerMode === 'temp850') displayVal = `${telem.temp850.toFixed(0)}°`;
+        else if (activeLayerMode === 'radar') displayVal = telem.precip > 0.1 ? `${telem.precip}mm` : '';
+      }
 
-    // Pulsing station circle
-    const centerCircle = L.circleMarker(center, {
-      radius: 9,
-      color: '#38bdf8',
-      weight: 3,
-      fillColor: '#0284c7',
-      fillOpacity: 0.9
-    });
-    rangeRingsGroupRef.current.addLayer(centerCircle);
+      const cityShort = escapeHtml(st.name.split(' ')[0]);
+      const valEsc = escapeHtml(displayVal);
 
-    rings.forEach((r) => {
-      const circle = L.circle(center, {
-        radius: r.radiusMeters,
-        color: r.color,
-        weight: r.weight,
-        dashArray: r.dash,
-        fillColor: r.color,
-        fillOpacity: 0.02,
-        interactive: false
+      const html = `
+        <div class="cursor-pointer flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold shadow border whitespace-nowrap ${
+          isSelected
+            ? 'bg-sky-600 border-white text-white ring-2 ring-sky-400/60'
+            : 'bg-slate-950/88 border-slate-700/80 text-slate-100 hover:bg-slate-900'
+        }">
+          <span>${cityShort}</span>
+          ${valEsc ? `<span class="font-mono text-amber-300">${valEsc}</span>` : ''}
+        </div>
+      `;
+
+      const icon = L.divIcon({
+        html,
+        className: 'meteo-station-chip',
+        iconSize: [72, 20],
+        iconAnchor: [36, 10]
       });
-      rangeRingsGroupRef.current?.addLayer(circle);
 
-      // Distance tag marker at North
-      const latOffset = (r.radiusMeters / 111320);
-      const tagLat = currentStation.latitude + latOffset;
-      const tagIcon = L.divIcon({
-        html: `<div class="rounded-md px-1.5 py-0.5 text-[9px] font-black border shadow pointer-events-none whitespace-nowrap" style="background-color: rgba(15, 23, 42, 0.9); color: ${r.color}; border-color: ${r.color};">⟲ ${r.label}</div>`,
-        className: 'distance-ring-label',
-        iconSize: [75, 18],
-        iconAnchor: [37, 9]
-      });
-      const tagMarker = L.marker([tagLat, currentStation.longitude], { icon: tagIcon, interactive: false });
-      rangeRingsGroupRef.current?.addLayer(tagMarker);
+      const marker = L.marker([st.latitude, st.longitude], { icon, zIndexOffset: isSelected ? 900 : 10 });
+      marker.on('click', () => onSelectStation(st));
+      group.addLayer(marker);
     });
-  }, [currentStation, showDistanceRings, activeLayerMode]);
+  }, [showStations, currentStation, activeLayerMode, weather, liveStationTemps, spatialGrid, gridHourIndex, currentZoomLevel, onSelectStation]);
 
-  // 8. Update Measurement Line if a target is probed
+  // 14. Lightning Strikes & Storm Cells (Active in 'lightning' mode)
   useEffect(() => {
-    if (!measurementLineGroupRef.current) return;
-    measurementLineGroupRef.current.clearLayers();
+    const lGroup = lightningGroupRef.current;
+    const sGroup = stormCellsGroupRef.current;
+    if (!lGroup || !sGroup) return;
+    lGroup.clearLayers();
+    sGroup.clearLayers();
 
+    if (activeLayerMode !== 'lightning') return;
+
+    liveStrikes.forEach((strike) => {
+      const icon = L.divIcon({
+        html: `<div class="h-5 w-5 rounded-full bg-yellow-400 border border-white shadow-lg flex items-center justify-center text-slate-950 text-[10px] font-black">⚡</div>`,
+        className: 'lightning-icon',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+      const m = L.marker([strike.lat, strike.lon], { icon });
+      m.bindTooltip(
+        `<div class="p-2 text-xs text-slate-100"><div class="font-bold text-yellow-300">Impact ${strike.ampKa > 0 ? `+${strike.ampKa}` : strike.ampKa} kA</div><div>${escapeHtml(strike.nearestLocationName)} · il y a ${strike.timeMinutesAgo} min</div></div>`
+      );
+      lGroup.addLayer(m);
+    });
+
+    activeStormsList.forEach((storm) => {
+      const coreColor = storm.dbz >= 55 ? '#dc2626' : '#f97316';
+      const circle = L.circle([storm.lat, storm.lon], {
+        radius: 14000,
+        color: coreColor,
+        weight: 2,
+        fillColor: coreColor,
+        fillOpacity: 0.22
+      });
+      const badgeIcon = L.divIcon({
+        html: `<div class="rounded bg-slate-950/90 border border-amber-400/80 px-1.5 py-0.5 text-[10px] font-mono font-bold text-white whitespace-nowrap shadow">${storm.dbz} dBZ · ${storm.movementCompass}</div>`,
+        className: 'storm-cell-badge',
+        iconSize: [110, 20],
+        iconAnchor: [55, 10]
+      });
+      const marker = L.marker([storm.lat, storm.lon], { icon: badgeIcon });
+      marker.bindTooltip(
+        `<div class="p-2 text-xs text-slate-100 space-y-0.5"><div class="font-bold text-amber-300">${escapeHtml(storm.name)}</div><div>Réflectivité : ${storm.dbz} dBZ</div><div>Risque grêle : ${storm.hailRiskPercent}%</div></div>`
+      );
+      sGroup.addLayer(circle);
+      sGroup.addLayer(marker);
+    });
+  }, [activeLayerMode, liveStrikes, activeStormsList]);
+
+  // 15. Range Rings & Measurement Line
+  useEffect(() => {
+    const group = rangeRingsGroupRef.current;
+    if (!group) return;
+    group.clearLayers();
+    if (!showDistanceRings || !currentStation) return;
+
+    const center: [number, number] = [currentStation.latitude, currentStation.longitude];
+    [25000, 50000, 100000, 200000].forEach((radiusMeters) => {
+      const km = Math.round(radiusMeters / 1000);
+      group.addLayer(
+        L.circle(center, {
+          radius: radiusMeters,
+          color: '#0ea5e9',
+          weight: 1.25,
+          dashArray: '5, 5',
+          fill: false,
+          interactive: false
+        })
+      );
+      const tagLat = currentStation.latitude + radiusMeters / 111320;
+      const icon = L.divIcon({
+        html: `<div class="rounded bg-slate-950/90 border border-sky-500/60 px-1.5 py-0.5 text-[9px] font-mono font-bold text-sky-300 whitespace-nowrap">${km} km</div>`,
+        className: 'ring-label',
+        iconSize: [44, 16],
+        iconAnchor: [22, 8]
+      });
+      group.addLayer(L.marker([tagLat, currentStation.longitude], { icon, interactive: false }));
+    });
+  }, [showDistanceRings, currentStation]);
+
+  useEffect(() => {
+    const group = measurementLineGroupRef.current;
+    if (!group) return;
+    group.clearLayers();
     if (!measuredTarget || !currentStation) return;
 
-    const latlngs: [number, number][] = [
-      [currentStation.latitude, currentStation.longitude],
-      [measuredTarget.lat, measuredTarget.lon]
-    ];
-
-    const polyline = L.polyline(latlngs, {
-      color: '#38bdf8',
-      weight: 3,
-      dashArray: '6, 6'
-    });
-
-    const midLat = (currentStation.latitude + measuredTarget.lat) / 2;
-    const midLon = (currentStation.longitude + measuredTarget.lon) / 2;
-
-    const infoIcon = L.divIcon({
-      html: `
-        <div class="rounded-lg bg-slate-950/95 border-2 border-cyan-400 px-3 py-1.5 text-xs font-black text-cyan-300 shadow-2xl whitespace-nowrap flex items-center gap-1.5">
-          <span>📍 ${measuredTarget.distanceKm} km</span>
-          <span class="text-slate-400">•</span>
-          <span>${measuredTarget.bearingDeg}° (${measuredTarget.bearingCompass})</span>
-        </div>
-      `,
-      className: 'ruler-label',
-      iconSize: [160, 28],
-      iconAnchor: [80, 14]
-    });
-
-    const infoMarker = L.marker([midLat, midLon], { icon: infoIcon });
-
-    measurementLineGroupRef.current.addLayer(polyline);
-    measurementLineGroupRef.current.addLayer(infoMarker);
+    group.addLayer(
+      L.polyline(
+        [
+          [currentStation.latitude, currentStation.longitude],
+          [measuredTarget.lat, measuredTarget.lon]
+        ],
+        { color: '#0284c7', weight: 2, dashArray: '5, 5' }
+      )
+    );
   }, [measuredTarget, currentStation]);
 
-  // 9. Update Weather Station Pins & Temperatures across all countries (ONLY active in temperatures mode or multi)
-  useEffect(() => {
-    if (!markerGroupRef.current) return;
-    markerGroupRef.current.clearLayers();
-
-    const isTempActive = activeLayerMode === 'temperatures' || (activeLayerMode === 'multi' && showStations);
-    if (!isTempActive) return;
-
-    // Helper to obtain authentic live temperature for any station
-    const getStationTemp = (st: LocationPoint) => {
-      // 1. Station active sélectionnée sur le site avec données météo directes
-      if (st.id === currentStation.id && weather?.temperature !== undefined) {
-        return Number(weather.temperature.toFixed(1));
-      }
-      // 2. Position GPS de l'utilisateur
-      if (st.id === userLocationPoint?.id && userLocationTemp !== null) {
-        return userLocationTemp;
-      }
-      // 3. Relevés réels mesurés Open-Meteo pour cette station
-      if (liveStationTemps[st.id] !== undefined) {
-        return liveStationTemps[st.id];
-      }
-      // 4. Calcul synoptique basé sur la température de référence du site
-      const refTemp = weather?.temperature ?? 15.0;
-      const refAlt = currentStation.altitude ?? 100;
-      const dLat = (st.latitude - currentStation.latitude) * 0.75;
-      const dAlt = ((st.altitude ?? 150) - refAlt) / 100 * 0.65;
-      return Number((refTemp - dLat - dAlt).toFixed(1));
-    };
-
-    // Position exacte de l'utilisateur (auto-détectée par GPS ou commune active)
-    const myPos = userLocationPoint || currentStation;
-    const myTemp = userLocationTemp !== null 
-      ? userLocationTemp 
-      : (weather?.temperature !== undefined ? Number(weather.temperature.toFixed(1)) : (myPos ? getStationTemp(myPos) : null));
-
-    // 1. Ajouter OBLIGATOIREMENT le marqueur haute visibilité de la personne avec sa température locale
-    if (myPos && myTemp !== null) {
-      const userLocName = myPos.name || 'Ma position';
-      const userMarkerHtml = `
-        <div class="cursor-pointer transition-all duration-300 transform hover:scale-125 scale-110 z-[2000]">
-          <div class="relative flex items-center justify-center">
-            <span class="absolute -inset-4 rounded-full bg-blue-500/70 animate-ping"></span>
-            <span class="absolute -inset-2 rounded-full bg-cyan-400/90 animate-pulse"></span>
-            <div class="relative flex items-center gap-2 rounded-xl px-3 py-1.5 shadow-2xl border-2 border-white bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white text-xs font-black z-30 ring-4 ring-blue-500/40 whitespace-nowrap">
-              <span class="text-sm">📍</span>
-              <span class="tracking-wide">Votre position : ${userLocName}</span>
-              <span class="text-amber-300 font-extrabold bg-blue-950/90 px-2 py-0.5 rounded-lg shadow-inner text-xs">${myTemp}°C</span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const userIcon = L.divIcon({
-        html: userMarkerHtml,
-        className: 'custom-user-location-pin',
-        iconSize: [220, 36],
-        iconAnchor: [110, 18]
-      });
-
-      const userMarker = L.marker([myPos.latitude, myPos.longitude], { icon: userIcon, zIndexOffset: 3000 });
-      userMarker.on('click', () => {
-        onSelectStation(myPos);
-      });
-      userMarker.bindTooltip(`
-        <div class="p-2 font-sans text-xs">
-          <div class="text-[10px] text-cyan-300 font-black uppercase tracking-wider mb-0.5">📍 Votre Position (Détectée Automatiquement)</div>
-          <div class="font-black text-white text-sm">${userLocName}</div>
-          <div class="text-slate-300 mt-0.5">${myPos.department || myPos.country || 'Position actuelle'} • Alt: <strong>${myPos.altitude ?? 100} m</strong></div>
-          <div class="text-amber-400 font-bold mt-1 text-sm">🌡️ Température locale : <strong>${myTemp}°C</strong></div>
-          <div class="text-blue-300 mt-0.5">Données thermiques de référence (Météo-France / Open-Meteo) géolocalisées en temps réel</div>
-        </div>
-      `, { direction: 'top', offset: [0, -14] });
-
-      markerGroupRef.current?.addLayer(userMarker);
-    }
-
-    // 2. Affichage des autres stations du réseau sans chevauchement avec la position de la personne
-    const stationsList: LocationPoint[] = [...FRENCH_STATIONS, ...WORLD_STATIONS];
-    const filteredStations = stationsList.filter(st => {
-      if (!myPos) return true;
-      if (st.id === myPos.id) return false;
-      const dLat = Math.abs((st.latitude || 0) - myPos.latitude);
-      const dLon = Math.abs((st.longitude || 0) - myPos.longitude);
-      return dLat > 0.02 || dLon > 0.02;
-    });
-
-    filteredStations.forEach((st) => {
-      const isSelected = st.id === currentStation.id;
-      const isMountain = (st.altitude ?? 0) >= 800;
-      const stTemp = getStationTemp(st);
-
-      const badgeTempColor = stTemp >= 28 ? 'text-amber-300' : stTemp >= 16 ? 'text-emerald-300' : 'text-cyan-300';
-
-      const markerHtml = `
-        <div class="cursor-pointer transition-all duration-300 transform hover:scale-125 ${isSelected ? 'scale-110 z-30' : 'z-10'}">
-          <div class="relative flex items-center justify-center">
-            ${isSelected ? '<span class="absolute -inset-2 rounded-full bg-blue-500/50 animate-ping"></span>' : ''}
-            <div class="flex items-center gap-1.5 rounded-md px-2 py-0.5 shadow-xl border text-[11px] font-black backdrop-blur ${
-              isSelected
-                ? 'bg-blue-600 border-white text-white shadow-blue-500/60 ring-2 ring-blue-400'
-                : isMountain
-                  ? 'bg-amber-950/95 border-amber-500 text-amber-300'
-                  : 'bg-slate-900/95 border-slate-700 text-slate-200'
-            }">
-              <span>${st.name.split(' ')[0]}</span>
-              <span class="${badgeTempColor} font-black">${stTemp}°C</span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const icon = L.divIcon({
-        html: markerHtml,
-        className: 'custom-station-pin',
-        iconSize: [85, 26],
-        iconAnchor: [42, 13]
-      });
-
-      const marker = L.marker([st.latitude, st.longitude], { icon, zIndexOffset: 0 });
-      marker.on('click', () => {
-        onSelectStation(st);
-      });
-
-      marker.bindTooltip(`
-        <div class="p-2 font-sans text-xs">
-          <div class="font-black text-white text-sm">${st.name}</div>
-          <div class="text-slate-300 mt-0.5">${st.department || st.country || 'Position locale'} • Alt: <strong>${st.altitude ?? 100} m</strong></div>
-          <div class="text-amber-400 font-bold mt-0.5">🌡️ Température actuelle : <strong>${stTemp}°C</strong></div>
-          <div class="text-blue-300 mt-0.5">${st.climateZone || 'Zone Tempérée'}</div>
-        </div>
-      `, { direction: 'top', offset: [0, -12] });
-
-      markerGroupRef.current?.addLayer(marker);
-    });
-
-    // Recentrage automatique et fluide sur la position de l'utilisateur quand le mode températures est actif
-    if (activeLayerMode === 'temperatures' && myPos && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([myPos.latitude, myPos.longitude], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 1.2 });
-    }
-  }, [currentStation, userLocationPoint, userLocationTemp, showStations, activeLayerMode, liveStationTemps, weather]);
-
-  // 10. Update Lightning Strikes and Convective Storm Cells across all countries (ONLY active in lightning mode or multi)
-  useEffect(() => {
-    if (!lightningGroupRef.current || !stormCellsGroupRef.current) return;
-    lightningGroupRef.current.clearLayers();
-    stormCellsGroupRef.current.clearLayers();
-
-    const isLightActive = activeLayerMode === 'lightning' || (activeLayerMode === 'multi' && showLightning);
-    const isStormsActive = activeLayerMode === 'lightning' || (activeLayerMode === 'multi' && showStormCells);
-
-    if (!isLightActive && !isStormsActive) return;
-
-    if (isLightActive && liveStrikes.length > 0) {
-      liveStrikes.forEach((strike) => {
-        const lightningHtml = `
-          <div class="lightning-bolt flex items-center justify-center">
-            <div class="h-6 w-6 rounded-full bg-yellow-400 shadow-xl shadow-yellow-400/80 border border-yellow-100 flex items-center justify-center text-slate-950 font-black text-[10px]">
-              ⚡
-            </div>
-          </div>
-        `;
-
-        const icon = L.divIcon({
-          html: lightningHtml,
-          className: 'lightning-icon',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-
-        const marker = L.marker([strike.lat, strike.lon], { icon });
-        marker.bindTooltip(`
-          <div class="text-xs font-bold text-yellow-300 p-1 space-y-0.5">
-            <div>⚡ Impact Foudre Réel : <strong>${strike.ampKa > 0 ? `+${strike.ampKa}` : strike.ampKa} kA</strong></div>
-            <div class="text-[10px] text-slate-200">Localisation : ${strike.nearestLocationName}</div>
-            <div class="text-[10px] text-slate-400">Détection : il y a ${strike.timeMinutesAgo} min (${strike.type})</div>
-          </div>
-        `);
-        lightningGroupRef.current?.addLayer(marker);
-      });
-    }
-
-    // Draw Convective Storm Vectors & Cores
-    if (isStormsActive && activeStormsList.length > 0) {
-      activeStormsList.forEach((storm) => {
-        // Convective core circle
-        const coreColor = storm.dbz >= 55 ? '#dc2626' : storm.dbz >= 45 ? '#ea580c' : '#eab308';
-        const stormCircle = L.circle([storm.lat, storm.lon], {
-          radius: 12000,
-          color: coreColor,
-          weight: 2,
-          fillColor: coreColor,
-          fillOpacity: 0.18
-        });
-
-        // Direction Vector (arrow projected 45 min forward)
-        const vectorDistanceKm = (storm.movementSpeedKmH * 0.75); // 45 min projection
-        const latOffset = (vectorDistanceKm / 111.32) * Math.cos(storm.movementBearingDeg * Math.PI / 180);
-        const lonOffset = (vectorDistanceKm / (111.32 * Math.cos(storm.lat * Math.PI / 180))) * Math.sin(storm.movementBearingDeg * Math.PI / 180);
-        
-        const targetLat = storm.lat + latOffset;
-        const targetLon = storm.lon + lonOffset;
-
-        const vectorLine = L.polyline([[storm.lat, storm.lon], [targetLat, targetLon]], {
-          color: '#fde047',
-          weight: 3,
-          dashArray: '4, 4'
-        });
-
-        // Storm Cell Badge
-        const stormBadgeIcon = L.divIcon({
-          html: `
-            <div class="rounded-xl bg-slate-950/95 border-2 border-red-500/80 px-2 py-1 text-[10px] font-black text-white shadow-2xl flex items-center gap-1.5 whitespace-nowrap">
-              <span class="h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-              <span>⛈️ ${storm.dbz} dBZ</span>
-              <span class="text-amber-400">↗ ${storm.movementSpeedKmH} km/h</span>
-            </div>
-          `,
-          className: 'storm-cell-badge',
-          iconSize: [120, 24],
-          iconAnchor: [60, 12]
-        });
-
-        const badgeMarker = L.marker([storm.lat, storm.lon], { icon: stormBadgeIcon });
-        badgeMarker.bindTooltip(`
-          <div class="p-2 text-xs space-y-1">
-            <div class="font-black text-red-400 text-sm">⛈️ ${storm.name}</div>
-            <div>Intensité : <strong class="text-white">${storm.intensity} (${storm.dbz} dBZ)</strong></div>
-            <div>Déplacement : <strong>${storm.movementSpeedKmH} km/h vers ${storm.movementCompass}</strong></div>
-            <div>Sommet nuageux : <strong>${storm.topAltitudeM} m</strong></div>
-            <div>Activité électrique : <strong>${storm.lightningRatePerMin} éclairs/min</strong></div>
-            <div>Risque grêle : <strong class="text-amber-400">${storm.hailRiskPercent}%</strong></div>
-          </div>
-        `);
-
-        stormCellsGroupRef.current?.addLayer(stormCircle);
-        stormCellsGroupRef.current?.addLayer(vectorLine);
-        stormCellsGroupRef.current?.addLayer(badgeMarker);
-      });
-    }
-  }, [activeLayerMode, showLightning, showStormCells, activeStormsList, liveStrikes]);
-
-  // 11. VENTS HD RADAR LAYER (Streamlines, Direction Vectors & Beaufort Badges)
-  useEffect(() => {
-    if (!windGroupRef.current) return;
-    windGroupRef.current.clearLayers();
-
-    const isWindActive = activeLayerMode === 'wind' || (activeLayerMode === 'multi' && showWind);
-    if (!isWindActive) return;
-
-    // Station list with authentic regional wind regimes across France & Europe
-    const windStations = [
-      // Manche & Bretagne (Flux maritime d'Ouest / Sud-Ouest)
-      { name: 'Brest / Ouessant', lat: 48.456, lon: -5.098, speed: 48, gust: 72, deg: 245, dir: 'Ouest-Sud-Ouest' },
-      { name: 'Cherbourg / Cotentin', lat: 49.633, lon: -1.622, speed: 42, gust: 65, deg: 260, dir: 'Ouest' },
-      { name: 'Rennes / Ille-et-Vilaine', lat: 48.117, lon: -1.677, speed: 28, gust: 46, deg: 250, dir: 'Ouest-Sud-Ouest' },
-      { name: 'Nantes / Estuaire Loire', lat: 47.218, lon: -1.553, speed: 32, gust: 50, deg: 240, dir: 'Sud-Ouest' },
-      { name: 'Dunkerque / Cap Gris-Nez', lat: 50.870, lon: 1.583, speed: 52, gust: 78, deg: 235, dir: 'Sud-Ouest' },
-      
-      // Bassin Parisien & Nord
-      { name: 'Paris-Montsouris', lat: 48.821, lon: 2.337, speed: 22, gust: 38, deg: 230, dir: 'Sud-Ouest' },
-      { name: 'Lille-Lesquin', lat: 50.563, lon: 3.087, speed: 34, gust: 54, deg: 240, dir: 'Sud-Ouest' },
-      { name: 'Reims / Champagne', lat: 49.308, lon: 4.050, speed: 25, gust: 42, deg: 235, dir: 'Sud-Ouest' },
-      { name: 'Orléans / Sologne', lat: 47.902, lon: 1.903, speed: 24, gust: 40, deg: 225, dir: 'Sud-Ouest' },
-
-      // Grand Est & Centre-Est
-      { name: 'Strasbourg-Entzheim', lat: 48.544, lon: 7.628, speed: 18, gust: 30, deg: 210, dir: 'Sud-Sud-Ouest' },
-      { name: 'Dijon-Longvic', lat: 47.267, lon: 5.088, speed: 26, gust: 44, deg: 215, dir: 'Sud-Sud-Ouest' },
-      { name: 'Nancy-Essey', lat: 48.692, lon: 6.228, speed: 22, gust: 36, deg: 220, dir: 'Sud-Ouest' },
-
-      // Vallée du Rhône & Méditerranée (Mistral & Tramontane intenses)
-      { name: 'Lyon-Bron', lat: 45.727, lon: 4.944, speed: 35, gust: 56, deg: 340, dir: 'Nord-Nord-Ouest' },
-      { name: 'Montélimar / Vallée du Rhône', lat: 44.558, lon: 4.750, speed: 58, gust: 86, deg: 350, dir: 'Mistral Nord' },
-      { name: 'Avignon / Vaucluse', lat: 43.905, lon: 4.901, speed: 64, gust: 94, deg: 355, dir: 'Mistral violent' },
-      { name: 'Marseille-Marignane', lat: 43.437, lon: 5.216, speed: 62, gust: 92, deg: 330, dir: 'Mistral Nord-Ouest' },
-      { name: 'Perpignan / Roussillon', lat: 42.740, lon: 2.872, speed: 56, gust: 84, deg: 315, dir: 'Tramontane Nord-Ouest' },
-      { name: 'Béziers / Cap d\'Agde', lat: 43.323, lon: 3.353, speed: 52, gust: 78, deg: 320, dir: 'Tramontane Nord-Ouest' },
-      { name: 'Nice-Côte d\'Azur', lat: 43.665, lon: 7.215, speed: 20, gust: 32, deg: 80, dir: 'Est (Brise de mer)' },
-      { name: 'Ajaccio / Corse', lat: 41.919, lon: 8.738, speed: 38, gust: 62, deg: 240, dir: 'Libeccio Sud-Ouest' },
-
-      // Sud-Ouest & Massif Central
-      { name: 'Toulouse-Blagnac', lat: 43.629, lon: 1.363, speed: 45, gust: 68, deg: 125, dir: 'Vent d\'Autan Sud-Est' },
-      { name: 'Castres / Lauragais', lat: 43.606, lon: 2.240, speed: 58, gust: 88, deg: 120, dir: 'Autan Noir Sud-Est' },
-      { name: 'Bordeaux-Mérignac', lat: 44.828, lon: -0.691, speed: 30, gust: 48, deg: 260, dir: 'Ouest' },
-      { name: 'Biarritz / Pays Basque', lat: 43.468, lon: -1.523, speed: 36, gust: 55, deg: 280, dir: 'Ouest-Nord-Ouest' },
-      { name: 'Clermont-Ferrand / Aulnat', lat: 45.786, lon: 3.165, speed: 28, gust: 45, deg: 220, dir: 'Sud-Ouest' },
-
-      // Montagne (Crêtes & Cols)
-      { name: 'Pic du Midi de Bigorre (2877m)', lat: 42.936, lon: 0.141, speed: 76, gust: 115, deg: 265, dir: 'Ouest Violent' },
-      { name: 'Aiguille du Midi (3842m)', lat: 45.879, lon: 6.887, speed: 82, gust: 124, deg: 280, dir: 'Vent de Crête Nord-Ouest' },
-      { name: 'Mont Ventoux (1912m)', lat: 44.173, lon: 5.279, speed: 92, gust: 138, deg: 345, dir: 'Mistral Sommet Extrême' }
-    ];
-
-    // Synoptic streamline vectors across France
-    const streamlines = [
-      [[48.5, -4.5], [48.7, -1.5], [49.0, 1.5], [49.2, 4.5]],
-      [[47.2, -3.0], [47.5, -0.5], [47.8, 2.5], [48.0, 5.5]],
-      [[46.0, -1.5], [46.3, 1.0], [46.5, 3.5], [46.8, 6.0]],
-      [[45.5, 4.8], [44.5, 4.8], [43.5, 4.9], [42.8, 5.2]], // Couloir du Rhône (Mistral)
-      [[43.8, 2.5], [43.6, 1.4], [43.4, 0.5]] // Couloir d'Autan
-    ];
-
-    streamlines.forEach((lineCoords) => {
-      const line = L.polyline(lineCoords as [number, number][], {
-        color: '#38bdf8',
-        weight: 2,
-        opacity: 0.45,
-        dashArray: '8, 12',
-        interactive: false
-      });
-      windGroupRef.current?.addLayer(line);
-    });
-
-    windStations.forEach((st) => {
-      // Beaufort colors & categories
-      let badgeColor = '#10b981'; // Brise modérée < 30 km/h
-      let beaufortDesc = 'Force 4 - Jolie brise';
-      if (st.speed >= 75) {
-        badgeColor = '#ef4444'; // Tempête / Coup de vent violent
-        beaufortDesc = 'Force 9/10 - Tempête / Violentes rafales';
-      } else if (st.speed >= 55) {
-        badgeColor = '#f97316'; // Coup de vent
-        beaufortDesc = 'Force 7/8 - Grand frais à Coup de vent';
-      } else if (st.speed >= 40) {
-        badgeColor = '#eab308'; // Vent fort
-        beaufortDesc = 'Force 6 - Vent frais soutenu';
-      } else if (st.speed >= 25) {
-        badgeColor = '#06b6d4'; // Vent modéré
-        beaufortDesc = 'Force 4/5 - Bonne brise';
-      }
-
-      // Wind Vector Marker HTML: Rotated Arrow + Speed Badge + Gusts
-      const windHtml = `
-        <div class="cursor-pointer transition-transform duration-200 hover:scale-125 z-20">
-          <div class="flex items-center gap-1.5 rounded-lg px-2 py-1 shadow-2xl border text-[11px] font-black backdrop-blur-md whitespace-nowrap" 
-               style="background-color: rgba(15, 23, 42, 0.94); border-color: ${badgeColor}; color: white;">
-            <!-- Direction Arrow rotated to bearing -->
-            <div class="w-4 h-4 flex items-center justify-center shrink-0" style="transform: rotate(${st.deg}deg);">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${badgeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="19" x2="12" y2="5"></line>
-                <polyline points="5 12 12 5 19 12"></polyline>
-              </svg>
-            </div>
-            <span style="color: ${badgeColor};" class="font-extrabold">${st.speed} km/h</span>
-            <span class="text-[9px] text-slate-400 font-normal">(${st.gust})</span>
-          </div>
-        </div>
-      `;
-
-      const icon = L.divIcon({
-        html: windHtml,
-        className: 'custom-wind-pin',
-        iconSize: [96, 26],
-        iconAnchor: [48, 13]
-      });
-
-      const marker = L.marker([st.lat, st.lon], { icon, zIndexOffset: 25 });
-      marker.bindTooltip(`
-        <div class="p-2.5 font-sans text-xs space-y-1">
-          <div class="font-black text-white text-sm flex items-center justify-between gap-2">
-            <span>💨 ${st.name}</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold" style="background-color: ${badgeColor}25; color: ${badgeColor};">
-              ${st.speed} km/h
-            </span>
-          </div>
-          <div class="text-slate-300">Orientation : <strong>${st.dir} (${st.deg}°)</strong></div>
-          <div class="text-amber-300 font-bold">⚡ Rafales mesurées : <strong>${st.gust} km/h</strong></div>
-          <div class="text-sky-300 pt-1 border-t border-slate-700/80">${beaufortDesc}</div>
-        </div>
-      `, { direction: 'top', offset: [0, -12] });
-
-      windGroupRef.current?.addLayer(marker);
-    });
-  }, [activeLayerMode, showWind]);
-
-  // 12. DOPPLER RADAR ACTIVE PRECIPITATION ECHOES LAYER (Guaranteed Visibility & Dynamic Animation)
-  useEffect(() => {
-    if (!radarEchoesGroupRef.current) return;
-    radarEchoesGroupRef.current.clearLayers();
-
-    const isRadarActive = activeLayerMode === 'radar' || (activeLayerMode === 'multi' && showRadar);
-    if (!isRadarActive) return;
-
-    // Shift offset based on current timeline frame index so echoes animate realistically
-    const animShiftLat = (currentFrameIndex - 5) * 0.04;
-    const animShiftLon = (currentFrameIndex - 5) * 0.08;
-
-    // Authentic meteorological rain front bands (Atlantique, Manche, Île-de-France, Centre, Aquitaine)
-    const rainCells = [
-      // Front Manche / Normandie (Pluie modérée continue 25-35 dBZ)
-      { name: 'Front Pluvieux Manche & Seine-Maritime', lat: 49.65 + animShiftLat, lon: 0.85 + animShiftLon, radius: 48000, dbz: 36, rate: 3.5, color: '#22c55e' },
-      { name: 'Onde Pluvieuse Baie de Somme & Picardie', lat: 50.15 + animShiftLat, lon: 1.80 + animShiftLon, radius: 42000, dbz: 32, rate: 2.2, color: '#38bdf8' },
-      { name: 'Averse soutenue Île-de-France & Vexin', lat: 48.95 + animShiftLat, lon: 2.10 + animShiftLon, radius: 36000, dbz: 38, rate: 4.8, color: '#eab308' },
-      
-      // Ligne d'Averses Bretagne & Pays de la Loire
-      { name: 'Grain Océanique Finistère & Iroise', lat: 48.35 + animShiftLat, lon: -4.30 + animShiftLon, radius: 52000, dbz: 42, rate: 7.2, color: '#f59e0b' },
-      { name: 'Train d\'Averses Golfe du Morbihan', lat: 47.60 + animShiftLat, lon: -2.85 + animShiftLon, radius: 38000, dbz: 34, rate: 2.8, color: '#22c55e' },
-      { name: 'Front Ligérien Nantes & Estuaire', lat: 47.25 + animShiftLat, lon: -1.75 + animShiftLon, radius: 44000, dbz: 35, rate: 3.1, color: '#22c55e' },
-
-      // Sud-Ouest & Aquitaine
-      { name: 'Pluies orographiques Piémont Pyrénéen', lat: 43.15 + animShiftLat, lon: -0.35 + animShiftLon, radius: 46000, dbz: 44, rate: 8.5, color: '#ea580c' },
-      { name: 'Onde Pluvieuse Bassin d\'Arcachon', lat: 44.65 + animShiftLat, lon: -1.15 + animShiftLon, radius: 36000, dbz: 30, rate: 1.8, color: '#38bdf8' },
-
-      // Centre & Grand Est
-      { name: 'Bande d\'Averses Bourgogne & Morvan', lat: 47.10 + animShiftLat, lon: 4.25 + animShiftLon, radius: 42000, dbz: 35, rate: 3.2, color: '#22c55e' },
-      { name: 'Front Froid Lorraine & Plateau de Haye', lat: 48.85 + animShiftLat, lon: 6.10 + animShiftLon, radius: 45000, dbz: 37, rate: 4.2, color: '#eab308' }
-    ];
-
-    rainCells.forEach((cell) => {
-      // Outer reflectivity gradient contour
-      const outerCircle = L.circle([cell.lat, cell.lon], {
-        radius: cell.radius,
-        color: cell.color,
-        weight: 1.5,
-        opacity: radarOpacity * 0.7,
-        fillColor: cell.color,
-        fillOpacity: radarOpacity * 0.28,
-        interactive: false
-      });
-
-      // Core reflectivity zone
-      const coreCircle = L.circle([cell.lat, cell.lon], {
-        radius: cell.radius * 0.48,
-        color: cell.color,
-        weight: 2,
-        opacity: radarOpacity * 0.9,
-        fillColor: cell.color,
-        fillOpacity: radarOpacity * 0.55
-      });
-
-      // Doppler Reflectivity Badge
-      const badgeIcon = L.divIcon({
-        html: `
-          <div class="rounded-full px-2 py-0.5 shadow-xl border text-[10px] font-black text-white flex items-center gap-1 whitespace-nowrap pointer-events-none"
-               style="background-color: rgba(15, 23, 42, 0.92); border-color: ${cell.color};">
-            <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${cell.color};"></span>
-            <span>🌧️ ${cell.rate} mm/h</span>
-            <span class="text-[9px] text-slate-300 font-mono">(${cell.dbz} dBZ)</span>
-          </div>
-        `,
-        className: 'radar-echo-label',
-        iconSize: [110, 22],
-        iconAnchor: [55, 11]
-      });
-
-      const badgeMarker = L.marker([cell.lat, cell.lon], { icon: badgeIcon, interactive: false });
-
-      coreCircle.bindTooltip(`
-        <div class="p-2 text-xs space-y-1">
-          <div class="font-black text-cyan-300 text-sm">📡 ${cell.name}</div>
-          <div>Réflectivité radar : <strong class="text-white">${cell.dbz} dBZ</strong></div>
-          <div>Intensité estimée : <strong class="text-amber-300">${cell.rate} mm/h</strong></div>
-          <div class="text-[10px] text-slate-300">Observation radar Doppler ARAMIS haute définition</div>
-        </div>
-      `);
-
-      radarEchoesGroupRef.current?.addLayer(outerCircle);
-      radarEchoesGroupRef.current?.addLayer(coreCircle);
-      radarEchoesGroupRef.current?.addLayer(badgeMarker);
-    });
-  }, [activeLayerMode, showRadar, currentFrameIndex, radarOpacity]);
-
-  // 13. NEIGE & ISOTHERME 0°C RADAR LAYER (High-Altitude Crystals, Snowpack & LPN)
-  useEffect(() => {
-    if (!snowGroupRef.current) return;
-    snowGroupRef.current.clearLayers();
-
-    const isSnowActive = activeLayerMode === 'snow' || (activeLayerMode === 'multi' && showSnow);
-    if (!isSnowActive) return;
-
-    // Authentic alpine, pyrenean and mid-mountain snow zones
-    const snowCells = [
-      // Alpes du Nord & Mont-Blanc
-      { name: 'Massif du Mont-Blanc & Chamonix', lat: 45.92, lon: 6.87, radius: 36000, cmH: 3.5, lpn: 1100, iso0: 1450, color: '#38bdf8' },
-      { name: 'Massif de la Vanoise & Tarentaise', lat: 45.38, lon: 6.78, radius: 32000, cmH: 2.8, lpn: 1200, iso0: 1550, color: '#38bdf8' },
-      { name: 'Massif de Belledonne & Oisans', lat: 45.18, lon: 6.05, radius: 30000, cmH: 2.2, lpn: 1300, iso0: 1650, color: '#818cf8' },
-      
-      // Alpes du Sud
-      { name: 'Massif du Queyras & Écrins', lat: 44.75, lon: 6.75, radius: 28000, cmH: 1.8, lpn: 1400, iso0: 1750, color: '#818cf8' },
-      
-      // Pyrénées
-      { name: 'Pyrénées Centrales (Pic du Midi / Cauterets)', lat: 42.88, lon: -0.12, radius: 34000, cmH: 3.2, lpn: 1250, iso0: 1600, color: '#38bdf8' },
-      { name: 'Massif de Gavarnie & Mont-Perdu', lat: 42.70, lon: 0.00, radius: 26000, cmH: 2.5, lpn: 1300, iso0: 1650, color: '#38bdf8' },
-
-      // Massif Central & Jura / Vosges
-      { name: 'Hauts Plateaux du Cézallier & Sancy (1886m)', lat: 45.53, lon: 2.81, radius: 24000, cmH: 1.2, lpn: 1350, iso0: 1700, color: '#a5f3fc' },
-      { name: 'Haut-Jura & Monts Jura (Crêt de la Neige)', lat: 46.30, lon: 5.95, radius: 25000, cmH: 1.6, lpn: 1200, iso0: 1550, color: '#a5f3fc' },
-      { name: 'Crêtes des Vosges (Hohneck / Grand Ballon)', lat: 48.03, lon: 7.01, radius: 22000, cmH: 1.0, lpn: 1150, iso0: 1500, color: '#a5f3fc' }
-    ];
-
-    snowCells.forEach((cell) => {
-      const snowCircle = L.circle([cell.lat, cell.lon], {
-        radius: cell.radius,
-        color: cell.color,
-        weight: 2,
-        opacity: 0.85,
-        fillColor: cell.color,
-        fillOpacity: 0.35
-      });
-
-      const snowBadgeIcon = L.divIcon({
-        html: `
-          <div class="rounded-xl px-2 py-1 shadow-2xl border text-[10px] font-black text-cyan-200 flex items-center gap-1.5 whitespace-nowrap"
-               style="background-color: rgba(15, 23, 42, 0.95); border-color: ${cell.color};">
-            <span class="animate-spin text-white">❄️</span>
-            <span class="text-white font-extrabold">${cell.cmH} cm/h</span>
-            <span class="text-[9px] text-cyan-400">LPN ${cell.lpn}m</span>
-          </div>
-        `,
-        className: 'snow-badge-pin',
-        iconSize: [120, 24],
-        iconAnchor: [60, 12]
-      });
-
-      const badgeMarker = L.marker([cell.lat, cell.lon], { icon: snowBadgeIcon });
-      badgeMarker.bindTooltip(`
-        <div class="p-2 text-xs space-y-1">
-          <div class="font-black text-cyan-300 text-sm">❄️ ${cell.name}</div>
-          <div>Intensité des chutes : <strong class="text-white">${cell.cmH} cm/h</strong></div>
-          <div>Limite Pluie-Neige (LPN) : <strong class="text-cyan-300">${cell.lpn} m</strong></div>
-          <div>Isotherme 0°C calculé : <strong class="text-amber-300">${cell.iso0} m</strong></div>
-          <div class="text-[10px] text-slate-300">Analyse nivologique haute précision Météo Montagne</div>
-        </div>
-      `);
-
-      snowGroupRef.current?.addLayer(snowCircle);
-      snowGroupRef.current?.addLayer(badgeMarker);
-    });
-  }, [activeLayerMode, showSnow]);
-
-  // Pan and zoom to current station smoothly when changed (e.g. Versailles)
-  useEffect(() => {
-    if (mapInstanceRef.current && currentStation) {
-      const targetZoom = currentStation.isRegion 
-        ? 7 
-        : (currentStation.countryCode && currentStation.countryCode !== 'FR' ? 6.5 : 12.5);
-      mapInstanceRef.current.flyTo([currentStation.latitude, currentStation.longitude], targetZoom, {
-        duration: 1.2
-      });
-    }
-  }, [currentStation]);
-
-  // Zoom control helpers
-  const handleZoomIn = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomIn(1);
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomOut(1);
-    }
-  };
-
-  const handleSetPresetZoom = (level: number) => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setZoom(level);
-    }
-  };
-
-  // GPS Geolocation Handler
+  // Helper Controls
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
-      setUserLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
+      setUserLocationError('Géolocalisation non disponible.');
       return;
     }
-
     setIsLocatingUser(true);
     setUserLocationError(null);
-
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        setIsLocatingUser(false);
         const { latitude, longitude } = pos.coords;
-        setIsLocatingUser(false);
-
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([latitude, longitude], 13, { duration: 1.5 });
-        }
-
+        mapInstanceRef.current?.flyTo([latitude, longitude], 10, { duration: 1.2 });
         try {
-          const userPoint = await getLocalityFromCoordinates(latitude, longitude);
-          onSelectStation(userPoint);
-        } catch (err) {
-          console.error("Geocoding GPS error", err);
+          const st = await getLocalityFromCoordinates(latitude, longitude);
+          onSelectStation(st);
+        } catch {
+          // ignore geocode failure
         }
       },
-      (err) => {
+      () => {
         setIsLocatingUser(false);
-        setUserLocationError("Position GPS indisponible. Veuillez autoriser la localisation.");
+        setUserLocationError('Autorisation GPS refusée.');
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 9000 }
     );
   };
 
-  // Map search handler
   const handleMapSearch = async (val: string) => {
     setMapSearchQuery(val);
     if (val.trim().length >= 2) {
-      setIsSearching(true);
-      try {
-        const res = await searchLocalities(val);
-        setMapSearchResults(res.slice(0, 6));
-      } finally {
-        setIsSearching(false);
-      }
+      const res = await searchLocalities(val);
+      setMapSearchResults(res.slice(0, 6));
     } else {
       setMapSearchResults([]);
     }
@@ -1480,543 +1087,685 @@ export const GigaRadarMap: React.FC<GigaRadarMapProps> = ({
     onSelectStation(st);
     setMapSearchQuery('');
     setMapSearchResults([]);
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([st.latitude, st.longitude], 12, { duration: 1.5 });
+    mapInstanceRef.current?.flyTo([st.latitude, st.longitude], 9, { duration: 1.2 });
+  };
+
+  // Active Scale, Gradient & Timeline Readouts
+  const activeScale = COLOR_SCALES[activeLayerMode];
+  const colorbarGradient = useMemo(() => getScaleCssGradient(activeScale), [activeScale]);
+  const activeModelMeta = WEATHER_MODELS.find((m) => m.id === activeModel) || WEATHER_MODELS[0];
+
+  const isLiveDopplerMode = activeLayerMode === 'radar' && precipSource === 'live';
+  const currentRvTime = rvFrames[rvFrameIndex]?.time;
+  const isNowcastFrame = rvData?.radar?.nowcast?.some((f) => f.time === currentRvTime);
+
+  const validTimeLabel = useMemo(() => {
+    if (isLiveDopplerMode && currentRvTime) {
+      const d = new Date(currentRvTime * 1000);
+      return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
-  };
+    const iso = spatialGrid?.times?.[gridHourIndex];
+    return iso ? formatUtcIsoToLocalLabel(iso) : 'Chargement...';
+  }, [isLiveDopplerMode, currentRvTime, spatialGrid, gridHourIndex]);
 
-  const formatFrameTime = (timeSec: number) => {
-    const d = new Date(timeSec * 1000);
-    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
+  const offsetHours = gridHourIndex - baseNowHourIndex;
+  const offsetHoursLabel = offsetHours === 0 ? 'Échéance +0h' : offsetHours > 0 ? `+${offsetHours}h` : `${offsetHours}h`;
 
-  const currentTimestamp = frames[currentFrameIndex]?.time;
-  const isNowcast = rvData?.radar?.nowcast?.some((f) => f.time === currentTimestamp);
+  // Telemetry values displayed in Sonde Drawer
+  const activeSondeTelemetry = useMemo(() => {
+    if (hoverProbe?.telemetry) {
+      return {
+        title: `${hoverProbe.lat.toFixed(2)}°N, ${hoverProbe.lon.toFixed(2)}°E`,
+        subtitle: 'Sonde curseur en direct',
+        data: hoverProbe.telemetry,
+        distance: null as number | null,
+        bearing: null as string | null
+      };
+    }
+    if (measuredTarget?.telemetry) {
+      return {
+        title: measuredTarget.localityName,
+        subtitle: `${measuredTarget.distanceKm} km · ${measuredTarget.bearingDeg}° ${measuredTarget.bearingCompass}`,
+        data: measuredTarget.telemetry,
+        distance: measuredTarget.distanceKm,
+        bearing: measuredTarget.bearingCompass
+      };
+    }
+    if (spatialGrid) {
+      const stTelem = samplePointTelemetry(
+        spatialGrid,
+        gridHourIndex,
+        currentStation.latitude,
+        currentStation.longitude
+      );
+      return {
+        title: currentStation.name,
+        subtitle: `${currentStation.department || currentStation.country || 'Station active'} · ${currentStation.altitude ?? 100} m`,
+        data: stTelem,
+        distance: null,
+        bearing: null
+      };
+    }
+    return null;
+  }, [hoverProbe, measuredTarget, spatialGrid, gridHourIndex, currentStation]);
 
   return (
     <div
       id="giga-radar-map"
       ref={fullscreenWrapperRef}
-      className={`rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl overflow-hidden transition-all duration-300 flex flex-col ${
+      className={`rounded-xl border border-slate-800 bg-slate-950 shadow-xl overflow-hidden transition-all duration-300 flex flex-col ${
         isFullscreen
           ? '!fixed !inset-0 !z-[99999] !rounded-none !border-0 !m-0 !h-[100dvh] !w-screen overscroll-none'
-          : 'relative h-[520px] sm:h-[640px] md:h-[720px] lg:h-[780px]'
+          : 'relative h-[600px] sm:h-[680px] lg:h-[780px]'
       }`}
     >
-      {/* Fullscreen Mobile/Desktop Exit Button */}
-      {isFullscreen && (
-        <button
-          type="button"
-          onClick={() => {
-            if (document.fullscreenElement && document.exitFullscreen) {
-              document.exitFullscreen().catch(() => {});
-            }
-            setIsFullscreen(false);
-          }}
-          className="absolute top-3 right-3 z-50 rounded-xl bg-slate-900/95 border border-slate-700 px-3 py-1.5 text-xs font-bold text-white shadow-2xl flex items-center gap-1.5 backdrop-blur cursor-pointer hover:bg-slate-800 transition"
-        >
-          <Minimize2 className="h-4 w-4 text-cyan-400" />
-          <span>Quitter plein écran</span>
-        </button>
-      )}
-
-      {/* 1. TOP FLOATING OPERATIONAL CONTROL BAR */}
-      <div className="absolute top-2.5 left-2.5 right-2.5 sm:top-3 sm:left-3 sm:right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        
-        {/* Left: Mode Selection & Multi-Spectre Tabs */}
-        <div className="flex items-center gap-1.5 pointer-events-auto max-w-full overflow-x-auto no-scrollbar py-0.5">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur shrink-0">
-            <button
-              type="button"
-              onClick={() => setActiveLayerMode('radar')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
-                activeLayerMode === 'radar'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Afficher uniquement les précipitations radar HD"
-            >
-              <CloudRain className="h-3.5 w-3.5 text-cyan-400" />
-              <span>Pluie</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveLayerMode('satellite')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
-                activeLayerMode === 'satellite'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Afficher la couverture nuageuse satellite en temps réel"
-            >
-              <Globe2 className="h-3.5 w-3.5 text-indigo-300" />
-              <span>Nuages</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveLayerMode('temperatures')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
-                activeLayerMode === 'temperatures'
-                  ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Afficher uniquement les températures des stations"
-            >
-              <Sun className="h-3.5 w-3.5 text-amber-400" />
-              <span>Températures</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveLayerMode('lightning')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 ${
-                activeLayerMode === 'lightning'
-                  ? 'bg-yellow-500 text-slate-950 font-black shadow-md shadow-yellow-500/40'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Afficher uniquement les orages et impacts de foudre réels"
-            >
-              <Zap className="h-3.5 w-3.5 text-yellow-400" />
-              <span>Orages ({lightningCount})</span>
-            </button>
+      {/* 1. TOP METEOCIEL + SKYMAP FLOATING HEADER BAR */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        {/* Left: Model Switcher & Synoptic Run Timestamp */}
+        <div className="radar-hud-panel flex items-center gap-2 rounded-lg border px-2.5 py-1.5 shadow-lg pointer-events-auto max-w-full overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1 shrink-0">
+            {WEATHER_MODELS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setActiveModel(m.id)}
+                className={`px-2 py-1 rounded text-[11px] font-bold transition whitespace-nowrap shrink-0 cursor-pointer ${
+                  activeModel === m.id
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                }`}
+                title={`${m.label} (${m.provider} · ${m.resolution})`}
+              >
+                {m.shortName}
+              </button>
+            ))}
           </div>
 
-          {/* Toggle Mobile dBZ Legend button */}
-          <button
-            type="button"
-            onClick={() => setShowLegendMobile(!showLegendMobile)}
-            className="sm:hidden flex items-center gap-1 rounded-xl bg-slate-950/95 px-2.5 py-1.5 border border-slate-800/90 text-[11px] font-bold text-cyan-300 shadow-xl backdrop-blur shrink-0 cursor-pointer"
-            title="Afficher ou masquer la légende des intensités"
-          >
-            <RadarIcon className="h-3 w-3 text-cyan-400" />
-            <span>dBZ</span>
-          </button>
+          <span className="hidden sm:inline text-slate-600" aria-hidden="true">|</span>
+
+          <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono tabular-nums text-slate-300 whitespace-nowrap shrink-0">
+            <span className="font-semibold text-sky-300">{spatialGrid?.runLabel || 'Run Live'}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-bold text-white">{validTimeLabel}</span>
+            {!isLiveDopplerMode && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="text-amber-300">{offsetHoursLabel}</span>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Center: Search locality on map */}
-        <div className="relative flex-1 max-w-xs pointer-events-auto hidden md:block">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+        {/* Center: Quick Locality Search */}
+        <div className="relative flex-1 max-w-xs hidden xl:block pointer-events-auto">
+          <div className="radar-hud-panel relative rounded-lg border">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Zoomer sur une commune ou sommet..."
+              placeholder="Zoomer sur une commune ou un massif..."
               value={mapSearchQuery}
               onChange={(e) => handleMapSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/95 pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-400 shadow-xl backdrop-blur focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg bg-transparent pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none"
             />
             {mapSearchQuery && (
               <button
-                onClick={() => setMapSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                type="button"
+                onClick={() => {
+                  setMapSearchQuery('');
+                  setMapSearchResults([]);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
               >
                 ×
               </button>
             )}
           </div>
 
-          {/* Search Dropdown */}
           {mapSearchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-slate-700 bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur z-30 max-h-56 overflow-y-auto">
+            <div className="radar-hud-panel absolute top-full left-0 right-0 mt-1 rounded-lg border p-1 shadow-2xl z-40 max-h-56 overflow-y-auto">
               {mapSearchResults.map((st) => (
                 <button
                   key={st.id}
+                  type="button"
                   onClick={() => handleSelectSearchResult(st)}
-                  className="w-full flex items-center justify-between rounded-md px-3 py-2 text-left text-xs hover:bg-slate-800 transition"
+                  className="w-full flex items-center justify-between rounded px-2.5 py-1.5 text-left text-xs hover:bg-slate-800/80 transition cursor-pointer"
                 >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3 w-3 text-blue-400 shrink-0" />
-                    <div>
-                      <div className="font-bold text-white">{st.name}</div>
-                      <div className="text-[10px] text-slate-400">{st.department}</div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <MapPin className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                    <div className="truncate">
+                      <div className="font-semibold text-white truncate">{st.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{st.department || st.country}</div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-blue-300">{st.altitude} m</span>
+                  <span className="text-[10px] font-mono tabular-nums text-sky-300 shrink-0 ml-2">
+                    {st.altitude} m
+                  </span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Right: Base Map, GPS, Presets & Fullscreen */}
-        <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Sélecteur de Fond Cartographique HD */}
-          <div className="flex items-center rounded-xl bg-slate-950/95 p-1 border border-slate-800/90 shadow-xl backdrop-blur text-xs">
-            {[
-              { id: 'hybrid', label: 'Hybride HD', title: 'Satellite HD avec frontières départementales et villes' },
-              { id: 'dark', label: 'Sombre', title: 'Radar Sombre Ultra-Contraste' },
-              { id: 'topo', label: 'Topo', title: 'Carte Topographique & Administrative' },
-              { id: 'satellite', label: 'Sat Pur', title: 'Satellite HD sans étiquettes' }
-            ].map((bm) => (
+        {/* Right: Actualisation, Basemap Style & Fullscreen */}
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          <div className="radar-hud-panel hidden md:flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-mono tabular-nums text-slate-300">
+            {isGridLoading ? (
+              <RefreshCw className="h-3 w-3 text-sky-400 animate-spin" />
+            ) : (
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            )}
+            <span>Actualisé à {lastUpdatedLabel}</span>
+          </div>
+
+          <div className="radar-hud-panel flex items-center rounded-lg border p-1 text-[11px] font-semibold">
+            {(
+              [
+                { id: 'meteo_light', label: 'Épurée' },
+                { id: 'dark', label: 'Sombre' },
+                { id: 'topo', label: 'Topo' },
+                { id: 'hybrid', label: 'Sat HD' }
+              ] as { id: BaseMapId; label: string }[]
+            ).map((bm) => (
               <button
                 key={bm.id}
                 type="button"
-                onClick={() => setBaseMap(bm.id as any)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
-                  baseMap === bm.id
-                    ? 'bg-cyan-500 text-slate-950 font-black shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                onClick={() => setBaseMap(bm.id)}
+                className={`px-2 py-1 rounded transition whitespace-nowrap shrink-0 cursor-pointer ${
+                  baseMap === bm.id ? 'bg-sky-600 text-white' : 'text-slate-300 hover:text-white'
                 }`}
-                title={bm.title}
               >
                 {bm.label}
               </button>
             ))}
           </div>
 
-          {/* GPS Location Button */}
-          <button
-            onClick={handleLocateUser}
-            disabled={isLocatingUser}
-            className={`rounded-xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition active:scale-95 cursor-pointer ${
-              isLocatingUser 
-                ? 'bg-blue-600 text-white animate-pulse border-blue-400' 
-                : 'bg-slate-950/95 border-slate-800 text-cyan-400 hover:bg-slate-800 hover:text-white'
-            }`}
-            title="Me localiser par GPS et centrer le radar sur ma position"
-          >
-            <Crosshair className={`h-4 w-4 ${isLocatingUser ? 'animate-spin' : ''}`} />
-          </button>
-
-          {/* Distance Rings Toggle */}
-          <button
-            onClick={() => setShowDistanceRings(!showDistanceRings)}
-            className={`rounded-xl p-2 text-xs font-bold border shadow-xl backdrop-blur transition cursor-pointer ${
-              showDistanceRings
-                ? 'bg-cyan-600/30 border-cyan-500/50 text-cyan-300'
-                : 'bg-slate-950/95 border-slate-800 text-slate-400'
-            }`}
-            title="Cercles de portée radar (10km à 200km)"
-          >
-            <Target className="h-4 w-4" />
-          </button>
-
-          {/* Fullscreen Button - Vrai grand écran identique aux paramètres */}
           <button
             type="button"
             onClick={handleToggleTrueFullscreen}
-            className={`rounded-xl p-2 border shadow-xl backdrop-blur transition cursor-pointer active:scale-95 ${
-              isFullscreen 
-                ? 'bg-rose-600/90 hover:bg-rose-500 border-rose-400 text-white' 
-                : 'bg-slate-950/95 border-slate-800/90 text-slate-300 hover:bg-slate-800 hover:text-white'
+            className={`radar-hud-panel rounded-lg border p-2 transition cursor-pointer ${
+              isFullscreen ? '!bg-rose-600 text-white' : 'text-slate-200 hover:text-white'
             }`}
-            title={isFullscreen ? 'Quitter le grand écran (Échap)' : 'Grand écran (Plein écran natif)'}
+            title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+            aria-label="Basculer le mode plein écran"
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      {/* Calm atmospheric notice when in lightning mode with 0 storms */}
-      {activeLayerMode === 'lightning' && isLiveThunderstormCalm && (
-        <div className="absolute top-16 left-2.5 right-2.5 sm:left-auto sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-20 pointer-events-auto">
-          <div className="rounded-xl border border-emerald-500/50 bg-slate-950/95 px-3 py-2 text-xs text-emerald-300 shadow-2xl backdrop-blur flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="font-bold text-white whitespace-nowrap">Réseau Foudre :</span>
-            <span className="text-[11px] sm:text-xs">0 impact détecté ces 15 dernières minutes • Atmosphère stable (Aucun orage actif sur le pays)</span>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Collapsible dBZ Legend Drawer */}
-      {showLegendMobile && (
-        <div className="sm:hidden absolute inset-x-2.5 top-16 z-30 rounded-2xl border border-slate-800 bg-slate-950/95 p-3.5 shadow-2xl backdrop-blur animate-in fade-in space-y-2">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 text-xs font-black text-white">
-            <span className="flex items-center gap-1.5">
-              <RadarIcon className="h-3.5 w-3.5 text-cyan-400" />
-              Échelle dBZ & Précipitations
-            </span>
+      {/* 2. LEFT FLOATING SKYMAP INSPECTOR & LAYER DRAWER */}
+      <div
+        className={`absolute left-2.5 top-14 z-20 transition-transform duration-200 pointer-events-none ${
+          isDrawerOpen ? 'translate-x-0' : '-translate-x-[115%]'
+        }`}
+      >
+        <div className="radar-hud-panel w-64 sm:w-72 rounded-xl border shadow-2xl pointer-events-auto flex flex-col max-h-[calc(100vh-230px)] lg:max-h-[540px] overflow-y-auto no-scrollbar">
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-700/70">
+            <div>
+              <div className="text-xs font-bold text-white">Couches Météorologiques</div>
+              <div className="text-[11px] text-slate-400">
+                {activeModelMeta.label} · {activeModelMeta.resolution}
+              </div>
+            </div>
             <button
               type="button"
-              onClick={() => setShowLegendMobile(false)}
-              className="text-slate-400 hover:text-white px-2 py-0.5 text-sm font-bold"
+              onClick={() => setIsDrawerOpen(false)}
+              className="rounded p-1 text-slate-400 hover:text-white hover:bg-slate-800/80 cursor-pointer"
+              title="Replier le panneau"
             >
-              ✕
+              <ChevronLeft className="h-4 w-4" />
             </button>
           </div>
-          <div className="space-y-1.5 text-[11px]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#00ffff]"></span><span>Bruine fine</span></div>
-              <span className="font-mono text-slate-400">&lt; 1 mm/h (15 dBZ)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#0000ff]"></span><span>Pluie faible</span></div>
-              <span className="font-mono text-slate-400">1 - 3 mm/h (25 dBZ)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#00ff00]"></span><span>Pluie modérée</span></div>
-              <span className="font-mono text-slate-400">3 - 10 mm/h (35 dBZ)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#ffff00]"></span><span>Forte averse</span></div>
-              <span className="font-mono text-slate-400">10 - 30 mm/h (45 dBZ)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><span className="h-2.5 w-3.5 rounded bg-[#ff0000]"></span><span>Orage / Grêle</span></div>
-              <span className="font-mono text-red-400 font-bold">&gt; 30 mm/h (55+ dBZ)</span>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* 2. MAIN LEAFLET MAP CONTAINER */}
-      <div ref={mapContainerRef} className="flex-1 w-full h-full z-0" />
-
-      {/* Click Probe Details (only when user clicks to measure distance on map) */}
-      {measuredTarget && (
-        <div className="absolute left-4 top-20 z-20 pointer-events-auto max-w-xs rounded-2xl border border-cyan-500/40 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur text-xs text-cyan-200 space-y-1 animate-in fade-in">
-          <div className="flex items-center justify-between">
-            <span className="font-black text-white flex items-center gap-1">
-              <Ruler className="h-3.5 w-3.5 text-cyan-400" />
-              {measuredTarget.distanceKm} km
-            </span>
-            <span className="text-[10px] font-mono text-cyan-300 font-bold">
-              {measuredTarget.bearingDeg}° ({measuredTarget.bearingCompass})
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-200 font-semibold truncate">
-            Cible : {measuredTarget.localityName}
-          </div>
-          <div className="pt-1 border-t border-cyan-800/50 flex flex-col gap-1 text-[10px]">
-            {measuredTarget.temperature !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Température mesurée :</span>
-                <span className="font-black text-amber-300">{measuredTarget.temperature}°C</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Écho radar / Pluie réelle :</span>
-              <span className="font-black text-cyan-300">
-                {measuredTarget.estimatedDbz} dBZ (~{measuredTarget.estimatedRainRate} mm/h)
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 4. FLOATING RIGHT RADAR LEGEND & PALETTE CONTROLLER */}
-      <div className="absolute top-20 right-4 z-20 pointer-events-none hidden sm:block max-w-xs">
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-950/95 p-3 shadow-2xl backdrop-blur pointer-events-auto space-y-2.5">
-          <div className="text-xs font-black text-white flex items-center justify-between gap-2 border-b border-slate-800 pb-1.5">
-            <span className="flex items-center gap-1.5">
-              <RadarIcon className="h-3.5 w-3.5 text-cyan-400" />
-              Échelle dBZ & Précipitations
-            </span>
-            <span className="text-[10px] text-cyan-400 font-mono">mm/h</span>
+          {/* Meteorological Layer List */}
+          <div className="p-2 space-y-1">
+            {LAYER_MENU.map((item) => {
+              const Icon = item.icon;
+              const active = activeLayerMode === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveLayerMode(item.id)}
+                  className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-left transition cursor-pointer ${
+                    active
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'text-slate-200 hover:bg-slate-800/75'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-white' : item.accentClass}`} />
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold truncate">{item.label}</div>
+                      <div className={`text-[10px] truncate ${active ? 'text-sky-100' : 'text-slate-400'}`}>
+                        {item.shortDesc}
+                      </div>
+                    </div>
+                  </div>
+                  {item.id === 'lightning' && lightningCount > 0 && (
+                    <span className="font-mono tabular-nums text-[10px] font-bold text-yellow-300 ml-1">
+                      {lightningCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Color Bar */}
-          <div className="space-y-1.5 text-[10px]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-4 rounded bg-[#00ffff]"></span>
-                <span className="text-slate-300">Bruine fine</span>
-              </div>
-              <span className="font-mono text-slate-400">&lt; 1 mm/h (15 dBZ)</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-4 rounded bg-[#0000ff]"></span>
-                <span className="text-slate-300">Pluie faible continue</span>
-              </div>
-              <span className="font-mono text-slate-400">1 - 3 mm/h (25 dBZ)</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-4 rounded bg-[#00ff00]"></span>
-                <span className="text-slate-300">Pluie modérée</span>
-              </div>
-              <span className="font-mono text-slate-400">3 - 10 mm/h (35 dBZ)</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-4 rounded bg-[#ffff00]"></span>
-                <span className="text-slate-300">Forte averse</span>
-              </div>
-              <span className="font-mono text-slate-400">10 - 30 mm/h (45 dBZ)</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-4 rounded bg-[#ff0000]"></span>
-                <span className="text-slate-300">Orage violent / Grêle</span>
-              </div>
-              <span className="font-mono text-red-400 font-bold">&gt; 30 mm/h (55+ dBZ)</span>
-            </div>
-          </div>
-
-          {/* Palette Selector */}
-          <div className="pt-2 border-t border-slate-800/80">
-            <div className="text-[10px] font-bold text-slate-400 mb-1">Palette Radar :</div>
-            <div className="grid grid-cols-3 gap-1 text-[10px] font-bold">
+          {/* Visual Layer Toggles */}
+          <div className="px-3 py-2.5 border-t border-slate-700/70 space-y-2 text-[11px]">
+            <div className="font-semibold text-slate-300">Affichage cartographique</div>
+            <div className="grid grid-cols-2 gap-1.5">
               <button
-                onClick={() => setRadarColor(2)}
-                className={`rounded-lg py-1 transition ${radarColor === 2 ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+                type="button"
+                onClick={() => setShowIsolines(!showIsolines)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showIsolines ? 'bg-sky-600/30 text-sky-200 border border-sky-500/50' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
               >
-                Bleu Doppler
+                Isolignes
               </button>
               <button
-                onClick={() => setRadarColor(4)}
-                className={`rounded-lg py-1 transition ${radarColor === 4 ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+                type="button"
+                onClick={() => setShowWindParticles(!showWindParticles)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showWindParticles || activeLayerMode === 'wind'
+                    ? 'bg-teal-600/30 text-teal-200 border border-teal-500/50'
+                    : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
               >
-                Arc-en-ciel
+                Flux de vent
               </button>
               <button
-                onClick={() => setRadarColor(1)}
-                className={`rounded-lg py-1 transition ${radarColor === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+                type="button"
+                onClick={() => setShowBorders(!showBorders)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showBorders ? 'bg-sky-600/30 text-sky-200 border border-sky-500/50' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
               >
-                Titan NWS
+                Départements
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowStations(!showStations)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showStations ? 'bg-sky-600/30 text-sky-200 border border-sky-500/50' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
+              >
+                Villes & T°
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowGraticule(!showGraticule)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showGraticule ? 'bg-sky-600/30 text-sky-200 border border-sky-500/50' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
+              >
+                Grille Lat/Lon
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowColorField(!showColorField)}
+                className={`px-2 py-1.5 rounded text-left font-medium transition cursor-pointer ${
+                  showColorField ? 'bg-sky-600/30 text-sky-200 border border-sky-500/50' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
+              >
+                Nappes couleur
               </button>
             </div>
           </div>
 
-          {/* Smooth Filter Toggle */}
-          <div className="flex items-center justify-between pt-1.5 border-t border-slate-800/80 text-[10px]">
-            <span className="text-slate-400">Lissage Haute Définition :</span>
-            <button
-              onClick={() => setSmoothRadarTiles(!smoothRadarTiles)}
-              className={`rounded-lg px-2 py-0.5 font-bold transition ${
-                smoothRadarTiles ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-900 text-slate-400'
-              }`}
-            >
-              {smoothRadarTiles ? 'ACTIVÉ' : 'BRUT'}
-            </button>
-          </div>
+          {/* Interactive Sonde Readout (Cursor Hover / Clicked Point / Current Station) */}
+          {activeSondeTelemetry && (
+            <div className="px-3 py-2.5 border-t border-slate-700/70 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-white truncate">{activeSondeTelemetry.title}</div>
+                  <div className="text-[10px] font-mono tabular-nums text-sky-300 truncate">
+                    {activeSondeTelemetry.subtitle}
+                  </div>
+                </div>
+                {measuredTarget && !hoverProbe && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMeasuredTarget(null);
+                      if (probeMarkerRef.current && mapInstanceRef.current) {
+                        mapInstanceRef.current.removeLayer(probeMarkerRef.current);
+                        probeMarkerRef.current = null;
+                      }
+                    }}
+                    className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    Effacer
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] font-mono tabular-nums">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">T° 2m</span>
+                  <span className="font-bold text-amber-300">{activeSondeTelemetry.data.temp2m}°C</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">850 hPa</span>
+                  <span className="font-bold text-orange-300">{activeSondeTelemetry.data.temp850}°C</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">Pluie</span>
+                  <span className="font-bold text-sky-300">{activeSondeTelemetry.data.precip} mm/h</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">Vent</span>
+                  <span className="font-bold text-teal-300">
+                    {activeSondeTelemetry.data.windSpeed} {degToCompassShort(activeSondeTelemetry.data.windDir)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">Rafales</span>
+                  <span className="font-bold text-slate-100">{activeSondeTelemetry.data.windGust} km/h</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">Pression</span>
+                  <span className="font-bold text-indigo-300">{activeSondeTelemetry.data.pressure} hPa</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">CAPE</span>
+                  <span className="font-bold text-yellow-300">{activeSondeTelemetry.data.cape} J/kg</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-sans">Nuages</span>
+                  <span className="font-bold text-slate-200">{activeSondeTelemetry.data.clouds}%</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 5. BOTTOM TIMELINE PLAYER & SCRUBBER */}
-      <div className="absolute bottom-3 left-3 right-3 z-20 pointer-events-none">
-        <div className="mx-auto max-w-3xl rounded-xl border border-slate-800/90 bg-slate-950/95 p-3 sm:p-3.5 shadow-xl backdrop-blur pointer-events-auto flex flex-col gap-2.5">
-          
-          {/* Top of player: Live status & Opacity Sliders */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <span className="font-bold text-white text-xs">
-                {activeLayerMode === 'multi' 
-                  ? 'Multi-Spectre : Pluie + Nuages + Orages' 
-                  : activeLayerMode === 'radar' 
-                    ? 'Radar Précipitations Doppler HD' 
-                    : activeLayerMode === 'satellite' 
-                      ? 'Couverture Nuageuse Satellite Temps Réel' 
-                      : activeLayerMode === 'temperatures'
-                        ? 'Températures des Stations'
-                        : 'Cellules Orageuses & Réseau Foudre'}
-              </span>
+      {/* Collapsed Drawer Re-open Trigger */}
+      {!isDrawerOpen && (
+        <button
+          type="button"
+          onClick={() => setIsDrawerOpen(true)}
+          className="radar-hud-panel absolute left-2.5 top-14 z-20 flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-white shadow-lg cursor-pointer hover:bg-slate-900"
+        >
+          <Layers className="h-4 w-4 text-sky-400" />
+          <span>Couches & Sonde</span>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+        </button>
+      )}
 
-              {currentTimestamp && (
-                <span className={`rounded-md px-2 py-0.5 font-mono text-[11px] font-bold shadow ${
-                  isNowcast 
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' 
-                    : 'bg-blue-600 text-white shadow-blue-500/30'
-                }`}>
-                  {formatFrameTime(currentTimestamp)} {isNowcast ? '(Nowcast +)' : '(En direct)'}
-                </span>
+      {/* 3. RIGHT FLOATING SKYMAP CONTROL RAIL */}
+      <div className="absolute right-2.5 top-16 z-20 flex flex-col gap-1.5 pointer-events-auto">
+        <div className="radar-hud-panel flex flex-col rounded-lg border overflow-hidden shadow-lg">
+          <button
+            type="button"
+            onClick={() => mapInstanceRef.current?.zoomIn(1)}
+            className="p-2 text-slate-200 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
+            title="Zoomer"
+            aria-label="Zoom avant"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <div className="border-y border-slate-700/70 py-1 text-center text-[10px] font-mono tabular-nums text-slate-300">
+            z{currentZoomLevel}
+          </div>
+          <button
+            type="button"
+            onClick={() => mapInstanceRef.current?.zoomOut(1)}
+            className="p-2 text-slate-200 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
+            title="Dézoomer"
+            aria-label="Zoom arrière"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLocateUser}
+          disabled={isLocatingUser}
+          className={`radar-hud-panel rounded-lg border p-2 shadow-lg transition cursor-pointer ${
+            isLocatingUser ? 'text-sky-300' : 'text-slate-200 hover:text-white'
+          }`}
+          title="Ma position GPS"
+          aria-label="Centrer sur ma position GPS"
+        >
+          <Crosshair className={`h-4 w-4 ${isLocatingUser ? 'animate-spin' : ''}`} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => mapInstanceRef.current?.flyTo([46.65, 2.35], 6.0, { duration: 1.0 })}
+          className="radar-hud-panel rounded-lg border p-2 text-slate-200 hover:text-white shadow-lg transition cursor-pointer"
+          title="Vue France entière"
+          aria-label="Recentrer sur la France"
+        >
+          <Compass className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => mapInstanceRef.current?.flyTo([48.5, 6.0], 4.5, { duration: 1.0 })}
+          className="radar-hud-panel rounded-lg border p-2 text-slate-200 hover:text-white shadow-lg transition cursor-pointer"
+          title="Vue Europe synoptique"
+          aria-label="Vue Europe synoptique"
+        >
+          <Globe2 className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowDistanceRings(!showDistanceRings)}
+          className={`radar-hud-panel rounded-lg border p-2 shadow-lg transition cursor-pointer ${
+            showDistanceRings ? '!border-sky-400 text-sky-300' : 'text-slate-300 hover:text-white'
+          }`}
+          title="Anneaux de portée radar (25–200 km)"
+          aria-label="Afficher les anneaux de portée"
+        >
+          <Target className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowGraticule(!showGraticule)}
+          className={`radar-hud-panel rounded-lg border p-2 shadow-lg transition cursor-pointer ${
+            showGraticule ? '!border-sky-400 text-sky-300' : 'text-slate-300 hover:text-white'
+          }`}
+          title="Grille Lat/Lon"
+          aria-label="Afficher la grille géographique"
+        >
+          <Grid className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* GPS Warning Toast if denied */}
+      {userLocationError && (
+        <div className="radar-hud-panel absolute top-14 right-14 z-30 rounded-lg border border-rose-500/60 px-3 py-1.5 text-xs text-rose-300 shadow-xl">
+          {userLocationError}
+        </div>
+      )}
+
+      {/* 4. MAIN LEAFLET MAP CANVAS STAGE */}
+      <div ref={mapContainerRef} className="flex-1 w-full h-full z-0 cursor-crosshair" />
+
+      {/* 5. BOTTOM TIMELINE PLAYER + METEOCIEL CONTINUOUS GRADUATED COLORBAR */}
+      <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 pointer-events-none">
+        <div className="radar-hud-panel mx-auto max-w-5xl rounded-xl border px-3 py-2.5 shadow-2xl pointer-events-auto space-y-2">
+          {/* Top Timeline Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            {/* Active Mode & Radar Source Toggle */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-bold text-white truncate">{activeScale.title}</span>
+
+              {activeLayerMode === 'radar' && (
+                <div className="flex items-center rounded-md bg-slate-900 p-0.5 border border-slate-700/80 text-[11px] font-semibold shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setPrecipSource('live')}
+                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                      precipSource === 'live' ? 'bg-sky-600 text-white' : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Doppler Live
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrecipSource('model')}
+                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                      precipSource === 'model' ? 'bg-sky-600 text-white' : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Modèle +72h
+                  </button>
+                </div>
               )}
+
+              <span className="hidden md:inline font-mono tabular-nums text-[11px] text-sky-300 shrink-0">
+                {validTimeLabel}
+                {isLiveDopplerMode ? (isNowcastFrame ? ' (Nowcast)' : ' (Direct)') : ` (${offsetHoursLabel})`}
+              </span>
             </div>
 
-            {/* Direct Live Jump Button & Opacity */}
-            <div className="flex items-center gap-2">
+            {/* Scrubber & Opacity Controls */}
+            <div className="flex items-center gap-2 flex-1 max-w-xl">
+              <button
+                type="button"
+                onClick={() =>
+                  isLiveDopplerMode ? setIsRvPlaying(!isRvPlaying) : setIsModelPlaying(!isModelPlaying)
+                }
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sky-600 text-white hover:bg-sky-500 transition cursor-pointer"
+                title="Lecture / Pause"
+                aria-label="Lecture ou pause de l'animation"
+              >
+                {(isLiveDopplerMode ? isRvPlaying : isModelPlaying) ? (
+                  <Pause className="h-3.5 w-3.5" />
+                ) : (
+                  <Play className="h-3.5 w-3.5 ml-0.5" />
+                )}
+              </button>
+
+              {!isLiveDopplerMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModelPlaying(false);
+                    setGridHourIndex((p) => Math.max(0, p - 1));
+                  }}
+                  className="p-1 rounded bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer"
+                  title="-1 heure"
+                >
+                  <SkipBack className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              <input
+                type="range"
+                min={0}
+                max={
+                  isLiveDopplerMode
+                    ? Math.max(0, rvFrames.length - 1)
+                    : Math.max(0, (spatialGrid?.times?.length || 1) - 1)
+                }
+                value={isLiveDopplerMode ? rvFrameIndex : gridHourIndex}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (isLiveDopplerMode) {
+                    setIsRvPlaying(false);
+                    setRvFrameIndex(val);
+                  } else {
+                    setIsModelPlaying(false);
+                    setGridHourIndex(val);
+                  }
+                }}
+                className="flex-1 accent-sky-500 h-2 rounded bg-slate-800 cursor-pointer"
+              />
+
+              {!isLiveDopplerMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModelPlaying(false);
+                    const max = Math.max(0, (spatialGrid?.times?.length || 1) - 1);
+                    setGridHourIndex((p) => Math.min(max, p + 1));
+                  }}
+                  className="p-1 rounded bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer"
+                  title="+1 heure"
+                >
+                  <SkipForward className="h-3.5 w-3.5" />
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
-                  if (rvData?.radar?.past && rvData.radar.past.length > 0) {
-                    setCurrentFrameIndex(rvData.radar.past.length - 1);
+                  if (isLiveDopplerMode) {
+                    const lastPast = Math.max(0, (rvData?.radar?.past?.length || 1) - 1);
+                    setRvFrameIndex(lastPast);
+                  } else {
+                    setGridHourIndex(baseNowHourIndex);
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 text-[11px] font-bold shadow-md shadow-emerald-900/40 transition active:scale-95 cursor-pointer"
-                title="Sauter directement à l'observation radar la plus récente"
+                className="rounded bg-emerald-600/90 hover:bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white shrink-0 cursor-pointer"
+                title="Revenir à l'instant présent"
               >
-                <span className="h-2 w-2 rounded-full bg-white animate-pulse"></span>
-                <span>DIRECT</span>
+                Direct
               </button>
 
-              {/* Opacity slider */}
-              <div className="hidden xs:flex items-center gap-1.5 text-slate-400 text-[11px]">
-                <Sliders className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Opacité :</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setPlaybackSpeedMs((s) => (s === 750 ? 380 : s === 380 ? 1300 : 750))
+                }
+                className="hidden sm:inline-block rounded bg-slate-800 px-2 py-1 text-[10px] font-mono font-bold text-slate-200 hover:bg-slate-700 shrink-0 cursor-pointer"
+                title="Vitesse d'animation"
+              >
+                {playbackSpeedMs === 380 ? '2x' : playbackSpeedMs === 1300 ? '0.5x' : '1x'}
+              </button>
+
+              <div className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-300 shrink-0 pl-1 border-l border-slate-700/70">
+                <span>Opacité</span>
                 <input
                   type="range"
-                  min="0.2"
-                  max="1"
-                  step="0.05"
-                  value={radarOpacity}
-                  onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
-                  className="w-14 sm:w-16 accent-blue-500 h-1.5 rounded bg-slate-800 cursor-pointer"
+                  min={0.25}
+                  max={1}
+                  step={0.05}
+                  value={overlayOpacity}
+                  onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
+                  className="w-14 accent-sky-500 h-1.5 cursor-pointer"
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (isLiveDopplerMode) setRvFrameIndex(0);
+                  else setGridHourIndex(baseNowHourIndex);
+                }}
+                className="hidden sm:inline-flex rounded bg-slate-800 p-1 text-slate-300 hover:text-white cursor-pointer"
+                title="Réinitialiser la chronologie"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Timeline slider and Play/Pause controls */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Play/Pause Button (Large Touch Area) */}
-            <button
-              type="button"
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="flex h-10 w-10 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95 cursor-pointer"
-              title={isPlaying ? 'Mettre en pause' : 'Lancer l\'animation radar'}
-            >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
-            </button>
-
-            {/* Timeline track with past vs nowcast divider */}
-            <div className="flex-1 flex flex-col gap-1">
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 px-1">
-                <span>Passé (-2h)</span>
-                <span className="text-emerald-400 font-extrabold flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                  <span>EN DIRECT</span>
-                </span>
-                <span className="text-amber-400">Nowcast (+1h)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max={Math.max(0, frames.length - 1)}
-                value={currentFrameIndex}
-                onChange={(e) => {
-                  setIsPlaying(false);
-                  setCurrentFrameIndex(parseInt(e.target.value, 10));
-                }}
-                className="w-full accent-blue-500 h-3 rounded-lg bg-slate-800 cursor-pointer touch-none"
-              />
+          {/* Continuous Meteociel Graduated Horizontal Colorbar Legend */}
+          <div className="pt-1 border-t border-slate-700/60 flex flex-col gap-1">
+            <div
+              className="w-full h-2.5 rounded border border-slate-700/70"
+              style={{ background: colorbarGradient }}
+            />
+            <div className="flex items-center justify-between text-[10px] font-mono tabular-nums text-slate-300 px-0.5">
+              {activeScale.ticks.map((tk) => (
+                <span key={tk.label}>{tk.label}</span>
+              ))}
             </div>
-
-            {/* Playback Speed */}
-            <button
-              type="button"
-              onClick={() => setPlaybackSpeed(playbackSpeed === 800 ? 400 : playbackSpeed === 400 ? 1600 : 800)}
-              className="shrink-0 rounded-xl bg-slate-800 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
-              title="Changer la vitesse d'animation"
-            >
-              {playbackSpeed === 400 ? '2x' : playbackSpeed === 1600 ? '0.5x' : '1x'}
-            </button>
-
-            {/* Loop reset */}
-            <button
-              type="button"
-              onClick={() => setCurrentFrameIndex(0)}
-              className="shrink-0 rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-              title="Revenir au début (H-2h)"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </div>
     </div>
   );
 };
-
