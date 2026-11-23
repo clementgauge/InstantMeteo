@@ -20,18 +20,20 @@ import {
   RecordedAltitudeEntry,
 } from './src/services/worldAltitudeService';
 
+import {
+  AURA_NETWORK_ERROR_MESSAGE,
+  MODEL_FAST,
+  checkAuraRateLimit,
+  createSharedGeminiClient,
+  runAuraChatPipeline,
+} from './server/auraEngine';
+
 const app = express();
 const PORT = 3000;
 
 // Lazy initialization du client Gemini côté serveur (sécurisation stricte des clés)
-let geminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
-  if (!geminiClient) {
-    geminiClient = new GoogleGenAI({ apiKey: key });
-  }
-  return geminiClient;
+  return createSharedGeminiClient();
 }
 // -------------------------------------------------------------
 // FICHIERS DE PERSISTANCE MULTI-SOURCES (RÉSILIENCE TOTALE AUX MISES À JOUR)
@@ -472,7 +474,7 @@ Fournis une réponse au format JSON strict avec les clés suivantes :
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: MODEL_FAST,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -514,7 +516,7 @@ Question de l'utilisateur : "${question}"
 Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrases en français.`;
 
     const resp = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: MODEL_FAST,
       contents: prompt
     });
 
@@ -530,69 +532,99 @@ Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrase
   }
 });
 
-// 1c. Moteur Conversationnel Haute Intelligence AURA Météo IA
+// 1c. Moteur Conversationnel Haute Intelligence AURA IA (Tool Calling + Grounding + Autocorrection + SSE)
 app.post('/api/aura/chat', async (req, res) => {
-  try {
-    const { message, station, weather, personaMode = 'standard' } = req.body || {};
-    if (!message) {
-      res.status(400).json({ error: 'Message requis' });
-      return;
-    }
+  const clientIp =
+    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+    req.socket.remoteAddress ||
+    'unknown';
 
-    const ai = getGeminiClient();
-    if (!ai) {
-      res.json({ success: false, fallback: true, message: 'Gemini non configuré' });
-      return;
-    }
-
-    let personaDirective = 'Fournis une réponse fluide, chaleureuse, naturelle et captivante, accessible à tous avec des conseils pratiques de vie quotidienne, de plein air et vestimentaires.';
-    if (personaMode === 'expert') {
-      personaDirective = 'Agis comme un météorologue prévisionniste de haut niveau et physicien de l\'atmosphère. Intègre des explications synoptiques précises : gradients de pression, masses d\'air, advection thermique, flux d\'altitude, géopotentiel, humidité relative et indices de stabilité atmosphérique (CAPE, isotherme, LPN), tout en restant clair, élégant et passionnant.';
-    } else if (personaMode === 'health') {
-      personaDirective = 'Concentre ton analyse sur la santé humaine, le bio-confort et les personnes sensibles ou seniors : amplitudes thermiques, hydratation, risques respiratoires, qualité de l\'air, sensibilité articulaire liée à l\'humidité et aux variations barométriques, et protection solaire / UV.';
-    }
-
-    const systemPrompt = `Tu es AURA, l'Intelligence Artificielle Météorologique d'Instant Météo (France).
-Tu es dotée d'une vraie écoute linguistique naturelle : tu analyses avec précision chaque mot employé dans la question de l'utilisateur pour formuler une réponse parfaitement ciblée, vivante, personnalisée et humaine.
-
-Directives de politesse et de dialogue naturel :
-- Salutations spontanées : Si l'utilisateur salue (par exemple avec "Bonjour", "Salut", "Slt", "Coucou", "Bonsoir", "Hey", "Wesh", "Yo"), commence TOUJOURS ta réponse par une salutation chaleureuse et naturelle adaptée ("Bonjour !", "Salut !", "Bonjour et bienvenue sur Instant Météo !"), avant de répondre directement à sa question.
-- Si le message n'est qu'une salutation sans question précise (ex: "bonjour", "salut", "slt"), accueille-le cordialement et présente-lui en une phrase engageante ce que tu peux faire pour lui (météo locale en direct de n'importe quelle ville, graphiques d'évolution sur 7 jours, cartes 3D du relief ou comparaisons de stations).
-- Si l'utilisateur demande la météo d'une ville (ex: "meteo de lyon", "il fait quel temps à marseille", "donne moi la meteo de bordeaux"), réponds immédiatement en lui donnant la météo de cette ville avec précision, ressenti et conseils pratiques.
-- Cartes 3D & Relief de la France : Si l'utilisateur demande une carte de la France, une carte 3D, le relief ou les vrais contours, décris avec précision les véritables contours géographiques (Cotentin, Bretagne, estuaires, Pyrénées, Côte d'Azur, Corse) et le relief topographique 3D des massifs (Alpes, Mont-Blanc 4809m, Pyrénées, Massif Central, Jura, Vosges) qui est modélisé et interactif directement dans l'interface ci-dessous.
-- Analyse chaque question de façon authentique et contextualisée, sans jamais répéter une réponse préenregistrée.
-
-Contexte en direct de la station courante :
-- Commune / Station : ${station?.name || 'France'} (${station?.department || ''}, altitude: ${station?.altitude || 100} m)
-- Température réelle : ${weather?.temperature ?? 18}°C (Ressenti bio-climatique : ${weather?.feelsLike ?? 18}°C)
-- Conditions météo : ${weather?.weatherDescription || 'Variable'}
-- Vent moyen : ${weather?.windSpeed ?? 15} km/h (Rafales : ${weather?.windGust ?? 25} km/h, direction: ${weather?.windDirection ?? 220}°)
-- Humidité relative : ${weather?.humidity ?? 65}%
-- Pression atmosphérique : ${weather?.pressure ?? 1015} hPa
-- Précipitations : ${weather?.precipitation ?? 0} mm (Indice UV : ${weather?.uvIndex ?? 3})
-
-Directive de persona (${personaMode}) : ${personaDirective}
-
-Consignes de formatage :
-1. Rédige en français soigné, structuré en Markdown propre (titres en gras, listes courtes avec puces claires, emojis pertinents comme 🌡️, 💨, 💧, 🧭, 🏔️, ☀️, ⚡).
-2. Si l'utilisateur mentionne une ville française spécifique ou compare deux villes (ex: Paris et Marseille), adapte ton analyse aux reliefs et climats de ces villes respectives.
-3. Sois concis, direct et percutant (2 à 4 paragraphes courts maximum, zéro remplissage).
-4. Ne sors jamais de ton rôle d'IA météorologique AURA d'Instant Météo.`;
-
-    const contents = [
-      { role: 'user', parts: [{ text: `${systemPrompt}\n\nQuestion de l'utilisateur : "${message}"` }] }
-    ];
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents
+  if (!checkAuraRateLimit(clientIp)) {
+    res.status(429).json({
+      success: false,
+      error: 'Trop de requêtes vers AURA. Merci de patienter une minute.',
     });
+    return;
+  }
 
-    const answer = response.text || "Nos capteurs analysent la situation. Que souhaitez-vous approfondir ?";
-    res.json({ success: true, answer });
+  const { message, history, station, weather, personaMode = 'standard' } = req.body || {};
+  const cleanMessage = typeof message === 'string' ? message.trim() : '';
+
+  if (!cleanMessage) {
+    res.status(400).json({ success: false, error: 'Message requis' });
+    return;
+  }
+  if (cleanMessage.length > 4000) {
+    res.status(400).json({
+      success: false,
+      error: 'Message trop long (4000 caractères maximum).',
+    });
+    return;
+  }
+
+  const wantsSse = (req.headers.accept || '').includes('text/event-stream');
+  const sendSse = (event: string, data: unknown) => {
+    if (!wantsSse || res.writableEnded) return;
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  if (wantsSse) {
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+  }
+
+  try {
+    const result = await runAuraChatPipeline(
+      {
+        message: cleanMessage,
+        history: Array.isArray(history) ? history : [],
+        station,
+        weather,
+        personaMode,
+      },
+      wantsSse
+        ? {
+            onStatus: (phase, label) => sendSse('status', { phase, label }),
+            onChunk: (delta) => sendSse('chunk', { delta }),
+            onResetText: () => sendSse('reset', {}),
+          }
+        : undefined
+    );
+
+    const payload = {
+      success: true,
+      text: result.text,
+      answer: result.text,
+      card: result.widgets.card,
+      comparison: result.widgets.comparison,
+      chart: result.widgets.chart,
+      map3D: result.widgets.map3D,
+      snapshot: result.widgets.snapshot,
+      table: result.widgets.table,
+      sources: result.sources,
+      verificationStatus: result.verificationStatus,
+    };
+
+    if (wantsSse) {
+      sendSse('done', payload);
+      res.end();
+    } else {
+      res.json(payload);
+    }
   } catch (err: any) {
-    console.error('Erreur API AURA chat:', err);
-    res.json({ success: false, fallback: true, error: err.message });
+    console.error('[AURA] Pipeline error:', err?.message || err);
+    if (wantsSse) {
+      sendSse('error', { message: AURA_NETWORK_ERROR_MESSAGE });
+      res.end();
+    } else {
+      res.status(503).json({
+        success: false,
+        error: AURA_NETWORK_ERROR_MESSAGE,
+      });
+    }
   }
 });
 
@@ -2416,47 +2448,6 @@ app.get('/api/vigilance-meteofrance', async (req, res) => {
   res.json(result);
 });
 
-// 18. API Aura Intelligence Météorologique (Gemini 2.5 Flash Server-Side)
-app.post('/api/aura/chat', async (req, res) => {
-  const { message, station, weather } = req.body || {};
-  if (!message) {
-    return res.status(400).json({ error: 'Message manquant' });
-  }
-
-  const client = getGeminiClient();
-  if (!client) {
-    return res.json({
-      success: false,
-      reason: 'Gemini client not initialized'
-    });
-  }
-
-  try {
-    const prompt = `Tu es AURA, l'intelligence météorologique officielle d'Instant Météo connectée aux modèles (ECMWF, GFS, ICON, AROME).
-Station de référence : ${station?.name || 'France'} (${station?.department || ''}), Température : ${weather?.temperature ?? 15}°C (ressenti : ${weather?.feelsLike ?? 15}°C), Conditions : ${weather?.weatherDescription || 'Variable'}, Vent : ${weather?.windSpeed ?? 15} km/h (rafales ${weather?.windGust ?? 25} km/h).
-Question de l'utilisateur : "${message}"
-Consignes impératives :
-- Réponds en français clair, précis, empathique et rigoureux.
-- Précise toujours explicitement l'échelle géographique dont tu parles : ex. "[Échelle Locale : Nom de la ville]" ou "[Échelle Régionale : Région]" ou "[Échelle Nationale : France métropolitaine]".
-- Indique toujours une section "Ce que cela donnera concrètement" (impact sur la vie quotidienne, parapluie, tenue recommandée).
-- Mentionne explicitement l'analyse du risque de neige ("Risque de neige : Rien de spécial / Aucun risque en plaine" ou altitude de la LPN en montagne).
-- Tu es AURA d'Instant Météo.`;
-
-    const aiRes = await client.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt
-    });
-
-    const answer = aiRes.text?.trim() || '';
-    if (answer) {
-      return res.json({ success: true, answer });
-    }
-    return res.json({ success: false });
-  } catch (err: any) {
-    console.warn("Aura chat AI error:", err?.message || err);
-    return res.json({ success: false, error: err?.message });
-  }
-});
 
 
 // -------------------------------------------------------------

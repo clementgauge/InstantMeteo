@@ -11,31 +11,33 @@ import {
   CloudRain, 
   Snowflake, 
   Zap, 
-  Wind, 
   LineChart, 
   CheckCircle2, 
-  ShieldAlert, 
   RefreshCw,
   Compass,
-  Thermometer,
-  Layers,
   X,
   Camera,
   Table as TableIcon,
-  Activity,
   Copy,
   Check,
   Square,
   Scale,
   BookOpen,
   HeartPulse,
-  Mountain
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import Chart from 'chart.js/auto';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast } from '../types/weather';
 import { FRENCH_STATIONS } from '../data/frenchStations';
-import { fetchWeatherData, getFallbackWeatherData } from '../services/openMeteoService';
-import { getIsothermComprehensiveDiagnostic } from '../utils/isothermCalculations';
+import { getFallbackWeatherData } from '../services/openMeteoService';
+import {
+  AURA_CLIENT_ERROR_MESSAGE,
+  AuraChatHistoryItem,
+  AuraPersonaMode,
+  AuraSource,
+  streamAuraChat
+} from '../services/geminiService';
 import { AuraBotAvatar } from '../components/AuraBotAvatar';
 import { Aura3DAtmosphericMap, Map3DMetric } from '../components/Aura3DAtmosphericMap';
 import { AuraObservatorySnapshot } from '../components/AuraObservatorySnapshot';
@@ -61,275 +63,9 @@ export interface ChartDatasetItem {
   type?: 'line' | 'bar';
 }
 
-// Dictionnaire complet et rapide de correspondance pour les villes et agglomérations
-export const MAJOR_FRENCH_CITIES_MAP: Record<string, string> = {
-  'paris': 'paris-montsouris',
-  'marseille': 'marseille-marignane',
-  'marseilles': 'marseille-marignane',
-  'lyon': 'lyon-bron',
-  'lyons': 'lyon-bron',
-  'toulouse': 'toulouse-blagnac',
-  'nice': 'nice-cote-d-azur',
-  'nantes': 'nantes-atlantique',
-  'strasbourg': 'strasbourg-entzheim',
-  'montpellier': 'montpellier-frejorgues',
-  'bordeaux': 'bordeaux-merignac',
-  'lille': 'lille-lesquin',
-  'rennes': 'rennes-saint-jacques',
-  'reims': 'reims-prunay',
-  'saint-etienne': 'saint-etienne-boutheon',
-  'saint etienne': 'saint-etienne-boutheon',
-  'st etienne': 'saint-etienne-boutheon',
-  'toulon': 'toulon-la-mitre',
-  'le havre': 'le-havre-octeville',
-  'grenoble': 'grenoble-saint-geoirs',
-  'dijon': 'dijon-longvic',
-  'angers': 'angers-beaucouze',
-  'nimes': 'nimes-courbessac',
-  'clermont-ferrand': 'clermont-ferrand-aulnat',
-  'clermont ferrand': 'clermont-ferrand-aulnat',
-  'clermont': 'clermont-ferrand-aulnat',
-  'aix-en-provence': 'aix-en-provence',
-  'aix en provence': 'aix-en-provence',
-  'aix': 'aix-en-provence',
-  'brest': 'brest-guipavas',
-  'tours': 'tours-parcay-meslay',
-  'amiens': 'amiens-glisy',
-  'limoges': 'limoges-bellegarde',
-  'annecy': 'annecy-meythet',
-  'perpignan': 'perpignan-rivesaltes',
-  'besancon': 'besancon-thise',
-  'metz': 'metz-frescaty',
-  'orleans': 'orleans-bricy',
-  'rouen': 'rouen-boos',
-  'caen': 'caen-carpiquet',
-  'mulhouse': 'mulhouse-bale',
-  'nancy': 'nancy-essey',
-  'avignon': 'avignon-caumont',
-  'poitiers': 'poitiers-biard',
-  'pau': 'pau-uzein',
-  'calais': 'calais-marck',
-  'cannes': 'cannes-mandelieu',
-  'antibes': 'antibes',
-  'chamonix': 'mont-blanc-chamonix',
-  'biarritz': 'biarritz-anglet',
-  'ajaccio': 'ajaccio-campo-dell-oro',
-  'bastia': 'bastia-poretta',
-  'la rochelle': 'la-rochelle-aeroport',
-  'bourges': 'bourges',
-  'valence': 'valence-chabeuil',
-  'chambery': 'chambery-aix-les-bains',
-  'lorient': 'lorient-lann-bihoue',
-  'vannes': 'vannes-sene',
-  'quimper': 'quimper-pluguffan',
-  'saint-malo': 'saint-malo',
-  'saint malo': 'saint-malo',
-  'cherbourg': 'cherbourg-maupertus',
-  'dunkerque': 'dunkerque',
-  'tarbes': 'tarbes-ossun-lourdes',
-  'albi': 'albi-le-sequestre',
-  'montauban': 'montauban',
-  'rodez': 'rodez-aveyron',
-  'aurillac': 'aurillac',
-  'brive': 'brive-laroche',
-  'perigueux': 'perigueux-bassillac',
-  'agen': 'agen-la-garenne',
-  'angouleme': 'angouleme-brie-champniers',
-  'niort': 'niort-souche',
-  'cholet': 'cholet',
-  'laval': 'laval',
-  'le mans': 'le-mans-arborial',
-  'chartres': 'chartres-champhol',
-  'evreux': 'evreux-fauville',
-  'beauvais': 'beauvais-tille',
-  'arras': 'arras',
-  'boulogne': 'boulogne-sur-mer',
-  'troyes': 'troyes-barberey',
-  'belfort': 'belfort',
-  'epinal': 'epinal',
-  'colmar': 'colmar-houssen',
-  'gap': 'gap-tallard',
-  'briancon': 'briancon',
-  'arles': 'arles',
-  'beziers': 'beziers-vias',
-  'sete': 'sete',
-  'narbonne': 'narbonne',
-  'carcassonne': 'carcassonne-salvaza'
-};
-
-export function detectStationFromInput(query: string): LocationPoint | null {
-  const clean = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-
-  // 1. Recherche directe dans le dictionnaire des grandes agglomérations
-  for (const [cityName, stationId] of Object.entries(MAJOR_FRENCH_CITIES_MAP)) {
-    const regex = new RegExp(`\\b${cityName}\\b`, 'i');
-    if (regex.test(clean) || clean === cityName) {
-      const match = FRENCH_STATIONS.find(s => s.id === stationId);
-      if (match) return match;
-    }
-  }
-
-  // 1b. Variante avec singulier (ex: "marseilles" -> "marseille", "lyons" -> "lyon")
-  const tokens = clean.split(/[\s,.'?!:;-]+/).filter(t => t.length >= 4);
-  for (const token of tokens) {
-    if (token.endsWith('s')) {
-      const singular = token.slice(0, -1);
-      if (MAJOR_FRENCH_CITIES_MAP[singular]) {
-        const match = FRENCH_STATIONS.find(s => s.id === MAJOR_FRENCH_CITIES_MAP[singular]);
-        if (match) return match;
-      }
-    }
-  }
-
-  // 2. Recherche par préfixe ou nom complet parmi toutes les 4 500+ stations de France
-  for (const s of FRENCH_STATIONS) {
-    const sNameNorm = s.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const firstWord = sNameNorm.split(/[-–,\s]/)[0];
-    if (firstWord.length >= 3) {
-      const regex = new RegExp(`\\b${firstWord}\\b`, 'i');
-      if (regex.test(clean) || clean === firstWord) {
-        return s;
-      }
-    }
-    if (clean.includes(sNameNorm)) {
-      return s;
-    }
-  }
-
-  // 3. Recherche par nom de département (ex: "Gironde", "Finistère", "Rhône", "75", "13")
-  for (const s of FRENCH_STATIONS) {
-    if (s.department) {
-      const deptNorm = s.department.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const deptPure = deptNorm.replace(/^\d+\s*-\s*/, '').trim();
-      if (deptPure.length >= 4 && clean.includes(deptPure)) {
-        return s;
-      }
-    }
-  }
-
-  return null;
-}
-
-export function detectAllStationsFromInput(query: string): LocationPoint[] {
-  const clean = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-  const found: LocationPoint[] = [];
-  const addedIds = new Set<string>();
-
-  // 1. Dictionnaire rapide des agglomérations
-  for (const [cityName, stationId] of Object.entries(MAJOR_FRENCH_CITIES_MAP)) {
-    const regex = new RegExp(`\\b${cityName}\\b`, 'i');
-    if (regex.test(clean)) {
-      const match = FRENCH_STATIONS.find(s => s.id === stationId);
-      if (match && !addedIds.has(match.id)) {
-        found.push(match);
-        addedIds.add(match.id);
-      }
-    }
-  }
-
-  // 2. Recherche par nom des stations principales
-  if (found.length < 2) {
-    for (const s of FRENCH_STATIONS) {
-      if (addedIds.has(s.id)) continue;
-      const sNameNorm = s.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const firstWord = sNameNorm.split(/[-–,\s]/)[0];
-      if (firstWord.length >= 3) {
-        const regex = new RegExp(`\\b${firstWord}\\b`, 'i');
-        if (regex.test(clean)) {
-          found.push(s);
-          addedIds.add(s.id);
-          if (found.length >= 3) break;
-        }
-      }
-    }
-  }
-
-  return found;
-}
-
-export function computeRealisticStationWeather(
-  targetStation: LocationPoint,
-  baseStation: LocationPoint,
-  baseWeather: CurrentWeather,
-  baseHourly: HourlyForecast[],
-  baseDaily: DailyForecast[]
-) {
-  if (targetStation.id === baseStation.id) {
-    return {
-      weather: baseWeather,
-      hourly: baseHourly,
-      daily: baseDaily,
-      icon: baseWeather.temperature >= 22 ? '☀️' : '⛅'
-    };
-  }
-
-  // 1. Gradient de latitude (~0.75°C par degré de latitude vers le Sud)
-  const latDiff = (baseStation.latitude - targetStation.latitude) * 0.75;
-
-  // 2. Gradient d'altitude (-0.0065°C par mètre)
-  const altDiff = ((targetStation.altitude || 100) - (baseStation.altitude || 100)) * -0.0065;
-
-  // 3. Modificateurs de zone climatique
-  let zoneMod = 0;
-  let windMod = 1.0;
-  let condition = baseWeather.weatherDescription;
-  let icon = '☀️';
-
-  const zone = targetStation.climateZone || '';
-  const isMed = zone.includes('Méditerranéen') || (targetStation.latitude < 44.5 && targetStation.longitude > 3.0);
-  const isAquitaine = zone.includes('Aquitain') || (targetStation.latitude < 46.0 && targetStation.longitude < 1.0);
-  const isOceanic = targetStation.longitude < -1.0;
-  const isAlpine = (targetStation.altitude || 0) >= 1000;
-
-  if (isMed) {
-    zoneMod = +3.4;
-    windMod = targetStation.name.includes('Marseille') || targetStation.name.includes('Ventoux') ? 1.6 : 1.25;
-    condition = 'Grand soleil méditerranéen';
-    icon = '☀️';
-  } else if (isAquitaine) {
-    zoneMod = +2.4;
-    condition = 'Ensoleillé et douceur';
-    icon = '☀️';
-  } else if (isAlpine) {
-    zoneMod = -2.0;
-    condition = (targetStation.altitude || 0) >= 2000 ? 'Frais d\'altitude et névés' : 'Ensoleillé en montagne';
-    icon = '🏔️';
-  } else if (isOceanic) {
-    zoneMod = -0.5;
-    windMod = 1.35;
-    condition = 'Éclaircies et brise océanique';
-    icon = '⛅';
-  }
-
-  const rawTemp = baseWeather.temperature + latDiff + altDiff + zoneMod;
-  const temperature = Math.round(Math.max(-10, Math.min(38, rawTemp)) * 10) / 10;
-  const windSpeed = Math.round(baseWeather.windSpeed * windMod);
-  const windGust = Math.round(windSpeed * 1.45);
-  const feelsLike = Math.round((temperature - (windSpeed >= 20 ? (windSpeed - 20) * 0.1 : 0)) * 10) / 10;
-
-  const weather: CurrentWeather = {
-    ...baseWeather,
-    temperature,
-    feelsLike,
-    windSpeed,
-    windGust,
-    weatherDescription: condition
-  };
-
-  const delta = temperature - baseWeather.temperature;
-  const hourly = baseHourly.map(h => ({
-    ...h,
-    temperature: Math.round((h.temperature + delta) * 10) / 10
-  }));
-
-  const daily = baseDaily.map(d => ({
-    ...d,
-    tempMax: Math.round((d.tempMax + delta) * 10) / 10,
-    tempMin: Math.round((d.tempMin + delta) * 10) / 10
-  }));
-
-  return { weather, hourly, daily, icon };
-}
+// Clés localStorage pour persistance conversation & persona
+const AURA_HISTORY_STORAGE_KEY = 'instant_meteo_aura_history_v2';
+const AURA_PERSONA_STORAGE_KEY = 'instant_meteo_aura_persona_v1';
 
 interface ChatMessage {
   id: string;
@@ -371,7 +107,7 @@ interface ChatMessage {
     focusCityName?: string;
   };
   snapshot?: {
-    type: 'radar' | 'ensemble14d' | 'nephology' | 'radiation';
+    type: 'radar' | 'ensemble14d' | 'nephology' | 'radiation' | 'anomaly';
     stationName: string;
   };
   table?: {
@@ -379,8 +115,29 @@ interface ChatMessage {
     columns: string[];
     rows: (string | number)[][];
   };
+  sources?: AuraSource[];
+  verificationStatus?: 'verified' | 'corrected';
+  isStreaming?: boolean;
+  isError?: boolean;
   timestamp: string;
 }
+
+const buildWelcomeMessage = (station: LocationPoint, safeWeather: CurrentWeather): ChatMessage => ({
+  id: 'welcome',
+  sender: 'aura',
+  text: `Bonjour ! Je suis **AURA**, votre assistante intelligente sur **Instant Météo**.\n\nJe réponds à **toutes** vos questions (météo en direct dans le monde, archives réelles, sciences, calculs, actualités, rédaction, cuisine...) et je peux générer graphiques, tableaux et cartes 3D :\n- 📍 **Météo & prévisions** : *"Quel temps à Brest ?"*, *"À 14h hier à Lyon ?"*\n- 📊 **Graphiques & Comparatifs** : *"Compare Paris et Nice sur un graphique"*\n- 🗺️ **Cartes 3D & Radar** : *"Carte 3D de la France"*, *"Capture du radar"*\n- 🧠 **Généraliste & Calculs** : *"Loi d'Ohm pour 230V et 1kΩ"*, *"Dernier match du PSG"*`,
+  card: {
+    location: station.name,
+    stationId: station.id,
+    department: station.department,
+    temp: `${safeWeather.temperature.toFixed(1)}°C`,
+    feelsLike: `${safeWeather.feelsLike.toFixed(1)}°C`,
+    condition: safeWeather.weatherDescription,
+    windInfo: `${safeWeather.windSpeed} km/h (rafales ${safeWeather.windGust ?? Math.round(safeWeather.windSpeed * 1.35)} km/h)`,
+    icon: safeWeather.temperature >= 22 ? '☀️' : '⛅'
+  },
+  timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+});
 
 export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
   currentStation,
@@ -398,32 +155,63 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     return weather ?? getFallbackWeatherData(currentStation).current;
   }, [weather, currentStation]);
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: 'welcome',
-      sender: 'aura',
-      text: `Bonjour ! Je suis **AURA**, votre intelligence météorologique connectée en direct aux données certifiées d'**Instant Météo**.\n\nPosez-moi vos questions météo :\n- 📍 **Météo d'une ville** : *"Paris"*, *"Marseille"*, *"Lyon"*...\n- 📊 **Tendances** : *"Donne-moi la température sur 7 jours"*\n- 🗺️ **Modélisation** : *"Génère une carte 3D de la France"*\n- 🌧️ **Précipitations** : *"Fais une capture du radar"*`,
-      card: {
-        location: currentStation.name,
-        stationId: currentStation.id,
-        department: currentStation.department,
-        temp: `${safeWeather.temperature.toFixed(1)}°C`,
-        feelsLike: `${safeWeather.feelsLike.toFixed(1)}°C`,
-        condition: safeWeather.weatherDescription,
-        windInfo: `${safeWeather.windSpeed} km/h (rafales ${safeWeather.windGust ?? Math.round(safeWeather.windSpeed * 1.35)} km/h)`,
-        icon: '☀️'
-      },
-      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const raw = localStorage.getItem(AURA_HISTORY_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const restored = parsed
+            .filter((m: any) => m && typeof m.id === 'string' && typeof m.text === 'string' && (m.sender === 'user' || m.sender === 'aura'))
+            .map((m: any) => ({ ...m, isStreaming: false }));
+          if (restored.length > 0) return restored;
+        }
+      }
+    } catch {
+      // ignore localStorage read error
     }
-  ]);
+    return [buildWelcomeMessage(currentStation, safeWeather)];
+  });
+
+  const [personaMode, setPersonaMode] = useState<AuraPersonaMode>(() => {
+    try {
+      const saved = localStorage.getItem(AURA_PERSONA_STORAGE_KEY);
+      if (saved === 'standard' || saved === 'expert' || saved === 'health' || saved === 'pedagogue') {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'standard';
+  });
 
   const [inputText, setInputText] = useState<string>('');
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [thinkingStatus, setThinkingStatus] = useState<string>('AURA réfléchit…');
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(true);
   const [isListening, setIsListening] = useState<boolean>(false);
-  const personaMode = 'standard';
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    try {
+      const toSave = messages
+        .filter((m) => !m.isStreaming)
+        .slice(-40);
+      localStorage.setItem(AURA_HISTORY_STORAGE_KEY, JSON.stringify(toSave));
+    } catch {
+      // ignore localStorage quota/privacy error
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AURA_PERSONA_STORAGE_KEY, personaMode);
+    } catch {
+      // ignore
+    }
+  }, [personaMode]);
 
   const handleSpeakMessage = (id: string, text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -719,826 +507,181 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
     });
   }, [messages]);
 
-  // 6. MOTEUR LINGUISTIQUE NATUREL & DYNAMIQUE (DÉTECTION DES MOTS DE LA QUESTION)
-  const handleProcessQuery = async (query: string) => {
-    if (!query.trim()) return;
+  // Cleanup Chart.js & ongoing requests on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      Object.values(chartInstancesRef.current).forEach((chart) => {
+        try {
+          chart.destroy();
+        } catch {
+          // ignore
+        }
+      });
+      chartInstancesRef.current = {};
+    };
+  }, []);
 
-    // Ajout du message de l'utilisateur
+  const handleNewConversation = () => {
+    abortControllerRef.current?.abort();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
+    Object.values(chartInstancesRef.current).forEach((chart) => {
+      try {
+        chart.destroy();
+      } catch {
+        // ignore
+      }
+    });
+    chartInstancesRef.current = {};
+    setIsThinking(false);
+    setThinkingStatus('AURA réfléchit…');
+    const freshWelcome = [buildWelcomeMessage(currentStation, safeWeather)];
+    setMessages(freshWelcome);
+    try {
+      localStorage.removeItem(AURA_HISTORY_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
+  // 6. MOTEUR IA CONVERSATIONNEL AURA (GEMINI ROUTER + OUTILS + AUTOCORRECTION + SSE)
+  const handleProcessQuery = async (query: string) => {
+    const cleanQuery = query.trim();
+    if (!cleanQuery || isThinking) return;
+
+    const historyToSend: AuraChatHistoryItem[] = messages
+      .filter((m) => m.id !== 'welcome' && !m.isError && !m.isStreaming && m.text.trim())
+      .slice(-12)
+      .map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        text: m.text
+      }));
+
     const userMsg: ChatMessage = {
       id: `user_${Date.now()}`,
       sender: 'user',
-      text: query,
+      text: cleanQuery,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
+
+    const streamMsgId = `aura_${Date.now() + 1}`;
+    let streamMessageCreated = false;
 
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsThinking(true);
+    setThinkingStatus('AURA réfléchit…');
     scrollToBottom();
 
-    // Délibération de l'IA (1.4s) pour animer les 3 petits points de réflexion dans le chat stream
-    await new Promise((resolve) => setTimeout(resolve, 1400));
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-    // Normalisation du texte pour analyse sémantique approfondie
-    const lower = query.toLowerCase();
-    const normalized = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    // A. Détection intelligente et approfondie de la Ville / Station mentionnée
-    let targetStation: LocationPoint = currentStation;
-    let targetWeather: CurrentWeather = safeWeather;
-    let targetHourly: HourlyForecast[] = hourly;
-    let targetDaily: DailyForecast[] = daily;
-    let targetStationIcon: string = safeWeather.temperature >= 22 ? '☀️' : '⛅';
-
-    const detectedStation = detectStationFromInput(query);
-    const detectedStations = detectAllStationsFromInput(query);
-
-    if (detectedStation) {
-      targetStation = detectedStation;
-      try {
-        const liveCityData = await fetchWeatherData(detectedStation);
-        if (liveCityData && liveCityData.current) {
-          targetWeather = liveCityData.current;
-          targetHourly = liveCityData.hourly || [];
-          targetDaily = liveCityData.daily || [];
-          targetStationIcon = liveCityData.current.temperature >= 22 ? '☀️' : (liveCityData.current.precipitation > 0 ? '🌧️' : '⛅');
-        } else {
-          throw new Error('Données directes non disponibles');
-        }
-      } catch (err) {
-        console.warn('Fallback calcul station pour', detectedStation.name, err);
-        const computed = computeRealisticStationWeather(
-          detectedStation,
-          currentStation,
-          safeWeather,
-          hourly,
-          daily
-        );
-        targetWeather = computed.weather;
-        targetHourly = computed.hourly;
-        targetDaily = computed.daily;
-        targetStationIcon = computed.icon;
-      }
-    }
-
-    // Détection du comparatif multi-villes (ex: "Compare Paris et Marseille")
-    const isComparisonQuery = detectedStations.length >= 2 && (
-      normalized.includes('compare') || 
-      normalized.includes('vs') || 
-      normalized.includes('diff') || 
-      normalized.includes('versus') || 
-      normalized.includes(' ou ') || 
-      normalized.includes('entre') ||
-      normalized.includes('comparatif')
-    );
-
-    // B. Détection de la Modalité d'Affichage demandée (Carte 3D, Graphique, Tableau, Capture)
-    const wants3DMap = ['3d', 'carte 3d', 'carte', 'map', 'territoire', 'france', 'spatial', 'relief', 'contour', 'contours', 'pays', 'hexagone'].some(kw => normalized.includes(kw));
-    const wantsGraph = ['graphe', 'graphique', 'courbe', 'histogramme', 'chart', 'tracer', 'evolution', 'trace', 'schema', 'diagramme'].some(kw => normalized.includes(kw));
-    const wantsTable = ['tableau', 'table', 'colonne', 'recapitulatif', 'liste', 'grille', 'synthese'].some(kw => normalized.includes(kw));
-    const wantsSnapshot = ['capture', 'screenshot', 'apercu', 'photo', 'camera'].some(kw => normalized.includes(kw));
-
-    // C. Détection de la Période Temporelle & Heure Précise
-    const hourRegex = /(?:a\s*|vers\s*|de\s*|\b)(\d{1,2})\s*(?:h(?:eures?|\b)|:00\b)/i;
-    const hourMatch = normalized.match(hourRegex);
-    const requestedHour = hourMatch ? parseInt(hourMatch[1], 10) : null;
-    const isSpecificHourQuery = requestedHour !== null && requestedHour >= 0 && requestedHour <= 23;
-    const isYesterday = normalized.includes('hier');
-
-    // N'activer l'historique sur 7 jours que si AUCUNE heure précise n'a été demandée !
-    const isPast7Days = !isSpecificHourQuery && ['j-7', 'j - 7', 'aujourd\'hui a j-7', 'aujourdhui a j-7', '7 derniers jours', 'sept derniers jours', 'semaine passee', 'historique'].some(kw => normalized.includes(kw));
-    const isForecast7Days = ['7 jours', 'sept jours', 'semaine', 'j+7', 'prochains jours', 'semaine prochaine', 'a 7 jours', 'sur 7 jours'].some(kw => normalized.includes(kw));
-    const is24hHourly = ['actuel', 'aujourd\'hui', 'direct', 'maintenant', 'ce jour', '24h', 'heure par heure', 'prochaines heures'].some(kw => normalized.includes(kw));
-
-    // D. Détection des Métriques
-    const isTempQuery = ['temp', 'degr', 'chaud', 'froid', 'tmax', 'tmin', 'canicule', 'gel', 'thermique', 'ressenti'].some(kw => normalized.includes(kw));
-    const isWindQuery = ['vent', 'rafal', 'eole', 'tempete', 'mistral', 'tramontane', 'bise', 'coup de vent', 'beaufort'].some(kw => normalized.includes(kw));
-    const isRainQuery = ['plui', 'precip', 'averse', 'cumul', 'eau', 'goutte', 'parapluie'].some(kw => normalized.includes(kw));
-    const isSnowIsoQuery = ['neig', 'isotherm', 'lpn', 'flocon', 'montagne', 'sommet', 'altitude', 'poudreuse'].some(kw => normalized.includes(kw));
-    const isClothingQuery = ['habill', 'tenue', 'vetement', 'porter', 'manteau', 'veste'].some(kw => normalized.includes(kw));
-    const isGreeting = ['bonjour', 'salut', 'slt', 'hello', 'coucou', 'bonsoir', 'hey', 'yo', 'wesh', 'aide'].some(kw => {
-      const regex = new RegExp(`(^|\\s|[,!?.])${kw}($|\\s|[,!?.-])`, 'i');
-      return regex.test(normalized) || normalized.startsWith(kw);
-    });
-
-    const greetingPrefix = isGreeting
-      ? (normalized.includes('slt') || normalized.includes('salut') || normalized.includes('yo') || normalized.includes('wesh')
-          ? 'Salut ! '
-          : normalized.includes('bonsoir')
-            ? 'Bonsoir ! '
-            : normalized.includes('coucou')
-              ? 'Coucou ! '
-              : 'Bonjour ! ')
-      : '';
-
-    const isPureGreeting = isGreeting && !detectedStation && !wants3DMap && !wantsGraph && !wantsTable && !wantsSnapshot && !isTempQuery && !isWindQuery && !isRainQuery && !isSnowIsoQuery && !isClothingQuery && !isPast7Days && !isForecast7Days && !isSpecificHourQuery;
-
-    const isExplicitCityQuery = Boolean(
-      detectedStation &&
-      !isComparisonQuery &&
-      !isSpecificHourQuery &&
-      !wants3DMap &&
-      !wantsSnapshot &&
-      !isPast7Days &&
-      !isClothingQuery &&
-      !(wantsGraph && isTempQuery) &&
-      !((isForecast7Days || wantsGraph) && (isTempQuery || isRainQuery || isWindQuery || isSnowIsoQuery))
-    );
-
-    // Variables de réponse
-    let responseText = '';
-    let cardData: ChatMessage['card'] | undefined;
-    let comparisonData: ChatMessage['comparison'] | undefined;
-    let chartData: ChatMessage['chart'] | undefined;
-    let map3DData: ChatMessage['map3D'] | undefined;
-    let snapshotData: ChatMessage['snapshot'] | undefined;
-    let tableData: ChatMessage['table'] | undefined;
-
-    const currentGust = targetWeather.windGust ?? Math.round(targetWeather.windSpeed * 1.35);
-
-    // =========================================================================
-    // BRANCHE 0-A : SALUTATIONS NATURELLES (BONJOUR, SALUT, SLT...)
-    // =========================================================================
-    if (isPureGreeting) {
-      responseText = `${greetingPrefix}Ravi de vous accueillir sur **Instant Météo** ! Je suis **AURA**, votre intelligence artificielle météorologique en temps réel.\n\n` +
-        `Je réponds directement et avec précision à chacune de vos questions météo :\n` +
-        `- 📍 **Météo d'une ville** : écrivez par exemple *"Météo de Paris"*, *"Quel temps à Marseille ?"* ou *"Température de Lyon"*\n` +
-        `- 📊 **Graphiques & Évolution** : demandez *"Donne moi la température sur 7 jours à Brest"* ou *"Génère un graphe de Bordeaux"*\n` +
-        `- 🗺️ **Cartes 3D & Relief** : tapez *"Carte 3D de la France"* ou *"Carte du vent"* pour explorer l'atmosphère en 3D\n` +
-        `- ⚖️ **Comparateur** : écrivez *"Compare Paris et Nice"* pour superposer leurs courbes thermiques en direct\n\n` +
-        `Quelle ville ou région souhaitez-vous observer ?`;
-    }
-
-    // =========================================================================
-    // BRANCHE 0-B : COMPARATEUR MULTI-VILLES EN TEMPS RÉEL
-    // =========================================================================
-    else if (isComparisonQuery) {
-      const stA = detectedStations[0];
-      const stB = detectedStations[1];
-      const [liveA, liveB] = await Promise.all([
-        fetchWeatherData(stA).catch(() => null),
-        fetchWeatherData(stB).catch(() => null)
-      ]);
-      const resA = liveA && liveA.current 
-        ? { weather: liveA.current, hourly: liveA.hourly || [], daily: liveA.daily || [], icon: liveA.current.temperature >= 22 ? '☀️' : '⛅' }
-        : computeRealisticStationWeather(stA, currentStation, safeWeather, hourly, daily);
-      const resB = liveB && liveB.current 
-        ? { weather: liveB.current, hourly: liveB.hourly || [], daily: liveB.daily || [], icon: liveB.current.temperature >= 22 ? '☀️' : '⛅' }
-        : computeRealisticStationWeather(stB, currentStation, safeWeather, hourly, daily);
-
-      const tA = resA.weather.temperature;
-      const tB = resB.weather.temperature;
-      const diffT = Math.abs(tA - tB).toFixed(1);
-      const warmer = tA > tB ? stA.name : (tB > tA ? stB.name : 'Égalité');
-
-      const wA = resA.weather.windSpeed;
-      const wB = resB.weather.windSpeed;
-      const diffW = Math.abs(wA - wB);
-      const windier = wA > wB ? stA.name : (wB > wA ? stB.name : 'Égalité');
-
-      const nextHours = (hourly.length > 0 ? hourly : resA.hourly).slice(0, 12);
-      const labels = nextHours.map(h => h.hourLabel || h.time || 'H');
-      const dataA = resA.hourly.slice(0, 12).map(h => h.temperature);
-      const dataB = resB.hourly.slice(0, 12).map(h => h.temperature);
-
-      responseText = `⚖️ **Analyse Comparative Météo : ${stA.name} vs ${stB.name}** :\n\n` +
-        `Voici le diagnostic synoptique comparé entre **${stA.name}** (${stA.department || 'France'}) et **${stB.name}** (${stB.department || 'France'}) :\n\n` +
-        `- 🌡️ **Températures réelles** : **${tA}°C** à ${stA.name} contre **${tB}°C** à ${stB.name} (Écart : **${diffT}°C** en faveur de **${warmer}**)\n` +
-        `- 💨 **Régime éolien** : **${wA} km/h** à ${stA.name} contre **${wB} km/h** à ${stB.name} (Secteur le plus venté : **${windier}**)\n` +
-        `- ☁️ **État du ciel** : ${resA.weather.weatherDescription} à ${stA.name} | ${resB.weather.weatherDescription} à ${stB.name}\n` +
-        `- 🧭 **Bioclimat** : Différence synoptique liée au gradient de latitude (${Math.abs(stA.latitude - stB.latitude).toFixed(1)}° d'écart) et à l'influence maritime ou continentale.\n\n` +
-        `Retrouvez ci-dessous la superposition directe des courbes thermiques pour les prochaines heures.`;
-
-      comparisonData = {
-        stationA: {
-          name: stA.name,
-          temp: `${tA}°C`,
-          wind: `${wA} km/h`,
-          condition: resA.weather.weatherDescription,
-          icon: resA.icon
+    await streamAuraChat(
+      {
+        message: cleanQuery,
+        history: historyToSend,
+        station: currentStation,
+        weather: safeWeather,
+        personaMode,
+        signal: controller.signal
+      },
+      {
+        onStatus: (_phase, label) => {
+          setThinkingStatus(label || 'AURA réfléchit…');
         },
-        stationB: {
-          name: stB.name,
-          temp: `${tB}°C`,
-          wind: `${wB} km/h`,
-          condition: resB.weather.weatherDescription,
-          icon: resB.icon
+        onResetText: () => {
+          if (streamMessageCreated) {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === streamMsgId ? { ...m, text: '' } : m))
+            );
+          }
         },
-        tempDiff: `${diffT}°C`,
-        windDiff: `${diffW} km/h`,
-        summary: `${warmer} est plus doux de ${diffT}°C`
-      };
-
-      chartData = {
-        id: `compare_${Date.now()}`,
-        title: `Comparatif thermique heure par heure (°C)`,
-        cityName: `${stA.name} vs ${stB.name}`,
-        type: 'line',
-        labels,
-        datasets: [
-          { label: `${stA.name} (${tA}°C)`, data: dataA, color: '#38BDF8', fill: false },
-          { label: `${stB.name} (${tB}°C)`, data: dataB, color: '#F59E0B', fill: false }
-        ]
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 1 : DEMANDE DE CARTE 3D DU TERRITOIRE OU D'UN PAYS
-    // =========================================================================
-    else if (wants3DMap) {
-      const isReliefQuery = ['relief', 'contour', 'contours', 'montagne', 'topograph', 'altitude', 'sommet'].some(kw => normalized.includes(kw));
-      let metric3D: Map3DMetric = isReliefQuery ? 'relief' : 'temperature';
-      let metricName = isReliefQuery ? 'Relief 3D Ombré & Vrais Contours' : 'Températures';
-
-      if (isReliefQuery) {
-        metric3D = 'relief';
-        metricName = 'Relief 3D Ombré & Vrais Contours';
-      } else if (isWindQuery) {
-        metric3D = 'wind';
-        metricName = 'Vent & Rafales';
-      } else if (isRainQuery) {
-        metric3D = 'rain';
-        metricName = 'Précipitations & Pluie';
-      } else if (isSnowIsoQuery) {
-        metric3D = 'snow';
-        metricName = 'Isotherme 0°C & Limite Pluie-Neige';
-      }
-
-      // Consigne stricte de l'utilisateur : écrire juste "Voici la carte 3D interactive générée"
-      responseText = 'Voici la carte 3D interactive générée';
-
-      map3DData = {
-        metric: metric3D,
-        title: `Carte 3D interactive générée — ${metricName}`,
-        focusCityName: detectedStation ? detectedStation.name : undefined
-      };
-
-      cardData = undefined;
-    }
-
-    // =========================================================================
-    // BRANCHE SPÉCIFIQUE : TEMPÉRATURE À UNE HEURE PRÉCISE (EX: 14H HIER / AUJOURD'HUI)
-    // =========================================================================
-    else if (isSpecificHourQuery && requestedHour !== null) {
-      // Calcul physique de la température à l'heure demandée (sans générer 7 jours)
-      const baseTemp = targetWeather.temperature;
-      // Profil de courbe diurne thermique (minimum vers 6h, maximum vers 14h-15h)
-      const hourCycleAngle = ((requestedHour - 6) / 12) * Math.PI;
-      const diurnalFactor = Math.sin(hourCycleAngle);
-      const diurnalOffset = diurnalFactor >= 0 ? diurnalFactor * 3.8 : diurnalFactor * 4.2;
-
-      let hourTemp = Number((baseTemp + (requestedHour === 14 ? 1.4 : diurnalOffset)).toFixed(1));
-      if (isYesterday) {
-        hourTemp = Number((hourTemp - 0.6).toFixed(1));
-      }
-
-      // Si l'heure est aujourd'hui et présente dans les données horaires
-      if (!isYesterday && targetHourly && targetHourly.length > 0) {
-        const found = targetHourly.find(h => {
-          const hVal = parseInt(h.time?.slice(11, 13) || '', 10);
-          return hVal === requestedHour;
-        });
-        if (found) {
-          hourTemp = found.temperature;
+        onChunk: (delta) => {
+          if (!streamMessageCreated) {
+            streamMessageCreated = true;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: streamMsgId,
+                sender: 'aura',
+                text: delta,
+                isStreaming: true,
+                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+              }
+            ]);
+          } else {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === streamMsgId ? { ...m, text: m.text + delta } : m))
+            );
+          }
+          if (chatStreamRef.current) {
+            chatStreamRef.current.scrollTop = chatStreamRef.current.scrollHeight;
+          }
+        },
+        onDone: (payload) => {
+          setIsThinking(false);
+          playChime();
+          const finalTimestamp = new Date().toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === streamMsgId);
+            const completedMsg: ChatMessage = {
+              id: streamMsgId,
+              sender: 'aura',
+              text: payload.text || 'Réponse générée.',
+              card: payload.card,
+              comparison: payload.comparison,
+              chart: payload.chart,
+              map3D: payload.map3D,
+              snapshot: payload.snapshot,
+              table: payload.table,
+              sources: payload.sources,
+              verificationStatus: payload.verificationStatus,
+              isStreaming: false,
+              timestamp: finalTimestamp
+            };
+            if (exists) {
+              return prev.map((m) => (m.id === streamMsgId ? completedMsg : m));
+            }
+            return [...prev, completedMsg];
+          });
+          scrollToBottom();
+        },
+        onError: (errMsg) => {
+          setIsThinking(false);
+          const errorTimestamp = new Date().toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          setMessages((prev) => {
+            const cleaned = prev.filter((m) => m.id !== streamMsgId);
+            return [
+              ...cleaned,
+              {
+                id: `aura_err_${Date.now()}`,
+                sender: 'aura',
+                text: errMsg || AURA_CLIENT_ERROR_MESSAGE,
+                isError: true,
+                timestamp: errorTimestamp
+              }
+            ];
+          });
+          scrollToBottom();
         }
       }
-
-      const hourFeels = Number((hourTemp - (targetWeather.windSpeed > 30 ? 1.6 : 0.3)).toFixed(1));
-      const hourWind = Math.round(targetWeather.windSpeed * (requestedHour >= 12 && requestedHour <= 17 ? 1.15 : 0.85));
-      const hourCondition = hourTemp >= 20 ? 'Ensoleillé et doux' : (targetWeather.precipitation > 0 ? 'Pluie / Averses' : 'Ciel voilé à éclaircies');
-
-      responseText = `À **${requestedHour}h00** ${isYesterday ? 'hier' : 'aujourd\'hui'} à **${targetStation.name}**, la température était de **${hourTemp}°C** (ressenti **${hourFeels}°C**).\n\n` +
-        `- 🌤️ Conditions : **${hourCondition}**\n` +
-        `- 💨 Vent : **${hourWind} km/h**\n` +
-        `- 💧 Humidité : **${Math.max(40, Math.min(90, Math.round(75 - diurnalFactor * 25)))}%**`;
-
-      cardData = {
-        location: `${targetStation.name} (${requestedHour}h00 ${isYesterday ? 'hier' : ''})`.trim(),
-        temp: `${hourTemp}°C`,
-        feelsLike: `${hourFeels}°C`,
-        condition: hourCondition,
-        windInfo: `${hourWind} km/h`,
-        icon: hourTemp >= 20 ? '☀️' : '⛅'
-      };
-
-      // Strictement aucun graphique sur 7 jours généré pour cette demande précise
-      chartData = undefined;
-    }
-
-    // =========================================================================
-    // BRANCHE 2 : DEMANDE DE CAPTURE DE GRAPHE EXISTANT (OU TÉLÉMÉTRIE ABSENTE)
-    // =========================================================================
-    else if (wantsSnapshot || lower.includes('radar') && (wantsGraph || wantsSnapshot)) {
-      let snapType: 'radar' | 'ensemble14d' | 'nephology' = 'radar';
-      if (lower.includes('14') || lower.includes('ensemble') || lower.includes('ecmwf')) {
-        snapType = 'ensemble14d';
-      } else if (lower.includes('nuage') || lower.includes('nepholog')) {
-        snapType = 'nephology';
-      }
-
-      responseText = `📸 **Capture Télémétrique Instant Météo (${targetStation.name})** :\n\nVoici la capture instantanée haute résolution extraite directement des serveurs de modélisation numérique du site :`;
-
-      snapshotData = {
-        type: snapType,
-        stationName: targetStation.name
-      };
-
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: 'Capture validée Open Data',
-        windInfo: `Station : ${targetStation.name}`,
-        icon: '📸'
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 3 : DEMANDE D'HISTORIQUE DE AUJOURD'HUI À J-7 (PASSÉ 7 JOURS)
-    // =========================================================================
-    else if (isPast7Days && (isTempQuery || wantsGraph || !isWindQuery)) {
-      const labels = ["J-7", "J-6", "J-5", "J-4", "J-3", "J-2", "Hier", "Aujourd'hui"];
-      const baseTmax = targetWeather.temperature;
-      // Reconstruction historique cohérente des 7 derniers jours basée sur le cycle thermique récent
-      const tmaxData = [
-        Math.round((baseTmax - 2.8) * 10) / 10,
-        Math.round((baseTmax - 1.9) * 10) / 10,
-        Math.round((baseTmax - 0.4) * 10) / 10,
-        Math.round((baseTmax + 1.2) * 10) / 10,
-        Math.round((baseTmax + 0.8) * 10) / 10,
-        Math.round((baseTmax - 0.6) * 10) / 10,
-        Math.round((baseTmax - 1.1) * 10) / 10,
-        Math.round(baseTmax * 10) / 10
-      ];
-      const tminData = tmaxData.map(t => Math.round((t - 7.5 + (Math.sin(t) * 1.2)) * 10) / 10);
-
-      const maxPast = Math.max(...tmaxData);
-      const minPast = Math.min(...tminData);
-
-      responseText = `📉 **Historique thermique de Aujourd'hui à J-7 pour ${targetStation.name}** :\n\n` +
-        `Voici la courbe rétrospective de l'évolution des températures observées sur votre secteur lors des 7 derniers jours jusqu'à aujourd'hui :\n\n` +
-        `- 🟠 **Journée la plus chaude de la semaine écoulée** : Pic à **${maxPast}°C**\n` +
-        `- 🔵 **Matinée la plus froide enregistrée** : Minimale nocturne à **${minPast}°C**\n` +
-        `- 🌡️ **Température observée aujourd'hui** : **${targetWeather.temperature}°C** (ressenti bio-météo **${targetWeather.feelsLike}°C**)\n` +
-        `- 📈 **Tendance globale** : Oscillation thermique régulière avec une moyenne sur 7 jours établie à **${(tmaxData.reduce((a, b) => a + b, 0) / tmaxData.length).toFixed(1)}°C**.`;
-
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: `Historique J-7 à J0`,
-        windInfo: `Moyenne 7j : ${(tmaxData.reduce((a, b) => a + b, 0) / tmaxData.length).toFixed(1)}°C`,
-        icon: '📉'
-      };
-
-      chartData = {
-        id: `chart_${Date.now()}`,
-        title: `Évolution des températures de J-7 à Aujourd'hui à ${targetStation.name} (°C)`,
-        cityName: targetStation.name,
-        type: 'line',
-        labels,
-        datasets: [
-          {
-            label: 'Tmax Diurne Passée (°C)',
-            data: tmaxData,
-            color: '#F59E0B',
-            fill: true
-          },
-          {
-            label: 'Tmin Nocturne Passée (°C)',
-            data: tminData,
-            color: '#38BDF8',
-            fill: false
-          }
-        ]
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 4 : DEMANDE DE TEMPÉRATURE SUR 7 JOURS FUTURS (J0 À J+6 / J+7)
-    // =========================================================================
-    else if ((isForecast7Days || isTempQuery) && (wantsGraph || isForecast7Days) && !isRainQuery && !isWindQuery && !isSnowIsoQuery) {
-      const days7 = targetDaily.length > 0 ? targetDaily.slice(0, 7) : [];
-      const labels = days7.length > 0 
-        ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
-        : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
-      
-      const tmaxData = days7.length > 0 ? days7.map(d => d.tempMax) : [18, 19, 21, 22, 20, 19, 21];
-      const tminData = days7.length > 0 ? days7.map(d => d.tempMin) : [9, 10, 11, 12, 10, 9, 10];
-
-      const highestTmax = Math.max(...tmaxData);
-      const lowestTmin = Math.min(...tminData);
-      const warmestDay = days7.find(d => d.tempMax === highestTmax);
-      const coolestDay = days7.find(d => d.tempMin === lowestTmin);
-      const totalRainWeek = days7.reduce((acc, d) => acc + (d.precipitationSumMm ?? d.rainMm ?? 0), 0);
-
-      responseText = `📊 **Prévision des températures sur 7 jours à ${targetStation.name} (Aujourd'hui à J+6)** :\n\n` +
-        `Voici le graphique complet des courbes thermiques calculées par les modélisations numériques certifiées d'Instant Météo :\n\n` +
-        `- 🟠 **Après-midi le plus chaud** : **${warmestDay ? (warmestDay.dayLabel === 'Aujourd\'hui' ? 'Aujourd\'hui' : warmestDay.dayLabel) : 'Milieu de semaine'}** avec **${highestTmax}°C**\n` +
-        `- 🔵 **Nuit / Matinée la plus fraîche** : **${coolestDay ? (coolestDay.dayLabel === 'Aujourd\'hui' ? 'Ce matin' : coolestDay.dayLabel) : 'Début de semaine'}** avec **${lowestTmin}°C**\n` +
-        `- 🌡️ **Écart thermique global** : **${Math.round((highestTmax - lowestTmin) * 10) / 10}°C** entre les minimales et maximales\n` +
-        `- 💧 **Bilan pluie de la semaine** : **${totalRainWeek.toFixed(1)} mm** au total\n` +
-        `- ☀️ **Pronostic général** : ${
-          totalRainWeek < 3 
-            ? "Conditions très agréables avec un temps majoritairement sec et ensoleillé." 
-            : "Alternance d'éclaircies et de passages plus humides nécessitant un vêtement adapté."
-        }`;
-
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: `7 jours : ${lowestTmin}°C à ${highestTmax}°C`,
-        windInfo: `Vent moy : ${targetWeather.windSpeed} km/h`,
-        icon: highestTmax > 20 ? '☀️' : '⛅'
-      };
-
-      chartData = {
-        id: `chart_${Date.now()}`,
-        title: `Courbe des températures sur 7 jours à ${targetStation.name} (°C)`,
-        cityName: targetStation.name,
-        type: 'line',
-        labels,
-        datasets: [
-          {
-            label: 'Tmax Après-Midi (°C)',
-            data: tmaxData,
-            color: '#F59E0B',
-            fill: true
-          },
-          {
-            label: 'Tmin Matinée (°C)',
-            data: tminData,
-            color: '#38BDF8',
-            fill: false
-          }
-        ]
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 5 : DEMANDE DE GRAPHE D'UNE VILLE SPÉCIFIQUE (EX: "GRAPHE TEMPÉRATURE DE PARIS")
-    // =========================================================================
-    else if (wantsGraph && isTempQuery) {
-      const nextHours = targetHourly.slice(0, 12);
-      const labels = nextHours.map(h => h.hourLabel || h.time || 'H');
-      const data = nextHours.map(h => h.temperature);
-
-      responseText = `📈 **Courbe de température en direct pour ${targetStation.name}** :\n\nVoici le profil thermique heure par heure généré à partir des données physiques actuelles de la station (**${targetStation.name}**, ${targetStation.altitude} m) :\n\n- Température actuelle : **${targetWeather.temperature}°C**\n- Ressenti bio-climatique : **${targetWeather.feelsLike}°C**\n- Température maximale sur 12h : **${Math.max(...data)}°C**\n- Température minimale sur 12h : **${Math.min(...data)}°C**`;
-
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `${targetWeather.windSpeed} km/h`,
-        icon: '📈'
-      };
-
-      chartData = {
-        id: `chart_${Date.now()}`,
-        title: `Profil thermique heure par heure à ${targetStation.name} (°C)`,
-        cityName: targetStation.name,
-        type: 'line',
-        labels,
-        datasetLabel: 'Température (°C)',
-        data,
-        color: '#F59E0B'
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 6 : DEMANDE DE PLUIE (SUR 7 JOURS OU GRAPHIQUE)
-    // =========================================================================
-    else if (isRainQuery) {
-      if (isForecast7Days || wantsGraph) {
-        const days7 = targetDaily.length > 0 ? targetDaily.slice(0, 7) : [];
-        const labels = days7.length > 0 
-          ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
-          : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
-        
-        const rainData = days7.map(d => Number((d.precipitationSumMm ?? d.rainMm ?? 0).toFixed(1)));
-        const totalRain = rainData.reduce((a, b) => a + b, 0);
-        const rainyDaysCount = rainData.filter(r => r > 1.0).length;
-
-        responseText = `💧 **Cumul de pluie prévu sur 7 jours à ${targetStation.name}** :\n\n` +
-          `- Cumul total sur la période : **${totalRain.toFixed(1)} mm (Litres/m²)**\n` +
-          `- Jours avec pluie mesurable (>1 mm) : **${rainyDaysCount} jour(s)**\n` +
-          `- Jour le plus arrosé : **${labels[rainData.indexOf(Math.max(...rainData))]}** avec **${Math.max(...rainData)} mm**\n\n` +
-          `${totalRain < 2.5 ? '☀️ Semaine très sèche et favorable aux activités de plein air.' : '🌧️ Prévoyez un équipement imperméable pour les journées signalées en bleu foncé.'}`;
-
-        cardData = {
-          location: targetStation.name,
-          temp: `${targetWeather.temperature}°C`,
-          feelsLike: `${targetWeather.feelsLike}°C`,
-          condition: `Cumul 7j : ${totalRain.toFixed(1)} mm`,
-          windInfo: `${rainyDaysCount} jour(s) pluvieux`,
-          icon: '🌧️'
-        };
-
-        chartData = {
-          id: `chart_${Date.now()}`,
-          title: `Précipitations quotidiennes sur 7 jours à ${targetStation.name} (mm)`,
-          cityName: targetStation.name,
-          type: 'bar',
-          labels,
-          datasetLabel: 'Précipitations (mm)',
-          data: rainData,
-          color: '#38BDF8'
-        };
-      } else {
-        const rainProb = targetHourly?.[0]?.precipitationProbability ?? (targetWeather.precipitation > 0 ? 85 : 10);
-        responseText = `💧 **Point pluie pour ${targetStation.name}** :\n\n- Probabilité de pluie immédiate : **${rainProb}%**\n- Précipitations mesurées : **${targetWeather.precipitation} mm**\n- État du ciel : **${targetWeather.weatherDescription}**\n\n${
-          rainProb >= 50
-            ? `Des averses sont probables ou en cours. Prévoyez un parapluie pour vos déplacements.`
-            : `Conditions globalement sèches sur votre secteur sans front pluvieux menaçant.`
-        }`;
-        cardData = {
-          location: targetStation.name,
-          temp: `${targetWeather.temperature}°C`,
-          feelsLike: `${targetWeather.feelsLike}°C`,
-          condition: targetWeather.weatherDescription,
-          windInfo: `Risque pluie : ${rainProb}%`,
-          icon: rainProb >= 40 ? '🌧️' : '⛅'
-        };
-      }
-    }
-
-    // =========================================================================
-    // BRANCHE 7 : DEMANDE DE VENT / RAFALES / COUP DE VENT
-    // =========================================================================
-    else if (isWindQuery) {
-      if (isForecast7Days || wantsGraph) {
-        const days7 = targetDaily.length > 0 ? targetDaily.slice(0, 7) : [];
-        const labels = days7.length > 0 
-          ? days7.map((d, i) => i === 0 ? "Aujourd'hui" : (i === 1 ? "Demain" : d.dayLabel))
-          : ["Aujourd'hui", "J+1", "J+2", "J+3", "J+4", "J+5", "J+6"];
-        
-        const gustData = days7.map(d => d.windGustMax ?? Math.round((d.windSpeedMax ?? 15) * 1.35));
-        const maxGust = Math.max(...gustData);
-
-        responseText = `💨 **Évolution des rafales de vent sur 7 jours à ${targetStation.name}** :\n\n` +
-          `- Rafale maximale prévue sur la semaine : **${maxGust} km/h** (${labels[gustData.indexOf(maxGust)]})\n` +
-          `- Vent moyen quotidien : **${Math.round(gustData.reduce((a, b) => a + b, 0) / gustData.length * 0.7)} km/h**\n\n` +
-          `${maxGust >= 65 ? '⚠️ Période venteuse remarquable identifiée sur le graphique : soyez vigilants sur les axes routiers exposés.' : '🟢 Aucune tempête ni coup de vent violent modélisé pour les 7 prochains jours.'}`;
-
-        cardData = {
-          location: targetStation.name,
-          temp: `${targetWeather.temperature}°C`,
-          feelsLike: `${targetWeather.feelsLike}°C`,
-          condition: `Rafale max 7j : ${maxGust} km/h`,
-          windInfo: `${targetWeather.windSpeed} km/h actuel`,
-          icon: '💨'
-        };
-
-        chartData = {
-          id: `chart_${Date.now()}`,
-          title: `Rafales de vent maximales sur 7 jours à ${targetStation.name} (km/h)`,
-          cityName: targetStation.name,
-          type: 'line',
-          labels,
-          datasetLabel: 'Rafale maximale (km/h)',
-          data: gustData,
-          color: '#FB923C'
-        };
-      } else {
-        const beaufort = currentGust >= 80 ? 'Force 8/9 (Coup de vent violent)' : currentGust >= 60 ? 'Force 7 (Grand frais / Coup de vent)' : 'Force 4/5 (Brise normale)';
-        responseText = `💨 **Analyse éolienne à ${targetStation.name}** :\n\n- Vitesse moyenne : **${targetWeather.windSpeed} km/h**\n- Rafales de pointe : **${currentGust} km/h**\n- Direction cardinale : **Cap ${targetWeather.windDirection ?? 225}°**\n- Échelle de Beaufort : **${beaufort}**\n\n${
-          currentGust >= 60
-            ? `⚠️ **Coup de vent modélisé** : Prudence face aux chutes de branches et arrimez les objets légers en extérieur.`
-            : `Flux modéré sans risque particulier pour les activités en plein air.`
-        }`;
-        cardData = {
-          location: targetStation.name,
-          temp: `${targetWeather.temperature}°C`,
-          feelsLike: `${targetWeather.feelsLike}°C`,
-          condition: targetWeather.weatherDescription,
-          windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
-          icon: '💨'
-        };
-      }
-    }
-
-    // =========================================================================
-    // BRANCHE 8 : DEMANDE D'ISOTHERME 0°C & LIMITE PLUIE-NEIGE (LPN)
-    // =========================================================================
-    else if (isSnowIsoQuery) {
-      const isoDiag = getIsothermComprehensiveDiagnostic({
-        stationAltitude: targetStation.altitude || 100,
-        temperature: targetWeather.temperature,
-        relativeHumidity: targetWeather.humidity ?? 70,
-        precipitationMm: targetWeather.precipitation ?? 0
-      });
-
-      responseText = `🏔️ **Diagnostic Isotherme 0°C & Limite Pluie-Neige (${targetStation.name}, ${targetStation.altitude || 100} m)** :\n\n` +
-        `- ❄️ **Isotherme 0°C réel** : Situé à **${isoDiag.isotherm0Meters} m** d'altitude\n` +
-        `- 🌨️ **Limite Pluie-Neige (LPN)** : Flocons tenant au sol dès **${isoDiag.snowRainLimitMeters} m**\n` +
-        `- 🧊 **Indice de regel nocturne** : ${isoDiag.isotherm0Meters < (targetStation.altitude || 100) ? 'Gel au sol à la station !' : 'Hors gel en plaine'}\n\n` +
-        `Calcul physique certifié d'Instant Météo intégrant la compression adiabatique et le refroidissement évaporatif du bulbe humide.`;
-
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: `Isotherme : ${isoDiag.isotherm0Meters} m`,
-        windInfo: `LPN : ${isoDiag.snowRainLimitMeters} m`,
-        icon: '🏔️'
-      };
-
-      if (wantsGraph || isForecast7Days) {
-        const days7 = targetDaily.slice(0, 7);
-        const labels = days7.map((d, i) => i === 0 ? "Aujourd'hui" : d.dayLabel);
-        const isoData = days7.map(d => Math.max(0, Math.round(isoDiag.isotherm0Meters + (d.tempMax - targetWeather.temperature) * 150)));
-        const lpnData = isoData.map(v => Math.max(0, v - 300));
-
-        chartData = {
-          id: `chart_${Date.now()}`,
-          title: `Évolution de l'Isotherme 0°C et de la LPN sur 7 jours à ${targetStation.name} (m)`,
-          cityName: targetStation.name,
-          type: 'line',
-          labels,
-          datasets: [
-            { label: 'Isotherme 0°C (m)', data: isoData, color: '#06B6D4', fill: false },
-            { label: 'Limite Pluie-Neige (m)', data: lpnData, color: '#A855F7', fill: false }
-          ]
-        };
-      }
-    }
-
-    // =========================================================================
-    // BRANCHE 8-BIS : MÉTÉO COMPLÈTE EN DIRECT POUR UNE VILLE DÉTECTÉE
-    // =========================================================================
-    else if (isExplicitCityQuery) {
-      const stationDept = targetStation.department ? ` (${targetStation.department})` : '';
-      const stationAlt = targetStation.altitude ? `, alt. ${targetStation.altitude} m` : '';
-      const rainProb = targetHourly?.[0]?.precipitationProbability ?? (targetWeather.precipitation > 0 ? 80 : 15);
-      const isPressHigh = (targetWeather.pressure ?? 1015) >= 1015;
-
-      // Prochaines tranches horaires de la journée
-      const morningTemp = targetHourly?.[8]?.temperature ?? Math.round(targetWeather.temperature - 2);
-      const afternoonTemp = targetHourly?.[14]?.temperature ?? Math.round(targetWeather.temperature + 2);
-      const eveningTemp = targetHourly?.[20]?.temperature ?? Math.round(targetWeather.temperature - 1);
-
-      // Tendances 3 jours
-      const day1 = targetDaily?.[1];
-      const day2 = targetDaily?.[2];
-      const day3 = targetDaily?.[3];
-
-      const forecast3Days = [
-        day1 ? `• **Demain (${day1.dayLabel || 'Demain'})** : ${day1.tempMin}°C à **${day1.tempMax}°C** — ${day1.weatherDescription || 'Variable'}` : '',
-        day2 ? `• **${day2.dayLabel || 'J+2'}** : ${day2.tempMin}°C à **${day2.tempMax}°C** — ${day2.weatherDescription || 'Ensoleillé'}` : '',
-        day3 ? `• **${day3.dayLabel || 'J+3'}** : ${day3.tempMin}°C à **${day3.tempMax}°C** — ${day3.weatherDescription || 'Clair'}` : ''
-      ].filter(Boolean).join('\n');
-
-      let activityAdvice = 'Conditions très favorables aux activités de plein air et déplacements.';
-      if (targetWeather.precipitation > 2 || rainProb >= 65) {
-        activityAdvice = '🌧️ Risque d\'averses marqué : prévoyez un vêtement imperméable ou un parapluie.';
-      } else if (currentGust >= 60) {
-        activityAdvice = '💨 Fortes rafales de vent : prudence lors des activités en plein air et sur route.';
-      } else if (targetWeather.temperature >= 26) {
-        activityAdvice = '☀️ Ambiance estivale et chaude : veillez à bien vous hydrater.';
-      } else if (targetWeather.temperature <= 4) {
-        activityAdvice = '❄️ Froid piquant : gants et manteau d\'hiver fortement recommandés.';
-      }
-
-      const isPlainSnowRisk = targetWeather.temperature <= 2.0 && (targetStation.altitude || 0) < 500 && targetWeather.precipitation > 0;
-      const snowVerdict = isPlainSnowRisk
-        ? '❄️ Risque de pluie et neige mêlées ou flocons en plaine lors des passages les plus intenses.'
-        : (targetStation.altitude || 0) >= 700 && targetWeather.temperature <= 4.0
-        ? `🏔️ Chutes de neige possibles en altitude sur les massifs dès ${Math.max(400, Math.round((targetStation.altitude || 700) + (targetWeather.temperature - 1) * 150))} m.`
-        : '☀️ Rien de spécial / Aucun risque de neige en plaine (0% de probabilité, isotherme élevé).';
-
-      responseText = `📍 **[Échelle Locale : ${targetStation.name}${stationDept}]**\n\n` +
-        `À **${targetStation.name}**, le ciel est actuellement **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti bio-météorologique de **${targetWeather.feelsLike}°C**).\n\n` +
-        `📊 **Télémétrie en direct (${targetStation.name}${stationAlt})** :\n` +
-        `- 💨 **Vent moyen** : **${targetWeather.windSpeed} km/h** | **Rafales maximales** : **${currentGust} km/h** (secteur ${targetWeather.windDirection ?? 230}°)\n` +
-        `- 💧 **Humidité relative** : **${targetWeather.humidity ?? 65}%** | **Précipitations mesurées** : **${targetWeather.precipitation} mm** (risque immédiat **${rainProb}%**)\n` +
-        `- 🧭 **Pression atmosphérique** : **${targetWeather.pressure ?? 1015} hPa** (${isPressHigh ? 'baromètre anticyclonique stable' : 'régime dépressionnaire'})\n` +
-        `- ☀️ **Indice UV estimé** : **${targetWeather.uvIndex ?? (targetWeather.temperature > 20 ? 5 : 2)}** / 10\n\n` +
-        `🎯 **Ce que ça donnera concrètement aujourd'hui :**\n` +
-        `- ❄️ **Analyse Neige** : ${snowVerdict}\n` +
-        `- 🧥 **Tenue & Vie quotidienne** : ${activityAdvice}\n` +
-        `- ⏱️ **Rythme de la journée** : Matinée **${morningTemp}°C** • Après-midi **${afternoonTemp}°C** • Soirée **${eveningTemp}°C**\n\n` +
-        (forecast3Days ? `📅 **Aperçu des 3 prochains jours** :\n${forecast3Days}\n\n` : '') +
-        `*Définissez ${targetStation.name} comme ville active ci-dessous pour aligner vos alertes et vos radars.*`;
-
-      cardData = {
-        location: targetStation.name,
-        stationId: targetStation.id,
-        department: targetStation.department,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
-        icon: targetStationIcon
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 9 : CONSEIL TENUE / HABILLAGE
-    // =========================================================================
-    else if (isClothingQuery) {
-      const t = targetWeather.temperature;
-      let advice = '';
-      if (t > 24) {
-        advice = 'Optez pour des vêtements très légers, respirants, et n\'oubliez pas vos lunettes de soleil ainsi qu\'une bonne hydratation.';
-      } else if (t > 15) {
-        advice = 'Une veste légère de mi-saison avec un t-shirt ou une chemise conviendra parfaitement pour la journée.';
-      } else if (t > 7) {
-        advice = 'Un manteau chaud, un pull et éventuellement une écharpe légère sont recommandés face à la fraîcheur.';
-      } else {
-        advice = 'Grand froid : bonnet, gants, manteau coupe-vent et écharpe indispensables pour préserver votre chaleur corporelle.';
-      }
-      responseText = `🧥 **Conseil de tenue pour ${targetStation.name} (${t}°C, ressenti ${targetWeather.feelsLike}°C)** :\n\n${advice}\n\nLe vent souffle à **${targetWeather.windSpeed} km/h**, ce qui abaisse le ressenti corporel effectif.`;
-      cardData = {
-        location: targetStation.name,
-        temp: `${t}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `Ressenti : ${targetWeather.feelsLike}°C`,
-        icon: '🧥'
-      };
-    }
-
-    // =========================================================================
-    // BRANCHE 10 : SALUTATIONS ET QUESTION GÉNÉRALE DYNAMIQUE
-    // =========================================================================
-    else if (isGreeting) {
-      responseText = `Bonjour ! À **${targetStation.name}**, le ciel est actuellement **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti **${targetWeather.feelsLike}°C**).\n\nQue souhaitez-vous explorer :\n- Courbe des températures sur 7 jours ou historique J-7\n- Carte 3D spatiale de la France avec données thermiques ou de vent\n- Prévision des rafales de vent ou cumul de pluie\n- Capture instantanée du radar Doppler ?`;
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
-        icon: targetWeather.temperature > 18 ? '☀️' : '⛅'
-      };
-    }
-
-    // QUESTION GÉNÉRALE OU EXPERTISE AVANCÉE
-    else {
-      // Diagnostic physique certifié de secours
-      responseText = `À **${targetStation.name}**, les conditions météorologiques sont actuellement dominées par un ciel **${targetWeather.weatherDescription.toLowerCase()}** avec une température réelle de **${targetWeather.temperature}°C** (ressenti bio-climatique **${targetWeather.feelsLike}°C**).\n\nLe vent souffle à **${targetWeather.windSpeed} km/h** avec des rafales maximales de **${currentGust} km/h**. L'humidité de l'air est à **${targetWeather.humidity ?? 65}%** et la pression atmosphérique atteint **${targetWeather.pressure ?? 1015} hPa**.\n\n💡 *Astuce : vous pouvez me demander "compare Paris et Lyon", "donne moi la température sur 7 jours", "carte 3D de la France" ou une question scientifique comme "explique-moi la goutte froide".*`;
-      cardData = {
-        location: targetStation.name,
-        temp: `${targetWeather.temperature}°C`,
-        feelsLike: `${targetWeather.feelsLike}°C`,
-        condition: targetWeather.weatherDescription,
-        windInfo: `${targetWeather.windSpeed} km/h (rafales ${currentGust} km/h)`,
-        icon: targetWeather.temperature > 18 ? '☀️' : '⛅'
-      };
-
-      // Enrichissement par l'Intelligence Artificielle Gemini 3.8 Flash
-      try {
-        const response = await fetch('/api/aura/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: query,
-            station: targetStation,
-            weather: targetWeather,
-            personaMode
-          })
-        });
-        if (response.ok) {
-          const resData = await response.json();
-          if (resData.success && resData.answer) {
-            responseText = resData.answer;
-          }
-        }
-      } catch (_) {
-        // En cas d'indisponibilité réseau, la réponse physique locale est maintenue
-      }
-    }
-
-    let finalText = responseText;
-    if (greetingPrefix && !isPureGreeting && !finalText.toLowerCase().startsWith('bonjour') && !finalText.toLowerCase().startsWith('salut')) {
-      finalText = `${greetingPrefix}${finalText}`;
-    }
-
-    setIsThinking(false);
-    playChime();
-    const auraMsg: ChatMessage = {
-      id: `aura_${Date.now()}`,
-      sender: 'aura',
-      text: finalText,
-      comparison: comparisonData,
-      card: cardData,
-      chart: chartData,
-      map3D: map3DData,
-      snapshot: snapshotData,
-      table: tableData,
-      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    };
-    setMessages((prev) => [...prev, auraMsg]);
-    scrollToBottom();
+    );
   };
 
   // 7. Voice input (Web Speech API)
   const handleToggleVoice = () => {
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRec) {
-      alert("La reconnaissance vocale n'est pas disponible sur votre navigateur.");
       return;
     }
 
@@ -1560,15 +703,34 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
       };
 
       recognition.start();
-    } catch (e) {
+    } catch {
       setIsListening(false);
     }
   };
 
+  const escapeHtml = (unsafe: string) =>
+    unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   const formatMarkdown = (content: string) => {
-    return content
+    const safe = escapeHtml(content);
+    return safe
+      .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-slate-800/90 text-sky-300 font-mono text-[11px]">$1</code>')
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-amber-300">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="text-sky-200">$1</em>');
+  };
+
+  const isSafeExternalUrl = (rawUrl: string): boolean => {
+    try {
+      const parsed = new URL(rawUrl);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+      return false;
+    }
   };
 
   const renderViewContent = () => (
@@ -1623,8 +785,17 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           </div>
         </div>
 
-        {/* Action Controls : audio & close only (expert, santé, ville bulletin supprimés) */}
+        {/* Action Controls : Nouvelle conversation, audio & close */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            onClick={handleNewConversation}
+            title="Démarrer une nouvelle conversation"
+            className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-amber-300" />
+            <span className="hidden sm:inline">Nouvelle</span>
+          </button>
+
           {/* Soundscape audio toggle */}
           <button
             onClick={() => setIsAudioMuted(!isAudioMuted)}
@@ -1649,6 +820,38 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
           )}
         </div>
       </header>
+
+      {/* 2b. SELECTEUR DE PERSONA AURA */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-2.5 sm:px-6 pt-2 shrink-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+          {(
+            [
+              { id: 'standard', label: 'Standard', icon: Sparkles },
+              { id: 'expert', label: 'Expert météo', icon: Compass },
+              { id: 'health', label: 'Santé & confort', icon: HeartPulse },
+              { id: 'pedagogue', label: 'Pédagogue', icon: BookOpen }
+            ] as const
+          ).map((mode) => {
+            const IconComp = mode.icon;
+            const active = personaMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setPersonaMode(mode.id)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                  active
+                    ? 'bg-sky-500/20 text-sky-200 border-sky-400/50 shadow-sm'
+                    : 'bg-white/5 text-slate-400 hover:text-slate-200 border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <IconComp className={`h-3 w-3 ${active ? 'text-sky-300' : 'text-slate-400'}`} />
+                <span>{mode.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* 3. MAIN CONVERSATIONAL CHAT CONTAINER */}
       <main className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between w-full max-w-4xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3">
@@ -1810,8 +1013,69 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                   />
                 )}
 
-                {/* Aura Message Utility Bar (TTS Voice Reader + Copy) */}
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                {/* Dynamic Data Table */}
+                {msg.table && msg.table.columns.length > 0 && (
+                  <div className="mt-3 p-3 rounded-xl bg-slate-950/80 border border-white/10 space-y-2 overflow-hidden">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-sky-300">
+                      <TableIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{msg.table.title}</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[11px] sm:text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/10 text-slate-300">
+                            {msg.table.columns.map((col, cIdx) => (
+                              <th key={cIdx} className="py-1.5 px-2 font-semibold whitespace-nowrap">
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {msg.table.rows.map((row, rIdx) => (
+                            <tr key={rIdx} className="hover:bg-white/5">
+                              {row.map((cell, cellIdx) => (
+                                <td key={cellIdx} className="py-1.5 px-2 text-slate-200 whitespace-nowrap">
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Web Search Grounding Sources */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="pt-2 border-t border-white/10 space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      <Globe className="h-3 w-3 text-sky-400" />
+                      <span>Sources vérifiées</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {msg.sources
+                        .filter((s) => isSafeExternalUrl(s.url))
+                        .map((src, sIdx) => (
+                          <a
+                            key={`${src.url}_${sIdx}`}
+                            href={src.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-sky-500/15 border border-white/10 hover:border-sky-400/40 text-[10px] text-sky-300 hover:text-sky-200 transition max-w-[220px]"
+                            title={src.title}
+                          >
+                            <span className="truncate">{src.title}</span>
+                            <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-80" />
+                          </a>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Aura Message Utility Bar (TTS Voice Reader + Copy + Verification Badge) */}
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 gap-2">
                   {msg.sender === 'aura' ? (
                     <div className="flex items-center gap-2">
                       <button
@@ -1858,20 +1122,36 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
                     <div />
                   )}
 
-                  <div className="text-[9px] text-slate-500 font-mono">
-                    {msg.timestamp}
+                  <div className="flex items-center gap-2 text-[9px] text-slate-500 font-mono">
+                    {msg.verificationStatus === 'verified' && (
+                      <span
+                        className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 font-sans text-[10px]"
+                        title="Réponse relue et vérifiée par rapport aux données réelles"
+                      >
+                        ✓ vérifié
+                      </span>
+                    )}
+                    {msg.verificationStatus === 'corrected' && (
+                      <span
+                        className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25 font-sans text-[10px]"
+                        title="Réponse autocorrigée après relecture"
+                      >
+                        ✎ corrigé
+                      </span>
+                    )}
+                    <span>{msg.timestamp}</span>
                   </div>
                 </div>
               </div>
             </div>
           ))}
 
-          {/* Bulle de réflexion animée AURA avec les 3 petits points (comme si l'IA réfléchit) */}
+          {/* Bulle de statut animée AURA (réflexion / consultation / vérification) */}
           {isThinking && (
             <div className="flex items-start gap-2.5 sm:gap-3 justify-start animate-fade-in py-1">
               <AuraBotAvatar size="sm" glow={true} className="mt-1 shrink-0" />
               <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-sm bg-slate-900/95 border border-sky-400/40 text-slate-200 shadow-2xl backdrop-blur-2xl flex items-center gap-3">
-                <span className="text-xs text-sky-300 font-semibold tracking-wide">AURA réfléchit</span>
+                <span className="text-xs text-sky-300 font-semibold tracking-wide">{thinkingStatus}</span>
                 <div className="inline-flex items-center gap-1.5 px-1 py-0.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '180ms' }} />
@@ -1942,13 +1222,13 @@ export const AuraWeatherAiView: React.FC<AuraWeatherAiViewProps> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Posez votre question (ex: Paris, 7 jours, carte 3D...)"
+              placeholder="Posez n'importe quelle question (météo, sciences, calcul, actu, carte 3D...)"
               className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-1.5 sm:px-2 font-normal"
             />
 
             <button
               type="submit"
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isThinking}
               className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-r from-amber-500 to-sky-500 hover:from-amber-400 hover:to-sky-400 text-slate-950 font-bold transition shadow-md flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               title="Envoyer la question"
             >
