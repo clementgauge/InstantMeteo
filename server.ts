@@ -20,20 +20,26 @@ import {
   RecordedAltitudeEntry,
 } from './src/services/worldAltitudeService';
 
-import {
-  AURA_NETWORK_ERROR_MESSAGE,
-  MODEL_FAST,
-  checkAuraRateLimit,
-  createSharedGeminiClient,
-  runAuraChatPipeline,
-} from './server/auraEngine';
-
 const app = express();
 const PORT = 3000;
+const MODEL_FAST = process.env.GEMINI_MODEL_FAST || 'gemini-4-hydrogen';
 
 // Lazy initialization du client Gemini côté serveur (sécurisation stricte des clés)
+let sharedGeminiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
-  return createSharedGeminiClient();
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  if (!sharedGeminiClient) {
+    sharedGeminiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+  }
+  return sharedGeminiClient;
 }
 // -------------------------------------------------------------
 // FICHIERS DE PERSISTANCE MULTI-SOURCES (RÉSILIENCE TOTALE AUX MISES À JOUR)
@@ -529,102 +535,6 @@ Réponds de manière concise, très claire, polie et rassurante en 3 ou 4 phrase
       fallback: true, 
       answer: `Pour la station de ${station.name} (${weather.temperature}°C actuels), il est recommandé de suivre les consignes habituelles : aérer en matinée, boire de l'eau régulièrement et profiter des moments doux de la journée.` 
     });
-  }
-});
-
-// 1c. Moteur Conversationnel Haute Intelligence AURA IA (Tool Calling + Grounding + Autocorrection + SSE)
-app.post('/api/aura/chat', async (req, res) => {
-  const clientIp =
-    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-    req.socket.remoteAddress ||
-    'unknown';
-
-  if (!checkAuraRateLimit(clientIp)) {
-    res.status(429).json({
-      success: false,
-      error: 'Trop de requêtes vers AURA. Merci de patienter une minute.',
-    });
-    return;
-  }
-
-  const { message, history, station, weather, personaMode = 'standard' } = req.body || {};
-  const cleanMessage = typeof message === 'string' ? message.trim() : '';
-
-  if (!cleanMessage) {
-    res.status(400).json({ success: false, error: 'Message requis' });
-    return;
-  }
-  if (cleanMessage.length > 4000) {
-    res.status(400).json({
-      success: false,
-      error: 'Message trop long (4000 caractères maximum).',
-    });
-    return;
-  }
-
-  const wantsSse = (req.headers.accept || '').includes('text/event-stream');
-  const sendSse = (event: string, data: unknown) => {
-    if (!wantsSse || res.writableEnded) return;
-    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-  };
-
-  if (wantsSse) {
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('X-Accel-Buffering', 'no');
-    res.flushHeaders?.();
-  }
-
-  try {
-    const result = await runAuraChatPipeline(
-      {
-        message: cleanMessage,
-        history: Array.isArray(history) ? history : [],
-        station,
-        weather,
-        personaMode,
-      },
-      wantsSse
-        ? {
-            onStatus: (phase, label) => sendSse('status', { phase, label }),
-            onChunk: (delta) => sendSse('chunk', { delta }),
-            onResetText: () => sendSse('reset', {}),
-          }
-        : undefined
-    );
-
-    const payload = {
-      success: true,
-      text: result.text,
-      answer: result.text,
-      card: result.widgets.card,
-      comparison: result.widgets.comparison,
-      chart: result.widgets.chart,
-      map3D: result.widgets.map3D,
-      snapshot: result.widgets.snapshot,
-      table: result.widgets.table,
-      sources: result.sources,
-      verificationStatus: result.verificationStatus,
-    };
-
-    if (wantsSse) {
-      sendSse('done', payload);
-      res.end();
-    } else {
-      res.json(payload);
-    }
-  } catch (err: any) {
-    console.error('[AURA] Pipeline error:', err?.message || err);
-    if (wantsSse) {
-      sendSse('error', { message: AURA_NETWORK_ERROR_MESSAGE });
-      res.end();
-    } else {
-      res.status(503).json({
-        success: false,
-        error: AURA_NETWORK_ERROR_MESSAGE,
-      });
-    }
   }
 });
 

@@ -80,7 +80,6 @@ interface HeaderProps {
   onOpenVigilanceTab?: () => void;
   onOpenRadarTab?: () => void;
   onSelectTab?: (tabId: any) => void;
-  onOpenAuraModal?: () => void;
   onOpenNotificationsModal?: () => void;
   activeAlertCount?: number;
   onOpenPageBlockCustomizer?: () => void;
@@ -129,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenVigilanceTab,
   onOpenRadarTab,
   onSelectTab,
-  onOpenAuraModal,
   onOpenNotificationsModal,
   activeAlertCount = 0,
   onOpenPageBlockCustomizer,
@@ -461,20 +459,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="h-3.5 w-3.5 text-sky-500 dark:text-sky-400 shrink-0" />
             <span className="truncate font-semibold text-[11px]">Recherche 34 965 communes...</span>
           </button>
-
-          {/* Bouton IA Météo AURA Rapide (A droite de la recherche) */}
-          {(onOpenAuraModal || onSelectTab) && (
-            <button
-              type="button"
-              id="mobile-header-aura-ai-btn"
-              onClick={() => onOpenAuraModal ? onOpenAuraModal() : onSelectTab?.('auraAI')}
-              className="flex items-center gap-1 px-2.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/25 via-sky-500/25 to-purple-500/25 hover:from-amber-500/35 hover:to-purple-500/35 border-0 shadow-sm text-amber-600 dark:text-amber-300 font-extrabold text-[11px] transition active:scale-95 cursor-pointer shrink-0"
-              title="Ouvrir l'IA Météo AURA"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse shrink-0" />
-              <span>AURA</span>
-            </button>
-          )}
         </div>
 
         {/* Row 4: Three Status Buttons (Radar HD, Vigilance 5j, Alertes & Push) */}

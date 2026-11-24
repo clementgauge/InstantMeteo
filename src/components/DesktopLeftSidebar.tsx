@@ -49,7 +49,6 @@ interface DesktopLeftSidebarProps {
   currentTheme: AtmosphereThemeConfig;
   isLightMode?: boolean;
   onToggleThemeMode?: () => void;
-  onOpenAuraModal?: () => void;
   onOpenSearchModal: () => void;
   onOpenAllPagesModal: () => void;
   onOpenAtmosphereModal: () => void;
@@ -103,7 +102,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
   currentTheme,
   isLightMode = false,
   onToggleThemeMode,
-  onOpenAuraModal,
   onOpenSearchModal,
   onOpenAllPagesModal,
   onOpenAtmosphereModal,
@@ -366,14 +364,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
   const extraMapModules = rawExtraMapModules.filter((item) => !item.visibleCheckId || isPageVisible(item.visibleCheckId));
 
   const rawSecondaryUtilityItems: SidebarRowDef[] = [
-    {
-      id: 'assistant-ia',
-      title: 'Assistant IA',
-      subtitle: 'Recommandations',
-      icon: Sparkles,
-      iconColorClass: 'text-violet-400',
-      action: () => onOpenAuraModal?.(),
-    },
     {
       id: 'favoris',
       title: 'Favoris',
@@ -707,7 +697,7 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
           </div>
         )}
 
-        {/* Divider before Assistant IA, Favoris, Historique */}
+        {/* Divider before Favoris, Historique */}
         <div
           className={`my-2 border-t ${
             isLightMode ? 'border-slate-200/90' : 'border-slate-800/80'

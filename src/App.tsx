@@ -70,7 +70,6 @@ import { MountainWeatherView } from './views/MountainWeatherView';
 import { BeachWeatherView } from './views/BeachWeatherView';
 import { DroughtAndFireView } from './views/DroughtAndFireView';
 import { WatercoursesView } from './views/WatercoursesView';
-import { AuraWeatherAiView } from './views/AuraWeatherAiView';
 import { SkyMapView } from './views/SkyMapView';
 import { LegalAndPrivacyModal } from './components/LegalAndPrivacyModal';
 import { PseudoModal } from './components/PseudoModal';
@@ -425,7 +424,6 @@ function WeatherApp() {
     }
   }, [themeMode]);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
-  const [isAuraModalOpen, setIsAuraModalOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const [isComparatorModalOpen, setIsComparatorModalOpen] = useState<boolean>(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
@@ -1043,7 +1041,6 @@ function WeatherApp() {
               currentTheme={currentTheme}
               isLightMode={themeMode === 'light'}
               onToggleThemeMode={handleToggleThemeMode}
-              onOpenAuraModal={() => setIsAuraModalOpen(true)}
               onOpenSearchModal={() => setIsSearchModalOpen(true)}
               onOpenAllPagesModal={() => {
                 window.dispatchEvent(new CustomEvent('instant_meteo_open_pages_hub'));
@@ -1103,7 +1100,6 @@ function WeatherApp() {
           isAdmin={isAdmin}
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
-          onOpenAuraModal={() => setIsAuraModalOpen(true)}
           onSelectTab={(tabId) => {
             if (tabId === 'skymap') {
               window.location.href = '/skymap';
@@ -1196,7 +1192,7 @@ function WeatherApp() {
               />
             )}
 
-            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports', 'auraAI'].includes(activeTab)) && (
+            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
               <div className="space-y-4">
                 <RealtimeView
                   station={currentStation}
@@ -1512,11 +1508,10 @@ function WeatherApp() {
               }}
             />
 
-            {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, AURA IA, Direct) */}
+            {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, Direct) */}
             <div className="w-full max-w-7xl mx-auto px-2 pt-4">
               <BottomIconCarousel
                 onOpenRadar={() => { setActiveTab('radar'); scrollToTopInstant(); }}
-                onOpenAura={() => setIsAuraModalOpen(true)}
                 onNavigateDirect={() => { setActiveTab('realtime'); scrollToTopInstant(); }}
                 onOpenSkyMap={() => { window.location.href = '/skymap'; }}
               />
@@ -2078,24 +2073,6 @@ function WeatherApp() {
         onClose={() => setIsLegalModalOpen(false)}
         initialTab={legalModalTab}
       />
-
-      {/* Modal Dialogue IA Météo AURA (Conversation, Analyses, Cartes 3D & Graphiques) */}
-      {isAuraModalOpen && (
-        <AuraWeatherAiView
-          currentStation={currentStation}
-          weather={weather}
-          hourly={hourly}
-          daily={daily}
-          tempUnit={tempUnit}
-          onSelectStation={handleSelectStationWithSeo}
-          onNavigateTab={(tab) => {
-            setActiveTab(tab as NavTabId);
-            setIsAuraModalOpen(false);
-          }}
-          onClose={() => setIsAuraModalOpen(false)}
-          isModal={true}
-        />
-      )}
 
       {/* Mode Montre Connectée Ronde (Wear OS, Google Pixel Watch, Samsung Galaxy Watch) */}
       {isWatchMode && (

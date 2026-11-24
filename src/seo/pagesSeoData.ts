@@ -277,43 +277,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/ia-meteo': {
-    slug: 'ia-meteo',
-    path: '/ia-meteo',
-    canonicalUrl: `${BASE_SITE_URL}/ia-meteo`,
-    title: 'IA Météo AURA — Assistant Conversationnel | Instant Météo',
-    description:
-      'Interrogez AURA, l’assistant météo conversationnel en direct : prévisions fiables, vent, pluie, neige et graphiques pour toutes les communes.',
-    h1: 'AURA Weather AI : Intelligence Atmosphérique Conversationnelle',
-    sectionTitle: 'Questions en langage naturel, analyses météorologiques et graphiques sur mesure',
-    breadcrumbName: 'IA Météo AURA',
-    tabId: 'auraAI',
-    changefreq: 'always',
-    priority: '0.95',
-    introParagraph:
-      'AURA Weather AI est votre assistant atmosphérique intelligent. Connecté en direct aux données haute résolution d’Instant Météo, il analyse le temps de votre commune, détecte les coups de vent, surveille les isothermes neige et génère des graphiques précis à la demande.',
-    sections: [
-      {
-        heading: 'Données météorologiques vérifiées',
-        body: 'AURA s’appuie exclusivement sur les relevés en direct, les modélisations numériques AROME et les radars Doppler officiels pour vous fournir des réponses rigoureuses.',
-      },
-      {
-        heading: 'Interaction vocale et textuelle fluide',
-        body: 'Posez vos questions par écrit ou au micro en toute simplicité pour planifier vos activités, vos trajets ou votre tenue vestimentaire.',
-      },
-    ],
-    faq: [
-      {
-        question: 'D’où proviennent les données utilisées par AURA ?',
-        answer: 'Toutes les observations proviennent directement de votre station sélectionnée sur Instant Météo et des flux ouverts officiels (Open Data).',
-      },
-      {
-        question: 'Puis-je demander des graphiques à AURA ?',
-        answer: 'Oui, demandez simplement un graphique de température, de vent ou de pluie pour visualiser l’évolution sur les prochaines heures.',
-      },
-    ],
-  },
-
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
@@ -1693,9 +1656,6 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
     '/skymap3d': '/skymap',
     '/carte-3d': '/skymap',
     '/ciel-3d': '/skymap',
-    '/aura': '/ia-meteo',
-    '/assistant': '/ia-meteo',
-    '/assistant-aura': '/ia-meteo',
     '/meteo-en-direct': '/direct',
     '/temps-reel': '/direct',
     '/radar-pluie': '/radar',
@@ -1866,7 +1826,6 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
 
   const tabToPath: Record<string, string> = {
     skymap: '/skymap',
-    auraAI: '/ia-meteo',
     vigilance: '/vigilances',
     cloudNephology: '/nuages',
     scenarios14d: '/14-jours',
@@ -2095,7 +2054,7 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
   const seenPaths = new Set<string>();
   const navLinks = Object.values(pagesMap)
     .filter((page) => {
-      if (!page || !page.path || page.path === '/aura' || seenPaths.has(page.path)) return false;
+      if (!page || !page.path || seenPaths.has(page.path)) return false;
       seenPaths.add(page.path);
       return true;
     })

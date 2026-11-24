@@ -1,16 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Radio, Play, Sparkles, Instagram, Flame, Globe, Compass, ExternalLink } from 'lucide-react';
+import { Radio, Play, Instagram, Flame, Globe, Compass, ExternalLink } from 'lucide-react';
 
 interface BottomIconCarouselProps {
   onOpenRadar?: () => void;
-  onOpenAura?: () => void;
   onNavigateDirect?: () => void;
   onOpenSkyMap?: () => void;
 }
 
 export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
   onOpenRadar,
-  onOpenAura,
   onNavigateDirect,
   onOpenSkyMap
 }) => {
@@ -84,22 +82,6 @@ export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
       badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
       action: () => window.open('https://discord.gg/MjFDekSbnt', '_blank', 'noopener,noreferrer'),
       isExternal: true
-    },
-    {
-      id: 'aura-ai',
-      name: 'AURA IA Météo',
-      subtitle: 'Analyses & Graphiques 7j',
-      icon: (
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-sky-400 p-0.5 shadow-md shadow-amber-500/20 flex items-center justify-center">
-          <div className="w-full h-full bg-slate-950/40 rounded-[14px] flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-amber-300 animate-pulse" />
-          </div>
-        </div>
-      ),
-      badge: 'IA SPATIALE',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-      action: () => onOpenAura?.(),
-      isExternal: false
     },
     {
       id: 'instagram',

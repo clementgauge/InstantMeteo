@@ -56,7 +56,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
   const rawPages = Object.values(nativeLang === 'en' ? SEO_PAGES_MAP_EN : SEO_PAGES_MAP);
   const seenPaths = new Set<string>();
   const allPages = rawPages.filter((page) => {
-    if (!page || !page.path || page.path === '/aura' || seenPaths.has(page.path)) return false;
+    if (!page || !page.path || seenPaths.has(page.path)) return false;
     seenPaths.add(page.path);
     return true;
   });

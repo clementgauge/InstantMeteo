@@ -22,7 +22,6 @@ import {
   Radar, 
   TrendingUp, 
   Navigation, 
-  Bot,
   SlidersHorizontal,
   CheckCircle2, 
   Split, 
@@ -478,15 +477,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
             <CloudRain className="h-3.5 w-3.5 text-sky-500" />
             <span>Radar des pluies</span>
           </button>
-          {onNavigateTab && (
-            <button
-              onClick={() => onNavigateTab('auraAI')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer"
-            >
-              <Bot className="h-3.5 w-3.5 text-sky-500" />
-              <span>Assistant IA</span>
-            </button>
-          )}
         </div>
       </div>
 

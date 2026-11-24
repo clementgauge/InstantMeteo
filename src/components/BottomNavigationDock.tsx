@@ -45,7 +45,6 @@ import { isPageVisible } from '../services/displayPreferencesService';
 
 export type NavTabId = 
   | 'realtime' 
-  | 'auraAI'
   | 'skymap'
   | 'cloudNephology'
   | 'vigilance' 
