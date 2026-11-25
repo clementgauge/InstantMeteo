@@ -58,7 +58,7 @@ import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration, a
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
 import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, Radio, Flame, Droplets, Waves } from 'lucide-react';
+import { Mountain, ThermometerSnowflake, Cloud, History, Compass, Radio } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
@@ -66,10 +66,7 @@ import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndReal
 import { WorldDisastersView } from './views/WorldDisastersView';
 import { CompetitiveGamingView } from './views/CompetitiveGamingView';
 import { DiscussionGroupView } from './views/DiscussionGroupView';
-import { MountainWeatherView } from './views/MountainWeatherView';
-import { BeachWeatherView } from './views/BeachWeatherView';
-import { DroughtAndFireView } from './views/DroughtAndFireView';
-import { WatercoursesView } from './views/WatercoursesView';
+import { TerritoriesAndNatureHubView, TerritorySectionId } from './views/TerritoriesAndNatureHubView';
 import { SkyMapView } from './views/SkyMapView';
 import { LegalAndPrivacyModal } from './components/LegalAndPrivacyModal';
 import { PseudoModal } from './components/PseudoModal';
@@ -224,7 +221,27 @@ function WeatherApp() {
     return unsubscribe;
   }, [currentStation]);
 
+  const getTerritorySectionFromPath = (rawPathname: string): TerritorySectionId => {
+    const clean = (rawPathname || '/').split('?')[0].split('#')[0].trim().toLowerCase().replace(/\/+$/, '') || '/';
+    if (['/plages', '/plage', '/littoral', '/mer', '/marees', '/meteo-des-plages'].includes(clean)) {
+      return 'beaches';
+    }
+    if (['/secheresse-incendie', '/vigi-secheresse-incendie', '/secheresse', '/incendie', '/feux', '/qualite-air'].includes(clean)) {
+      return 'droughtFire';
+    }
+    if (['/cours-d-eau', '/vigicrues', '/crues', '/rivieres'].includes(clean)) {
+      return 'watercourses';
+    }
+    return 'mountain';
+  };
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [territorySection, setTerritorySection] = useState<TerritorySectionId>(() => {
+    if (typeof window !== 'undefined') {
+      return getTerritorySectionFromPath(window.location.pathname);
+    }
+    return 'mountain';
+  });
   const [activeTab, setActiveTab] = useState<NavTabId>(() => {
     if (typeof window !== 'undefined') {
       const tabFromPath = getTabIdForPath(window.location.pathname) as NavTabId;
@@ -232,6 +249,19 @@ function WeatherApp() {
     }
     return 'realtime';
   });
+
+  const handleNavigateTab = (tab: string) => {
+    if (tab === 'skymap') {
+      window.location.href = '/skymap';
+      return;
+    }
+    if (tab === 'mountain' || tab === 'beaches' || tab === 'droughtFire' || tab === 'watercourses') {
+      setTerritorySection(tab);
+      setActiveTab('natureTerritories');
+      return;
+    }
+    setActiveTab(tab as NavTabId);
+  };
 
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return typeof window !== 'undefined' ? window.location.pathname : '/';
@@ -305,6 +335,9 @@ function WeatherApp() {
         }
         const tabFromPath = getTabIdForPath(p) as NavTabId;
         if (tabFromPath) {
+          if (tabFromPath === 'natureTerritories') {
+            setTerritorySection(getTerritorySectionFromPath(p));
+          }
           setActiveTab(tabFromPath);
           updateDocumentSeo(tabFromPath, false);
         }
@@ -839,11 +872,11 @@ function WeatherApp() {
   };
 
   const categories = [
-    { id: 'ALL', label: 'Toutes les prévisions (17)' },
-    { id: 'DIRECT', label: '⚡ Direct, Nuages, Alertes, Neige & Gel (6)' },
-    { id: 'MEDIUM', label: '⏱️ 0 à 14 Jours (3)' },
+    { id: 'ALL', label: 'Toutes les prévisions (13)' },
+    { id: 'DIRECT', label: '⚡ Direct, Nuages & Alertes (4)' },
+    { id: 'MEDIUM', label: '⏱️ 0 à 14 Jours (2)' },
     { id: 'LONG', label: '📅 30 Jours, 8 Mois & Évolution / Archives (2)' },
-    { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Carte & Monde (4)' },
+    { id: 'MAPS', label: '🗺️ SkyMap 3D, Radar, Montagne & Nature (4)' },
   ];
 
   const navItems = [
@@ -859,10 +892,7 @@ function WeatherApp() {
     { id: 'bulletin', category: 'MEDIUM', label: '10. 🇫🇷 Bulletins Prévisions (J+7 & 4 Semaines)', icon: FileText, highlight: true },
     { id: 'competitive', category: 'DIRECT', label: '11. 🏆 Mode Compétitif & Classement', icon: Trophy, highlight: true },
     { id: 'discussionGroup', category: 'DIRECT', label: '12. 💬 Groupe de Discussion & Salon Météo', icon: MessageSquare, highlight: true },
-    { id: 'mountain', category: 'MAPS', label: '13. 🏔️ Météo Montagne & Nivologie (BERA)', icon: Mountain, highlight: true },
-    { id: 'beaches', category: 'MAPS', label: '14. 🏖️ Météo des Plages & Littoral (SHOM)', icon: Waves, highlight: true },
-    { id: 'droughtFire', category: 'DIRECT', label: '15. 🔥 Vigi Sécheresse & Forêts (VigiEau)', icon: Flame, highlight: true },
-    { id: 'watercourses', category: 'DIRECT', label: '16. 💧 Vigie Cours d\'Eau & Crues (Vigicrues)', icon: Droplets, highlight: true },
+    { id: 'natureTerritories', category: 'MAPS', label: "13. 🏔️ Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau", icon: Mountain, highlight: true },
   ].filter((item) => isPageVisible(item.id));
 
   // Quick navigation helper
@@ -1192,7 +1222,7 @@ function WeatherApp() {
               />
             )}
 
-            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'mountain', 'beaches', 'droughtFire', 'watercourses', 'communityReports'].includes(activeTab)) && (
+            {(activeTab === 'realtime' || !['skymap', 'cloudNephology', 'vigilance', 'scenarios14d', 'bulletin', 'eightMonths', 'radar', 'historicalTrends', 'worldDisasters', 'weatherArchive', 'competitive', 'discussionGroup', 'natureTerritories', 'communityReports'].includes(activeTab)) && (
               <div className="space-y-4">
                 <RealtimeView
                   station={currentStation}
@@ -1209,7 +1239,7 @@ function WeatherApp() {
                   onSelectStation={handleSelectStationWithSeo}
                   onOpenSearchModal={() => setIsSearchModalOpen(true)}
                   onOpenGigaRadar={() => setActiveTab('radar')}
-                  onNavigateTab={(tab) => setActiveTab(tab as any)}
+                  onNavigateTab={handleNavigateTab}
                   onLocateGps={handleLocateGps}
                   onOpenInstallModal={() => setIsInstallModalOpen(true)}
                   onToggleFullscreen={handleToggleFullscreen}
@@ -1306,7 +1336,7 @@ function WeatherApp() {
                 seniorMode={seniorMode}
                 simplifiedMode={simplifiedMode}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onNavigateTab={(tab) => setActiveTab(tab as any)}
+                onNavigateTab={handleNavigateTab}
               />
             )}
 
@@ -1326,7 +1356,7 @@ function WeatherApp() {
                 weather={weather}
                 seniorMode={seniorMode}
                 onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onNavigateToTab={(tab) => setActiveTab(tab as any)}
+                onNavigateToTab={handleNavigateTab}
                 onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
               />
             )}
@@ -1339,35 +1369,13 @@ function WeatherApp() {
               />
             )}
 
-            {activeTab === 'mountain' && (
-              <MountainWeatherView
+            {activeTab === 'natureTerritories' && (
+              <TerritoriesAndNatureHubView
                 station={currentStation}
                 weather={weather}
                 isLightMode={themeMode === 'light'}
-              />
-            )}
-
-            {activeTab === 'beaches' && (
-              <BeachWeatherView
-                station={currentStation}
-                weather={weather}
-                isLightMode={themeMode === 'light'}
-              />
-            )}
-
-            {activeTab === 'droughtFire' && (
-              <DroughtAndFireView
-                station={currentStation}
-                weather={weather}
-                isLightMode={themeMode === 'light'}
-              />
-            )}
-
-            {activeTab === 'watercourses' && (
-              <WatercoursesView
-                station={currentStation}
-                weather={weather}
-                isLightMode={themeMode === 'light'}
+                activeSection={territorySection}
+                onSectionChange={setTerritorySection}
               />
             )}
 
@@ -1662,35 +1670,11 @@ function WeatherApp() {
               </a>
               <span className="text-slate-700">•</span>
               <a
-                href="/montagne"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/montagne'); setActiveTab('mountain'); window.history.pushState(null, '', '/montagne'); updateDocumentSeo('/montagne', false); scrollToTopInstant(); }}
+                href="/montagne-plages-nature"
+                onClick={(e) => { e.preventDefault(); setCurrentPath('/montagne-plages-nature'); setActiveTab('natureTerritories'); window.history.pushState(null, '', '/montagne-plages-nature'); updateDocumentSeo('/montagne-plages-nature', false); scrollToTopInstant(); }}
                 className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
               >
-                Météo Montagne &amp; BERA
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/plages"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/plages'); setActiveTab('beaches'); window.history.pushState(null, '', '/plages'); updateDocumentSeo('/plages', false); scrollToTopInstant(); }}
-                className="text-teal-400 hover:text-teal-300 hover:underline font-medium"
-              >
-                Météo Plages &amp; SHOM
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/secheresse-incendie"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/secheresse-incendie'); setActiveTab('droughtFire'); window.history.pushState(null, '', '/secheresse-incendie'); updateDocumentSeo('/secheresse-incendie', false); scrollToTopInstant(); }}
-                className="text-orange-400 hover:text-orange-300 hover:underline font-medium"
-              >
-                Sécheresse &amp; Feux
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/cours-d-eau"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/cours-d-eau'); setActiveTab('watercourses'); window.history.pushState(null, '', '/cours-d-eau'); updateDocumentSeo('/cours-d-eau', false); scrollToTopInstant(); }}
-                className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
-              >
-                Cours d'Eau &amp; Crues
+                Montagne, Neige, Plage, Mer, Sécheresse &amp; Feux, Cours d&apos;eau
               </a>
               <span className="text-slate-700">•</span>
               <a

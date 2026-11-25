@@ -164,7 +164,7 @@ function prerenderAllRoutes() {
   }
 
   console.log(
-    '[Prerender SEO] All 18 canonical routes and sitemap.xml (with hreflang) successfully prerendered!'
+    `[Prerender SEO] All ${allRoutes.length} canonical routes and sitemap.xml (with hreflang) successfully prerendered!`
   );
 }
 

@@ -585,194 +585,50 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/montagne': {
-    slug: 'montagne',
-    path: '/montagne',
-    canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Mountain Weather, Snow & Avalanche | Instant Weather',
+  '/montagne-plages-nature': {
+    slug: 'montagne-plages-nature',
+    path: '/montagne-plages-nature',
+    canonicalUrl: `${BASE_SITE_URL}/montagne-plages-nature`,
+    title: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers | Instant Weather',
     description:
-      'Mountain weather across the 7 French ranges (Northern Alps, Southern Alps, Pyrenees, Massif Central, Vosges, Jura and Corsica): snow depth, rain-snow line, 0°C isotherm and avalanche risk.',
-    h1: 'Mountain Weather and Snowpack Conditions',
-    sectionTitle: 'High-Altitude Parameters for Ski Resorts and Mountaineering',
-    breadcrumbName: 'Mountain Weather',
-    tabId: 'mountain',
+      'Unified environmental hub: mountain weather & avalanche risk, beaches & SHOM tides, drought & wildfire danger, and French river flood monitoring.',
+    h1: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers — Unified Observatory',
+    sectionTitle: 'Live Mountain, Coastal, Drought, Wildfire and River Surveillance',
+    breadcrumbName: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers',
+    tabId: 'natureTerritories',
     changefreq: 'hourly',
     priority: '0.85',
     introParagraph:
-      'The Mountain Weather observatory supports hikers, mountaineers and skiers across the seven major French mountain ranges: Northern Alps, Southern Alps, Pyrenees, Massif Central, Vosges, Jura and Corsica. Check conditions by elevation band from valley floors to the highest peaks.',
+      'Explore four specialized observatories inside one unified page: mountain weather and snowpack conditions, beach weather and SHOM tides, drought restrictions and forest fire danger, plus live Vigicrues river water levels.',
     sections: [
       {
-        heading: 'Real-time 0 °C isotherm and rain-snow limit',
-        body: 'The 0 °C isotherm indicates the altitude where free-air temperature reaches freezing. During steady precipitation, snowflakes typically fall 200 to 400 meters below this isotherm.',
+        heading: 'Mountain weather, snowpack and 0 °C isotherm',
+        body: 'Track elevation-banded temperatures, rain-snow limit, snow depth and avalanche danger across all seven French mountain ranges.',
       },
       {
-        heading: 'Snowpack depth and snow quality',
-        body: 'For each resort and summit, check snow depth at the base and top of slopes, 24-hour fresh snowfall totals and snowpack quality.',
+        heading: 'Coastal weather, sea temperature and SHOM tides',
+        body: 'Check daily high and low tide times, coefficients, swell period, sea surface temperature and swimming conditions.',
       },
       {
-        heading: 'Snowpack stability and high-altitude ridge winds',
-        body: 'Strong winds on ridges transport large volumes of snow and form wind slabs on lee slopes. Always verify the avalanche danger scale (1 to 5) before any backcountry outing.',
+        heading: 'Drought monitoring, forest fire danger and river levels',
+        body: 'Monitor soil moisture, wildfire weather indices and real-time hydrometric river heights and discharge rates.',
       },
     ],
     faq: [
       {
-        question: 'How does temperature change with altitude?',
+        question: 'What is included in this unified page?',
         answer:
-          'In a standard atmosphere, temperature decreases by an average of 0.65 °C per 100 meters of elevation gain, except during winter temperature inversions.',
+          'It combines Mountain & Snow, Beach & Sea, Drought & Wildfires, and Rivers & Floods into a single selector.',
       },
       {
-        question: 'What does an avalanche risk of level 3 out of 5 mean?',
+        question: 'Can I switch directly between Mountain, Beach, Drought and Rivers?',
         answer:
-          'Level 3 (considerable risk) means avalanches can be triggered by a single skier or hiker on many steep slopes; solid snow-safety experience is essential.',
+          'Yes, use the four selector tabs at the top of the page to view any of the four modules instantaneously.',
       },
       {
-        question: 'Why is the UV index much stronger in the mountains?',
+        question: 'Are all indicators updated for the selected location?',
         answer:
-          'Ultraviolet radiation increases by about 10% every 1,000 meters of elevation, and fresh snow reflects up to 85% of UV rays.',
-      },
-    ],
-  },
-
-  '/plages': {
-    slug: 'plages',
-    path: '/plages',
-    canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Beach Weather, Tides & Sea Temperature | Instant Weather',
-    description:
-      'Coastal and beach weather in France: high and low tide times, tide coefficients, sea surface temperature, wave height, swell period, onshore wind and UV index.',
-    h1: 'Coastal Weather, Tide Times and Swimming Conditions',
-    sectionTitle: 'Marine Information for Swimming and Water Sports',
-    breadcrumbName: 'Beaches & Tides',
-    tabId: 'beaches',
-    changefreq: 'hourly',
-    priority: '0.85',
-    introParagraph:
-      'From the English Channel to the Mediterranean and the Atlantic coast, the Beach Weather page brings together marine data to plan a day by the sea, a surf session or coastal sailing.',
-    sections: [
-      {
-        heading: 'High tide, low tide times and tide coefficients',
-        body: 'Check exact high and low water times along with the daily tide coefficient (from 20 to 120). Above coefficient 90 (spring tides), tidal range and rip currents strengthen significantly.',
-      },
-      {
-        heading: 'Sea water temperature and swell state',
-        body: 'Each beach sheet displays sea surface temperature, significant wave height in meters, swell period in seconds and coastal thermal breeze direction.',
-      },
-      {
-        heading: 'Sun protection and swimming safety',
-        body: 'A synthetic indicator evaluates swimming safety based on sea state and wind speed, paired with hourly UV tracking.',
-      },
-    ],
-    faq: [
-      {
-        question: 'What is a rip current (baïne) on the Atlantic coast?',
-        answer:
-          'A baïne is a natural sandbar pool that empties during ebb tide, creating a strong seaward current. If caught, swim parallel to the shoreline rather than against the current.',
-      },
-      {
-        question: 'Why is a long-period swell (over 12 seconds) more powerful?',
-        answer:
-          'Long-period swells originate from distant ocean storms, carrying greater deep-water energy that builds into larger wave sets near coastal sandbars.',
-      },
-      {
-        question: 'Why is it often cooler on the beach than 10 km inland?',
-        answer:
-          'In the afternoon, rapid inland heating creates a thermal sea breeze that draws temperate marine air onto the shore.',
-      },
-    ],
-  },
-
-  '/secheresse-incendie': {
-    slug: 'secheresse-incendie',
-    path: '/secheresse-incendie',
-    canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
-    title: 'Drought Status & Wildfire Risk in France | Instant Weather',
-    description:
-      'Track soil moisture, groundwater levels and meteorological wildfire danger by department across France.',
-    h1: 'Drought Monitoring and Forest Fire Risk',
-    sectionTitle: 'Soil Moisture Indicators, Groundwater Reserves and Wildfire Danger',
-    breadcrumbName: 'Drought & Wildfires',
-    tabId: 'droughtFire',
-    changefreq: 'hourly',
-    priority: '0.85',
-    introParagraph:
-      'This environmental observatory tracks water resources and vegetation vulnerability to wildfires across France, distinguishing surface agricultural soil moisture, deep groundwater reserves and daily fire weather danger.',
-    sections: [
-      {
-        heading: 'Surface soil moisture and water balance',
-        body: 'The water balance compares recent rainfall against plant evapotranspiration driven by heat and wind, measuring water stress across crops, pastures and gardens.',
-      },
-      {
-        heading: 'Groundwater levels and water usage restrictions',
-        body: 'Underground aquifers recharge mainly from October to March. During low-water periods, four prefectoral restriction levels regulate water use: vigilance, alert, reinforced alert and crisis.',
-      },
-      {
-        heading: 'Meteorological forest fire danger index',
-        body: 'The combination of dry vegetation, relative humidity below 30%, high temperatures and strong winds (such as the Mistral or Tramontane) favors rapid fire spread.',
-      },
-    ],
-    faq: [
-      {
-        question: 'Why does a heavy summer thunderstorm not recharge groundwater aquifers?',
-        answer:
-          'In summer, dry hardened soils promote rapid surface runoff, and active vegetation absorbs nearly all infiltrated water in the top centimeters before it can percolate deep underground.',
-      },
-      {
-        question: 'What are the watering rules during a drought alert?',
-        answer:
-          'From the alert level upward, watering lawns and gardens is generally prohibited during the hottest hours of the day (typically 11 AM to 6 PM) and suspended in crisis zones.',
-      },
-      {
-        question: 'What habits help prevent wildfire ignitions during dry spells?',
-        answer:
-          'Never discard cigarette butts outdoors, avoid spark-producing tools near dry grass and respect temporary forest access closures.',
-      },
-    ],
-  },
-
-  '/cours-d-eau': {
-    slug: 'cours-d-eau',
-    path: '/cours-d-eau',
-    canonicalUrl: `${BASE_SITE_URL}/cours-d-eau`,
-    title: 'River Levels & Flood Monitoring in France | Instant Weather',
-    description:
-      'Hydrological monitoring of French rivers and streams: water height in meters, flow rate in m³/s, level trends and historical flood markers.',
-    h1: 'River Water Levels and Flood Surveillance',
-    sectionTitle: 'How Hydrometric Stations Work and Watershed Response',
-    breadcrumbName: 'Rivers & Floods',
-    tabId: 'watercourses',
-    changefreq: 'always',
-    priority: '0.85',
-    introParagraph:
-      'The Rivers & Floods page tracks water levels across major French rivers, tributaries and mountain streams, displaying measured water height in meters, estimated discharge (m³/s) and real-time trends.',
-    sections: [
-      {
-        heading: 'Measuring water height (m) and discharge rate (m³/s)',
-        body: 'Automated sensors along bridges and riverbanks continuously measure free water surface height. A station-specific rating curve converts height into discharge volume per second.',
-      },
-      {
-        heading: 'Difference between slow lowland floods and flash floods',
-        body: 'Large lowland rivers (Seine, Loire, Garonne, Rhône) respond gradually over several days, whereas steep Mediterranean and mountain catchments can rise by several meters in under two hours during stationary storms.',
-      },
-      {
-        heading: 'Comparison with historical reference floods',
-        body: 'Each hydrological sheet recalls water levels reached during major past floods to contextualize current river rises against bankfull thresholds.',
-      },
-    ],
-    faq: [
-      {
-        question: 'Why does a river level keep rising after the rain has stopped?',
-        answer:
-          'Runoff collected across upstream hills and tributaries takes hours or days to travel downstream: this is the flood wave propagation time.',
-      },
-      {
-        question: 'What are the essential safety reflexes during rapid flooding?',
-        answer:
-          'Never drive or walk onto a flooded road (30 cm of moving water can sweep a car away), stay out of underground garages and move to higher floors.',
-      },
-      {
-        question: 'What is the low-water flow (étiage) of a river?',
-        answer:
-          'Low-water flow refers to the lowest average water level reached by a river during the year, typically at the end of summer.',
+          'Yes, mountain altitude profiles, coastal tides, wildfire risk and river sensors adapt automatically to your chosen station.',
       },
     ],
   },

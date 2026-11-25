@@ -142,44 +142,15 @@ export const ALL_PAGE_DEFINITIONS: PageDefinition[] = [
     ]
   },
   {
-    id: 'mountain',
+    id: 'natureTerritories',
     number: 12,
-    label: '12. Météo Montagne & Nivologie (BERA)',
-    description: 'Risque d\'avalanche 1 à 5, bulletins BERA Météo-France, balises Nivôse et isotherme 0°C',
+    label: "12. Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau",
+    description: "Page unifiée regroupant Montagne & Neige (BERA), Plage & Mer (SHOM), Sécheresse & Feux (VigiEau) et Cours d'eau (Vigicrues)",
     blocks: [
-      { id: 'massif_bera', label: 'Bulletin BERA & Risque d\'avalanche', description: 'Massifs officiels, versants et altitudes critiques' },
-      { id: 'altitude_simulator', label: 'Sondeur d\'altitude interactif', description: 'Température, vent et pression en altitude' },
-      { id: 'nivose_stations', label: 'Balises Nivôse de haute altitude', description: 'Hauteur de neige totale et neige fraîche 24h' }
-    ]
-  },
-  {
-    id: 'beaches',
-    number: 13,
-    label: '13. Météo des Plages & Littoral',
-    description: 'Température de la mer, annuaire des marées SHOM, état de la mer et drapeaux de baignade',
-    blocks: [
-      { id: 'beach_spot', label: 'Station balnéaire & Drapeaux de baignade', description: 'Conditions du plan d\'eau et sécurité' },
-      { id: 'tides_shom', label: 'Annuaire des marées SHOM', description: 'Horaires Pleine/Basse Mer et coefficients' }
-    ]
-  },
-  {
-    id: 'droughtFire',
-    number: 14,
-    label: '14. Vigilance Sécheresse & Météo des Forêts',
-    description: 'Météo des forêts Météo-France, Indice Forêt Météo (IFM/FWI) et arrêtés VigiEau',
-    blocks: [
-      { id: 'forest_fire_danger', label: 'Météo des Forêts & Indice IFM', description: 'Indices FFMC, ISI, BUI et feux satellites' },
-      { id: 'vigieau_restrictions', label: 'Restrictions d\'eau VigiEau', description: 'Usages interdits et arrêtés préfectoraux' }
-    ]
-  },
-  {
-    id: 'watercourses',
-    number: 15,
-    label: '15. Vigie Cours d\'Eau & Vigicrues',
-    description: 'Hauteurs d\'eau en direct, débits instantanés m³/s, cotes d\'alerte SCHAPI et crues historiques',
-    blocks: [
-      { id: 'river_levels', label: 'Hauteurs d\'eau & Débits instantanés', description: 'Jauge limnimétrique et tendance' },
-      { id: 'vigicrues_spc', label: 'Vigilance Crues SCHAPI', description: 'Niveaux Vert, Jaune, Orange, Rouge' }
+      { id: 'mountain_snow', label: 'Montagne & Neige (BERA)', description: 'Risque avalanche 1 à 5, bulletins BERA, balises Nivôse et isotherme 0°C' },
+      { id: 'beach_sea', label: 'Plage & Mer (SHOM)', description: 'Température de la mer, annuaire des marées SHOM, houle et drapeaux de baignade' },
+      { id: 'drought_fire', label: 'Sécheresse & Feux (VigiEau)', description: 'Météo des forêts, Indice Forêt Météo (IFM) et arrêtés VigiEau' },
+      { id: 'watercourses', label: "Cours d'eau (Vigicrues)", description: "Hauteurs d'eau en direct, débits instantanés m³/s et cotes d'alerte SCHAPI" }
     ]
   }
 ];

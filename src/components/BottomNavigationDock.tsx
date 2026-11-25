@@ -15,7 +15,6 @@ import {
   Mountain,
   Map,
   MapPin,
-  Waves,
   History,
   Check,
   X,
@@ -25,8 +24,6 @@ import {
   Trophy,
   MessageSquare,
   Bell,
-  Flame,
-  Droplets,
   Menu,
   Star,
   AlertTriangle,
@@ -48,10 +45,7 @@ export type NavTabId =
   | 'skymap'
   | 'cloudNephology'
   | 'vigilance' 
-  | 'mountain'
-  | 'beaches'
-  | 'droughtFire'
-  | 'watercourses'
+  | 'natureTerritories'
   | 'scenarios14d' 
   | 'radar' 
   | 'eightMonths' 
@@ -168,10 +162,7 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
     { id: 'vigilance', label: 'Vigilances', shortLabel: 'Alertes', icon: ShieldAlert, badge: '5m' },
     { id: 'scenarios14d', label: '14 Jours', shortLabel: '14 Jours', icon: Split },
     { id: 'radar', label: 'Radar', shortLabel: 'Radar', icon: CloudRain },
-    { id: 'mountain', label: 'Météo Montagne', shortLabel: 'Montagne', icon: Mountain, badge: 'BERA' },
-    { id: 'beaches', label: 'Météo des Plages', shortLabel: 'Plages', icon: Waves, badge: 'SHOM' },
-    { id: 'droughtFire', label: 'Sécheresse & Incendie', shortLabel: 'Sécheresse', icon: Flame, badge: 'VigiEau' },
-    { id: 'watercourses', label: 'Vigie Cours d\'Eau', shortLabel: 'Cours d\'Eau', icon: Droplets, badge: 'Vigicrues' },
+    { id: 'natureTerritories', label: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau", shortLabel: 'Montagne & Nature', icon: Mountain },
     { id: 'eightMonths', label: '8 Mois', shortLabel: '8 Mois', icon: Globe2 },
     { id: 'historicalTrends', label: 'Évolution & Archives', shortLabel: 'Évolution & Archives', icon: History, badge: '2000+' },
     { id: 'worldDisasters', label: 'Atlas des catastrophes', shortLabel: 'Catastrophes', icon: Radio },
@@ -203,12 +194,9 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
       ]
     },
     {
-      categoryName: '🏔️ Montagne, Littoral & Risques Hydrologiques',
+      categoryName: "🏔️ Montagne, Plage, Sécheresse & Cours d'eau",
       items: [
-        { id: 'mountain', label: 'Météo Montagne & Nivologie', icon: Mountain, desc: 'Bulletins BERA Météo-France, risque d\'avalanche (1 à 5), balises Nivôse, isotherme 0°C et limite pluie-neige' },
-        { id: 'beaches', label: 'Météo des Plages & Littoral', icon: Waves, desc: 'Température de la mer en direct, horaires & coefficients des marées SHOM, houle et drapeaux de baignade' },
-        { id: 'droughtFire', label: 'Vigilance Sécheresse & Météo des Forêts', icon: Flame, desc: 'Météo des forêts Météo-France, Indice Forêt Météo (IFM), arrêtés préfectoraux et restrictions VigiEau' },
-        { id: 'watercourses', label: 'Vigie Cours d\'Eau & Vigicrues', icon: Droplets, desc: 'Hauteurs d\'eau en direct, débits instantanés (m³/s), cotes d\'alerte SCHAPI et crues historiques' },
+        { id: 'natureTerritories', label: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau", icon: Mountain, desc: "Montagne & Neige (BERA), Plage & Mer (SHOM), Sécheresse & Feux (VigiEau) et Cours d'eau (Vigicrues)" },
       ]
     },
     {
@@ -406,13 +394,13 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className={`text-xs font-black truncate ${isActive ? 'text-white' : (isLightMode ? 'text-slate-900' : 'text-slate-100')}`}>
+                            <div className="flex items-start justify-between gap-1">
+                              <span className={`text-xs font-black leading-snug ${isActive ? 'text-white' : (isLightMode ? 'text-slate-900' : 'text-slate-100')}`}>
                                 {item.label}
                               </span>
-                              {isActive && <Check className="h-3.5 w-3.5 text-white shrink-0" />}
+                              {isActive && <Check className="h-3.5 w-3.5 text-white shrink-0 mt-0.5" />}
                             </div>
-                            <p className={`text-[11px] mt-0.5 line-clamp-1 ${
+                            <p className={`text-[11px] mt-0.5 line-clamp-2 ${
                               isActive ? 'text-blue-100' : (isLightMode ? 'text-slate-500' : 'text-slate-400')
                             }`}>
                               {item.desc}

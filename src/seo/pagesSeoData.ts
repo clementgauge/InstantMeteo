@@ -373,194 +373,50 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     ],
   },
 
-  '/montagne': {
-    slug: 'montagne',
-    path: '/montagne',
-    canonicalUrl: `${BASE_SITE_URL}/montagne`,
-    title: 'Météo Montagne, Neige & Risque Avalanche | Instant Météo',
+  '/montagne-plages-nature': {
+    slug: 'montagne-plages-nature',
+    path: '/montagne-plages-nature',
+    canonicalUrl: `${BASE_SITE_URL}/montagne-plages-nature`,
+    title: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau | Instant Météo",
     description:
-      'Météo montagne en direct : hauteur de neige, limite pluie-neige (LPN), isotherme 0°C et risques d’avalanche BERA sur tous les massifs français.',
-    h1: 'Météo en montagne en continu, niveaux réels de neige et bulletins d’avalanche BERA',
-    sectionTitle: 'Paramètres d’altitude pour les stations de ski et la randonnée',
-    breadcrumbName: 'Météo Montagne',
-    tabId: 'mountain',
+      "Page unifiée : météo montagne & BERA, plages & marées SHOM, vigilance sécheresse VigiEau & feux de forêt, et hauteur des cours d'eau Vigicrues en France.",
+    h1: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau — Observatoire unifié",
+    sectionTitle: 'Surveillance montagne, littoral, sécheresse, feux et rivières en direct',
+    breadcrumbName: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau",
+    tabId: 'natureTerritories',
     changefreq: 'hourly',
     priority: '0.85',
     introParagraph:
-      'L’espace Météo Montagne accompagne les randonneurs, alpinistes et skieurs à travers les sept grands massifs français : Alpes du Nord, Alpes du Sud, Pyrénées, Massif Central, Vosges, Jura et montagne Corse. Retrouvez les conditions par tranche d’altitude avec réactualisation continue 24/7, du fond de vallée jusqu’aux plus hauts sommets.',
+      "Retrouvez dans un même espace la météo de montagne et nivologie BERA, l'état de la mer et les marées SHOM des plages, le suivi de la sécheresse VigiEau et du risque feux de forêt, ainsi que les hauteurs d'eau et débits Vigicrues des rivières françaises.",
     sections: [
       {
-        heading: 'Isotherme 0 °C et limite pluie-neige en temps réel',
-        body: 'L’isotherme 0 °C indique l’altitude à laquelle la température de l’air libre atteint le point de congélation. Lors d’une chute de précipitations continues, les flocons de neige descendent généralement 200 à 400 mètres plus bas que cet isotherme par effet d’isothermie.',
+        heading: 'Montagne, neige, isotherme 0 °C et bulletins BERA',
+        body: "Suivez l'enneigement par tranche d'altitude, la limite pluie-neige, les balises Nivôse et le risque d'avalanche sur les sept grands massifs français.",
       },
       {
-        heading: 'Épaisseur du manteau neigeux et qualité de la neige',
-        body: 'Pour chaque station et sommet, consultez la hauteur de neige au sol en bas et en haut des pistes, les cumuls de neige fraîche tombés ces dernières 24 heures, ainsi que l’évolution de la qualité du manteau (poudreuse, neige transformée de printemps ou croûte de regel).',
+        heading: 'Plages, température de la mer et marées SHOM',
+        body: "Consultez les horaires de pleine mer et basse mer, les coefficients SHOM, la houle, la température de surface de l'eau et les conditions de baignade.",
       },
       {
-        heading: 'Stabilité du manteau et vent en haute altitude',
-        body: 'Le vent fort sur les crêtes transporte d’importantes quantités de neige et forme des plaques à vent sous le vent des reliefs. Vérifiez systématiquement l’indice de risque d’avalanche (échelle de 1 à 5) et la vitesse des rafales à 3 000 mètres avant toute sortie hors-piste.',
+        heading: "Sécheresse VigiEau, feux de forêt et niveaux des cours d'eau",
+        body: "Surveillez l'Indice Forêt Météo (IFM), les restrictions d'eau départementales et l'évolution en direct des fleuves et rivières sur le réseau Vigicrues.",
       },
     ],
     faq: [
       {
-        question: 'Comment évolue la température lorsque l’on monte en altitude ?',
+        question: 'Que regroupe cette page unifiée ?',
         answer:
-          'En atmosphère standard, la température baisse en moyenne de 0,65 °C tous les 100 mètres de dénivelé positif, sauf en hiver lors d’inversions thermiques où l’air froid s’accumule au fond des vallées.',
+          "Elle réunit quatre observatoires spécialisés accessibles par onglets : Montagne & Neige, Plage & Mer, Sécheresse & Feux de forêt, et Cours d'eau.",
       },
       {
-        question: 'Que signifie un risque d’avalanche de niveau 3 sur 5 ?',
+        question: 'Les données BERA, SHOM, VigiEau et Vigicrues sont-elles mises à jour en direct ?',
         answer:
-          'Le niveau 3 (risque marqué) indique que des avalanches peuvent être déclenchées par le passage d’un seul skieur ou randonneur sur de nombreuses pentes raides : une grande expérience nivologique est indispensable.',
+          "Oui, les indicateurs d'altitude, de marées, de danger incendie, de sécheresse et d'hydrométrie sont actualisés en continu selon la localité sélectionnée.",
       },
       {
-        question: 'Pourquoi l’indice UV est-il beaucoup plus fort en montagne ?',
+        question: 'Comment basculer entre Montagne, Plage, Sécheresse et Cours d’eau ?',
         answer:
-          'L’intensité du rayonnement ultraviolet augmente d’environ 10 % tous les 1 000 mètres d’altitude, et la réverbération sur la neige fraîche peut réfléchir jusqu’à 85 % des rayons UV.',
-      },
-    ],
-  },
-
-  '/plages': {
-    slug: 'plages',
-    path: '/plages',
-    canonicalUrl: `${BASE_SITE_URL}/plages`,
-    title: 'Météo des Plages, Marées SHOM & Mer | Instant Météo',
-    description:
-      'Météo des plages et marées SHOM en direct : horaires de pleine et basse mer, température de l’eau, vagues et coefficients de marée en France.',
-    h1: 'Météo des plages, annuaire des marées SHOM et alertes grandes marées',
-    sectionTitle: 'Informations marines pour la baignade, le surf et la pêche à pied',
-    breadcrumbName: 'Météo des Plages',
-    tabId: 'beaches',
-    changefreq: 'hourly',
-    priority: '0.85',
-    introParagraph:
-      'De la Manche à la Méditerranée en passant par la côte Atlantique et la Corse, la page Météo des Plages réunit toutes les données marines utiles : annuaire SHOM complet (Pleine Mer, Basse Mer, coefficients et marnage), alertes Grandes Marées, température de l\'eau (SST), vagues et courants.',
-    sections: [
-      {
-        heading: 'Horaires des 4 marées, hauteurs d’eau en mètres et coefficients',
-        body: 'Consultez les heures exactes des 4 marées quotidiennes (deux pleines mers et deux basses mers) avec hauteurs d’eau au zéro hydrographique et coefficients SHOM (20 à 120). Dès le coefficient 90 (grandes marées), l’amplitude de marnage découvre de vastes estrans propices à la pêche à pied tout en accélérant la montée des eaux.',
-      },
-      {
-        heading: 'Température de l’eau de baignade et état du plan d’eau',
-        body: 'Chaque fiche de plage affiche la température de surface de la mer, la hauteur significative des vagues en mètres, la période de la houle en secondes (essentielle pour les surfeurs) ainsi que l’orientation de la brise thermique côtière.',
-      },
-      {
-        heading: 'Protection solaire et sécurité de la baignade',
-        body: 'Un indicateur synthétique évalue les conditions de baignade selon l’agitation de la mer et la force du vent, complété par le suivi horaire de l’indice UV sur le sable.',
-      },
-    ],
-    faq: [
-      {
-        question: 'Qu’est-ce qu’un courant de baïne sur la côte Atlantique ?',
-        answer:
-          'Une baïne est une cuvette naturelle creusée dans le sable qui se vide à marée descendante en créant un puissant courant tirant vers le large. Si vous êtes entraîné, ne nagez jamais à contre-courant mais parallèlement à la plage.',
-      },
-      {
-        question: 'Pourquoi une houle de longue période (plus de 12 secondes) est-elle plus puissante ?',
-        answer:
-          'Une houle de longue période provient d’une dépression lointaine sur l’océan : elle transporte beaucoup plus d’énergie en profondeur et génère des séries de vagues plus hautes lorsqu’elle touche les bancs de sable côtiers.',
-      },
-      {
-        question: 'Pourquoi fait-il souvent plus frais sur la plage qu’à 10 kilomètres dans les terres ?',
-        answer:
-          'En cours d’après-midi, le réchauffement rapide des terres crée une brise de mer qui ramène vers la plage l’air marin plus tempéré.',
-      },
-    ],
-  },
-
-  '/secheresse-incendie': {
-    slug: 'secheresse-incendie',
-    path: '/secheresse-incendie',
-    canonicalUrl: `${BASE_SITE_URL}/secheresse-incendie`,
-    title: 'Sécheresse & Risque Feux de Forêt | Instant Météo',
-    description:
-      'Suivi de la sécheresse des sols, niveau des nappes phréatiques et danger météorologique de feux de forêt par département en France.',
-    h1: 'Suivi de la sécheresse et du risque feux de forêt',
-    sectionTitle: 'Indicateurs d’humidité des sols, nappes souterraines et danger incendie',
-    breadcrumbName: 'Sécheresse & Incendies',
-    tabId: 'droughtFire',
-    changefreq: 'hourly',
-    priority: '0.85',
-    introParagraph:
-      'Cet observatoire environnemental suit l’état de la ressource en eau et la vulnérabilité de la végétation aux incendies sur le territoire français. Il distingue la sécheresse superficielle des sols agricoles, le niveau des réserves souterraines et le danger quotidien d’éclosion de feux.',
-    sections: [
-      {
-        heading: 'Humidité des sols superficiels et bilan hydrique',
-        body: 'Le bilan hydrique compare les pluies tombées au cours des dernières semaines à l’évapotranspiration des plantes sous l’effet de la chaleur et du vent. Il permet de mesurer le stress hydrique des cultures, des prairies et des jardins.',
-      },
-      {
-        heading: 'Niveau des nappes phréatiques et restrictions d’usage de l’eau',
-        body: 'Les réserves souterraines se rechargent principalement d’octobre à mars grâce aux pluies d’automne et d’hiver. En période d’étiage, quatre niveaux préfectoraux encadrent les usages de l’eau : vigilance, alerte, alerte renforcée et crise.',
-      },
-      {
-        heading: 'Indice météorologique de danger de feux de forêt',
-        body: 'La combinaison d’une végétation desséchée, d’une humidité de l’air inférieure à 30 %, de fortes chaleurs et d’un vent soutenu (comme le Mistral ou la Tramontane) favorise la propagation rapide des flammes. La carte signale les massifs forestiers les plus exposés.',
-      },
-    ],
-    faq: [
-      {
-        question: 'Pourquoi une forte pluie d’orage en été ne recharge-t-elle pas les nappes phréatiques ?',
-        answer:
-          'En été, les sols secs et durcis favorisent le ruissellement rapide, et la végétation active absorbe la quasi-totalité de l’eau infiltrée dans les premiers décimètres du sol avant qu’elle n’atteigne la nappe en profondeur.',
-      },
-      {
-        question: 'Quelles sont les règles d’arrosage en niveau d’alerte sécheresse ?',
-        answer:
-          'Dès le niveau d’alerte, l’arrosage des pelouses et des jardins potagers est généralement interdit aux heures les plus chaudes de la journée (souvent entre 11 h et 18 h), et totalement suspendu pour les espaces verts en niveau de crise.',
-      },
-      {
-        question: 'Quels gestes permettent d’éviter les départs de feux en période sèche ?',
-        answer:
-          'Ne jetez jamais de mégot au sol ou par la fenêtre d’un véhicule, n’utilisez pas d’outils produisant des étincelles (débroussailleuse, disqueuse) à proximité d’herbes sèches et respectez les fermetures temporaires de massifs forestiers.',
-      },
-    ],
-  },
-
-  '/cours-d-eau': {
-    slug: 'cours-d-eau',
-    path: '/cours-d-eau',
-    canonicalUrl: `${BASE_SITE_URL}/cours-d-eau`,
-    title: 'Niveau des cours d’eau et suivi des crues | Instant Météo',
-    description:
-      'Surveillance hydrologique des fleuves et rivières de France : hauteur d’eau en mètres, débit en m³/s, tendance des niveaux et repères de crue.',
-    h1: 'Hauteur des rivières et surveillance des crues',
-    sectionTitle: 'Fonctionnement des stations hydrométriques et réaction des bassins versants',
-    breadcrumbName: 'Cours d’Eau & Crues',
-    tabId: 'watercourses',
-    changefreq: 'always',
-    priority: '0.85',
-    introParagraph:
-      'La page Cours d’Eau permet de suivre l’évolution du niveau des principaux fleuves, rivières et torrents français. Elle affiche la hauteur d’eau mesurée aux échelles limnimétriques, le débit estimé et la tendance immédiate (hausse, stabilité ou décrue).',
-    sections: [
-      {
-        heading: 'Mesure de la hauteur d’eau (m) et du débit (m³/s)',
-        body: 'Les capteurs installés le long des ponts et des berges mesurent en continu la hauteur de la surface libre de l’eau. Une courbe de tarage propre à chaque section de rivière convertit cette hauteur en débit, c’est-à-dire le volume d’eau qui s’écoule chaque seconde.',
-      },
-      {
-        heading: 'Différence entre crue lente de plaine et crue éclair torrentielle',
-        body: 'Les grands fleuves de plaine (Seine, Loire, Garonne, Rhône) réagissent progressivement sur plusieurs jours après de longues pluies hivernales. À l’inverse, les petits bassins versants escarpés (Cévennes, Alpes-Maritimes, Pyrénées, Corse) peuvent connaître une montée des eaux de plusieurs mètres en moins de deux heures lors d’orages stationnaires.',
-      },
-      {
-        heading: 'Comparaison avec les crues historiques de référence',
-        body: 'Chaque fiche hydrologique rappelle les niveaux atteints lors des crues passées marquantes afin de situer immédiatement l’ampleur d’une montée des eaux par rapport aux seuils de débordement des berges.',
-      },
-    ],
-    faq: [
-      {
-        question: 'Pourquoi le niveau d’une rivière continue-t-il de monter alors que la pluie s’est arrêtée ?',
-        answer:
-          'L’eau tombée sur l’ensemble des collines et des affluents en amont met plusieurs heures, voire plusieurs jours sur les grands fleuves, à s’écouler jusqu’aux stations situées en aval : c’est le temps de propagation de l’onde de crue.',
-      },
-      {
-        question: 'Quels sont les réflexes essentiels en cas d’inondation rapide ?',
-        answer:
-          'Ne vous engagez jamais à pied ou en voiture sur une route immergée (30 cm d’eau suffisent à emporter un véhicule), n’allez pas chercher votre voiture dans un parking souterrain et rejoignez les étages supérieurs.',
-      },
-      {
-        question: 'Qu’appelle-t-on le débit d’étiage d’une rivière ?',
-        answer:
-          'L’étiage désigne le niveau moyen le plus bas atteint par un cours d’eau au cours de l’année, généralement observé à la fin de l’été après plusieurs semaines sans précipitations.',
+          "Utilisez le sélecteur en haut de la page pour afficher instantanément le module de votre choix.",
       },
     ],
   },
@@ -1572,7 +1428,7 @@ export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoCon
   const slug = cleanPath.slice(1).trim();
   const reservedSlugs = [
     'direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours',
-    'climat', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau',
+    'climat', 'montagne-plages-nature', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau',
     'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes',
     'communaute', 'competition', 'api', 'manifest.json', 'robots.txt', 'sitemap.xml'
   ];
@@ -1673,22 +1529,26 @@ export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): Pag
     '/previsions-15-jours': '/14-jours',
     '/previsions-meteo': '/14-jours',
     '/tendances': '/14-jours',
-    '/neige': '/montagne',
-    '/ski': '/montagne',
-    '/meteo-montagne': '/montagne',
-    '/plage': '/plages',
-    '/littoral': '/plages',
-    '/mer': '/plages',
-    '/marees': '/plages',
-    '/meteo-des-plages': '/plages',
-    '/vigi-secheresse-incendie': '/secheresse-incendie',
-    '/secheresse': '/secheresse-incendie',
-    '/incendie': '/secheresse-incendie',
-    '/feux': '/secheresse-incendie',
-    '/qualite-air': '/secheresse-incendie',
-    '/vigicrues': '/cours-d-eau',
-    '/crues': '/cours-d-eau',
-    '/rivieres': '/cours-d-eau',
+    '/montagne': '/montagne-plages-nature',
+    '/neige': '/montagne-plages-nature',
+    '/ski': '/montagne-plages-nature',
+    '/meteo-montagne': '/montagne-plages-nature',
+    '/plages': '/montagne-plages-nature',
+    '/plage': '/montagne-plages-nature',
+    '/littoral': '/montagne-plages-nature',
+    '/mer': '/montagne-plages-nature',
+    '/marees': '/montagne-plages-nature',
+    '/meteo-des-plages': '/montagne-plages-nature',
+    '/secheresse-incendie': '/montagne-plages-nature',
+    '/vigi-secheresse-incendie': '/montagne-plages-nature',
+    '/secheresse': '/montagne-plages-nature',
+    '/incendie': '/montagne-plages-nature',
+    '/feux': '/montagne-plages-nature',
+    '/qualite-air': '/montagne-plages-nature',
+    '/cours-d-eau': '/montagne-plages-nature',
+    '/vigicrues': '/montagne-plages-nature',
+    '/crues': '/montagne-plages-nature',
+    '/rivieres': '/montagne-plages-nature',
     '/cartes': '/cartes-thematiques',
     '/carte-france': '/cartes-thematiques',
     '/comparateur': '/cartes-thematiques',
@@ -1829,10 +1689,11 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
     vigilance: '/vigilances',
     cloudNephology: '/nuages',
     scenarios14d: '/14-jours',
-    mountain: '/montagne',
-    beaches: '/plages',
-    droughtFire: '/secheresse-incendie',
-    watercourses: '/cours-d-eau',
+    natureTerritories: '/montagne-plages-nature',
+    mountain: '/montagne-plages-nature',
+    beaches: '/montagne-plages-nature',
+    droughtFire: '/montagne-plages-nature',
+    watercourses: '/montagne-plages-nature',
     franceMap: '/cartes-thematiques',
     bulletin: '/bulletins',
     fourWeeks: '/bulletins',
@@ -1847,7 +1708,7 @@ export function getPathForTabId(tabId: string, currentPath?: string): string {
     projections: '/climat',
     discussionGroup: '/communaute',
     competitive: '/competition',
-    altitude: '/montagne',
+    altitude: '/montagne-plages-nature',
   };
 
   return tabToPath[tabId] || '/';

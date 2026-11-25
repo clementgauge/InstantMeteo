@@ -65,7 +65,7 @@
           var params = new URLSearchParams(window.location.search || '');
           var queryCity = params.get('ville') || params.get('q') || params.get('city') || params.get('station');
           var slug = (queryCity || cleanPath.replace(/^\/(?:meteo-)?/, '')).toLowerCase();
-          var reserved = ['direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours', 'climat', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau', 'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes', 'communaute', 'competition', 'api'];
+          var reserved = ['direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours', 'climat', 'montagne-plages-nature', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau', 'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes', 'communaute', 'competition', 'api'];
 
           if (slug && reserved.indexOf(slug) === -1 && slug.indexOf('.') === -1) {
             var isParis = slug.indexOf('paris') !== -1;

@@ -18,9 +18,6 @@ import {
   ChevronDown,
   MapPin,
   Search,
-  Waves,
-  Flame,
-  Droplets,
   Globe2,
   Radio,
   FileText,
@@ -157,9 +154,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
   }, [isFavoritesOpen]);
 
   const extendedModuleIds: NavTabId[] = [
-    'beaches',
-    'droughtFire',
-    'watercourses',
     'eightMonths',
     'worldDisasters',
     'bulletin',
@@ -260,15 +254,13 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
       visibleCheckId: 'scenarios14d',
     },
     {
-      id: 'mountain',
-      tabId: 'mountain',
-      title: 'Montagne',
-      subtitle: 'Neige et ski',
+      id: 'natureTerritories',
+      tabId: 'natureTerritories',
+      title: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau",
+      subtitle: '4 espaces regroupés',
       icon: Mountain,
       iconColorClass: 'text-emerald-400',
-      badgeText: 'BERA',
-      badgeVariant: 'amber',
-      visibleCheckId: 'mountain',
+      visibleCheckId: 'natureTerritories',
     },
     {
       id: 'maps-hub',
@@ -288,33 +280,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
   const primaryItems = rawPrimaryItems.filter((item) => !item.visibleCheckId || isPageVisible(item.visibleCheckId));
 
   const rawExtraMapModules: SidebarRowDef[] = [
-    {
-      id: 'beaches',
-      tabId: 'beaches',
-      title: 'Plages & Mer',
-      subtitle: 'Marées SHOM & houle',
-      icon: Waves,
-      iconColorClass: 'text-teal-400',
-      visibleCheckId: 'beaches',
-    },
-    {
-      id: 'droughtFire',
-      tabId: 'droughtFire',
-      title: 'Sécheresse & Feux',
-      subtitle: 'Forêts & VigiEau',
-      icon: Flame,
-      iconColorClass: 'text-orange-400',
-      visibleCheckId: 'droughtFire',
-    },
-    {
-      id: 'watercourses',
-      tabId: 'watercourses',
-      title: "Cours d'Eau",
-      subtitle: 'Vigicrues en direct',
-      icon: Droplets,
-      iconColorClass: 'text-cyan-400',
-      visibleCheckId: 'watercourses',
-    },
     {
       id: 'eightMonths',
       tabId: 'eightMonths',
@@ -442,7 +407,11 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
           <>
             <div className="flex-1 min-w-0">
               <div
-                className={`${compact ? 'text-[12px]' : 'text-[13px]'} font-bold leading-tight truncate ${
+                className={`${
+                  item.id === 'natureTerritories'
+                    ? 'text-[11.5px] leading-snug line-clamp-3'
+                    : `${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight truncate`
+                } font-bold ${
                   isActive
                     ? 'text-white'
                     : isLightMode

@@ -153,7 +153,7 @@ export const PageBlockCustomizerModal: React.FC<PageBlockCustomizerModalProps> =
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              1. Visibilité des Pages ({ALL_PAGE_DEFINITIONS.filter(p => preferences.visiblePages[p.id] !== false).length}/13)
+              1. Visibilité des Pages ({ALL_PAGE_DEFINITIONS.filter(p => preferences.visiblePages[p.id] !== false).length}/{ALL_PAGE_DEFINITIONS.length})
             </button>
             <button
               type="button"
