@@ -7,7 +7,7 @@ import {
   Bell,
   Split,
   Mountain,
-  Map,
+  MoreHorizontal,
   Sparkles,
   Star,
   History,
@@ -155,7 +155,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
 
   const extendedModuleIds: NavTabId[] = [
     'eightMonths',
-    'worldDisasters',
     'bulletin',
     'competitive',
     'discussionGroup',
@@ -263,10 +262,39 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
       visibleCheckId: 'natureTerritories',
     },
     {
+      id: 'worldDisasters',
+      tabId: 'worldDisasters',
+      title: 'Catastrophes',
+      subtitle: 'Atlas monde temps réel',
+      icon: Radio,
+      iconColorClass: 'text-rose-400',
+      visibleCheckId: 'worldDisasters',
+    },
+    {
+      id: 'historicalTrends',
+      tabId: 'historicalTrends',
+      title: 'Historique',
+      subtitle: 'Données passées',
+      icon: History,
+      iconColorClass: 'text-blue-400',
+      visibleCheckId: 'historicalTrends',
+    },
+    {
+      id: 'all-pages-hub',
+      title: 'Tout afficher',
+      subtitle: 'Toutes les pages',
+      icon: Layers,
+      iconColorClass: 'text-sky-400',
+      action: () => {
+        setIsFavoritesOpen(false);
+        onOpenAllPagesModal();
+      },
+    },
+    {
       id: 'maps-hub',
-      title: 'Cartes météo',
-      subtitle: 'Cartes & observatoires',
-      icon: Map,
+      title: 'Autre',
+      subtitle: 'Autres pages & modules',
+      icon: MoreHorizontal,
       iconColorClass: 'text-blue-400',
       action: () => {
         if (isCollapsed) {
@@ -288,15 +316,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
       icon: Globe2,
       iconColorClass: 'text-indigo-400',
       visibleCheckId: 'eightMonths',
-    },
-    {
-      id: 'worldDisasters',
-      tabId: 'worldDisasters',
-      title: 'Catastrophes',
-      subtitle: 'Atlas monde temps réel',
-      icon: Radio,
-      iconColorClass: 'text-rose-400',
-      visibleCheckId: 'worldDisasters',
     },
     {
       id: 'bulletin',
@@ -336,15 +355,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
       icon: Star,
       iconColorClass: 'text-sky-400',
       action: () => setIsFavoritesOpen((prev) => !prev),
-    },
-    {
-      id: 'historicalTrends',
-      tabId: 'historicalTrends',
-      title: 'Historique',
-      subtitle: 'Données passées',
-      icon: History,
-      iconColorClass: 'text-blue-400',
-      visibleCheckId: 'historicalTrends',
     },
   ];
   const secondaryUtilityItems = rawSecondaryUtilityItems.filter((item) => !item.visibleCheckId || isPageVisible(item.visibleCheckId));
@@ -650,19 +660,6 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
             }`}
           >
             {extraMapModules.map((sub) => renderNavItem(sub, true))}
-
-            <button
-              type="button"
-              onClick={onOpenAllPagesModal}
-              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition cursor-pointer ${
-                isLightMode
-                  ? 'text-blue-700 hover:bg-blue-50'
-                  : 'text-sky-300 hover:bg-slate-800/70'
-              }`}
-            >
-              <Layers className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">Tout afficher (Hub Pages)</span>
-            </button>
           </div>
         )}
 
