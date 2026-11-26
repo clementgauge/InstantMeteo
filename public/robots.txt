@@ -12,11 +12,9 @@ Allow: /radar
 Allow: /vigilances
 Allow: /nuages
 Allow: /14-jours
+Allow: /skymap
 Allow: /cartes-thematiques
-Allow: /montagne
-Allow: /plages
-Allow: /secheresse-incendie
-Allow: /cours-d-eau
+Allow: /montagne-plages-nature
 Allow: /bulletins
 Allow: /archives
 Allow: /monde-catastrophes
