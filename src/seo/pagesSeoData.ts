@@ -1920,3 +1920,215 @@ export function localizeSkyMapHtml(
   return html;
 }
 
+function escapeSeoHtmlText(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeSeoHtmlAttr(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export interface ApplyPageSeoOptions {
+  queryParams?: URLSearchParams | Record<string, unknown>;
+  verificationTags?: string;
+}
+
+/**
+ * Transformation HTML canonique partagée (Prerender build, serveur Express & Worker Cloudflare)
+ * afin d'injecter titre, méta, canonique, hreflang (fr/en/x-default), OpenGraph, JSON-LD et contenu SSR.
+ */
+export function applyPageSeoToHtml(
+  rawHtml: string,
+  reqPath: string,
+  lang: string = 'fr',
+  options: ApplyPageSeoOptions = {}
+): string {
+  const { locale: pathLocale, path: cleanBase } = stripLocalePrefix(reqPath);
+  const locale = normalizeSupportedLocale(lang || pathLocale);
+  const brand = getSiteBrandForLocale(locale);
+
+  const qp = options.queryParams;
+  const readQuery = (key: string): string | undefined => {
+    if (!qp) return undefined;
+    if (typeof (qp as URLSearchParams).get === 'function') {
+      return (qp as URLSearchParams).get(key) ?? undefined;
+    }
+    const val = (qp as Record<string, unknown>)[key];
+    return typeof val === 'string' ? val : undefined;
+  };
+
+  let effectivePath = reqPath;
+  const requestedLocality =
+    readQuery('ville') || readQuery('city') || readQuery('q') || readQuery('station');
+  if (requestedLocality && (cleanBase === '/' || cleanBase === '/direct')) {
+    const slug = requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+    effectivePath = locale === 'en' ? `/en/${slug}` : `/${slug}`;
+  }
+
+  const pageSeo = getSeoDataForPath(effectivePath, locale);
+  const canonicalUrl = buildLocalizedUrl(pageSeo.path, locale);
+  const ogImageUrl = getPageOgImageUrl(pageSeo);
+  const alternateOgLocale = locale === 'en' ? 'fr_FR' : 'en_US';
+  const safeTitle = escapeSeoHtmlAttr(pageSeo.title);
+  const safeDesc = escapeSeoHtmlAttr(pageSeo.description);
+  let html = rawHtml;
+
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
+
+  if (options.verificationTags && !html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
+    html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${options.verificationTags}`);
+  }
+
+  if (/<title>[\s\S]*?<\/title>/i.test(html)) {
+    html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeSeoHtmlText(pageSeo.title)}</title>`);
+  } else {
+    html = html.replace('</head>', `    <title>${escapeSeoHtmlText(pageSeo.title)}</title>\n  </head>`);
+  }
+
+  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
+      `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`
+    );
+  } else {
+    html = html.replace(
+      '</head>',
+      `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`
+    );
+  }
+
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(pageSeo.path)}\n    <!--SEO_HREFLANG_END-->`;
+  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
+    html = html.replace(/<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/, hreflangBlock);
+  } else {
+    html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
+  }
+
+  html = html.replace(
+    /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
+    `<meta name="title" content="${safeTitle}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
+    `<meta name="application-name" content="${escapeSeoHtmlAttr(brand.brandName)}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*name=["']apple-mobile-web-app-title["'][^>]*\/?>/gi,
+    `<meta name="apple-mobile-web-app-title" content="${escapeSeoHtmlAttr(brand.brandName)}" />`
+  );
+  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
+      `<meta name="description" content="${safeDesc}" />`
+    );
+  } else {
+    html = html.replace(
+      '</head>',
+      `    <meta name="description" content="${safeDesc}" />\n  </head>`
+    );
+  }
+
+  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*\/?>/gi, `<meta property="og:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*\/?>/gi, `<meta property="og:description" content="${safeDesc}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*\/?>/gi, `<meta property="og:site_name" content="${escapeSeoHtmlAttr(brand.brandName)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi, `<meta property="og:locale" content="${brand.ogLocale}" />`);
+  if (/<meta[^>]*property=["']og:locale:alternate["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta[^>]*property=["']og:locale:alternate["'][^>]*\/?>/gi,
+      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`
+    );
+  } else {
+    html = html.replace('</head>', `    <meta property="og:locale:alternate" content="${alternateOgLocale}" />\n  </head>`);
+  }
+  html = html.replace(/<meta[^>]*property=["']og:image["'][^>]*\/?>/gi, `<meta property="og:image" content="${ogImageUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:image:alt["'][^>]*\/?>/gi, `<meta property="og:image:alt" content="${safeTitle}" />`);
+
+  html = html.replace(
+    /<meta\b[^>]*(?:keywords|googlebot|bingbot|publisher|language|geo\.region|geo\.placename|rating|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi,
+    ''
+  );
+  html = html.replace(/<link[^>]*rel=["']sitemap["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<meta[^>]*http-equiv=["']X-UA-Compatible["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace('</head>', `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`);
+
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${safeDesc}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi, `<meta name="twitter:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:image["'][^>]*\/?>/gi, `<meta name="twitter:image" content="${ogImageUrl}" />`);
+
+  const jsonLd = generatePageJsonLd(pageSeo, locale);
+  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
+  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
+    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
+  } else {
+    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
+  }
+
+  const staticContent = generateStaticHtmlContent(pageSeo, locale);
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
+  } else if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', rootReplacement);
+  }
+
+  return html;
+}
+
+/**
+ * Transformation HTML pour les vraies pages 404 (noindex, nofollow, sans canonique/JSON-LD).
+ */
+export function applyNotFoundSeoToHtml(
+  rawHtml: string,
+  reqPath: string,
+  lang: string = 'fr'
+): string {
+  const { locale: pathLocale } = stripLocalePrefix(reqPath);
+  const locale = normalizeSupportedLocale(lang || pathLocale);
+  const brand = getSiteBrandForLocale(locale);
+  const isEn = locale === 'en';
+  const safeReqPath = escapeSeoHtmlText(reqPath);
+  const title = isEn
+    ? '404 — Page Not Found | Instant Weather'
+    : '404 — Page introuvable | Instant Météo';
+  const desc = isEn
+    ? `The requested URL (${reqPath}) does not exist on Instant Weather.`
+    : `L’adresse demandée (${reqPath}) n’existe pas sur Instant Météo.`;
+
+  let html = rawHtml;
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeSeoHtmlText(title)}</title>`);
+  html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
+  html = html.replace(
+    /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
+    `<meta name="description" content="${escapeSeoHtmlAttr(desc)}" />`
+  );
+
+  const body404 = generateNotFoundHtmlContent(safeReqPath, locale);
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${body404}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
+  }
+  return html;
+}
+
+

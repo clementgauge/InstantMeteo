@@ -4,15 +4,10 @@ import {
   Maximize2, 
   Minimize2, 
   ExternalLink, 
-  Download, 
   Monitor, 
   HelpCircle,
-  CheckCircle2,
   ShieldCheck,
-  Zap,
-  HardDrive,
-  QrCode,
-  Share2
+  QrCode
 } from 'lucide-react';
 import { triggerPwaInstallPrompt } from '../hooks/usePWAInstall';
 
@@ -30,12 +25,10 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   onToggleFullscreen
 }) => {
   const [activeTab, setActiveTab] = useState<'pwa' | 'windows' | 'fullscreen'>('pwa');
-  const [isDownloadingWindows, setIsDownloadingWindows] = useState(false);
-  const [windowsDownloadSuccess, setWindowsDownloadSuccess] = useState(false);
 
   const appUrl = typeof window !== 'undefined' 
-    ? (window.location.origin.includes('run.app') ? window.location.href.split('?')[0] : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app')
-    : 'https://ais-pre-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app';
+    ? (window.location.origin.includes('run.app') ? window.location.href.split('?')[0] : 'https://instantmeteo.instantmeteofr.workers.dev')
+    : 'https://instantmeteo.instantmeteofr.workers.dev';
 
   if (!isOpen) return null;
 
@@ -45,56 +38,11 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   };
 
   const handleOpenNewTab = () => {
-    window.open(appUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleTriggerWindowsDownload = async () => {
-    setIsDownloadingWindows(true);
-    setWindowsDownloadSuccess(false);
-
-    try {
-      const response = await fetch('/Instant-Meteo-Windows.cmd');
-      if (response.ok) {
-        const text = await response.text();
-        const blob = new Blob([text], { type: 'application/cmd' });
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = 'Instant-Meteo-Windows.cmd';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(blobUrl);
-        }, 1500);
-
-        setWindowsDownloadSuccess(true);
-        setIsDownloadingWindows(false);
-        return;
-      }
-    } catch (e) {
-      console.warn('Windows blob download fallback triggered:', e);
-    }
-
-    try {
-      const link = document.createElement('a');
-      link.href = '/Instant-Meteo-Windows.cmd';
-      link.download = 'Instant-Meteo-Windows.cmd';
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => document.body.removeChild(link), 500);
-      setWindowsDownloadSuccess(true);
-    } catch (e2) {
-      window.location.href = '/Instant-Meteo-Windows.cmd';
-      setWindowsDownloadSuccess(true);
-    }
-
-    setIsDownloadingWindows(false);
+    const tabLink = document.createElement('a');
+    tabLink.href = appUrl;
+    tabLink.target = '_blank';
+    tabLink.rel = 'noopener noreferrer';
+    tabLink.click();
   };
 
   return (
@@ -222,7 +170,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
             </div>
           </div>
 
-          {/* TAB Windows (PC uniquement) */}
+          {/* TAB Windows / Bureau (PC uniquement) */}
           {activeTab === 'windows' && (
             <div className="hidden sm:block space-y-5 animate-fadeIn">
               <div className="rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-950/60 via-slate-900 to-slate-950 p-5 shadow-lg">
@@ -240,54 +188,33 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-lg font-black text-white">
-                        Application Instant Météo pour Bureau Windows
+                        Application Instant Météo pour Bureau (Windows / macOS)
                       </h3>
                       <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-500/30">
-                        ✓ Raccourci Bureau &amp; PWA
+                        ✓ Application PWA Native
                       </span>
                     </div>
                     <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                      Faites apparaître l'application Instant Météo directement sur votre Bureau avec le <strong>logo officiel nuage</strong>.
+                      Installez Instant Météo directement sur votre Bureau et dans la barre des tâches avec son <strong>logo officiel nuage</strong> via Chrome ou Edge.
                     </p>
 
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <button
-                        onClick={handleTriggerWindowsDownload}
-                        disabled={isDownloadingWindows}
-                        className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs transition shadow-xl shadow-blue-600/30 active:scale-95 cursor-pointer disabled:opacity-50"
+                        onClick={handleInstallPWA}
+                        className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg shadow-emerald-600/30 active:scale-95 cursor-pointer"
                       >
-                        <Download className="h-4 w-4" />
-                        <span>
-                          {isDownloadingWindows
-                            ? 'Téléchargement...' 
-                            : 'Télécharger le Lanceur Bureau (.cmd)'}
-                        </span>
+                        <img src="/icon-32.png" alt="" className="h-4 w-4 rounded" />
+                        <span>Installer l'Application Bureau (PWA)</span>
                       </button>
 
                       <button
-                        onClick={handleInstallPWA}
-                        className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg shadow-emerald-600/30 active:scale-95 cursor-pointer"
-                      >
-                        <img src="/icon-32.png" alt="" className="h-4 w-4 rounded" />
-                        <span>Installer en PWA</span>
-                      </button>
-
-                      <a
-                        href="/Instant-Meteo.url"
-                        download="Instant-Meteo.url"
+                        onClick={handleOpenNewTab}
                         className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 transition cursor-pointer"
                       >
-                        <HardDrive className="h-4 w-4 text-cyan-400" />
-                        <span>Raccourci Web (.url)</span>
-                      </a>
+                        <ExternalLink className="h-4 w-4 text-cyan-400" />
+                        <span>Ouvrir dans un onglet dédié</span>
+                      </button>
                     </div>
-
-                    {windowsDownloadSuccess && (
-                      <div className="mt-3 p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2.5">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-                        <span>Fichier <strong>Instant-Meteo-Windows.cmd</strong> téléchargé ! Double-cliquez dessus sur votre PC pour placer le raccourci avec le <strong>logo officiel</strong> sur votre Bureau.</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -295,10 +222,10 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
               <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 space-y-3">
                 <h4 className="font-black text-xs text-white flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-blue-400" />
-                  Installation sur Bureau Windows :
+                  Installation rapide sur Windows / macOS :
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Cliquez sur <strong>« Installer en PWA »</strong> pour ajouter directement l'application à l'écran Applis, ou sur <strong>« Télécharger le Lanceur Bureau (.cmd) »</strong> pour créer automatiquement le raccourci sur votre Bureau Windows.
+                  Cliquez sur <strong>« Installer l'Application Bureau (PWA) »</strong> ou utilisez l'icône d'installation dans la barre d'adresse de Chrome / Edge pour créer un raccourci autonome sécurisé sur votre Bureau.
                 </p>
               </div>
             </div>

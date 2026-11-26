@@ -33,7 +33,6 @@ import {
   Minimize2, 
   ExternalLink, 
   QrCode, 
-  Download, 
   AlertTriangle, 
   Compass, 
   Eye, 
@@ -1186,16 +1185,6 @@ export const RealtimeView: React.FC<RealtimeViewProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-            <a
-              href="/Instant-Meteo-Windows.cmd"
-              download="Instant-Meteo-Windows.cmd"
-              title="Télécharger le lanceur autonome pour Windows"
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition shadow-sm active:scale-95 cursor-pointer"
-            >
-              <Download className="h-3 w-3" />
-              <span>Windows</span>
-            </a>
-
             <button
               type="button"
               onClick={async () => {

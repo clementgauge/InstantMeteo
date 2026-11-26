@@ -353,7 +353,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onEnterApp }) => {
             <a
               href="https://cin-scope.ai.studio"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
               title="Cin-Scope - Guide et base de données cinéma"
               className="text-slate-400 hover:text-slate-200 hover:underline"
             >

@@ -7,7 +7,6 @@ const STORE_FORECASTS = 'weather_forecasts';
 
 const STATIC_ASSETS = [
   '/',
-  '/manifest.json',
   '/manifest.webmanifest',
   '/favicon.svg',
   '/favicon.ico',

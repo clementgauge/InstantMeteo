@@ -4,11 +4,11 @@
   "description": "API Cloudflare Workers & D1 pour le classement compétitif et la carte collaborative d'Instant Météo",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --config ../wrangler.toml",
+    "deploy": "wrangler deploy --config ../wrangler.toml",
     "d1:create": "wrangler d1 create meteo-competitive-db",
-    "d1:init-local": "wrangler d1 execute meteo-competitive-db --local --file=./schema.sql",
-    "d1:init-prod": "wrangler d1 execute meteo-competitive-db --remote --file=./schema.sql"
+    "d1:init-local": "wrangler d1 execute meteo-competitive-db --config ../wrangler.toml --local --file=./schema.sql",
+    "d1:init-prod": "wrangler d1 execute meteo-competitive-db --config ../wrangler.toml --remote --file=./schema.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",

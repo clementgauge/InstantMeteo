@@ -898,7 +898,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               <a
                                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(item.userEmail)}&su=${encodeURIComponent(`[Instant Météo] Suite à votre signalement à ${item.stationName}`)}`}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition text-xs font-bold flex items-center gap-1"
                                 title="Répondre à l'observateur par Gmail"
                               >

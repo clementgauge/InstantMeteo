@@ -430,7 +430,7 @@ export const UserWeatherReportModal: React.FC<UserWeatherReportModalProps> = ({
                     <a
                       href={lastSubmittedReport.humanDispatch.gmailComposeUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />

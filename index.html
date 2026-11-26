@@ -101,9 +101,6 @@
         window.__deferredPwaPrompt = e;
         window.dispatchEvent(new CustomEvent('instant_meteo_pwa_ready', { detail: e }));
       });
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(function() {});
-      }
     </script>
 
     <!-- Structured Data (Schema.org JSON-LD) -->

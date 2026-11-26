@@ -15,4 +15,10 @@
 .cxx
 local.properties
 .env
+.env.*
+!.env.example
+node_modules/
+dist/
+data/*.json
+.wrangler/
 debug.keystore
