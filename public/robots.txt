@@ -1,38 +1,8 @@
-# ============================================================================
-# ROBOTS.TXT OFFICIEL - INSTANT MÉTÉO FRANCE
-# Accès complet autorisé à toutes les pages, images, feuilles CSS, scripts JS et flux API
-# ============================================================================
-
 User-agent: *
 Allow: /
-Allow: /assets/
-Allow: /api/
-Allow: /direct
-Allow: /radar
-Allow: /vigilances
-Allow: /nuages
-Allow: /14-jours
-Allow: /skymap
-Allow: /cartes-thematiques
-Allow: /montagne-plages-nature
-Allow: /bulletins
-Allow: /archives
-Allow: /monde-catastrophes
-Allow: /climat
-Allow: /communaute
-Allow: /competition
-
-User-agent: Googlebot
-Allow: /
-Allow: /assets/
-Allow: /api/
-
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-Allow: /assets/
-Allow: /api/
+Disallow: /api/
+Disallow: /assets/aistudio/
+Disallow: /skymap-embed.html
+Disallow: /version.json
 
 Sitemap: https://instantmeteo.instantmeteofr.workers.dev/sitemap.xml

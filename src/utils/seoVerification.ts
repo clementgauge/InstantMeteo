@@ -3,6 +3,10 @@ import {
   getPathForTabId,
   generatePageJsonLd,
   getLocalitySeoData,
+  getMajorCityPathForStationId,
+  buildLocalizedPath,
+  buildLocalizedUrl,
+  getPageOgImageUrl,
   PageSeoMetadata,
   SUPPORTED_HREFLANG_LOCALES,
   UNIFIED_ROBOTS_DIRECTIVE,
@@ -10,180 +14,154 @@ import {
 import { getActiveSiteLocale, getSiteBrandForLocale } from '../i18n/siteTranslations';
 import { LocationPoint } from '../types/weather';
 
-export function initDynamicGoogleVerification(): void {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+function syncHeadTagsForPage(
+  pageSeo: PageSeoMetadata,
+  activeLocale: 'fr' | 'en',
+  robotsDirective: string
+): void {
+  const brand = getSiteBrandForLocale(activeLocale);
+  const localizedCanonical = buildLocalizedUrl(pageSeo.path, activeLocale);
+  const ogImageUrl = getPageOgImageUrl(pageSeo);
+  const alternateOgLocale = activeLocale === 'en' ? 'fr_FR' : 'en_US';
 
-  try {
-    const ua = (navigator.userAgent || '').toLowerCase();
-    const url = window.location.href;
-    const isGoogle =
-      ua.includes('google') ||
-      ua.includes('googlebot') ||
-      ua.includes('google-site-verification') ||
-      ua.includes('google-inspectiontool') ||
-      ua.includes('mediapartners-google') ||
-      url.includes('google-site-verification');
-
-    if (isGoogle) {
-      const tokens = [
-        atob('a0tZa0ZjQXhVLXFVQzRIU0J2NUo0SnZvSUlSZUh1dFc1ZDBxdVoxMC1oWQ=='),
-        atob('dzBNYk5iVVY3SGRJa29sZ0pxMjRnLUw4Q0Z5eUJ6WXRKWElXT0xZQWFNM='),
-      ];
-
-      tokens.forEach((token) => {
-        if (!document.querySelector(`meta[name="google-site-verification"][content="${token}"]`)) {
-          const meta = document.createElement('meta');
-          meta.name = 'google-site-verification';
-          meta.content = token;
-          document.head.appendChild(meta);
-        }
-      });
-    }
-  } catch {
-    // Silencieux
+  // 1. Title & html lang
+  document.title = pageSeo.title;
+  if (document.documentElement) {
+    document.documentElement.lang = activeLocale;
   }
+
+  // 2. Canonical link
+  let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    canonical.id = 'dynamic-canonical-link';
+    document.head.appendChild(canonical);
+  }
+  canonical.href = localizedCanonical;
+
+  // 3. Hreflang links (strictly fr, en, x-default)
+  const expectedHreflangs = new Set(['fr', 'en', 'x-default']);
+  document.querySelectorAll<HTMLLinkElement>('link[rel="alternate"][hreflang]').forEach((el) => {
+    const hl = el.getAttribute('hreflang') || '';
+    if (!expectedHreflangs.has(hl)) {
+      el.remove();
+    }
+  });
+
+  const setHreflangLink = (hreflang: string, href: string) => {
+    let link = document.querySelector<HTMLLinkElement>(
+      `link[rel="alternate"][hreflang="${hreflang}"]`
+    );
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'alternate';
+      link.hreflang = hreflang;
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  };
+
+  SUPPORTED_HREFLANG_LOCALES.forEach(({ hreflang, locale }) => {
+    setHreflangLink(hreflang, buildLocalizedUrl(pageSeo.path, locale));
+  });
+  setHreflangLink('x-default', buildLocalizedUrl(pageSeo.path, 'fr'));
+
+  // 4. Meta Description, Title, Application Name
+  const setMetaByName = (name: string, content: string) => {
+    let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = name;
+      document.head.appendChild(meta);
+    }
+    meta.content = content;
+  };
+
+  setMetaByName('description', pageSeo.description);
+  setMetaByName('title', pageSeo.title);
+  setMetaByName('application-name', brand.brandName);
+  setMetaByName('apple-mobile-web-app-title', brand.brandName);
+
+  // 5. OpenGraph Tags
+  const setOgTag = (property: string, content: string) => {
+    let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('property', property);
+      document.head.appendChild(meta);
+    }
+    meta.content = content;
+  };
+
+  setOgTag('og:title', pageSeo.title);
+  setOgTag('og:description', pageSeo.description);
+  setOgTag('og:url', localizedCanonical);
+  setOgTag('og:site_name', brand.brandName);
+  setOgTag('og:locale', brand.ogLocale);
+  setOgTag('og:locale:alternate', alternateOgLocale);
+  setOgTag('og:image', ogImageUrl);
+  setOgTag('og:image:alt', pageSeo.title);
+
+  // 6. Twitter Cards
+  setMetaByName('twitter:title', pageSeo.title);
+  setMetaByName('twitter:description', pageSeo.description);
+  setMetaByName('twitter:url', localizedCanonical);
+  setMetaByName('twitter:image', ogImageUrl);
+
+  // 7. Schema.org JSON-LD
+  let jsonLdScript = document.getElementById('seo-page-jsonld');
+  if (!jsonLdScript) {
+    jsonLdScript = document.createElement('script');
+    jsonLdScript.id = 'seo-page-jsonld';
+    jsonLdScript.setAttribute('type', 'application/ld+json');
+    document.head.appendChild(jsonLdScript);
+  }
+  jsonLdScript.textContent = generatePageJsonLd(pageSeo, activeLocale);
+
+  // 8. Robots & cleanup deprecated meta tags
+  document
+    .querySelectorAll(
+      'meta[name="googlebot"], meta[name="bingbot"], meta[name="publisher"], meta[name="language"], meta[name="geo.region"], meta[name="geo.placename"], meta[name="rating"], meta[name="tdm-reservation"], meta[name="keywords"], meta[name="meta-carte-meteo-key"], meta[name="carte-meteo-key"]'
+    )
+    .forEach((el) => el.remove());
+
+  setMetaByName('robots', robotsDirective);
 }
 
 /**
  * Met à jour dynamiquement toutes les balises SEO dans le DOM client :
  * - document.title (naturel et propre à chaque page)
- * - link rel="canonical" (auto-référentiel vers l'URL de la page)
- * - link rel="alternate" hreflang (fr, fr-FR, fr-BE, fr-CH, fr-CA, en, de, es, it, etc. + x-default)
- * - meta description
- * - OpenGraph & Twitter Cards
- * - Script JSON-LD enrichi (FAQPage, WebPage, BreadcrumbList)
+ * - link rel="canonical" (auto-référentiel vers l'URL FR ou /en/... de la page)
+ * - link rel="alternate" hreflang (fr, en, x-default)
+ * - meta description, OpenGraph, Twitter Cards & Schema.org JSON-LD
  */
 export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): PageSeoMetadata {
   const activeLocale = getActiveSiteLocale();
-  const brand = getSiteBrandForLocale(activeLocale);
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return getSeoDataForPath('/', activeLocale);
   }
 
-  const currentWindowPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const currentWindowPath = window.location.pathname || '/';
   const targetPath = pathOrTabId.startsWith('/')
     ? pathOrTabId
     : getPathForTabId(pathOrTabId, currentWindowPath);
   const pageSeo = getSeoDataForPath(targetPath, activeLocale);
 
   try {
-    // 1. Title
-    document.title = pageSeo.title;
+    syncHeadTagsForPage(pageSeo, activeLocale, UNIFIED_ROBOTS_DIRECTIVE);
 
-    // 2. Balise canonique auto-référentielle propre à l'URL de la page et à la langue active
-    const cleanCanonical =
-      pageSeo.path === '/'
-        ? 'https://instantmeteo.instantmeteofr.workers.dev/'
-        : pageSeo.canonicalUrl.replace(/\/+$/, '');
-    const localizedCanonical =
-      activeLocale === 'fr' ? cleanCanonical : `${cleanCanonical}?hl=${activeLocale}`;
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.rel = 'canonical';
-      canonical.id = 'dynamic-canonical-link';
-      document.head.appendChild(canonical);
-    }
-    canonical.href = localizedCanonical;
-
-    // 2b. Synchronisation des balises hreflang (versions linguistiques signalées à Google)
-    const setHreflangLink = (hreflang: string, href: string) => {
-      let link = document.querySelector<HTMLLinkElement>(
-        `link[rel="alternate"][hreflang="${hreflang}"]`
-      );
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'alternate';
-        link.hreflang = hreflang;
-        document.head.appendChild(link);
-      }
-      link.href = href;
-    };
-
-    SUPPORTED_HREFLANG_LOCALES.forEach(({ hreflang, param }) => {
-      setHreflangLink(hreflang, `${cleanCanonical}${param}`);
-    });
-    setHreflangLink('x-default', cleanCanonical);
-
-    // 3. Meta Description & Nom d'application traduit dans toutes les langues
-    const setMetaByName = (name: string, content: string) => {
-      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = name;
-        document.head.appendChild(meta);
-      }
-      meta.content = content;
-    };
-
-    setMetaByName('description', pageSeo.description);
-    setMetaByName('title', pageSeo.title);
-    setMetaByName('application-name', brand.brandName);
-    setMetaByName('apple-mobile-web-app-title', brand.brandName);
-
-    // 4. OpenGraph Tags (avec og:site_name traduit selon la langue)
-    const setOgTag = (property: string, content: string) => {
-      let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('property', property);
-        document.head.appendChild(meta);
-      }
-      meta.content = content;
-    };
-
-    setOgTag('og:title', pageSeo.title);
-    setOgTag('og:description', pageSeo.description);
-    setOgTag('og:url', localizedCanonical);
-    setOgTag('og:site_name', brand.brandName);
-    setOgTag('og:locale', brand.ogLocale);
-
-    // 5. Twitter Card Tags
-    setMetaByName('twitter:title', pageSeo.title);
-    setMetaByName('twitter:description', pageSeo.description);
-
-    // 6. Schema.org JSON-LD dynamique avec WebSite.name traduit
-    let jsonLdScript = document.getElementById('seo-page-jsonld');
-    if (!jsonLdScript) {
-      jsonLdScript = document.createElement('script');
-      jsonLdScript.id = 'seo-page-jsonld';
-      jsonLdScript.setAttribute('type', 'application/ld+json');
-      document.head.appendChild(jsonLdScript);
-    }
-    jsonLdScript.textContent = generatePageJsonLd(pageSeo, activeLocale);
-
-    // 7. Règle commune meta robots sur toutes les pages
-    document
-      .querySelectorAll('meta[name="googlebot"], meta[name="tdm-reservation"]')
-      .forEach((el) => el.remove());
-    let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
-    if (!robotsTag) {
-      robotsTag = document.createElement('meta');
-      robotsTag.name = 'robots';
-      document.head.appendChild(robotsTag);
-    }
-    robotsTag.content = UNIFIED_ROBOTS_DIRECTIVE;
-
-    // 8. Nettoyage d'anciennes balises inutiles
-    document.querySelectorAll('meta[name="keywords"]').forEach((el) => el.remove());
-    document
-      .querySelectorAll('meta[name="meta-carte-meteo-key"], meta[name="carte-meteo-key"]')
-      .forEach((el) => el.remove());
-
-    // 9. Synchronisation URL dans la barre d'adresse
     if (syncHistory && typeof window.history !== 'undefined') {
       const currentPath = window.location.pathname;
-      const canonicalPath =
-        pageSeo.path === '/'
-          ? '/'
-          : pageSeo.path.endsWith('/')
-            ? pageSeo.path.slice(0, -1)
-            : pageSeo.path;
-      if (currentPath !== canonicalPath && !(canonicalPath === '/direct' && currentPath === '/')) {
+      const localizedPath = buildLocalizedPath(pageSeo.path, activeLocale);
+      if (
+        currentPath !== localizedPath &&
+        !(pageSeo.path === '/direct' && (currentPath === '/' || currentPath === '/en'))
+      ) {
         window.history.pushState(
-          { tabId: pageSeo.tabId, path: canonicalPath },
+          { tabId: pageSeo.tabId, path: localizedPath },
           '',
-          `${canonicalPath}${window.location.search || ''}`
+          `${localizedPath}${window.location.search || ''}`
         );
       }
     }
@@ -197,79 +175,32 @@ export function updateDocumentSeo(pathOrTabId: string, syncHistory = true): Page
 /**
  * Met à jour dynamiquement toutes les balises SEO (title, description, OpenGraph, JSON-LD)
  * dès qu'une commune ou station est sélectionnée par l'utilisateur ou chargée depuis l'URL.
- * Garantit que la page affiche fidèlement le titre : "Météo [Ville] [Code Postal]"
- * Exemple : "Météo Paris 75000 — Prévisions & Radar | Instant Météo"
  */
-export function updateDocumentSeoForStation(station: LocationPoint, syncHistory = false): PageSeoMetadata {
+export function updateDocumentSeoForStation(
+  station: LocationPoint,
+  syncHistory = false
+): PageSeoMetadata {
   const activeLocale = getActiveSiteLocale();
-  const brand = getSiteBrandForLocale(activeLocale);
-  const pageSeo = getLocalitySeoData(station);
+  const pageSeo = getLocalitySeoData(station, activeLocale);
 
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return pageSeo;
   }
 
   try {
-    // 1. Titre spécifique de la ville : Météo [Ville] [Code Postal]
-    document.title = pageSeo.title;
+    syncHeadTagsForPage(pageSeo, activeLocale, UNIFIED_ROBOTS_DIRECTIVE);
 
-    // 2. Balises meta Title & Description
-    const setMetaByName = (name: string, content: string) => {
-      let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = name;
-        document.head.appendChild(meta);
-      }
-      meta.content = content;
-    };
-
-    setMetaByName('title', pageSeo.title);
-    setMetaByName('description', pageSeo.description);
-    setMetaByName('application-name', brand.brandName);
-    setMetaByName('apple-mobile-web-app-title', brand.brandName);
-
-    // 3. OpenGraph Tags
-    const setOgTag = (property: string, content: string) => {
-      let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('property', property);
-        document.head.appendChild(meta);
-      }
-      meta.content = content;
-    };
-
-    setOgTag('og:title', pageSeo.title);
-    setOgTag('og:description', pageSeo.description);
-    setOgTag('og:site_name', brand.brandName);
-    setOgTag('og:url', pageSeo.canonicalUrl);
-
-    // 4. Twitter Cards
-    setMetaByName('twitter:title', pageSeo.title);
-    setMetaByName('twitter:description', pageSeo.description);
-
-    // 5. Canonical
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (canonical) {
-      canonical.href = pageSeo.canonicalUrl;
-    }
-
-    // 6. JSON-LD Schema.org
-    let jsonLdScript = document.getElementById('seo-page-jsonld');
-    if (!jsonLdScript) {
-      jsonLdScript = document.createElement('script');
-      jsonLdScript.id = 'seo-page-jsonld';
-      jsonLdScript.setAttribute('type', 'application/ld+json');
-      document.head.appendChild(jsonLdScript);
-    }
-    jsonLdScript.textContent = generatePageJsonLd(pageSeo, activeLocale);
-
-    // 7. Synchronisation éventuelle de l'URL sans rechargement
     if (syncHistory && typeof window.history !== 'undefined') {
-      const cleanSlug = pageSeo.path;
-      if (window.location.pathname !== cleanSlug) {
-        window.history.replaceState({ stationId: station.id, path: cleanSlug }, '', `${cleanSlug}${window.location.search || ''}`);
+      const matchedCatalogPath = getMajorCityPathForStationId(station.id, station.name);
+      if (matchedCatalogPath) {
+        const localizedPath = buildLocalizedPath(matchedCatalogPath, activeLocale);
+        if (window.location.pathname !== localizedPath) {
+          window.history.replaceState(
+            { stationId: station.id, path: localizedPath },
+            '',
+            `${localizedPath}${window.location.search || ''}`
+          );
+        }
       }
     }
   } catch (err) {
@@ -279,3 +210,49 @@ export function updateDocumentSeoForStation(station: LocationPoint, syncHistory 
   return pageSeo;
 }
 
+/**
+ * Applique les métadonnées 404 (noindex, nofollow) côté client pour toute URL inexistante.
+ */
+export function setNotFoundSeo(rawPathname: string): void {
+  const activeLocale = getActiveSiteLocale();
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  try {
+    const isEn = activeLocale === 'en';
+    const title = isEn
+      ? '404 — Page Not Found | Instant Weather'
+      : '404 — Page introuvable | Instant Météo';
+    const description = isEn
+      ? `The URL ${rawPathname} does not correspond to any page or municipality on Instant Weather.`
+      : `L’adresse ${rawPathname} ne correspond à aucune rubrique ou commune sur Instant Météo.`;
+
+    document.title = title;
+    if (document.documentElement) {
+      document.documentElement.lang = activeLocale;
+    }
+
+    let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robotsTag) {
+      robotsTag = document.createElement('meta');
+      robotsTag.name = 'robots';
+      document.head.appendChild(robotsTag);
+    }
+    robotsTag.content = 'noindex, nofollow';
+
+    const descTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (descTag) {
+      descTag.content = description;
+    }
+    const titleTag = document.querySelector<HTMLMetaElement>('meta[name="title"]');
+    if (titleTag) {
+      titleTag.content = title;
+    }
+
+    document.querySelectorAll('link[rel="canonical"]').forEach((el) => el.remove());
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
+    const jsonLd = document.getElementById('seo-page-jsonld');
+    if (jsonLd) jsonLd.textContent = '';
+  } catch {
+    // ignore
+  }
+}

@@ -1,54 +1,29 @@
 <!doctype html>
 <html lang="fr" dir="ltr">
   <head>
+    <meta name="google-site-verification" content="kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY" />
     <meta name="google-site-verification" content="w0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- Primary SEO Meta Tags -->
-    <title>Instant Météo — Prévisions &amp; Radar Pluie en Direct</title>
-    <meta name="title" content="Instant Météo — Prévisions &amp; Radar Pluie en Direct" />
-    <meta name="description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité." />
+    <title>Instant Météo — Météo France &amp; Radar Pluie en Direct</title>
+    <meta name="title" content="Instant Météo — Météo France &amp; Radar Pluie en Direct" />
+    <meta name="description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit." />
     <meta name="author" content="Instant Météo" />
-    <meta name="publisher" content="Instant Météo" />
     <meta name="application-name" content="Instant Météo" />
     <meta name="apple-mobile-web-app-title" content="Instant Météo" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="language" content="French" />
-    <meta name="geo.region" content="FR" />
-    <meta name="geo.placename" content="France" />
-    <meta name="rating" content="general" />
 
     <!-- Canonical & Internationalization (hreflang) -->
     <link rel="canonical" id="dynamic-canonical-link" href="https://instantmeteo.instantmeteofr.workers.dev/" />
     <!--SEO_HREFLANG_START-->
     <link rel="alternate" hreflang="fr" href="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <link rel="alternate" hreflang="fr-FR" href="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <link rel="alternate" hreflang="fr-BE" href="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <link rel="alternate" hreflang="fr-CH" href="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <link rel="alternate" hreflang="fr-CA" href="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
-    <link rel="alternate" hreflang="en-US" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
-    <link rel="alternate" hreflang="en-GB" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
-    <link rel="alternate" hreflang="en-CA" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
-    <link rel="alternate" hreflang="en-AU" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=en" />
-    <link rel="alternate" hreflang="de" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=de" />
-    <link rel="alternate" hreflang="es" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=es" />
-    <link rel="alternate" hreflang="it" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=it" />
-    <link rel="alternate" hreflang="pt" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=pt" />
-    <link rel="alternate" hreflang="nl" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=nl" />
-    <link rel="alternate" hreflang="ar" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ar" />
-    <link rel="alternate" hreflang="zh-CN" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=zh-CN" />
-    <link rel="alternate" hreflang="ja" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ja" />
-    <link rel="alternate" hreflang="ru" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=ru" />
-    <link rel="alternate" hreflang="uk" href="https://instantmeteo.instantmeteofr.workers.dev/?hl=uk" />
+    <link rel="alternate" hreflang="en" href="https://instantmeteo.instantmeteofr.workers.dev/en" />
     <link rel="alternate" hreflang="x-default" href="https://instantmeteo.instantmeteofr.workers.dev/" />
     <!--SEO_HREFLANG_END-->
 
-    <!-- Synchronisation immédiate de l'URL canonique et du titre dynamique avant hydratation -->
+    <!-- Synchronisation immédiate de l'URL canonique avant hydratation -->
     <script>
       (function() {
         try {
@@ -61,26 +36,27 @@
             link.setAttribute('href', canonicalHref);
           }
 
-          // Détection immédiate d'une commune pour afficher le titre Météo [Ville] [Code Postal]
-          var params = new URLSearchParams(window.location.search || '');
-          var queryCity = params.get('ville') || params.get('q') || params.get('city') || params.get('station');
-          var slug = (queryCity || cleanPath.replace(/^\/(?:meteo-)?/, '')).toLowerCase();
-          var reserved = ['direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours', 'climat', 'montagne-plages-nature', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau', 'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes', 'communaute', 'competition', 'api'];
-
-          if (slug && reserved.indexOf(slug) === -1 && slug.indexOf('.') === -1) {
-            var isParis = slug.indexOf('paris') !== -1;
-            var isVersailles = slug.indexOf('versailles') !== -1;
-            var isMarseille = slug.indexOf('marseille') !== -1;
-            var isLyon = slug.indexOf('lyon') !== -1;
-            var isToulouse = slug.indexOf('toulouse') !== -1;
-            var isNice = slug.indexOf('nice') !== -1;
-            var isBordeaux = slug.indexOf('bordeaux') !== -1;
-            var isLille = slug.indexOf('lille') !== -1;
-
-            var cityName = isParis ? 'Paris' : (isVersailles ? 'Versailles' : (isMarseille ? 'Marseille' : (isLyon ? 'Lyon' : (isToulouse ? 'Toulouse' : (isNice ? 'Nice' : (isBordeaux ? 'Bordeaux' : (isLille ? 'Lille' : slug.charAt(0).toUpperCase() + slug.slice(1).replace(/[-_]\d+$/, ''))))))));
-            var postal = isParis ? '75000' : (isVersailles ? '78000' : (isMarseille ? '13000' : (isLyon ? '69000' : (isToulouse ? '31000' : (isNice ? '06000' : (isBordeaux ? '33000' : (isLille ? '59000' : '')))))));
-            var label = postal ? cityName + ' ' + postal : cityName;
-            document.title = 'Météo ' + label + ' — Prévisions en Direct & Radar Pluie | Instant Météo';
+          var isEn = cleanPath === '/en' || cleanPath.indexOf('/en/') === 0;
+          var basePath = isEn ? (cleanPath.slice(3) || '/') : cleanPath;
+          var knownCities = {
+            '/paris': ['Paris', '75000'],
+            '/versailles': ['Versailles', '78000'],
+            '/marseille': ['Marseille', '13000'],
+            '/lyon': ['Lyon', '69000'],
+            '/toulouse': ['Toulouse', '31000'],
+            '/nice': ['Nice', '06000'],
+            '/bordeaux': ['Bordeaux', '33000'],
+            '/lille': ['Lille', '59000'],
+            '/nantes': ['Nantes', '44000'],
+            '/strasbourg': ['Strasbourg', '67000'],
+            '/montpellier': ['Montpellier', '34000']
+          };
+          var match = knownCities[basePath];
+          if (match) {
+            var label = match[0] + ' ' + match[1];
+            document.title = isEn
+              ? label + ' Weather — Live Forecast & Radar | Instant Weather'
+              : 'Météo ' + label + ' — Prévisions & Radar | Instant Météo';
           }
         } catch (e) {}
       })();
@@ -90,9 +66,10 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Instant Météo" />
     <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta property="og:title" content="Instant Météo — Prévisions &amp; Radar Pluie en Direct" />
-    <meta property="og:description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité." />
+    <meta property="og:title" content="Instant Météo — Météo France &amp; Radar Pluie en Direct" />
+    <meta property="og:description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit." />
     <meta property="og:image" content="https://instantmeteo.instantmeteofr.workers.dev/og-image.png" />
     <meta property="og:image:alt" content="Instant Météo — Prévisions en direct et radar de pluie" />
     <meta property="og:image:width" content="1200" />
@@ -101,8 +78,8 @@
     <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://instantmeteo.instantmeteofr.workers.dev/" />
-    <meta name="twitter:title" content="Instant Météo — Prévisions &amp; Radar Pluie en Direct" />
-    <meta name="twitter:description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité." />
+    <meta name="twitter:title" content="Instant Météo — Météo France &amp; Radar Pluie en Direct" />
+    <meta name="twitter:description" content="Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit." />
     <meta name="twitter:image" content="https://instantmeteo.instantmeteofr.workers.dev/og-image.png" />
 
     <!-- Favicons & App Manifest -->
@@ -112,7 +89,6 @@
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <meta name="theme-color" content="#020617" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -139,59 +115,41 @@
             "@type": "WebSite",
             "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-            "name": "Instant Météo France & International",
-            "alternateName": [
-              "Instant Météo",
-              "instant météo",
-              "instant meteo",
-              "instantmeteo",
-              "instant-meteo",
-              "instant météo versailles",
-              "instant meteo versailles",
-              "météo france",
-              "meteo france",
-              "InstantMeteo",
-              "InstantMeteoFrance",
-              "Instant Weather"
-            ],
-            "description": "Portail météo mondial 100 % gratuit et sans publicité intrusive. Retrouvez notre site directement en recherchant instant météo, instant meteo, instantmeteo, instant météo versailles ou météo france. Prévisions précises, radar des précipitations HD, bulletins et suivi temps réel.",
+            "name": "Instant Météo France",
+            "alternateName": ["Instant Météo", "Instant Weather"],
+            "description": "Portail météorologique indépendant 100 % gratuit : observations en direct, radar des précipitations haute résolution et prévisions à 14 jours pour les communes de France.",
             "isAccessibleForFree": true,
-            "inLanguage": ["fr-FR", "en-US", "de-DE", "es-ES", "it-IT", "pt-PT", "nl-NL"],
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": "https://instantmeteo.instantmeteofr.workers.dev/?q={search_term_string}",
-              "query-input": "required name=search_term_string"
-            }
+            "inLanguage": "fr-FR"
           },
           {
             "@type": "Organization",
             "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization",
             "name": "Instant Météo France",
+            "alternateName": "Instant Météo",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
-            "logo": "https://instantmeteo.instantmeteofr.workers.dev/icon-512.png",
-            "knowsLanguage": ["fr", "en", "de", "es", "it", "pt", "nl", "ar", "zh", "ja", "ru", "uk"],
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://instantmeteo.instantmeteofr.workers.dev/icon-512.png",
+              "width": 512,
+              "height": 512
+            },
             "sameAs": [
-              "https://instantmeteo.instantmeteofr.workers.dev"
+              "https://discord.gg/MjFDekSbnt"
             ]
           },
           {
             "@type": "WebApplication",
             "@id": "https://instantmeteo.instantmeteofr.workers.dev/#webapp",
-            "name": "Instant Météo France & Monde",
+            "name": "Instant Météo France",
             "url": "https://instantmeteo.instantmeteofr.workers.dev/",
             "applicationCategory": "WeatherApplication",
-            "operatingSystem": "All (Web, Android PWA, iOS)",
+            "operatingSystem": "All",
             "isAccessibleForFree": true,
-            "description": "Application météo mondiale 100 % gratuite, sans publicité, avec radar de pluie HD en direct, relevés de stations Infoclimat (Tmin, Tmax, pluie 00h, ensoleillement), cartes des seuils et mode hors-ligne complet (IndexedDB).",
+            "description": "Application météo 100 % gratuite avec radar de pluie HD en direct, relevés de stations officielles et prévisions locales.",
             "featureList": [
-              "Radar des précipitations haute résolution en direct RainViewer",
-              "Relevés de stations officielles Météo-France et réseau secondaire StatIC Infoclimat",
-              "Suivi en temps réel des températures Tmin et Tmax de la journée en cours",
-              "Cumuls de pluie depuis 00h00 avec intensité instantanée",
-              "Ensoleillement effectif cumulé depuis le lever et flux de rayonnement solaire",
-              "Cartes mondiales et françaises des seuils de gel, canicule, rafales et foudre",
-              "Prévisions communales pour les 34 965 communes françaises et les capitales mondiales",
-              "Mode hors-ligne certifié sans publicité intrusive"
+              "Prévisions météo 100 % gratuites pour les communes de France",
+              "Radar de pluie haute résolution et suivi en temps réel",
+              "Données ouvertes publiques (Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)"
             ],
             "offers": {
               "@type": "Offer",
@@ -200,78 +158,33 @@
             }
           },
           {
+            "@type": "WebPage",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#webpage",
+            "url": "https://instantmeteo.instantmeteofr.workers.dev/",
+            "name": "Instant Météo — Météo France & Radar Pluie en Direct",
+            "headline": "Instant Météo — Prévisions météorologiques et radar de pluie en direct",
+            "description": "Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit.",
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://instantmeteo.instantmeteofr.workers.dev/og-image.png",
+              "width": 1200,
+              "height": 630
+            },
+            "isAccessibleForFree": true,
+            "isPartOf": { "@id": "https://instantmeteo.instantmeteofr.workers.dev/#website" },
+            "about": { "@id": "https://instantmeteo.instantmeteofr.workers.dev/#organization" },
+            "breadcrumb": { "@id": "https://instantmeteo.instantmeteofr.workers.dev/#breadcrumb" },
+            "inLanguage": "fr-FR"
+          },
+          {
             "@type": "BreadcrumbList",
-            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#breadcrumbs",
+            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#breadcrumb",
             "itemListElement": [
               {
                 "@type": "ListItem",
                 "position": 1,
-                "name": "Accueil Météo",
+                "name": "Instant Météo",
                 "item": "https://instantmeteo.instantmeteofr.workers.dev/"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Météo en Direct & Relevés Infoclimat",
-                "item": "https://instantmeteo.instantmeteofr.workers.dev/direct"
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "name": "Radar Pluie HD & Précipitations",
-                "item": "https://instantmeteo.instantmeteofr.workers.dev/radar"
-              },
-              {
-                "@type": "ListItem",
-                "position": 4,
-                "name": "Cartes des Seuils & Vigilances",
-                "item": "https://instantmeteo.instantmeteofr.workers.dev/vigilances"
-              }
-            ]
-          },
-          {
-            "@type": "FAQPage",
-            "@id": "https://instantmeteo.instantmeteofr.workers.dev/#faq",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "Comment consulter la météo gratuitement et sans publicité sur Instant Météo ?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Instant Météo est un service météorologique 100 % gratuit et sans aucune publicité commerciale. Il agrège en direct les données ouvertes (Open Data) de Météo-France, ECMWF, GFS, ICON et des radars nationaux pour plus de 34 965 communes et stations mondiales."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Comment sont mesurés et comparés les relevés du jour (Tmin, Tmax, pluie et soleil) d'Infoclimat ?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Instant Météo affiche en continu les températures minimales (Tmin) et maximales (Tmax) enregistrées sous abri normalisé depuis minuit, le cumul de précipitations tombées depuis 00h00 et la durée d'ensoleillement effectif. L'utilisateur peut comparer en 1 clic les mesures du réseau principal d'État (SYNOP / Météo-France) et du réseau secondaire partenaire des passionnés (StatIC Infoclimat)."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Quelles sont les cartes de seuils et de risques de la journée disponibles pour la France et le Monde ?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "La suite de cartes interactives permet de visualiser en direct les seuils critiques : probabilité et intensité du gel (< 0°C, < -2°C, < -5°C), seuils de canicule (> 30°C, > 35°C), radar des pluies et cumuls du jour, rafales de vent (> 60 km/h, > 80 km/h), risque orageux convectif et qualité de l'air ATMO, à l'échelle française et mondiale."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Comment fonctionne la consultation des prévisions météo hors-ligne sans connexion internet ?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Grâce au Service Worker et au stockage local sécurisé IndexedDB, Instant Météo enregistre automatiquement vos dernières prévisions complètes (relevés horaires, tendances à 14 jours, radar et nivologie). En cas de perte totale de réseau, l'application continue de s'ouvrir et affiche les dernières données certifiées enregistrées."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "L'application Instant Météo est-elle disponible à l'international et en plusieurs langues ?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Oui, Instant Météo prend en charge plus de 20 langues et localités internationales (français, anglais, allemand, espagnol, italien, portugais, néerlandais, arabe, chinois, japonais, etc.) avec indexation géographique et géocodage mondial instantané."
-                }
               }
             ]
           }

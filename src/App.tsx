@@ -82,16 +82,20 @@ import { CommunityWeatherMap } from './components/CommunityWeatherMap';
 import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
-import { updateDocumentSeo, updateDocumentSeoForStation } from './utils/seoVerification';
+import { updateDocumentSeo, updateDocumentSeoForStation, setNotFoundSeo } from './utils/seoVerification';
 import {
   getTabIdForPath,
   getSeoDataForPath,
   getPathForTabId,
   getMajorCityConfigFromPath,
   getMajorCityPathForStationId,
+  stripLocalePrefix,
+  buildLocalizedPath,
+  isValidSeoPath,
+  THEMATIC_URL_ALIASES,
   MAJOR_FRENCH_CITY_SEO_LIST,
 } from './seo/pagesSeoData';
-import { getNativeSiteLanguage } from './i18n/siteTranslations';
+import { getActiveSiteLocale, getNativeSiteLanguage } from './i18n/siteTranslations';
 import { sendHeartbeatAndFetchStats, notifyVisitorLeave } from './services/siteStatsService';
 import { CertifiedLiveSiteStatsCard } from './components/CertifiedLiveSiteStatsCard';
 import { PWASplashScreen } from './components/PWASplashScreen';
@@ -153,15 +157,27 @@ class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps, ViewErro
   }
 }
 
+function checkIs404Path(rawPathname: string): boolean {
+  const { path } = stripLocalePrefix(rawPathname || '/');
+  if (path === '/skymap' || THEMATIC_URL_ALIASES[path]) return false;
+  if (rawPathname.includes('.') && !rawPathname.endsWith('.html')) return false;
+  return !isValidSeoPath(rawPathname);
+}
+
 function WeatherApp() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const p = window.location.pathname.toLowerCase();
-      if (p === '/skymap' || p === '/skymap/' || p === '/skymap3d' || p === '/carte-3d' || p === '/ciel-3d') {
-        window.location.replace('/skymap' + window.location.hash);
+      const { locale, path } = stripLocalePrefix(window.location.pathname);
+      if (path === '/skymap' || path === '/skymap3d' || path === '/carte-3d' || path === '/ciel-3d') {
+        window.location.replace(buildLocalizedPath('/skymap', locale) + window.location.hash);
       }
     }
   }, []);
+
+  const [notFoundRoute, setNotFoundRoute] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return checkIs404Path(window.location.pathname);
+  });
 
   const [currentStation, setCurrentStation] = useState<LocationPoint>(() => {
     try {
@@ -182,6 +198,20 @@ function WeatherApp() {
           if (matched) {
             return { ...matched, name: cityCfg.cityName, postalCode: cityCfg.postalCode || matched.postalCode };
           }
+          return {
+            id: cityCfg.stationId || cityCfg.slug,
+            name: cityCfg.cityName,
+            department: cityCfg.department,
+            region: cityCfg.region,
+            latitude: cityCfg.latitude,
+            longitude: cityCfg.longitude,
+            altitude: cityCfg.altitude,
+            climateZone: cityCfg.climateZone,
+            allTimeRecordMax: cityCfg.recordMax,
+            allTimeRecordMin: cityCfg.recordMin,
+            allTimeRecordRain24h: cityCfg.recordRain24h,
+            postalCode: cityCfg.postalCode,
+          };
         }
       }
       const saved = localStorage.getItem('instant_meteo_last_station') || localStorage.getItem('climafrance_last_selected_locality');
@@ -222,7 +252,7 @@ function WeatherApp() {
   }, [currentStation]);
 
   const getTerritorySectionFromPath = (rawPathname: string): TerritorySectionId => {
-    const clean = (rawPathname || '/').split('?')[0].split('#')[0].trim().toLowerCase().replace(/\/+$/, '') || '/';
+    const { path: clean } = stripLocalePrefix(rawPathname || '/');
     if (['/plages', '/plage', '/littoral', '/mer', '/marees', '/meteo-des-plages'].includes(clean)) {
       return 'beaches';
     }
@@ -251,8 +281,9 @@ function WeatherApp() {
   });
 
   const handleNavigateTab = (tab: string) => {
+    setNotFoundRoute(false);
     if (tab === 'skymap') {
-      window.location.href = '/skymap';
+      window.location.href = buildLocalizedPath('/skymap', getActiveSiteLocale());
       return;
     }
     if (tab === 'mountain' || tab === 'beaches' || tab === 'droughtFire' || tab === 'watercourses') {
@@ -290,8 +321,15 @@ function WeatherApp() {
 
   // Synchronisation SEO DOM dynamique & auto-référentielle lors des changements de page et de commune
   useEffect(() => {
+    if (notFoundRoute) {
+      if (typeof window !== 'undefined') {
+        setNotFoundSeo(window.location.pathname);
+        setCurrentPath(window.location.pathname);
+      }
+      return;
+    }
     if (activeTab === 'skymap') {
-      window.location.replace('/skymap');
+      window.location.replace(buildLocalizedPath('/skymap', getActiveSiteLocale()));
       return;
     }
     if (activeTab === 'realtime') {
@@ -302,49 +340,77 @@ function WeatherApp() {
     if (typeof window !== 'undefined') {
       setCurrentPath(window.location.pathname);
     }
-  }, [activeTab, currentStation]);
+  }, [activeTab, currentStation, notFoundRoute]);
 
   useEffect(() => {
-    const handlePopState = () => {
-      if (typeof window !== 'undefined') {
-        const p = window.location.pathname;
-        setCurrentPath(p);
-        const cityCfg = getMajorCityConfigFromPath(p);
-        if (cityCfg) {
-          const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
-          const st = matched 
-            ? { ...matched, name: cityCfg.cityName, postalCode: cityCfg.postalCode || matched.postalCode }
-            : {
-                id: cityCfg.stationId || cityCfg.slug,
-                name: cityCfg.cityName,
-                department: cityCfg.department,
-                region: cityCfg.region,
-                latitude: 48.8566,
-                longitude: 2.3522,
-                altitude: cityCfg.altitude || 50,
-                climateZone: cityCfg.climateZone || 'Tempéré',
-                allTimeRecordMax: cityCfg.recordMax || 40,
-                allTimeRecordMin: cityCfg.recordMin || -15,
-                allTimeRecordRain24h: cityCfg.recordRain24h || 75,
-                postalCode: cityCfg.postalCode
-              };
-          setCurrentStation(st);
-          setActiveTab('realtime');
-          updateDocumentSeoForStation(st, false);
-          return;
+    const syncFromPath = (p: string) => {
+      setCurrentPath(p);
+      if (checkIs404Path(p)) {
+        setNotFoundRoute(true);
+        setNotFoundSeo(p);
+        return;
+      }
+      setNotFoundRoute(false);
+
+      const cityCfg = getMajorCityConfigFromPath(p);
+      if (cityCfg) {
+        const matched = FRENCH_STATIONS.find((s) => s.id === cityCfg.stationId);
+        const st: LocationPoint = matched
+          ? { ...matched, name: cityCfg.cityName, postalCode: cityCfg.postalCode || matched.postalCode }
+          : {
+              id: cityCfg.stationId || cityCfg.slug,
+              name: cityCfg.cityName,
+              department: cityCfg.department,
+              region: cityCfg.region,
+              latitude: cityCfg.latitude,
+              longitude: cityCfg.longitude,
+              altitude: cityCfg.altitude,
+              climateZone: cityCfg.climateZone,
+              allTimeRecordMax: cityCfg.recordMax,
+              allTimeRecordMin: cityCfg.recordMin,
+              allTimeRecordRain24h: cityCfg.recordRain24h,
+              postalCode: cityCfg.postalCode,
+            };
+        setCurrentStation(st);
+        setActiveTab('realtime');
+        updateDocumentSeoForStation(st, false);
+        return;
+      }
+
+      const tabFromPath = getTabIdForPath(p) as NavTabId;
+      if (tabFromPath) {
+        if (tabFromPath === 'natureTerritories') {
+          setTerritorySection(getTerritorySectionFromPath(p));
         }
-        const tabFromPath = getTabIdForPath(p) as NavTabId;
-        if (tabFromPath) {
-          if (tabFromPath === 'natureTerritories') {
-            setTerritorySection(getTerritorySectionFromPath(p));
-          }
-          setActiveTab(tabFromPath);
+        setActiveTab(tabFromPath);
+        if (tabFromPath === 'realtime') {
+          updateDocumentSeo(p, false);
+        } else {
           updateDocumentSeo(tabFromPath, false);
         }
       }
     };
+
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        syncFromPath(window.location.pathname);
+      }
+    };
+    const handlePathChange = (e: Event) => {
+      const custom = e as CustomEvent<{ path?: string }>;
+      if (custom.detail?.path) {
+        syncFromPath(custom.detail.path);
+      } else if (typeof window !== 'undefined') {
+        syncFromPath(window.location.pathname);
+      }
+    };
+
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('instant_meteo_path_change', handlePathChange);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('instant_meteo_path_change', handlePathChange);
+    };
   }, []);
   const [seniorMode, setSeniorMode] = useState<boolean>(false);
   // Mode Simplifié par défaut pour les nouveaux visiteurs (vue épurée essentielle)
@@ -774,10 +840,14 @@ function WeatherApp() {
   }, [currentStation]);
 
   const handleSelectStationWithSeo = (st: LocationPoint) => {
+    setNotFoundRoute(false);
     setCurrentStation(st);
     if (typeof window !== 'undefined' && activeTab === 'realtime') {
+      const locale = getActiveSiteLocale();
+      const { path: baseCurrent } = stripLocalePrefix(currentPath);
       const majorCityPath = getMajorCityPathForStationId(st.id, st.name);
-      const nextPath = majorCityPath || (currentPath === '/direct' ? '/direct' : '/');
+      const baseNextPath = majorCityPath || (baseCurrent === '/direct' ? '/direct' : '/');
+      const nextPath = buildLocalizedPath(baseNextPath, locale);
       if (window.location.pathname !== nextPath) {
         setCurrentPath(nextPath);
         window.history.pushState(null, '', `${nextPath}${window.location.search || ''}`);
@@ -1057,8 +1127,9 @@ function WeatherApp() {
             <DesktopLeftSidebar
               activeTab={activeTab as NavTabId}
               onSelectTab={(tab) => {
+                setNotFoundRoute(false);
                 if (tab === 'skymap') {
-                  window.location.href = '/skymap';
+                  window.location.href = buildLocalizedPath('/skymap', getActiveSiteLocale());
                   return;
                 }
                 setActiveTab(tab);
@@ -1131,8 +1202,9 @@ function WeatherApp() {
           onTriggerSecretCode={handleTriggerSecretCode}
           onOpenRadarTab={() => setActiveTab('radar')}
           onSelectTab={(tabId) => {
+            setNotFoundRoute(false);
             if (tabId === 'skymap') {
-              window.location.href = '/skymap';
+              window.location.href = buildLocalizedPath('/skymap', getActiveSiteLocale());
               return;
             }
             setActiveTab(tabId);
@@ -1167,7 +1239,7 @@ function WeatherApp() {
                   {activePageSeo.h1} — Instant Météo France · Météo France · Météo Direct · Instant Meteo
                 </h1>
                 <p>
-                  Bienvenue sur Instant Météo France. Retrouvez les prévisions météo en direct gratuites et sans publicité pour {currentStation.name} et 34 965 communes. Vous pouvez trouver notre site directement sur Google en tapant Instant Météo France, Météo France, Météo Direct, Instant Meteo ou météo {currentStation.name}.
+                  Bienvenue sur Instant Météo France. Retrouvez les prévisions météo en direct gratuites en données ouvertes pour {currentStation.name} et les communes de France.
                 </p>
                 <p>
                   {activePageSeo.description}
@@ -1183,8 +1255,54 @@ function WeatherApp() {
         {/* Flash Announcement Banner from Administrator */}
         <AdminAnnouncementBanner />
 
-        {/* Tab Content */}
-        {!weather || !anomaly ? (
+        {/* Tab Content / Real 404 screen for unknown paths */}
+        {notFoundRoute ? (
+          (() => {
+            const isEn = getActiveSiteLocale() === 'en';
+            const homePath = buildLocalizedPath('/', isEn ? 'en' : 'fr');
+            return (
+              <div className="mx-auto my-12 max-w-xl rounded-3xl border border-slate-700/80 bg-slate-900/90 p-8 text-center shadow-2xl">
+                <p className="text-xs font-black uppercase tracking-widest text-sky-400">
+                  {isEn ? 'Instant Weather — 404' : 'Instant Météo — 404'}
+                </p>
+                <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white">
+                  {isEn ? 'Page Not Found (404)' : 'Page introuvable (404)'}
+                </h1>
+                <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+                  {isEn
+                    ? `The URL "${currentPath}" does not match any weather section or listed French municipality.`
+                    : `L’adresse « ${currentPath} » ne correspond à aucune rubrique ou commune répertoriée sur Instant Météo.`}
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNotFoundRoute(false);
+                      setCurrentPath(homePath);
+                      setActiveTab('realtime');
+                      window.history.pushState(null, '', homePath);
+                      updateDocumentSeo(homePath, false);
+                      scrollToTopInstant();
+                    }}
+                    className="rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition cursor-pointer"
+                  >
+                    {isEn ? 'Back to Home' : 'Retour à l’accueil Instant Météo'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNotFoundRoute(false);
+                      setIsSearchModalOpen(true);
+                    }}
+                    className="rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-5 py-2.5 text-sm font-bold text-slate-200 transition cursor-pointer"
+                  >
+                    {isEn ? 'Search a city' : 'Rechercher une commune'}
+                  </button>
+                </div>
+              </div>
+            );
+          })()
+        ) : !weather || !anomaly ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
             <p className="mt-4 font-bold text-slate-300">
@@ -1519,9 +1637,9 @@ function WeatherApp() {
             {/* Carrousel d'icônes défilant tout en bas de page (Radar, Vidéos, Discord, Direct) */}
             <div className="w-full max-w-7xl mx-auto px-2 pt-4">
               <BottomIconCarousel
-                onOpenRadar={() => { setActiveTab('radar'); scrollToTopInstant(); }}
-                onNavigateDirect={() => { setActiveTab('realtime'); scrollToTopInstant(); }}
-                onOpenSkyMap={() => { window.location.href = '/skymap'; }}
+                onOpenRadar={() => { setNotFoundRoute(false); setActiveTab('radar'); scrollToTopInstant(); }}
+                onNavigateDirect={() => { setNotFoundRoute(false); setActiveTab('realtime'); scrollToTopInstant(); }}
+                onOpenSkyMap={() => { window.location.href = buildLocalizedPath('/skymap', getActiveSiteLocale()); }}
               />
             </div>
           </>
@@ -1597,182 +1715,109 @@ function WeatherApp() {
               Observatoires &amp; Cartographies Instant Météo (Indexation Officielle) :
             </h4>
             <nav aria-label="Index des pages météorologiques" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-              <a
-                href="/"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/'); setActiveTab('realtime'); window.history.pushState(null, '', '/'); updateDocumentSeo('/', false); scrollToTopInstant(); }}
-                className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
-              >
-                Accueil France
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/direct"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/direct'); setActiveTab('realtime'); window.history.pushState(null, '', '/direct'); updateDocumentSeo('/direct', false); scrollToTopInstant(); }}
-                className="text-sky-400 hover:text-sky-300 hover:underline font-medium"
-              >
-                Météo en Direct
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/radar"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/radar'); setActiveTab('radar'); window.history.pushState(null, '', '/radar'); updateDocumentSeo('/radar', false); scrollToTopInstant(); }}
-                className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
-              >
-                Radar Précipitations HD
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/vigilances"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/vigilances'); setActiveTab('vigilance'); window.history.pushState(null, '', '/vigilances'); updateDocumentSeo('/vigilances', false); scrollToTopInstant(); }}
-                className="text-rose-400 hover:text-rose-300 hover:underline font-medium"
-              >
-                Vigilances Météo-France
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/nuages"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/nuages'); setActiveTab('cloudNephology'); window.history.pushState(null, '', '/nuages'); updateDocumentSeo('/nuages', false); scrollToTopInstant(); }}
-                className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
-              >
-                Nuages &amp; Néphologie
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/14-jours"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/14-jours'); setActiveTab('scenarios14d'); window.history.pushState(null, '', '/14-jours'); updateDocumentSeo('/14-jours', false); scrollToTopInstant(); }}
-                className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
-              >
-                Tendances 14 Jours
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/cartes-thematiques"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/cartes-thematiques'); setActiveTab('radar'); window.history.pushState(null, '', '/cartes-thematiques'); updateDocumentSeo('/cartes-thematiques', false); scrollToTopInstant(); }}
-                className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
-              >
-                Cartes Thématiques (OSM)
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/skymap"
-                onClick={(e) => { e.preventDefault(); window.location.href = '/skymap'; }}
-                className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
-              >
-                SkyMap 3D
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/climat"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/climat'); setActiveTab('eightMonths'); window.history.pushState(null, '', '/climat'); updateDocumentSeo('/climat', false); scrollToTopInstant(); }}
-                className="text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
-              >
-                Tendances 8 Mois &amp; Climat
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/montagne-plages-nature"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/montagne-plages-nature'); setActiveTab('natureTerritories'); window.history.pushState(null, '', '/montagne-plages-nature'); updateDocumentSeo('/montagne-plages-nature', false); scrollToTopInstant(); }}
-                className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
-              >
-                Montagne, Neige, Plage, Mer, Sécheresse &amp; Feux, Cours d&apos;eau
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/bulletins"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/bulletins'); setActiveTab('bulletin'); window.history.pushState(null, '', '/bulletins'); updateDocumentSeo('/bulletins', false); scrollToTopInstant(); }}
-                className="text-violet-400 hover:text-violet-300 hover:underline font-medium"
-              >
-                Bulletins &amp; 4 Semaines
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/archives"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/archives'); setActiveTab('historicalTrends'); window.history.pushState(null, '', '/archives'); updateDocumentSeo('/archives', false); scrollToTopInstant(); }}
-                className="text-amber-300 hover:text-amber-200 hover:underline font-medium"
-              >
-                Évolution 2000 &amp; Archives
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/monde-catastrophes"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/monde-catastrophes'); setActiveTab('worldDisasters'); window.history.pushState(null, '', '/monde-catastrophes'); updateDocumentSeo('/monde-catastrophes', false); scrollToTopInstant(); }}
-                className="text-red-400 hover:text-red-300 hover:underline font-medium"
-              >
-                Catastrophes Monde
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/communaute"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/communaute'); setActiveTab('discussionGroup'); window.history.pushState(null, '', '/communaute'); updateDocumentSeo('/communaute', false); scrollToTopInstant(); }}
-                className="text-sky-300 hover:text-sky-200 hover:underline font-medium"
-              >
-                Salon Météo
-              </a>
-              <span className="text-slate-700">•</span>
-              <a
-                href="/competition"
-                onClick={(e) => { e.preventDefault(); setCurrentPath('/competition'); setActiveTab('competitive'); window.history.pushState(null, '', '/competition'); updateDocumentSeo('/competition', false); scrollToTopInstant(); }}
-                className="text-yellow-400 hover:text-yellow-300 hover:underline font-medium"
-              >
-                Arène Compétitive
-              </a>
+              {(() => {
+                const activeLocale = getActiveSiteLocale();
+                const footerRoutes: Array<{ basePath: string; tabId: NavTabId; labelFr: string; labelEn: string; colorClass: string; external?: boolean }> = [
+                  { basePath: '/', tabId: 'realtime', labelFr: 'Accueil France', labelEn: 'France Home', colorClass: 'text-sky-400 hover:text-sky-300' },
+                  { basePath: '/direct', tabId: 'realtime', labelFr: 'Météo en Direct', labelEn: 'Live Weather', colorClass: 'text-sky-400 hover:text-sky-300' },
+                  { basePath: '/radar', tabId: 'radar', labelFr: 'Radar Précipitations HD', labelEn: 'HD Rain Radar', colorClass: 'text-cyan-400 hover:text-cyan-300' },
+                  { basePath: '/vigilances', tabId: 'vigilance', labelFr: 'Vigilances Météo-France', labelEn: 'Weather Alerts', colorClass: 'text-rose-400 hover:text-rose-300' },
+                  { basePath: '/nuages', tabId: 'cloudNephology', labelFr: 'Nuages & Néphologie', labelEn: 'Clouds & Models', colorClass: 'text-blue-400 hover:text-blue-300' },
+                  { basePath: '/14-jours', tabId: 'scenarios14d', labelFr: 'Tendances 14 Jours', labelEn: '14-Day Trends', colorClass: 'text-blue-400 hover:text-blue-300' },
+                  { basePath: '/cartes-thematiques', tabId: 'radar', labelFr: 'Cartes Thématiques (OSM)', labelEn: 'Thematic Maps', colorClass: 'text-emerald-400 hover:text-emerald-300' },
+                  { basePath: '/skymap', tabId: 'skymap', labelFr: 'SkyMap 3D', labelEn: 'SkyMap 3D', colorClass: 'text-cyan-400 hover:text-cyan-300', external: true },
+                  { basePath: '/climat', tabId: 'eightMonths', labelFr: 'Tendances 8 Mois & Climat', labelEn: '8-Month Climate', colorClass: 'text-indigo-400 hover:text-indigo-300' },
+                  { basePath: '/montagne-plages-nature', tabId: 'natureTerritories', labelFr: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau", labelEn: 'Mountain, Beaches, Fire & Rivers', colorClass: 'text-sky-300 hover:text-sky-200' },
+                  { basePath: '/bulletins', tabId: 'bulletin', labelFr: 'Bulletins & 4 Semaines', labelEn: 'Bulletins & 4 Weeks', colorClass: 'text-violet-400 hover:text-violet-300' },
+                  { basePath: '/archives', tabId: 'historicalTrends', labelFr: 'Évolution 2000 & Archives', labelEn: 'Archives & Normals', colorClass: 'text-amber-300 hover:text-amber-200' },
+                  { basePath: '/monde-catastrophes', tabId: 'worldDisasters', labelFr: 'Catastrophes Monde', labelEn: 'World Disasters', colorClass: 'text-red-400 hover:text-red-300' },
+                  { basePath: '/communaute', tabId: 'discussionGroup', labelFr: 'Salon Météo', labelEn: 'Weather Community', colorClass: 'text-sky-300 hover:text-sky-200' },
+                  { basePath: '/competition', tabId: 'competitive', labelFr: 'Arène Compétitive', labelEn: 'Quiz & Challenges', colorClass: 'text-yellow-400 hover:text-yellow-300' },
+                ];
+                return footerRoutes.map((r, idx) => {
+                  const href = buildLocalizedPath(r.basePath, activeLocale);
+                  return (
+                    <React.Fragment key={r.basePath}>
+                      {idx > 0 && <span className="text-slate-700">•</span>}
+                      <a
+                        href={href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (r.external) {
+                            window.location.href = href;
+                            return;
+                          }
+                          setNotFoundRoute(false);
+                          setCurrentPath(href);
+                          setActiveTab(r.tabId);
+                          window.history.pushState(null, '', href);
+                          updateDocumentSeo(href, false);
+                          scrollToTopInstant();
+                        }}
+                        className={`${r.colorClass} hover:underline font-medium`}
+                      >
+                        {activeLocale === 'en' ? r.labelEn : r.labelFr}
+                      </a>
+                    </React.Fragment>
+                  );
+                });
+              })()}
             </nav>
 
             {/* SEO Localisé : Pages dédiées par Grande Ville de France (/paris, /lyon, /marseille, etc.) */}
             <div className="pt-3 mt-3 border-t border-slate-800/60 space-y-1.5">
               <h5 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                Météo des Grandes Villes de France (Accès Direct) :
+                {getActiveSiteLocale() === 'en'
+                  ? 'Major French Cities Weather (Direct Access):'
+                  : 'Météo des Grandes Villes de France (Accès Direct) :'}
               </h5>
               <nav aria-label="Météo des grandes villes de France" className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11px]">
-                {MAJOR_FRENCH_CITY_SEO_LIST.map((city, idx) => (
-                  <React.Fragment key={city.slug}>
-                    {idx > 0 && <span className="text-slate-700">•</span>}
-                    <a
-                      href={city.path}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const matched = FRENCH_STATIONS.find((s) => s.id === city.stationId);
-                        if (matched) {
-                          setCurrentStation({ ...matched, name: city.cityName });
-                        }
-                        setCurrentPath(city.path);
-                        setActiveTab('realtime');
-                        window.history.pushState(null, '', `${city.path}${window.location.search || ''}`);
-                        updateDocumentSeo(city.path, false);
-                        scrollToTopInstant();
-                      }}
-                      className={`hover:underline font-medium cursor-pointer ${
-                        currentPath === city.path
-                          ? 'text-amber-300 font-bold'
-                          : 'text-emerald-400 hover:text-emerald-300'
-                      }`}
-                    >
-                      Météo {city.cityName}
-                    </a>
-                  </React.Fragment>
-                ))}
+                {MAJOR_FRENCH_CITY_SEO_LIST.map((city, idx) => {
+                  const activeLocale = getActiveSiteLocale();
+                  const cityHref = buildLocalizedPath(city.path, activeLocale);
+                  return (
+                    <React.Fragment key={city.slug}>
+                      {idx > 0 && <span className="text-slate-700">•</span>}
+                      <a
+                        href={cityHref}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setNotFoundRoute(false);
+                          const matched = FRENCH_STATIONS.find((s) => s.id === city.stationId);
+                          if (matched) {
+                            setCurrentStation({ ...matched, name: city.cityName, postalCode: city.postalCode || matched.postalCode });
+                          }
+                          setCurrentPath(cityHref);
+                          setActiveTab('realtime');
+                          window.history.pushState(null, '', `${cityHref}${window.location.search || ''}`);
+                          updateDocumentSeo(cityHref, false);
+                          scrollToTopInstant();
+                        }}
+                        className={`hover:underline font-medium cursor-pointer ${
+                          stripLocalePrefix(currentPath).path === city.path
+                            ? 'text-amber-300 font-bold'
+                            : 'text-emerald-400 hover:text-emerald-300'
+                        }`}
+                      >
+                        {activeLocale === 'en' ? `${city.cityName} Weather` : `Météo ${city.cityName}`}
+                      </a>
+                    </React.Fragment>
+                  );
+                })}
               </nav>
             </div>
 
-            {/* Liens de versions linguistiques localisées avec hreflang (Français & Anglais natifs + langues traduites) */}
+            {/* Liens de versions linguistiques localisées avec hreflang (Français & Anglais) */}
             <div className="pt-3 mt-3 border-t border-slate-800/60 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11px] text-slate-400">
-              <span className="font-semibold text-slate-300">Versions linguistiques disponibles :</span>
-              {[
-                { code: 'fr', param: '', label: 'Français (FR)' },
-                { code: 'en', param: '?hl=en', label: 'English (EN)' },
-                { code: 'de', param: '?hl=de', label: 'Deutsch (DE)' },
-                { code: 'es', param: '?hl=es', label: 'Español (ES)' },
-                { code: 'it', param: '?hl=it', label: 'Italiano (IT)' },
-                { code: 'pt', param: '?hl=pt', label: 'Português (PT)' },
-                { code: 'nl', param: '?hl=nl', label: 'Nederlands (NL)' },
-                { code: 'ar', param: '?hl=ar', label: 'العربية (AR)' },
-                { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (ZH)' },
-                { code: 'ja', param: '?hl=ja', label: '日本語 (JA)' },
-                { code: 'ru', param: '?hl=ru', label: 'Русский (RU)' },
-                { code: 'uk', param: '?hl=uk', label: 'Українська (UK)' },
-              ].map((langItem, idx) => {
+              <span className="font-semibold text-slate-300">
+                {getActiveSiteLocale() === 'en' ? 'Available languages:' : 'Versions linguistiques disponibles :'}
+              </span>
+              {([
+                { code: 'fr', label: 'Français (FR)' },
+                { code: 'en', label: 'English (EN)' },
+              ] as const).map((langItem, idx) => {
                 const routePath = getPathForTabId(activeTab, currentPath);
-                const hrefUrl = `${routePath === '/' ? '/' : routePath}${langItem.param}`;
+                const hrefUrl = buildLocalizedPath(routePath, langItem.code);
                 return (
                   <React.Fragment key={langItem.code}>
                     {idx > 0 && <span className="text-slate-700">•</span>}
@@ -1864,7 +1909,7 @@ function WeatherApp() {
                 </button>
               </div>
               <div className="text-[11px] text-slate-500">
-                Service météorologique indépendant • 100 % gratuit &amp; sans publicité
+                Service météorologique indépendant • Données ouvertes 100 % gratuites
               </div>
             </div>
           </div>
@@ -1879,8 +1924,9 @@ function WeatherApp() {
           <BottomNavigationDock
             activeTab={activeTab as NavTabId}
             onSelectTab={(tab) => {
+              setNotFoundRoute(false);
               if (tab === 'skymap') {
-                window.location.href = '/skymap';
+                window.location.href = buildLocalizedPath('/skymap', getActiveSiteLocale());
                 return;
               }
               setActiveTab(tab);

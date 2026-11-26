@@ -3,19 +3,7 @@ import type { PageSeoMetadata } from '../seo/pagesSeoData';
 const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
 export type NativeSiteLang = 'fr' | 'en';
-export type SupportedLocaleCode =
-  | 'fr'
-  | 'en'
-  | 'de'
-  | 'es'
-  | 'it'
-  | 'pt'
-  | 'nl'
-  | 'ar'
-  | 'zh-CN'
-  | 'ja'
-  | 'ru'
-  | 'uk';
+export type SupportedLocaleCode = 'fr' | 'en';
 
 export interface LocalizedSiteBrand {
   code: SupportedLocaleCode;
@@ -46,10 +34,10 @@ export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand>
     ogLocale: 'fr_FR',
     inLanguage: 'fr-FR',
     dir: 'ltr',
-    homeTitle: 'Instant Météo — Prévisions & Radar Pluie en Direct',
+    homeTitle: 'Instant Météo — Météo France & Radar Pluie en Direct',
     homeH1: 'Instant Météo — Prévisions météo et radar de pluie en direct',
     homeDescription:
-      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité.',
+      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit.',
     homeBreadcrumb: 'Accueil Instant Météo',
   },
   en: {
@@ -63,193 +51,21 @@ export const SITE_BRAND_BY_LANG: Record<SupportedLocaleCode, LocalizedSiteBrand>
     ogLocale: 'en_US',
     inLanguage: 'en',
     dir: 'ltr',
-    homeTitle: 'Instant Weather — Live Forecasts & Doppler Radar',
+    homeTitle: 'Instant Weather — Live France Forecasts & Rain Radar',
     homeH1: 'Instant Weather — Free Live Weather Forecasts & Doppler Radar',
     homeDescription:
-      '100% free and ad-free weather portal: live forecasts, high-resolution precipitation radar, and alerts across France and worldwide.',
+      '100% free weather portal: live forecasts, high-resolution precipitation radar, and severe weather alerts across France and worldwide.',
     homeBreadcrumb: 'Instant Weather Home',
-  },
-  de: {
-    code: 'de',
-    brandName: 'Instant Wetter',
-    brandFull: 'Instant Wetter Frankreich',
-    brandUpper: 'INSTANT WETTER',
-    word1: 'INSTANT',
-    word2: 'WETTER',
-    tagline: 'HD-Doppler-Radar & Echtzeit-Wettervorhersage',
-    ogLocale: 'de_DE',
-    inLanguage: 'de',
-    dir: 'ltr',
-    homeTitle: 'Instant Wetter — Live-Wettervorhersage, Regenradar & Unwetterwarnungen in Frankreich',
-    homeH1: 'Instant Wetter — Live-Wettervorhersage und Echtzeit-Radar in Frankreich',
-    homeDescription:
-      'Instant Wetter (Instant Weather Frankreich): Echtzeit-Wetter für alle 34.965 Gemeinden in Frankreich mit stündlichen Prognosen, HD-Doppler-Regenradar und Wetterwarnungen.',
-    homeBreadcrumb: 'Instant Wetter Startseite',
-  },
-  es: {
-    code: 'es',
-    brandName: 'Instant Clima',
-    brandFull: 'Instant Clima Francia',
-    brandUpper: 'INSTANT CLIMA',
-    word1: 'INSTANT',
-    word2: 'CLIMA',
-    tagline: 'Radar Doppler HD y Pronóstico en Tiempo Real',
-    ogLocale: 'es_ES',
-    inLanguage: 'es',
-    dir: 'ltr',
-    homeTitle: 'Instant Clima — Pronóstico del Tiempo en Vivo, Radar de Lluvia y Alertas en Francia',
-    homeH1: 'Instant Clima — Pronóstico Meteorológico en Vivo y Seguimiento en Tiempo Real',
-    homeDescription:
-      'Instant Clima (Instant Weather Francia): consulta el tiempo en directo en los 34.965 municipios de Francia con observaciones en tiempo real, radar Doppler HD y alertas meteorológicas.',
-    homeBreadcrumb: 'Inicio Instant Clima',
-  },
-  it: {
-    code: 'it',
-    brandName: 'Instant Meteo',
-    brandFull: 'Instant Meteo Francia',
-    brandUpper: 'INSTANT METEO',
-    word1: 'INSTANT',
-    word2: 'METEO',
-    tagline: 'Radar Doppler HD e Previsioni in Tempo Reale',
-    ogLocale: 'it_IT',
-    inLanguage: 'it',
-    dir: 'ltr',
-    homeTitle: 'Instant Meteo — Previsioni Meteo in Diretta, Radar Pioggia e Allerte in Francia',
-    homeH1: 'Instant Meteo — Previsioni Meteo in Diretta e Monitoraggio in Tempo Reale',
-    homeDescription:
-      'Instant Meteo (Instant Weather Francia): consulta il meteo in tempo reale nei 34.965 comuni della Francia con previsioni orarie, radar Doppler HD e allerte meteo.',
-    homeBreadcrumb: 'Home Instant Meteo',
-  },
-  pt: {
-    code: 'pt',
-    brandName: 'Instant Tempo',
-    brandFull: 'Instant Tempo França',
-    brandUpper: 'INSTANT TEMPO',
-    word1: 'INSTANT',
-    word2: 'TEMPO',
-    tagline: 'Radar Doppler HD e Previsão em Tempo Real',
-    ogLocale: 'pt_PT',
-    inLanguage: 'pt',
-    dir: 'ltr',
-    homeTitle: 'Instant Tempo — Previsão do Tempo ao Vivo, Radar de Chuva e Alertas na França',
-    homeH1: 'Instant Tempo — Previsão Meteorológica ao Vivo e Radar em Tempo Real',
-    homeDescription:
-      'Instant Tempo (Instant Weather França): acompanhe o tempo ao vivo nos 34.965 municípios da França com previsões horárias, radar Doppler HD e alertas meteorológicos.',
-    homeBreadcrumb: 'Início Instant Tempo',
-  },
-  nl: {
-    code: 'nl',
-    brandName: 'Instant Weer',
-    brandFull: 'Instant Weer Frankrijk',
-    brandUpper: 'INSTANT WEER',
-    word1: 'INSTANT',
-    word2: 'WEER',
-    tagline: 'HD Doppler Radar & Realtime Weersverwachting',
-    ogLocale: 'nl_NL',
-    inLanguage: 'nl',
-    dir: 'ltr',
-    homeTitle: 'Instant Weer — Live Weersverwachting, Buienradar & Weerwaarschuwingen in Frankrijk',
-    homeH1: 'Instant Weer — Live Weersverwachting en Realtime Radar in Frankrijk',
-    homeDescription:
-      'Instant Weer (Instant Weather Frankrijk): bekijk het live weer voor alle 34.965 gemeenten in Frankrijk met uurlijkse verwachtingen, HD-regenradar en weerwaarschuwingen.',
-    homeBreadcrumb: 'Instant Weer Home',
-  },
-  ar: {
-    code: 'ar',
-    brandName: 'طقس فوري — Instant Weather',
-    brandFull: 'طقس فوري فرنسا — Instant Weather',
-    brandUpper: 'INSTANT WEATHER',
-    word1: 'INSTANT',
-    word2: 'طقس فوري',
-    tagline: 'رادار دوبلر عالي الدقة وتوقعات الطقس المباشرة',
-    ogLocale: 'ar_SA',
-    inLanguage: 'ar',
-    dir: 'rtl',
-    homeTitle: 'طقس فوري (Instant Weather) — توقعات الطقس المباشرة ورادار الأمطار في فرنسا',
-    homeH1: 'طقس فوري (Instant Weather) — توقعات الطقس المباشرة والمتابعة الفورية في فرنسا',
-    homeDescription:
-      'طقس فوري (Instant Weather France): تابع حالة الطقس المباشرة في جميع بلديات فرنسا الـ 34,965 مع رادار الأمطار عالي الدقة والتنبيهات الجوية.',
-    homeBreadcrumb: 'الرئيسية — طقس فوري',
-  },
-  'zh-CN': {
-    code: 'zh-CN',
-    brandName: '即时天气 — Instant Weather',
-    brandFull: '法国即时天气 — Instant Weather',
-    brandUpper: 'INSTANT WEATHER',
-    word1: 'INSTANT',
-    word2: '即时天气',
-    tagline: '高清多普勒雷达与实时天气预报',
-    ogLocale: 'zh_CN',
-    inLanguage: 'zh-CN',
-    dir: 'ltr',
-    homeTitle: '即时天气 (Instant Weather) — 法国实时天气预报、降雨雷达与气象预警',
-    homeH1: '即时天气 (Instant Weather) — 法国实时天气预报与气象雷达监测',
-    homeDescription:
-      '即时天气 (Instant Weather France)：查看法国全部 34,965 个市镇的实时天气观测、逐小时预报、高清多普勒降雨雷达和气象预警。',
-    homeBreadcrumb: '即时天气首页',
-  },
-  ja: {
-    code: 'ja',
-    brandName: 'インスタント天気 — Instant Weather',
-    brandFull: 'フランス・インスタント天気 — Instant Weather',
-    brandUpper: 'INSTANT WEATHER',
-    word1: 'INSTANT',
-    word2: '天気',
-    tagline: 'HDドップラーレーダー＆リアルタイム天気予報',
-    ogLocale: 'ja_JP',
-    inLanguage: 'ja',
-    dir: 'ltr',
-    homeTitle: 'インスタント天気 (Instant Weather) — フランスのリアルタイム天気予報・雨雲レーダー',
-    homeH1: 'インスタント天気 (Instant Weather) — フランスのリアルタイム天気予報と気象観測',
-    homeDescription:
-      'インスタント天気 (Instant Weather France)：フランス全34,965コミューンのリアルタイム気象観測、時間別予報、HD雨雲レーダー、気象警報を確認できます。',
-    homeBreadcrumb: 'インスタント天気 ホーム',
-  },
-  ru: {
-    code: 'ru',
-    brandName: 'Мгновенная Погода — Instant Weather',
-    brandFull: 'Мгновенная Погода Франция — Instant Weather',
-    brandUpper: 'INSTANT ПОГОДА',
-    word1: 'INSTANT',
-    word2: 'ПОГОДА',
-    tagline: 'HD доплеровский радар и прогноз погоды в реальном времени',
-    ogLocale: 'ru_RU',
-    inLanguage: 'ru',
-    dir: 'ltr',
-    homeTitle: 'Мгновенная Погода (Instant Weather) — Прогноз погоды онлайн и радар осадков во Франции',
-    homeH1: 'Мгновенная Погода (Instant Weather) — Прогноз погоды и радар в реальном времени',
-    homeDescription:
-      'Мгновенная Погода (Instant Weather France): точный прогноз погоды для всех 34 965 коммун Франции, почасовой прогноз, HD радар дождя и штормовые предупреждения.',
-    homeBreadcrumb: 'Главная — Мгновенная Погода',
-  },
-  uk: {
-    code: 'uk',
-    brandName: 'Миттєва Погода — Instant Weather',
-    brandFull: 'Миттєва Погода Франція — Instant Weather',
-    brandUpper: 'INSTANT ПОГОДА',
-    word1: 'INSTANT',
-    word2: 'ПОГОДА',
-    tagline: 'HD доплерівський радар та прогноз погоди наживо',
-    ogLocale: 'uk_UA',
-    inLanguage: 'uk',
-    dir: 'ltr',
-    homeTitle: 'Миттєва Погода (Instant Weather) — Прогноз погоди наживо та радар опадів у Франції',
-    homeH1: 'Миттєва Погода (Instant Weather) — Прогноз погоди та моніторинг у реальному часі',
-    homeDescription:
-      'Миттєва Погода (Instant Weather France): актуальна погода для всіх 34 965 муніципалітетів Франції, погодинний прогноз, HD радар дощу та попередження.',
-    homeBreadcrumb: 'Головна — Миттєва Погода',
   },
 };
 
 export function normalizeSupportedLocale(raw?: string | null): SupportedLocaleCode {
   if (!raw) return 'fr';
-  const trimmed = raw.trim();
+  const trimmed = raw.trim().toLowerCase();
   if (!trimmed) return 'fr';
-  if (trimmed in SITE_BRAND_BY_LANG) return trimmed as SupportedLocaleCode;
-  const lower = trimmed.toLowerCase();
-  if (lower.startsWith('zh')) return 'zh-CN';
-  const base = lower.split(/[-_]/)[0];
-  if (base in SITE_BRAND_BY_LANG) return base as SupportedLocaleCode;
+  if (trimmed === 'en' || trimmed.startsWith('en-') || trimmed.startsWith('en_')) {
+    return 'en';
+  }
   return 'fr';
 }
 
@@ -261,16 +77,15 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/': {
     slug: 'home',
     path: '/',
-    canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Weather — Live Forecasts & Rain Radar',
+    canonicalUrl: `${BASE_SITE_URL}/en`,
+    ogImage: 'og-image.png',
+    title: 'Instant Weather — Live France Forecasts & Rain Radar',
     description:
-      'Live weather, high-resolution rain radar and reliable forecasts for all municipalities in France. 100% free and ad-free service.',
+      'Live weather, high-resolution rain radar and reliable forecasts for all municipalities in France. 100% free weather portal.',
     h1: 'Instant Weather — Live Weather Forecasts & Rain Radar in France',
     sectionTitle: 'Meteorological Data Sources and Portal Architecture',
     breadcrumbName: 'Instant Weather Home',
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '1.0',
     introParagraph:
       'Instant Weather brings together live surface observations and high-resolution local forecasts for all 34,965 municipalities across metropolitan France and overseas territories. Search for your town or use GPS geolocation to immediately view temperature, wind chill, hourly evolution and multi-day trends.',
     sections: [
@@ -309,16 +124,15 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/direct': {
     slug: 'direct',
     path: '/direct',
-    canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Live Weather by Municipality | Instant Weather',
+    canonicalUrl: `${BASE_SITE_URL}/en/direct`,
+    ogImage: 'og-image.png',
+    title: 'Live Municipal Weather Observations | Instant Weather',
     description:
       'Real-time weather conditions in your municipality: current temperature, feels-like index, wind gusts, atmospheric pressure, humidity and UV index.',
     h1: 'Real-Time Weather Observations & Hourly Evolution',
     sectionTitle: 'Understanding Live Surface Parameters and Hourly Trends',
     breadcrumbName: 'Live Weather',
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'The Live Weather page displays current atmospheric parameters measured and modeled above your municipality: air temperature at 2 meters, wind chill and humidex, wind speed and gusts, barometric pressure, relative humidity, dew point and hourly forecasts.',
     sections: [
@@ -357,7 +171,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/skymap': {
     slug: 'skymap',
     path: '/skymap',
-    canonicalUrl: `${BASE_SITE_URL}/skymap`,
+    canonicalUrl: `${BASE_SITE_URL}/en/skymap`,
+    ogImage: 'og-skymap.png',
     title: 'SkyMap 3D — Live Weather 3D Map, Relief & GPS | Instant Weather',
     description:
       'Explore the interactive 3D SkyMap with real-time weather, mountainous relief, cloud cover, rain radar and live GPS navigation.',
@@ -365,8 +180,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Interactive 3D Topography, Live Weather Layers and High-Precision Geolocation',
     breadcrumbName: 'SkyMap 3D',
     tabId: 'skymap',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'SkyMap 3D provides an immersive 3D meteorological cartography experience featuring real-time GPS positioning, topographical terrain, Doppler radar overlay, live weather indicators and step-by-step route planning.',
     sections: [
@@ -396,7 +209,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/radar': {
     slug: 'radar',
     path: '/radar',
-    canonicalUrl: `${BASE_SITE_URL}/radar`,
+    canonicalUrl: `${BASE_SITE_URL}/en/radar`,
+    ogImage: 'og-radar.png',
     title: 'Live Rain & Storm Radar in France | Instant Weather',
     description:
       'Interactive full-screen precipitation radar: track rain, snow, thunderstorms, cloud cover and wind streamlines in real time across France.',
@@ -404,8 +218,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'How the Weather Radar Works and Reading Reflectivity Echoes',
     breadcrumbName: 'Live Rain Radar',
     tabId: 'radar',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'The interactive radar visualizes the exact position of rain showers, frontal bands, snowfall and thunderstorm cells on a full-screen map. Use the timeline slider to inspect past trajectories and short-term movement.',
     sections: [
@@ -444,7 +256,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/vigilances': {
     slug: 'vigilances',
     path: '/vigilances',
-    canonicalUrl: `${BASE_SITE_URL}/vigilances`,
+    canonicalUrl: `${BASE_SITE_URL}/en/vigilances`,
+    ogImage: 'og-vigilances.png',
     title: 'Departmental Weather Warnings in France | Instant Weather',
     description:
       'Official weather alert map by department in France: green, yellow, orange and red warning levels for wind, storms, rain-flooding, snow and heatwaves.',
@@ -452,8 +265,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Understanding the Four Warning Levels and Safety Guidelines',
     breadcrumbName: 'Weather Warnings',
     tabId: 'vigilance',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'The Weather Warnings page provides a complete overview of meteorological hazards across all French departments, highlighting areas under special watch today and over the coming days.',
     sections: [
@@ -492,7 +303,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/nuages': {
     slug: 'nuages',
     path: '/nuages',
-    canonicalUrl: `${BASE_SITE_URL}/nuages`,
+    canonicalUrl: `${BASE_SITE_URL}/en/nuages`,
+    ogImage: 'og-nuages.png',
     title: 'Cloud Cover & Atmospheric Sounding | Instant Weather',
     description:
       'Track cloud cover (nebulosity) in France: vertical atmospheric sounding, WMO cloud classification (low, mid, high decks), cloud ceiling, icing risk and 48h sky clearing.',
@@ -500,8 +312,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Vertical Tropospheric Sounding, WMO Cloud Classification, Icing and Nebulosity',
     breadcrumbName: 'Clouds & Nephology',
     tabId: 'cloudNephology',
-    changefreq: 'always',
-    priority: '0.90',
     introParagraph:
       'The Cloud & Nephology Observatory details the vertical structure of the atmosphere above your municipality. Through vertical sounding profiles, WMO cloud classification, icing risk detection and nebulosity tracking across low, middle and high tropospheric decks, you can accurately anticipate sunshine, fog, ceiling height and aviation conditions over 48 hours.',
     sections: [
@@ -540,7 +350,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/14-jours': {
     slug: '14-jours',
     path: '/14-jours',
-    canonicalUrl: `${BASE_SITE_URL}/14-jours`,
+    canonicalUrl: `${BASE_SITE_URL}/en/14-jours`,
+    ogImage: 'og-14-jours.png',
     title: '14-Day Weather Forecast in France | Instant Weather',
     description:
       '14-day weather trends for your municipality: daily minimum and maximum temperatures, precipitation probabilities, ensemble spread and confidence index.',
@@ -548,8 +359,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'How to Interpret a Two-Week Weather Forecast',
     breadcrumbName: '14-Day Forecast',
     tabId: 'scenarios14d',
-    changefreq: 'hourly',
-    priority: '0.90',
     introParagraph:
       'This page presents the expected meteorological evolution over two full weeks in your municipality, displaying both the median forecast scenario and the ensemble temperature range.',
     sections: [
@@ -588,16 +397,15 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/montagne-plages-nature': {
     slug: 'montagne-plages-nature',
     path: '/montagne-plages-nature',
-    canonicalUrl: `${BASE_SITE_URL}/montagne-plages-nature`,
-    title: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers | Instant Weather',
+    canonicalUrl: `${BASE_SITE_URL}/en/montagne-plages-nature`,
+    ogImage: 'og-nature.png',
+    title: 'Mountain, Beaches, Fire & Rivers | Instant Weather',
     description:
       'Unified environmental hub: mountain weather & avalanche risk, beaches & SHOM tides, drought & wildfire danger, and French river flood monitoring.',
     h1: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers — Unified Observatory',
     sectionTitle: 'Live Mountain, Coastal, Drought, Wildfire and River Surveillance',
-    breadcrumbName: 'Mountain, Snow, Beach, Sea, Drought & Wildfires, Rivers',
+    breadcrumbName: 'Mountain, Beaches, Fire & Rivers',
     tabId: 'natureTerritories',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       'Explore four specialized observatories inside one unified page: mountain weather and snowpack conditions, beach weather and SHOM tides, drought restrictions and forest fire danger, plus live Vigicrues river water levels.',
     sections: [
@@ -636,7 +444,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/cartes-thematiques': {
     slug: 'cartes-thematiques',
     path: '/cartes-thematiques',
-    canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques`,
+    canonicalUrl: `${BASE_SITE_URL}/en/cartes-thematiques`,
+    ogImage: 'og-radar.png',
     title: 'Thematic Weather Maps of France | Instant Weather',
     description:
       'Explore thematic weather maps of France: regional temperatures, thermal anomalies, wind gusts, rainfall totals and elevation filters.',
@@ -644,8 +453,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Cartographic Analysis of Atmospheric Parameters Across France',
     breadcrumbName: 'Thematic Maps',
     tabId: 'radar',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       'Thematic maps provide a nationwide overview of meteorological contrasts between northern and southern France, oceanic coastlines and mountain ranges, with filters by parameter and elevation band.',
     sections: [
@@ -684,7 +491,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/bulletins': {
     slug: 'bulletins',
     path: '/bulletins',
-    canonicalUrl: `${BASE_SITE_URL}/bulletins`,
+    canonicalUrl: `${BASE_SITE_URL}/en/bulletins`,
+    ogImage: 'og-image.png',
     title: 'Weather Bulletins & 4-Week Outlook | Instant Weather',
     description:
       'Written weather bulletins for France and every department: daily synopsis, weekly evolution and 4-week weather outlook.',
@@ -692,8 +500,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Daily Synoptic Bulletins and Four-Week Trends',
     breadcrumbName: 'Bulletins & 4 Weeks',
     tabId: 'bulletin',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       'For readers who prefer a structured written analysis alongside weather icons, the Bulletins page provides a complete synoptic overview for France, a departmental forecast and a week-by-week outlook over one month.',
     sections: [
@@ -732,7 +538,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/archives': {
     slug: 'archives',
     path: '/archives',
-    canonicalUrl: `${BASE_SITE_URL}/archives`,
+    canonicalUrl: `${BASE_SITE_URL}/en/archives`,
+    ogImage: 'og-image.png',
     title: 'Weather Archives in France Since 1950 | Instant Weather',
     description:
       'Look up day-by-day historical weather in France since 1950: past temperatures, rainfall totals, records and 1991-2020 climate normals.',
@@ -740,8 +547,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Searching Historical Climate Records and Comparing with Normals',
     breadcrumbName: 'Evolution & Archives',
     tabId: 'historicalTrends',
-    changefreq: 'daily',
-    priority: '0.80',
     introParagraph:
       'What was the weather like in your municipality on a specific date ten, thirty or seventy years ago? The Weather Archives page lets you travel back to 1950 and compare current conditions against reference climate normals.',
     sections: [
@@ -780,7 +585,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/monde-catastrophes': {
     slug: 'monde-catastrophes',
     path: '/monde-catastrophes',
-    canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
+    canonicalUrl: `${BASE_SITE_URL}/en/monde-catastrophes`,
+    ogImage: 'og-monde.png',
     title: 'Global Natural Disasters Monitoring | Instant Weather',
     description:
       'Global tracking of major meteorological and geophysical events: tropical cyclones, severe storms, floods, wildfires, earthquakes and volcanic eruptions.',
@@ -788,8 +594,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'International Surveillance of Cyclones, Earthquakes and Extreme Weather',
     breadcrumbName: 'World & Disasters',
     tabId: 'worldDisasters',
-    changefreq: 'always',
-    priority: '0.80',
     introParagraph:
       'Beyond metropolitan France, this page tracks major natural phenomena worldwide in real time: tropical cyclones (including near French overseas territories), significant earthquakes, volcanic eruptions and large wildfires.',
     sections: [
@@ -828,7 +632,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/climat': {
     slug: 'climat',
     path: '/climat',
-    canonicalUrl: `${BASE_SITE_URL}/climat`,
+    canonicalUrl: `${BASE_SITE_URL}/en/climat`,
+    ogImage: 'og-image.png',
     title: 'Seasonal 8-Month Climate Trends | Instant Weather',
     description:
       '8-month seasonal climate projections in France, El Niño / La Niña (ENSO) cycle monitoring and multi-decade temperature evolution.',
@@ -836,8 +641,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Long-Range Seasonal Projections and Oceanic Cycles',
     breadcrumbName: 'Climate & 8 Months',
     tabId: 'eightMonths',
-    changefreq: 'daily',
-    priority: '0.80',
     introParagraph:
       'The Climate observatory explores long-term atmospheric evolution: 8-month seasonal projections for France, global oceanic cycles (ENSO, NAO) and annual temperature departures compared with past decades.',
     sections: [
@@ -876,7 +679,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/communaute': {
     slug: 'communaute',
     path: '/communaute',
-    canonicalUrl: `${BASE_SITE_URL}/communaute`,
+    canonicalUrl: `${BASE_SITE_URL}/en/communaute`,
+    ogImage: 'og-image.png',
     title: 'Community Weather Observations | Instant Weather',
     description:
       'Share and view live citizen weather observations in France: snowfall, hail, thunderstorms, wind gusts, fog and local weather discussions.',
@@ -884,8 +688,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Citizen Weather Reporting and Local Community Updates',
     breadcrumbName: 'Community & Reports',
     tabId: 'discussionGroup',
-    changefreq: 'always',
-    priority: '0.75',
     introParagraph:
       'Even the densest sensor networks cannot spot every localized hail shower, valley fog bank or snow flurry. The Community space lets residents and enthusiasts share live ground observations.',
     sections: [
@@ -924,7 +726,8 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
   '/competition': {
     slug: 'competition',
     path: '/competition',
-    canonicalUrl: `${BASE_SITE_URL}/competition`,
+    canonicalUrl: `${BASE_SITE_URL}/en/competition`,
+    ogImage: 'og-image.png',
     title: 'Weather Quiz & Forecast Challenges | Instant Weather',
     description:
       'Test your meteorology skills with the weather quiz and forecast challenges: predict temperatures and precipitation to climb the leaderboard.',
@@ -932,8 +735,6 @@ export const SEO_PAGES_MAP_EN: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Rules of the Forecast Challenge and Educational Quizzes',
     breadcrumbName: 'Quiz & Weather Challenges',
     tabId: 'competitive',
-    changefreq: 'daily',
-    priority: '0.75',
     introParagraph:
       'Learn to decode the atmosphere while competing with other enthusiasts: take educational meteorology quizzes and make forecast predictions where precision is rewarded.',
     sections: [
@@ -3143,6 +2944,10 @@ let currentSiteLocale: SupportedLocaleCode = 'fr';
 
 export function getActiveSiteLocale(): SupportedLocaleCode {
   if (typeof window !== 'undefined') {
+    const pathname = (window.location.pathname || '/').toLowerCase();
+    if (pathname === '/en' || pathname.startsWith('/en/')) {
+      return 'en';
+    }
     const params = new URLSearchParams(window.location.search);
     const hl = params.get('hl') || params.get('lang');
     if (hl) {
@@ -3158,7 +2963,7 @@ export function setActiveSiteLocale(rawLocale: string): SupportedLocaleCode {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent('instant_meteo_native_lang_change', {
-        detail: { lang: normalized === 'en' ? 'en' : 'fr', locale: normalized },
+        detail: { lang: normalized, locale: normalized },
       })
     );
   }
@@ -3167,10 +2972,11 @@ export function setActiveSiteLocale(rawLocale: string): SupportedLocaleCode {
 
 export function getNativeSiteLanguage(): NativeSiteLang {
   if (typeof window !== 'undefined') {
+    const pathname = (window.location.pathname || '/').toLowerCase();
+    if (pathname === '/en' || pathname.startsWith('/en/')) return 'en';
     const params = new URLSearchParams(window.location.search);
     const hl = params.get('hl') || params.get('lang');
-    if (hl === 'en') return 'en';
-    if (hl && hl !== 'en') return 'fr';
+    if (hl && /^en\b/i.test(hl.trim())) return 'en';
   }
   return currentNativeLang;
 }

@@ -211,7 +211,8 @@ export const DesktopLeftSidebar: React.FC<DesktopLeftSidebarProps> = ({
       iconColorClass: 'text-sky-400',
       visibleCheckId: 'skymap',
       action: () => {
-        window.location.href = '/skymap';
+        const isEn = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/');
+        window.location.href = isEn ? '/en/skymap' : '/skymap';
       },
     },
     {

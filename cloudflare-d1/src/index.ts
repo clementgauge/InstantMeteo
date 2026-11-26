@@ -5,12 +5,21 @@
  */
 
 import {
-  SEO_PAGES_MAP,
   getSeoDataForPath,
   generatePageJsonLd,
   generateStaticHtmlContent,
+  generateNotFoundHtmlContent,
   generateHreflangLinksHtml,
-  generateSitemapXml,
+  generateRobotsTxt,
+  generateSitemapIndexXml,
+  generatePagesSitemapXml,
+  generateDepartmentSitemapXml,
+  getAliasRedirectTarget,
+  isValidSeoPath,
+  stripLocalePrefix,
+  buildLocalizedUrl,
+  getPageOgImageUrl,
+  localizeSkyMapHtml,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../../src/seo/pagesSeoData';
 import {
@@ -37,6 +46,7 @@ function jsonResponse(data: any, status = 200): Response {
     headers: {
       ...corsHeaders,
       'Content-Type': 'application/json; charset=utf-8',
+      'X-Robots-Tag': 'noindex, nofollow',
     },
   });
 }
@@ -49,28 +59,44 @@ function escapeHtmlText(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
-  const locale = normalizeSupportedLocale(lang);
+function transformHtmlForWorker(
+  rawHtml: string,
+  reqPath: string,
+  lang: string = 'fr',
+  queryParams?: URLSearchParams
+): string {
+  const { locale: pathLocale, path: cleanBase } = stripLocalePrefix(reqPath);
+  const locale = normalizeSupportedLocale(lang || pathLocale);
   const brand = getSiteBrandForLocale(locale);
-  const pageSeo = getSeoDataForPath(reqPath, locale);
+
+  let effectivePath = reqPath;
+  const requestedLocality =
+    queryParams?.get('ville') ||
+    queryParams?.get('city') ||
+    queryParams?.get('q') ||
+    queryParams?.get('station');
+  if (requestedLocality && (cleanBase === '/' || cleanBase === '/direct')) {
+    const slug = requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+    effectivePath = locale === 'en' ? `/en/${slug}` : `/${slug}`;
+  }
+
+  const pageSeo = getSeoDataForPath(effectivePath, locale);
+  const canonicalUrl = buildLocalizedUrl(pageSeo.path, locale);
+  const ogImageUrl = getPageOgImageUrl(pageSeo);
+  const alternateOgLocale = locale === 'en' ? 'fr_FR' : 'en_US';
   let html = rawHtml;
 
   // 0. Attribut lang et dir sur <html>
   html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
 
-  // 1. Title naturel et propre à chaque page (avec le nom du site traduit selon la langue)
+  // 1. Title naturel et propre à chaque page
   if (/<title>[\s\S]*?<\/title>/i.test(html)) {
     html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
   } else {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 2. Balise canonique propre à la page et à la langue active
-  const baseCanonicalUrl =
-    pageSeo.path === '/'
-      ? 'https://instantmeteo.instantmeteofr.workers.dev/'
-      : pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev';
-  const canonicalUrl = locale === 'fr' ? baseCanonicalUrl : `${baseCanonicalUrl}?hl=${locale}`;
+  // 2. Balise canonique auto-référentielle (FR ou /en/...)
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
     html = html.replace(
       /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
@@ -83,9 +109,9 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     );
   }
 
-  // 2b. Balises hreflang (signalement des différentes versions linguistiques à Google)
+  // 2b. Balises hreflang (strictement fr, en, x-default)
   html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(baseCanonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(pageSeo.path)}\n    <!--SEO_HREFLANG_END-->`;
   if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
     html = html.replace(
       /<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/,
@@ -95,7 +121,7 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
-  // 3. Meta Description, Meta Title & Nom du site traduit (application-name, apple-mobile-web-app-title)
+  // 3. Meta Description, Meta Title & Nom du site traduit
   html = html.replace(
     /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
     `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
@@ -120,7 +146,7 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     );
   }
 
-  // 4. OpenGraph tags (avec og:site_name et og:locale traduits selon la langue)
+  // 4. OpenGraph tags
   html = html.replace(
     /<meta[^>]*property=["']og:title["'][^>]*\/?>/gi,
     `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
@@ -141,16 +167,40 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     /<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi,
     `<meta property="og:locale" content="${brand.ogLocale}" />`
   );
+  if (/<meta[^>]*property=["']og:locale:alternate["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta[^>]*property=["']og:locale:alternate["'][^>]*\/?>/gi,
+      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`
+    );
+  } else {
+    html = html.replace(
+      '</head>',
+      `    <meta property="og:locale:alternate" content="${alternateOgLocale}" />\n  </head>`
+    );
+  }
+  html = html.replace(
+    /<meta[^>]*property=["']og:image["'][^>]*\/?>/gi,
+    `<meta property="og:image" content="${ogImageUrl}" />`
+  );
+  html = html.replace(
+    /<meta[^>]*property=["']og:image:alt["'][^>]*\/?>/gi,
+    `<meta property="og:image:alt" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
 
-  // 5. Suppression totale de keywords, googlebot, tdm-reservation, noai, noimageai et règle commune meta robots
-  html = html.replace(/<meta\b[^>]*(?:keywords|googlebot|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi, '');
+  // 5. Suppression des balises obsolètes/superflues & règle commune meta robots
+  html = html.replace(
+    /<meta\b[^>]*(?:keywords|googlebot|bingbot|publisher|language|geo\.region|geo\.placename|rating|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi,
+    ''
+  );
+  html = html.replace(/<link[^>]*rel=["']sitemap["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<meta[^>]*http-equiv=["']X-UA-Compatible["'][^>]*\/?>\s*/gi, '');
   html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
   html = html.replace(
     '</head>',
     `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`
   );
 
-  // 7. Twitter Card tags
+  // 6. Twitter Card tags
   html = html.replace(
     /<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi,
     `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
@@ -163,8 +213,12 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     /<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi,
     `<meta name="twitter:url" content="${canonicalUrl}" />`
   );
+  html = html.replace(
+    /<meta[^>]*name=["']twitter:image["'][^>]*\/?>/gi,
+    `<meta name="twitter:image" content="${ogImageUrl}" />`
+  );
 
-  // 8. Schema.org JSON-LD avec WebSite.name traduit
+  // 7. Schema.org JSON-LD unifié
   const jsonLd = generatePageJsonLd(pageSeo, locale);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
@@ -176,19 +230,50 @@ function transformHtmlForWorker(rawHtml: string, reqPath: string, lang: string =
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 9. Injection déterministe du contenu HTML initial propre à la page dans le <body>
+  // 8. Injection déterministe du contenu HTML initial propre à la page dans le <body>
   const staticContent = generateStaticHtmlContent(pageSeo, locale);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
   if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
     html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
   } else {
-    // Remplacement complet du corps <body> en préservant uniquement d'éventuels scripts externes
     html = html.replace(/<body([^>]*)>([\s\S]*?)<\/body>/i, (_match, bodyAttrs, bodyInner) => {
       const scripts = (bodyInner.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || []).join('\n    ');
       return `<body${bodyAttrs}>\n    ${rootReplacement}${scripts ? `\n    ${scripts}` : ''}\n  </body>`;
     });
   }
 
+  return html;
+}
+
+function transformNotFoundHtmlForWorker(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
+  const locale = normalizeSupportedLocale(lang);
+  const brand = getSiteBrandForLocale(locale);
+  const isEn = locale === 'en';
+  const title = isEn
+    ? '404 — Page Not Found | Instant Weather'
+    : '404 — Page introuvable | Instant Météo';
+  const desc = isEn
+    ? `The requested URL (${reqPath}) does not exist on Instant Weather.`
+    : `L’adresse demandée (${reqPath}) n’existe pas sur Instant Météo.`;
+
+  let html = rawHtml;
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(title)}</title>`);
+  html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
+  html = html.replace(
+    /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
+    `<meta name="description" content="${escapeHtmlAttr(desc)}" />`
+  );
+
+  const body404 = generateNotFoundHtmlContent(reqPath, locale);
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${body404}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  }
   return html;
 }
 
@@ -201,48 +286,17 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Normalisation 301 stricte : redirection des URL avec slash final vers leur forme sans slash
-    if (request.method === 'GET' && path !== '/' && path.endsWith('/') && !path.includes('.')) {
-      const cleanPath = path.replace(/\/+$/, '');
-      return Response.redirect(`${url.origin}${cleanPath}${url.search}`, 301);
+    // 1. Redirections permanentes 301 (slash final, ?hl=en -> /en/..., tous les alias thématiques et villes)
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const redirectTarget = getAliasRedirectTarget(path, url.search);
+      if (redirectTarget) {
+        return Response.redirect(`${url.origin}${redirectTarget}`, 301);
+      }
     }
 
-    // Redirections 301 d'anciennes URL
-    if (path === '/webcams' || path === '/webcam' || path === '/webcams/' || path === '/webcam/') {
-      return Response.redirect(`${url.origin}/direct`, 301);
-    }
-    if (
-      path === '/modeles' ||
-      path === '/modele' ||
-      path === '/modeles-meteo' ||
-      path === '/modeles/' ||
-      path === '/modele/' ||
-      path === '/modeles-meteo/'
-    ) {
-      return Response.redirect(`${url.origin}/nuages`, 301);
-    }
-
-    // Robots.txt : autorise l'exploration complète de toutes les ressources (CSS, JS, images, API) et pages
+    // 2. Robots.txt unifié
     if (path === '/robots.txt' && (request.method === 'GET' || request.method === 'HEAD')) {
-      const robotsTxt = [
-        '# ROBOTS.TXT OFFICIEL - INSTANT MÉTÉO FRANCE',
-        'User-agent: *',
-        'Allow: /',
-        'Allow: /assets/',
-        'Allow: /api/',
-        '',
-        'User-agent: Googlebot',
-        'Allow: /',
-        'Allow: /assets/',
-        'Allow: /api/',
-        '',
-        'User-agent: Googlebot-Image',
-        'Allow: /',
-        '',
-        'Sitemap: https://instantmeteo.instantmeteofr.workers.dev/sitemap.xml',
-        '',
-      ].join('\n');
-      return new Response(robotsTxt, {
+      return new Response(request.method === 'HEAD' ? null : generateRobotsTxt(), {
         status: 200,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -252,9 +306,31 @@ export default {
       });
     }
 
-    // Sitemap XML dynamique avec hreflang et sans balise <lastmod> fixe périmée
-    if (path === '/sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')) {
-      return new Response(generateSitemapXml(), {
+    // 3. Sitemaps XML (Index + Pages + Départements)
+    if ((request.method === 'GET' || request.method === 'HEAD') && /^\/sitemap.*\.xml$/i.test(path)) {
+      let xmlContent: string | null = null;
+      if (path === '/sitemap.xml') {
+        xmlContent = generateSitemapIndexXml();
+      } else if (path === '/sitemap-pages.xml') {
+        xmlContent = generatePagesSitemapXml();
+      } else {
+        const deptMatch = path.match(/^\/sitemap-dept-([a-z0-9]+)\.xml$/i);
+        if (deptMatch) {
+          xmlContent = generateDepartmentSitemapXml(deptMatch[1]);
+        }
+      }
+
+      if (!xmlContent) {
+        return new Response('Sitemap not found', {
+          status: 404,
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+
+      return new Response(request.method === 'HEAD' ? null : xmlContent, {
         status: 200,
         headers: {
           'Content-Type': 'application/xml; charset=utf-8',
@@ -265,25 +341,30 @@ export default {
       });
     }
 
-    // SkyMap 3D : page autonome servie telle quelle (sans shell React ni injection SEO)
+    // 4. SkyMap 3D : servi UNIQUEMENT sur /skymap et /en/skymap (skymap-embed.html est géré en noindex ci-dessous)
     if (
       (request.method === 'GET' || request.method === 'HEAD') &&
       env.ASSETS &&
-      ['/skymap', '/skymap3d', '/carte-3d', '/ciel-3d', '/skymap.html', '/skymap-embed.html'].includes(path)
+      (path === '/skymap' || path === '/en/skymap')
     ) {
-      for (const assetPath of ['/skymap', '/skymap.html', '/skymap-embed.html']) {
+      const locale = path === '/en/skymap' ? 'en' : 'fr';
+      for (const assetPath of ['/skymap.html', '/skymap']) {
         try {
-          const res = await env.ASSETS.fetch(new Request(new URL(assetPath, request.url).toString(), { method: 'GET' }));
-          const html = res.status === 200 && (res.headers.get('content-type') || '').includes('text/html')
-            ? await res.text()
-            : null;
-          // Vérifie qu'il s'agit bien de SkyMap et non du shell React
+          const res = await env.ASSETS.fetch(
+            new Request(new URL(assetPath, request.url).toString(), { method: 'GET' })
+          );
+          const html =
+            res.status === 200 && (res.headers.get('content-type') || '').includes('text/html')
+              ? await res.text()
+              : null;
           if (html && html.includes('maplibregl') && !html.includes('SEO_ROOT_START')) {
-            return new Response(request.method === 'HEAD' ? null : html, {
+            const localizedHtml = localizeSkyMapHtml(html, locale);
+            return new Response(request.method === 'HEAD' ? null : localizedHtml, {
               status: 200,
               headers: {
                 'Content-Type': 'text/html; charset=utf-8',
                 'Cache-Control': 'public, max-age=0, must-revalidate',
+                'X-Robots-Tag': UNIFIED_ROBOTS_DIRECTIVE,
                 'X-Content-Type-Options': 'nosniff',
               },
             });
@@ -294,21 +375,19 @@ export default {
 
     try {
       // =========================================================================
-      // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE
+      // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE OU 404 RÉEL
       // =========================================================================
       if (!path.startsWith('/api/') && path !== '/health') {
-        // Fichiers d'assets statiques (/assets/** dont HTML autonomes, js, css, images, favicons, fonts, manifest) et pages autonomes
         const isStaticAsset =
           path.startsWith('/assets/') ||
+          path === '/skymap-embed.html' ||
+          path === '/version.json' ||
           (path.includes('.') && !path.endsWith('.html')) ||
-          path === '/paratonnerre.html' ||
-          path === '/paratonnerre' ||
           (path.startsWith('/google') && path.endsWith('.html'));
+
         if ((request.method === 'GET' || request.method === 'HEAD') && isStaticAsset && env.ASSETS) {
           try {
             let assetRes = await env.ASSETS.fetch(request);
-            // Si Cloudflare Assets renvoie une redirection canonique (ex: 307 .html -> sans .html),
-            // la résoudre directement via ASSETS pour servir le fichier HTML autonome en 200 OK
             if (assetRes.status >= 300 && assetRes.status < 400) {
               const location = assetRes.headers.get('location');
               if (location) {
@@ -324,53 +403,64 @@ export default {
               }
             }
             if (assetRes.status !== 404) {
-              return assetRes;
+              const headers = new Headers(assetRes.headers);
+              if (
+                path === '/skymap-embed.html' ||
+                path === '/version.json' ||
+                path.startsWith('/assets/aistudio/')
+              ) {
+                headers.set('X-Robots-Tag', 'noindex, nofollow');
+              }
+              return new Response(request.method === 'HEAD' ? null : assetRes.body, {
+                status: assetRes.status,
+                headers,
+              });
             }
           } catch (assetErr) {
             console.warn('Erreur résolution ASSETS:', assetErr);
           }
         }
 
-        // Pages HTML : /radar, /direct, /vigilances, /nuages, /, etc.
-        if (request.method === 'GET' && env.ASSETS) {
+        // Pages HTML : vérification stricte de validité (200 si canonique, 404 réel sinon)
+        if ((request.method === 'GET' || request.method === 'HEAD') && env.ASSETS) {
           try {
             let baseRes: Response | null = null;
-
-            // Tenter de charger le fichier pré-rendu
-            try {
-              const directRes = await env.ASSETS.fetch(request);
-              if (directRes.status !== 404 && directRes.headers.get('content-type')?.includes('text/html')) {
-                baseRes = directRes;
-              }
-            } catch (_) {}
-
-            // Fallback SPA sur _spa_template.html, /direct ou /
-            if (!baseRes) {
-              for (const fallbackPath of ['/_spa_template.html', '/direct', '/']) {
-                try {
-                  const spaRequest = new Request(new URL(fallbackPath, request.url).toString(), request);
-                  const spaRes = await env.ASSETS.fetch(spaRequest);
-                  if (spaRes.status !== 404 && spaRes.headers.get('content-type')?.includes('text/html')) {
-                    baseRes = spaRes;
-                    break;
-                  }
-                } catch (_) {}
-              }
+            for (const fallbackPath of ['/_spa_template.html', '/direct', '/']) {
+              try {
+                const spaRequest = new Request(new URL(fallbackPath, request.url).toString(), request);
+                const spaRes = await env.ASSETS.fetch(spaRequest);
+                if (spaRes.status !== 404 && spaRes.headers.get('content-type')?.includes('text/html')) {
+                  baseRes = spaRes;
+                  break;
+                }
+              } catch (_) {}
             }
 
             if (baseRes) {
               const rawHtml = await baseRes.text();
-              const reqLang = normalizeSupportedLocale(
-                url.searchParams.get('hl') || url.searchParams.get('lang')
-              );
-              const transformedHtml = transformHtmlForWorker(rawHtml, path, reqLang);
-              return new Response(transformedHtml, {
+              const { locale } = stripLocalePrefix(path);
+
+              if (!isValidSeoPath(path)) {
+                const notFoundHtml = transformNotFoundHtmlForWorker(rawHtml, path, locale);
+                return new Response(request.method === 'HEAD' ? null : notFoundHtml, {
+                  status: 404,
+                  headers: {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate',
+                    'X-Robots-Tag': 'noindex, nofollow',
+                    'X-Content-Type-Options': 'nosniff',
+                  },
+                });
+              }
+
+              const transformedHtml = transformHtmlForWorker(rawHtml, path, locale, url.searchParams);
+              return new Response(request.method === 'HEAD' ? null : transformedHtml, {
                 status: 200,
                 headers: {
                   'Content-Type': 'text/html; charset=utf-8',
                   'Cache-Control': 'public, max-age=0, s-maxage=0, must-revalidate',
                   'CDN-Cache-Control': 'no-store',
-                  'X-Robots-Tag': 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+                  'X-Robots-Tag': UNIFIED_ROBOTS_DIRECTIVE,
                   'X-Content-Type-Options': 'nosniff',
                   'Referrer-Policy': 'strict-origin-when-cross-origin',
                 },

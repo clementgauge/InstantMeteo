@@ -7,8 +7,19 @@ import {
   getSeoDataForPath,
   generatePageJsonLd,
   generateStaticHtmlContent,
+  generateNotFoundHtmlContent,
   generateHreflangLinksHtml,
-  generateSitemapXml,
+  generateRobotsTxt,
+  generateSitemapIndexXml,
+  generatePagesSitemapXml,
+  generateDepartmentSitemapXml,
+  getAliasRedirectTarget,
+  isValidSeoPath,
+  stripLocalePrefix,
+  buildLocalizedUrl,
+  getPageOgImageUrl,
+  localizeSkyMapHtml,
+  UNIFIED_ROBOTS_DIRECTIVE,
 } from './src/seo/pagesSeoData';
 import {
   getSiteBrandForLocale,
@@ -97,14 +108,27 @@ const blacklistedIps = new Set<string>();
 
 // Middleware global anti-bot et renforcement des en-têtes
 app.use((req, res, next) => {
-  // En-têtes de sécurité renforcés : Autoriser expressément Google et les moteurs légitimes tout en protégeant contre le scraping IA non autorisé
+  // En-têtes de sécurité renforcés
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=*, camera=(), microphone=()');
 
-  // Route dédiée prioritaire de validation Google Search Console (Google Site Verification HTML file)
-  if (req.path.startsWith('/google') && req.path.endsWith('.html')) {
+  // Endpoints techniques, embeds et ressources /assets/aistudio/ strictement non indexables
+  if (
+    req.path.startsWith('/api/') ||
+    req.path === '/health' ||
+    req.path === '/version.json' ||
+    req.path === '/skymap-embed.html' ||
+    req.path.startsWith('/assets/aistudio/')
+  ) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  }
+
+  // Route dédiée prioritaire de validation Google Search Console (fichiers HTML déclarés)
+  if (
+    req.path === '/googlekKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY.html' ||
+    req.path === '/googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html'
+  ) {
     const filename = req.path.replace(/^\//, '');
     res.setHeader('Content-Type', 'text/html; charset=UTF-8');
     res.send(`google-site-verification: ${filename}`);
@@ -2361,7 +2385,7 @@ app.get('/api/vigilance-meteofrance', async (req, res) => {
 
 
 // -------------------------------------------------------------
-// VÉRIFICATION GOOGLE SEARCH CONSOLE SÉCURISÉE (MASQUÉE AUX VISITEURS)
+// VÉRIFICATION GOOGLE SEARCH CONSOLE (IDENTIQUE POUR TOUS)
 // -------------------------------------------------------------
 const GOOGLE_VERIF_TAGS = `    <meta name="google-site-verification" content="kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY" />\n    <meta name="google-site-verification" content="w0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM" />`;
 
@@ -2389,55 +2413,66 @@ function escapeHtmlAttr(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
-function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lang: string = 'fr', queryParams?: Record<string, any>): string {
-  const locale = normalizeSupportedLocale(lang);
+function renderPageHtml(
+  rawHtml: string,
+  reqPath: string,
+  lang: string = 'fr',
+  queryParams?: Record<string, any>
+): string {
+  const { locale: pathLocale, path: cleanBase } = stripLocalePrefix(reqPath);
+  const locale = normalizeSupportedLocale(lang || pathLocale);
   const brand = getSiteBrandForLocale(locale);
 
   // Détection d'une commune demandée par paramètre d'URL (?ville=paris ou ?q=versailles ou ?station=marseille)
   let effectivePath = reqPath;
   const requestedLocality = (queryParams?.ville || queryParams?.city || queryParams?.q || queryParams?.station) as string | undefined;
-  if (requestedLocality && typeof requestedLocality === 'string' && (reqPath === '/' || reqPath === '/direct')) {
-    effectivePath = `/${requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`;
+  if (requestedLocality && typeof requestedLocality === 'string' && (cleanBase === '/' || cleanBase === '/direct')) {
+    const slug = requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+    effectivePath = locale === 'en' ? `/en/${slug}` : `/${slug}`;
   }
 
   const pageSeo = getSeoDataForPath(effectivePath, locale);
+  const canonicalUrl = buildLocalizedUrl(pageSeo.path, locale);
+  const ogImageUrl = getPageOgImageUrl(pageSeo);
+  const alternateOgLocale = locale === 'en' ? 'fr_FR' : 'en_US';
   let html = rawHtml;
 
   // 0. Attribut lang et dir sur <html>
   html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
 
-  // 1. Google Verification Tags (toujours présents pour Search Console)
+  // 1. Google Verification Tags (strictement identiques pour tous les clients et robots)
   if (!html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
     html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
   }
 
-  // 2. Remplacer ou injecter le title unique et spécifique
-  if (/<title>[^<]*<\/title>/i.test(html)) {
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
+  // 2. Title unique et spécifique
+  if (/<title>[\s\S]*?<\/title>/i.test(html)) {
+    html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
   } else {
     html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
   }
 
-  // 3. Remplacer ou injecter la balise canonique (avec slash pour l'accueil, sans slash pour les sous-pages)
-  const baseCanonicalUrl = pageSeo.path === '/' 
-    ? 'https://instantmeteo.instantmeteofr.workers.dev/' 
-    : (pageSeo.canonicalUrl.replace(/\/+$/, '') || 'https://instantmeteo.instantmeteofr.workers.dev');
-  const canonicalUrl = locale === 'fr' ? baseCanonicalUrl : `${baseCanonicalUrl}?hl=${locale}`;
+  // 3. Balise canonique auto-référentielle (/... en FR, /en/... en EN)
   if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/i, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/gi, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
   } else {
     html = html.replace('</head>', `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`);
   }
 
-  // 3b. Balises hreflang (signalement des différentes versions linguistiques à Google)
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(baseCanonicalUrl)}\n    <!--SEO_HREFLANG_END-->`;
+  // 3b. Balises hreflang (strictement fr, en, x-default)
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(pageSeo.path)}\n    <!--SEO_HREFLANG_END-->`;
   if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
     html = html.replace(/<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/, hreflangBlock);
   } else {
     html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
   }
 
-  // 4. Remplacer ou injecter la meta description et le nom du site traduit
+  // 4. Meta Description, Meta Title & Nom du site traduit
+  html = html.replace(
+    /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
+    `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
+  );
   html = html.replace(
     /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
     `<meta name="application-name" content="${escapeHtmlAttr(brand.brandName)}" />`
@@ -2447,39 +2482,46 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
     `<meta name="apple-mobile-web-app-title" content="${escapeHtmlAttr(brand.brandName)}" />`
   );
   if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+    html = html.replace(/<meta[^>]*name=["']description["'][^>]*\/?>/gi, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
   } else {
     html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
   }
 
-  // 5. OpenGraph tags (avec og:site_name et og:locale traduits)
-  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:locale["'][^>]*content=["'][^"']*["'][^>]*\/?>/i, `<meta property="og:locale" content="${brand.ogLocale}" />`);
-
-  // 6. Règle commune meta robots (index, follow, sans noai, noimageai ni tdm-reservation)
-  html = html.replace(/<meta[^>]*name=["']googlebot["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta[^>]*name=["']tdm-reservation["'][^>]*\/?>/gi, '');
-  if (/<meta[^>]*name=["']robots["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']robots["'][^>]*\/?>/gi, `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`);
+  // 5. OpenGraph tags
+  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*\/?>/gi, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*\/?>/gi, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*\/?>/gi, `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi, `<meta property="og:locale" content="${brand.ogLocale}" />`);
+  if (/<meta[^>]*property=["']og:locale:alternate["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta[^>]*property=["']og:locale:alternate["'][^>]*\/?>/gi,
+      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`
+    );
   } else {
-    html = html.replace('</head>', `    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />\n  </head>`);
+    html = html.replace('</head>', `    <meta property="og:locale:alternate" content="${alternateOgLocale}" />\n  </head>`);
   }
+  html = html.replace(/<meta[^>]*property=["']og:image["'][^>]*\/?>/gi, `<meta property="og:image" content="${ogImageUrl}" />`);
+  html = html.replace(/<meta[^>]*property=["']og:image:alt["'][^>]*\/?>/gi, `<meta property="og:image:alt" content="${escapeHtmlAttr(pageSeo.title)}" />`);
 
-  // 6b. Suppression des meta keywords
-  html = html.replace(/<meta[^>]*name=["']keywords["'][^>]*\/?>/gi, '');
-
-  // 6c. Suppression de toute balise de clé exposée
-  html = html.replace(/<meta[^>]*name=["'](meta-)?carte-meteo-key["'][^>]*\/?>/gi, '');
+  // 6. Nettoyage des balises obsolètes/superflues & règle commune meta robots
+  html = html.replace(
+    /<meta\b[^>]*(?:keywords|googlebot|bingbot|publisher|language|geo\.region|geo\.placename|rating|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi,
+    ''
+  );
+  html = html.replace(/<link[^>]*rel=["']sitemap["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<meta[^>]*http-equiv=["']X-UA-Compatible["'][^>]*\/?>\s*/gi, '');
   html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace('</head>', `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`);
 
   // 7. Twitter Card tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*content=["'][^"']*["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi, `<meta name="twitter:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta[^>]*name=["']twitter:image["'][^>]*\/?>/gi, `<meta name="twitter:image" content="${ogImageUrl}" />`);
 
-  // 8. Remplacer ou injecter le Schema.org JSON-LD spécifique (FAQPage, BreadcrumbList, WebPage)
+  // 8. Schema.org JSON-LD unifié
   const jsonLd = generatePageJsonLd(pageSeo, locale);
   const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
   if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
@@ -2488,7 +2530,7 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
     html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
   }
 
-  // 9. Contenu statique initial propre à la page pour les moteurs de recherche (H1, intro, sections, FAQ)
+  // 9. Contenu statique initial propre à la page
   const staticContent = generateStaticHtmlContent(pageSeo, locale);
   const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
 
@@ -2503,36 +2545,69 @@ function renderPageHtml(rawHtml: string, reqPath: string, isGoogle: boolean, lan
   return html;
 }
 
-function sendHtmlWithConditionalGoogleTags(req: express.Request, res: express.Response, filePath: string) {
-  try {
-    let content = fs.readFileSync(filePath, 'utf-8');
-    const ua = (req.headers['user-agent'] || '').toLowerCase();
-    const isGoogle =
-      ua.includes('google') ||
-      ua.includes('googlebot') ||
-      ua.includes('google-site-verification') ||
-      ua.includes('google-inspectiontool') ||
-      ua.includes('mediapartners-google') ||
-      req.query['google-site-verification'] !== undefined;
+function renderNotFoundPageHtml(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
+  const { locale: pathLocale } = stripLocalePrefix(reqPath);
+  const locale = normalizeSupportedLocale(lang || pathLocale);
+  const brand = getSiteBrandForLocale(locale);
+  const isEn = locale === 'en';
+  const title = isEn
+    ? '404 — Page Not Found | Instant Weather'
+    : '404 — Page introuvable | Instant Météo';
+  const desc = isEn
+    ? `The requested URL (${reqPath}) does not exist on Instant Weather.`
+    : `L’adresse demandée (${reqPath}) n’existe pas sur Instant Météo.`;
 
-    const reqLang = normalizeSupportedLocale(
-      (req.query.hl as string) || (req.query.lang as string)
-    );
-    content = renderPageHtml(content, req.path, isGoogle, reqLang, req.query);
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    res.send(content);
-  } catch (err) {
-    res.sendFile(filePath);
+  let html = rawHtml;
+  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(title)}</title>`);
+  html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
+  html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
+  html = html.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
+  html = html.replace(
+    /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
+    `<meta name="description" content="${escapeHtmlAttr(desc)}" />`
+  );
+
+  const body404 = generateNotFoundHtmlContent(reqPath, locale);
+  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${body404}\n    </div><!--SEO_ROOT_END-->`;
+  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
+    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
+    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
   }
+  return html;
 }
 
-// -------------------------------------------------------------
-// ROBOTS.TXT & SITEMAP.XML
-// -------------------------------------------------------------
-app.get(['/paratonnerre.html', '/paratonnerre'], (req, res) => {
-  res.redirect(301, '/');
-});
+function sendRenderedPageHtml(req: express.Request, res: express.Response, filePath: string) {
+  try {
+    const rawContent = fs.readFileSync(filePath, 'utf-8');
+    const { locale: pathLocale } = stripLocalePrefix(req.path);
+    const reqLang = normalizeSupportedLocale(
+      (req.query.hl as string) || (req.query.lang as string) || pathLocale
+    );
+
+    if (!isValidSeoPath(req.path)) {
+      const notFoundHtml = renderNotFoundPageHtml(rawContent, req.path, reqLang);
+      res.status(404);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(req.method === 'HEAD' ? undefined : notFoundHtml);
+      return;
+    }
+
+    const rendered = renderPageHtml(rawContent, req.path, reqLang, req.query);
+    res.status(200);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Robots-Tag', UNIFIED_ROBOTS_DIRECTIVE);
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.send(req.method === 'HEAD' ? undefined : rendered);
+  } catch (err) {
+    res.status(500).sendFile(filePath);
+  }
+}
 
 app.get(['/manifest.webmanifest', '/manifest.json'], (req, res) => {
   const manifestPath = path.join(process.cwd(), 'public', 'manifest.webmanifest');
@@ -2734,32 +2809,37 @@ app.get(['/Instant-Meteo.apk', '/Instant-Meteo-France.apk', '/ClimaFrance-Precis
   res.redirect(302, 'https://github.com/instant-meteo/instant-meteo/releases/latest/download/Instant-Meteo.apk');
 });
 
-app.get('/robots.txt', (req, res) => {
-  const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
+app.get('/robots.txt', (_req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-  res.sendFile(robotsPath);
+  res.send(generateRobotsTxt());
 });
 
-app.get('/sitemap.xml', (req, res) => {
+app.get('/sitemap.xml', (_req, res) => {
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-  res.send(generateSitemapXml());
+  res.send(generateSitemapIndexXml());
 });
 
-// -------------------------------------------------------------
-// REDIRECTIONS PERMANENTES 301 (Anciennes pages supprimées & normalisation canonical sans slash)
-// -------------------------------------------------------------
-app.get(['/webcams', '/webcam', '/webcams/', '/webcam/'], (req, res) => {
-  res.redirect(301, '/direct');
+app.get('/sitemap-pages.xml', (_req, res) => {
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.send(generatePagesSitemapXml());
 });
 
-app.get(['/modeles', '/modele', '/modeles-meteo', '/modeles/', '/modele/', '/modeles-meteo/'], (req, res) => {
-  res.redirect(301, '/nuages');
-});
-
-app.get(['/sports', '/sport', '/route', '/trajets', '/sports/', '/sport/', '/route/', '/trajets/'], (req, res) => {
-  res.redirect(301, '/skymap');
+app.get(/^\/sitemap-dept-([a-z0-9]+)\.xml$/i, (req, res) => {
+  const deptMatch = req.path.match(/^\/sitemap-dept-([a-z0-9]+)\.xml$/i);
+  const deptCode = deptMatch ? deptMatch[1] : '';
+  const xml = generateDepartmentSitemapXml(deptCode);
+  if (!xml) {
+    res.status(404);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    return res.send('Sitemap not found');
+  }
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  return res.send(xml);
 });
 
 // -------------------------------------------------------------
@@ -2769,28 +2849,48 @@ async function startServer() {
   const publicPath = path.join(process.cwd(), 'public');
   const distPath = path.join(process.cwd(), 'dist');
 
-  // Route prioritaire absolue pour SkyMap 3D autonome (servie directement sans passer par Vite ni SPA fallback)
-  app.get([
-    '/skymap',
-    '/skymap/',
-    '/skymap3d',
-    '/skymap3d/',
-    '/carte-3d',
-    '/carte-3d/',
-    '/ciel-3d',
-    '/ciel-3d/',
-    '/assets/aistudio/SkyMap-ligne-bleue-reparee_a36eb9c7.html',
-    '/skymap-embed.html',
-    '/skymap.html'
-  ], (req, res) => {
-    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
+  const sendSkyMapHtml = (res: express.Response, locale: 'fr' | 'en', isHead = false) => {
+    const publicSkyMap = path.join(publicPath, 'skymap.html');
+    const distSkyMap = path.join(distPath, 'skymap.html');
+    const targetFile = fs.existsSync(publicSkyMap) ? publicSkyMap : distSkyMap;
+    if (!fs.existsSync(targetFile)) {
+      res.status(404).setHeader('X-Robots-Tag', 'noindex, nofollow').send('SkyMap not found');
+      return;
+    }
+    const rawHtml = fs.readFileSync(targetFile, 'utf-8');
+    const localizedHtml = localizeSkyMapHtml(rawHtml, locale);
+    res.status(200);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    if (fs.existsSync(primaryPath)) {
-      return res.sendFile(primaryPath);
+    res.setHeader('X-Robots-Tag', UNIFIED_ROBOTS_DIRECTIVE);
+    res.send(isHead ? undefined : localizedHtml);
+  };
+
+  // Middleware unifié de redirection permanente 301 (alias thématiques, alias villes, /webcams, /modeles, /sports, /skymap.html, ?hl=en, slash final)
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      return next();
     }
-    const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
-    return res.sendFile(distFilePath);
+    if (
+      req.path.startsWith('/@') ||
+      req.path.startsWith('/src/') ||
+      req.path.startsWith('/node_modules/') ||
+      req.path.startsWith('/__vite')
+    ) {
+      return next();
+    }
+    const rawSearch = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    const redirectTarget = getAliasRedirectTarget(req.path, rawSearch);
+    if (redirectTarget) {
+      return res.redirect(301, redirectTarget);
+    }
+    return next();
+  });
+
+  // Routes canoniques autonomes SkyMap 3D (/skymap et /en/skymap)
+  app.get(['/skymap', '/en/skymap'], (req, res) => {
+    const locale = req.path.startsWith('/en') ? 'en' : 'fr';
+    sendSkyMapHtml(res, locale, req.method === 'HEAD');
   });
 
   // API persistante du registre mondial d'altitudes des localités
@@ -3024,11 +3124,12 @@ async function startServer() {
     }
   });
 
-  // Route directe pour Atlas des catastrophes (Page 9)
+  // Routes directes pour les outils HTML embarqués (/assets/aistudio/* -> noindex, nofollow)
   app.get('/assets/aistudio/carte-catastrophes_6__98caa0f3.html', (req, res) => {
-    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
+    const primaryPath = path.join(publicPath, 'assets', 'aistudio', 'carte-catastrophes_6__98caa0f3.html');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     if (fs.existsSync(primaryPath)) {
       return res.sendFile(primaryPath);
     }
@@ -3036,11 +3137,11 @@ async function startServer() {
     return res.sendFile(distFilePath);
   });
 
-  // Route directe prioritaire pour Tendances 14 jours HTML (Page 5)
   app.get('/assets/aistudio/tendances-14-jours__1__fde09a2a.html', (req, res) => {
-    const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
+    const primaryPath = path.join(publicPath, 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     if (fs.existsSync(primaryPath)) {
       return res.sendFile(primaryPath);
     }
@@ -3057,52 +3158,40 @@ async function startServer() {
       appType: 'custom',
     });
 
-    // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique par route
+    // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique ou un vrai 404
     app.use(async (req, res, next) => {
-      if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
-        return res.redirect(301, '/direct');
-      }
-      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
-        return res.redirect(301, '/nuages');
-      }
-
-      // Normalisation 301 stricte : redirection de toute page avec slash final vers sa forme sans slash (ex: /radar/ -> /radar)
-      if (req.method === 'GET' && req.path !== '/' && !req.path.startsWith('/api/') && !req.path.includes('.') && req.path.endsWith('/')) {
-        const cleanPath = req.path.replace(/\/+$/, '');
-        const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
-        return res.redirect(301, `${cleanPath}${query}`);
+      if (
+        req.path.startsWith('/@') ||
+        req.path.startsWith('/src/') ||
+        req.path.startsWith('/node_modules/') ||
+        req.path.startsWith('/__vite')
+      ) {
+        return next();
       }
 
-      // Servir directement SkyMap autonome sans jamais le transformer en index.html SPA
-      if (req.path === '/skymap' || req.path === '/skymap/' || req.path === '/skymap3d' || req.path === '/carte-3d' || req.path === '/ciel-3d' || req.path.includes('skymap')) {
-        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        if (fs.existsSync(primaryPath)) {
-          return res.sendFile(primaryPath);
-        }
-      }
-
-      // Uniquement pour les requêtes de document racine ou pages HTML (non API et non assets avec extension)
       if ((req.method === 'GET' || req.method === 'HEAD') && !req.path.startsWith('/api/') && (req.path === '/' || !req.path.includes('.'))) {
-        const ua = (req.headers['user-agent'] || '').toLowerCase();
-        const isGoogle =
-          ua.includes('google') ||
-          ua.includes('googlebot') ||
-          ua.includes('google-site-verification') ||
-          ua.includes('google-inspectiontool') ||
-          ua.includes('mediapartners-google') ||
-          req.query['google-site-verification'] !== undefined;
-
         try {
           let html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
           html = await vite.transformIndexHtml(req.originalUrl, html);
+          const { locale: pathLocale } = stripLocalePrefix(req.path);
           const reqLang = normalizeSupportedLocale(
-            (req.query.hl as string) || (req.query.lang as string)
+            (req.query.hl as string) || (req.query.lang as string) || pathLocale
           );
-          html = renderPageHtml(html, req.path, isGoogle, reqLang, req.query);
+
+          if (!isValidSeoPath(req.path)) {
+            const notFoundHtml = renderNotFoundPageHtml(html, req.path, reqLang);
+            res.status(404);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+            res.setHeader('Cache-Control', 'no-store');
+            return res.send(req.method === 'HEAD' ? undefined : notFoundHtml);
+          }
+
+          html = renderPageHtml(html, req.path, reqLang, req.query);
+          res.status(200);
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
-          return res.send(html);
+          res.setHeader('X-Robots-Tag', UNIFIED_ROBOTS_DIRECTIVE);
+          return res.send(req.method === 'HEAD' ? undefined : html);
         } catch (e) {
           return next(e);
         }
@@ -3112,46 +3201,18 @@ async function startServer() {
 
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    const publicPath = path.join(process.cwd(), 'public');
     const distIndexPath = path.join(distPath, 'index.html');
     app.use(express.static(publicPath, { index: false }));
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
-      if (req.path === '/assets/aistudio/tendances-14-jours__1__fde09a2a.html') {
-        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
-        const distFilePath = path.join(distPath, 'assets', 'aistudio', 'tendances-14-jours__1__fde09a2a.html');
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        if (fs.existsSync(primaryPath)) return res.sendFile(primaryPath);
-        return res.sendFile(distFilePath);
-      }
-      if (req.path === '/skymap' || req.path === '/skymap/' || req.path === '/skymap3d' || req.path === '/carte-3d' || req.path === '/ciel-3d' || req.path.includes('skymap')) {
-        const primaryPath = path.join(process.cwd(), 'public', 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
-        const distFilePath = path.join(distPath, 'assets', 'aistudio', 'SkyMap-ligne-bleue-reparee_a36eb9c7.html');
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        if (fs.existsSync(primaryPath)) return res.sendFile(primaryPath);
-        return res.sendFile(distFilePath);
-      }
-      if (req.path === '/webcams' || req.path === '/webcam' || req.path === '/webcams/' || req.path === '/webcam/') {
-        return res.redirect(301, '/direct');
-      }
-      if (req.path === '/modeles' || req.path === '/modele' || req.path === '/modeles-meteo' || req.path === '/modeles/' || req.path === '/modele/' || req.path === '/modeles-meteo/') {
-        return res.redirect(301, '/nuages');
-      }
       if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'Endpoint not found' });
+        return res.status(404).setHeader('X-Robots-Tag', 'noindex, nofollow').json({ error: 'Endpoint not found' });
+      }
+      if (req.path.includes('.')) {
+        return res.status(404).setHeader('X-Robots-Tag', 'noindex, nofollow').type('text/plain').send('Not Found');
       }
 
-      // Normalisation 301 stricte : redirection de toute page avec slash final vers sa forme sans slash (ex: /radar/ -> /radar)
-      if (req.path !== '/' && !req.path.includes('.') && req.path.endsWith('/')) {
-        const cleanPath = req.path.replace(/\/+$/, '');
-        const query = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
-        return res.redirect(301, `${cleanPath}${query}`);
-      }
-
-      sendHtmlWithConditionalGoogleTags(req, res, distIndexPath);
+      return sendRenderedPageHtml(req, res, distIndexPath);
     });
   }
 

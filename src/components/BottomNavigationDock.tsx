@@ -371,7 +371,8 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
                           onClick={() => {
                             setIsMenuDrawerOpen(false);
                             if (item.id === 'skymap') {
-                              window.location.href = '/skymap';
+                              const isEn = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/');
+                              window.location.href = isEn ? '/en/skymap' : '/skymap';
                               return;
                             }
                             onSelectTab(item.id as NavTabId);
@@ -762,7 +763,8 @@ export const BottomNavigationDock: React.FC<BottomNavigationDockProps> = ({
             id="mobile-dock-tab-skymap"
             onClick={() => {
               setIsPlusMenuOpen(false);
-              window.location.href = '/skymap';
+              const isEn = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/');
+              window.location.href = isEn ? '/en/skymap' : '/skymap';
             }}
             className={`min-h-[48px] rounded-xl flex flex-col items-center justify-center px-1 transition active:scale-95 cursor-pointer ${
               activeTab === 'skymap'

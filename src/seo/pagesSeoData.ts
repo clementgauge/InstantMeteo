@@ -4,51 +4,55 @@ import {
   normalizeSupportedLocale,
   SupportedLocaleCode,
 } from '../i18n/siteTranslations';
+import {
+  MAJOR_FRENCH_CITY_SEO_LIST,
+  MajorCitySeoConfig,
+  CanonicalFrenchCity,
+  FRENCH_CITY_CATALOG_LIST,
+  FRENCH_CITY_BY_SLUG,
+  FRENCH_CITY_BY_STATION_ID,
+  FRENCH_CITIES_BY_DEPT,
+  ALL_CITY_URL_ALIASES,
+  RESERVED_ROUTE_SLUGS,
+  getAvailableSitemapDepartmentCodes,
+  findCatalogCityBySlug,
+  slugifyCityName,
+  cleanLocalityTitleName,
+} from './cityCatalog';
+
+export {
+  MAJOR_FRENCH_CITY_SEO_LIST,
+  FRENCH_CITY_CATALOG_LIST,
+  FRENCH_CITY_BY_SLUG,
+  FRENCH_CITY_BY_STATION_ID,
+  FRENCH_CITIES_BY_DEPT,
+  ALL_CITY_URL_ALIASES,
+  RESERVED_ROUTE_SLUGS,
+  getAvailableSitemapDepartmentCodes,
+  findCatalogCityBySlug,
+  slugifyCityName,
+  cleanLocalityTitleName,
+};
+export type { MajorCitySeoConfig, CanonicalFrenchCity };
 
 export const BASE_SITE_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
 /**
- * Règle Meta Robots unique et uniforme sur les 18 pages du site
- * (Autorise l'indexation complète Google sans directives contradictoires)
+ * Directive robots uniforme sur toutes les pages indexables du site
  */
-export const UNIFIED_ROBOTS_DIRECTIVE = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+export const UNIFIED_ROBOTS_DIRECTIVE =
+  'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
 /**
- * Langues et variantes régionales prises en charge par l'application
- * Signalées à Google via les balises <link rel="alternate" hreflang="..."> et le Sitemap XML
+ * Langues réellement traduites de bout en bout (français et anglais)
+ * Signalées à Google via <link rel="alternate" hreflang="..."> et les Sitemaps XML.
  */
 export const SUPPORTED_HREFLANG_LOCALES = [
-  { hreflang: 'fr', param: '', label: 'Français' },
-  { hreflang: 'fr-FR', param: '', label: 'Français (France)' },
-  { hreflang: 'fr-BE', param: '', label: 'Français (Belgique)' },
-  { hreflang: 'fr-CH', param: '', label: 'Français (Suisse)' },
-  { hreflang: 'fr-CA', param: '', label: 'Français (Canada)' },
-  { hreflang: 'en', param: '?hl=en', label: 'English' },
-  { hreflang: 'en-US', param: '?hl=en', label: 'English (US)' },
-  { hreflang: 'en-GB', param: '?hl=en', label: 'English (UK)' },
-  { hreflang: 'en-CA', param: '?hl=en', label: 'English (Canada)' },
-  { hreflang: 'en-AU', param: '?hl=en', label: 'English (Australia)' },
-  { hreflang: 'de', param: '?hl=de', label: 'Deutsch' },
-  { hreflang: 'es', param: '?hl=es', label: 'Español' },
-  { hreflang: 'it', param: '?hl=it', label: 'Italiano' },
-  { hreflang: 'pt', param: '?hl=pt', label: 'Português' },
-  { hreflang: 'nl', param: '?hl=nl', label: 'Nederlands' },
-  { hreflang: 'ar', param: '?hl=ar', label: 'العربية' },
-  { hreflang: 'zh-CN', param: '?hl=zh-CN', label: '中文' },
-  { hreflang: 'ja', param: '?hl=ja', label: '日本語' },
-  { hreflang: 'ru', param: '?hl=ru', label: 'Русский' },
-  { hreflang: 'uk', param: '?hl=uk', label: 'Українська' },
+  { hreflang: 'fr', locale: 'fr' as SupportedLocaleCode, label: 'Français' },
+  { hreflang: 'en', locale: 'en' as SupportedLocaleCode, label: 'English' },
 ] as const;
 
-export const SITEMAP_LANGUAGE_PARAMS: ReadonlyArray<{ code: SupportedLocaleCode; param: string }> = [
-  { code: 'fr', param: '' },
-  { code: 'en', param: '?hl=en' },
-];
-
-export const SITEMAP_HREFLANG_LOCALES = [
-  { hreflang: 'fr', param: '' },
-  { hreflang: 'en', param: '?hl=en' },
-] as const;
+export const SITEMAP_HREFLANG_LOCALES = SUPPORTED_HREFLANG_LOCALES;
 
 export interface PageSeoSection {
   heading: string;
@@ -64,6 +68,7 @@ export interface PageSeoMetadata {
   slug: string;
   path: string;
   canonicalUrl: string;
+  ogImage?: string;
   title: string;
   description: string;
   h1: string;
@@ -73,8 +78,6 @@ export interface PageSeoMetadata {
   introParagraph: string;
   sections: PageSeoSection[];
   faq: PageSeoFaq[];
-  changefreq: 'always' | 'hourly' | 'daily' | 'weekly';
-  priority: string;
 }
 
 export type PageSeoItem = PageSeoMetadata;
@@ -84,21 +87,20 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'home',
     path: '/',
     canonicalUrl: `${BASE_SITE_URL}/`,
-    title: 'Instant Météo — Prévisions & Radar Pluie en Direct',
+    ogImage: 'og-image.png',
+    title: 'Instant Météo — Météo France & Radar Pluie en Direct',
     description:
-      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service 100 % gratuit et sans publicité.',
+      'Météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Service météorologique 100 % gratuit.',
     h1: 'Instant Météo — Prévisions météorologiques et radar de pluie en direct',
     sectionTitle: 'Fonctionnement du portail et sources météorologiques en données ouvertes',
     breadcrumbName: 'Accueil Instant Météo',
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '1.0',
     introParagraph:
-      'Instant Météo est un portail météorologique indépendant fournissant des prévisions détaillées, un radar de pluie haute résolution et les alertes de vigilance pour les 34 965 communes françaises et le monde. Les observations sont 100 % gratuites, sans création de compte et sans publicité.',
+      'Instant Météo est un portail météorologique indépendant fournissant des prévisions détaillées, un radar de pluie haute résolution et les alertes de vigilance pour les communes françaises et le monde. Les observations sont 100 % gratuites et accessibles sans création de compte.',
     sections: [
       {
-        heading: 'Un portail météo 100 % gratuit et sans publicité',
-        body: 'Instant Météo garantit une navigation fluide et sans bannières intrusives. La plateforme s’appuie sur les données ouvertes officielles (Open Data) : modèles numériques AROME (1,3 km) et ARPEGE de Météo-France, modèle européen IFS du centre ECMWF, réseau hydrologique Vigicrues, prédictions marégraphiques du SHOM et réanalyses climatiques Copernicus ERA5.',
+        heading: 'Un portail météo en données ouvertes et 100 % gratuit',
+        body: 'Instant Météo s’appuie sur les données ouvertes officielles (Open Data) : modèles numériques AROME (1,3 km) et ARPEGE de Météo-France, modèle européen IFS du centre ECMWF, réseau hydrologique Vigicrues, prédictions marégraphiques du SHOM et réanalyses climatiques Copernicus ERA5.',
       },
       {
         heading: 'Précision locale adaptée au relief de chaque commune',
@@ -118,7 +120,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       {
         question: 'Comment rechercher les prévisions météo de ma commune ?',
         answer:
-          'Utilisez la barre de recherche en saisissant le nom de votre commune ou son code postal. Les 34 965 communes de France métropolitaine et d’outre-mer sont accessibles instantanément.',
+          'Utilisez la barre de recherche en saisissant le nom de votre commune ou son code postal. Les communes de France métropolitaine et d’outre-mer sont accessibles instantanément.',
       },
       {
         question: 'À quelle fréquence les observations sont-elles actualisées ?',
@@ -128,7 +130,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       {
         question: 'Le service est-il entièrement gratuit et sans inscription ?',
         answer:
-          'Oui, l’ensemble des cartes, radars et bulletins prévisionnels est 100 % gratuit, sans inscription, sans abonnement et sans publicité.',
+          'Oui, l’ensemble des cartes, radars et bulletins prévisionnels est 100 % gratuit, sans inscription ni abonnement.',
       },
     ],
   },
@@ -137,15 +139,14 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'direct',
     path: '/direct',
     canonicalUrl: `${BASE_SITE_URL}/direct`,
-    title: 'Météo en Direct par Commune | Instant Météo',
+    ogImage: 'og-image.png',
+    title: 'Météo en Direct par Commune en France | Instant Météo',
     description:
-      'Relevés météo en direct pour chaque commune de France : température, vent, humidité, pression et prévisions immédiates. Gratuit et sans pub.',
+      'Relevés météo en direct pour chaque commune de France : température sous abri, ressenti, rafales de vent, humidité, pression et pluie dans l’heure.',
     h1: 'Observations météo en direct par commune',
     sectionTitle: 'Lecture des relevés actuels et du diagnostic heure par heure',
     breadcrumbName: 'Météo en Direct',
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'La page Météo en Direct présente l’état immédiat de l’atmosphère au-dessus de votre commune. Elle met l’accent sur les paramètres mesurés à l’instant présent et sur l’évolution prévue au cours des 60 prochaines minutes, afin de vous aider à organiser vos déplacements ou vos activités extérieures.',
     sections: [
@@ -185,6 +186,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'radar',
     path: '/radar',
     canonicalUrl: `${BASE_SITE_URL}/radar`,
+    ogImage: 'og-radar.png',
     title: 'Radar Pluie HD en Direct — Précipitations | Instant Météo',
     description:
       'Radar de pluie haute résolution en direct : suivi des précipitations minute par minute, orages et chutes de neige en France et en Europe.',
@@ -192,8 +194,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Fonctionnement du radar et lecture des échos de pluie',
     breadcrumbName: 'Radar Pluie en Direct',
     tabId: 'radar',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'Le radar interactif permet de visualiser sur une carte plein écran la position exacte des averses, des fronts pluvieux, des chutes de neige et des foyers orageux. Grâce au curseur temporel, vous pouvez observer la trajectoire passée des précipitations et leur déplacement prévu à court terme.',
     sections: [
@@ -233,6 +233,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'vigilances',
     path: '/vigilances',
     canonicalUrl: `${BASE_SITE_URL}/vigilances`,
+    ogImage: 'og-vigilances.png',
     title: 'Vigilance météo par département en France | Instant Météo',
     description:
       'Carte des vigilances météo par département en France : suivi des niveaux vert, jaune, orange et rouge pour le vent, les orages, la pluie, la neige et la canicule.',
@@ -240,8 +241,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Comprendre les quatre niveaux de vigilance et les conseils de prudence',
     breadcrumbName: 'Vigilances Météo',
     tabId: 'vigilance',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph:
       'La page Vigilances Météo dresse l’état complet des risques météorologiques sur les 96 départements de France métropolitaine et en Outre-mer. Elle permet d’identifier d’un coup d’œil les départements placés sous surveillance particulière aujourd’hui et au cours des prochains jours.',
     sections: [
@@ -281,6 +280,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'nuages',
     path: '/nuages',
     canonicalUrl: `${BASE_SITE_URL}/nuages`,
+    ogImage: 'og-nuages.png',
     title: 'Nuages & Sondage de l’Atmosphère | Instant Météo',
     description:
       'Couverture nuageuse en France : sondage vertical de l’atmosphère, classification des nuages (bas, moyens, hauts), plafond et nébulosité.',
@@ -288,8 +288,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Sondage vertical troposphérique, classification des nuages, givrage et nébulosité',
     breadcrumbName: 'Carte des Nuages',
     tabId: 'cloudNephology',
-    changefreq: 'always',
-    priority: '0.90',
     introParagraph:
       'L’observatoire des nuages et de la néphologie détaille la structure verticale de l’atmosphère au-dessus de votre commune. Grâce au sondage vertical troposphérique, à la classification internationale des nuages, à la détection du risque de givrage et au suivi de la nébulosité par étage (bas, moyen et élevé), anticipez avec précision la hauteur du plafond nuageux, l’épaisseur optique du voile et les fenêtres d’éclaircies sur 48 heures.',
     sections: [
@@ -329,6 +327,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: '14-jours',
     path: '/14-jours',
     canonicalUrl: `${BASE_SITE_URL}/14-jours`,
+    ogImage: 'og-14-jours.png',
     title: 'Prévisions météo à 14 jours en France | Instant Météo',
     description:
       'Tendances météo à 14 jours pour votre commune : évolution des températures minimales et maximales, probabilités de pluie et indice de confiance jour par jour.',
@@ -336,8 +335,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Comment interpréter une prévision météo à deux semaines',
     breadcrumbName: 'Prévisions 14 Jours',
     tabId: 'scenarios14d',
-    changefreq: 'hourly',
-    priority: '0.90',
     introParagraph:
       'Cette page présente l’évolution météorologique attendue sur deux semaines complètes dans votre commune. Au-delà du cinquième jour, l’atmosphère devient plus sensible aux petites variations : c’est pourquoi nos graphiques affichent à la fois le scénario médian et la fourchette des températures possibles.',
     sections: [
@@ -377,15 +374,14 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'montagne-plages-nature',
     path: '/montagne-plages-nature',
     canonicalUrl: `${BASE_SITE_URL}/montagne-plages-nature`,
-    title: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau | Instant Météo",
+    ogImage: 'og-nature.png',
+    title: 'Montagne, Plages, Feux & Cours d’eau | Instant Météo',
     description:
-      "Page unifiée : météo montagne & BERA, plages & marées SHOM, vigilance sécheresse VigiEau & feux de forêt, et hauteur des cours d'eau Vigicrues en France.",
+      'Observatoire environnemental unifié : météo montagne & neige BERA, plages & marées SHOM, vigilance sécheresse VigiEau & feux de forêt, et crues Vigicrues.',
     h1: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau — Observatoire unifié",
     sectionTitle: 'Surveillance montagne, littoral, sécheresse, feux et rivières en direct',
-    breadcrumbName: "Montagne, Neige, Plage, Mer, Sécheresse & Feux, Cours d'eau",
+    breadcrumbName: 'Montagne, Plages, Feux & Cours d’eau',
     tabId: 'natureTerritories',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       "Retrouvez dans un même espace la météo de montagne et nivologie BERA, l'état de la mer et les marées SHOM des plages, le suivi de la sécheresse VigiEau et du risque feux de forêt, ainsi que les hauteurs d'eau et débits Vigicrues des rivières françaises.",
     sections: [
@@ -425,6 +421,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'skymap',
     path: '/skymap',
     canonicalUrl: `${BASE_SITE_URL}/skymap`,
+    ogImage: 'og-skymap.png',
     title: 'SkyMap 3D — Carte Météo 3D & Ciel en Direct | Instant Météo',
     description:
       'Explorez la carte 3D interactive SkyMap avec météo en direct, relief montagneux, nébulosité, radar de pluie et géolocalisation GPS en temps réel.',
@@ -432,10 +429,8 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Cartographie tridimensionnelle, météo locale et géolocalisation haute précision',
     breadcrumbName: 'SkyMap 3D',
     tabId: 'skymap',
-    changefreq: 'always',
-    priority: '0.9',
     introParagraph:
-      'SkyMap 3D offre une expérience immersive de cartographie météorologique en trois dimensions avec géolocalisation GPS en direct, intégration du relief, radar de pluie, zones météo et calculateur d\'itinéraire pas à pas.',
+      "SkyMap 3D offre une expérience immersive de cartographie météorologique en trois dimensions avec géolocalisation GPS en direct, intégration du relief, radar de pluie, zones météo et calculateur d'itinéraire pas à pas.",
     sections: [
       {
         heading: 'Cartographie 3D vectorielle et données météorologiques en temps réel',
@@ -443,7 +438,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       },
       {
         heading: 'Géolocalisation GPS et suivi de trajectoire en direct',
-        body: 'Activez la géolocalisation pour centrer instantanément la carte 3D sur votre position réelle, suivre vos déplacements avec boussole d\'orientation et obtenir les conditions du ciel au-dessus de vous.',
+        body: "Activez la géolocalisation pour centrer instantanément la carte 3D sur votre position réelle, suivre vos déplacements avec boussole d'orientation et obtenir les conditions du ciel au-dessus de vous.",
       },
     ],
     faq: [
@@ -464,6 +459,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'cartes-thematiques',
     path: '/cartes-thematiques',
     canonicalUrl: `${BASE_SITE_URL}/cartes-thematiques`,
+    ogImage: 'og-radar.png',
     title: 'Cartes météo thématiques de la France | Instant Météo',
     description:
       'Explorez les cartes météo thématiques de France : températures par région, anomalies thermiques, rafales de vent, cumuls de pluie et relief.',
@@ -471,8 +467,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Analyse cartographique des paramètres atmosphériques en France',
     breadcrumbName: 'Cartes Thématiques',
     tabId: 'radar',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       'Les cartes thématiques offrent une vue d’ensemble des contrastes météorologiques entre le nord et le sud, les façades océaniques et les massifs montagneux. Vous pouvez filtrer l’affichage par grandeur physique (température, vent, pluie, anomalie climatique) et par tranche d’altitude.',
     sections: [
@@ -512,6 +506,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'bulletins',
     path: '/bulletins',
     canonicalUrl: `${BASE_SITE_URL}/bulletins`,
+    ogImage: 'og-image.png',
     title: 'Bulletins Météo & Tendances 4 Semaines | Instant Météo',
     description:
       'Bulletins météo rédigés pour la France et chaque département : synthèse du jour, évolution de la semaine et perspectives sur 4 semaines.',
@@ -519,8 +514,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Organisation des bulletins quotidiens et des tendances à quatre semaines',
     breadcrumbName: 'Bulletins & 4 Semaines',
     tabId: 'bulletin',
-    changefreq: 'hourly',
-    priority: '0.85',
     introParagraph:
       'Pour ceux qui préfèrent une analyse rédigée et structurée aux simples icônes, la page Bulletins propose un point complet sur la situation atmosphérique en France, accompagné d’un bulletin propre à votre département et d’une perspective semaine par semaine sur un mois.',
     sections: [
@@ -560,6 +553,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'archives',
     path: '/archives',
     canonicalUrl: `${BASE_SITE_URL}/archives`,
+    ogImage: 'og-image.png',
     title: 'Archives météo en France depuis 1950 | Instant Météo',
     description:
       'Consultez l’historique météo jour par jour en France depuis 1950 : températures passées, cumuls de pluie, records et normales climatiques 1991-2020.',
@@ -567,8 +561,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Recherche dans les archives climatiques et comparaison aux normales',
     breadcrumbName: 'Évolution & Archives',
     tabId: 'historicalTrends',
-    changefreq: 'daily',
-    priority: '0.80',
     introParagraph:
       'Quel temps faisait-il dans votre commune à une date précise il y a dix, trente ou soixante-dix ans ? La page Archives Météo vous permet de remonter le temps depuis 1950 et de comparer la météo actuelle aux moyennes de référence.',
     sections: [
@@ -608,6 +600,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'monde-catastrophes',
     path: '/monde-catastrophes',
     canonicalUrl: `${BASE_SITE_URL}/monde-catastrophes`,
+    ogImage: 'og-monde.png',
     title: 'Phénomènes naturels majeurs dans le monde | Instant Météo',
     description:
       'Suivi mondial des événements météo et géophysiques : cyclones tropicaux, tempêtes, inondations majeures, incendies, séismes et éruptions volcaniques.',
@@ -615,8 +608,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Surveillance internationale des cyclones, séismes et phénomènes extrêmes',
     breadcrumbName: 'Monde & Catastrophes',
     tabId: 'worldDisasters',
-    changefreq: 'always',
-    priority: '0.80',
     introParagraph:
       'Au-delà des frontières françaises, cette page suit en temps réel les phénomènes naturels majeurs qui touchent la planète : cyclones tropicaux dans les bassins océaniques (notamment près des territoires français d’Outre-mer), séismes significatifs, éruptions volcaniques et grands feux de végétation.',
     sections: [
@@ -656,6 +647,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'climat',
     path: '/climat',
     canonicalUrl: `${BASE_SITE_URL}/climat`,
+    ogImage: 'og-image.png',
     title: 'Climat & Tendances Saisonnières 8 Mois | Instant Météo',
     description:
       'Projections climatiques saisonnières sur 8 mois en France, suivi du cycle El Niño / La Niña (ENSO) et évolution des températures annuelles.',
@@ -663,8 +655,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Analyse des tendances à long terme et des cycles océaniques',
     breadcrumbName: 'Climat & 8 Mois',
     tabId: 'eightMonths',
-    changefreq: 'daily',
-    priority: '0.80',
     introParagraph:
       'L’espace Climat explore l’évolution de l’atmosphère sur le temps long : tendances saisonnières pour les prochains mois en France, influence des grands cycles océaniques mondiaux et suivi de l’écart thermique annuel par rapport aux décennies passées.',
     sections: [
@@ -704,6 +694,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'communaute',
     path: '/communaute',
     canonicalUrl: `${BASE_SITE_URL}/communaute`,
+    ogImage: 'og-image.png',
     title: 'Signalements météo participatifs en France | Instant Météo',
     description:
       'Partagez et consultez les observations météo des habitants en direct : chutes de neige, grêle, orages, rafales de vent, brouillard et discussions locales.',
@@ -711,8 +702,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Fonctionnement des signalements citoyens et de l’entraide locale',
     breadcrumbName: 'Communauté & Signalements',
     tabId: 'discussionGroup',
-    changefreq: 'always',
-    priority: '0.75',
     introParagraph:
       'Même les réseaux de mesure les plus denses ne peuvent pas voir chaque flocon de neige, chaque averse de grêle localisée ou chaque nappe de brouillard au fond d’une vallée. L’espace Communauté permet aux habitants et aux passionnés de partager en direct ce qu’ils observent depuis chez eux.',
     sections: [
@@ -726,7 +715,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
       },
       {
         heading: 'Fil d’échange et suivi collectif lors des épisodes météo marquants',
-        body: 'L’espace de discussion permet d’échanger entre passionnés et habitants d’une même région pour suivre l’avancée d’une ligne orageuse, la tenue de la neige au sol ou l’évolution du ciel.',
+        body: 'Échangez vos observations avec la communauté météo pour suivre en direct la progression d’une ligne orageuse ou la tenue de la neige au sol.',
       },
     ],
     faq: [
@@ -752,6 +741,7 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     slug: 'competition',
     path: '/competition',
     canonicalUrl: `${BASE_SITE_URL}/competition`,
+    ogImage: 'og-image.png',
     title: 'Quiz météo et défis de prévision | Instant Météo',
     description:
       'Testez vos connaissances avec le quiz météo et les défis de prévision : estimez les températures et les pluies en France pour progresser au classement.',
@@ -759,8 +749,6 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
     sectionTitle: 'Règles du jeu de prévision et des quiz pédagogiques',
     breadcrumbName: 'Quiz & Défis Météo',
     tabId: 'competitive',
-    changefreq: 'daily',
-    priority: '0.75',
     introParagraph:
       'Apprenez à décrypter l’atmosphère tout en vous mesurant aux autres passionnés : l’espace Quiz & Défis propose des questions pédagogiques sur les phénomènes météo ainsi que des pronostics de prévision où la précision de vos estimations est récompensée.',
     sections: [
@@ -797,262 +785,180 @@ export const SEO_PAGES_MAP: Record<string, PageSeoMetadata> = {
   },
 };
 
-export interface MajorCitySeoConfig {
-  slug: string;
+export const CITY_URL_ALIASES: Record<string, string> = ALL_CITY_URL_ALIASES;
+
+export const THEMATIC_URL_ALIASES: Record<string, string> = {
+  '/accueil': '/',
+  '/home': '/',
+  '/methodologie': '/',
+  '/fr': '/',
+  '/paratonnerre': '/',
+  '/paratonnerre.html': '/',
+  '/webcams': '/direct',
+  '/webcam': '/direct',
+  '/meteo-en-direct': '/direct',
+  '/temps-reel': '/direct',
+  '/skymap.html': '/skymap',
+  '/skymap3d': '/skymap',
+  '/carte-3d': '/skymap',
+  '/ciel-3d': '/skymap',
+  '/sports': '/skymap',
+  '/sport': '/skymap',
+  '/route': '/skymap',
+  '/trajets': '/skymap',
+  '/radar-pluie': '/radar',
+  '/radar-meteo': '/radar',
+  '/vigilance': '/vigilances',
+  '/alertes': '/vigilances',
+  '/nuage': '/nuages',
+  '/satellite': '/nuages',
+  '/nephologie': '/nuages',
+  '/modeles': '/nuages',
+  '/modele': '/nuages',
+  '/modeles-meteo': '/nuages',
+  '/previsions': '/14-jours',
+  '/previsions-14-jours': '/14-jours',
+  '/previsions-15-jours': '/14-jours',
+  '/previsions-meteo': '/14-jours',
+  '/tendances': '/14-jours',
+  '/tendance-14-jours': '/14-jours',
+  '/montagne': '/montagne-plages-nature',
+  '/neige': '/montagne-plages-nature',
+  '/ski': '/montagne-plages-nature',
+  '/meteo-montagne': '/montagne-plages-nature',
+  '/plages': '/montagne-plages-nature',
+  '/plage': '/montagne-plages-nature',
+  '/littoral': '/montagne-plages-nature',
+  '/mer': '/montagne-plages-nature',
+  '/marees': '/montagne-plages-nature',
+  '/meteo-des-plages': '/montagne-plages-nature',
+  '/secheresse-incendie': '/montagne-plages-nature',
+  '/vigi-secheresse-incendie': '/montagne-plages-nature',
+  '/secheresse': '/montagne-plages-nature',
+  '/incendie': '/montagne-plages-nature',
+  '/feux': '/montagne-plages-nature',
+  '/qualite-air': '/montagne-plages-nature',
+  '/cours-d-eau': '/montagne-plages-nature',
+  '/vigicrues': '/montagne-plages-nature',
+  '/crues': '/montagne-plages-nature',
+  '/rivieres': '/montagne-plages-nature',
+  '/cartes': '/cartes-thematiques',
+  '/carte-france': '/cartes-thematiques',
+  '/comparateur': '/cartes-thematiques',
+  '/bulletin': '/bulletins',
+  '/4-semaines': '/bulletins',
+  '/archive': '/archives',
+  '/historique': '/archives',
+  '/histoire': '/archives',
+  '/records': '/archives',
+  '/normales': '/archives',
+  '/monde': '/monde-catastrophes',
+  '/catastrophes': '/monde-catastrophes',
+  '/saisonnier': '/climat',
+  '/8-mois': '/climat',
+  '/evolution-climatique': '/climat',
+  '/observations': '/communaute',
+  '/forum': '/communaute',
+  '/quiz': '/competition',
+  '/jeu': '/competition',
+  '/jeu-meteo': '/competition',
+};
+
+const CITY_SEO_CACHE_FR: Record<string, PageSeoMetadata> = {};
+const CITY_SEO_CACHE_EN: Record<string, PageSeoMetadata> = {};
+
+export function stripLocalePrefix(rawPathname: string): {
+  locale: SupportedLocaleCode;
   path: string;
-  cityName: string;
-  postalCode?: string;
-  stationId: string;
-  deptCode: string;
-  department: string;
-  region: string;
-  altitude: number;
-  climateZone: string;
-  recordMax: number;
-  recordMin: number;
-  recordRain24h: number;
+} {
+  let clean = (rawPathname || '/').split('?')[0].split('#')[0].trim().toLowerCase();
+  clean = clean.replace(/\/+/g, '/');
+  if (!clean.startsWith('/')) clean = '/' + clean;
+  if (clean.length > 1 && clean.endsWith('/')) {
+    clean = clean.slice(0, -1);
+  }
+  if (clean === '/en') {
+    return { locale: 'en', path: '/' };
+  }
+  if (clean.startsWith('/en/')) {
+    const rest = clean.slice(3);
+    return { locale: 'en', path: rest || '/' };
+  }
+  return { locale: 'fr', path: clean || '/' };
 }
 
-export const MAJOR_FRENCH_CITY_SEO_LIST: MajorCitySeoConfig[] = [
-  {
-    slug: 'paris',
-    path: '/paris',
-    cityName: 'Paris',
-    postalCode: '75000',
-    stationId: 'paris-montsouris',
-    deptCode: '75',
-    department: '75 - Paris',
-    region: 'Île-de-France',
-    altitude: 75,
-    climateZone: 'Océanique dégradé / Îlot de chaleur urbain',
-    recordMax: 42.6,
-    recordMin: -23.9,
-    recordRain24h: 104.2,
-  },
-  {
-    slug: 'marseille',
-    path: '/marseille',
-    cityName: 'Marseille',
-    postalCode: '13000',
-    stationId: 'marseille-marignane',
-    deptCode: '13',
-    department: '13 - Bouches-du-Rhône',
-    region: "Provence-Alpes-Côte d'Azur",
-    altitude: 36,
-    climateZone: 'Méditerranéen franc (Mistral)',
-    recordMax: 40.2,
-    recordMin: -16.8,
-    recordRain24h: 196.4,
-  },
-  {
-    slug: 'lyon',
-    path: '/lyon',
-    cityName: 'Lyon',
-    postalCode: '69000',
-    stationId: 'lyon-bron',
-    deptCode: '69',
-    department: '69 - Rhône',
-    region: 'Auvergne-Rhône-Alpes',
-    altitude: 201,
-    climateZone: 'Semi-continental à influences méridionales',
-    recordMax: 41.4,
-    recordMin: -24.6,
-    recordRain24h: 106.0,
-  },
-  {
-    slug: 'toulouse',
-    path: '/toulouse',
-    cityName: 'Toulouse',
-    postalCode: '31000',
-    stationId: 'toulouse-blagnac',
-    deptCode: '31',
-    department: '31 - Haute-Garonne',
-    region: 'Occitanie',
-    altitude: 151,
-    climateZone: "Océanique altéré / Aquitain chaud (Vent d'Autan)",
-    recordMax: 42.4,
-    recordMin: -19.2,
-    recordRain24h: 82.7,
-  },
-  {
-    slug: 'nice',
-    path: '/nice',
-    cityName: 'Nice',
-    postalCode: '06000',
-    stationId: 'nice-cote-dazur',
-    deptCode: '06',
-    department: '06 - Alpes-Maritimes',
-    region: "Provence-Alpes-Côte d'Azur",
-    altitude: 4,
-    climateZone: 'Méditerranéen maritime doux',
-    recordMax: 37.7,
-    recordMin: -7.2,
-    recordRain24h: 191.0,
-  },
-  {
-    slug: 'nantes',
-    path: '/nantes',
-    cityName: 'Nantes',
-    postalCode: '44000',
-    stationId: 'nantes-atlantique',
-    deptCode: '44',
-    department: '44 - Loire-Atlantique',
-    region: 'Pays de la Loire',
-    altitude: 26,
-    climateZone: 'Océanique franc tempéré',
-    recordMax: 42.0,
-    recordMin: -15.6,
-    recordRain24h: 94.9,
-  },
-  {
-    slug: 'montpellier',
-    path: '/montpellier',
-    cityName: 'Montpellier',
-    postalCode: '34000',
-    stationId: 'montpellier-frejorgues',
-    deptCode: '34',
-    department: '34 - Hérault',
-    region: 'Occitanie',
-    altitude: 2,
-    climateZone: 'Méditerranéen languedocien (Épisodes cévenols)',
-    recordMax: 43.5,
-    recordMin: -17.8,
-    recordRain24h: 299.5,
-  },
-  {
-    slug: 'strasbourg',
-    path: '/strasbourg',
-    cityName: 'Strasbourg',
-    postalCode: '67000',
-    stationId: 'strasbourg-entzheim',
-    deptCode: '67',
-    department: '67 - Bas-Rhin',
-    region: 'Grand Est',
-    altitude: 153,
-    climateZone: "Semi-continental d'abri rhénan",
-    recordMax: 38.9,
-    recordMin: -23.6,
-    recordRain24h: 68.4,
-  },
-  {
-    slug: 'bordeaux',
-    path: '/bordeaux',
-    cityName: 'Bordeaux',
-    postalCode: '33000',
-    stationId: 'bordeaux-merignac',
-    deptCode: '33',
-    department: '33 - Gironde',
-    region: 'Nouvelle-Aquitaine',
-    altitude: 47,
-    climateZone: 'Océanique aquitain doux et humide',
-    recordMax: 41.2,
-    recordMin: -16.4,
-    recordRain24h: 111.4,
-  },
-  {
-    slug: 'lille',
-    path: '/lille',
-    cityName: 'Lille',
-    postalCode: '59000',
-    stationId: 'lille-lesquin',
-    deptCode: '59',
-    department: '59 - Nord',
-    region: 'Hauts-de-France',
-    altitude: 47,
-    climateZone: 'Océanique flamand frais',
-    recordMax: 41.5,
-    recordMin: -19.5,
-    recordRain24h: 64.0,
-  },
-];
-
-const MAJOR_CITY_SEO_MAP_EN: Record<string, PageSeoMetadata> = {};
-
-export function buildCitySeoConfigEn(city: MajorCitySeoConfig): PageSeoMetadata {
-  return {
-    slug: city.slug,
-    path: city.path,
-    canonicalUrl: `${BASE_SITE_URL}${city.path}`,
-    title: `${city.cityName} Weather — Forecast & Radar | Instant Weather`,
-    description: `Live weather in ${city.cityName}: real-time temperature, 1-hour rain radar, 48-hour and 14-day forecasts. 100% free and ad-free service.`,
-    h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
-    sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
-    breadcrumbName: `${city.cityName} Weather`,
-    tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.90',
-    introParagraph: `Track real-time weather in ${city.cityName} (${city.department}, ${city.region}, elevation ${city.altitude} m). View current temperature, wind chill / heat index, next-hour Doppler rain radar nowcasting, 48-hour hourly trends and 14-day forecasts.`,
-    sections: [
-      {
-        heading: `Local climate characteristics of ${city.cityName} (${city.region})`,
-        body: `Located at ${city.altitude} meters elevation in ${city.department}, ${city.cityName} experiences a ${city.climateZone} climate regime. High-resolution AROME (1.3 km) and ECMWF IFS models calibrate local forecasts for urban and topographic effects.`,
-      },
-      {
-        heading: `Rain radar and 3-hour precipitation nowcasting in ${city.cityName}`,
-        body: `Surgical 5-minute precipitation nowcasting and live Doppler radar track approaching rain bands, showers and thunderstorm cells across ${city.cityName}.`,
-      },
-      {
-        heading: `Historical climate records in ${city.cityName}`,
-        body: `Official station archives for ${city.cityName} record an all-time high temperature of +${city.recordMax}°C, an all-time low of ${city.recordMin}°C and a 24-hour rainfall record of ${city.recordRain24h} mm.`,
-      },
-    ],
-    faq: [
-      {
-        question: `What is the current weather in ${city.cityName} today?`,
-        answer: `Check the live telemetry card at the top of this page for ${city.cityName}: current temperature, feels-like index, humidity, wind gusts, barometric pressure and hourly trend.`,
-      },
-      {
-        question: `Will it rain in the next hour in ${city.cityName}?`,
-        answer: `The Precipitation Nowcasting module analyzes live Doppler radar echoes in 5-minute steps to indicate exact rain start and end times in ${city.cityName}.`,
-      },
-      {
-        question: `What is the 7-day and 14-day weather forecast for ${city.cityName}?`,
-        answer: `The daily forecast table provides minimum and maximum temperatures, precipitation probabilities, wind gusts and UV index day by day for ${city.cityName}.`,
-      },
-    ],
-  };
+export function buildLocalizedPath(
+  basePath: string,
+  locale: SupportedLocaleCode = 'fr'
+): string {
+  const { path } = stripLocalePrefix(basePath);
+  const normalizedBase = path === '/' ? '/' : path;
+  if (locale === 'en') {
+    return normalizedBase === '/' ? '/en' : `/en${normalizedBase}`;
+  }
+  return normalizedBase;
 }
 
-export const CITY_URL_ALIASES: Record<string, string> = {};
+export function buildLocalizedUrl(
+  basePath: string,
+  locale: SupportedLocaleCode = 'fr'
+): string {
+  return `${BASE_SITE_URL}${buildLocalizedPath(basePath, locale)}`;
+}
 
-for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
-  const postal = city.postalCode || (city.deptCode ? `${city.deptCode}000` : '');
+export function getPageOgImageUrl(seoData: PageSeoMetadata): string {
+  const img = (seoData.ogImage || 'og-image.png').replace(/^\/+/, '');
+  return `${BASE_SITE_URL}/${img}`;
+}
+
+export function buildCitySeoConfigFr(
+  city: MajorCitySeoConfig | CanonicalFrenchCity
+): PageSeoMetadata {
+  const cached = CITY_SEO_CACHE_FR[city.path];
+  if (cached) return cached;
+
+  const postal = city.postalCode || '';
   const cityWithPostal = postal ? `${city.cityName} ${postal}` : city.cityName;
-  const cityTitle = `Météo ${cityWithPostal} — Prévisions & Radar | Instant Météo`;
-  const cityH1 = `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`;
-  const cityDesc = `Météo ${cityWithPostal} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes météo officielles. 100% gratuit.`;
+  const microclimaticClause = city.microclimaticTrait
+    ? ` ${city.microclimaticTrait}.`
+    : '';
+  const windClause = city.localWind
+    ? ` Exposition aux vents locaux : ${city.localWind}.`
+    : '';
+  const stageOrMassif = city.massif
+    ? `massif ${city.massif}`
+    : city.elevationStage || `altitude ${city.altitude} m`;
 
-  const cityConfig: PageSeoMetadata = {
+  const result: PageSeoMetadata = {
     slug: city.slug,
     path: city.path,
     canonicalUrl: `${BASE_SITE_URL}${city.path}`,
-    title: cityTitle,
-    description: cityDesc,
-    h1: cityH1,
+    ogImage: city.massif ? 'og-nature.png' : 'og-image.png',
+    title: `Météo ${cityWithPostal} — Prévisions & Radar | Instant Météo`,
+    description: `Météo ${cityWithPostal} en direct (${city.department}) : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes météo officielles.`,
+    h1: `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`,
     sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${city.cityName}`,
     breadcrumbName: `Météo ${city.cityName}`,
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.95',
-    introParagraph: `Suivez en temps réel la météo à ${cityWithPostal} (${city.department}, région ${city.region}, altitude ${city.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
+    introParagraph: `Suivez en temps réel la météo à ${cityWithPostal} (${city.department}, région ${city.region}, ${stageOrMassif}, altitude ${city.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
     sections: [
       {
         heading: `Spécificités climatiques de ${city.cityName} (${city.region})`,
-        body: `Située à ${city.altitude} mètres d'altitude dans le département ${city.department}, l'agglomération de ${city.cityName} se caractérise par un climat ${city.climateZone.toLowerCase()}. Les modèles haute résolution AROME (1,3 km) et ECMWF ajustent les prévisions locales en tenant compte de la topographie et de l'îlot de chaleur urbain.`,
+        body: `Située à ${city.altitude} mètres d'altitude dans le département ${city.department}, la commune de ${city.cityName} (${stageOrMassif}) se caractérise par un climat ${city.climateZone.toLowerCase()}.${microclimaticClause}${windClause} Les modèles haute résolution AROME (1,3 km) et ECMWF ajustent les prévisions locales au relief exact.`,
       },
       {
         heading: `Suivi des précipitations et radar de pluie sur ${city.cityName}`,
-        body: `Le suivi immédiat et le radar des pluies permettent d'anticiper avec clarté le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${city.cityName} et de sa périphérie.`,
+        body: `Le suivi immédiat et le radar des pluies permettent d'anticiper minute par minute le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${city.cityName} et de ses environs (${city.department}).`,
       },
       {
-        heading: `Records météorologiques historiques à ${city.cityName}`,
-        body: `Les archives climatiques de la station de référence de ${city.cityName} enregistrent un record absolu de chaleur de +${city.recordMax}°C, un record de froid de ${city.recordMin}°C et un cumul maximal de pluie en 24 heures de ${city.recordRain24h} mm.`,
+        heading: `Records météorologiques de référence à ${city.cityName}`,
+        body: `Les archives climatiques de la station de référence pour ${city.cityName} font état d'un record de chaleur de +${city.recordMax}°C, d'un record de froid de ${city.recordMin}°C et d'un cumul maximal de pluie en 24 heures de ${city.recordRain24h} mm.`,
       },
     ],
     faq: [
       {
         question: `Quel temps fait-il aujourd'hui à ${cityWithPostal} ?`,
-        answer: `Consultez en haut de cette page le relevé en direct pour ${city.cityName} : température actuelle, ressenti, humidité, rafales de vent, pression atmosphérique et évolution heure par heure.`,
+        answer: `Consultez en haut de cette page le relevé en direct pour ${city.cityName} (${city.altitude} m) : température actuelle, ressenti, humidité, rafales de vent, pression atmosphérique et évolution heure par heure.`,
       },
       {
         question: `Va-t-il pleuvoir dans l'heure à ${city.cityName} ?`,
@@ -1065,45 +971,100 @@ for (const city of MAJOR_FRENCH_CITY_SEO_LIST) {
     ],
   };
 
-  // Enregistrer UNIQUEMENT la route canonique pour éviter toute duplication
-  SEO_PAGES_MAP[city.path] = cityConfig;
-
-  // Enregistrer les alias dans un registre dédié pour la résolution d'URL sans polluer SEO_PAGES_MAP
-  CITY_URL_ALIASES[`/meteo-${city.slug}`] = city.path;
-  if (postal) {
-    CITY_URL_ALIASES[`/meteo-${city.slug}-${postal}`] = city.path;
-    CITY_URL_ALIASES[`/${city.slug}-${postal}`] = city.path;
-  }
-
-  MAJOR_CITY_SEO_MAP_EN[city.path] = buildCitySeoConfigEn(city);
+  CITY_SEO_CACHE_FR[city.path] = result;
+  return result;
 }
 
-export function extractPostalCodeFromStation(station: { name?: string; department?: string; postalCode?: string; id?: string }): string {
+export function buildCitySeoConfigEn(
+  city: MajorCitySeoConfig | CanonicalFrenchCity
+): PageSeoMetadata {
+  const cached = CITY_SEO_CACHE_EN[city.path];
+  if (cached) return cached;
+
+  const postal = city.postalCode || '';
+  const cityWithPostal = postal ? `${city.cityName} ${postal}` : city.cityName;
+  const microclimaticClause = city.microclimaticTrait
+    ? ` Local setting: ${city.microclimaticTrait}.`
+    : '';
+  const windClause = city.localWind
+    ? ` Prevailing local winds: ${city.localWind}.`
+    : '';
+  const stageOrMassif = city.massif
+    ? `${city.massif} massif`
+    : city.elevationStage || `${city.altitude} m elevation`;
+
+  const result: PageSeoMetadata = {
+    slug: city.slug,
+    path: city.path,
+    canonicalUrl: `${BASE_SITE_URL}/en${city.path}`,
+    ogImage: city.massif ? 'og-nature.png' : 'og-image.png',
+    title: `${city.cityName} Weather (${city.deptCode}) — Forecast & Radar | Instant Weather`,
+    description: `Live weather in ${cityWithPostal} (${city.region}): real-time temperature, 1-hour rain radar, 48-hour and 14-day forecasts calibrated to ${city.altitude} m.`,
+    h1: `${city.cityName} Weather (${city.deptCode}) — Live Observations and 14-Day Forecast`,
+    sectionTitle: `Local Climate, Hourly Forecasts and Rain Radar in ${city.cityName}`,
+    breadcrumbName: `${city.cityName} Weather`,
+    tabId: 'realtime',
+    introParagraph: `Track real-time weather in ${cityWithPostal} (${city.department}, ${city.region}, ${stageOrMassif}, elevation ${city.altitude} m). View current temperature, wind chill / heat index, next-hour Doppler rain radar nowcasting, 48-hour hourly trends and 14-day forecasts.`,
+    sections: [
+      {
+        heading: `Local climate characteristics of ${city.cityName} (${city.region})`,
+        body: `Located at ${city.altitude} meters elevation in ${city.department}, ${city.cityName} features a ${city.climateZone} climate regime.${microclimaticClause}${windClause} High-resolution AROME (1.3 km) and ECMWF IFS models calibrate local forecasts for terrain and urban effects.`,
+      },
+      {
+        heading: `Rain radar and precipitation nowcasting in ${city.cityName}`,
+        body: `Short-range 5-minute precipitation nowcasting and live Doppler radar track approaching rain bands, showers and thunderstorm cells across ${city.cityName} (${city.department}).`,
+      },
+      {
+        heading: `Reference climate records in ${city.cityName}`,
+        body: `Reference climate archives for ${city.cityName} record an all-time high temperature of +${city.recordMax}°C, an all-time low of ${city.recordMin}°C and a 24-hour rainfall record of ${city.recordRain24h} mm.`,
+      },
+    ],
+    faq: [
+      {
+        question: `What is the current weather in ${city.cityName} today?`,
+        answer: `Check the live telemetry card at the top of this page for ${city.cityName} (${city.altitude} m): current temperature, feels-like index, humidity, wind gusts, barometric pressure and hourly trend.`,
+      },
+      {
+        question: `Will it rain in the next hour in ${city.cityName}?`,
+        answer: `The Precipitation Nowcasting module analyzes live Doppler radar echoes in 5-minute steps to indicate exact rain start and end times in ${city.cityName}.`,
+      },
+      {
+        question: `What is the 7-day and 14-day weather forecast for ${city.cityName}?`,
+        answer: `The daily forecast table provides minimum and maximum temperatures, precipitation probabilities, wind gusts and UV index day by day for ${city.cityName}.`,
+      },
+    ],
+  };
+
+  CITY_SEO_CACHE_EN[city.path] = result;
+  return result;
+}
+
+export function extractPostalCodeFromStation(station: {
+  name?: string;
+  department?: string;
+  postalCode?: string;
+  id?: string;
+}): string {
   if (station.postalCode && /^\d{5}$/.test(station.postalCode.trim())) {
-    // Si la station concerne Paris, afficher 75000 par défaut comme demandé
-    if (station.name && station.name.toLowerCase().includes('paris') && station.postalCode.startsWith('75')) {
+    if (
+      station.name &&
+      station.name.toLowerCase().includes('paris') &&
+      station.postalCode.startsWith('75')
+    ) {
       return '75000';
     }
     return station.postalCode.trim();
   }
-  if (station.name) {
-    const lower = station.name.toLowerCase();
-    if (lower.includes('paris')) return '75000';
-    if (lower.includes('versailles')) return '78000';
-    if (lower.includes('marseille')) return '13000';
-    if (lower.includes('lyon')) return '69000';
-    if (lower.includes('toulouse')) return '31000';
-    if (lower.includes('nice')) return '06000';
-    if (lower.includes('bordeaux')) return '33000';
-    if (lower.includes('lille')) return '59000';
-    if (lower.includes('calais')) return '62100';
-    if (lower.includes('arras')) return '62000';
+  if (station.id && FRENCH_CITY_BY_STATION_ID[station.id]?.postalCode) {
+    return FRENCH_CITY_BY_STATION_ID[station.id].postalCode;
   }
   if (station.department) {
-    const deptMatch = station.department.match(/^(\d{2,3})/);
+    const deptMatch = station.department.match(/^(\d{2,3}|2[AB])/i);
     if (deptMatch) {
-      const code = deptMatch[1];
+      const code = deptMatch[1].toUpperCase();
       if (code === '75') return '75000';
+      if (code === '2A') return '20000';
+      if (code === '2B') return '20200';
       if (code.length === 2) return `${code}000`;
       if (code.length === 3) return `${code}00`;
     }
@@ -1113,40 +1074,96 @@ export function extractPostalCodeFromStation(station: { name?: string; departmen
 
 export function getLocalityCleanName(stationName: string): string {
   if (!stationName) return 'France';
-  let clean = stationName.split('(')[0].trim();
-  const knownPrefixes = [
-    'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier',
-    'Strasbourg', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Toulon', 'Saint-Étienne',
-    'Le Havre', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Brest', 'Tours', 'Versailles',
-    'Calais', 'Boulogne-sur-Mer', 'Arras', 'Perpignan', 'Caen', 'Rouen', 'Chamonix'
-  ];
-  for (const kp of knownPrefixes) {
-    if (clean.toLowerCase().startsWith(kp.toLowerCase()) && (clean.length === kp.length || clean[kp.length] === '-' || clean[kp.length] === ' ')) {
-      return kp;
-    }
-  }
-  return clean;
+  return cleanLocalityTitleName(stationName) || 'France';
 }
 
-export function getLocalitySeoData(station: { name: string; department?: string; region?: string; postalCode?: string; altitude?: number }): PageSeoMetadata {
+export function getLocalitySeoData(
+  station: {
+    id?: string;
+    name: string;
+    department?: string;
+    region?: string;
+    postalCode?: string;
+    altitude?: number;
+    climateZone?: string;
+    allTimeRecordMax?: number;
+    allTimeRecordMin?: number;
+    allTimeRecordRain24h?: number;
+  },
+  lang: string = 'fr'
+): PageSeoMetadata {
+  const locale = normalizeSupportedLocale(lang);
+  if (station.id && FRENCH_CITY_BY_STATION_ID[station.id]) {
+    const catalogCity = FRENCH_CITY_BY_STATION_ID[station.id];
+    return locale === 'en'
+      ? buildCitySeoConfigEn(catalogCity)
+      : buildCitySeoConfigFr(catalogCity);
+  }
   const cleanName = getLocalityCleanName(station.name);
+  const slug = slugifyCityName(cleanName);
+  if (slug && FRENCH_CITY_BY_SLUG[slug]) {
+    const catalogCity = FRENCH_CITY_BY_SLUG[slug];
+    return locale === 'en'
+      ? buildCitySeoConfigEn(catalogCity)
+      : buildCitySeoConfigFr(catalogCity);
+  }
+
   const zip = extractPostalCodeFromStation(station);
   const displayLocality = zip ? `${cleanName} ${zip}` : cleanName;
-  const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const path = `/${slug}`;
-  
+  const fallbackCanonicalFr = `${BASE_SITE_URL}/`;
+  const fallbackCanonicalEn = `${BASE_SITE_URL}/en`;
+
+  if (locale === 'en') {
+    return {
+      slug: slug || 'home',
+      path: '/',
+      canonicalUrl: fallbackCanonicalEn,
+      ogImage: 'og-image.png',
+      title: `${displayLocality} Weather — Live Forecast & Radar | Instant Weather`,
+      description: `Live weather in ${displayLocality}${station.department ? ` (${station.department})` : ''}: current temperature, 1-hour rain radar, 48-hour and 14-day forecasts.`,
+      h1: `${displayLocality} Weather — Live Observations and 14-Day Forecast`,
+      sectionTitle: `Local climate, hourly forecasts and rain radar in ${cleanName}`,
+      breadcrumbName: `${cleanName} Weather`,
+      tabId: 'realtime',
+      introParagraph: `Track real-time weather in ${displayLocality}${station.department ? ` (${station.department})` : ''}. View current temperature, feels-like index, Doppler rain radar and 14-day forecasts.`,
+      sections: [
+        {
+          heading: `Local weather and climate in ${cleanName}`,
+          body: `View continuous local forecasts for ${cleanName} updated from high-resolution Météo-France AROME and ECMWF IFS models.`,
+        },
+        {
+          heading: `Live rain radar in ${cleanName}`,
+          body: `Anticipate approaching rain showers, frontal systems and storms over ${cleanName} with 5-minute Doppler radar imagery.`,
+        },
+        {
+          heading: `7-day and 14-day outlook for ${cleanName}`,
+          body: `Explore daily minimum and maximum temperatures, expected rainfall, wind gusts and UV indices for ${cleanName}.`,
+        },
+      ],
+      faq: [
+        {
+          question: `What is the current weather in ${displayLocality}?`,
+          answer: `Check live temperature, feels-like index, wind speed, relative humidity and atmospheric pressure for ${cleanName}.`,
+        },
+        {
+          question: `Will it rain in the next hour in ${cleanName}?`,
+          answer: `The live precipitation radar tracks rain echoes across ${cleanName} every 5 minutes.`,
+        },
+      ],
+    };
+  }
+
   return {
-    slug,
-    path,
-    canonicalUrl: `${BASE_SITE_URL}${path}`,
+    slug: slug || 'home',
+    path: '/',
+    canonicalUrl: fallbackCanonicalFr,
+    ogImage: 'og-image.png',
     title: `Météo ${displayLocality} — Prévisions & Radar | Instant Météo`,
-    description: `Météo ${displayLocality} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes officielles. 100% gratuit.`,
+    description: `Météo ${displayLocality} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes officielles.`,
     h1: `Météo ${displayLocality} — Observations en direct et prévisions à 14 jours`,
     sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cleanName}`,
     breadcrumbName: `Météo ${cleanName}`,
     tabId: 'realtime',
-    changefreq: 'always',
-    priority: '0.95',
     introParagraph: `Suivez en temps réel la météo à ${displayLocality}${station.department ? ` (${station.department})` : ''}. Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
     sections: [
       {
@@ -1171,78 +1188,55 @@ export function getLocalitySeoData(station: { name: string; department?: string;
         question: `Va-t-il pleuvoir dans l'heure à ${cleanName} ?`,
         answer: `Le radar haute résolution surveille en temps réel les précipitations à ${cleanName} et indique l'imminence d'une averse dans les 60 prochaines minutes.`,
       },
-      {
-        question: `Quelles sont les prévisions pour les prochains jours à ${cleanName} ?`,
-        answer: `Le tableau de prévisions quotidiennes vous donne la tendance détaillée jour par jour jusqu'à 14 jours pour ${cleanName}.`,
-      },
     ],
   };
 }
 
-export function getMajorCityConfigFromPath(rawPathname: string): MajorCitySeoConfig | null {
-  let cleanPath = (rawPathname || '/').split('?')[0].split('#')[0].trim().toLowerCase();
-  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
-    cleanPath = cleanPath.slice(0, -1);
-  }
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = '/' + cleanPath;
-  }
-  if (cleanPath.startsWith('/meteo-')) {
-    cleanPath = '/' + cleanPath.slice('/meteo-'.length);
-  }
-  // Enlève un éventuel code postal à 5 chiffres en fin de slug (ex: /paris-75000 -> /paris)
-  const slugWithoutZip = cleanPath.replace(/-\d{5}$/, '');
-  const match = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => 
-    c.path === cleanPath || 
-    c.slug === cleanPath.slice(1) ||
-    c.path === slugWithoutZip ||
-    c.slug === slugWithoutZip.slice(1)
-  );
-  if (match) return match;
+/**
+ * Résout UNIQUEMENT une ville réelle présente dans le catalogue officiel (frenchPrefecturesCatalog, FRENCH_STATIONS, RAW_MOUNTAIN_VILLAGES).
+ * Retourne null pour tout slug inconnu (plus jamais de fausse page ville inventée).
+ */
+export function getMajorCityConfigFromPath(rawPathname: string): CanonicalFrenchCity | null {
+  const { path } = stripLocalePrefix(rawPathname);
+  if (path === '/' || SEO_PAGES_MAP[path]) return null;
 
-  const slug = cleanPath.slice(1).trim();
-  const reservedSlugs = [
-    'direct', 'radar', 'vigilances', 'nuages', '14-jours', 'tendance-14-jours',
-    'climat', 'montagne-plages-nature', 'montagne', 'plages', 'secheresse-incendie', 'cours-d-eau',
-    'cartes-thematiques', 'sports', 'bulletins', 'archives', 'monde-catastrophes',
-    'communaute', 'competition', 'api', 'manifest.json', 'robots.txt', 'sitemap.xml'
-  ];
-  if (slug && !reservedSlugs.includes(slug) && !slug.includes('.')) {
-    // Extraction d'un éventuel code postal (5 chiffres à la fin ou 2 chiffres)
-    const zipMatch = slug.match(/[-_](\d{5})$/);
-    const extractedZip = zipMatch ? zipMatch[1] : '';
-    const slugNamePart = zipMatch ? slug.replace(/[-_]\d{5}$/, '') : slug;
-    const words = slugNamePart.split(/[-_]+/).filter(Boolean);
-    if (words.length > 0) {
-      const cityName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      const isParis = cityName.toLowerCase() === 'paris';
-      const postalCode = extractedZip || (isParis ? '75000' : '');
-      const deptCode = postalCode ? postalCode.slice(0, 2) : (slug.includes('calais') || slug.includes('arras') || slug.includes('lens') ? '62' : 'FR');
-      return {
-        slug,
-        path: '/' + slug,
-        cityName,
-        postalCode: postalCode || `${deptCode}000`,
-        stationId: slug,
-        deptCode,
-        department: deptCode === '62' ? '62 - Pas-de-Calais' : (isParis ? '75 - Paris' : 'France & International'),
-        region: deptCode === '62' ? 'Hauts-de-France' : (isParis ? 'Île-de-France' : 'France'),
-        altitude: 45,
-        climateZone: 'Océanique tempéré',
-        recordMax: 40.0,
-        recordMin: -15.0,
-        recordRain24h: 75.0
-      };
-    }
+  const rawSlug = path.slice(1);
+  if (!rawSlug || rawSlug.includes('/') || rawSlug.includes('.') || RESERVED_ROUTE_SLUGS.has(rawSlug)) {
+    return null;
   }
+
+  if (FRENCH_CITY_BY_SLUG[rawSlug]) {
+    return FRENCH_CITY_BY_SLUG[rawSlug];
+  }
+  if (ALL_CITY_URL_ALIASES[path]) {
+    const canonicalSlug = ALL_CITY_URL_ALIASES[path].slice(1);
+    return FRENCH_CITY_BY_SLUG[canonicalSlug] || null;
+  }
+  if (rawSlug.startsWith('meteo-')) {
+    const sub = rawSlug.slice('meteo-'.length).replace(/-\d{5}$/, '');
+    if (FRENCH_CITY_BY_SLUG[sub]) return FRENCH_CITY_BY_SLUG[sub];
+  }
+  const zipStripped = rawSlug.replace(/-\d{5}$/, '');
+  if (zipStripped !== rawSlug && FRENCH_CITY_BY_SLUG[zipStripped]) {
+    return FRENCH_CITY_BY_SLUG[zipStripped];
+  }
+
   return null;
 }
 
-export function getMajorCityPathForStationId(stationId?: string, stationName?: string): string | null {
+export function getMajorCityPathForStationId(
+  stationId?: string,
+  stationName?: string
+): string | null {
   if (!stationId && !stationName) return null;
-  const byId = MAJOR_FRENCH_CITY_SEO_LIST.find((c) => c.stationId === stationId);
-  if (byId) return byId.path;
+  if (stationId && FRENCH_CITY_BY_STATION_ID[stationId]) {
+    return FRENCH_CITY_BY_STATION_ID[stationId].path;
+  }
   if (stationName) {
+    const cleanSlug = slugifyCityName(cleanLocalityTitleName(stationName));
+    if (cleanSlug && FRENCH_CITY_BY_SLUG[cleanSlug]) {
+      return FRENCH_CITY_BY_SLUG[cleanSlug].path;
+    }
     const cleanName = stationName.toLowerCase().trim();
     const byName = MAJOR_FRENCH_CITY_SEO_LIST.find(
       (c) =>
@@ -1256,321 +1250,363 @@ export function getMajorCityPathForStationId(stationId?: string, stationName?: s
 }
 
 /**
- * Normalise un chemin URL et retourne les métadonnées SEO correspondantes
- * dans la langue demandée (fr, en, de, es, it, pt, nl, ar, zh-CN, ja, ru, uk) avec le nom du site traduit.
+ * Retourne l'URL cible d'une redirection 301 pour :
+ * - Slashes finaux (hors '/')
+ * - Paramètres ?hl=en / ?lang=en -> préfixe /en/...
+ * - Paramètres ?hl=<autre> / ?lang=<autre> -> nettoyage du paramètre
+ * - Tous les alias thématiques (THEMATIC_URL_ALIASES) et alias de villes (ALL_CITY_URL_ALIASES)
+ * Retourne null si l'URL est déjà sous forme canonique (ou si c'est un asset/API ou un 404 sans slash final).
  */
-export function getSeoDataForPath(rawPathname: string, lang: string = 'fr'): PageSeoMetadata {
-  const locale = normalizeSupportedLocale(lang);
-  const isFr = locale === 'fr';
-  const map: Record<string, PageSeoMetadata> = isFr
-    ? SEO_PAGES_MAP
-    : { ...SEO_PAGES_MAP_EN, ...MAJOR_CITY_SEO_MAP_EN };
+export function getAliasRedirectTarget(
+  rawPathname: string,
+  rawSearch: string = ''
+): string | null {
+  const pathname = (rawPathname || '/').split('?')[0].split('#')[0];
+  const lower = pathname.toLowerCase();
 
-  let cleanPath = (rawPathname || '/').split('?')[0].split('#')[0].trim();
-  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
-    cleanPath = cleanPath.slice(0, -1);
-  }
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = '/' + cleanPath;
-  }
-  if (cleanPath.toLowerCase().startsWith('/meteo-') && MAJOR_FRENCH_CITY_SEO_LIST.some((c) => c.path === '/' + cleanPath.slice(7).toLowerCase())) {
-    cleanPath = '/' + cleanPath.slice(7).toLowerCase();
-  }
-  if (CITY_URL_ALIASES[cleanPath.toLowerCase()]) {
-    cleanPath = CITY_URL_ALIASES[cleanPath.toLowerCase()];
+  // Ne jamais rediriger les endpoints techniques, fichiers statiques (sauf .html historiques ciblés) ou sitemaps
+  if (
+    lower.startsWith('/api/') ||
+    lower === '/health' ||
+    lower.startsWith('/assets/') ||
+    lower === '/robots.txt' ||
+    lower === '/ads.txt' ||
+    lower === '/version.json' ||
+    lower === '/service-worker.js' ||
+    lower === '/manifest.webmanifest' ||
+    lower === '/manifest.json' ||
+    lower === '/skymap-embed.html' ||
+    /^\/google[a-z0-9_-]+\.html$/i.test(lower) ||
+    /^\/sitemap.*\.xml$/i.test(lower) ||
+    (/\.[a-z0-9]{2,6}$/i.test(lower) && lower !== '/skymap.html' && lower !== '/paratonnerre.html')
+  ) {
+    return null;
   }
 
-  // Alias historiques éventuels redirigés vers la bonne configuration SEO
-  const aliases: Record<string, string> = {
-    '/accueil': '/',
-    '/home': '/',
-    '/skymap3d': '/skymap',
-    '/carte-3d': '/skymap',
-    '/ciel-3d': '/skymap',
-    '/meteo-en-direct': '/direct',
-    '/temps-reel': '/direct',
-    '/radar-pluie': '/radar',
-    '/radar-meteo': '/radar',
-    '/vigilance': '/vigilances',
-    '/alertes': '/vigilances',
-    '/nuage': '/nuages',
-    '/satellite': '/nuages',
-    '/nephologie': '/nuages',
-    '/modeles': '/nuages',
-    '/modele': '/nuages',
-    '/modeles-meteo': '/nuages',
-    '/previsions': '/14-jours',
-    '/previsions-14-jours': '/14-jours',
-    '/previsions-15-jours': '/14-jours',
-    '/previsions-meteo': '/14-jours',
-    '/tendances': '/14-jours',
-    '/montagne': '/montagne-plages-nature',
-    '/neige': '/montagne-plages-nature',
-    '/ski': '/montagne-plages-nature',
-    '/meteo-montagne': '/montagne-plages-nature',
-    '/plages': '/montagne-plages-nature',
-    '/plage': '/montagne-plages-nature',
-    '/littoral': '/montagne-plages-nature',
-    '/mer': '/montagne-plages-nature',
-    '/marees': '/montagne-plages-nature',
-    '/meteo-des-plages': '/montagne-plages-nature',
-    '/secheresse-incendie': '/montagne-plages-nature',
-    '/vigi-secheresse-incendie': '/montagne-plages-nature',
-    '/secheresse': '/montagne-plages-nature',
-    '/incendie': '/montagne-plages-nature',
-    '/feux': '/montagne-plages-nature',
-    '/qualite-air': '/montagne-plages-nature',
-    '/cours-d-eau': '/montagne-plages-nature',
-    '/vigicrues': '/montagne-plages-nature',
-    '/crues': '/montagne-plages-nature',
-    '/rivieres': '/montagne-plages-nature',
-    '/cartes': '/cartes-thematiques',
-    '/carte-france': '/cartes-thematiques',
-    '/comparateur': '/cartes-thematiques',
-    '/sports': '/skymap',
-    '/sport': '/skymap',
-    '/route': '/skymap',
-    '/trajets': '/skymap',
-    '/bulletin': '/bulletins',
-    '/4-semaines': '/bulletins',
-    '/methodologie': '/',
-    '/archive': '/archives',
-    '/historique': '/archives',
-    '/histoire': '/archives',
-    '/records': '/archives',
-    '/normales': '/archives',
-    '/monde': '/monde-catastrophes',
-    '/catastrophes': '/monde-catastrophes',
-    '/saisonnier': '/climat',
-    '/8-mois': '/climat',
-    '/evolution-climatique': '/climat',
-    '/observations': '/communaute',
-    '/forum': '/communaute',
-    '/quiz': '/competition',
-    '/jeu': '/competition',
-    '/jeu-meteo': '/competition',
-  };
+  const normalizedSearchStr = rawSearch.startsWith('?')
+    ? rawSearch.slice(1)
+    : rawSearch;
+  const searchParams = new URLSearchParams(normalizedSearchStr);
+  const rawLangParam = searchParams.get('hl') || searchParams.get('lang');
+  const hasLangQueryParam = searchParams.has('hl') || searchParams.has('lang');
+  const langParamRequestsEn = Boolean(
+    rawLangParam && /^en\b/i.test(rawLangParam.trim())
+  );
+  searchParams.delete('hl');
+  searchParams.delete('lang');
+  const remainingQuery = searchParams.toString();
+  const querySuffix = remainingQuery ? `?${remainingQuery}` : '';
 
-  let resolvedPath = map[cleanPath]
-    ? cleanPath
-    : aliases[cleanPath] && map[aliases[cleanPath]]
-      ? aliases[cleanPath]
-      : '';
+  const { locale: prefixLocale, path: basePath } = stripLocalePrefix(pathname);
+  const targetLocale: SupportedLocaleCode = langParamRequestsEn
+    ? 'en'
+    : prefixLocale;
 
-  if (!resolvedPath) {
-    const cityCfg = getMajorCityConfigFromPath(cleanPath);
-    if (cityCfg) {
-      if (!SEO_PAGES_MAP[cityCfg.path]) {
-        const postal = cityCfg.postalCode || (cityCfg.deptCode ? `${cityCfg.deptCode}000` : '');
-        const cityWithPostal = postal ? `${cityCfg.cityName} ${postal}` : cityCfg.cityName;
-        SEO_PAGES_MAP[cityCfg.path] = {
-          slug: cityCfg.slug,
-          path: cityCfg.path,
-          canonicalUrl: `${BASE_SITE_URL}${cityCfg.path}`,
-          title: `Météo ${cityWithPostal} — Prévisions & Radar | Instant Météo`,
-          description: `Météo ${cityWithPostal} en direct : température, pluie dans l'heure par radar HD, prévisions 48h et 14 jours, alertes météo officielles. 100% gratuit.`,
-          h1: `Météo ${cityWithPostal} — Observations en direct et prévisions à 14 jours`,
-          sectionTitle: `Climatologie locale, prévisions heure par heure et radar pluie à ${cityCfg.cityName}`,
-          breadcrumbName: `Météo ${cityCfg.cityName}`,
-          tabId: 'realtime',
-          changefreq: 'always',
-          priority: '0.95',
-          introParagraph: `Suivez en temps réel la météo à ${cityCfg.cityName} (${cityCfg.department}, région ${cityCfg.region}, altitude ${cityCfg.altitude} m). Retrouvez la température sous abri, le ressenti thermique, le risque de pluie dans l'heure par radar Doppler, le chronogramme 48 heures et la tendance complète à 7 et 14 jours.`,
-          sections: [
-            {
-              heading: `Spécificités climatiques de ${cityCfg.cityName} (${cityCfg.region})`,
-              body: `Située à ${cityCfg.altitude} mètres d'altitude dans le département ${cityCfg.department}, la commune de ${cityCfg.cityName} bénéficie d'un suivi haute résolution AROME et ECMWF actualisé en continu.`,
-            },
-            {
-              heading: `Suivi des précipitations et radar de pluie sur ${cityCfg.cityName}`,
-              body: `Le nowcasting chirurgical (< 3h) et le radar des pluies permettent d'anticiper minute par minute le passage des averses, des fronts pluvieux et des cellules orageuses au-dessus de ${cityCfg.cityName}.`,
-            },
-            {
-              heading: `Records climatiques à la station de référence de ${cityCfg.cityName}`,
-              body: `D'après les relevés climatiques officiels, le record de chaleur s'établit à +${cityCfg.recordMax}°C, le record de froid à ${cityCfg.recordMin}°C et le cumul maximal en 24h à ${cityCfg.recordRain24h} mm.`,
-            },
-          ],
-          faq: [
-            {
-              question: `Quel temps fait-il actuellement à ${cityCfg.cityName} ?`,
-              answer: `Consultez la météo en direct en haut de cette page pour ${cityCfg.cityName} : température, ressenti au vent, humidité, rafales et pression atmosphérique.`,
-            },
-            {
-              question: `Va-t-il pleuvoir dans l'heure à ${cityCfg.cityName} ?`,
-              answer: `Le module Pluie dans l'heure analyse les échos radar Doppler en direct toutes les 5 minutes pour ${cityCfg.cityName}.`,
-            },
-            {
-              question: `Quelles sont les prévisions météo à 14 jours pour ${cityCfg.cityName} ?`,
-              answer: `Le tableau de prévisions quotidiennes détaille les températures, probabilités de précipitations et vent jour par jour pour ${cityCfg.cityName}.`,
-            },
-          ],
-        };
-        MAJOR_CITY_SEO_MAP_EN[cityCfg.path] = buildCitySeoConfigEn(cityCfg);
-      }
-      resolvedPath = cityCfg.path;
-    } else {
-      resolvedPath = '/';
+  let resolvedBasePath = basePath;
+  let isAliasMatched = false;
+
+  if (THEMATIC_URL_ALIASES[basePath]) {
+    resolvedBasePath = THEMATIC_URL_ALIASES[basePath];
+    isAliasMatched = true;
+  } else if (ALL_CITY_URL_ALIASES[basePath]) {
+    resolvedBasePath = ALL_CITY_URL_ALIASES[basePath];
+    isAliasMatched = true;
+  } else if (basePath.startsWith('/meteo-')) {
+    const candidate = basePath.slice('/meteo-'.length).replace(/-\d{5}$/, '');
+    if (FRENCH_CITY_BY_SLUG[candidate]) {
+      resolvedBasePath = FRENCH_CITY_BY_SLUG[candidate].path;
+      isAliasMatched = true;
+    }
+  } else {
+    const zipMatch = basePath.match(/^\/([a-z0-9-]+)-(\d{5})$/);
+    if (zipMatch && FRENCH_CITY_BY_SLUG[zipMatch[1]]) {
+      resolvedBasePath = FRENCH_CITY_BY_SLUG[zipMatch[1]].path;
+      isAliasMatched = true;
     }
   }
 
-  const baseSeo = map[resolvedPath] || SEO_PAGES_MAP[resolvedPath] || SEO_PAGES_MAP['/'];
-  if (locale === 'fr' || locale === 'en') {
-    return baseSeo;
+  const targetPathname = buildLocalizedPath(resolvedBasePath, targetLocale);
+  const hadTrailingSlash = pathname !== '/' && pathname.endsWith('/');
+  const hadUppercase = pathname !== lower;
+
+  if (isAliasMatched || hasLangQueryParam || hadTrailingSlash || hadUppercase) {
+    const targetFull = `${targetPathname}${querySuffix}`;
+    const originalFull = `${pathname}${normalizedSearchStr ? `?${normalizedSearchStr}` : ''}`;
+    if (targetFull !== originalFull) {
+      return targetFull;
+    }
   }
 
-  // Pour les 10 autres langues (de, es, it, pt, nl, ar, zh-CN, ja, ru, uk),
-  // adapte automatiquement le nom du site et les balises de la page dans la langue choisie
-  const brand = getSiteBrandForLocale(locale);
-  if (resolvedPath === '/') {
-    return {
-      ...baseSeo,
-      title: brand.homeTitle,
-      description: brand.homeDescription,
-      h1: brand.homeH1,
-      breadcrumbName: brand.homeBreadcrumb,
-      introParagraph: `${brand.brandFull} (${brand.brandName}) — ${baseSeo.introParagraph}`,
-    };
-  }
-
-  return {
-    ...baseSeo,
-    title: baseSeo.title.replace(/\|\s*Instant (?:Weather|Météo).*$/i, `| ${brand.brandName}`),
-    description: `${brand.brandName}: ${baseSeo.description}`,
-    h1: `${brand.brandName} — ${baseSeo.h1}`,
-  };
+  return null;
 }
 
 /**
- * Retourne le chemin URL canonique associé à un onglet de navigation interne.
+ * Vérifie strictement si une URL de page HTML correspond à une route canonique existante
+ * (une des 15 pages thématiques OU une commune réelle du catalogue).
+ * Toute URL inventée (ex: /blabla, /en/blabla, /foo/bar) renvoie false -> 404.
+ */
+export function isValidSeoPath(rawPathname: string): boolean {
+  const { path } = stripLocalePrefix(rawPathname);
+  if (SEO_PAGES_MAP[path]) {
+    return true;
+  }
+  const slug = path.slice(1);
+  if (!slug || slug.includes('/')) {
+    return false;
+  }
+  return Boolean(FRENCH_CITY_BY_SLUG[slug]);
+}
+
+/**
+ * Retourne les métadonnées SEO correspondantes pour une URL valide (FR ou EN).
+ */
+export function getSeoDataForPath(
+  rawPathname: string,
+  lang?: string
+): PageSeoMetadata {
+  const { locale: pathLocale, path: cleanBasePath } = stripLocalePrefix(rawPathname);
+  const locale = lang ? normalizeSupportedLocale(lang) : pathLocale;
+
+  let resolvedBase = cleanBasePath;
+  if (!SEO_PAGES_MAP[resolvedBase]) {
+    if (THEMATIC_URL_ALIASES[resolvedBase]) {
+      resolvedBase = THEMATIC_URL_ALIASES[resolvedBase];
+    } else if (ALL_CITY_URL_ALIASES[resolvedBase]) {
+      resolvedBase = ALL_CITY_URL_ALIASES[resolvedBase];
+    }
+  }
+
+  if (SEO_PAGES_MAP[resolvedBase]) {
+    const staticSeo =
+      locale === 'en' && SEO_PAGES_MAP_EN[resolvedBase]
+        ? SEO_PAGES_MAP_EN[resolvedBase]
+        : SEO_PAGES_MAP[resolvedBase];
+    return staticSeo;
+  }
+
+  const cityCfg = getMajorCityConfigFromPath(resolvedBase);
+  if (cityCfg) {
+    return locale === 'en'
+      ? buildCitySeoConfigEn(cityCfg)
+      : buildCitySeoConfigFr(cityCfg);
+  }
+
+  return locale === 'en' ? SEO_PAGES_MAP_EN['/'] : SEO_PAGES_MAP['/'];
+}
+
+/**
+ * Retourne le chemin URL canonique associé à un onglet de navigation interne,
+ * en conservant le préfixe /en si la page courante est en anglais.
  */
 export function getPathForTabId(tabId: string, currentPath?: string): string {
-  const rawCurrent = currentPath !== undefined ? currentPath : typeof window !== 'undefined' ? window.location.pathname : '';
-  const cleanCurrent = rawCurrent.length > 1 && rawCurrent.endsWith('/') ? rawCurrent.slice(0, -1) : rawCurrent;
+  const rawCurrent =
+    currentPath !== undefined
+      ? currentPath
+      : typeof window !== 'undefined'
+        ? window.location.pathname
+        : '/';
+  const { locale, path: baseCurrent } = stripLocalePrefix(rawCurrent);
 
+  let baseTarget = '/';
   if (tabId === 'realtime') {
-    const cityCfg = getMajorCityConfigFromPath(cleanCurrent);
-    if (cityCfg) return cityCfg.path;
-    return cleanCurrent === '/direct' ? '/direct' : '/';
-  }
-  if (tabId === 'skymap') {
-    return '/skymap';
-  }
-  if (tabId === 'radar') {
-    return cleanCurrent === '/cartes-thematiques' ? '/cartes-thematiques' : '/radar';
+    const cityCfg = getMajorCityConfigFromPath(baseCurrent);
+    if (cityCfg) {
+      baseTarget = cityCfg.path;
+    } else {
+      baseTarget = baseCurrent === '/direct' ? '/direct' : '/';
+    }
+  } else if (tabId === 'skymap') {
+    baseTarget = '/skymap';
+  } else if (tabId === 'radar') {
+    baseTarget =
+      baseCurrent === '/cartes-thematiques' ? '/cartes-thematiques' : '/radar';
+  } else {
+    const tabToPath: Record<string, string> = {
+      skymap: '/skymap',
+      vigilance: '/vigilances',
+      cloudNephology: '/nuages',
+      scenarios14d: '/14-jours',
+      natureTerritories: '/montagne-plages-nature',
+      mountain: '/montagne-plages-nature',
+      beaches: '/montagne-plages-nature',
+      droughtFire: '/montagne-plages-nature',
+      watercourses: '/montagne-plages-nature',
+      franceMap: '/cartes-thematiques',
+      bulletin: '/bulletins',
+      fourWeeks: '/bulletins',
+      nationalDigest: '/bulletins',
+      historicalTrends: '/archives',
+      weatherArchive: '/archives',
+      historicalArchive: '/archives',
+      historical: '/archives',
+      anomalies: '/climat',
+      worldDisasters: '/monde-catastrophes',
+      eightMonths: '/climat',
+      projections: '/climat',
+      discussionGroup: '/communaute',
+      competitive: '/competition',
+      altitude: '/montagne-plages-nature',
+    };
+    baseTarget = tabToPath[tabId] || '/';
   }
 
-  const tabToPath: Record<string, string> = {
-    skymap: '/skymap',
-    vigilance: '/vigilances',
-    cloudNephology: '/nuages',
-    scenarios14d: '/14-jours',
-    natureTerritories: '/montagne-plages-nature',
-    mountain: '/montagne-plages-nature',
-    beaches: '/montagne-plages-nature',
-    droughtFire: '/montagne-plages-nature',
-    watercourses: '/montagne-plages-nature',
-    franceMap: '/cartes-thematiques',
-    bulletin: '/bulletins',
-    fourWeeks: '/bulletins',
-    nationalDigest: '/bulletins',
-    historicalTrends: '/archives',
-    weatherArchive: '/archives',
-    historicalArchive: '/archives',
-    historical: '/archives',
-    anomalies: '/climat',
-    worldDisasters: '/monde-catastrophes',
-    eightMonths: '/climat',
-    projections: '/climat',
-    discussionGroup: '/communaute',
-    competitive: '/competition',
-    altitude: '/montagne-plages-nature',
-  };
-
-  return tabToPath[tabId] || '/';
+  return buildLocalizedPath(baseTarget, locale);
 }
 
 /**
  * Retourne l'identifiant d'onglet React correspondant à l'URL visitée.
  */
 export function getTabIdForPath(pathname: string): string {
-  const clean = (pathname || '/').split('?')[0].split('#')[0].trim().toLowerCase();
-  if (clean === '/skymap' || clean === '/skymap3d' || clean === '/carte-3d' || clean === '/ciel-3d') {
+  const { path } = stripLocalePrefix(pathname);
+  if (
+    path === '/skymap' ||
+    path === '/skymap3d' ||
+    path === '/carte-3d' ||
+    path === '/ciel-3d'
+  ) {
     return 'skymap';
   }
-  const seo = getSeoDataForPath(pathname);
+  const seo = getSeoDataForPath(path);
   return seo.tabId;
 }
 
 /**
- * Génère les balises HTML <link rel="alternate" hreflang="..."> pour signaler
- * toutes les versions linguistiques et régionales à Google.
+ * Génère les balises HTML <link rel="alternate" hreflang="..."> cohérentes à 100% avec les sitemaps :
+ * uniquement fr, en et x-default (vers l'URL française par défaut).
  */
-export function generateHreflangLinksHtml(canonicalUrl: string): string {
-  const links = SUPPORTED_HREFLANG_LOCALES.map(
-    ({ hreflang, param }) =>
-      `    <link rel="alternate" hreflang="${hreflang}" href="${canonicalUrl}${param}" />`
-  );
-  links.push(`    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}" />`);
-  return links.join('\n');
+export function generateHreflangLinksHtml(basePathOrUrl: string): string {
+  const cleanedInput = basePathOrUrl.startsWith(BASE_SITE_URL)
+    ? basePathOrUrl.slice(BASE_SITE_URL.length) || '/'
+    : basePathOrUrl;
+  const { path: basePath } = stripLocalePrefix(cleanedInput);
+
+  const frUrl = buildLocalizedUrl(basePath, 'fr');
+  const enUrl = buildLocalizedUrl(basePath, 'en');
+
+  return [
+    `    <link rel="alternate" hreflang="fr" href="${frUrl}" />`,
+    `    <link rel="alternate" hreflang="en" href="${enUrl}" />`,
+    `    <link rel="alternate" hreflang="x-default" href="${frUrl}" />`,
+  ].join('\n');
 }
 
 /**
- * Génère le Sitemap XML officiel, propre et conforme aux spécifications Google & sitemaps.org :
- * - Uniquement des URLs canoniques dans les balises <loc>
- * - Balises <lastmod> dynamiques au format ISO YYYY-MM-DD
- * - Balises <changefreq> et <priority> adaptées à chaque page
- * - Uniquement les langues française (fr) et anglaise (en) + x-default dans <xhtml:link>
- * - Uniquement les 15 pages thématiques principales + les 10 plus grandes métropoles françaises
+ * Génère le fichier robots.txt unique (utilisé par public/robots.txt, Express et Cloudflare Worker).
  */
-export function generateSitemapXml(): string {
-  const seenUrls = new Set<string>();
-  const uniquePages: PageSeoMetadata[] = [];
-  for (const page of Object.values(SEO_PAGES_MAP)) {
-    if (page && page.canonicalUrl && !seenUrls.has(page.canonicalUrl)) {
-      seenUrls.add(page.canonicalUrl);
-      uniquePages.push(page);
-    }
-  }
+export function generateRobotsTxt(): string {
+  return [
+    '# ROBOTS.TXT OFFICIEL - INSTANT MÉTÉO FRANCE',
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    'Disallow: /assets/aistudio/',
+    'Disallow: /skymap-embed.html',
+    'Disallow: /version.json',
+    '',
+    `Sitemap: ${BASE_SITE_URL}/sitemap.xml`,
+    '',
+  ].join('\n');
+}
 
-  const todayDate = new Date().toISOString().split('T')[0];
+function buildSitemapUrlBlock(basePath: string): string {
+  const frUrl = buildLocalizedUrl(basePath, 'fr');
+  const enUrl = buildLocalizedUrl(basePath, 'en');
+  const xhtmlLinks = [
+    `    <xhtml:link rel="alternate" hreflang="fr" href="${frUrl}" />`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${enUrl}" />`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${frUrl}" />`,
+  ].join('\n');
+
+  return (
+    `  <url>\n` +
+    `    <loc>${frUrl}</loc>\n` +
+    `${xhtmlLinks}\n` +
+    `  </url>\n` +
+    `  <url>\n` +
+    `    <loc>${enUrl}</loc>\n` +
+    `${xhtmlLinks}\n` +
+    `  </url>`
+  );
+}
+
+/**
+ * Génère le Sitemap Index principal (/sitemap.xml) pointant vers :
+ * - /sitemap-pages.xml (les 15 pages thématiques FR + EN)
+ * - /sitemap-dept-XX.xml (les communes réelles par département FR + EN)
+ * Sans <lastmod>, <changefreq> ni <priority>.
+ */
+export function generateSitemapIndexXml(): string {
+  const deptCodes = getAvailableSitemapDepartmentCodes();
+  const entries = [
+    `  <sitemap>\n    <loc>${BASE_SITE_URL}/sitemap-pages.xml</loc>\n  </sitemap>`,
+    ...deptCodes.map(
+      (code) =>
+        `  <sitemap>\n    <loc>${BASE_SITE_URL}/sitemap-dept-${code}.xml</loc>\n  </sitemap>`
+    ),
+  ];
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</sitemapindex>\n`;
+}
+
+/**
+ * Compatibilité descendante pour les imports existants
+ */
+export const generateSitemapXml = generateSitemapIndexXml;
+
+/**
+ * Génère le sitemap des 15 pages thématiques (/sitemap-pages.xml) en versions FR et /en/...
+ */
+export function generatePagesSitemapXml(): string {
+  const seenPaths = new Set<string>();
   const urlEntries: string[] = [];
 
-  for (const page of uniquePages) {
-    const canonical = page.canonicalUrl;
-    const hreflangTags = [
-      ...SITEMAP_HREFLANG_LOCALES.map(
-        ({ hreflang, param }) =>
-          `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${canonical}${param}" />`
-      ),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${canonical}" />`,
-    ].join('\n');
-
-    urlEntries.push(
-      `  <url>\n` +
-      `    <loc>${canonical}</loc>\n` +
-      `    <lastmod>${todayDate}</lastmod>\n` +
-      `    <changefreq>${page.changefreq || 'daily'}</changefreq>\n` +
-      `    <priority>${page.priority || '0.80'}</priority>\n` +
-      `${hreflangTags}\n` +
-      `  </url>`
-    );
+  for (const page of Object.values(SEO_PAGES_MAP)) {
+    if (!page || !page.path || seenPaths.has(page.path)) continue;
+    seenPaths.add(page.path);
+    urlEntries.push(buildSitemapUrlBlock(page.path));
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries.join('\n')}\n</urlset>\n`;
 }
 
 /**
- * Génère le graphe JSON-LD Schema.org (WebSite + WebPage + BreadcrumbList + FAQPage) propre à la page et à la langue active.
- * Le nom du site (WebSite.name, Organization.name) change dynamiquement selon la langue (Instant Météo en FR, Instant Weather en EN, Instant Wetter en DE, etc.).
+ * Génère le sitemap d'un département donné (/sitemap-dept-XX.xml) pour ses communes réelles (FR + EN).
+ * Retourne null si le code département n'existe pas dans le catalogue.
  */
-export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'): string {
+export function generateDepartmentSitemapXml(deptCode: string): string | null {
+  const cleanCode = (deptCode || '').trim().toUpperCase();
+  const cities = FRENCH_CITIES_BY_DEPT[cleanCode];
+  if (!cities || cities.length === 0) {
+    return null;
+  }
+
+  const urlEntries = cities.map((city) => buildSitemapUrlBlock(city.path));
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries.join('\n')}\n</urlset>\n`;
+}
+
+/**
+ * Génère le graphe JSON-LD Schema.org propre à la page et à la langue active :
+ * - @id unifiés (#website, #organization, #webapp, ${localizedPageUrl}#webpage, ${localizedPageUrl}#breadcrumb)
+ * - Organization.sameAs vers Discord officiel uniquement (pas d'auto-référence)
+ * - BreadcrumbList à 1 élément sur l'accueil, 2 sur les sous-pages/villes
+ * - Aucun SearchAction ni FAQPage
+ */
+export function generatePageJsonLd(
+  seoData: PageSeoMetadata,
+  lang: string = 'fr'
+): string {
   const locale = normalizeSupportedLocale(lang);
   const brand = getSiteBrandForLocale(locale);
-  const langParam = locale === 'fr' ? '' : `?hl=${locale}`;
-  const localizedHomeUrl = `${BASE_SITE_URL}/${langParam}`;
-  const localizedPageUrl = `${seoData.canonicalUrl}${langParam}`;
+  const localizedHomeUrl = buildLocalizedUrl('/', locale);
+  const localizedPageUrl = buildLocalizedUrl(seoData.path, locale);
+  const ogImageUrl = getPageOgImageUrl(seoData);
 
-  const breadcrumbItems: any[] = [
+  const breadcrumbItems: Array<{
+    '@type': 'ListItem';
+    position: number;
+    name: string;
+    item: string;
+  }> = [
     {
       '@type': 'ListItem',
       position: 1,
@@ -1593,51 +1629,53 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
     '@graph': [
       {
         '@type': 'WebSite',
-        '@id': `${BASE_SITE_URL}/#website-${locale}`,
+        '@id': `${BASE_SITE_URL}/#website`,
         url: localizedHomeUrl,
         name: brand.brandFull,
-        alternateName: [
-          brand.brandFull,
-          brand.brandName,
-          'Instant Météo',
-          'Instant Weather',
-        ],
+        alternateName: ['Instant Météo', 'Instant Weather'],
         description: brand.homeDescription,
         isAccessibleForFree: true,
         inLanguage: brand.inLanguage,
-      },
-      {
-        '@type': 'WebApplication',
-        '@id': `${BASE_SITE_URL}/#webapp-${locale}`,
-        name: brand.brandFull,
-        url: localizedHomeUrl,
-        applicationCategory: 'WeatherApplication',
-        operatingSystem: 'All',
-        isAccessibleForFree: true,
-        description:
-          'Service météo en direct, radar de pluie haute résolution et prévisions fiables pour toutes les communes de France. Gratuit et sans publicité.',
-        featureList: [
-          'Prévisions météo 100 % gratuites et sans abonnement',
-          'Radar de pluie haute résolution et suivi en temps réel',
-          'Données ouvertes publiques (Open Data Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)',
-        ],
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-        },
       },
       {
         '@type': 'Organization',
         '@id': `${BASE_SITE_URL}/#organization`,
         name: brand.brandFull,
         alternateName: brand.brandName,
-        url: localizedHomeUrl,
+        url: `${BASE_SITE_URL}/`,
         logo: {
           '@type': 'ImageObject',
           url: `${BASE_SITE_URL}/icon-512.png`,
           width: 512,
           height: 512,
+        },
+        sameAs: ['https://discord.gg/MjFDekSbnt'],
+      },
+      {
+        '@type': 'WebApplication',
+        '@id': `${BASE_SITE_URL}/#webapp`,
+        name: brand.brandFull,
+        url: localizedHomeUrl,
+        applicationCategory: 'WeatherApplication',
+        operatingSystem: 'All',
+        isAccessibleForFree: true,
+        description: brand.homeDescription,
+        featureList:
+          locale === 'en'
+            ? [
+                'Free real-time weather forecasts across French municipalities',
+                'High-resolution precipitation radar and severe weather tracking',
+                'Open data sources (Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)',
+              ]
+            : [
+                'Prévisions météo 100 % gratuites pour les communes de France',
+                'Radar de pluie haute résolution et suivi en temps réel',
+                'Données ouvertes publiques (Météo-France, ECMWF, Vigicrues, SHOM, Copernicus)',
+              ],
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'EUR',
         },
       },
       {
@@ -1647,27 +1685,22 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
         name: seoData.title,
         headline: seoData.h1,
         description: seoData.description,
+        primaryImageOfPage: {
+          '@type': 'ImageObject',
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+        },
         isAccessibleForFree: true,
-        isPartOf: { '@id': `${BASE_SITE_URL}/#website-${locale}` },
+        isPartOf: { '@id': `${BASE_SITE_URL}/#website` },
         about: { '@id': `${BASE_SITE_URL}/#organization` },
+        breadcrumb: { '@id': `${localizedPageUrl}#breadcrumb` },
         inLanguage: brand.inLanguage,
       },
       {
         '@type': 'BreadcrumbList',
         '@id': `${localizedPageUrl}#breadcrumb`,
         itemListElement: breadcrumbItems,
-      },
-      {
-        '@type': 'FAQPage',
-        '@id': `${localizedPageUrl}#faq`,
-        mainEntity: seoData.faq.map((item) => ({
-          '@type': 'Question',
-          name: item.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: item.answer,
-          },
-        })),
       },
     ],
   };
@@ -1677,15 +1710,17 @@ export function generatePageJsonLd(seoData: PageSeoMetadata, lang: string = 'fr'
 
 /**
  * Génère le bloc HTML sémantique complet propre à chaque URL (servi dès la réponse HTTP initiale)
- * afin que Googlebot reçoive immédiatement le vrai H1, le nom de site traduit et le texte unique de la page en tout début de document,
- * sans dilution par le menu de navigation qui est placé en pied de page.
+ * avec des liens basés sur les chemins (/... en français, /en/... en anglais).
  */
-export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string = 'fr'): string {
+export function generateStaticHtmlContent(
+  seoData: PageSeoMetadata,
+  lang: string = 'fr'
+): string {
   const locale = normalizeSupportedLocale(lang);
   const brand = getSiteBrandForLocale(locale);
   const isFr = locale === 'fr';
-  const langParam = isFr ? '' : `?hl=${locale}`;
-  const localizedCanonical = `${seoData.canonicalUrl}${langParam}`;
+  const localizedHomePath = buildLocalizedPath('/', locale);
+  const localizedCanonical = buildLocalizedUrl(seoData.path, locale);
   const pagesMap = isFr ? SEO_PAGES_MAP : SEO_PAGES_MAP_EN;
   const seenPaths = new Set<string>();
   const navLinks = Object.values(pagesMap)
@@ -1694,10 +1729,10 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
       seenPaths.add(page.path);
       return true;
     })
-    .map(
-      (page) =>
-        `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${page.path}${langParam}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`
-    )
+    .map((page) => {
+      const targetHref = buildLocalizedPath(page.path, locale);
+      return `<li style="display:inline-block;margin:3px 8px 3px 0;"><a href="${targetHref}" style="color:#38bdf8;text-decoration:underline;font-weight:500;">${page.breadcrumbName}</a></li>`;
+    })
     .join('\n              ');
 
   const sectionsHtml = seoData.sections
@@ -1720,25 +1755,12 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
     )
     .join('\n');
 
+  const frUrl = buildLocalizedUrl(seoData.path, 'fr');
+  const enUrl = buildLocalizedUrl(seoData.path, 'en');
   const languageFooterLinks = [
-    { code: 'fr', param: '', label: 'Français (Instant Météo)' },
-    { code: 'en', param: '?hl=en', label: 'English (Instant Weather)' },
-    { code: 'de', param: '?hl=de', label: 'Deutsch (Instant Wetter)' },
-    { code: 'es', param: '?hl=es', label: 'Español (Instant Clima)' },
-    { code: 'it', param: '?hl=it', label: 'Italiano (Instant Meteo)' },
-    { code: 'pt', param: '?hl=pt', label: 'Português (Instant Tempo)' },
-    { code: 'nl', param: '?hl=nl', label: 'Nederlands (Instant Weer)' },
-    { code: 'ar', param: '?hl=ar', label: 'العربية (طقس فوري)' },
-    { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (即时天气)' },
-    { code: 'ja', param: '?hl=ja', label: '日本語 (インスタント天気)' },
-    { code: 'ru', param: '?hl=ru', label: 'Русский (Мгновенная Погода)' },
-    { code: 'uk', param: '?hl=uk', label: 'Українська (Миттєва Погода)' },
-  ]
-    .map(
-      (l) =>
-        `<a href="${seoData.canonicalUrl}${l.param}" hreflang="${l.code}" style="color: #38bdf8;">${l.label}</a>`
-    )
-    .join(' | ');
+    `<a href="${frUrl}" hreflang="fr" style="color: #38bdf8;">Français (Instant Météo)</a>`,
+    `<a href="${enUrl}" hreflang="en" style="color: #38bdf8;">English (Instant Weather)</a>`,
+  ].join(' | ');
 
   const faqHeading = isFr
     ? `Questions fréquentes — ${seoData.breadcrumbName}`
@@ -1751,7 +1773,7 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
       <div class="seo-prerendered-content" style="max-width: 1140px; margin: 0 auto; padding: 28px 20px; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; background-color: #020617;">
         <header style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;">
           <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 10px 0;">
-            <a href="/${langParam}" style="color: #38bdf8; text-decoration: none; font-weight: 700;">${brand.brandFull}</a>
+            <a href="${localizedHomePath}" style="color: #38bdf8; text-decoration: none; font-weight: 700;">${brand.brandFull}</a>
             ${seoData.path !== '/' ? ` &rsaquo; <strong style="color: #f8fafc;">${seoData.breadcrumbName}</strong>` : ''}
           </p>
           <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin: 12px 0; line-height: 1.25;">${seoData.h1}</h1>
@@ -1780,3 +1802,121 @@ export function generateStaticHtmlContent(seoData: PageSeoMetadata, lang: string
         </footer>
       </div>`;
 }
+
+/**
+ * Génère le contenu HTML statique d'une vraie page 404 (noindex, nofollow).
+ */
+export function generateNotFoundHtmlContent(
+  rawPathname: string,
+  lang: string = 'fr'
+): string {
+  const locale = normalizeSupportedLocale(lang);
+  const isFr = locale === 'fr';
+  const brand = getSiteBrandForLocale(locale);
+  const homePath = buildLocalizedPath('/', locale);
+
+  return `
+      <div class="seo-prerendered-content" style="max-width: 760px; margin: 0 auto; padding: 64px 20px; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; background-color: #020617; text-align: center;">
+        <p style="font-size: 0.9rem; color: #38bdf8; font-weight: 700; margin-bottom: 8px;">${brand.brandFull} — 404</p>
+        <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin: 0 0 14px 0;">${isFr ? 'Page introuvable (404)' : 'Page Not Found (404)'}</h1>
+        <p style="font-size: 1rem; line-height: 1.6; color: #cbd5e1; margin: 0 0 24px 0;">
+          ${
+            isFr
+              ? `L’adresse demandée (${rawPathname}) ne correspond à aucune rubrique ou commune répertoriée sur Instant Météo.`
+              : `The requested URL (${rawPathname}) does not match any page or municipality listed on Instant Weather.`
+          }
+        </p>
+        <a href="${homePath}" style="display:inline-block;padding:12px 24px;border-radius:12px;background:#0284c7;color:#ffffff;font-weight:700;text-decoration:none;">
+          ${isFr ? 'Retour à l’accueil Instant Météo' : 'Back to Instant Weather Home'}
+        </a>
+      </div>`;
+}
+
+/**
+ * Localise le document autonome SkyMap (public/skymap.html) en français (/skymap)
+ * ou en anglais (/en/skymap) sans jamais altérer la carte MapLibre ni le JS embarqué.
+ */
+export function localizeSkyMapHtml(
+  rawHtml: string,
+  lang: string = 'fr'
+): string {
+  const locale = normalizeSupportedLocale(lang);
+  if (locale === 'fr') {
+    return rawHtml;
+  }
+
+  const brand = getSiteBrandForLocale('en');
+  const title = 'SkyMap 3D — Live 3D Weather Map & Sky | Instant Weather';
+  const description =
+    'Explore the interactive 3D SkyMap with live weather telemetry, mountain terrain relief, cloud cover, precipitation radar and real-time GPS tracking.';
+  const canonicalUrl = `${BASE_SITE_URL}/en/skymap`;
+  const ogImage = `${BASE_SITE_URL}/og-skymap.png`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${BASE_SITE_URL}/#website`,
+        url: `${BASE_SITE_URL}/en`,
+        name: brand.brandName,
+        inLanguage: 'en-US',
+      },
+      {
+        '@type': 'Organization',
+        '@id': `${BASE_SITE_URL}/#organization`,
+        name: brand.brandName,
+        url: `${BASE_SITE_URL}/`,
+        logo: `${BASE_SITE_URL}/icon-512.png`,
+        sameAs: ['https://discord.gg/MjFDekSbnt'],
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${canonicalUrl}#webpage`,
+        url: canonicalUrl,
+        name: title,
+        description,
+        primaryImageOfPage: ogImage,
+        isPartOf: { '@id': `${BASE_SITE_URL}/#website` },
+        about: { '@id': `${BASE_SITE_URL}/#organization` },
+        inLanguage: 'en-US',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: brand.brandName,
+            item: `${BASE_SITE_URL}/en`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'SkyMap 3D',
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ],
+  });
+
+  const seoBlock = `<!--SKYMAP_SEO_START--><meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}"><link rel="canonical" href="${canonicalUrl}"><link rel="alternate" hreflang="fr" href="${BASE_SITE_URL}/skymap"><link rel="alternate" hreflang="en" href="${canonicalUrl}"><link rel="alternate" hreflang="x-default" href="${BASE_SITE_URL}/skymap"><meta property="og:type" content="website"><meta property="og:site_name" content="${brand.brandName}"><meta property="og:locale" content="en_US"><meta property="og:locale:alternate" content="fr_FR"><meta property="og:url" content="${canonicalUrl}"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:image" content="${ogImage}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${ogImage}"><script type="application/ld+json" id="seo-page-jsonld">${jsonLd}</script><!--SKYMAP_SEO_END-->`;
+
+  let html = rawHtml;
+  html = html.replace(/<html\s+lang="fr"/i, '<html lang="en"');
+  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
+  html = html.replace(
+    /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="description" content="${description}">`
+  );
+  if (html.includes('<!--SKYMAP_SEO_START-->') && html.includes('<!--SKYMAP_SEO_END-->')) {
+    html = html.replace(
+      /<!--SKYMAP_SEO_START-->[\s\S]*?<!--SKYMAP_SEO_END-->/,
+      seoBlock
+    );
+  }
+  return html;
+}
+

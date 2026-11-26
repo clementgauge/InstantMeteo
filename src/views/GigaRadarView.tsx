@@ -419,7 +419,10 @@ export const GigaRadarView: React.FC<GigaRadarViewProps> = ({
               </button>
 
               <button
-                onClick={() => { window.location.href = '/skymap'; }}
+                onClick={() => {
+                  const isEn = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/');
+                  window.location.href = isEn ? '/en/skymap' : '/skymap';
+                }}
                 className="flex flex-col text-left p-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 transition group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">

@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, HelpCircle, ChevronDown, ChevronUp, ShieldCheck, Globe } from 'lucide-react';
-import { getSeoDataForPath, getPathForTabId, SEO_PAGES_MAP } from '../seo/pagesSeoData';
+import {
+  getSeoDataForPath,
+  getPathForTabId,
+  buildLocalizedPath,
+  SEO_PAGES_MAP,
+} from '../seo/pagesSeoData';
 import {
   getActiveSiteLocale,
   getNativeSiteLanguage,
@@ -16,19 +21,9 @@ interface SeoPageGuideCardProps {
   onNavigateRoute?: (path: string, tabId: string) => void;
 }
 
-const FOOTER_LANG_LINKS = [
-  { code: 'fr', param: '', label: 'Français (FR)' },
-  { code: 'en', param: '?hl=en', label: 'English (EN)' },
-  { code: 'de', param: '?hl=de', label: 'Deutsch (DE)' },
-  { code: 'es', param: '?hl=es', label: 'Español (ES)' },
-  { code: 'it', param: '?hl=it', label: 'Italiano (IT)' },
-  { code: 'pt', param: '?hl=pt', label: 'Português (PT)' },
-  { code: 'nl', param: '?hl=nl', label: 'Nederlands (NL)' },
-  { code: 'ar', param: '?hl=ar', label: 'العربية (AR)' },
-  { code: 'zh-CN', param: '?hl=zh-CN', label: '中文 (ZH)' },
-  { code: 'ja', param: '?hl=ja', label: '日本語 (JA)' },
-  { code: 'ru', param: '?hl=ru', label: 'Русский (RU)' },
-  { code: 'uk', param: '?hl=uk', label: 'Українська (UK)' },
+const FOOTER_LANG_LINKS: Array<{ code: SupportedLocaleCode; label: string }> = [
+  { code: 'fr', label: 'Français (FR)' },
+  { code: 'en', label: 'English (EN)' },
 ];
 
 export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
@@ -164,14 +159,15 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
           </span>
           {allPages.map((page) => {
             const isCurrent = page.path === seoData.path;
+            const localizedHref = buildLocalizedPath(page.path, activeLocale);
             return (
               <a
                 key={page.path}
-                href={`${page.path}${nativeLang === 'en' ? '?hl=en' : ''}`}
+                href={localizedHref}
                 onClick={(e) => {
                   if (onNavigateRoute) {
                     e.preventDefault();
-                    onNavigateRoute(page.path, page.tabId);
+                    onNavigateRoute(localizedHref, page.tabId);
                   }
                 }}
                 className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
@@ -193,7 +189,7 @@ export const SeoPageGuideCard: React.FC<SeoPageGuideCardProps> = ({
             <React.Fragment key={l.code}>
               {idx > 0 && <span>&bull;</span>}
               <a
-                href={`${seoData.path}${l.param}`}
+                href={buildLocalizedPath(seoData.path, l.code)}
                 hrefLang={l.code}
                 onClick={(e) => {
                   e.preventDefault();

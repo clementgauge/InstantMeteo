@@ -30,7 +30,8 @@ export const BottomIconCarousel: React.FC<BottomIconCarouselProps> = ({
       ),
       badge: '3D VECTEUR',
       action: () => {
-        window.location.href = '/skymap';
+        const isEn = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/');
+        window.location.href = isEn ? '/en/skymap' : '/skymap';
       },
     },
     {

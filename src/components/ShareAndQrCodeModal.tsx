@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { LocationPoint } from '../types/weather';
+import { getActiveSiteLocale } from '../i18n/siteTranslations';
+import { buildLocalizedPath } from '../seo/pagesSeoData';
 
 interface ShareAndQrCodeModalProps {
   isOpen: boolean;
@@ -50,6 +52,8 @@ export const ShareAndQrCodeModal: React.FC<ShareAndQrCodeModalProps> = ({
     ? (currentStation.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
     : '';
 
+  const activeLocale = getActiveSiteLocale();
+
   // Get effective target URL
   let targetUrl = origin;
   if (useCustomUrl && customText.trim()) {
@@ -57,20 +61,20 @@ export const ShareAndQrCodeModal: React.FC<ShareAndQrCodeModalProps> = ({
   } else if (linkTarget === 'current') {
     targetUrl = typeof window !== 'undefined' ? window.location.href : origin;
   } else if (linkTarget === 'station' && stationSlug) {
-    targetUrl = `${origin}/${stationSlug}`;
+    targetUrl = `${origin}${buildLocalizedPath(`/${stationSlug}`, activeLocale)}`;
   } else if (linkTarget === 'radar') {
-    targetUrl = `${origin}/radar`;
+    targetUrl = `${origin}${buildLocalizedPath('/radar', activeLocale)}`;
   } else if (linkTarget === 'bulletin') {
-    targetUrl = `${origin}/bulletins`;
+    targetUrl = `${origin}${buildLocalizedPath('/bulletins', activeLocale)}`;
   } else {
-    targetUrl = origin;
+    targetUrl = `${origin}${buildLocalizedPath('/', activeLocale)}`;
   }
 
   const shareTitle = currentStation 
     ? `Météo ${currentStation.name} en direct • Instant Météo`
     : `Instant Météo • Prévisions & Radar Pluie en Direct`;
 
-  const shareDescription = `Consultez la météo en direct, le radar de pluie haute résolution et les prévisions fiables sans publicité sur Instant Météo.`;
+  const shareDescription = `Consultez la météo en direct, le radar de pluie haute résolution et les prévisions fiables sur Instant Météo.`;
 
   // Native navigator.share
   const handleNativeShare = async () => {
@@ -181,7 +185,7 @@ export const ShareAndQrCodeModal: React.FC<ShareAndQrCodeModalProps> = ({
 
   // Social share URLs
   const encodedUrl = encodeURIComponent(targetUrl);
-  const encodedTitle = encodeURIComponent(`${shareTitle} — Service météo sans pub`);
+  const encodedTitle = encodeURIComponent(`${shareTitle} — Service météo 100 % gratuit`);
   
   const shareLinks = [
     {
@@ -231,7 +235,7 @@ export const ShareAndQrCodeModal: React.FC<ShareAndQrCodeModalProps> = ({
                 {activeTab === 'share' ? 'Partager Instant Météo' : 'QR Code d\'accès direct'}
               </h2>
               <p className="text-xs text-slate-400">
-                100 % gratuit, sans publicité, accessible sur tous supports
+                100 % gratuit, données ouvertes, accessible sur tous supports
               </p>
             </div>
           </div>
