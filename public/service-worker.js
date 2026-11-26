@@ -27,16 +27,16 @@ function openOfflineDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(STORE_RAW_API)) {
-        rawStore = db.createObjectStore(STORE_RAW_API, { keyPath: 'url' });
+        const rawStore = db.createObjectStore(STORE_RAW_API, { keyPath: 'url' });
         rawStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
       if (!db.objectStoreNames.contains(STORE_FORECASTS)) {
-        forecastStore = db.createObjectStore(STORE_FORECASTS, { keyPath: 'key' });
+        const forecastStore = db.createObjectStore(STORE_FORECASTS, { keyPath: 'key' });
         forecastStore.createIndex('stationId', 'stationId', { unique: false });
         forecastStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
       if (!db.objectStoreNames.contains('cached_stations')) {
-        stationStore = db.createObjectStore('cached_stations', { keyPath: 'id' });
+        const stationStore = db.createObjectStore('cached_stations', { keyPath: 'id' });
         stationStore.createIndex('lastAccessed', 'lastAccessed', { unique: false });
       }
     };

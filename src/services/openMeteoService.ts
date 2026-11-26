@@ -1288,6 +1288,67 @@ function setCachedData<T>(key: string, data: T, stationId?: string): void {
   }
 }
 
+const inFlightWeatherRequests = new Map<string, Promise<{
+  current: CurrentWeather;
+  hourly: HourlyForecast[];
+  daily: DailyForecast[];
+  anomaly: ClimateAnomaly;
+  isFromCache?: boolean;
+  cachedAt?: string;
+}>>();
+
+async function fetchJsonWithTimeoutResilient(url: string, timeoutMs = 10000): Promise<any | null> {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!json || json.error || !json.current) return null;
+    return json;
+  } catch {
+    return null;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function fetchPrimaryOpenMeteoWeather(
+  lat: number,
+  lon: number,
+  alt: number
+): Promise<any> {
+  const fullQuery = `latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?${fullQuery}`;
+
+  // 1. Direct fetch
+  let data = await fetchJsonWithTimeoutResilient(weatherUrl, 9000);
+  if (data) return data;
+
+  // 2. Short backoff + same-origin proxy fallback (bypasses browser-IP 429 bursts & CORS/network glitches)
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  if (typeof window !== 'undefined') {
+    data = await fetchJsonWithTimeoutResilient(`/api/open-meteo/forecast?${fullQuery}`, 9000);
+    if (data) return data;
+  }
+
+  // 3. Retry direct full Open-Meteo URL
+  data = await fetchJsonWithTimeoutResilient(weatherUrl, 9000);
+  if (data) return data;
+
+  // 4. Simplified Open-Meteo fallback (without minutely_15 & past_days=2)
+  const liteQuery = `latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=7`;
+  data = await fetchJsonWithTimeoutResilient(`https://api.open-meteo.com/v1/forecast?${liteQuery}`, 9000);
+  if (data) return data;
+
+  if (typeof window !== 'undefined') {
+    data = await fetchJsonWithTimeoutResilient(`/api/open-meteo/forecast?${liteQuery}`, 9000);
+    if (data) return data;
+  }
+
+  throw new Error('Erreur Open-Meteo: toutes les tentatives ont échoué');
+}
+
 /**
  * Fetch full weather data + altitude metrics + air quality + climate anomalies
  */
@@ -1299,7 +1360,9 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
   isFromCache?: boolean;
   cachedAt?: string;
 }> {
-  const cacheKey = `meteo_cache_${station.id}_${station.latitude.toFixed(3)}_${station.longitude.toFixed(3)}`;
+  const safeLat = Number.isFinite(station.latitude) ? station.latitude : 48.8566;
+  const safeLon = Number.isFinite(station.longitude) ? station.longitude : 2.3522;
+  const cacheKey = `meteo_cache_${station.id}_${safeLat.toFixed(3)}_${safeLon.toFixed(3)}`;
 
   // Si l'utilisateur est hors-ligne ou réseau coupé : consultation instantanée via IndexedDB puis localStorage
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -1353,9 +1416,22 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     return { ...cached, current: refreshedCurrent, isFromCache: false };
   }
 
+  const existingInFlight = inFlightWeatherRequests.get(cacheKey);
+  if (existingInFlight) {
+    return existingInFlight;
+  }
+
+  const runFetchPromise = (async (): Promise<{
+    current: CurrentWeather;
+    hourly: HourlyForecast[];
+    daily: DailyForecast[];
+    anomaly: ClimateAnomaly;
+    isFromCache?: boolean;
+    cachedAt?: string;
+  }> => {
   try {
-    const lat = station.latitude;
-    const lon = station.longitude;
+    const lat = safeLat;
+    const lon = safeLon;
     const altEntry = await resolveAndRecordLocalityAltitude({
       lat,
       lon,
@@ -1363,7 +1439,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       country: station.country,
       knownAltitude: station.altitude
     });
-    const alt = altEntry.alt;
+    const alt = Math.round(Number.isFinite(altEntry.alt) ? altEntry.alt : 0);
     const terrainMeta: TerrainMeta = {
       alt,
       coastal: typeof altEntry.coastal === 'number' ? altEntry.coastal : 0,
@@ -1376,22 +1452,15 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       lon
     );
 
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
     const multiModelLiveUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=${alt}&hourly=temperature_2m&models=meteofrance_seamless,meteofrance_arome_france,ecmwf_ifs025,icon_seamless,icon_eu,gfs_seamless,ukmo_seamless&forecast_days=1&timezone=auto`;
 
-    const [weatherRes, aqiRes, multiModelLiveRes, multiConsensus] = await Promise.all([
-      fetch(weatherUrl),
+    const [weatherData, aqiRes, multiModelLiveRes, multiConsensus] = await Promise.all([
+      fetchPrimaryOpenMeteoWeather(lat, lon, alt),
       fetch(aqiUrl).catch(() => null),
       fetch(multiModelLiveUrl).catch(() => null),
       fetchMultiModelConsensusForStation({ ...station, altitude: alt }).catch(() => null)
     ]);
-
-    if (!weatherRes.ok && !(weatherRes.status >= 200 && weatherRes.status < 400)) {
-      throw new Error(`Erreur Open-Meteo: ${weatherRes.status}`);
-    }
-
-    const weatherData = await weatherRes.json();
     
     // Parse Air Quality & CAMS Pollen
     let aqiValue = 25;
@@ -2837,6 +2906,14 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       isFromCache: true,
       cachedAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
     };
+  }
+  })();
+
+  inFlightWeatherRequests.set(cacheKey, runFetchPromise);
+  try {
+    return await runFetchPromise;
+  } finally {
+    inFlightWeatherRequests.delete(cacheKey);
   }
 }
 

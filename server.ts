@@ -2991,6 +2991,68 @@ async function startServer() {
     return res.json({ ok: true, entry, totalCount: worldAltRegistry.size });
   });
 
+  // Proxy cache serveur pour Open-Meteo forecast (résilience anti-429 / réseau navigateur)
+  const openMeteoProxyCache = new Map<string, { fetchedAt: number; payload: any }>();
+  const OPEN_METEO_PROXY_TTL_MS = 120 * 1000;
+  const ALLOWED_OM_PARAMS = new Set([
+    'latitude',
+    'longitude',
+    'elevation',
+    'current',
+    'minutely_15',
+    'hourly',
+    'daily',
+    'timezone',
+    'forecast_days',
+    'past_days',
+    'models',
+  ]);
+
+  app.get('/api/open-meteo/forecast', async (req, res) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Cache-Control', 'public, max-age=120');
+
+    const lat = Number(req.query.latitude);
+    const lon = Number(req.query.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Invalid latitude or longitude' });
+    }
+
+    const forwardParams = new URLSearchParams();
+    for (const [key, val] of Object.entries(req.query)) {
+      if (ALLOWED_OM_PARAMS.has(key) && typeof val === 'string' && val.length <= 2000) {
+        forwardParams.set(key, val);
+      }
+    }
+    const cacheKey = forwardParams.toString();
+    const now = Date.now();
+    const cached = openMeteoProxyCache.get(cacheKey);
+    if (cached && now - cached.fetchedAt < OPEN_METEO_PROXY_TTL_MS) {
+      return res.json(cached.payload);
+    }
+
+    try {
+      const upstream = await fetch(`https://api.open-meteo.com/v1/forecast?${cacheKey}`, {
+        signal: AbortSignal.timeout(9000),
+        headers: { 'Accept': 'application/json', 'User-Agent': 'InstantMeteo/2.5' },
+      });
+      if (!upstream.ok) {
+        if (cached) return res.json(cached.payload);
+        return res.status(upstream.status).json({ error: `Open-Meteo HTTP ${upstream.status}` });
+      }
+      const payload = await upstream.json();
+      if (openMeteoProxyCache.size > 400) {
+        const oldestKey = openMeteoProxyCache.keys().next().value;
+        if (oldestKey) openMeteoProxyCache.delete(oldestKey);
+      }
+      openMeteoProxyCache.set(cacheKey, { fetchedAt: now, payload });
+      return res.json(payload);
+    } catch {
+      if (cached) return res.json(cached.payload);
+      return res.status(502).json({ error: 'Open-Meteo upstream unreachable' });
+    }
+  });
+
   // API temps réel des stations de ski (LiftRadar Europe + SkiRadar France Data.gouv)
   const ALLOWED_LIFTRADAR_COUNTRIES = new Set([
     'fr', 'ch', 'at', 'it', 'de', 'es', 'ad', 'no', 'fi', 'se', 'sk', 'pl', 'cz', 'si'

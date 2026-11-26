@@ -796,6 +796,48 @@ export default {
         }
       }
 
+      if (path === '/api/open-meteo/forecast' && request.method === 'GET') {
+        const lat = Number(url.searchParams.get('latitude'));
+        const lon = Number(url.searchParams.get('longitude'));
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+          return jsonResponse({ error: 'Invalid coordinates' }, 400);
+        }
+        const allowedKeys = new Set([
+          'latitude',
+          'longitude',
+          'elevation',
+          'current',
+          'minutely_15',
+          'hourly',
+          'daily',
+          'timezone',
+          'forecast_days',
+          'past_days',
+          'models',
+        ]);
+        const forward = new URLSearchParams();
+        url.searchParams.forEach((v, k) => {
+          if (allowedKeys.has(k) && v.length <= 2000) forward.set(k, v);
+        });
+        try {
+          const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?${forward.toString()}`, {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'InstantMeteo-Worker/2.5' },
+          });
+          const body = await omRes.text();
+          return new Response(body, {
+            status: omRes.status,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json; charset=utf-8',
+              'X-Robots-Tag': 'noindex, nofollow',
+              'Cache-Control': 'public, max-age=120',
+            },
+          });
+        } catch {
+          return jsonResponse({ error: 'Open-Meteo upstream unreachable' }, 502);
+        }
+      }
+
       return jsonResponse({ error: 'Route non trouvée sur le Worker D1', path }, 404);
     } catch (err: any) {
       console.error('Erreur API Worker Cloudflare D1:', err);
