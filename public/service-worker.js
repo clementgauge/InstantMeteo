@@ -1,9 +1,10 @@
 // Service Worker for Instant Météo (PWA & Offline Resilience)
-const CACHE_NAME = 'instant-meteo-v11';
+const CACHE_NAME = 'instant-meteo-v12';
 const DB_NAME = 'instant-meteo-offline-db';
 const DB_VERSION = 2;
 const STORE_RAW_API = 'raw_api_responses';
 const STORE_FORECASTS = 'weather_forecasts';
+const MAX_RAW_API_AGE_MS = 2 * 60 * 60 * 1000;
 
 const STATIC_ASSETS = [
   '/',
@@ -63,7 +64,7 @@ async function saveApiResponseToIDB(url, payload) {
 }
 
 /**
- * Récupère une réponse API depuis IndexedDB lors d'une perte totale de connexion
+ * Récupère une réponse API exacte et récente depuis IndexedDB lors d'une perte totale de connexion
  */
 async function getApiResponseFromIDB(url) {
   try {
@@ -74,50 +75,16 @@ async function getApiResponseFromIDB(url) {
     return new Promise((resolve) => {
       const req = store.get(url);
       req.onsuccess = () => {
-        if (req.result && req.result.payload) {
-          return resolve(req.result);
+        const entry = req.result;
+        if (
+          entry &&
+          entry.payload &&
+          typeof entry.timestamp === 'number' &&
+          Date.now() - entry.timestamp < MAX_RAW_API_AGE_MS
+        ) {
+          return resolve(entry);
         }
-        // Recherche partielle (si les timestamps dans les query params changent légèrement)
-        const targetClean = url.split('&current=')[0] || url.split('?')[0];
-        const cursorReq = store.openCursor();
-        cursorReq.onsuccess = () => {
-          const cursor = cursorReq.result;
-          if (cursor) {
-            if (cursor.value.url && cursor.value.url.startsWith(targetClean)) {
-              return resolve(cursor.value);
-            }
-            cursor.continue();
-          } else {
-            resolve(null);
-          }
-        };
-        cursorReq.onerror = () => resolve(null);
-      };
-      req.onerror = () => resolve(null);
-    });
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Récupère la dernière prévision globale enregistrée dans le store des prévisions
- */
-async function getLatestForecastFromIDB() {
-  try {
-    const db = await openOfflineDB();
-    const tx = db.transaction(STORE_FORECASTS, 'readonly');
-    const store = tx.objectStore(STORE_FORECASTS);
-    const index = store.index('timestamp');
-
-    return new Promise((resolve) => {
-      const req = index.openCursor(null, 'prev');
-      req.onsuccess = () => {
-        if (req.result && req.result.value) {
-          resolve(req.result.value);
-        } else {
-          resolve(null);
-        }
+        resolve(null);
       };
       req.onerror = () => resolve(null);
     });
@@ -157,23 +124,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D, PAGES EMBARQUÉES, FLUX SSE ET TUILES/STYLES EXTERNES
+  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D, OPEN-METEO DIRECT, FLUX SSE ET TUILES/STYLES EXTERNES
   const isTrafficStream =
     url.pathname.startsWith('/api/traffic/') ||
     event.request.headers.get('accept')?.includes('text/event-stream');
-  const isWeatherApiUrl =
-    !isTrafficStream && (
-      url.hostname.includes('open-meteo.com') ||
-      url.pathname.startsWith('/api/weather') ||
-      url.pathname.startsWith('/api/')
-    );
+  const isOpenMeteoDirect =
+    url.hostname.includes('open-meteo.com') ||
+    url.pathname.startsWith('/api/open-meteo');
 
   if (
     isTrafficStream ||
-    (url.origin !== self.location.origin && !isWeatherApiUrl) ||
+    isOpenMeteoDirect ||
+    url.origin !== self.location.origin ||
     url.pathname.includes('skymap') ||
     url.pathname.includes('SkyMap') ||
-    (event.request.referrer && event.request.referrer.includes('skymap') && !isWeatherApiUrl) ||
+    (event.request.referrer && event.request.referrer.includes('skymap')) ||
     url.pathname.startsWith('/assets/aistudio/') ||
     url.pathname.includes('tendances-14-jours') ||
     url.pathname.includes('carte-catastrophes') ||
@@ -203,17 +168,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Gestion ultra-robuste des requêtes API Météo (Open-Meteo, /api/weather, /api/...)
-  const isWeatherApi =
-    url.hostname.includes('open-meteo.com') ||
-    url.pathname.startsWith('/api/weather') ||
-    url.pathname.startsWith('/api/');
+  // 2. Requêtes API internes (/api/weather, /api/...) : réseau prioritaire, cache exact hors-ligne uniquement
+  const isInternalApi =
+    event.request.method === 'GET' &&
+    (url.pathname.startsWith('/api/weather') || url.pathname.startsWith('/api/'));
 
-  if (isWeatherApi) {
+  if (isInternalApi) {
     event.respondWith(
       fetch(event.request)
         .then(async (response) => {
-          // Si le réseau répond avec succès, sauvegarder dans IndexedDB en arrière-plan
           if (response && response.status === 200) {
             try {
               const clone = response.clone();
@@ -226,7 +189,6 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(async () => {
-          // PERTE TOTALE DE CONNEXION : récupération depuis IndexedDB
           const cachedEntry = await getApiResponseFromIDB(event.request.url);
           if (cachedEntry && cachedEntry.payload) {
             return new Response(JSON.stringify(cachedEntry.payload), {
@@ -240,23 +202,9 @@ self.addEventListener('fetch', (event) => {
             });
           }
 
-          // Deuxième tentative : prévision globale enregistrée
-          const fallbackForecast = await getLatestForecastFromIDB();
-          if (fallbackForecast && fallbackForecast.data) {
-            return new Response(JSON.stringify(fallbackForecast.data), {
-              status: 200,
-              headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'X-Instant-Meteo-Offline': 'true',
-                'X-Offline-Storage': 'IndexedDB-Fallback'
-              }
-            });
-          }
-
-          // Échec ultime si aucun cache
           return new Response(
             JSON.stringify({
-              error: 'Offline - Aucune donnée météo disponible en cache local',
+              error: 'Offline - Aucune donnée disponible en cache local',
               isOffline: true
             }),
             {
