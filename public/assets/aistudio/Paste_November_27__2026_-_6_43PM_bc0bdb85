@@ -1,0 +1,315 @@
+Render Start 18:33:27.540 Backend Log Starting build...
+  $ node scripts/generate-icons.js && vite build && tsx scripts/prerender-seo.ts && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --minify --outfile=dist/server.cjs
+  [Generate Icons] Public icons and ICO already exist, skipping regeneration.
+  vite v6.4.6 building for production...
+  transforming... 18:33:27.795 Backend Log CONNECTED 18:33:37.613 Backend Log ✓ 2156 modules transformed. 18:33:38.254 Backend Log rendering chunks... 18:33:39.620 Backend Log computing gzip size... 18:33:39.747 Backend Log dist/index.html                                             17.67 kB │ gzip:   5.16 kB 18:33:39.747 Backend Log dist/assets/CommunityWeatherMap-CIGW-MKW.css                15.61 kB │ gzip:   6.46 kB 18:33:39.747 Backend Log dist/assets/index-C810Rt34.css                             459.04 kB │ gzip:  54.13 kB 18:33:39.747 Backend Log dist/assets/filter-B2FJMffO.js                               0.33 kB │ gzip:   0.26 kB 18:33:39.747 Backend Log dist/assets/rotate-cw-CLvfGcKT.js                            0.37 kB │ gzip:   0.29 kB 18:33:39.747 Backend Log dist/assets/chart-column-CiZTebMh.js                         0.42 kB │ gzip:   0.30 kB 18:33:39.747 Backend Log dist/assets/users-BG19pjQV.js                                0.48 kB │ gzip:   0.33 kB 18:33:39.747 Backend Log dist/assets/user-x-Gfw6LutU.js                               0.48 kB │ gzip:   0.34 kB 18:33:39.747 Backend Log dist/assets/printer-CZPiNdwt.js                              0.49 kB │ gzip:   0.34 kB 18:33:39.747 Backend Log dist/assets/cloud-snow-DyLgC0qv.js                           0.57 kB │ gzip:   0.35 kB 18:33:39.747 Backend Log dist/assets/SkyMapView-C_ms7OSJ.js                           0.61 kB │ gzip:   0.42 kB 18:33:39.747 Backend Log dist/assets/building-2-BZSO5toy.js                           0.61 kB │ gzip:   0.35 kB 18:33:39.748 Backend Log dist/assets/qr-code-DAedOg4E.js                              0.82 kB │ gzip:   0.42 kB 18:33:39.748 Backend Log dist/assets/WorldDisastersView-G-v_SJMC.js                   0.89 kB │ gzip:   0.55 kB 18:33:39.748 Backend Log dist/assets/FourteenDayDetailedTrendsCard-Cftiv3TD.js        3.33 kB │ gzip:   1.53 kB 18:33:39.748 Backend Log (!) Some chunks are larger than 500 kB after minification. Consider: 18:33:39.748 Backend Log - Using dynamic import() to code-split the application 18:33:39.748 Backend Log - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks 18:33:39.748 Backend Log - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit. 18:33:39.748 Backend Log ✓ built in 12.81s 18:33:40.278 Backend Log [Prerender SEO] SkyMap autonome généré -> dist/skymap.html & dist/en/skymap.html 18:33:40.278 Backend Log [Prerender SEO] 50 FR/EN pages + sitemap index + 102 department sitemaps written to dist/! 18:33:40.310 App Log [AppUpdateChecker] Nouveau Service Worker installé, récupération des nouveautés... 18:33:40.436 Backend Log dist/server.cjs  391.3kb 18:33:40.436 Backend Log ⚡ Done in 46ms 18:33:40.437 Backend Log Build successful. 18:33:40.726SystemBuild Render End 18:33:40.765 App Log [UpdateNotificationPrompt] Mise à jour détectée:
+  {
+  "version": "2.5.5",
+  "buildId": "build-20261007-255-1795800733",
+  "updatedAt": "2026-11-27T17:32:13.454Z",
+  "title": "Mise à jour du module skymap-embed (+5 autres nouveautés)",
+  "changelog": "🔧 Mise à jour du module skymap-embed • 🔧 Mise à jour du module skymap • 🔧 Mise à jour du module service-worker • 🔧 Mise à jour du module index • 🔧 Mise à jour du module TodayVsYesterdayCard • 🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+  "changes": [
+    "🔧 Mise à jour du module skymap-embed",
+    "🔧 Mise à jour du module skymap",
+    "🔧 Mise à jour du module service-worker",
+    "🔧 Mise à jour du module index",
+    "🔧 Mise à jour du module TodayVsYesterdayCard",
+    "🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+    "🌍 Nouveau site partenaire ajouté : Observatoire Climatique Mondial (https://observatoire-climatique-mondial.ecologia.workers.dev/)"
+  ],
+  "history": [
+    {
+      "version": "2.5.4",
+      "buildId": "build-20261007-254",
+      "updatedAt": "2026-10-07T09:45:00.000Z",
+      "title": "Jauge des Taux de Pollen en Temps Réel (Rouge ➔ Vert)",
+      "changelog": "Ajout de la jauge des taux de pollen en temps réel graduée de Rouge à Vert dans les indicateurs météo.",
+      "changes": [
+        "🎯 Jauge visuelle du taux de pollen graduée de Rouge à Vert avec aiguille dynamique"
+      ]
+    },
+    {
+      "version": "2.5.3",
+      "buildId": "build-20261007-253",
+      "updatedAt": "2026-10-07T08:50:00.000Z",
+      "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
+      "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt) et compatibilité PWA complète.",
+      "changes": [
+        "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)",
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:25:00.000Z",
+      "title": "Installation PWA Directe (Chrome, Brave, Samsung Internet, Edge, Opera) & Sans Doublon",
+      "changelog": "Suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète avec Chrome, Brave, Samsung Internet, Edge et Opera.",
+      "changes": [
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
+        "🚫 Suppression des notifications d'installation en double sur téléphone"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:15:00.000Z",
+      "title": "Installation PWA Directe (« Ajouter ce site Web à l'écran Applis ? ») & Bouton Unique",
+      "changelog": "Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA et bouton unique PWA sur téléphone.",
+      "changes": [
+        "📲 Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA",
+        "📱 Bouton unique « Installer en PWA » sur téléphone avec logo officiel"
+      ]
+    },
+    {
+      "version": "2.5.1",
+      "buildId": "build-20261006-251",
+      "updatedAt": "2026-10-06T17:48:00.000Z",
+      "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
+      "changelog": "Installation PWA avec logo officiel sur téléphone (sans APK) et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
+      "changes": [
+        "📱 Téléphone : Application PWA officielle avec logo Instant Météo à la place de l'APK",
+        "✅ Bouton OK sur les notifications de mise à jour et d'installation (mémorisé jusqu'à une mise à jour différente)"
+      ]
+    },
+    {
+      "version": "2.5.0",
+      "buildId": "build-20261006-250",
+      "updatedAt": "2026-10-06T17:12:00.000Z",
+      "title": "Zones Météo Mondiales & Journal de mise à jour",
+      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
+      "changes": [
+        "🇬🇧 Données météo en direct par zones régionales pour le Royaume-Uni (11 zones) et tous les pays du monde",
+        "🗺️ Bascule automatique de la carte sur le pays de la ville sélectionnée (France, Royaume-Uni, Espagne, etc.)",
+        "⚡ Détail exact des nouveautés affiché dans la notification de mise à jour"
+      ]
+    },
+    {
+      "version": "2.4.1",
+      "buildId": "build-20260903-241",
+      "updatedAt": "2026-09-03T16:52:00.000Z",
+      "title": "Carte collaborative, GPS haute précision & Comptes joueurs",
+      "changelog": "Correction carte collaborative arène, géolocalisation réelle GPS, gestion compte et réinitialisation points.",
+      "changes": [
+        "📍 Géolocalisation GPS haute précision par commune",
+        "🏆 Synchronisation des comptes joueurs et classement compétitif"
+      ]
+    }
+  ],
+  "modifiedComponents": [
+    "skymap-embed.html",
+    "skymap.html",
+    "service-worker.js",
+    "index.css",
+    "TodayVsYesterdayCard.tsx",
+    "TemperatureReliabilityCalibrationCard.tsx"
+  ]
+} 18:33:40.767 App Log [UpdateNotificationPrompt] Mise à jour détectée:
+  {
+  "version": "2.5.5",
+  "buildId": "build-20261007-255-1795800733",
+  "updatedAt": "2026-11-27T17:32:13.454Z",
+  "title": "Mise à jour du module skymap-embed (+5 autres nouveautés)",
+  "changelog": "🔧 Mise à jour du module skymap-embed • 🔧 Mise à jour du module skymap • 🔧 Mise à jour du module service-worker • 🔧 Mise à jour du module index • 🔧 Mise à jour du module TodayVsYesterdayCard • 🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+  "changes": [
+    "🔧 Mise à jour du module skymap-embed",
+    "🔧 Mise à jour du module skymap",
+    "🔧 Mise à jour du module service-worker",
+    "🔧 Mise à jour du module index",
+    "🔧 Mise à jour du module TodayVsYesterdayCard",
+    "🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+    "🌍 Nouveau site partenaire ajouté : Observatoire Climatique Mondial (https://observatoire-climatique-mondial.ecologia.workers.dev/)"
+  ],
+  "history": [
+    {
+      "version": "2.5.4",
+      "buildId": "build-20261007-254",
+      "updatedAt": "2026-10-07T09:45:00.000Z",
+      "title": "Jauge des Taux de Pollen en Temps Réel (Rouge ➔ Vert)",
+      "changelog": "Ajout de la jauge des taux de pollen en temps réel graduée de Rouge à Vert dans les indicateurs météo.",
+      "changes": [
+        "🎯 Jauge visuelle du taux de pollen graduée de Rouge à Vert avec aiguille dynamique"
+      ]
+    },
+    {
+      "version": "2.5.3",
+      "buildId": "build-20261007-253",
+      "updatedAt": "2026-10-07T08:50:00.000Z",
+      "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
+      "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt) et compatibilité PWA complète.",
+      "changes": [
+        "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)",
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:25:00.000Z",
+      "title": "Installation PWA Directe (Chrome, Brave, Samsung Internet, Edge, Opera) & Sans Doublon",
+      "changelog": "Suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète avec Chrome, Brave, Samsung Internet, Edge et Opera.",
+      "changes": [
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
+        "🚫 Suppression des notifications d'installation en double sur téléphone"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:15:00.000Z",
+      "title": "Installation PWA Directe (« Ajouter ce site Web à l'écran Applis ? ») & Bouton Unique",
+      "changelog": "Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA et bouton unique PWA sur téléphone.",
+      "changes": [
+        "📲 Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA",
+        "📱 Bouton unique « Installer en PWA » sur téléphone avec logo officiel"
+      ]
+    },
+    {
+      "version": "2.5.1",
+      "buildId": "build-20261006-251",
+      "updatedAt": "2026-10-06T17:48:00.000Z",
+      "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
+      "changelog": "Installation PWA avec logo officiel sur téléphone (sans APK) et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
+      "changes": [
+        "📱 Téléphone : Application PWA officielle avec logo Instant Météo à la place de l'APK",
+        "✅ Bouton OK sur les notifications de mise à jour et d'installation (mémorisé jusqu'à une mise à jour différente)"
+      ]
+    },
+    {
+      "version": "2.5.0",
+      "buildId": "build-20261006-250",
+      "updatedAt": "2026-10-06T17:12:00.000Z",
+      "title": "Zones Météo Mondiales & Journal de mise à jour",
+      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
+      "changes": [
+        "🇬🇧 Données météo en direct par zones régionales pour le Royaume-Uni (11 zones) et tous les pays du monde",
+        "🗺️ Bascule automatique de la carte sur le pays de la ville sélectionnée (France, Royaume-Uni, Espagne, etc.)",
+        "⚡ Détail exact des nouveautés affiché dans la notification de mise à jour"
+      ]
+    },
+    {
+      "version": "2.4.1",
+      "buildId": "build-20260903-241",
+      "updatedAt": "2026-09-03T16:52:00.000Z",
+      "title": "Carte collaborative, GPS haute précision & Comptes joueurs",
+      "changelog": "Correction carte collaborative arène, géolocalisation réelle GPS, gestion compte et réinitialisation points.",
+      "changes": [
+        "📍 Géolocalisation GPS haute précision par commune",
+        "🏆 Synchronisation des comptes joueurs et classement compétitif"
+      ]
+    }
+  ],
+  "modifiedComponents": [
+    "skymap-embed.html",
+    "skymap.html",
+    "service-worker.js",
+    "index.css",
+    "TodayVsYesterdayCard.tsx",
+    "TemperatureReliabilityCalibrationCard.tsx"
+  ]
+} 18:33:40.768 App Log Instant Météo ServiceWorker registered successfully:
+  https://ais-dev-fzmulrc57tiqz44s4owlss-510191462762.europe-west2.run.app/ 18:33:40.822 App Log [UpdateNotificationPrompt] Mise à jour détectée:
+  {
+  "version": "2.5.5",
+  "buildId": "build-20261007-255-1795800733",
+  "updatedAt": "2026-11-27T17:32:13.454Z",
+  "title": "Mise à jour du module skymap-embed (+5 autres nouveautés)",
+  "changelog": "🔧 Mise à jour du module skymap-embed • 🔧 Mise à jour du module skymap • 🔧 Mise à jour du module service-worker • 🔧 Mise à jour du module index • 🔧 Mise à jour du module TodayVsYesterdayCard • 🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+  "changes": [
+    "🔧 Mise à jour du module skymap-embed",
+    "🔧 Mise à jour du module skymap",
+    "🔧 Mise à jour du module service-worker",
+    "🔧 Mise à jour du module index",
+    "🔧 Mise à jour du module TodayVsYesterdayCard",
+    "🔧 Mise à jour du module TemperatureReliabilityCalibrationCard",
+    "🌍 Nouveau site partenaire ajouté : Observatoire Climatique Mondial (https://observatoire-climatique-mondial.ecologia.workers.dev/)"
+  ],
+  "history": [
+    {
+      "version": "2.5.4",
+      "buildId": "build-20261007-254",
+      "updatedAt": "2026-10-07T09:45:00.000Z",
+      "title": "Jauge des Taux de Pollen en Temps Réel (Rouge ➔ Vert)",
+      "changelog": "Ajout de la jauge des taux de pollen en temps réel graduée de Rouge à Vert dans les indicateurs météo.",
+      "changes": [
+        "🎯 Jauge visuelle du taux de pollen graduée de Rouge à Vert avec aiguille dynamique"
+      ]
+    },
+    {
+      "version": "2.5.3",
+      "buildId": "build-20261007-253",
+      "updatedAt": "2026-10-07T08:50:00.000Z",
+      "title": "Serveur Discord Officiel & Installation PWA Directe Multi-Navigateurs",
+      "changelog": "Ajout du logo et du lien d'invitation Discord officiel (https://discord.gg/MjFDekSbnt) et compatibilité PWA complète.",
+      "changes": [
+        "💬 Ajout du logo Discord officiel avec lien d'invitation direct (https://discord.gg/MjFDekSbnt)",
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:25:00.000Z",
+      "title": "Installation PWA Directe (Chrome, Brave, Samsung Internet, Edge, Opera) & Sans Doublon",
+      "changelog": "Suppression des notifications d'installation en double sur téléphone et compatibilité PWA complète avec Chrome, Brave, Samsung Internet, Edge et Opera.",
+      "changes": [
+        "📲 Compatibilité PWA complète sur Chrome, Brave, Samsung Internet, Edge et Opera (« Ajouter ce site Web à l'écran Applis ? »)",
+        "🚫 Suppression des notifications d'installation en double sur téléphone"
+      ]
+    },
+    {
+      "version": "2.5.2",
+      "buildId": "build-20261006-252",
+      "updatedAt": "2026-10-06T19:15:00.000Z",
+      "title": "Installation PWA Directe (« Ajouter ce site Web à l'écran Applis ? ») & Bouton Unique",
+      "changelog": "Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA et bouton unique PWA sur téléphone.",
+      "changes": [
+        "📲 Notification « Ajouter ce site Web à l'écran Applis ? » au clic sur Installer en PWA",
+        "📱 Bouton unique « Installer en PWA » sur téléphone avec logo officiel"
+      ]
+    },
+    {
+      "version": "2.5.1",
+      "buildId": "build-20261006-251",
+      "updatedAt": "2026-10-06T17:48:00.000Z",
+      "title": "Application PWA avec Logo Officiel, Bouton OK & Zones Météo Mondiales",
+      "changelog": "Installation PWA avec logo officiel sur téléphone (sans APK) et bouton OK mémorisé jusqu'à la prochaine mise à jour différente.",
+      "changes": [
+        "📱 Téléphone : Application PWA officielle avec logo Instant Météo à la place de l'APK",
+        "✅ Bouton OK sur les notifications de mise à jour et d'installation (mémorisé jusqu'à une mise à jour différente)"
+      ]
+    },
+    {
+      "version": "2.5.0",
+      "buildId": "build-20261006-250",
+      "updatedAt": "2026-10-06T17:12:00.000Z",
+      "title": "Zones Météo Mondiales & Journal de mise à jour",
+      "changelog": "Ajout des zones météo en direct pour le Royaume-Uni et le monde, et journal de mise à jour détaillé en temps réel.",
+      "changes": [
+        "🇬🇧 Données météo en direct par zones régionales pour le Royaume-Uni (11 zones) et tous les pays du monde",
+        "🗺️ Bascule automatique de la carte sur le pays de la ville sélectionnée (France, Royaume-Uni, Espagne, etc.)",
+        "⚡ Détail exact des nouveautés affiché dans la notification de mise à jour"
+      ]
+    },
+    {
+      "version": "2.4.1",
+      "buildId": "build-20260903-241",
+      "updatedAt": "2026-09-03T16:52:00.000Z",
+      "title": "Carte collaborative, GPS haute précision & Comptes joueurs",
+      "changelog": "Correction carte collaborative arène, géolocalisation réelle GPS, gestion compte et réinitialisation points.",
+      "changes": [
+        "📍 Géolocalisation GPS haute précision par commune",
+        "🏆 Synchronisation des comptes joueurs et classement compétitif"
+      ]
+    }
+  ],
+  "modifiedComponents": [
+    "skymap-embed.html",
+    "skymap.html",
+    "service-worker.js",
+    "index.css",
+    "TodayVsYesterdayCard.tsx",
+    "TemperatureReliabilityCalibrationCard.tsx"
+  ]
+} 18:39:10.924 App Warning Image "office" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.941 App Warning Image "curling" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.946 App Warning Image "bicycle_parking" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.949 App Warning Image "yoga" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.959 App Warning Image "atm" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.961 App Warning Image "escape_game" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.966 App Warning Image "ferry_terminal" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.969 App Warning Image "multi" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.973 App Warning Image "recycling" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.975 App Warning Image "hackerspace" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.976 App Warning Image "boxing" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.977 App Warning Image "sports_centre" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.978 App Warning Image "water_park" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.979 App Warning Image "brownfield" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.979 App Warning Image "equestrian" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.980 App Warning Image "cycling" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.980 App Warning Image "gymnastics" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.985 App Warning Image "bollard" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.985 App Warning Image "motorcycle_parking" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.986 App Warning Image "gate" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.986 App Warning Image "cycle_barrier" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.992 App Warning Image "lift_gate" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.993 App Warning Image "table_tennis" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.995 App Warning Image "chess" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.996 App Warning Image "table_soccer" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:10.996 App Warning Image "athletics" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:11.108 App Warning Image "sally_port" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 18:39:11.110 App Warning Image "basin" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. 

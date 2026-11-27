@@ -915,7 +915,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <main id="app" data-state="peek">
   <div id="map" aria-label="Carte interactive en 3D"></div>
   <div class="map-vignette" aria-hidden="true"></div>
-  <div id="mapNotice" role="status" hidden>La carte ne se charge pas. Vérifiez votre connexion.</div>
+  <div id="mapNotice" role="status" hidden><span id="mapNoticeText">La carte ne se charge pas. Vérifiez votre connexion.</span><button id="mapNoticeRetry" type="button" style="display:block;margin:10px auto 0;padding:7px 14px;border-radius:10px;border:1px solid rgba(125,211,252,.45);background:rgba(56,189,248,.18);color:#e8f6ff;font-size:12px;font-weight:600;cursor:pointer">Réessayer</button></div>
   <header id="top">
     <div class="toprow">
       <a href="/direct" id="backToInstantMeteo" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:12px;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.2);color:#fff;text-decoration:none;font-size:12px;font-weight:700;margin-right:10px;backdrop-filter:blur(8px);white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.4);" title="Retourner à Instant Météo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Instant Météo</a>
@@ -1482,10 +1482,19 @@ const FAVS = () => store.get('favs', []);
 const RECENTS = () => store.get('recents', []);
 const DEF = { lat:48.8566, lon:2.3522, name:'Paris' };
 let sel = store.get('sel', DEF);
-let startZoom=upgrading?15.2:clamp(store.get('zoom',15.2),3,19);
+if (!sel || !Number.isFinite(+sel.lat) || !Number.isFinite(+sel.lon) || Math.abs(+sel.lat) > 90 || Math.abs(+sel.lon) > 180) {
+  sel = { ...DEF };
+} else {
+  sel = { lat: +sel.lat, lon: +sel.lon, name: typeof sel.name === 'string' && sel.name.trim() ? sel.name : 'Lieu' };
+}
+const storedZoom = +store.get('zoom', 15.2);
+let startZoom=upgrading?15.2:clamp(Number.isFinite(storedZoom)?storedZoom:15.2,3,19);
 (function fromHash(){
   const m = /^#(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+(?:\.\d+)?)(?:,(.*))?$/.exec(location.hash||'');
-  if (m){ sel = { lat:+m[1], lon:+m[2], name: m[4] ? decodeURIComponent(m[4]) : 'Lieu partagé' }; startZoom = +m[3]; }
+  if (m && Number.isFinite(+m[1]) && Number.isFinite(+m[2]) && Math.abs(+m[1])<=90 && Math.abs(+m[2])<=180){
+    sel = { lat:+m[1], lon:+m[2], name: m[4] ? decodeURIComponent(m[4]) : 'Lieu partagé' };
+    if (Number.isFinite(+m[3])) startZoom = clamp(+m[3],3,19);
+  }
 })();
 const S = { w:null, air:null, tab:'today', req:0 };
 
@@ -1497,12 +1506,120 @@ const BASES=[
   {name:'Satellite',icon:'🛰️'},
   {name:'Relief',icon:'⛰️',style:'https://tiles.openfreemap.org/styles/bright'}
 ];
+const makeRasterStyle=(sourceId,tiles,attribution,maxzoom=19)=>({
+  version:8,
+  sources:{[sourceId]:{type:'raster',tiles,tileSize:256,maxzoom,attribution}},
+  layers:[{id:sourceId+'-layer',type:'raster',source:sourceId}]
+});
+const makeSatelliteStyle=(withLabels=true)=>({
+  version:8,
+  sources:withLabels?{
+    imagery:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19,attribution:'Imagery © Esri'},
+    roads:{type:'raster',tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:18},
+    labels:{type:'raster',tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16}
+  }:{
+    imagery:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19,attribution:'Imagery © Esri'}
+  },
+  layers:withLabels
+    ?[{id:'satellite',type:'raster',source:'imagery'},{id:'roads',type:'raster',source:'roads',paint:{'raster-opacity':.8}},{id:'labels',type:'raster',source:'labels'}]
+    :[{id:'satellite',type:'raster',source:'imagery'}]
+});
+const BASE_FALLBACKS=[
+  [
+    {style:'https://tiles.openfreemap.org/styles/liberty',isOfm:true,primarySource:'openmaptiles',label:'Plan'},
+    {style:'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',isOfm:false,primarySource:'protomaps',label:'Plan (Carto)'},
+    {style:makeRasterStyle('carto-voyager',['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],'© OpenStreetMap · CARTO',19),isOfm:false,primarySource:'carto-voyager',label:'Plan (secours)'},
+    {style:makeRasterStyle('osm-std',['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],'© OpenStreetMap',19),isOfm:false,primarySource:'osm-std',label:'OpenStreetMap'}
+  ],
+  [
+    {style:'https://tiles.openfreemap.org/styles/dark',isOfm:true,primarySource:'openmaptiles',label:'Sombre'},
+    {style:'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',isOfm:false,primarySource:'protomaps',label:'Sombre (Carto)'},
+    {style:makeRasterStyle('carto-dark',['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],'© OpenStreetMap · CARTO',19),isOfm:false,primarySource:'carto-dark',label:'Sombre (secours)'},
+    {style:makeRasterStyle('esri-dark',['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'],'© Esri',16),isOfm:false,primarySource:'esri-dark',label:'Esri Dark'}
+  ],
+  [
+    {style:makeSatelliteStyle(true),isOfm:false,primarySource:'imagery',label:'Satellite'},
+    {style:makeSatelliteStyle(false),isOfm:false,primarySource:'imagery',label:'Satellite'},
+    {style:makeRasterStyle('esri-topo',['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],'© Esri',18),isOfm:false,primarySource:'esri-topo',label:'Esri Topo'},
+    {style:makeRasterStyle('osm-std',['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],'© OpenStreetMap',19),isOfm:false,primarySource:'osm-std',label:'OpenStreetMap'}
+  ],
+  [
+    {style:'https://tiles.openfreemap.org/styles/bright',isOfm:true,primarySource:'openmaptiles',label:'Relief'},
+    {style:makeRasterStyle('esri-topo',['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],'© Esri',18),isOfm:false,primarySource:'esri-topo',label:'Relief (Esri Topo)'},
+    {style:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',isOfm:false,primarySource:'protomaps',label:'Relief (Carto)'},
+    {style:makeRasterStyle('osm-std',['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],'© OpenStreetMap',19),isOfm:false,primarySource:'osm-std',label:'OpenStreetMap'}
+  ]
+];
+const BASE_LOAD={baseIdx:clamp(cfg.base,0,3),tier:0,seq:1,timer:null,tileOk:false,srcErrs:0,ofmDown:false,lastToastSeq:0};
+const currentBaseEntry=()=>{const chain=BASE_FALLBACKS[clamp(BASE_LOAD.baseIdx,0,3)]||BASE_FALLBACKS[0];return chain[BASE_LOAD.tier]||chain[0];};
+function showMapNotice(msg,allowRetry=true){
+  const box=$('mapNotice'),txt=$('mapNoticeText'),btn=$('mapNoticeRetry');
+  if(txt)txt.textContent=msg;
+  else if(box)box.textContent=msg;
+  if(btn)btn.hidden=!allowRetry;
+  if(box)box.hidden=false;
+}
+function hideMapNotice(){const box=$('mapNotice');if(box)box.hidden=true;}
+function clearBaseWatchdog(){if(BASE_LOAD.timer){clearTimeout(BASE_LOAD.timer);BASE_LOAD.timer=null;}}
+function armBaseWatchdog(baseIdx,tier,seq){
+  clearBaseWatchdog();
+  BASE_LOAD.timer=setTimeout(()=>{
+    if(BASE_LOAD.seq!==seq||BASE_LOAD.baseIdx!==baseIdx||BASE_LOAD.tier!==tier)return;
+    if(!MAP.ready&&map?.isStyleLoaded()){
+      try{initMapLayers();return;}catch(_){}
+    }
+    if(!MAP.ready||(!BASE_LOAD.tileOk&&BASE_LOAD.srcErrs>=2)){
+      fallbackNextBase('timeout');
+    }
+  },tier===0?7500:5500);
+}
+function fallbackNextBase(reason){
+  if(!map)return false;
+  clearBaseWatchdog();
+  const chain=BASE_FALLBACKS[clamp(BASE_LOAD.baseIdx,0,3)]||BASE_FALLBACKS[0];
+  const cur=chain[BASE_LOAD.tier];
+  if(cur?.isOfm)BASE_LOAD.ofmDown=true;
+  const nextTier=BASE_LOAD.tier+1;
+  if(nextTier<chain.length){
+    BASE_LOAD.tier=nextTier;
+    BASE_LOAD.seq++;
+    BASE_LOAD.tileOk=false;
+    BASE_LOAD.srcErrs=0;
+    routeNativeHasGeometry=false;MAP.ready=false;demReady=false;demFailed=false;MAP.lastStyle++;cancelRadarPending();BASE_STYLE_SNAPSHOT.clear();hideMapNotice();
+    armBaseWatchdog(BASE_LOAD.baseIdx,nextTier,BASE_LOAD.seq);
+    try{
+      map.setStyle(chain[nextTier].style);
+    }catch(_){
+      fallbackNextBase('setStyle-throw');
+    }
+    return true;
+  }
+  MAP.failed=true;
+  showMapNotice('Le fond de carte ne se charge pas. Vérifiez votre connexion puis réessayez ou choisissez un autre fond dans Carte.',true);
+  return false;
+}
+function retryBaseMap(){
+  BASE_LOAD.ofmDown=false;
+  if(!map){location.reload();return;}
+  setBase(cfg.base,true);
+}
+function attachMissingImageShim(m){
+  if(!m||typeof m.on!=='function')return;
+  const blank={width:1,height:1,data:new Uint8Array(4)};
+  m.on('styleimagemissing',e=>{
+    const id=e&&e.id;
+    if(!id||m.hasImage(id))return;
+    try{m.addImage(id,blank);}catch(_){}
+  });
+}
 const empty=()=>C.collection([]);
 const MAP={ready:false,failed:false,selected:null,zoneMarkers:[],lastStyle:0};
-function styleFor(i){return i!==2?BASES[i].style:{version:8,sources:{imagery:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19,attribution:'Imagery © Esri'},roads:{type:'raster',tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:18},labels:{type:'raster',tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16}},layers:[{id:'satellite',type:'raster',source:'imagery'},{id:'roads',type:'raster',source:'roads',paint:{'raster-opacity':.8}},{id:'labels',type:'raster',source:'labels'}]};}
+function styleFor(i,tier=0){const chain=BASE_FALLBACKS[clamp(i,0,3)]||BASE_FALLBACKS[0];return (chain[tier]||chain[0]).style;}
 let map=null,userInteracted=false;
 try{
-  map=new maplibregl.Map({container:'map',style:styleFor(cfg.base),center:[sel.lon,sel.lat],zoom:startZoom,pitch:cfg.mode3d?55:0,bearing:cfg.mode3d?-18:0,minZoom:3,maxZoom:19,maxPitch:65,scrollZoom:true,boxZoom:true,dragRotate:true,dragPan:true,touchZoomRotate:true,doubleClickZoom:true,keyboard:true,attributionControl:false,canvasContextAttributes:{antialias:true}});
+  map=new maplibregl.Map({container:'map',style:styleFor(cfg.base,0),center:[sel.lon,sel.lat],zoom:startZoom,pitch:cfg.mode3d?55:0,bearing:cfg.mode3d?-18:0,minZoom:3,maxZoom:19,maxPitch:65,scrollZoom:true,boxZoom:true,dragRotate:true,dragPan:true,touchZoomRotate:true,doubleClickZoom:true,keyboard:true,attributionControl:false,canvasContextAttributes:{antialias:true}});
+  attachMissingImageShim(map);
+  armBaseWatchdog(BASE_LOAD.baseIdx,0,BASE_LOAD.seq);
   const origPrepElev=map._prepareElevation?.bind(map);
   if(origPrepElev)map._prepareElevation=function(lngLat){
     const ll=lngLat||this.getCenter();
@@ -1525,7 +1642,7 @@ try{
   map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   map.addControl(new maplibregl.ScaleControl({maxWidth:100,unit:'metric'}),'bottom-left');
 }catch(e){
-  MAP.failed=true;$('mapNotice').hidden=false;$('mapNotice').textContent='La carte 3D nécessite WebGL. Essayez un navigateur récent avec l’accélération graphique activée. Les prévisions restent accessibles.';
+  MAP.failed=true;showMapNotice('La carte 3D nécessite WebGL. Essayez un navigateur récent avec l’accélération graphique activée. Les prévisions restent accessibles.',false);
 }
 const mapZoom=()=>map?.getZoom()??startZoom;
 const sizeOfMap=()=>({x:$('map').clientWidth,y:$('map').clientHeight});
@@ -1535,13 +1652,18 @@ function putLayer(layer,before){if(!map.getLayer(layer.id))map.addLayer(layer,be
 let demReady=false,demFailed=false;
 function apply3D(){
   if(!MAP.ready)return;
-  const source=map.getSource('openmaptiles')?'openmaptiles':'sky-vector';
-  if(!map.getSource(source))map.addSource(source,{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-  const extrusions=map.getStyle().layers.filter(l=>l.type==='fill-extrusion');
-  if(!extrusions.length){putLayer({id:'sky-buildings',type:'fill-extrusion',source,'source-layer':'building',minzoom:14,filter:['!=',['get','hide_3d'],true],paint:{'fill-extrusion-height':['coalesce',['get','render_height'],6],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-color':cfg.base===1?'#3b5570':'#cbd0ca','fill-extrusion-opacity':.88}});}
-  map.getStyle().layers.filter(l=>l.type==='fill-extrusion').forEach(l=>map.setLayoutProperty(l.id,'visibility',cfg.mode3d?'visible':'none'));
-  putLayer({id:'sky-flat-buildings',type:'fill',source,'source-layer':'building',minzoom:14,paint:{'fill-color':cfg.base===1?'#374759':'#d8d4cc','fill-opacity':.8}});
-  map.setLayoutProperty('sky-flat-buildings','visibility',cfg.mode3d?'none':'visible');
+  const source=map.getSource('openmaptiles')?'openmaptiles':map.getSource('protomaps')?'protomaps':'sky-vector';
+  if(source==='sky-vector'&&!map.getSource('sky-vector')&&!BASE_LOAD.ofmDown){
+    try{map.addSource('sky-vector',{type:'vector',url:'https://tiles.openfreemap.org/planet'});}catch(_){}
+  }
+  const bldLayer=source==='protomaps'?'buildings':'building';
+  const extrusions=(map.getStyle()?.layers||[]).filter(l=>l.type==='fill-extrusion');
+  if(map.getSource(source)){
+    if(!extrusions.length){putLayer({id:'sky-buildings',type:'fill-extrusion',source,'source-layer':bldLayer,minzoom:14,filter:['!=',['get','hide_3d'],true],paint:{'fill-extrusion-height':['coalesce',['get','render_height'],6],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-color':cfg.base===1?'#3b5570':'#cbd0ca','fill-extrusion-opacity':.88}});}
+    (map.getStyle()?.layers||[]).filter(l=>l.type==='fill-extrusion').forEach(l=>map.setLayoutProperty(l.id,'visibility',cfg.mode3d?'visible':'none'));
+    putLayer({id:'sky-flat-buildings',type:'fill',source,'source-layer':bldLayer,minzoom:14,paint:{'fill-color':cfg.base===1?'#374759':'#d8d4cc','fill-opacity':.8}});
+    map.setLayoutProperty('sky-flat-buildings','visibility',cfg.mode3d?'none':'visible');
+  }
   // Maintenir setTerrain(null) évite les pannes de drapage WebGL/FBO et les crashs _updateElevation tout en conservant la perspective 3D, les bâtiments extrudés et la voiture 3D.
   try{if(map.getTerrain())map.setTerrain(null);}catch(_){}
   $('mode3d').classList.toggle('active',cfg.mode3d);$('mode3d').setAttribute('aria-pressed',String(cfg.mode3d));
@@ -1704,11 +1826,31 @@ function reapplyMapSurfaceTheme(){
 function applyCarMapTheme(enable){
   reapplyMapSurfaceTheme();
 }
-function setBase(i){cfg.base=clamp(i,0,3);saveCfg();renderBases();if(!map)return;routeNativeHasGeometry=false;MAP.ready=false;demReady=false;demFailed=false;MAP.lastStyle++;cancelRadarPending();BASE_STYLE_SNAPSHOT.clear();map.setStyle(styleFor(cfg.base));}
+function setBase(i,forcePrimary=false){
+  cfg.base=clamp(i,0,3);saveCfg();renderBases();
+  if(!map)return;
+  clearBaseWatchdog();
+  BASE_LOAD.baseIdx=cfg.base;
+  const startTier=(!forcePrimary&&BASE_LOAD.ofmDown&&BASE_FALLBACKS[cfg.base]?.[0]?.isOfm)?1:0;
+  BASE_LOAD.tier=startTier;BASE_LOAD.seq++;BASE_LOAD.tileOk=false;BASE_LOAD.srcErrs=0;
+  routeNativeHasGeometry=false;MAP.ready=false;demReady=false;demFailed=false;MAP.lastStyle++;cancelRadarPending();BASE_STYLE_SNAPSHOT.clear();hideMapNotice();
+  armBaseWatchdog(BASE_LOAD.baseIdx,startTier,BASE_LOAD.seq);
+  try{
+    map.setStyle(styleFor(BASE_LOAD.baseIdx,startTier));
+  }catch(_){
+    fallbackNextBase('setStyle-throw');
+  }
+}
 function initMapLayers(){
   if(!map)return;
+  clearBaseWatchdog();
   BASE_STYLE_SNAPSHOT.clear();
-  MAP.ready=true;MAP.failed=false;$('mapNotice').hidden=true;try{apply3D();}catch(e){console.warn('Relief 3D indisponible :',e);}
+  MAP.ready=true;MAP.failed=false;hideMapNotice();
+  if(BASE_LOAD.tier>0&&BASE_LOAD.lastToastSeq!==BASE_LOAD.seq){
+    BASE_LOAD.lastToastSeq=BASE_LOAD.seq;
+    toast('Fond de secours activé ('+currentBaseEntry().label+')',2400);
+  }
+  try{apply3D();}catch(e){console.warn('Relief 3D indisponible :',e);}
   const layers=map.getStyle()?.layers||[];
   const before=layers.find(l=>l.type==='symbol')?.id;
   const beforePlaceLabels=layers.find(l=>l.type==='symbol'&&/^(label_|place_|airport)/.test(l.id))?.id;
@@ -4527,9 +4669,15 @@ function syncCarMiniMap(){
     MINI_RADAR.ready=false;
     MINI_RADAR.center={lat:pt.lat,lon:pt.lon};
     try{
+      const miniStyles=[
+        BASE_LOAD.ofmDown?'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json':BASES[1].style,
+        'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+        makeRasterStyle('carto-dark-mini',['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],'© OpenStreetMap · CARTO',19)
+      ];
+      let miniTier=0;
       const mm=new maplibregl.Map({
         container:host,
-        style:BASES[1].style,
+        style:miniStyles[0],
         center:[pt.lon,pt.lat],
         zoom:MINI_RADAR_ZOOM,
         pitch:0,
@@ -4546,8 +4694,14 @@ function syncCarMiniMap(){
         pitchWithRotate:false
       });
       MINI_RADAR.map=mm;
+      attachMissingImageShim(mm);
       clearTimeout(MINI_RADAR.initTimer);
-      MINI_RADAR.initTimer=setTimeout(()=>{if(MINI_RADAR.map===mm&&!MINI_RADAR.ready)showMiniRadarFallback(true);},8000);
+      MINI_RADAR.initTimer=setTimeout(()=>{
+        if(MINI_RADAR.map===mm&&!MINI_RADAR.ready){
+          if(miniTier+1<miniStyles.length){miniTier++;try{mm.setStyle(miniStyles[miniTier]);return;}catch(_){}}
+          showMiniRadarFallback(true);
+        }
+      },6000);
       mm.on('load',()=>{
         clearTimeout(MINI_RADAR.initTimer);
         MINI_RADAR.ready=true;
@@ -4561,7 +4715,14 @@ function syncCarMiniMap(){
           if($('carRadarStatus'))$('carRadarStatus').textContent='Radar indisponible';
           return;
         }
-        if(!MINI_RADAR.ready)showMiniRadarFallback(true);
+        if(srcId==='ne2_shaded')return;
+        if(!MINI_RADAR.ready){
+          if(miniTier+1<miniStyles.length){
+            miniTier++;
+            try{mm.setStyle(miniStyles[miniTier]);return;}catch(_){}
+          }
+          showMiniRadarFallback(true);
+        }
       });
     }catch(_){showMiniRadarFallback(true);}
     return;
@@ -5991,13 +6152,50 @@ $('bell').onclick = () => { activateTab('today'); setSheet('half'); };
 $('play').onclick = togglePlay;
 $('speed').onclick = () => { RAD.speed = RAD.speed===1 ? 2 : RAD.speed===2 ? 0.5 : 1; $('speed').textContent = (RAD.speed===0.5?'½':RAD.speed)+'×'; };
 $('slider').addEventListener('input', e => { if (RAD.playing) togglePlay(); showFrame(+e.target.value); });
+if($('mapNoticeRetry'))$('mapNoticeRetry').addEventListener('click',retryBaseMap);
 if(map){
-  map.on('style.load',()=>{try{initMapLayers();}catch(e){console.warn('Couches optionnelles indisponibles :',e);MAP.ready=true;renderRoute();}scheduleRouteOverlay();});
-  map.on('load',()=>{if(!MAP.ready&&map.isStyleLoaded()){try{initMapLayers();}catch(_){MAP.ready=true;renderRoute();}}});
+  map.on('style.load',()=>{try{initMapLayers();}catch(e){console.warn('Couches optionnelles indisponibles :',e);clearBaseWatchdog();MAP.ready=true;hideMapNotice();renderRoute();}scheduleRouteOverlay();});
+  map.on('load',()=>{if(!MAP.ready&&map.isStyleLoaded()){try{initMapLayers();}catch(_){clearBaseWatchdog();MAP.ready=true;hideMapNotice();renderRoute();}}});
+  map.on('sourcedata',e=>{
+    const entry=currentBaseEntry();
+    if(e&&e.sourceId===entry.primarySource&&(e.tile||e.isSourceLoaded)){
+      BASE_LOAD.tileOk=true;
+      hideMapNotice();
+    }
+  });
   // Le SVG de secours n'est recalculé que si le tracé natif est absent.
   map.on('move',()=>{if(!routeNativeHasGeometry||!MAP.ready||!map.getLayer('sky-route-line'))scheduleRouteOverlay();});
   map.on('resize',scheduleRouteOverlay);
-  map.on('error',e=>{const sid=e&&(e.sourceId||e.source?.id);if(sid==='sky-dem'){demFailed=true;demReady=false;try{if(map.getTerrain())map.setTerrain(null);}catch(_){}return;}if(!MAP.ready){$('mapNotice').hidden=false;$('mapNotice').textContent='Le fond de carte ne se charge pas. Vérifiez votre connexion puis choisissez à nouveau un fond dans Carte.';}});
+  map.on('error',e=>{
+    const sid=e&&(e.sourceId||e.source?.id);
+    if(sid==='sky-dem'){demFailed=true;demReady=false;try{if(map.getTerrain())map.setTerrain(null);}catch(_){}return;}
+    if(sid==='sky-vector'){BASE_LOAD.ofmDown=true;return;}
+    if(sid&&(sid.startsWith('sky-')||sid==='ne2_shaded'||sid==='roads'||sid==='labels'))return;
+    const msg=String(e?.error?.message||e?.message||'');
+    if(e?.error?.name==='AbortError'||/abort|cancel/i.test(msg))return;
+    const entry=currentBaseEntry();
+    if(!MAP.ready){
+      if(!sid){
+        if(!map.getStyle())fallbackNextBase('error:style');
+        return;
+      }
+      if(sid===entry.primarySource){
+        if(!e.tile){
+          fallbackNextBase('error:'+sid);
+        }else if(!BASE_LOAD.tileOk){
+          BASE_LOAD.srcErrs++;
+          if(BASE_LOAD.srcErrs>=3)fallbackNextBase('tiles-unavailable');
+        }
+      }
+      return;
+    }
+    if(!BASE_LOAD.tileOk&&sid===entry.primarySource){
+      BASE_LOAD.srcErrs++;
+      if(BASE_LOAD.srcErrs>=3){
+        fallbackNextBase('tiles-unavailable');
+      }
+    }
+  });
   map.on('click',async e=>{
     if($('layerPanel').classList.contains('on')){closeLayers();return;}
     const lat=e.lngLat.lat,lon=((e.lngLat.lng+540)%360)-180;

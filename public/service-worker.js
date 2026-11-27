@@ -1,5 +1,5 @@
 // Service Worker for Instant Météo (PWA & Offline Resilience)
-const CACHE_NAME = 'instant-meteo-v9';
+const CACHE_NAME = 'instant-meteo-v11';
 const DB_NAME = 'instant-meteo-offline-db';
 const DB_VERSION = 2;
 const STORE_RAW_API = 'raw_api_responses';
@@ -157,10 +157,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D & PAGES HTML EMBARQUÉES (/assets/aistudio/)
+  // 0. EXCLUSION ABSOLUE POUR SKYMAP 3D, PAGES EMBARQUÉES, FLUX SSE ET TUILES/STYLES EXTERNES
+  const isTrafficStream =
+    url.pathname.startsWith('/api/traffic/') ||
+    event.request.headers.get('accept')?.includes('text/event-stream');
+  const isWeatherApiUrl =
+    !isTrafficStream && (
+      url.hostname.includes('open-meteo.com') ||
+      url.pathname.startsWith('/api/weather') ||
+      url.pathname.startsWith('/api/')
+    );
+
   if (
+    isTrafficStream ||
+    (url.origin !== self.location.origin && !isWeatherApiUrl) ||
     url.pathname.includes('skymap') ||
     url.pathname.includes('SkyMap') ||
+    (event.request.referrer && event.request.referrer.includes('skymap') && !isWeatherApiUrl) ||
     url.pathname.startsWith('/assets/aistudio/') ||
     url.pathname.includes('tendances-14-jours') ||
     url.pathname.includes('carte-catastrophes') ||
@@ -278,8 +291,10 @@ self.addEventListener('fetch', (event) => {
         const cachedResponse = await caches.match(event.request);
         if (cachedResponse) return cachedResponse;
         if (event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/');
+          const fallbackDoc = await caches.match('/');
+          if (fallbackDoc) return fallbackDoc;
         }
+        return Response.error();
       })
   );
 });
