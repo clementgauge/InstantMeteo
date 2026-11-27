@@ -1,5 +1,5 @@
 // Service du Groupe de Discussion & Salon Météo (Page 13)
-import { resilientFetch } from './cloudflareD1Service';
+import { resilientFetch, getAdminAuthHeader, getPlayerTokenHeader } from './cloudflareD1Service';
 
 export interface ChatMessage {
   id: string;
@@ -96,6 +96,7 @@ export function postChatMessage(message: Omit<ChatMessage, 'id' | 'timestamp' | 
   
   const newMsg: ChatMessage = {
     ...message,
+    isAdmin: undefined,
     id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
     timestamp: `Aujourd'hui à ${timeString}`,
     reactions: { thumbsUp: 0, storm: 0, fire: 0, rain: 0, snow: 0 }
@@ -104,10 +105,15 @@ export function postChatMessage(message: Omit<ChatMessage, 'id' | 'timestamp' | 
   const updated = [newMsg, ...all];
   saveChatMessages(updated);
 
-  // Sync avec la base de données centralisée
+  // Sync avec la base de données centralisée (le statut admin est vérifié côté serveur)
   resilientFetch('/api/discussion/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...getAdminAuthHeader(),
+      ...getPlayerTokenHeader()
+    },
     body: JSON.stringify(newMsg)
   }).catch(() => {});
 
@@ -118,10 +124,14 @@ export function deleteChatMessage(id: string): void {
   const all = getChatMessages().filter(m => m.id !== id);
   saveChatMessages(all);
 
-  // Supprimer également sur le serveur central
+  // Supprimer également sur le serveur central (requiert jeton admin ou propriétaire)
   resilientFetch(`/api/discussion/messages/${encodeURIComponent(id)}/delete`, {
     method: 'POST',
-    headers: { 'Accept': 'application/json' }
+    headers: {
+      'Accept': 'application/json',
+      ...getAdminAuthHeader(),
+      ...getPlayerTokenHeader()
+    }
   }).catch(() => {});
 }
 

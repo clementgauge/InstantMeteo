@@ -391,14 +391,22 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
   // Réinitialiser les points du joueur
   const handleResetPoints = async () => {
     if (!profile) return;
+    let serverOk = true;
+    if (isD1Configured()) {
+      serverOk = await resetPlayerPointsInD1(profile.pseudo);
+    }
     const updated = resetPlayerPoints(profile);
     setProfile(updated);
-    if (isD1Configured()) {
-      await resetPlayerPointsInD1(profile.pseudo);
+    if (isD1Configured() && serverOk) {
       await syncWithD1(updated);
     }
     setIsResetConfirmOpen(false);
-    showToast('Vos points et votre progression ont été réinitialisés à 0.', 0);
+    showToast(
+      serverOk
+        ? 'Vos points et votre progression ont été réinitialisés à 0.'
+        : 'Points réinitialisés localement (session serveur requise pour modifier le classement distant).',
+      0
+    );
   };
 
   // Supprimer le compte joueur
@@ -406,15 +414,21 @@ export const CompetitiveGamingView: React.FC<CompetitiveGamingViewProps> = ({
     if (!profile) return;
     const oldPseudo = profile.pseudo;
     const oldId = profile.id;
-    deletePlayerProfile();
+    let serverOk = true;
     if (isD1Configured()) {
-      await deletePlayerFromD1(oldPseudo, oldId);
+      serverOk = await deletePlayerFromD1(oldPseudo, oldId);
       const remote = await fetchLeaderboardFromD1(null);
       if (remote) setRemoteLeaderboard(remote);
     }
+    deletePlayerProfile();
     setProfile(null);
     setIsDeleteConfirmOpen(false);
-    showToast('Compte supprimé avec succès. Vous pouvez créer un nouveau profil !', 0);
+    showToast(
+      serverOk
+        ? 'Compte supprimé avec succès. Vous pouvez créer un nouveau profil !'
+        : 'Profil local supprimé (la suppression distante nécessite une session active).',
+      0
+    );
   };
 
   // Register current real GPS location for points (indépendant des recherches d'autres communes)

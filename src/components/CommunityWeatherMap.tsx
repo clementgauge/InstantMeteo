@@ -133,31 +133,41 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
 
     filtered.forEach(report => {
       const option = PHENOMENA_OPTIONS.find(p => p.code === report.weatherCode);
-      const color = option?.color || '#3b82f6';
+      const rawColor = option?.color || '#3b82f6';
+      const color = /^#[0-9a-fA-F]{6}$/.test(rawColor) ? rawColor : '#3b82f6';
+
+      const iconWrap = document.createElement('div');
+      iconWrap.style.position = 'relative';
+      iconWrap.style.display = 'flex';
+      iconWrap.style.alignItems = 'center';
+      iconWrap.style.justifyContent = 'center';
+      iconWrap.style.background = 'rgba(15, 23, 42, 0.95)';
+      iconWrap.style.border = `2px solid ${color}`;
+      iconWrap.style.borderRadius = '9999px';
+      iconWrap.style.padding = '4px 8px';
+      iconWrap.style.boxShadow = `0 4px 14px rgba(0,0,0,0.5), 0 0 12px ${color}88`;
+      iconWrap.style.cursor = 'pointer';
+      iconWrap.style.whiteSpace = 'nowrap';
+      iconWrap.style.transform = 'translate(-50%, -50%)';
+
+      const emojiSpan = document.createElement('span');
+      emojiSpan.style.fontSize = '16px';
+      emojiSpan.style.marginRight = '4px';
+      emojiSpan.textContent = String(report.emoji ?? '🌤️');
+
+      const tempSpan = document.createElement('span');
+      tempSpan.style.fontSize = '11px';
+      tempSpan.style.fontWeight = '800';
+      tempSpan.style.color = '#ffffff';
+      tempSpan.style.fontFamily = 'sans-serif';
+      tempSpan.textContent = `${report.temperature > 0 ? `+${report.temperature}` : report.temperature}°`;
+
+      iconWrap.appendChild(emojiSpan);
+      iconWrap.appendChild(tempSpan);
 
       const customIcon = L.divIcon({
         className: 'custom-community-report-marker',
-        html: `
-          <div style="
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 23, 42, 0.95);
-            border: 2px solid ${color};
-            border-radius: 9999px;
-            padding: 4px 8px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 12px ${color}88;
-            cursor: pointer;
-            white-space: nowrap;
-            transform: translate(-50%, -50%);
-          ">
-            <span style="font-size: 16px; margin-right: 4px;">${report.emoji}</span>
-            <span style="font-size: 11px; font-weight: 800; color: #ffffff; font-family: sans-serif;">
-              ${report.temperature > 0 ? `+${report.temperature}` : report.temperature}°
-            </span>
-          </div>
-        `,
+        html: iconWrap,
         iconSize: [60, 30],
         iconAnchor: [30, 15]
       });
@@ -166,55 +176,154 @@ export const CommunityWeatherMap: React.FC<CommunityWeatherMapProps> = ({
 
       const relativeMinutes = Math.round((Date.now() - new Date(report.timestamp).getTime()) / (1000 * 60));
       const remainingMinutes = Math.max(1, 60 - relativeMinutes);
-      const timeStr = `Il y a ${relativeMinutes} min (expire dans ${remainingMinutes} min)`;
 
       const popupContent = document.createElement('div');
       popupContent.className = 'community-popup p-1 text-slate-900';
-      popupContent.innerHTML = `
-        <div style="min-width: 220px; font-family: system-ui, sans-serif;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-            <div style="font-weight: 900; font-size: 13px; color: #0f172a;">📍 ${report.city}</div>
-            <span style="font-size: 9px; font-weight: 800; background: ${color}22; color: ${color}; border: 1px solid ${color}; padding: 2px 6px; rounded: 6px; border-radius: 6px;">
-              ${report.intensity}
-            </span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span style="font-size: 24px;">${report.emoji}</span>
-            <div>
-              <div style="font-weight: 800; font-size: 12px; color: #1e293b;">${report.weatherLabel}</div>
-              <div style="font-size: 14px; font-weight: 900; color: #0284c7;">${report.temperature}°C</div>
-            </div>
-          </div>
-          ${report.comment ? `<p style="font-size: 11px; color: #475569; margin: 4px 0 8px 0; font-style: italic; background: #f8fafc; padding: 6px; border-radius: 6px;">"${report.comment}"</p>` : ''}
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 6px;">
-            <span>Par <strong>${report.reporterPseudo}</strong></span>
-            <span style="color: #ea580c; font-weight: 700;">⏱️ Expire dans ${remainingMinutes}m</span>
-          </div>
-          <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 10px; color: #059669; font-weight: 700;">✅ ${report.confirmations} confirmations</span>
-            <button id="btn-confirm-${report.id}" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer;">
-              👍 Confirmer
-            </button>
-          </div>
-        </div>
-      `;
 
-      marker.bindPopup(popupContent);
-      marker.on('popupopen', () => {
-        const btn = document.getElementById(`btn-confirm-${report.id}`);
-        if (btn) {
-          btn.onclick = () => {
-            const updated = confirmCommunityReport(report.id);
-            setReports(updated);
-            if (isD1Configured()) {
-              confirmReportInD1(report.id);
-            }
-            btn.innerText = '✅ Confirmé !';
-            btn.style.background = '#059669';
-          };
+      const container = document.createElement('div');
+      container.style.minWidth = '220px';
+      container.style.fontFamily = 'system-ui, sans-serif';
+
+      // Top row: city + intensity badge
+      const headerRow = document.createElement('div');
+      headerRow.style.display = 'flex';
+      headerRow.style.alignItems = 'center';
+      headerRow.style.justifyContent = 'space-between';
+      headerRow.style.marginBottom = '6px';
+      headerRow.style.borderBottom = '1px solid #e2e8f0';
+      headerRow.style.paddingBottom = '4px';
+
+      const cityEl = document.createElement('div');
+      cityEl.style.fontWeight = '900';
+      cityEl.style.fontSize = '13px';
+      cityEl.style.color = '#0f172a';
+      cityEl.textContent = `📍 ${report.city}`;
+
+      const intensityEl = document.createElement('span');
+      intensityEl.style.fontSize = '9px';
+      intensityEl.style.fontWeight = '800';
+      intensityEl.style.background = `${color}22`;
+      intensityEl.style.color = color;
+      intensityEl.style.border = `1px solid ${color}`;
+      intensityEl.style.padding = '2px 6px';
+      intensityEl.style.borderRadius = '6px';
+      intensityEl.textContent = String(report.intensity ?? '');
+
+      headerRow.appendChild(cityEl);
+      headerRow.appendChild(intensityEl);
+      container.appendChild(headerRow);
+
+      // Middle row: phenomenon + temperature
+      const middleRow = document.createElement('div');
+      middleRow.style.display = 'flex';
+      middleRow.style.alignItems = 'center';
+      middleRow.style.gap = '8px';
+      middleRow.style.marginBottom = '6px';
+
+      const bigEmoji = document.createElement('span');
+      bigEmoji.style.fontSize = '24px';
+      bigEmoji.textContent = String(report.emoji ?? '🌤️');
+
+      const weatherMeta = document.createElement('div');
+      const labelEl = document.createElement('div');
+      labelEl.style.fontWeight = '800';
+      labelEl.style.fontSize = '12px';
+      labelEl.style.color = '#1e293b';
+      labelEl.textContent = String(report.weatherLabel ?? '');
+
+      const tempTextEl = document.createElement('div');
+      tempTextEl.style.fontSize = '14px';
+      tempTextEl.style.fontWeight = '900';
+      tempTextEl.style.color = '#0284c7';
+      tempTextEl.textContent = `${report.temperature}°C`;
+
+      weatherMeta.appendChild(labelEl);
+      weatherMeta.appendChild(tempTextEl);
+      middleRow.appendChild(bigEmoji);
+      middleRow.appendChild(weatherMeta);
+      container.appendChild(middleRow);
+
+      // Optional comment (escaped cleanly via textContent)
+      if (report.comment) {
+        const commentEl = document.createElement('p');
+        commentEl.style.fontSize = '11px';
+        commentEl.style.color = '#475569';
+        commentEl.style.margin = '4px 0 8px 0';
+        commentEl.style.fontStyle = 'italic';
+        commentEl.style.background = '#f8fafc';
+        commentEl.style.padding = '6px';
+        commentEl.style.borderRadius = '6px';
+        commentEl.textContent = `"${report.comment}"`;
+        container.appendChild(commentEl);
+      }
+
+      // Reporter & expiry row
+      const metaRow = document.createElement('div');
+      metaRow.style.display = 'flex';
+      metaRow.style.alignItems = 'center';
+      metaRow.style.justifyContent = 'space-between';
+      metaRow.style.fontSize = '10px';
+      metaRow.style.color = '#64748b';
+      metaRow.style.marginTop = '6px';
+
+      const bySpan = document.createElement('span');
+      bySpan.textContent = 'Par ';
+      const pseudoStrong = document.createElement('strong');
+      pseudoStrong.textContent = String(report.reporterPseudo || 'Anonyme');
+      bySpan.appendChild(pseudoStrong);
+
+      const expirySpan = document.createElement('span');
+      expirySpan.style.color = '#ea580c';
+      expirySpan.style.fontWeight = '700';
+      expirySpan.textContent = `⏱️ Expire dans ${remainingMinutes}m`;
+
+      metaRow.appendChild(bySpan);
+      metaRow.appendChild(expirySpan);
+      container.appendChild(metaRow);
+
+      // Footer confirmations & confirm button
+      const footerRow = document.createElement('div');
+      footerRow.style.marginTop = '8px';
+      footerRow.style.paddingTop = '6px';
+      footerRow.style.borderTop = '1px solid #f1f5f9';
+      footerRow.style.display = 'flex';
+      footerRow.style.alignItems = 'center';
+      footerRow.style.justifyContent = 'space-between';
+
+      const confirmCountEl = document.createElement('span');
+      confirmCountEl.style.fontSize = '10px';
+      confirmCountEl.style.color = '#059669';
+      confirmCountEl.style.fontWeight = '700';
+      confirmCountEl.textContent = `✅ ${report.confirmations} confirmations`;
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.style.background = '#0284c7';
+      confirmBtn.style.color = 'white';
+      confirmBtn.style.border = 'none';
+      confirmBtn.style.borderRadius = '6px';
+      confirmBtn.style.padding = '4px 8px';
+      confirmBtn.style.fontSize = '10px';
+      confirmBtn.style.fontWeight = '700';
+      confirmBtn.style.cursor = 'pointer';
+      confirmBtn.textContent = '👍 Confirmer';
+      confirmBtn.addEventListener('click', () => {
+        const updated = confirmCommunityReport(report.id);
+        setReports(updated);
+        if (isD1Configured()) {
+          confirmReportInD1(report.id);
         }
+        confirmBtn.textContent = '✅ Confirmé !';
+        confirmBtn.style.background = '#059669';
       });
 
+      footerRow.appendChild(confirmCountEl);
+      footerRow.appendChild(confirmBtn);
+      container.appendChild(footerRow);
+
+      popupContent.appendChild(container);
+
+      marker.bindPopup(popupContent);
       marker.addTo(group);
     });
   }, [reports, selectedFilter]);

@@ -13,14 +13,13 @@ export interface RealtimeStatsData {
   apiLatencyMs: number;
   clientPingMs: number;
   uptimeSeconds: number;
-  uptimePct: number;
+  online: boolean;
   devices: {
     mobile: number;
     desktop: number;
     tablet: number;
   };
-  certified: boolean;
-  certificationLabel: string;
+  telemetryLabel: string;
   timestamp: number;
 }
 
@@ -96,21 +95,20 @@ export async function sendHeartbeatAndFetchStats(): Promise<RealtimeStatsData> {
   const clientPingMs = Math.round(performance.now() - t0);
   return {
     onlineUsers: 1,
-    visits24h: 18,
-    visits7d: 84,
-    visits30d: 312,
-    totalVisits: 350,
-    apiLatencyMs: 35,
+    visits24h: 1,
+    visits7d: 1,
+    visits30d: 1,
+    totalVisits: 1,
+    apiLatencyMs: clientPingMs || 35,
     clientPingMs: clientPingMs || 30,
-    uptimeSeconds: 86400,
-    uptimePct: 99.98,
+    uptimeSeconds: 0,
+    online: false,
     devices: {
       mobile: 65,
       desktop: 30,
       tablet: 5
     },
-    certified: true,
-    certificationLabel: 'Données Réelles Instant Météo Certifiées (Mode Local)',
+    telemetryLabel: 'Mode local (en attente de synchronisation serveur)',
     timestamp: Date.now()
   };
 }

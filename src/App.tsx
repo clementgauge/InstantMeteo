@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, Suspense } from 'react';
 import { 
   Sun, 
   Map, 
@@ -21,28 +21,25 @@ import {
   MessageSquare,
   Send,
   Hash,
-  Film
+  Film,
+  Mountain,
+  ThermometerSnowflake,
+  Cloud,
+  History,
+  Compass,
+  Radio
 } from 'lucide-react';
 import { LocationPoint, CurrentWeather, HourlyForecast, DailyForecast, ClimateAnomaly } from './types/weather';
 import { FRENCH_STATIONS } from './data/frenchStations';
 import { fetchWeatherData, getLocalityFromCoordinates, getFallbackWeatherData } from './services/openMeteoService';
 import { getRichWeatherInfo } from './utils/weatherIcons';
 import { Header } from './components/Header';
-import { SmartwatchRoundView } from './components/SmartwatchRoundView';
-import { DossierExportModal } from './components/DossierExportModal';
 import { LocalitySearchModal } from './components/LocalitySearchModal';
-import { MultiStationComparatorModal } from './components/MultiStationComparatorModal';
 import { RealtimeView } from './views/RealtimeView';
-import { GigaRadarView } from './views/GigaRadarView';
-import { FourteenDayDetailedTrendsCard } from './components/FourteenDayDetailedTrendsCard';
-import { GigaBulletinView } from './views/GigaBulletinView';
 import { ThirtyDayDailyForecastCard } from './components/ThirtyDayDailyForecastCard';
-import { SeasonalEightMonthTrendsCard } from './components/SeasonalEightMonthTrendsCard';
 import { ShortTermMultiModelEnsembleCard } from './components/ShortTermMultiModelEnsembleCard';
-import { MultiDayVigilanceMatrixCard } from './components/MultiDayVigilanceMatrixCard';
 import { FloatingWeatherBubble } from './components/FloatingWeatherBubble';
 import { applyCorrectionToWeather, subscribeToContradictions } from './services/liveContradictionService';
-import { InstallAppModal } from './components/InstallAppModal';
 import { PWAInstallNotificationBanner } from './components/PWAInstallNotificationBanner';
 import { AtmosphereBackground } from './components/AtmosphereBackground';
 import { AtmosphereSelectorModal } from './components/AtmosphereSelectorModal';
@@ -57,29 +54,20 @@ import { evaluateLiveThreatAndAlerts } from './services/notificationService';
 import { RecalibrationState, getActiveRecalibration, clearActiveRecalibration, applyDirectTemperatureOffset } from './services/userObservationService';
 import { WinterSnowObservatoryCard } from './components/WinterSnowObservatoryCard';
 import { FrostAndColdObservatoryCard } from './components/FrostAndColdObservatoryCard';
-import { CloudNephologyObservatoryCard } from './components/CloudNephologyObservatoryCard';
-import { Mountain, ThermometerSnowflake, Cloud, History, Compass, Radio } from 'lucide-react';
 import { HomePage } from './views/HomePage';
 import { DirectAlertBanner } from './components/DirectAlertBanner';
 import { AdminAnnouncementBanner } from './components/AdminAnnouncementBanner';
-import { HistoricalTrendsAndRealtimeView } from './views/HistoricalTrendsAndRealtimeView';
-import { WorldDisastersView } from './views/WorldDisastersView';
-import { CompetitiveGamingView } from './views/CompetitiveGamingView';
-import { DiscussionGroupView } from './views/DiscussionGroupView';
-import { TerritoriesAndNatureHubView, TerritorySectionId } from './views/TerritoriesAndNatureHubView';
-import { SkyMapView } from './views/SkyMapView';
+import type { TerritorySectionId } from './views/TerritoriesAndNatureHubView';
 import { LegalAndPrivacyModal } from './components/LegalAndPrivacyModal';
 import { PseudoModal } from './components/PseudoModal';
-import { AdminPanelModal } from './components/AdminPanelModal';
 import { PageBlockCustomizerModal } from './components/PageBlockCustomizerModal';
-import { verifyAdminCode, adminToggleAdminStatus, loadPlayerProfile } from './services/competitiveGameService';
+import { ensurePlayerProfileRestored } from './services/competitiveGameService';
+import { isAdminAuthenticated } from './services/cloudflareD1Service';
 import { isPageVisible } from './services/displayPreferencesService';
 import { UpdateNotificationPrompt } from './components/UpdateNotificationPrompt';
 import { BottomIconCarousel } from './components/BottomIconCarousel';
 import { DynamicWeatherAffiliateBanner } from './components/DynamicWeatherAffiliateBanner';
 import { AffiliateStoreFooter } from './components/AffiliateStoreFooter';
-import { CommunityWeatherMap } from './components/CommunityWeatherMap';
-import { ensurePlayerProfileRestored } from './services/competitiveGameService';
 import { SeoPageGuideCard } from './components/SeoPageGuideCard';
 import { SeoHead } from './components/SeoHead';
 import { updateDocumentSeo, updateDocumentSeoForStation, setNotFoundSeo } from './utils/seoVerification';
@@ -97,9 +85,35 @@ import {
 } from './seo/pagesSeoData';
 import { getActiveSiteLocale, getNativeSiteLanguage } from './i18n/siteTranslations';
 import { sendHeartbeatAndFetchStats, notifyVisitorLeave } from './services/siteStatsService';
-import { CertifiedLiveSiteStatsCard } from './components/CertifiedLiveSiteStatsCard';
 import { PWASplashScreen } from './components/PWASplashScreen';
-import { ShareAndQrCodeModal } from './components/ShareAndQrCodeModal';
+
+const SmartwatchRoundView = React.lazy(() => import('./components/SmartwatchRoundView').then((m) => ({ default: m.SmartwatchRoundView })));
+const DossierExportModal = React.lazy(() => import('./components/DossierExportModal').then((m) => ({ default: m.DossierExportModal })));
+const MultiStationComparatorModal = React.lazy(() => import('./components/MultiStationComparatorModal').then((m) => ({ default: m.MultiStationComparatorModal })));
+const GigaRadarView = React.lazy(() => import('./views/GigaRadarView').then((m) => ({ default: m.GigaRadarView })));
+const FourteenDayDetailedTrendsCard = React.lazy(() => import('./components/FourteenDayDetailedTrendsCard').then((m) => ({ default: m.FourteenDayDetailedTrendsCard })));
+const GigaBulletinView = React.lazy(() => import('./views/GigaBulletinView').then((m) => ({ default: m.GigaBulletinView })));
+const SeasonalEightMonthTrendsCard = React.lazy(() => import('./components/SeasonalEightMonthTrendsCard').then((m) => ({ default: m.SeasonalEightMonthTrendsCard })));
+const MultiDayVigilanceMatrixCard = React.lazy(() => import('./components/MultiDayVigilanceMatrixCard').then((m) => ({ default: m.MultiDayVigilanceMatrixCard })));
+const InstallAppModal = React.lazy(() => import('./components/InstallAppModal').then((m) => ({ default: m.InstallAppModal })));
+const CloudNephologyObservatoryCard = React.lazy(() => import('./components/CloudNephologyObservatoryCard').then((m) => ({ default: m.CloudNephologyObservatoryCard })));
+const HistoricalTrendsAndRealtimeView = React.lazy(() => import('./views/HistoricalTrendsAndRealtimeView').then((m) => ({ default: m.HistoricalTrendsAndRealtimeView })));
+const WorldDisastersView = React.lazy(() => import('./views/WorldDisastersView').then((m) => ({ default: m.WorldDisastersView })));
+const CompetitiveGamingView = React.lazy(() => import('./views/CompetitiveGamingView').then((m) => ({ default: m.CompetitiveGamingView })));
+const DiscussionGroupView = React.lazy(() => import('./views/DiscussionGroupView').then((m) => ({ default: m.DiscussionGroupView })));
+const TerritoriesAndNatureHubView = React.lazy(() => import('./views/TerritoriesAndNatureHubView').then((m) => ({ default: m.TerritoriesAndNatureHubView })));
+const SkyMapView = React.lazy(() => import('./views/SkyMapView').then((m) => ({ default: m.SkyMapView })));
+const AdminPanelModal = React.lazy(() => import('./components/AdminPanelModal').then((m) => ({ default: m.AdminPanelModal })));
+const CommunityWeatherMap = React.lazy(() => import('./components/CommunityWeatherMap').then((m) => ({ default: m.CommunityWeatherMap })));
+const CertifiedLiveSiteStatsCard = React.lazy(() => import('./components/CertifiedLiveSiteStatsCard').then((m) => ({ default: m.CertifiedLiveSiteStatsCard })));
+const ShareAndQrCodeModal = React.lazy(() => import('./components/ShareAndQrCodeModal').then((m) => ({ default: m.ShareAndQrCodeModal })));
+
+const LazyViewFallback = () => (
+  <div className="flex flex-col items-center justify-center py-20">
+    <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+    <p className="mt-3 text-xs font-bold text-slate-400">Chargement de l'observatoire...</p>
+  </div>
+);
 
 interface ViewErrorBoundaryProps {
   children: React.ReactNode;
@@ -537,14 +551,7 @@ function WeatherApp() {
   const [legalModalTab, setLegalModalTab] = useState<'privacy' | 'cgu' | 'mentions' | 'sources' | 'rgpd' | 'contact'>('privacy');
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [shareModalTab, setShareModalTab] = useState<'share' | 'qrcode'>('share');
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    try {
-      const p = loadPlayerProfile();
-      return !!(p && p.isAdmin);
-    } catch (e) {
-      return false;
-    }
-  });
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminAuthenticated());
 
   // Télémétrie de présence temps réel globale (Fréquentation certifiée)
   useEffect(() => {
@@ -574,12 +581,11 @@ function WeatherApp() {
 
   useEffect(() => {
     ensurePlayerProfileRestored();
-    const handleScoreUpdated = () => {
-      const p = loadPlayerProfile();
-      setIsAdmin(!!(p && p.isAdmin));
+    const syncAdminSession = () => {
+      setIsAdmin(isAdminAuthenticated());
     };
-    window.addEventListener('instant_meteo_score_updated', handleScoreUpdated);
-    return () => window.removeEventListener('instant_meteo_score_updated', handleScoreUpdated);
+    window.addEventListener('instant_meteo_admin_session_changed', syncAdminSession);
+    return () => window.removeEventListener('instant_meteo_admin_session_changed', syncAdminSession);
   }, []);
 
   // Écoute de l'événement universel pour ouvrir le modal de partage ou QR code
@@ -648,13 +654,7 @@ function WeatherApp() {
 
   const handleTriggerSecretCode = (code: string): boolean => {
     const cleanCode = code.trim().toLowerCase();
-    // Secret admin code (meteoversailles78)
-    if (verifyAdminCode(cleanCode)) {
-      const p = loadPlayerProfile();
-      if (p) {
-        adminToggleAdminStatus(p, true);
-      }
-      setIsAdmin(true);
+    if (cleanCode === 'admin') {
       setIsAdminPanelOpen(true);
       return true;
     }
@@ -1099,27 +1099,33 @@ function WeatherApp() {
       />
 
       {activeTab === 'skymap' ? (
-        <SkyMapView
-          currentStation={currentStation}
-          onSelectStation={handleSelectStationWithSeo}
-          isLightMode={themeMode === 'light'}
-        />
+        <Suspense fallback={<LazyViewFallback />}>
+          <SkyMapView
+            currentStation={currentStation}
+            onSelectStation={handleSelectStationWithSeo}
+            isLightMode={themeMode === 'light'}
+          />
+        </Suspense>
       ) : activeTab === 'worldDisasters' ? (
-        <WorldDisastersView
-          seniorMode={seniorMode}
-          simplifiedMode={simplifiedMode}
-        />
+        <Suspense fallback={<LazyViewFallback />}>
+          <WorldDisastersView
+            seniorMode={seniorMode}
+            simplifiedMode={simplifiedMode}
+          />
+        </Suspense>
       ) : activeTab === 'scenarios14d' ? (
-        <FourteenDayDetailedTrendsCard
-          station={currentStation}
-          currentTemp={weather?.temperature}
-          currentAnomaly={anomaly?.tempAnomaly}
-          dailyForecasts={daily}
-          currentWeather={weather ?? undefined}
-          seniorMode={seniorMode}
-          tempUnit={tempUnit}
-          simplifiedMode={simplifiedMode}
-        />
+        <Suspense fallback={<LazyViewFallback />}>
+          <FourteenDayDetailedTrendsCard
+            station={currentStation}
+            currentTemp={weather?.temperature}
+            currentAnomaly={anomaly?.tempAnomaly}
+            dailyForecasts={daily}
+            currentWeather={weather ?? undefined}
+            seniorMode={seniorMode}
+            tempUnit={tempUnit}
+            simplifiedMode={simplifiedMode}
+          />
+        </Suspense>
       ) : (
         <>
           <div className="sm:flex flex-1 w-full min-w-0">
@@ -1378,14 +1384,16 @@ function WeatherApp() {
 
             {activeTab === 'cloudNephology' && (
               <div className="space-y-6">
-                <CloudNephologyObservatoryCard
-                  station={currentStation}
-                  weather={weather}
-                  hourlyForecasts={hourly}
-                  seniorMode={seniorMode}
-                  tempUnit={tempUnit}
-                  simplifiedMode={simplifiedMode}
-                />
+                <Suspense fallback={<LazyViewFallback />}>
+                  <CloudNephologyObservatoryCard
+                    station={currentStation}
+                    weather={weather}
+                    hourlyForecasts={hourly}
+                    seniorMode={seniorMode}
+                    tempUnit={tempUnit}
+                    simplifiedMode={simplifiedMode}
+                  />
+                </Suspense>
               </div>
             )}
 
@@ -1414,87 +1422,103 @@ function WeatherApp() {
                   </div>
                 </div>
 
-                <MultiDayVigilanceMatrixCard
-                  station={currentStation}
-                  currentWeather={weather}
-                  hourlyForecasts={hourly}
-                  dailyForecasts={daily}
-                  seniorMode={seniorMode}
-                  simplifiedMode={simplifiedMode}
-                />
+                <Suspense fallback={<LazyViewFallback />}>
+                  <MultiDayVigilanceMatrixCard
+                    station={currentStation}
+                    currentWeather={weather}
+                    hourlyForecasts={hourly}
+                    dailyForecasts={daily}
+                    seniorMode={seniorMode}
+                    simplifiedMode={simplifiedMode}
+                  />
+                </Suspense>
               </div>
             )}
 
             {activeTab === 'bulletin' && (
-              <GigaBulletinView
-                currentStation={currentStation}
-                dailyForecasts={daily}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <GigaBulletinView
+                  currentStation={currentStation}
+                  dailyForecasts={daily}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
+              </Suspense>
             )}
 
             {activeTab === 'eightMonths' && (
-              <SeasonalEightMonthTrendsCard
-                station={currentStation}
-                currentTemp={weather.temperature}
-                currentAnomaly={anomaly.tempAnomaly}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <SeasonalEightMonthTrendsCard
+                  station={currentStation}
+                  currentTemp={weather.temperature}
+                  currentAnomaly={anomaly.tempAnomaly}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                />
+              </Suspense>
             )}
 
             {activeTab === 'radar' && (
-              <GigaRadarView
-                currentStation={currentStation}
-                onSelectStation={(st) => setCurrentStation(st)}
-                weather={weather}
-                hourly={hourly}
-                daily={daily}
-                seniorMode={seniorMode}
-                simplifiedMode={simplifiedMode}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onNavigateTab={handleNavigateTab}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <GigaRadarView
+                  currentStation={currentStation}
+                  onSelectStation={(st) => setCurrentStation(st)}
+                  weather={weather}
+                  hourly={hourly}
+                  daily={daily}
+                  seniorMode={seniorMode}
+                  simplifiedMode={simplifiedMode}
+                  onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                  onNavigateTab={handleNavigateTab}
+                />
+              </Suspense>
             )}
 
             {(activeTab === 'historicalTrends' || activeTab === 'weatherArchive') && (
-              <HistoricalTrendsAndRealtimeView
-                station={currentStation}
-                weather={weather}
-                seniorMode={seniorMode}
-                tempUnit={tempUnit}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <HistoricalTrendsAndRealtimeView
+                  station={currentStation}
+                  weather={weather}
+                  seniorMode={seniorMode}
+                  tempUnit={tempUnit}
+                  onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                />
+              </Suspense>
             )}
 
             {activeTab === 'competitive' && (
-              <CompetitiveGamingView
-                currentStation={currentStation}
-                weather={weather}
-                seniorMode={seniorMode}
-                onOpenSearchModal={() => setIsSearchModalOpen(true)}
-                onNavigateToTab={handleNavigateTab}
-                onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <CompetitiveGamingView
+                  currentStation={currentStation}
+                  weather={weather}
+                  seniorMode={seniorMode}
+                  onOpenSearchModal={() => setIsSearchModalOpen(true)}
+                  onNavigateToTab={handleNavigateTab}
+                  onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+                />
+              </Suspense>
             )}
 
             {activeTab === 'discussionGroup' && (
-              <DiscussionGroupView
-                station={currentStation}
-                seniorMode={seniorMode}
-                onOpenPseudoModal={() => setIsPseudoModalOpen(true)}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <DiscussionGroupView
+                  station={currentStation}
+                  seniorMode={seniorMode}
+                  onOpenPseudoModal={() => setIsPseudoModalOpen(true)}
+                />
+              </Suspense>
             )}
 
             {activeTab === 'natureTerritories' && (
-              <TerritoriesAndNatureHubView
-                station={currentStation}
-                weather={weather}
-                isLightMode={themeMode === 'light'}
-                activeSection={territorySection}
-                onSectionChange={setTerritorySection}
-              />
+              <Suspense fallback={<LazyViewFallback />}>
+                <TerritoriesAndNatureHubView
+                  station={currentStation}
+                  weather={weather}
+                  isLightMode={themeMode === 'light'}
+                  activeSection={territorySection}
+                  onSectionChange={setTerritorySection}
+                />
+              </Suspense>
             )}
 
 
@@ -1519,10 +1543,12 @@ function WeatherApp() {
                   </div>
                 </div>
 
-                <CommunityWeatherMap
-                  currentStation={currentStation}
-                  seniorMode={seniorMode}
-                />
+                <Suspense fallback={<LazyViewFallback />}>
+                  <CommunityWeatherMap
+                    currentStation={currentStation}
+                    seniorMode={seniorMode}
+                  />
+                </Suspense>
               </div>
             )}
 
@@ -1991,21 +2017,29 @@ function WeatherApp() {
       />
 
       {/* Mobile PWA & Fullscreen Install Modal */}
-      <InstallAppModal
-        isOpen={isInstallModalOpen}
-        onClose={() => setIsInstallModalOpen(false)}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={handleToggleFullscreen}
-      />
+      {isInstallModalOpen && (
+        <Suspense fallback={null}>
+          <InstallAppModal
+            isOpen={isInstallModalOpen}
+            onClose={() => setIsInstallModalOpen(false)}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={handleToggleFullscreen}
+          />
+        </Suspense>
+      )}
 
       {/* Share and QR Code Generator Modal */}
-      <ShareAndQrCodeModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        currentStation={currentStation}
-        currentTab={activeTab}
-        initialTab={shareModalTab}
-      />
+      {isShareModalOpen && (
+        <Suspense fallback={null}>
+          <ShareAndQrCodeModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            currentStation={currentStation}
+            currentTab={activeTab}
+            initialTab={shareModalTab}
+          />
+        </Suspense>
+      )}
 
       {/* Automatic Browser & Device App Download Notification Banner (Chrome, Firefox, Edge, Safari — PC & Mobile) */}
       <PWAInstallNotificationBanner
@@ -2022,12 +2056,16 @@ function WeatherApp() {
       />
 
       {/* Multi-Station Comparator Modal */}
-      <MultiStationComparatorModal
-        isOpen={isComparatorModalOpen}
-        onClose={() => setIsComparatorModalOpen(false)}
-        baseStation={currentStation}
-        seniorMode={seniorMode}
-      />
+      {isComparatorModalOpen && (
+        <Suspense fallback={null}>
+          <MultiStationComparatorModal
+            isOpen={isComparatorModalOpen}
+            onClose={() => setIsComparatorModalOpen(false)}
+            baseStation={currentStation}
+            seniorMode={seniorMode}
+          />
+        </Suspense>
+      )}
 
       {/* User Weather Observation & Error Reporting Modal */}
       <UserWeatherReportModal
@@ -2043,15 +2081,17 @@ function WeatherApp() {
       />
 
       {/* Dossier Export Modal */}
-      {weather && anomaly && (
-        <DossierExportModal
-          isOpen={isDossierModalOpen}
-          onClose={() => setIsDossierModalOpen(false)}
-          station={currentStation}
-          weather={weather}
-          anomaly={anomaly}
-          seniorMode={seniorMode}
-        />
+      {isDossierModalOpen && weather && anomaly && (
+        <Suspense fallback={null}>
+          <DossierExportModal
+            isOpen={isDossierModalOpen}
+            onClose={() => setIsDossierModalOpen(false)}
+            station={currentStation}
+            weather={weather}
+            anomaly={anomaly}
+            seniorMode={seniorMode}
+          />
+        </Suspense>
       )}
 
       {/* Direct Page Push Notification Permission Prompt */}
@@ -2062,18 +2102,22 @@ function WeatherApp() {
         onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
       />
 
-      {/* Pseudo Creation & Secret Admin Code Modal */}
+      {/* Pseudo Creation Modal */}
       <PseudoModal
         isOpen={isPseudoModalOpen}
         onClose={() => setIsPseudoModalOpen(false)}
         onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
       />
 
-      {/* Admin Panel Modal (Restricted to Admins) */}
-      <AdminPanelModal
-        isOpen={isAdminPanelOpen}
-        onClose={() => setIsAdminPanelOpen(false)}
-      />
+      {/* Admin Panel Modal (Authenticated on Server) */}
+      {isAdminPanelOpen && (
+        <Suspense fallback={null}>
+          <AdminPanelModal
+            isOpen={isAdminPanelOpen}
+            onClose={() => setIsAdminPanelOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Page & Block Customizer Modal */}
       <PageBlockCustomizerModal
@@ -2081,7 +2125,7 @@ function WeatherApp() {
         onClose={() => setIsPageBlockCustomizerOpen(false)}
       />
 
-      {/* Modal Télémétrie & Fréquentation Certifiée */}
+      {/* Modal Télémétrie & Fréquentation */}
       {isStatsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-4 sm:p-6">
@@ -2092,7 +2136,9 @@ function WeatherApp() {
             >
               ✕
             </button>
-            <CertifiedLiveSiteStatsCard seniorMode={seniorMode} />
+            <Suspense fallback={<LazyViewFallback />}>
+              <CertifiedLiveSiteStatsCard seniorMode={seniorMode} />
+            </Suspense>
           </div>
         </div>
       )}
@@ -2106,23 +2152,25 @@ function WeatherApp() {
 
       {/* Mode Montre Connectée Ronde (Wear OS, Google Pixel Watch, Samsung Galaxy Watch) */}
       {isWatchMode && (
-        <SmartwatchRoundView
-          currentStation={currentStation}
-          weather={weather}
-          hourly={hourly}
-          daily={daily}
-          onSelectStation={handleSelectStationWithSeo}
-          onRefresh={handleRefresh}
-          onLocateGps={handleLocateGps}
-          themeMode={themeMode}
-          onToggleThemeMode={handleToggleThemeMode}
-          onCloseWatchMode={() => {
-            setIsWatchMode(false);
-            try {
-              localStorage.setItem('instant_meteo_watch_mode', 'false');
-            } catch (_) {}
-          }}
-        />
+        <Suspense fallback={null}>
+          <SmartwatchRoundView
+            currentStation={currentStation}
+            weather={weather}
+            hourly={hourly}
+            daily={daily}
+            onSelectStation={handleSelectStationWithSeo}
+            onRefresh={handleRefresh}
+            onLocateGps={handleLocateGps}
+            themeMode={themeMode}
+            onToggleThemeMode={handleToggleThemeMode}
+            onCloseWatchMode={() => {
+              setIsWatchMode(false);
+              try {
+                localStorage.setItem('instant_meteo_watch_mode', 'false');
+              } catch (_) {}
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

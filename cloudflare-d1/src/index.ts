@@ -5,11 +5,8 @@
  */
 
 import {
-  getSeoDataForPath,
-  generatePageJsonLd,
-  generateStaticHtmlContent,
-  generateNotFoundHtmlContent,
-  generateHreflangLinksHtml,
+  applyPageSeoToHtml,
+  applyNotFoundSeoToHtml,
   generateRobotsTxt,
   generateSitemapIndexXml,
   generatePagesSitemapXml,
@@ -17,270 +14,255 @@ import {
   getAliasRedirectTarget,
   isValidSeoPath,
   stripLocalePrefix,
-  buildLocalizedUrl,
-  getPageOgImageUrl,
   localizeSkyMapHtml,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from '../../src/seo/pagesSeoData';
-import {
-  getSiteBrandForLocale,
-  normalizeSupportedLocale,
-} from '../../src/i18n/siteTranslations';
 
 export interface Env {
   DB: D1Database;
   ASSETS?: {
     fetch: (request: Request | string) => Promise<Response>;
   };
+  ADMIN_TOKEN?: string;
+  SESSION_SECRET?: string;
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With',
-};
+const ALLOWED_BADGE_IDS = new Set([
+  'sun', 'rain', 'storm', 'snow', 'frost', 'fog', 'gale', 'heat', 'altitude', 'night_stars',
+]);
 
-function jsonResponse(data: any, status = 200): Response {
+let ephemeralWorkerSecret: string | null = null;
+function getWorkerSigningSecret(env: Env): string {
+  const configured = (env.SESSION_SECRET || env.ADMIN_TOKEN || '').trim();
+  if (configured) return configured;
+  if (!ephemeralWorkerSecret) {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    ephemeralWorkerSecret = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  return ephemeralWorkerSecret;
+}
+
+function isAllowedCorsOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (
+    origin === 'http://localhost:3000' ||
+    origin === 'http://127.0.0.1:3000' ||
+    origin === 'https://instantmeteo-fr.ai.studio' ||
+    origin === 'https://instantmeteo.instantmeteofr.workers.dev'
+  ) {
+    return true;
+  }
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== 'https:') return false;
+    return (
+      parsed.hostname.endsWith('.run.app') ||
+      parsed.hostname.endsWith('.ai.studio') ||
+      parsed.hostname.endsWith('.workers.dev')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function buildCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin');
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Player-Token, Accept, X-Requested-With',
+  };
+  if (origin && isAllowedCorsOrigin(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Vary'] = 'Origin';
+  }
+  return headers;
+}
+
+function jsonResponse(request: Request, data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      ...corsHeaders,
+      ...buildCorsHeaders(request),
       'Content-Type': 'application/json; charset=utf-8',
       'X-Robots-Tag': 'noindex, nofollow',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }
 
-function escapeHtmlAttr(str: string): string {
-  return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+async function safeReadJson(request: Request): Promise<{ ok: true; data: any } | { ok: false }> {
+  try {
+    const text = await request.text();
+    if (!text || !text.trim()) {
+      return { ok: true, data: {} };
+    }
+    const parsed = JSON.parse(text);
+    if (parsed !== null && typeof parsed !== 'object') {
+      return { ok: false };
+    }
+    return { ok: true, data: parsed };
+  } catch {
+    return { ok: false };
+  }
 }
 
-function escapeHtmlText(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// Per-isolate sliding-window rate limiter
+const workerApiCounts = new Map<string, { count: number; resetTime: number }>();
+const workerStrictCounts = new Map<string, { count: number; resetTime: number }>();
+
+function checkWorkerRateLimit(request: Request, path: string): boolean {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const now = Date.now();
+
+  const general = workerApiCounts.get(ip);
+  if (!general || now > general.resetTime) {
+    workerApiCounts.set(ip, { count: 1, resetTime: now + 60_000 });
+  } else {
+    general.count += 1;
+    if (general.count > 180) return false;
+  }
+
+  const isStrict =
+    path === '/api/admin/login' ||
+    path.startsWith('/api/admin/') ||
+    path.startsWith('/api/player/') ||
+    (request.method !== 'GET' && path.startsWith('/api/reports'));
+  if (isStrict && request.method !== 'OPTIONS') {
+    const strict = workerStrictCounts.get(ip);
+    if (!strict || now > strict.resetTime) {
+      workerStrictCounts.set(ip, { count: 1, resetTime: now + 60_000 });
+    } else {
+      strict.count += 1;
+      if (strict.count > 30) return false;
+    }
+  }
+
+  if (workerApiCounts.size > 5000) workerApiCounts.clear();
+  if (workerStrictCounts.size > 5000) workerStrictCounts.clear();
+  return true;
 }
 
-function transformHtmlForWorker(
-  rawHtml: string,
-  reqPath: string,
-  lang: string = 'fr',
-  queryParams?: URLSearchParams
-): string {
-  const { locale: pathLocale, path: cleanBase } = stripLocalePrefix(reqPath);
-  const locale = normalizeSupportedLocale(lang || pathLocale);
-  const brand = getSiteBrandForLocale(locale);
-
-  let effectivePath = reqPath;
-  const requestedLocality =
-    queryParams?.get('ville') ||
-    queryParams?.get('city') ||
-    queryParams?.get('q') ||
-    queryParams?.get('station');
-  if (requestedLocality && (cleanBase === '/' || cleanBase === '/direct')) {
-    const slug = requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-    effectivePath = locale === 'en' ? `/en/${slug}` : `/${slug}`;
+function toBase64Url(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
   }
-
-  const pageSeo = getSeoDataForPath(effectivePath, locale);
-  const canonicalUrl = buildLocalizedUrl(pageSeo.path, locale);
-  const ogImageUrl = getPageOgImageUrl(pageSeo);
-  const alternateOgLocale = locale === 'en' ? 'fr_FR' : 'en_US';
-  let html = rawHtml;
-
-  // 0. Attribut lang et dir sur <html>
-  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
-
-  // 1. Title naturel et propre à chaque page
-  if (/<title>[\s\S]*?<\/title>/i.test(html)) {
-    html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
-  } else {
-    html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
-  }
-
-  // 2. Balise canonique auto-référentielle (FR ou /en/...)
-  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(
-      /<link[^>]*rel=["']canonical["'][^>]*\/?>/gi,
-      `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`
-    );
-  } else {
-    html = html.replace(
-      '</head>',
-      `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`
-    );
-  }
-
-  // 2b. Balises hreflang (strictement fr, en, x-default)
-  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(pageSeo.path)}\n    <!--SEO_HREFLANG_END-->`;
-  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
-    html = html.replace(
-      /<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/,
-      hreflangBlock
-    );
-  } else {
-    html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
-  }
-
-  // 3. Meta Description, Meta Title & Nom du site traduit
-  html = html.replace(
-    /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
-    `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
-    `<meta name="application-name" content="${escapeHtmlAttr(brand.brandName)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']apple-mobile-web-app-title["'][^>]*\/?>/gi,
-    `<meta name="apple-mobile-web-app-title" content="${escapeHtmlAttr(brand.brandName)}" />`
-  );
-  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(
-      /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
-      `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`
-    );
-  } else {
-    html = html.replace(
-      '</head>',
-      `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`
-    );
-  }
-
-  // 4. OpenGraph tags
-  html = html.replace(
-    /<meta[^>]*property=["']og:title["'][^>]*\/?>/gi,
-    `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*property=["']og:description["'][^>]*\/?>/gi,
-    `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*property=["']og:url["'][^>]*\/?>/gi,
-    `<meta property="og:url" content="${canonicalUrl}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*property=["']og:site_name["'][^>]*\/?>/gi,
-    `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi,
-    `<meta property="og:locale" content="${brand.ogLocale}" />`
-  );
-  if (/<meta[^>]*property=["']og:locale:alternate["'][^>]*>/i.test(html)) {
-    html = html.replace(
-      /<meta[^>]*property=["']og:locale:alternate["'][^>]*\/?>/gi,
-      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`
-    );
-  } else {
-    html = html.replace(
-      '</head>',
-      `    <meta property="og:locale:alternate" content="${alternateOgLocale}" />\n  </head>`
-    );
-  }
-  html = html.replace(
-    /<meta[^>]*property=["']og:image["'][^>]*\/?>/gi,
-    `<meta property="og:image" content="${ogImageUrl}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*property=["']og:image:alt["'][^>]*\/?>/gi,
-    `<meta property="og:image:alt" content="${escapeHtmlAttr(pageSeo.title)}" />`
-  );
-
-  // 5. Suppression des balises obsolètes/superflues & règle commune meta robots
-  html = html.replace(
-    /<meta\b[^>]*(?:keywords|googlebot|bingbot|publisher|language|geo\.region|geo\.placename|rating|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi,
-    ''
-  );
-  html = html.replace(/<link[^>]*rel=["']sitemap["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<meta[^>]*http-equiv=["']X-UA-Compatible["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(
-    '</head>',
-    `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`
-  );
-
-  // 6. Twitter Card tags
-  html = html.replace(
-    /<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi,
-    `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']twitter:description["'][^>]*\/?>/gi,
-    `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi,
-    `<meta name="twitter:url" content="${canonicalUrl}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']twitter:image["'][^>]*\/?>/gi,
-    `<meta name="twitter:image" content="${ogImageUrl}" />`
-  );
-
-  // 7. Schema.org JSON-LD unifié
-  const jsonLd = generatePageJsonLd(pageSeo, locale);
-  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
-  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(
-      /<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi,
-      jsonLdTag
-    );
-  } else {
-    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
-  }
-
-  // 8. Injection déterministe du contenu HTML initial propre à la page dans le <body>
-  const staticContent = generateStaticHtmlContent(pageSeo, locale);
-  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
-  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
-    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
-  } else {
-    html = html.replace(/<body([^>]*)>([\s\S]*?)<\/body>/i, (_match, bodyAttrs, bodyInner) => {
-      const scripts = (bodyInner.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || []).join('\n    ');
-      return `<body${bodyAttrs}>\n    ${rootReplacement}${scripts ? `\n    ${scripts}` : ''}\n  </body>`;
-    });
-  }
-
-  return html;
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-function transformNotFoundHtmlForWorker(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
-  const locale = normalizeSupportedLocale(lang);
-  const brand = getSiteBrandForLocale(locale);
-  const isEn = locale === 'en';
-  const title = isEn
-    ? '404 — Page Not Found | Instant Weather'
-    : '404 — Page introuvable | Instant Météo';
-  const desc = isEn
-    ? `The requested URL (${reqPath}) does not exist on Instant Weather.`
-    : `L’adresse demandée (${reqPath}) n’existe pas sur Instant Météo.`;
-
-  let html = rawHtml;
-  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
-  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(title)}</title>`);
-  html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
-  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
-  html = html.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
-  html = html.replace(
-    /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
-    `<meta name="description" content="${escapeHtmlAttr(desc)}" />`
-  );
-
-  const body404 = generateNotFoundHtmlContent(reqPath, locale);
-  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${body404}\n    </div><!--SEO_ROOT_END-->`;
-  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
-    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
+function fromBase64Url(str: string): Uint8Array | null {
+  try {
+    const padded = str.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((str.length + 3) % 4);
+    const binary = atob(padded);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch {
+    return null;
   }
-  return html;
+}
+
+async function timingSafeEqualStrings(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const [hashA, hashB] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const bytesA = new Uint8Array(hashA);
+  const bytesB = new Uint8Array(hashB);
+  let diff = 0;
+  for (let i = 0; i < bytesA.length; i += 1) {
+    diff |= bytesA[i] ^ bytesB[i];
+  }
+  return diff === 0;
+}
+
+interface SignedWorkerTokenPayload {
+  role: 'admin' | 'player';
+  sub: string;
+  pseudo?: string;
+  exp: number;
+}
+
+async function signWorkerToken(payload: SignedWorkerTokenPayload, env: Env): Promise<string> {
+  const enc = new TextEncoder();
+  const encodedPayload = toBase64Url(enc.encode(JSON.stringify(payload)));
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(getWorkerSigningSecret(env)),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(encodedPayload));
+  const sig = toBase64Url(new Uint8Array(sigBuf));
+  return `${encodedPayload}.${sig}`;
+}
+
+async function verifyWorkerToken(token: string, env: Env): Promise<SignedWorkerTokenPayload | null> {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [encodedPayload, sig] = parts;
+  if (!encodedPayload || !sig) return null;
+  try {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(getWorkerSigningSecret(env)),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const expectedSigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(encodedPayload));
+    const expectedSig = toBase64Url(new Uint8Array(expectedSigBuf));
+    if (!(await timingSafeEqualStrings(sig, expectedSig))) return null;
+
+    const payloadBytes = fromBase64Url(encodedPayload);
+    if (!payloadBytes) return null;
+    const parsed = JSON.parse(new TextDecoder().decode(payloadBytes)) as SignedWorkerTokenPayload;
+    if (!parsed || typeof parsed.exp !== 'number' || Date.now() > parsed.exp) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function extractBearerToken(request: Request): string {
+  const authHeader = request.headers.get('Authorization') || '';
+  if (!authHeader.startsWith('Bearer ')) return '';
+  return authHeader.slice(7).trim();
+}
+
+async function isVerifiedWorkerAdmin(request: Request, env: Env): Promise<boolean> {
+  const token = extractBearerToken(request);
+  if (!token) return false;
+  const configured = (env.ADMIN_TOKEN || '').trim();
+  if (configured && (await timingSafeEqualStrings(token, configured))) {
+    return true;
+  }
+  const signed = await verifyWorkerToken(token, env);
+  return Boolean(signed && signed.role === 'admin');
+}
+
+async function getVerifiedWorkerPlayerToken(request: Request, env: Env): Promise<SignedWorkerTokenPayload | null> {
+  const raw = request.headers.get('X-Player-Token') || '';
+  const parsed = await verifyWorkerToken(raw.trim(), env);
+  if (!parsed || parsed.role !== 'player') return null;
+  return parsed;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+      const origin = request.headers.get('Origin');
+      if (origin && !isAllowedCorsOrigin(origin)) {
+        return new Response(null, { status: 403 });
+      }
+      return new Response(null, { status: 204, headers: buildCorsHeaders(request) });
     }
 
     const url = new URL(request.url);
@@ -373,6 +355,10 @@ export default {
       }
     }
 
+    if ((path.startsWith('/api/') || path === '/health') && !checkWorkerRateLimit(request, path)) {
+      return jsonResponse(request, { error: 'Limite de requêtes atteinte, veuillez patienter.' }, 429);
+    }
+
     try {
       // =========================================================================
       // 0. SERVICE DU FRONTEND REACT AVEC INJECTION SEO COMPLÈTE OU 404 RÉEL
@@ -441,7 +427,7 @@ export default {
               const { locale } = stripLocalePrefix(path);
 
               if (!isValidSeoPath(path)) {
-                const notFoundHtml = transformNotFoundHtmlForWorker(rawHtml, path, locale);
+                const notFoundHtml = applyNotFoundSeoToHtml(rawHtml, path, locale);
                 return new Response(request.method === 'HEAD' ? null : notFoundHtml, {
                   status: 404,
                   headers: {
@@ -453,7 +439,9 @@ export default {
                 });
               }
 
-              const transformedHtml = transformHtmlForWorker(rawHtml, path, locale, url.searchParams);
+              const transformedHtml = applyPageSeoToHtml(rawHtml, path, locale, {
+                queryParams: url.searchParams,
+              });
               return new Response(request.method === 'HEAD' ? null : transformedHtml, {
                 status: 200,
                 headers: {
@@ -473,16 +461,48 @@ export default {
       }
 
       // =========================================================================
-      // 1. HEALTH CHECK & STATUT BASE DE DONNÉES
+      // 1. HEALTH CHECK & AUTHENTIFICATION ADMIN
       // =========================================================================
       if (path === '/api/health' || path === '/health') {
         const check = await env.DB.prepare('SELECT 1 as alive').first();
-        return jsonResponse({
+        return jsonResponse(request, {
           status: 'ok',
           database: 'Cloudflare D1 connecté',
           alive: check?.alive === 1,
           timestamp: new Date().toISOString(),
         });
+      }
+
+      if (path === '/api/admin/auth-status' && request.method === 'GET') {
+        const envConfigured = Boolean((env.ADMIN_TOKEN || '').trim());
+        return jsonResponse(request, {
+          success: true,
+          envConfigured,
+          hasClaimedCredential: false,
+          needsSetup: false,
+        });
+      }
+
+      if (path === '/api/admin/login' && request.method === 'POST') {
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const rawInput = typeof parsed.data?.password === 'string'
+          ? parsed.data.password
+          : (typeof parsed.data?.token === 'string' ? parsed.data.token : '');
+        const credential = rawInput.trim();
+        const envToken = (env.ADMIN_TOKEN || '').trim();
+        if (!credential || !envToken) {
+          return jsonResponse(request, { error: 'Identifiant administrateur invalide ou non configuré' }, 401);
+        }
+        const ok = await timingSafeEqualStrings(credential, envToken);
+        if (!ok) {
+          return jsonResponse(request, { error: 'Identifiant administrateur invalide' }, 401);
+        }
+        const token = await signWorkerToken(
+          { role: 'admin', sub: 'worker-admin', exp: Date.now() + 12 * 3600 * 1000 },
+          env
+        );
+        return jsonResponse(request, { success: true, token, expiresIn: 43200 });
       }
 
       // =========================================================================
@@ -511,7 +531,7 @@ export default {
           isCurrentUser: false,
         }));
 
-        return jsonResponse({
+        return jsonResponse(request, {
           success: true,
           count: rankedResults.length,
           leaderboard: rankedResults,
@@ -519,70 +539,170 @@ export default {
       }
 
       // =========================================================================
-      // 3. SYNCHRONISATION DU PROFIL JOUEUR (UPSERT D1)
+      // 3. SYNCHRONISATION DU PROFIL JOUEUR (VALIDATION & BORNAGE SERVEUR)
       // =========================================================================
       if (path === '/api/player/sync' && request.method === 'POST') {
-        const body: any = await request.json();
-        const {
-          id,
-          pseudo,
-          totalPoints = 0,
-          streakDays = 1,
-          multiplier = 1,
-          locationsCount = 0,
-          badgesCount = 0,
-          badgeTitle = 'Apprenti Météo',
-          minutesSpent = 0,
-          unlockedBadges = [],
-        } = body;
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const body = parsed.data || {};
 
-        if (!pseudo || !id) {
-          return jsonResponse({ error: 'Champs obligatoires manquants (id, pseudo)' }, 400);
+        const rawPseudo = typeof body.pseudo === 'string' ? body.pseudo.trim() : '';
+        if (rawPseudo.length < 1 || rawPseudo.length > 32) {
+          return jsonResponse(request, { error: 'Pseudo invalide (1 à 32 caractères requis)' }, 400);
         }
+        const cleanPseudo = rawPseudo.replace(/[\r\n\t]+/g, ' ').slice(0, 32);
+        const normPseudo = cleanPseudo.toLowerCase();
+        const rawId = typeof body.id === 'string' ? body.id.trim().slice(0, 64) : '';
+        const stableId = rawId && /^[a-zA-Z0-9_-]{3,64}$/.test(rawId)
+          ? rawId
+          : `usr-${normPseudo.replace(/[^a-z0-9_-]/g, '_')}`;
 
-        await env.DB.prepare(
-          `INSERT INTO players (
-            id, pseudo, total_points, streak_days, multiplier, 
-            locations_count, badges_count, badge_title, minutes_spent, 
-            unlocked_badges_json, last_active
-          ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, CURRENT_TIMESTAMP)
-          ON CONFLICT(id) DO UPDATE SET
-            pseudo = excluded.pseudo,
-            total_points = MAX(players.total_points, excluded.total_points),
-            streak_days = excluded.streak_days,
-            multiplier = excluded.multiplier,
-            locations_count = MAX(players.locations_count, excluded.locations_count),
-            badges_count = MAX(players.badges_count, excluded.badges_count),
-            badge_title = excluded.badge_title,
-            minutes_spent = MAX(players.minutes_spent, excluded.minutes_spent),
-            unlocked_badges_json = excluded.unlocked_badges_json,
-            last_active = CURRENT_TIMESTAMP`
-        ).bind(
-          id,
-          pseudo,
-          totalPoints,
-          streakDays,
-          multiplier,
-          locationsCount,
-          badgesCount,
-          badgeTitle,
-          minutesSpent,
-          JSON.stringify(unlockedBadges)
-        ).run();
+        const callerIsAdmin = await isVerifiedWorkerAdmin(request, env);
+        const verifiedPlayerToken = await getVerifiedWorkerPlayerToken(request, env);
+
+        const requestedStreak = Math.min(3650, Math.max(1, Math.floor(Number(body.streakDays) || 1)));
+        const requestedMultiplier = Math.min(10, Math.max(1, Number(body.multiplier) || 1));
+        const requestedLocations = Math.min(10000, Math.max(0, Math.floor(Number(body.locationsCount) || 0)));
+        const requestedMinutes = Math.min(500000, Math.max(0, Math.floor(Number(body.minutesSpent) || 0)));
+        const requestedPoints = Math.min(1_000_000, Math.max(0, Math.floor(Number(body.totalPoints) || 0)));
+        const sanitizedBadges = Array.isArray(body.unlockedBadges)
+          ? Array.from(new Set(body.unlockedBadges.filter((b: unknown): b is string => typeof b === 'string' && ALLOWED_BADGE_IDS.has(b))))
+          : [];
+        const rawTitle = typeof body.badgeTitle === 'string' ? body.badgeTitle.trim().slice(0, 64) : 'Apprenti Météo';
+        const safeBadgeTitle = !callerIsAdmin && rawTitle.toLowerCase() === 'admin' ? 'Apprenti Météo' : (rawTitle || 'Apprenti Météo');
+
+        const existing = await env.DB.prepare(
+          `SELECT id, pseudo, total_points as totalPoints, streak_days as streakDays,
+            multiplier, locations_count as locationsCount, badges_count as badgesCount,
+            badge_title as badgeTitle, minutes_spent as minutesSpent,
+            unlocked_badges_json as unlockedBadgesJson
+          FROM players WHERE id = ?1 OR LOWER(pseudo) = ?2 LIMIT 1`
+        ).bind(stableId, normPseudo).first<any>();
+
+        let finalPoints = 0;
+        let finalStreak = 1;
+        let finalMultiplier = 1;
+        let finalLocations = 0;
+        let finalMinutes = 0;
+        let finalBadges: string[] = [];
+        let finalBadgeTitle = safeBadgeTitle;
+        let finalId = stableId;
+        let issuedPlayerToken: string | undefined;
+
+        if (existing) {
+          finalId = existing.id;
+          const prevPoints = Math.min(1_000_000, Math.max(0, Number(existing.totalPoints) || 0));
+          const prevStreak = Math.max(1, Number(existing.streakDays) || 1);
+          const prevMinutes = Math.max(0, Number(existing.minutesSpent) || 0);
+          const prevLocations = Math.max(0, Number(existing.locationsCount) || 0);
+          let prevBadges: string[] = [];
+          try {
+            const rawB = JSON.parse(existing.unlockedBadgesJson || '[]');
+            if (Array.isArray(rawB)) prevBadges = rawB.filter((b: unknown): b is string => typeof b === 'string' && ALLOWED_BADGE_IDS.has(b));
+          } catch {}
+
+          finalMinutes = Math.min(prevMinutes + 120, Math.max(prevMinutes, requestedMinutes));
+          finalLocations = Math.min(prevLocations + 25, Math.max(prevLocations, requestedLocations));
+          finalStreak = Math.min(prevStreak + 1, Math.max(prevStreak, requestedStreak));
+          finalMultiplier = Math.min(10, Math.max(1, Number(existing.multiplier) || requestedMultiplier));
+          finalBadges = Array.from(new Set([...prevBadges, ...sanitizedBadges])).slice(0, ALLOWED_BADGE_IDS.size);
+
+          if (callerIsAdmin) {
+            finalPoints = Math.max(prevPoints, requestedPoints);
+          } else {
+            const addedMinutes = Math.max(0, finalMinutes - prevMinutes);
+            const addedBadges = Math.max(0, finalBadges.length - prevBadges.length);
+            const addedLocations = Math.max(0, finalLocations - prevLocations);
+            const maxAllowedDelta = Math.min(
+              500,
+              Math.max(25, Math.round(addedMinutes * 2 * requestedMultiplier + addedBadges * 150 + addedLocations * 20))
+            );
+            const desiredGain = Math.max(0, requestedPoints - prevPoints);
+            finalPoints = Math.min(1_000_000, prevPoints + Math.min(maxAllowedDelta, desiredGain));
+          }
+
+          await env.DB.prepare(
+            `UPDATE players SET
+              total_points = ?1,
+              streak_days = ?2,
+              multiplier = ?3,
+              locations_count = ?4,
+              badges_count = ?5,
+              badge_title = ?6,
+              minutes_spent = ?7,
+              unlocked_badges_json = ?8,
+              last_active = CURRENT_TIMESTAMP
+            WHERE id = ?9`
+          ).bind(
+            finalPoints,
+            finalStreak,
+            finalMultiplier,
+            finalLocations,
+            finalBadges.length,
+            finalBadgeTitle,
+            finalMinutes,
+            JSON.stringify(finalBadges),
+            finalId
+          ).run();
+
+          const tokenMatches = Boolean(
+            verifiedPlayerToken &&
+            (verifiedPlayerToken.sub === finalId ||
+              (verifiedPlayerToken.pseudo || '').toLowerCase() === String(existing.pseudo || '').toLowerCase())
+          );
+          if (tokenMatches || callerIsAdmin) {
+            issuedPlayerToken = await signWorkerToken(
+              { role: 'player', sub: finalId, pseudo: existing.pseudo, exp: Date.now() + 30 * 24 * 3600 * 1000 },
+              env
+            );
+          }
+        } else {
+          finalPoints = callerIsAdmin ? requestedPoints : Math.min(100, requestedPoints);
+          finalStreak = Math.min(7, requestedStreak);
+          finalMultiplier = Math.min(3, requestedMultiplier);
+          finalLocations = Math.min(25, requestedLocations);
+          finalMinutes = Math.min(120, requestedMinutes);
+          finalBadges = sanitizedBadges;
+
+          await env.DB.prepare(
+            `INSERT INTO players (
+              id, pseudo, total_points, streak_days, multiplier,
+              locations_count, badges_count, badge_title, minutes_spent,
+              unlocked_badges_json, last_active
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, CURRENT_TIMESTAMP)`
+          ).bind(
+            finalId,
+            cleanPseudo,
+            finalPoints,
+            finalStreak,
+            finalMultiplier,
+            finalLocations,
+            finalBadges.length,
+            finalBadgeTitle,
+            finalMinutes,
+            JSON.stringify(finalBadges)
+          ).run();
+
+          issuedPlayerToken = await signWorkerToken(
+            { role: 'player', sub: finalId, pseudo: cleanPseudo, exp: Date.now() + 30 * 24 * 3600 * 1000 },
+            env
+          );
+        }
 
         const rankRow = await env.DB.prepare(
           'SELECT COUNT(*) + 1 as rank FROM players WHERE total_points > ?1'
-        ).bind(totalPoints).first<{ rank: number }>();
+        ).bind(finalPoints).first<{ rank: number }>();
 
         const totalPlayersRow = await env.DB.prepare(
           'SELECT COUNT(*) as total FROM players'
         ).first<{ total: number }>();
 
-        return jsonResponse({
+        return jsonResponse(request, {
           success: true,
           message: 'Score joueur synchronisé sur Cloudflare D1',
           rank: rankRow?.rank ?? 1,
           totalPlayers: totalPlayersRow?.total ?? 1,
+          ...(issuedPlayerToken ? { playerToken: issuedPlayerToken } : {}),
         });
       }
 
@@ -591,7 +711,7 @@ export default {
       // =========================================================================
       const playerMatch = path.match(/^\/api\/player\/([^/]+)$/);
       if (playerMatch && request.method === 'GET') {
-        const cleanPseudo = decodeURIComponent(playerMatch[1]).trim().toLowerCase();
+        const cleanPseudo = decodeURIComponent(playerMatch[1]).trim().toLowerCase().slice(0, 64);
         const player = await env.DB.prepare(
           `SELECT 
             id, pseudo, total_points as totalPoints, streak_days as streakDays, 
@@ -604,7 +724,7 @@ export default {
         ).bind(cleanPseudo, 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_')).first<any>();
 
         if (!player) {
-          return jsonResponse({ success: false, error: 'Joueur introuvable' }, 404);
+          return jsonResponse(request, { success: false, error: 'Joueur introuvable' }, 404);
         }
 
         let unlockedBadges: string[] = [];
@@ -612,7 +732,7 @@ export default {
           unlockedBadges = JSON.parse(player.unlockedBadgesJson || '[]');
         } catch {}
 
-        return jsonResponse({
+        return jsonResponse(request, {
           success: true,
           player: {
             id: player.id,
@@ -625,20 +745,37 @@ export default {
             badgeTitle: player.badgeTitle,
             minutesSpent: player.minutesSpent,
             unlockedBadges,
-            lastActive: player.lastActive
-          }
+            lastActive: player.lastActive,
+          },
         });
       }
 
       // =========================================================================
-      // 3c. RÉINITIALISER LES POINTS D'UN JOUEUR
+      // 3c. RÉINITIALISER LES POINTS D'UN JOUEUR (AUTHENTIFIÉ)
       // =========================================================================
       if (path === '/api/player/reset' && request.method === 'POST') {
-        const body: any = await request.json();
-        const { pseudo, id } = body;
-        const targetId = id || (pseudo ? 'usr-' + pseudo.toLowerCase().replace(/[^a-z0-9_-]/g, '_') : null);
+        const callerIsAdmin = await isVerifiedWorkerAdmin(request, env);
+        const playerToken = await getVerifiedWorkerPlayerToken(request, env);
+        if (!callerIsAdmin && !playerToken) {
+          return jsonResponse(request, { error: 'Authentification requise pour réinitialiser ce profil' }, 401);
+        }
+
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const pseudo = typeof parsed.data?.pseudo === 'string' ? parsed.data.pseudo.trim() : '';
+        const id = typeof parsed.data?.id === 'string' ? parsed.data.id.trim() : '';
+        const targetId = id || (pseudo ? 'usr-' + pseudo.toLowerCase().replace(/[^a-z0-9_-]/g, '_') : '');
         if (!targetId) {
-          return jsonResponse({ error: 'Identifiant ou pseudo manquant' }, 400);
+          return jsonResponse(request, { error: 'Identifiant ou pseudo manquant' }, 400);
+        }
+
+        if (!callerIsAdmin && playerToken) {
+          const matchesOwner =
+            playerToken.sub === targetId ||
+            (pseudo && (playerToken.pseudo || '').toLowerCase() === pseudo.toLowerCase());
+          if (!matchesOwner) {
+            return jsonResponse(request, { error: 'Accès refusé pour ce profil joueur' }, 403);
+          }
         }
 
         await env.DB.prepare(
@@ -648,26 +785,71 @@ export default {
             badges_count = 0,
             unlocked_badges_json = '[]',
             last_active = CURRENT_TIMESTAMP
-          WHERE id = ?1`
-        ).bind(targetId).run();
+          WHERE id = ?1 OR LOWER(pseudo) = ?2`
+        ).bind(targetId, pseudo.toLowerCase()).run();
 
-        return jsonResponse({ success: true, message: 'Points réinitialisés sur Cloudflare D1' });
+        return jsonResponse(request, { success: true, message: 'Points réinitialisés sur Cloudflare D1' });
       }
 
       // =========================================================================
-      // 3d. SUPPRIMER UN COMPTE JOUEUR
+      // 3d. SUPPRIMER UN COMPTE JOUEUR (PROPRIÉTAIRE OU ADMIN)
       // =========================================================================
-      if ((path === '/api/player/delete' || path === '/api/admin/delete-user' || path === '/api/admin/delete-player') && (request.method === 'POST' || request.method === 'DELETE')) {
-        const body: any = await request.json();
-        const { pseudo, id } = body || {};
-        const cleanPseudo = (pseudo || '').trim().toLowerCase();
-        const targetId = id || (cleanPseudo ? 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_') : '');
-        if (!targetId && !cleanPseudo) {
-          return jsonResponse({ error: 'Identifiant ou pseudo manquant' }, 400);
+      if (
+        (path === '/api/player/delete' || path === '/api/player/delete-account') &&
+        (request.method === 'POST' || request.method === 'DELETE')
+      ) {
+        const callerIsAdmin = await isVerifiedWorkerAdmin(request, env);
+        const playerToken = await getVerifiedWorkerPlayerToken(request, env);
+        if (!callerIsAdmin && !playerToken) {
+          return jsonResponse(request, { error: 'Authentification requise pour supprimer ce compte' }, 401);
         }
 
-        await env.DB.prepare('DELETE FROM players WHERE id = ?1 OR LOWER(pseudo) = ?2').bind(targetId, cleanPseudo).run();
-        return jsonResponse({ success: true, message: 'Compte joueur supprimé de Cloudflare D1 avec succès' });
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const cleanPseudo = typeof parsed.data?.pseudo === 'string' ? parsed.data.pseudo.trim().toLowerCase() : '';
+        const cleanId = typeof parsed.data?.id === 'string' ? parsed.data.id.trim() : '';
+        const targetId = cleanId || (cleanPseudo ? 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_') : '');
+        if (!targetId && !cleanPseudo) {
+          return jsonResponse(request, { error: 'Identifiant ou pseudo manquant' }, 400);
+        }
+
+        if (!callerIsAdmin && playerToken) {
+          const matchesOwner =
+            playerToken.sub === targetId ||
+            (cleanPseudo && (playerToken.pseudo || '').toLowerCase() === cleanPseudo);
+          if (!matchesOwner) {
+            return jsonResponse(request, { error: 'Vous ne pouvez supprimer que votre propre compte' }, 403);
+          }
+        }
+
+        await env.DB.prepare('DELETE FROM players WHERE id = ?1 OR LOWER(pseudo) = ?2')
+          .bind(targetId, cleanPseudo)
+          .run();
+        return jsonResponse(request, { success: true, message: 'Compte joueur supprimé de Cloudflare D1 avec succès' });
+      }
+
+      // 3e. SUPPRESSION PAR ADMINISTRATEUR UNIQUEMENT
+      if (
+        (path === '/api/admin/delete-user' || path === '/api/admin/delete-player') &&
+        (request.method === 'POST' || request.method === 'DELETE')
+      ) {
+        if (!(await isVerifiedWorkerAdmin(request, env))) {
+          return jsonResponse(request, { error: 'Authentification administrateur requise' }, 401);
+        }
+
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const cleanPseudo = typeof parsed.data?.pseudo === 'string' ? parsed.data.pseudo.trim().toLowerCase() : '';
+        const cleanId = typeof parsed.data?.id === 'string' ? parsed.data.id.trim() : '';
+        const targetId = cleanId || (cleanPseudo ? 'usr-' + cleanPseudo.replace(/[^a-z0-9_-]/g, '_') : '');
+        if (!targetId && !cleanPseudo) {
+          return jsonResponse(request, { error: 'Identifiant ou pseudo manquant' }, 400);
+        }
+
+        await env.DB.prepare('DELETE FROM players WHERE id = ?1 OR LOWER(pseudo) = ?2')
+          .bind(targetId, cleanPseudo)
+          .run();
+        return jsonResponse(request, { success: true, message: 'Compte joueur supprimé de Cloudflare D1 avec succès' });
       }
 
       // =========================================================================
@@ -696,35 +878,39 @@ export default {
           LIMIT 150`
         ).all();
 
-        return jsonResponse({
+        return jsonResponse(request, {
           success: true,
           reports: results || [],
         });
       }
 
       // =========================================================================
-      // 5. PUBLIER UN SIGNALEMENT CITOYEN EN DIRECT
+      // 5. PUBLIER UN SIGNALEMENT CITOYEN EN DIRECT (VALIDATION STRICTE)
       // =========================================================================
       if (path === '/api/reports' && request.method === 'POST') {
-        const body: any = await request.json();
-        const {
-          id = 'rep-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
-          city,
-          department = '',
-          latitude,
-          longitude,
-          weatherCode = 'sun',
-          weatherLabel = 'Beau temps',
-          emoji = '☀️',
-          temperature = 20,
-          intensity = 'MODÉRÉE',
-          comment = '',
-          reporterPseudo = 'Anonyme',
-        } = body;
+        const parsed = await safeReadJson(request);
+        if (!parsed.ok) return jsonResponse(request, { error: 'Corps JSON invalide' }, 400);
+        const body = parsed.data || {};
 
-        if (!city || latitude === undefined || longitude === undefined) {
-          return jsonResponse({ error: 'Coordonnées ou ville manquantes' }, 400);
+        const city = typeof body.city === 'string' ? body.city.trim().slice(0, 100) : '';
+        const latitude = Number(body.latitude);
+        const longitude = Number(body.longitude);
+        if (!city || !Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+          return jsonResponse(request, { error: 'Coordonnées ou ville invalides' }, 400);
         }
+
+        const safeId = `rep-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const department = typeof body.department === 'string' ? body.department.trim().slice(0, 80) : '';
+        const weatherCode = typeof body.weatherCode === 'string' ? body.weatherCode.trim().slice(0, 32) : 'sun';
+        const weatherLabel = typeof body.weatherLabel === 'string' ? body.weatherLabel.trim().slice(0, 80) : 'Beau temps';
+        const emoji = typeof body.emoji === 'string' ? body.emoji.trim().slice(0, 16) : '☀️';
+        const rawTemp = Number(body.temperature);
+        const temperature = Number.isFinite(rawTemp) ? Math.min(65, Math.max(-90, rawTemp)) : 20;
+        const intensity = typeof body.intensity === 'string' ? body.intensity.trim().slice(0, 32) : 'MODÉRÉE';
+        const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
+        const reporterPseudo = typeof body.reporterPseudo === 'string' && body.reporterPseudo.trim()
+          ? body.reporterPseudo.trim().slice(0, 32)
+          : 'Anonyme';
 
         await env.DB.prepare(
           `INSERT INTO community_reports (
@@ -733,7 +919,7 @@ export default {
             intensity, comment, reporter_pseudo, confirmations
           ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, 1)`
         ).bind(
-          id,
+          safeId,
           city,
           department,
           latitude,
@@ -747,9 +933,9 @@ export default {
           reporterPseudo
         ).run();
 
-        return jsonResponse({
+        return jsonResponse(request, {
           success: true,
-          reportId: id,
+          reportId: safeId,
           message: 'Signalement enregistré sur Cloudflare D1 avec succès',
         });
       }
@@ -759,12 +945,12 @@ export default {
       // =========================================================================
       const confirmMatch = path.match(/^\/api\/reports\/([^/]+)\/confirm$/);
       if (confirmMatch && request.method === 'POST') {
-        const reportId = confirmMatch[1];
+        const reportId = decodeURIComponent(confirmMatch[1]).slice(0, 80);
         await env.DB.prepare(
           'UPDATE community_reports SET confirmations = confirmations + 1 WHERE id = ?1'
         ).bind(reportId).run();
 
-        return jsonResponse({ success: true, message: 'Confirmation enregistrée' });
+        return jsonResponse(request, { success: true, message: 'Confirmation enregistrée' });
       }
 
       // =========================================================================
@@ -778,21 +964,27 @@ export default {
       ) {
         const targetUrl = `https://instantmeteo-fr.ai.studio${path}${url.search}`;
         try {
+          const proxyHeaders: Record<string, string> = {
+            'Accept': request.headers.get('Accept') || 'application/json',
+            'User-Agent': 'InstantMeteo-Cloudflare-Worker/1.0',
+          };
+          const contentType = request.headers.get('Content-Type');
+          if (contentType) proxyHeaders['Content-Type'] = contentType;
           const backendRes = await fetch(targetUrl, {
             method: request.method,
-            headers: {
-              'Accept': request.headers.get('Accept') || 'application/json',
-              'User-Agent': 'InstantMeteo-Cloudflare-Worker/1.0',
-            }
+            headers: proxyHeaders,
+            body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
           });
           const headers = new Headers(backendRes.headers);
-          headers.set('Access-Control-Allow-Origin', '*');
+          headers.delete('Access-Control-Allow-Origin');
+          const cors = buildCorsHeaders(request);
+          Object.entries(cors).forEach(([k, v]) => headers.set(k, v));
           return new Response(backendRes.body, {
             status: backendRes.status,
-            headers
+            headers,
           });
-        } catch (e: any) {
-          return jsonResponse({ error: 'Backend distant temporairement indisponible' }, 502);
+        } catch {
+          return jsonResponse(request, { error: 'Backend distant temporairement indisponible' }, 502);
         }
       }
 
@@ -800,7 +992,7 @@ export default {
         const lat = Number(url.searchParams.get('latitude'));
         const lon = Number(url.searchParams.get('longitude'));
         if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-          return jsonResponse({ error: 'Invalid coordinates' }, 400);
+          return jsonResponse(request, { error: 'Invalid coordinates' }, 400);
         }
         const allowedKeys = new Set([
           'latitude',
@@ -827,23 +1019,22 @@ export default {
           return new Response(body, {
             status: omRes.status,
             headers: {
-              ...corsHeaders,
+              ...buildCorsHeaders(request),
               'Content-Type': 'application/json; charset=utf-8',
               'X-Robots-Tag': 'noindex, nofollow',
               'Cache-Control': 'public, max-age=120',
             },
           });
         } catch {
-          return jsonResponse({ error: 'Open-Meteo upstream unreachable' }, 502);
+          return jsonResponse(request, { error: 'Open-Meteo upstream unreachable' }, 502);
         }
       }
 
-      return jsonResponse({ error: 'Route non trouvée sur le Worker D1', path }, 404);
+      return jsonResponse(request, { error: 'Route non trouvée sur le Worker D1', path }, 404);
     } catch (err: any) {
       console.error('Erreur API Worker Cloudflare D1:', err);
-      return jsonResponse({
+      return jsonResponse(request, {
         error: 'Erreur interne D1',
-        details: err?.message || String(err),
       }, 500);
     }
   },

@@ -162,32 +162,38 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
     filtered.forEach(country => {
       const color = getTemperatureColor(country.avgTempC);
 
-      const markerHtml = `
-        <div style="
-          position: relative;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: ${color.bg};
-          border: 2px solid ${color.border};
-          border-radius: 9999px;
-          padding: 2px 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-          cursor: pointer;
-          white-space: nowrap;
-          transform: translate(-50%, -50%);
-          transition: transform 0.15s ease;
-        ">
-          <span style="font-size: 14px;">${country.flag}</span>
-          <span style="font-size: 11px; font-weight: 900; color: ${color.text}; font-family: system-ui, sans-serif;">
-            ${country.avgTempC > 0 ? `+${country.avgTempC.toFixed(1)}` : country.avgTempC.toFixed(1)}°
-          </span>
-        </div>
-      `;
+      const markerEl = document.createElement('div');
+      markerEl.style.position = 'relative';
+      markerEl.style.display = 'flex';
+      markerEl.style.alignItems = 'center';
+      markerEl.style.gap = '4px';
+      markerEl.style.background = color.bg;
+      markerEl.style.border = `2px solid ${color.border}`;
+      markerEl.style.borderRadius = '9999px';
+      markerEl.style.padding = '2px 8px';
+      markerEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.6)';
+      markerEl.style.cursor = 'pointer';
+      markerEl.style.whiteSpace = 'nowrap';
+      markerEl.style.transform = 'translate(-50%, -50%)';
+      markerEl.style.transition = 'transform 0.15s ease';
+
+      const flagSpan = document.createElement('span');
+      flagSpan.style.fontSize = '14px';
+      flagSpan.textContent = country.flag;
+
+      const avgSpan = document.createElement('span');
+      avgSpan.style.fontSize = '11px';
+      avgSpan.style.fontWeight = '900';
+      avgSpan.style.color = color.text;
+      avgSpan.style.fontFamily = 'system-ui, sans-serif';
+      avgSpan.textContent = `${country.avgTempC > 0 ? `+${country.avgTempC.toFixed(1)}` : country.avgTempC.toFixed(1)}°`;
+
+      markerEl.appendChild(flagSpan);
+      markerEl.appendChild(avgSpan);
 
       const customIcon = L.divIcon({
         className: 'custom-world-temp-marker',
-        html: markerHtml,
+        html: markerEl,
         iconSize: [60, 26],
         iconAnchor: [30, 13]
       });
@@ -195,28 +201,101 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
       const marker = L.marker([country.lat, country.lon], { icon: customIcon });
 
       const popupContent = document.createElement('div');
-      popupContent.innerHTML = `
-        <div style="min-width: 220px; font-family: system-ui, sans-serif; color: #0f172a;">
-          <div style="display: flex; items-center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 6px;">
-            <div style="font-weight: 900; font-size: 14px;">${country.flag} ${country.name}</div>
-            <span style="font-size: 9px; font-weight: 800; background: ${color.bg}; color: ${color.text}; padding: 2px 6px; border-radius: 6px;">
-              ${country.continent}
-            </span>
-          </div>
-          <div style="font-size: 20px; font-weight: 900; color: ${color.bg}; margin-bottom: 4px;">
-            Moyenne : ${country.avgTempC > 0 ? `+${country.avgTempC}` : country.avgTempC}°C
-            <span style="font-size: 11px; font-weight: normal; color: #64748b;">(${((country.avgTempC * 9/5) + 32).toFixed(1)}°F)</span>
-          </div>
-          <div style="font-size: 11px; color: #334155; margin-bottom: 6px;">
-            🏛️ <strong>Capitale :</strong> ${country.capital}<br/>
-            🌍 <strong>Climat :</strong> ${country.climateType}
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px; background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0;">
-            <div>❄️ Record Froid : <strong style="color: #2563eb;">${country.minRecordC}°C</strong></div>
-            <div>🔥 Record Chaud : <strong style="color: #dc2626;">${country.maxRecordC}°C</strong></div>
-          </div>
-        </div>
-      `;
+      popupContent.style.minWidth = '220px';
+      popupContent.style.fontFamily = 'system-ui, sans-serif';
+      popupContent.style.color = '#0f172a';
+
+      const topRow = document.createElement('div');
+      topRow.style.display = 'flex';
+      topRow.style.alignItems = 'center';
+      topRow.style.justifyContent = 'space-between';
+      topRow.style.borderBottom = '1px solid #cbd5e1';
+      topRow.style.paddingBottom = '6px';
+      topRow.style.marginBottom = '6px';
+
+      const nameEl = document.createElement('div');
+      nameEl.style.fontWeight = '900';
+      nameEl.style.fontSize = '14px';
+      nameEl.textContent = `${country.flag} ${country.name}`;
+
+      const contBadge = document.createElement('span');
+      contBadge.style.fontSize = '9px';
+      contBadge.style.fontWeight = '800';
+      contBadge.style.background = color.bg;
+      contBadge.style.color = color.text;
+      contBadge.style.padding = '2px 6px';
+      contBadge.style.borderRadius = '6px';
+      contBadge.textContent = country.continent;
+
+      topRow.appendChild(nameEl);
+      topRow.appendChild(contBadge);
+      popupContent.appendChild(topRow);
+
+      const tempRow = document.createElement('div');
+      tempRow.style.fontSize = '20px';
+      tempRow.style.fontWeight = '900';
+      tempRow.style.color = color.bg;
+      tempRow.style.marginBottom = '4px';
+      tempRow.textContent = `Moyenne : ${country.avgTempC > 0 ? `+${country.avgTempC}` : country.avgTempC}°C `;
+
+      const fahrSpan = document.createElement('span');
+      fahrSpan.style.fontSize = '11px';
+      fahrSpan.style.fontWeight = 'normal';
+      fahrSpan.style.color = '#64748b';
+      fahrSpan.textContent = `(${((country.avgTempC * 9 / 5) + 32).toFixed(1)}°F)`;
+      tempRow.appendChild(fahrSpan);
+      popupContent.appendChild(tempRow);
+
+      const infoBlock = document.createElement('div');
+      infoBlock.style.fontSize = '11px';
+      infoBlock.style.color = '#334155';
+      infoBlock.style.marginBottom = '6px';
+
+      const capRow = document.createElement('div');
+      capRow.appendChild(document.createTextNode('🏛️ '));
+      const capLabel = document.createElement('strong');
+      capLabel.textContent = 'Capitale : ';
+      capRow.appendChild(capLabel);
+      capRow.appendChild(document.createTextNode(country.capital));
+
+      const climRow = document.createElement('div');
+      climRow.appendChild(document.createTextNode('🌍 '));
+      const climLabel = document.createElement('strong');
+      climLabel.textContent = 'Climat : ';
+      climRow.appendChild(climLabel);
+      climRow.appendChild(document.createTextNode(country.climateType));
+
+      infoBlock.appendChild(capRow);
+      infoBlock.appendChild(climRow);
+      popupContent.appendChild(infoBlock);
+
+      const recordsGrid = document.createElement('div');
+      recordsGrid.style.display = 'grid';
+      recordsGrid.style.gridTemplateColumns = '1fr 1fr';
+      recordsGrid.style.gap = '4px';
+      recordsGrid.style.fontSize = '10px';
+      recordsGrid.style.background = '#f8fafc';
+      recordsGrid.style.padding = '6px';
+      recordsGrid.style.borderRadius = '6px';
+      recordsGrid.style.border = '1px solid #e2e8f0';
+
+      const coldEl = document.createElement('div');
+      coldEl.appendChild(document.createTextNode('❄️ Record Froid : '));
+      const coldStrong = document.createElement('strong');
+      coldStrong.style.color = '#2563eb';
+      coldStrong.textContent = `${country.minRecordC}°C`;
+      coldEl.appendChild(coldStrong);
+
+      const hotEl = document.createElement('div');
+      hotEl.appendChild(document.createTextNode('🔥 Record Chaud : '));
+      const hotStrong = document.createElement('strong');
+      hotStrong.style.color = '#dc2626';
+      hotStrong.textContent = `${country.maxRecordC}°C`;
+      hotEl.appendChild(hotStrong);
+
+      recordsGrid.appendChild(coldEl);
+      recordsGrid.appendChild(hotEl);
+      popupContent.appendChild(recordsGrid);
 
       marker.bindPopup(popupContent);
       marker.on('click', () => {
@@ -230,51 +309,83 @@ export const WorldAverageTemperatureMap: React.FC<WorldAverageTemperatureMapProp
     const userLoc = currentStation;
     const userTemp = weather?.temperature;
     if (userLoc && userLoc.latitude && userLoc.longitude && userTemp !== undefined) {
-      const userMarkerHtml = `
-        <div style="
-          position: relative;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: linear-gradient(135deg, #1d4ed8, #4338ca);
-          border: 2px solid #ffffff;
-          border-radius: 9999px;
-          padding: 3px 10px;
-          box-shadow: 0 0 24px rgba(59, 130, 246, 0.9), 0 4px 12px rgba(0,0,0,0.7);
-          cursor: pointer;
-          white-space: nowrap;
-          transform: translate(-50%, -50%) scale(1.15);
-          z-index: 1000;
-        ">
-          <span style="font-size: 14px;">📍</span>
-          <span style="font-size: 11px; font-weight: 900; color: #ffffff; font-family: system-ui, sans-serif;">
-            Votre position (${userLoc.name}) :
-          </span>
-          <span style="font-size: 12px; font-weight: 900; color: #fde047; font-family: system-ui, sans-serif; background: rgba(15,23,42,0.85); padding: 1px 6px; border-radius: 6px;">
-            ${userTemp > 0 ? `+${userTemp.toFixed(1)}` : userTemp.toFixed(1)}°C
-          </span>
-        </div>
-      `;
+      const userMarkerEl = document.createElement('div');
+      userMarkerEl.style.position = 'relative';
+      userMarkerEl.style.display = 'flex';
+      userMarkerEl.style.alignItems = 'center';
+      userMarkerEl.style.gap = '6px';
+      userMarkerEl.style.background = 'linear-gradient(135deg, #1d4ed8, #4338ca)';
+      userMarkerEl.style.border = '2px solid #ffffff';
+      userMarkerEl.style.borderRadius = '9999px';
+      userMarkerEl.style.padding = '3px 10px';
+      userMarkerEl.style.boxShadow = '0 0 24px rgba(59, 130, 246, 0.9), 0 4px 12px rgba(0,0,0,0.7)';
+      userMarkerEl.style.cursor = 'pointer';
+      userMarkerEl.style.whiteSpace = 'nowrap';
+      userMarkerEl.style.transform = 'translate(-50%, -50%) scale(1.15)';
+      userMarkerEl.style.zIndex = '1000';
+
+      const pinSpan = document.createElement('span');
+      pinSpan.style.fontSize = '14px';
+      pinSpan.textContent = '📍';
+
+      const locLabelSpan = document.createElement('span');
+      locLabelSpan.style.fontSize = '11px';
+      locLabelSpan.style.fontWeight = '900';
+      locLabelSpan.style.color = '#ffffff';
+      locLabelSpan.style.fontFamily = 'system-ui, sans-serif';
+      locLabelSpan.textContent = `Votre position (${userLoc.name}) :`;
+
+      const userTempSpan = document.createElement('span');
+      userTempSpan.style.fontSize = '12px';
+      userTempSpan.style.fontWeight = '900';
+      userTempSpan.style.color = '#fde047';
+      userTempSpan.style.fontFamily = 'system-ui, sans-serif';
+      userTempSpan.style.background = 'rgba(15,23,42,0.85)';
+      userTempSpan.style.padding = '1px 6px';
+      userTempSpan.style.borderRadius = '6px';
+      userTempSpan.textContent = `${userTemp > 0 ? `+${userTemp.toFixed(1)}` : userTemp.toFixed(1)}°C`;
+
+      userMarkerEl.appendChild(pinSpan);
+      userMarkerEl.appendChild(locLabelSpan);
+      userMarkerEl.appendChild(userTempSpan);
 
       const userCustomIcon = L.divIcon({
         className: 'custom-user-world-temp-marker',
-        html: userMarkerHtml,
+        html: userMarkerEl,
         iconSize: [220, 32],
         iconAnchor: [110, 16]
       });
 
       const userMarker = L.marker([userLoc.latitude, userLoc.longitude], { icon: userCustomIcon, zIndexOffset: 2500 });
-      userMarker.bindPopup(`
-        <div style="min-width: 220px; font-family: system-ui, sans-serif; color: #0f172a;">
-          <div style="font-weight: 900; font-size: 14px; margin-bottom: 4px;">📍 Votre Position : ${userLoc.name}</div>
-          <div style="font-size: 20px; font-weight: 900; color: #2563eb; margin-bottom: 4px;">
-            Température Actuelle : ${userTemp > 0 ? `+${userTemp}` : userTemp}°C
-          </div>
-          <div style="font-size: 11px; color: #64748b;">
-            Détectée automatiquement pour votre commune • ${userLoc.department || userLoc.country || 'France'}
-          </div>
-        </div>
-      `);
+
+      const userPopup = document.createElement('div');
+      userPopup.style.minWidth = '220px';
+      userPopup.style.fontFamily = 'system-ui, sans-serif';
+      userPopup.style.color = '#0f172a';
+
+      const userTitle = document.createElement('div');
+      userTitle.style.fontWeight = '900';
+      userTitle.style.fontSize = '14px';
+      userTitle.style.marginBottom = '4px';
+      userTitle.textContent = `📍 Votre Position : ${userLoc.name}`;
+
+      const userTempDisplay = document.createElement('div');
+      userTempDisplay.style.fontSize = '20px';
+      userTempDisplay.style.fontWeight = '900';
+      userTempDisplay.style.color = '#2563eb';
+      userTempDisplay.style.marginBottom = '4px';
+      userTempDisplay.textContent = `Température Actuelle : ${userTemp > 0 ? `+${userTemp}` : userTemp}°C`;
+
+      const userSub = document.createElement('div');
+      userSub.style.fontSize = '11px';
+      userSub.style.color = '#64748b';
+      userSub.textContent = `Détectée automatiquement pour votre commune • ${userLoc.department || userLoc.country || 'France'}`;
+
+      userPopup.appendChild(userTitle);
+      userPopup.appendChild(userTempDisplay);
+      userPopup.appendChild(userSub);
+
+      userMarker.bindPopup(userPopup);
       userMarker.addTo(group);
     }
   }, [searchQuery, selectedContinent, currentStation, weather]);

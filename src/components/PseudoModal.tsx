@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   User, 
   ShieldCheck, 
-  KeyRound, 
   Check, 
   X, 
   Sparkles, 
@@ -15,7 +14,6 @@ import {
   loadPlayerProfile, 
   savePlayerProfile, 
   initPlayerProfile, 
-  verifyAdminCode, 
   PlayerProfile 
 } from '../services/competitiveGameService';
 import { syncPlayerProfileToD1, fetchPlayerProfileFromD1 } from '../services/cloudflareD1Service';
@@ -33,7 +31,6 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
 }) => {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [pseudoInput, setPseudoInput] = useState('');
-  const [secretCodeInput, setSecretCodeInput] = useState('');
   const [feedback, setFeedback] = useState<{ text: string; type: 'success' | 'error' | 'admin' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,7 +41,6 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
       if (p?.pseudo) {
         setPseudoInput(p.pseudo);
       }
-      setSecretCodeInput('');
       setFeedback(null);
       setIsSubmitting(false);
     }
@@ -57,17 +53,13 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
     if (isSubmitting) return;
 
     const cleanPseudo = pseudoInput.trim();
-    const cleanSecret = secretCodeInput.trim();
 
-    if (!cleanPseudo && !cleanSecret) {
+    if (!cleanPseudo) {
       setFeedback({ text: 'Veuillez saisir un pseudo valide.', type: 'error' });
       return;
     }
 
     setIsSubmitting(true);
-
-    // Vérification du code admin secret (ne doit jamais être affiché)
-    const isAdminTriggered = verifyAdminCode(cleanSecret) || verifyAdminCode(cleanPseudo);
 
     try {
       // 1. Tenter de récupérer un compte existant enregistré dans la base de données
@@ -75,41 +67,26 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
 
       let current: PlayerProfile;
       if (existingServer) {
-        // Compte déjà existant dans la base : restauration immédiate avec préservation de tous les points
         current = {
           ...existingServer,
           pseudo: cleanPseudo,
           totalPoints: Math.max(existingServer.totalPoints || 0, profile?.totalPoints || 0),
           streakDays: Math.max(existingServer.streakDays || 1, profile?.streakDays || 1),
-          isAdmin: isAdminTriggered ? true : Boolean(existingServer.isAdmin || profile?.isAdmin)
+          isAdmin: Boolean(existingServer.isAdmin)
         };
         setFeedback({
           text: `🎉 Compte retrouvé ! ${current.totalPoints} pts et flammes restaurés.`,
           type: 'success'
         });
       } else if (profile && profile.pseudo) {
-        // Compte local existant qui met à jour son pseudo
         current = {
           ...profile,
-          pseudo: cleanPseudo,
-          isAdmin: isAdminTriggered ? true : Boolean(profile.isAdmin)
+          pseudo: cleanPseudo
         };
         setFeedback({ text: '✅ Pseudo enregistré avec succès !', type: 'success' });
       } else {
-        // Nouveau compte tout neuf
         current = initPlayerProfile(cleanPseudo || 'Chasseur Météo');
-        if (isAdminTriggered) {
-          current.isAdmin = true;
-        }
         setFeedback({ text: '🎉 Bienvenue ! Votre compte est créé et sécurisé en base.', type: 'success' });
-      }
-
-      if (isAdminTriggered) {
-        current.isAdmin = true;
-        setFeedback({
-          text: '👑 Statut Administrateur débloqué ! Votre rang est désormais Admin.',
-          type: 'admin'
-        });
       }
 
       savePlayerProfile(current);
@@ -119,15 +96,11 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
       setTimeout(() => {
         setIsSubmitting(false);
         onClose();
-        if (isAdminTriggered && onOpenAdminPanel) {
-          onOpenAdminPanel();
-        }
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.warn('Erreur validation pseudo:', err);
       const fallback = profile || initPlayerProfile(cleanPseudo || 'Chasseur Météo');
       fallback.pseudo = cleanPseudo;
-      if (isAdminTriggered) fallback.isAdmin = true;
       savePlayerProfile(fallback);
       setFeedback({ text: '✅ Profil enregistré localement.', type: 'success' });
       setTimeout(() => {
@@ -231,23 +204,6 @@ export const PseudoModal: React.FC<PseudoModalProps> = ({
               placeholder="Ex: AlexandreMétéo"
               maxLength={25}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm font-semibold transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-400 mb-1.5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5 text-slate-400" />
-                Code privilège ou d'invitation (optionnel)
-              </span>
-              <span className="text-[10px] text-slate-500">Accès spécial</span>
-            </label>
-            <input
-              type="password"
-              value={secretCodeInput}
-              onChange={(e) => setSecretCodeInput(e.target.value)}
-              placeholder="Code d'accès..."
-              className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 text-xs font-mono transition"
             />
           </div>
 

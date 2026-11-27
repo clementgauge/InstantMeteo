@@ -9,6 +9,97 @@ export const DATABASE_ID = '8c0f3a17-c78d-4dad-9301-90f7138d1e9c';
 export const PRIMARY_AI_STUDIO_BACKEND = 'https://instantmeteo-fr.ai.studio';
 export const WORKERS_DEV_URL = 'https://instantmeteo.instantmeteofr.workers.dev';
 
+// Jetons conservés strictement en mémoire JS (jamais en localStorage/sessionStorage)
+let adminSessionToken: string | null = null;
+let playerSessionToken: string | null = null;
+
+export function isAdminAuthenticated(): boolean {
+  return Boolean(adminSessionToken);
+}
+
+export function getAdminAuthHeader(): Record<string, string> {
+  return adminSessionToken ? { Authorization: `Bearer ${adminSessionToken}` } : {};
+}
+
+export function getPlayerTokenHeader(): Record<string, string> {
+  return playerSessionToken ? { 'X-Player-Token': playerSessionToken } : {};
+}
+
+export function clearPlayerSessionToken(): void {
+  playerSessionToken = null;
+}
+
+export function logoutAdminSession(): void {
+  adminSessionToken = null;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('instant_meteo_admin_session_changed', { detail: { authenticated: false } }));
+  }
+}
+
+export async function getAdminAuthStatus(): Promise<{
+  envConfigured: boolean;
+  hasClaimedCredential: boolean;
+  needsSetup: boolean;
+}> {
+  try {
+    const res = await resilientFetch('/api/admin/auth-status', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    }, 4000);
+    if (isHttpSuccess(res)) {
+      const data = await safeJsonParse(res, {});
+      return {
+        envConfigured: Boolean(data.envConfigured),
+        hasClaimedCredential: Boolean(data.hasClaimedCredential),
+        needsSetup: Boolean(data.needsSetup),
+      };
+    }
+  } catch {}
+  return { envConfigured: true, hasClaimedCredential: false, needsSetup: false };
+}
+
+export async function claimAdminPassword(password: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await resilientFetch('/api/admin/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ password }),
+    }, 5000);
+    const data = await safeJsonParse(res, {});
+    if (res.ok && data?.token) {
+      adminSessionToken = String(data.token);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('instant_meteo_admin_session_changed', { detail: { authenticated: true } }));
+      }
+      return { ok: true };
+    }
+    return { ok: false, error: data?.error || `Erreur (${res.status})` };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Erreur réseau' };
+  }
+}
+
+export async function loginAdminPassword(credential: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await resilientFetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ password: credential }),
+    }, 5000);
+    const data = await safeJsonParse(res, {});
+    if (res.ok && data?.token) {
+      adminSessionToken = String(data.token);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('instant_meteo_admin_session_changed', { detail: { authenticated: true } }));
+      }
+      return { ok: true };
+    }
+    return { ok: false, error: data?.error || 'Mot de passe ou jeton administrateur invalide' };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Erreur réseau' };
+  }
+}
+
 // Nettoyage automatique des faux domaines ou placeholders
 export function getD1WorkerUrl(): string {
   try {
@@ -173,8 +264,8 @@ export async function resilientFetch(path: string, options: RequestInit = {}, ti
         continue; // Ignorer le fallback HTML statique et basculer sur le serveur backend central
       }
 
-      // Codes 2xx (succès) et 3xx (redirections, 304 Not Modified) sont valides
-      if (isHttpSuccess(res)) {
+      // Codes 2xx/3xx et réponses JSON déterministes 400/401/403/409 viennent bien de l'API backend
+      if (isHttpSuccess(res) || [400, 401, 403, 409].includes(res.status)) {
         try {
           if (url.startsWith('http')) {
             const parsed = new URL(url);
@@ -300,7 +391,7 @@ export async function fetchLeaderboardFromD1(currentProfile: PlayerProfile | nul
 export async function syncPlayerProfileToD1(profile: PlayerProfile): Promise<{ ok: boolean; rank?: number; totalPlayers?: number; message?: string }> {
   try {
     const stableId = 'usr-' + profile.pseudo.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-    const playerTier = getPlayerClass(profile.totalPoints, profile.isAdmin);
+    const playerTier = getPlayerClass(profile.totalPoints, false);
     const badgeTitle = playerTier.name;
 
     const payload = {
@@ -313,15 +404,16 @@ export async function syncPlayerProfileToD1(profile: PlayerProfile): Promise<{ o
       badgesCount: profile.unlockedWeatherIds.length,
       badgeTitle,
       minutesSpent: profile.minutesSpent,
-      unlockedBadges: profile.unlockedWeatherIds,
-      isAdmin: !!profile.isAdmin
+      unlockedBadges: profile.unlockedWeatherIds
     };
 
     const res = await resilientFetch('/api/player/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        ...getAdminAuthHeader(),
+        ...getPlayerTokenHeader()
       },
       body: JSON.stringify(payload)
     }, 6000);
@@ -331,6 +423,9 @@ export async function syncPlayerProfileToD1(profile: PlayerProfile): Promise<{ o
     }
 
     const data = await safeJsonParse(res, {});
+    if (typeof data.playerToken === 'string' && data.playerToken) {
+      playerSessionToken = data.playerToken;
+    }
     return {
       ok: true,
       rank: data.rank,
@@ -349,7 +444,12 @@ export async function resetPlayerPointsInD1(pseudo: string): Promise<boolean> {
   try {
     const res = await resilientFetch('/api/player/reset', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...getAdminAuthHeader(),
+        ...getPlayerTokenHeader()
+      },
       body: JSON.stringify({ pseudo })
     });
     return isHttpSuccess(res);
@@ -366,10 +466,19 @@ export async function deletePlayerFromD1(pseudo: string, id?: string): Promise<b
   try {
     const res = await resilientFetch('/api/player/delete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...getAdminAuthHeader(),
+        ...getPlayerTokenHeader()
+      },
       body: JSON.stringify({ pseudo, id })
     });
-    return isHttpSuccess(res);
+    if (isHttpSuccess(res)) {
+      clearPlayerSessionToken();
+      return true;
+    }
+    return false;
   } catch (err) {
     console.warn('Erreur suppression joueur D1:', err);
     return false;
@@ -388,13 +497,17 @@ export async function adminDeleteOtherUserAccount(
   try {
     const res = await resilientFetch('/api/admin/delete-user', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...getAdminAuthHeader()
+      },
       body: JSON.stringify({ pseudo: targetPseudo, id: targetId })
     });
-    if (!isHttpSuccess(res)) {
-      return { success: false, message: `Réponse serveur (${res.status})` };
-    }
     const data = await safeJsonParse(res, {});
+    if (!isHttpSuccess(res)) {
+      return { success: false, message: data?.error || `Réponse serveur (${res.status})` };
+    }
     return { 
       success: !!data.success, 
       message: data.message || `Compte ${targetPseudo} supprimé avec succès` 
@@ -413,7 +526,10 @@ export async function fetchAdminAllUsers(): Promise<any[]> {
   try {
     const res = await resilientFetch('/api/admin/all-users', {
       method: 'GET',
-      headers: { 'Accept': 'application/json' }
+      headers: {
+        'Accept': 'application/json',
+        ...getAdminAuthHeader()
+      }
     });
     if (!isHttpSuccess(res)) return [];
     const data = await safeJsonParse(res, {});
@@ -495,7 +611,7 @@ export async function adminSetPointsInD1(pseudo: string, points: number): Promis
   try {
     const res = await resilientFetch('/api/admin/set-points', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify({ pseudo, points })
     });
     return isHttpSuccess(res);
@@ -508,7 +624,7 @@ export async function adminSetStreakInD1(pseudo: string, streakDays: number): Pr
   try {
     const res = await resilientFetch('/api/admin/set-streak', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify({ pseudo, streakDays })
     });
     return isHttpSuccess(res);
@@ -521,7 +637,7 @@ export async function adminUnlockAllBadgesInD1(pseudo: string): Promise<boolean>
   try {
     const res = await resilientFetch('/api/admin/unlock-all-badges', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify({ pseudo })
     });
     return isHttpSuccess(res);
@@ -534,7 +650,7 @@ export async function adminBanUserInD1(pseudo: string, durationHours: number | '
   try {
     const res = await resilientFetch('/api/admin/ban', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify({ pseudo, durationHours, reason })
     });
     return isHttpSuccess(res);
@@ -547,7 +663,7 @@ export async function adminUnbanUserInD1(pseudo: string): Promise<boolean> {
   try {
     const res = await resilientFetch('/api/admin/unban', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify({ pseudo })
     });
     return isHttpSuccess(res);
@@ -558,7 +674,10 @@ export async function adminUnbanUserInD1(pseudo: string): Promise<boolean> {
 
 export async function adminGetBannedUsersFromD1(): Promise<BannedUser[] | null> {
   try {
-    const res = await resilientFetch('/api/admin/banned', { method: 'GET' });
+    const res = await resilientFetch('/api/admin/banned', {
+      method: 'GET',
+      headers: { ...getAdminAuthHeader() }
+    });
     if (!isHttpSuccess(res)) return null;
     const data = await safeJsonParse(res, {});
     return data.bannedUsers || [];
@@ -571,7 +690,7 @@ export async function adminSaveAnnouncementInD1(announcement: AdminAnnouncement 
   try {
     const res = await resilientFetch('/api/admin/announcement', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAdminAuthHeader() },
       body: JSON.stringify(announcement)
     });
     return isHttpSuccess(res);

@@ -207,12 +207,6 @@ export function getPlayerClass(points: number, isAdmin?: boolean): PlayerClassTi
 const STORAGE_KEY = 'instant_meteo_competitive_profile';
 const BANNED_USERS_KEY = 'instant_meteo_banned_users';
 const ADMIN_ANNOUNCEMENT_KEY = 'instant_meteo_admin_announcement';
-const ADMIN_SECRET_CODE = 'meteoversailles78';
-
-export function verifyAdminCode(candidateCode: string): boolean {
-  if (!candidateCode) return false;
-  return candidateCode.trim().toLowerCase() === ADMIN_SECRET_CODE.toLowerCase();
-}
 
 export function getBannedUsers(): BannedUser[] {
   try {
@@ -372,7 +366,7 @@ export async function ensurePlayerProfileRestored(): Promise<PlayerProfile | nul
           totalPoints: Math.max(local.totalPoints || 0, serverProfile.totalPoints || 0),
           streakDays: Math.max(local.streakDays || 1, serverProfile.streakDays || 1),
           minutesSpent: Math.max(local.minutesSpent || 0, serverProfile.minutesSpent || 0),
-          isAdmin: Boolean(local.isAdmin || serverProfile.isAdmin),
+          isAdmin: Boolean(serverProfile.isAdmin),
           unlockedWeatherIds: Array.from(new Set([...(local.unlockedWeatherIds || []), ...(serverProfile.unlockedWeatherIds || [])]))
         };
         savePlayerProfile(merged);
@@ -664,9 +658,10 @@ export function adminUnlockAllBadges(profile: PlayerProfile): PlayerProfile {
 }
 
 export function adminToggleAdminStatus(profile: PlayerProfile, isAdmin: boolean): PlayerProfile {
+  // Never elevate to admin on the client; only allow clearing local admin flag
   const updated: PlayerProfile = {
     ...profile,
-    isAdmin
+    isAdmin: isAdmin ? Boolean(profile.isAdmin) : false
   };
   savePlayerProfile(updated);
   return updated;

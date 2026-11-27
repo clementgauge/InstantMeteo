@@ -1304,7 +1304,15 @@ async function fetchJsonWithTimeoutResilient(url: string, timeoutMs = 10000): Pr
     const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
     if (!res.ok) return null;
     const json = await res.json();
-    if (!json || json.error || !json.current) return null;
+    if (
+      !json ||
+      json.error ||
+      !json.current ||
+      !Array.isArray(json.hourly?.time) ||
+      !Array.isArray(json.daily?.time)
+    ) {
+      return null;
+    }
     return json;
   } catch {
     return null;
@@ -1321,30 +1329,31 @@ async function fetchPrimaryOpenMeteoWeather(
   const fullQuery = `latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&minutely_15=precipitation,precipitation_probability,weather_code,rain,snowfall&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=16&past_days=2`;
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?${fullQuery}`;
 
-  // 1. Direct fetch
-  let data = await fetchJsonWithTimeoutResilient(weatherUrl, 9000);
-  if (data) return data;
-
-  // 2. Short backoff + same-origin proxy fallback (bypasses browser-IP 429 bursts & CORS/network glitches)
-  await new Promise((resolve) => setTimeout(resolve, 350));
+  // 1. Prefer same-origin cached proxy first in browser to coalesce parallel requests and avoid Open-Meteo 429 bursts
+  let data: any = null;
   if (typeof window !== 'undefined') {
     data = await fetchJsonWithTimeoutResilient(`/api/open-meteo/forecast?${fullQuery}`, 9000);
     if (data) return data;
   }
 
-  // 3. Retry direct full Open-Meteo URL
+  // 2. Direct Open-Meteo full fetch
+  data = await fetchJsonWithTimeoutResilient(weatherUrl, 9000);
+  if (data) return data;
+
+  // 3. Short backoff + retry direct Open-Meteo full fetch
+  await new Promise((resolve) => setTimeout(resolve, 400));
   data = await fetchJsonWithTimeoutResilient(weatherUrl, 9000);
   if (data) return data;
 
   // 4. Simplified Open-Meteo fallback (without minutely_15 & past_days=2)
   const liteQuery = `latitude=${lat}&longitude=${lon}&elevation=${alt}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,snowfall,snow_depth,weather_code,surface_pressure,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,snow_depth,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,direct_radiation,diffuse_radiation,uv_index,freezing_level_height,cape,lifted_index,convective_inhibition,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration,et0_fao_evapotranspiration&timezone=auto&forecast_days=7`;
-  data = await fetchJsonWithTimeoutResilient(`https://api.open-meteo.com/v1/forecast?${liteQuery}`, 9000);
-  if (data) return data;
-
   if (typeof window !== 'undefined') {
     data = await fetchJsonWithTimeoutResilient(`/api/open-meteo/forecast?${liteQuery}`, 9000);
     if (data) return data;
   }
+
+  data = await fetchJsonWithTimeoutResilient(`https://api.open-meteo.com/v1/forecast?${liteQuery}`, 9000);
+  if (data) return data;
 
   throw new Error('Erreur Open-Meteo: toutes les tentatives ont échoué');
 }
@@ -1438,7 +1447,12 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
       name: station.name,
       country: station.country,
       knownAltitude: station.altitude
-    });
+    }).catch(() => ({
+      alt: station.altitude ?? 0,
+      coastal: 0,
+      relief: undefined,
+      exposure: undefined
+    }));
     const alt = Math.round(Number.isFinite(altEntry.alt) ? altEntry.alt : 0);
     const terrainMeta: TerrainMeta = {
       alt,
@@ -2858,8 +2872,7 @@ export async function fetchWeatherData(station: LocationPoint): Promise<{
     } catch (_) {}
     saveWeatherToIndexedDB(cacheKey, station, result).catch(() => {});
     return { ...result, isFromCache: false };
-  } catch (error) {
-    console.warn("Fetch weather error, recovering station-specific cache:", error);
+  } catch {
     // 1. Recherche prioritaire dans le stockage local spécifique à cette station
     try {
       const localStationCache = localStorage.getItem(`instant_meteo_last_station_${station.id}`);

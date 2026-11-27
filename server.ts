@@ -1,14 +1,13 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+import compression from 'compression';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import {
-  getSeoDataForPath,
-  generatePageJsonLd,
-  generateStaticHtmlContent,
-  generateNotFoundHtmlContent,
-  generateHreflangLinksHtml,
+  applyPageSeoToHtml,
+  applyNotFoundSeoToHtml,
   generateRobotsTxt,
   generateSitemapIndexXml,
   generatePagesSitemapXml,
@@ -16,15 +15,10 @@ import {
   getAliasRedirectTarget,
   isValidSeoPath,
   stripLocalePrefix,
-  buildLocalizedUrl,
-  getPageOgImageUrl,
   localizeSkyMapHtml,
   UNIFIED_ROBOTS_DIRECTIVE,
 } from './src/seo/pagesSeoData';
-import {
-  getSiteBrandForLocale,
-  normalizeSupportedLocale,
-} from './src/i18n/siteTranslations';
+import { normalizeSupportedLocale } from './src/i18n/siteTranslations';
 import {
   CURATED_WORLD_ALTITUDES,
   buildAltitudeCoordKey,
@@ -32,8 +26,9 @@ import {
 } from './src/services/worldAltitudeService';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const MODEL_FAST = process.env.GEMINI_MODEL_FAST || 'gemini-4-hydrogen';
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
 // Lazy initialization du client Gemini côté serveur (sécurisation stricte des clés)
 let sharedGeminiClient: GoogleGenAI | null = null;
@@ -53,17 +48,22 @@ function getGeminiClient(): GoogleGenAI | null {
   return sharedGeminiClient;
 }
 // -------------------------------------------------------------
-// FICHIERS DE PERSISTANCE MULTI-SOURCES (RÉSILIENCE TOTALE AUX MISES À JOUR)
+// FICHIERS DE PERSISTANCE PRIVÉS (JAMAIS EXPOSÉS DANS public/)
 // -------------------------------------------------------------
 const DB_FILE = path.join(process.cwd(), 'data', 'meteo_database.json');
 const DB_BACKUP_FILE = path.join(process.cwd(), 'data', 'meteo_database_backup.json');
-const DB_COMMITTED_FILE = path.join(process.cwd(), 'src', 'data', 'meteo_database_committed.json');
-const DB_PUBLIC_FILE = path.join(process.cwd(), 'public', 'data', 'meteo_database_committed.json');
 const DB_TMP_FILE = path.join('/tmp', 'meteo_database_persistent.json');
 const DATABASE_ID = 'e9f42b10-d81c-4e8a-bf92-7103a4c81b5e';
 
-// Middlewares généraux
-app.use(express.json({ limit: '10mb' }));
+// Middlewares généraux & compression gzip/deflate
+app.use(compression());
+app.use(express.json({ limit: '2mb' }));
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err && (err.type === 'entity.parse.failed' || err instanceof SyntaxError)) {
+    return res.status(400).json({ error: 'Corps JSON invalide' });
+  }
+  next(err);
+});
 
 // -------------------------------------------------------------
 // PROTECTION ANTI-BOTS, SCRAPERS & SÉCURITÉ DES EN-TÊTES
@@ -102,18 +102,44 @@ const MALICIOUS_BOT_PATTERNS = [
   /nikto/i
 ];
 
-// Rate limiting & liste noire en mémoire
+// Rate limiting en mémoire (IP socket non falsifiable + fenêtre stricte sur auth/écritures)
 const ipRequestCounts = new Map<string, { count: number; resetTime: number }>();
+const strictWriteRateCounts = new Map<string, { count: number; resetTime: number }>();
 const blacklistedIps = new Set<string>();
 
-// Middleware global anti-bot et renforcement des en-têtes
+function resolveClientIp(req: express.Request): string {
+  return req.socket.remoteAddress || req.ip || 'unknown';
+}
+
+function isAllowedCorsOrigin(origin: string | undefined): boolean {
+  if (!origin) return false;
+  if (
+    origin === 'http://localhost:3000' ||
+    origin === 'http://127.0.0.1:3000' ||
+    origin === 'https://instantmeteo-fr.ai.studio' ||
+    origin === 'https://instantmeteo.instantmeteofr.workers.dev'
+  ) {
+    return true;
+  }
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== 'https:') return false;
+    return (
+      parsed.hostname.endsWith('.run.app') ||
+      parsed.hostname.endsWith('.ai.studio') ||
+      parsed.hostname.endsWith('.workers.dev')
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Middleware global anti-bot, rate-limit et renforcement des en-têtes
 app.use((req, res, next) => {
-  // En-têtes de sécurité renforcés
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=*, camera=(), microphone=()');
 
-  // Endpoints techniques, embeds et ressources /assets/aistudio/ strictement non indexables
   if (
     req.path.startsWith('/api/') ||
     req.path === '/health' ||
@@ -124,7 +150,6 @@ app.use((req, res, next) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   }
 
-  // Route dédiée prioritaire de validation Google Search Console (fichiers HTML déclarés)
   if (
     req.path === '/googlekKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY.html' ||
     req.path === '/googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html'
@@ -135,23 +160,20 @@ app.use((req, res, next) => {
     return;
   }
 
-  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const clientIp = resolveClientIp(req);
   const userAgent = (req.headers['user-agent'] as string) || '';
 
-  // Exemption explicite et immédiate pour Googlebot, Google-InspectionTool et robots d'indexation certifiés
   const isSearchEngineBot = /Googlebot|Google-InspectionTool|Google-Site-Verification|Mediapartners-Google|Feedfetcher-Google|bingbot|Slurp|DuckDuckBot|Applebot/i.test(userAgent);
   if (isSearchEngineBot) {
     next();
     return;
   }
 
-  // 1. Rejet immédiat si IP piégée par un honeypot
   if (blacklistedIps.has(clientIp)) {
     res.status(403).json({ error: 'Accès interdit - Protection anti-bot active', status: 403 });
     return;
   }
 
-  // 2. Trappe Honeypot : attrape les scanners automatisés de fichiers sensibles
   const pathLower = req.path.toLowerCase();
   if (
     pathLower.includes('.env') ||
@@ -167,34 +189,29 @@ app.use((req, res, next) => {
     return;
   }
 
-  // 3. Filtrage anti-bot sur les endpoints d'API
   if (req.path.startsWith('/api/')) {
-    const userAgent = req.headers['user-agent'] || '';
-
-    // Bloquer les requêtes API sans User-Agent ou issues d'outils automatisés connus
     if (!userAgent && req.method !== 'OPTIONS') {
       res.status(403).json({ error: 'User-Agent requis pour interagir avec les APIs', status: 403 });
       return;
     }
 
-    const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+    const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1';
     const isBadBot = !isLocalhost && req.path !== '/api/vigilance-meteofrance' && MALICIOUS_BOT_PATTERNS.some((pattern) => pattern.test(userAgent));
     if (isBadBot) {
-      res.status(403).json({ 
+      res.status(403).json({
         error: 'Accès automatisé interdit - Protection anti-bot Instant Météo active',
         status: 403
       });
       return;
     }
 
-    // 4. Protection contre les inondations (Rate Limiting : max 150 requêtes/minute par IP)
     const now = Date.now();
     const rateData = ipRequestCounts.get(clientIp);
     if (!rateData || now > rateData.resetTime) {
       ipRequestCounts.set(clientIp, { count: 1, resetTime: now + 60000 });
     } else {
       rateData.count++;
-      if (rateData.count > 150) {
+      if (rateData.count > 240) {
         res.status(429).json({
           error: 'Limite de requêtes atteinte. Protection anti-scraping active.',
           status: 429
@@ -202,18 +219,47 @@ app.use((req, res, next) => {
         return;
       }
     }
+
+    const isStrictRoute =
+      req.path === '/api/admin/login' ||
+      req.path === '/api/admin/claim' ||
+      req.path.startsWith('/api/player/') ||
+      (req.method !== 'GET' && (req.path.startsWith('/api/reports') || req.path.startsWith('/api/discussion/')));
+    if (isStrictRoute && req.method !== 'OPTIONS') {
+      const strictData = strictWriteRateCounts.get(clientIp);
+      if (!strictData || now > strictData.resetTime) {
+        strictWriteRateCounts.set(clientIp, { count: 1, resetTime: now + 60000 });
+      } else {
+        strictData.count++;
+        if (strictData.count > 35) {
+          res.status(429).json({
+            error: 'Trop de requêtes sensibles sur cette fenêtre, veuillez patienter.',
+            status: 429
+          });
+          return;
+        }
+      }
+    }
   }
 
   next();
 });
 
-// Entêtes CORS permissives pour tous les clients et domaines (ai.studio, workers.dev, localhost, etc.)
+// En-têtes CORS restreints aux origines autorisées (jamais '*' sur les routes sensibles)
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin && isAllowedCorsOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Player-Token, X-Requested-With, Accept');
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
+    if (origin && !isAllowedCorsOrigin(origin)) {
+      res.sendStatus(403);
+      return;
+    }
+    res.sendStatus(204);
     return;
   }
   next();
@@ -233,6 +279,12 @@ app.use((req, res, next) => {
 });
 
 // Initialisation & Persistance de la Base de Données
+interface AdminCredentialRecord {
+  salt: string;
+  hash: string;
+  updatedAt: string;
+}
+
 interface DatabaseSchema {
   databaseId: string;
   databaseName: string;
@@ -242,10 +294,12 @@ interface DatabaseSchema {
   discussionMessages: any[];
   adminAnnouncement: any | null;
   bannedUsers: any[];
+  weatherContradictions?: any[];
+  adminAuth?: AdminCredentialRecord | null;
 }
 
 function ensureDataDirs(): void {
-  [DB_FILE, DB_BACKUP_FILE, DB_COMMITTED_FILE, DB_PUBLIC_FILE].forEach((f) => {
+  [DB_FILE, DB_BACKUP_FILE].forEach((f) => {
     try {
       const dir = path.dirname(f);
       if (!fs.existsSync(dir)) {
@@ -264,15 +318,11 @@ function getInitialDatabase(): DatabaseSchema {
     communityReports: [],
     discussionMessages: [],
     adminAnnouncement: null,
-    bannedUsers: []
+    bannedUsers: [],
+    adminAuth: null
   };
 }
 
-/**
- * Fusionne intelligemment deux listes de profils joueurs sans jamais perdre de données.
- * Conserve le pseudo, le maximum de points, la plus longue série de flammes (streak),
- * l'union des badges débloqués et l'historique complet.
- */
 function mergePlayerLists(listA: any[] = [], listB: any[] = []): any[] {
   const map = new Map<string, any>();
 
@@ -321,19 +371,12 @@ function mergePlayerLists(listA: any[] = [], listB: any[] = []): any[] {
   return Array.from(map.values());
 }
 
-/**
- * Charge la base de données depuis toutes les sources de persistance disponibles
- * (fichiers locaux, miroir commit, public, backup et tmp).
- * Garantit qu'aucun compte n'est écrasé ou supprimé lors des redémarrages ou mises à jour.
- */
 function loadDatabase(): DatabaseSchema {
   ensureDataDirs();
 
   const candidatePaths = [
     DB_FILE,
     DB_BACKUP_FILE,
-    DB_COMMITTED_FILE,
-    DB_PUBLIC_FILE,
     DB_TMP_FILE
   ];
 
@@ -342,8 +385,9 @@ function loadDatabase(): DatabaseSchema {
   let accumulatedMessages: any[] = [];
   let announcement: any | null = null;
   let banned: any[] = [];
+  let weatherContradictions: any[] = [];
+  let adminAuth: AdminCredentialRecord | null = null;
   let mostRecentUpdate = '';
-  let traffic: SiteTrafficData | null = null;
 
   for (const filePath of candidatePaths) {
     try {
@@ -369,8 +413,14 @@ function loadDatabase(): DatabaseSchema {
           if (parsed.adminAnnouncement && !announcement) {
             announcement = parsed.adminAnnouncement;
           }
-          if (Array.isArray(parsed.bannedUsers) && parsed.bannedUsers.length > 0) {
+          if (Array.isArray(parsed.bannedUsers) && parsed.bannedUsers.length > 0 && banned.length === 0) {
             banned = parsed.bannedUsers;
+          }
+          if (Array.isArray(parsed.weatherContradictions) && parsed.weatherContradictions.length > 0 && weatherContradictions.length === 0) {
+            weatherContradictions = parsed.weatherContradictions;
+          }
+          if (parsed.adminAuth && parsed.adminAuth.hash && parsed.adminAuth.salt && !adminAuth) {
+            adminAuth = parsed.adminAuth;
           }
           if (parsed.updatedAt && parsed.updatedAt > mostRecentUpdate) {
             mostRecentUpdate = parsed.updatedAt;
@@ -380,7 +430,7 @@ function loadDatabase(): DatabaseSchema {
     } catch (_) {}
   }
 
-  const resolvedDb: DatabaseSchema = {
+  return {
     databaseId: DATABASE_ID,
     databaseName: 'meteo-competitive-db',
     updatedAt: mostRecentUpdate || new Date().toISOString(),
@@ -388,36 +438,23 @@ function loadDatabase(): DatabaseSchema {
     communityReports: accumulatedReports,
     discussionMessages: accumulatedMessages,
     adminAnnouncement: announcement,
-    bannedUsers: banned
+    bannedUsers: banned,
+    weatherContradictions,
+    adminAuth
   };
-
-  return resolvedDb;
 }
 
-/**
- * Sauvegarde synchrone et miroir sur tous les emplacements de stockage persistants.
- */
 function saveDatabase(data: DatabaseSchema): void {
   ensureDataDirs();
   try {
     data.databaseId = DATABASE_ID;
     data.updatedAt = new Date().toISOString();
 
-    // Re-charger l'état existant pour ne JAMAIS écraser des joueurs déjà créés
-    try {
-      const currentOnDisk = loadDatabase();
-      if (currentOnDisk.players && currentOnDisk.players.length > 0) {
-        data.players = mergePlayerLists(currentOnDisk.players, data.players || []);
-      }
-    } catch (_) {}
-
     const payload = JSON.stringify(data, null, 2);
 
     const targetPaths = [
       DB_FILE,
       DB_BACKUP_FILE,
-      DB_COMMITTED_FILE,
-      DB_PUBLIC_FILE,
       DB_TMP_FILE
     ];
 
@@ -425,11 +462,10 @@ function saveDatabase(data: DatabaseSchema): void {
       try {
         const dir = path.dirname(target);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        const tempPath = `${target}.tmp`;
+        const tempPath = `${target}.tmp.${process.pid}`;
         fs.writeFileSync(tempPath, payload, 'utf-8');
         fs.renameSync(tempPath, target);
-      } catch (err) {
-        // Fallback écriture directe
+      } catch (_) {
         try {
           fs.writeFileSync(target, payload, 'utf-8');
         } catch (_) {}
@@ -439,6 +475,105 @@ function saveDatabase(data: DatabaseSchema): void {
     console.error('Erreur sauvegarde globale DB:', err);
   }
 }
+
+// -------------------------------------------------------------
+// AUTHENTIFICATION & SÉCURITÉ DES JETONS (ADMIN & JOUEURS)
+// -------------------------------------------------------------
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+function getConfiguredAdminToken(): string {
+  return (process.env.ADMIN_TOKEN || '').trim();
+}
+
+function hashAdminPassword(password: string): AdminCredentialRecord {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return { salt, hash, updatedAt: new Date().toISOString() };
+}
+
+function verifyAdminPassword(password: string, record: AdminCredentialRecord | null | undefined): boolean {
+  if (!record || !record.salt || !record.hash) return false;
+  try {
+    const derived = crypto.scryptSync(password, record.salt, 64);
+    const expected = Buffer.from(record.hash, 'hex');
+    if (derived.length !== expected.length) return false;
+    return crypto.timingSafeEqual(derived, expected);
+  } catch {
+    return false;
+  }
+}
+
+interface SignedTokenPayload {
+  role: 'admin' | 'player';
+  sub: string;
+  pseudo?: string;
+  exp: number;
+}
+
+function signSessionToken(payload: SignedTokenPayload): string {
+  const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
+}
+
+function verifySignedToken(token: string): SignedTokenPayload | null {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [encoded, sig] = parts;
+  if (!encoded || !sig) return null;
+  try {
+    const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(encoded).digest('base64url');
+    if (!timingSafeEqualStr(sig, expectedSig)) return null;
+    const parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf-8')) as SignedTokenPayload;
+    if (!parsed || typeof parsed.exp !== 'number' || Date.now() > parsed.exp) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function extractBearerToken(req: express.Request): string {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || typeof authHeader !== 'string') return '';
+  if (!authHeader.startsWith('Bearer ')) return '';
+  return authHeader.slice(7).trim();
+}
+
+function isVerifiedAdminRequest(req: express.Request): boolean {
+  const token = extractBearerToken(req);
+  if (!token) return false;
+  const configured = getConfiguredAdminToken();
+  if (configured && timingSafeEqualStr(token, configured)) {
+    return true;
+  }
+  const signed = verifySignedToken(token);
+  return Boolean(signed && signed.role === 'admin');
+}
+
+function requireAdminAuth(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  if (!isVerifiedAdminRequest(req)) {
+    res.status(401).json({ error: 'Authentification administrateur requise' });
+    return;
+  }
+  next();
+}
+
+function getVerifiedPlayerToken(req: express.Request): SignedTokenPayload | null {
+  const raw = req.headers['x-player-token'];
+  const token = typeof raw === 'string' ? raw.trim() : '';
+  const parsed = verifySignedToken(token);
+  if (!parsed || parsed.role !== 'player') return null;
+  return parsed;
+}
+
+const ALLOWED_BADGE_IDS = new Set([
+  'sun', 'rain', 'storm', 'snow', 'frost', 'fog', 'gale', 'heat', 'altitude', 'night_stars'
+]);
 
 // -------------------------------------------------------------
 // ROUTES API BACKEND CENTRALISÉES (Accès multi-plateformes)
@@ -516,7 +651,7 @@ Fournis une réponse au format JSON strict avec les clés suivantes :
     res.json({ success: true, diagnostic });
   } catch (err: any) {
     console.error('Erreur API Gemini serveur:', err);
-    res.json({ success: false, fallback: true, error: err.message });
+    res.json({ success: false, fallback: true, message: 'Service de diagnostic temporairement indisponible' });
   }
 });
 
@@ -723,14 +858,13 @@ app.post('/api/stats/heartbeat', async (req, res) => {
     totalVisits: Math.max(visits30d, siteStatsState.totalVisits),
     apiLatencyMs: cachedOpenMeteoLatency,
     uptimeSeconds: Math.floor(process.uptime()),
-    uptimePct: 99.98,
     devices: {
       mobile: pctMobile || 65,
       desktop: pctDesktop || 30,
       tablet: pctTablet || 5
     },
-    certified: true,
-    certificationLabel: "Données Réelles Instant Météo Certifiées OMM / WMO & Infrastructure Node.js",
+    online: true,
+    telemetryLabel: "Télémétrie temps réel du nœud serveur & latence Open-Meteo",
     timestamp: now
   });
 });
@@ -752,7 +886,7 @@ app.post('/api/stats/leave', (req, res) => {
   });
 });
 
-// Route 1e. Lecture directe des statistiques certifiées
+// Route 1e. Lecture directe des statistiques temps réel
 app.get('/api/stats/realtime', async (req, res) => {
   const now = Date.now();
   const cutoff25s = now - 25_000;
@@ -784,14 +918,13 @@ app.get('/api/stats/realtime', async (req, res) => {
     totalVisits: Math.max(visits30d, siteStatsState.totalVisits),
     apiLatencyMs: latency,
     uptimeSeconds: Math.floor(process.uptime()),
-    uptimePct: 99.98,
     devices: {
       mobile: pctMobile || 65,
       desktop: pctDesktop || 30,
       tablet: pctTablet || 5
     },
-    certified: true,
-    certificationLabel: "Données Réelles Instant Météo Certifiées OMM / WMO & Infrastructure Node.js",
+    online: true,
+    telemetryLabel: "Télémétrie temps réel du nœud serveur & latence Open-Meteo",
     timestamp: now
   });
 });
@@ -858,98 +991,208 @@ app.get('/api/leaderboard', (req, res) => {
   });
 });
 
-// 3. Synchronisation d'un profil joueur (Téléphone <-> Ordinateur)
-app.post('/api/player/sync', (req, res) => {
-  const body = req.body || {};
-  const {
-    id,
-    pseudo,
-    totalPoints = 0,
-    streakDays = 1,
-    multiplier = 1,
-    locationsCount = 0,
-    badgesCount = 0,
-    badgeTitle = 'Apprenti Météo',
-    minutesSpent = 0,
-    unlockedBadges = [],
-    isAdmin = false
-  } = body;
+// 2b. Authentification & Configuration Administrateur (sans code en dur dans le frontend)
+app.get('/api/admin/auth-status', (_req, res) => {
+  const db = loadDatabase();
+  const envConfigured = Boolean(getConfiguredAdminToken());
+  const hasClaimedCredential = Boolean(db.adminAuth && db.adminAuth.hash);
+  res.json({
+    success: true,
+    envConfigured,
+    hasClaimedCredential,
+    needsSetup: !envConfigured && !hasClaimedCredential
+  });
+});
 
-  const cleanPseudo = (pseudo || '').trim();
-  if (!cleanPseudo) {
-    res.status(400).json({ error: 'Pseudo obligatoire manquant' });
+app.post('/api/admin/claim', (req, res) => {
+  const envToken = getConfiguredAdminToken();
+  const db = loadDatabase();
+  if (envToken || (db.adminAuth && db.adminAuth.hash)) {
+    res.status(409).json({ error: 'Un secret administrateur est déjà configuré.' });
     return;
   }
+  const password = typeof req.body?.password === 'string' ? req.body.password.trim() : '';
+  if (password.length < 8 || password.length > 128) {
+    res.status(400).json({ error: 'Le mot de passe administrateur doit contenir entre 8 et 128 caractères.' });
+    return;
+  }
+
+  db.adminAuth = hashAdminPassword(password);
+  saveDatabase(db);
+
+  const token = signSessionToken({
+    role: 'admin',
+    sub: 'admin-local',
+    exp: Date.now() + 12 * 3600 * 1000
+  });
+  res.json({ success: true, token, expiresIn: 43200 });
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const rawInput = typeof req.body?.password === 'string'
+    ? req.body.password
+    : (typeof req.body?.token === 'string' ? req.body.token : '');
+  const credential = rawInput.trim();
+  if (!credential) {
+    res.status(400).json({ error: 'Mot de passe ou jeton requis' });
+    return;
+  }
+
+  const envToken = getConfiguredAdminToken();
+  const db = loadDatabase();
+  let authorized = false;
+
+  if (envToken && timingSafeEqualStr(credential, envToken)) {
+    authorized = true;
+  } else if (db.adminAuth && verifyAdminPassword(credential, db.adminAuth)) {
+    authorized = true;
+  }
+
+  if (!authorized) {
+    res.status(401).json({ error: 'Identifiant administrateur invalide' });
+    return;
+  }
+
+  const token = signSessionToken({
+    role: 'admin',
+    sub: 'admin-session',
+    exp: Date.now() + 12 * 3600 * 1000
+  });
+  res.json({ success: true, token, expiresIn: 43200 });
+});
+
+// 3. Synchronisation d'un profil joueur (validation stricte, bornage serveur, ignore isAdmin client)
+app.post('/api/player/sync', (req, res) => {
+  const body = req.body || {};
+  const rawPseudo = typeof body.pseudo === 'string' ? body.pseudo.trim() : '';
+  if (rawPseudo.length < 1 || rawPseudo.length > 32) {
+    res.status(400).json({ error: 'Pseudo invalide (1 à 32 caractères requis)' });
+    return;
+  }
+
+  const cleanPseudo = rawPseudo.replace(/[\r\n\t]+/g, ' ').slice(0, 32);
+  const rawId = typeof body.id === 'string' ? body.id.trim().slice(0, 64) : '';
+  const callerIsAdmin = isVerifiedAdminRequest(req);
+  const verifiedPlayerToken = getVerifiedPlayerToken(req);
+
+  const requestedStreak = Math.min(3650, Math.max(1, Math.floor(Number(body.streakDays) || 1)));
+  const requestedMultiplier = Math.min(10, Math.max(1, Number(body.multiplier) || 1));
+  const requestedLocations = Math.min(10000, Math.max(0, Math.floor(Number(body.locationsCount) || 0)));
+  const requestedMinutes = Math.min(500000, Math.max(0, Math.floor(Number(body.minutesSpent) || 0)));
+  const requestedPoints = Math.min(1_000_000, Math.max(0, Math.floor(Number(body.totalPoints) || 0)));
+  const sanitizedBadges = Array.isArray(body.unlockedBadges)
+    ? Array.from(new Set(body.unlockedBadges.filter((b: unknown): b is string => typeof b === 'string' && ALLOWED_BADGE_IDS.has(b))))
+    : [];
+  const rawTitle = typeof body.badgeTitle === 'string' ? body.badgeTitle.trim().slice(0, 64) : 'Apprenti Météo';
+  const safeRequestedTitle = rawTitle.toLowerCase() === 'admin' ? 'Apprenti Météo' : rawTitle;
 
   const db = loadDatabase();
   const normPseudo = cleanPseudo.toLowerCase();
 
-  // Recherche du joueur existant par pseudo ou id
-  let existingIndex = db.players.findIndex(
-    (p: any) => p.pseudo.toLowerCase() === normPseudo || (id && p.id === id)
+  const existingIndex = db.players.findIndex(
+    (p: any) => p.pseudo.toLowerCase() === normPseudo || (rawId && p.id === rawId)
   );
 
-  const stableId = id || `usr-${normPseudo.replace(/[^a-z0-9_-]/g, '_')}`;
+  const stableId = (rawId && /^[a-zA-Z0-9_-]{3,64}$/.test(rawId))
+    ? rawId
+    : `usr-${normPseudo.replace(/[^a-z0-9_-]/g, '_')}`;
+
+  let issuedPlayerToken: string | undefined;
 
   if (existingIndex >= 0) {
     const prev = db.players[existingIndex];
-    const prevPoints = Number(prev.totalPoints) || 0;
-    const incomingPoints = totalPoints !== undefined ? Number(totalPoints) : 0;
-    // CRITIQUE : Conserver le maximum des points pour qu'une mise à jour locale ne détruise jamais le compte existant
-    const safeTotalPoints = Math.max(prevPoints, incomingPoints);
-    const safeStreakDays = Math.max(Number(prev.streakDays) || 1, Number(streakDays) || 1);
-    const safeLocationsCount = Math.max(Number(prev.locationsCount) || 0, Number(locationsCount) || 0);
-    const safeMinutesSpent = Math.max(Number(prev.minutesSpent) || 0, Number(minutesSpent) || 0);
-    const safeUnlockedBadges = Array.from(new Set([...(prev.unlockedBadges || []), ...(unlockedBadges || [])]));
-    const safeBadgesCount = Math.max(Number(prev.badgesCount) || 0, Number(badgesCount) || 0, safeUnlockedBadges.length);
+    const tokenMatchesPlayer = Boolean(
+      verifiedPlayerToken &&
+      (verifiedPlayerToken.sub === prev.id || (verifiedPlayerToken.pseudo || '').toLowerCase() === prev.pseudo.toLowerCase())
+    );
+    const prevPoints = Math.min(1_000_000, Math.max(0, Number(prev.totalPoints) || 0));
+    const prevMinutes = Math.max(0, Number(prev.minutesSpent) || 0);
+    const prevLocations = Math.max(0, Number(prev.locationsCount) || 0);
+    const prevBadges = Array.isArray(prev.unlockedBadges) ? prev.unlockedBadges : [];
 
+    const safeMinutesSpent = Math.min(prevMinutes + 120, Math.max(prevMinutes, requestedMinutes));
+    const safeLocationsCount = Math.min(prevLocations + 25, Math.max(prevLocations, requestedLocations));
+    const safeStreakDays = Math.min(Math.max(1, Number(prev.streakDays) || 1) + 1, Math.max(Number(prev.streakDays) || 1, requestedStreak));
+    const safeUnlockedBadges = Array.from(new Set([...prevBadges, ...sanitizedBadges])).slice(0, ALLOWED_BADGE_IDS.size);
+
+    let safeTotalPoints = prevPoints;
+    if (callerIsAdmin) {
+      safeTotalPoints = Math.max(prevPoints, requestedPoints);
+    } else {
+      const addedMinutes = Math.max(0, safeMinutesSpent - prevMinutes);
+      const addedBadges = Math.max(0, safeUnlockedBadges.length - prevBadges.length);
+      const addedLocations = Math.max(0, safeLocationsCount - prevLocations);
+      const maxAllowedDelta = Math.min(500, Math.max(25, Math.round(addedMinutes * 2 * requestedMultiplier + addedBadges * 150 + addedLocations * 20)));
+      const desiredGain = Math.max(0, requestedPoints - prevPoints);
+      safeTotalPoints = Math.min(1_000_000, prevPoints + Math.min(maxAllowedDelta, desiredGain));
+    }
+
+    const effectiveAdmin = Boolean(prev.isAdmin);
     db.players[existingIndex] = {
       ...prev,
-      id: stableId,
-      pseudo: cleanPseudo,
+      id: prev.id || stableId,
+      pseudo: prev.pseudo || cleanPseudo,
       totalPoints: safeTotalPoints,
       streakDays: safeStreakDays,
-      multiplier: multiplier !== undefined ? Number(multiplier) : (Number(prev.multiplier) || 1),
+      multiplier: Math.min(10, Math.max(1, Number(prev.multiplier) || requestedMultiplier)),
       locationsCount: safeLocationsCount,
-      badgesCount: safeBadgesCount,
-      badgeTitle: isAdmin ? 'Admin' : (badgeTitle || prev.badgeTitle || 'Apprenti Météo'),
+      badgesCount: Math.max(Number(prev.badgesCount) || 0, safeUnlockedBadges.length),
+      badgeTitle: effectiveAdmin ? 'Admin' : (safeRequestedTitle || prev.badgeTitle || 'Apprenti Météo'),
       minutesSpent: safeMinutesSpent,
       unlockedBadges: safeUnlockedBadges,
-      isAdmin: Boolean(isAdmin !== undefined ? isAdmin : prev.isAdmin),
+      isAdmin: effectiveAdmin,
       lastActive: new Date().toISOString()
     };
+
+    if (tokenMatchesPlayer || callerIsAdmin) {
+      issuedPlayerToken = signSessionToken({
+        role: 'player',
+        sub: db.players[existingIndex].id,
+        pseudo: db.players[existingIndex].pseudo,
+        exp: Date.now() + 30 * 24 * 3600 * 1000
+      });
+    }
   } else {
-    db.players.push({
+    const initialPoints = callerIsAdmin ? requestedPoints : Math.min(100, requestedPoints);
+    const initialAdmin = false;
+    const newPlayer = {
       id: stableId,
       pseudo: cleanPseudo,
-      totalPoints: Number(totalPoints) || 0,
-      streakDays: Number(streakDays) || 1,
-      multiplier: Number(multiplier) || 1,
-      locationsCount: Number(locationsCount) || 0,
-      badgesCount: Number(badgesCount) || 0,
-      badgeTitle: isAdmin ? 'Admin' : badgeTitle,
-      minutesSpent: Number(minutesSpent) || 0,
-      unlockedBadges: unlockedBadges || [],
-      isAdmin: Boolean(isAdmin),
+      totalPoints: initialPoints,
+      streakDays: Math.min(7, requestedStreak),
+      multiplier: Math.min(3, requestedMultiplier),
+      locationsCount: Math.min(25, requestedLocations),
+      badgesCount: sanitizedBadges.length,
+      badgeTitle: safeRequestedTitle || 'Apprenti Météo',
+      minutesSpent: Math.min(120, requestedMinutes),
+      unlockedBadges: sanitizedBadges,
+      isAdmin: initialAdmin,
       createdAt: new Date().toISOString(),
       lastActive: new Date().toISOString()
+    };
+    db.players.push(newPlayer);
+    issuedPlayerToken = signSessionToken({
+      role: 'player',
+      sub: newPlayer.id,
+      pseudo: newPlayer.pseudo,
+      exp: Date.now() + 30 * 24 * 3600 * 1000
     });
   }
 
   saveDatabase(db);
 
-  // Calcul du nouveau rang du joueur
   const sorted = [...db.players].sort((a: any, b: any) => (b.totalPoints || 0) - (a.totalPoints || 0));
   const rank = sorted.findIndex((p: any) => p.pseudo.toLowerCase() === normPseudo) + 1;
   const finalPlayer = db.players.find((p: any) => p.pseudo.toLowerCase() === normPseudo) || null;
 
   res.json({
     success: true,
-    message: `Joueur ${cleanPseudo} synchronisé et sécurisé avec succès sur la base de données`,
+    message: `Joueur ${cleanPseudo} synchronisé avec succès`,
     databaseId: db.databaseId,
     rank: rank > 0 ? rank : 1,
     totalPlayers: sorted.length,
-    player: finalPlayer
+    player: finalPlayer,
+    ...(issuedPlayerToken ? { playerToken: issuedPlayerToken } : {})
   });
 });
 
@@ -973,7 +1216,7 @@ app.get('/api/player/get', (req, res) => {
 });
 
 // Endpoint pour auto-reconnexion des comptes après mise à jour de l'application
-app.get('/api/players/recent', (req, res) => {
+app.get('/api/players/recent', (_req, res) => {
   const db = loadDatabase();
   const sorted = [...(db.players || [])].sort((a: any, b: any) => {
     const tA = new Date(a.lastActive || a.createdAt || 0).getTime();
@@ -994,17 +1237,35 @@ app.get('/api/players/recent', (req, res) => {
   });
 });
 
-// 4. Réinitialisation des points d'un joueur
+// 4. Réinitialisation des points d'un joueur (protégée par jeton Admin ou X-Player-Token du propriétaire)
 app.post('/api/player/reset', (req, res) => {
   const { pseudo, id } = req.body || {};
-  const normPseudo = (pseudo || '').toLowerCase().trim();
-  if (!normPseudo && !id) {
+  const normPseudo = typeof pseudo === 'string' ? pseudo.toLowerCase().trim() : '';
+  const cleanId = typeof id === 'string' ? id.trim() : '';
+  if (!normPseudo && !cleanId) {
     res.status(400).json({ error: 'Pseudo ou ID manquant' });
     return;
   }
 
+  const callerIsAdmin = isVerifiedAdminRequest(req);
+  const playerToken = getVerifiedPlayerToken(req);
+  if (!callerIsAdmin && !playerToken) {
+    res.status(401).json({ error: 'Authentification requise pour réinitialiser ce profil' });
+    return;
+  }
+
   const db = loadDatabase();
-  const player = db.players.find((p: any) => (normPseudo && p.pseudo.toLowerCase() === normPseudo) || (id && p.id === id));
+  const player = db.players.find((p: any) => (normPseudo && p.pseudo.toLowerCase() === normPseudo) || (cleanId && p.id === cleanId));
+  if (player && !callerIsAdmin) {
+    const matchesOwner =
+      playerToken &&
+      (playerToken.sub === player.id || (playerToken.pseudo || '').toLowerCase() === player.pseudo.toLowerCase());
+    if (!matchesOwner) {
+      res.status(403).json({ error: 'Accès refusé pour ce profil joueur' });
+      return;
+    }
+  }
+
   if (player) {
     player.totalPoints = 0;
     player.locationsCount = 0;
@@ -1017,15 +1278,38 @@ app.post('/api/player/reset', (req, res) => {
   res.json({ success: true, message: 'Points réinitialisés avec succès' });
 });
 
-// 5. Suppression d'un joueur
+// 5. Suppression d'un joueur (protégée par jeton Admin ou X-Player-Token du propriétaire)
 app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
   const { pseudo, id } = req.body || {};
-  const normPseudo = (pseudo || '').toLowerCase().trim();
+  const normPseudo = typeof pseudo === 'string' ? pseudo.toLowerCase().trim() : '';
+  const cleanId = typeof id === 'string' ? id.trim() : '';
+  if (!normPseudo && !cleanId) {
+    res.status(400).json({ error: 'Pseudo ou ID manquant' });
+    return;
+  }
+
+  const callerIsAdmin = isVerifiedAdminRequest(req);
+  const playerToken = getVerifiedPlayerToken(req);
+  if (!callerIsAdmin && !playerToken) {
+    res.status(401).json({ error: 'Authentification requise pour supprimer ce compte' });
+    return;
+  }
 
   const db = loadDatabase();
+  const target = db.players.find((p: any) => (normPseudo && p.pseudo.toLowerCase() === normPseudo) || (cleanId && p.id === cleanId));
+  if (target && !callerIsAdmin) {
+    const matchesOwner =
+      playerToken &&
+      (playerToken.sub === target.id || (playerToken.pseudo || '').toLowerCase() === target.pseudo.toLowerCase());
+    if (!matchesOwner) {
+      res.status(403).json({ error: 'Vous ne pouvez supprimer que votre propre compte' });
+      return;
+    }
+  }
+
   db.players = db.players.filter((p: any) => {
     if (normPseudo && p.pseudo && p.pseudo.toLowerCase() === normPseudo) return false;
-    if (id && p.id === id) return false;
+    if (cleanId && p.id === cleanId) return false;
     return true;
   });
   saveDatabase(db);
@@ -1034,10 +1318,11 @@ app.post(['/api/player/delete', '/api/player/delete-account'], (req, res) => {
 });
 
 // 5b. Suppression de compte utilisateur par un Administrateur
-app.post(['/api/admin/delete-user', '/api/admin/delete-player'], (req, res) => {
+app.post(['/api/admin/delete-user', '/api/admin/delete-player'], requireAdminAuth, (req, res) => {
   const { pseudo, id } = req.body || {};
-  const normPseudo = (pseudo || '').toLowerCase().trim();
-  if (!normPseudo && !id) {
+  const normPseudo = typeof pseudo === 'string' ? pseudo.toLowerCase().trim() : '';
+  const cleanId = typeof id === 'string' ? id.trim() : '';
+  if (!normPseudo && !cleanId) {
     res.status(400).json({ error: 'Pseudo ou identifiant obligatoire manquant' });
     return;
   }
@@ -1047,11 +1332,10 @@ app.post(['/api/admin/delete-user', '/api/admin/delete-player'], (req, res) => {
 
   db.players = db.players.filter((p: any) => {
     if (normPseudo && p.pseudo && p.pseudo.toLowerCase() === normPseudo) return false;
-    if (id && p.id === id) return false;
+    if (cleanId && p.id === cleanId) return false;
     return true;
   });
 
-  // Nettoyer également de la liste des utilisateurs bannis s'il y figurait
   db.bannedUsers = (db.bannedUsers || []).filter((b: any) => {
     if (normPseudo && (b.pseudo || '').toLowerCase() === normPseudo) return false;
     return true;
@@ -1064,14 +1348,14 @@ app.post(['/api/admin/delete-user', '/api/admin/delete-player'], (req, res) => {
     success: true,
     deleted: isDeleted,
     message: isDeleted
-      ? `Le compte de "${pseudo || id}" a été supprimé définitivement de la base de données.`
-      : `Utilisateur "${pseudo || id}" non trouvé ou déjà supprimé.`,
+      ? `Le compte a été supprimé définitivement de la base de données.`
+      : `Utilisateur non trouvé ou déjà supprimé.`,
     totalPlayers: db.players.length
   });
 });
 
 // 5c. Liste complète des utilisateurs enregistrés pour la gestion administrative
-app.get('/api/admin/all-users', (req, res) => {
+app.get('/api/admin/all-users', requireAdminAuth, (_req, res) => {
   const db = loadDatabase();
   const players = (db.players || []).map((p: any) => ({
     id: p.id,
@@ -1094,21 +1378,23 @@ app.get('/api/admin/all-users', (req, res) => {
   });
 });
 
-// 5d. Routes Administrateur Centralisées
-app.post('/api/admin/set-points', (req, res) => {
+// 5d. Routes Administrateur Centralisées (protégées par Bearer token admin)
+app.post('/api/admin/set-points', requireAdminAuth, (req, res) => {
   const { pseudo, points } = req.body || {};
-  if (!pseudo || points === undefined) {
-    res.status(400).json({ error: 'Pseudo ou points manquants' });
+  const cleanPseudo = typeof pseudo === 'string' ? pseudo.trim().slice(0, 32) : '';
+  const numPoints = Number(points);
+  if (!cleanPseudo || !Number.isFinite(numPoints) || numPoints < 0 || numPoints > 1_000_000) {
+    res.status(400).json({ error: 'Pseudo ou points invalides (0 à 1 000 000)' });
     return;
   }
   const db = loadDatabase();
-  const norm = pseudo.toLowerCase().trim();
+  const norm = cleanPseudo.toLowerCase();
   let player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
   if (!player) {
     player = {
       id: `usr-${norm.replace(/[^a-z0-9_-]/g, '_')}`,
-      pseudo: pseudo.trim(),
-      totalPoints: Number(points),
+      pseudo: cleanPseudo,
+      totalPoints: Math.round(numPoints),
       streakDays: 1,
       multiplier: 1,
       locationsCount: 0,
@@ -1122,41 +1408,43 @@ app.post('/api/admin/set-points', (req, res) => {
     };
     db.players.push(player);
   } else {
-    player.totalPoints = Number(points);
+    player.totalPoints = Math.round(numPoints);
     player.lastActive = new Date().toISOString();
   }
   saveDatabase(db);
   res.json({ success: true, points: player.totalPoints, pseudo: player.pseudo });
 });
 
-app.post('/api/admin/set-streak', (req, res) => {
+app.post('/api/admin/set-streak', requireAdminAuth, (req, res) => {
   const { pseudo, streakDays } = req.body || {};
-  if (!pseudo || streakDays === undefined) {
-    res.status(400).json({ error: 'Pseudo ou streakDays manquants' });
+  const cleanPseudo = typeof pseudo === 'string' ? pseudo.trim().slice(0, 32) : '';
+  const numStreak = Number(streakDays);
+  if (!cleanPseudo || !Number.isFinite(numStreak) || numStreak < 1 || numStreak > 3650) {
+    res.status(400).json({ error: 'Pseudo ou streakDays invalides (1 à 3650)' });
     return;
   }
   const db = loadDatabase();
-  const norm = pseudo.toLowerCase().trim();
+  const norm = cleanPseudo.toLowerCase();
   const player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
   if (player) {
-    player.streakDays = Number(streakDays);
+    player.streakDays = Math.round(numStreak);
     player.lastActive = new Date().toISOString();
     saveDatabase(db);
   }
-  res.json({ success: true, streakDays: Number(streakDays) });
+  res.json({ success: true, streakDays: Math.round(numStreak) });
 });
 
-app.post('/api/admin/unlock-all-badges', (req, res) => {
-  const { pseudo } = req.body || {};
-  if (!pseudo) {
+app.post('/api/admin/unlock-all-badges', requireAdminAuth, (req, res) => {
+  const cleanPseudo = typeof req.body?.pseudo === 'string' ? req.body.pseudo.trim().slice(0, 32) : '';
+  if (!cleanPseudo) {
     res.status(400).json({ error: 'Pseudo manquant' });
     return;
   }
   const db = loadDatabase();
-  const norm = pseudo.toLowerCase().trim();
+  const norm = cleanPseudo.toLowerCase();
   const player = db.players.find((p: any) => p.pseudo.toLowerCase() === norm);
   if (player) {
-    const allBadgeIds = ['sun', 'rain', 'storm', 'snow', 'frost', 'fog', 'gale', 'heat', 'altitude', 'night_stars'];
+    const allBadgeIds = Array.from(ALLOWED_BADGE_IDS);
     player.unlockedBadges = allBadgeIds;
     player.badgesCount = allBadgeIds.length;
     saveDatabase(db);
@@ -1164,72 +1452,83 @@ app.post('/api/admin/unlock-all-badges', (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/admin/ban', (req, res) => {
+app.post('/api/admin/ban', requireAdminAuth, (req, res) => {
   const { pseudo, reason, durationHours } = req.body || {};
-  if (!pseudo) {
+  const cleanPseudo = typeof pseudo === 'string' ? pseudo.trim().slice(0, 32) : '';
+  if (!cleanPseudo) {
     res.status(400).json({ error: 'Pseudo manquant' });
     return;
   }
   const db = loadDatabase();
-  const norm = pseudo.toLowerCase().trim();
+  const norm = cleanPseudo.toLowerCase();
   db.bannedUsers = (db.bannedUsers || []).filter((b: any) => (b.pseudo || '').toLowerCase() !== norm);
-  
+
   let bannedUntil = 'permanent';
   let durationLabel = 'Définitif';
   if (durationHours && durationHours !== 'permanent') {
-    const expire = new Date(Date.now() + Number(durationHours) * 3600 * 1000);
+    const hours = Math.min(87600, Math.max(1, Number(durationHours) || 24));
+    const expire = new Date(Date.now() + hours * 3600 * 1000);
     bannedUntil = expire.toISOString();
-    durationLabel = `${durationHours}h`;
+    durationLabel = `${hours}h`;
   }
 
   db.bannedUsers.push({
-    pseudo: pseudo.trim(),
+    pseudo: cleanPseudo,
     bannedAt: new Date().toISOString(),
     bannedUntil,
     durationLabel,
-    reason: reason || 'Non respect des règles'
+    reason: typeof reason === 'string' && reason.trim() ? reason.trim().slice(0, 200) : 'Non respect des règles'
   });
   saveDatabase(db);
-  res.json({ success: true, banned: pseudo });
+  res.json({ success: true, banned: cleanPseudo });
 });
 
-app.post('/api/admin/unban', (req, res) => {
-  const { pseudo } = req.body || {};
-  if (!pseudo) {
+app.post('/api/admin/unban', requireAdminAuth, (req, res) => {
+  const cleanPseudo = typeof req.body?.pseudo === 'string' ? req.body.pseudo.trim().slice(0, 32) : '';
+  if (!cleanPseudo) {
     res.status(400).json({ error: 'Pseudo manquant' });
     return;
   }
   const db = loadDatabase();
-  const norm = pseudo.toLowerCase().trim();
+  const norm = cleanPseudo.toLowerCase();
   db.bannedUsers = (db.bannedUsers || []).filter((b: any) => (b.pseudo || '').toLowerCase() !== norm);
   saveDatabase(db);
-  res.json({ success: true, unbanned: pseudo });
+  res.json({ success: true, unbanned: cleanPseudo });
 });
 
-app.get('/api/admin/banned', (req, res) => {
+app.get('/api/admin/banned', requireAdminAuth, (_req, res) => {
   const db = loadDatabase();
   res.json({ success: true, bannedUsers: db.bannedUsers || [] });
 });
 
-app.post('/api/admin/announcement', (req, res) => {
-  const announcement = req.body;
+app.post('/api/admin/announcement', requireAdminAuth, (req, res) => {
+  const raw = req.body;
+  const sanitized = raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? {
+        id: typeof raw.id === 'string' ? raw.id.slice(0, 64) : `ann-${Date.now()}`,
+        title: typeof raw.title === 'string' ? raw.title.slice(0, 120) : 'Annonce Officielle',
+        message: typeof raw.message === 'string' ? raw.message.slice(0, 1000) : '',
+        level: raw.level === 'warning' || raw.level === 'alert' || raw.level === 'info' ? raw.level : 'info',
+        createdAt: typeof raw.createdAt === 'string' ? raw.createdAt.slice(0, 64) : new Date().toISOString(),
+        active: raw.active !== false
+      }
+    : null;
   const db = loadDatabase();
-  db.adminAnnouncement = announcement;
+  db.adminAnnouncement = sanitized;
   saveDatabase(db);
   res.json({ success: true, announcement: db.adminAnnouncement });
 });
 
-app.get('/api/admin/announcement', (req, res) => {
+app.get('/api/admin/announcement', (_req, res) => {
   const db = loadDatabase();
   res.json({ success: true, announcement: db.adminAnnouncement || null });
 });
 
 // 6. Signalements météo collaboratifs du jour
-app.get('/api/reports', (req, res) => {
+app.get('/api/reports', (_req, res) => {
   const db = loadDatabase();
   const today = new Date().toISOString().split('T')[0];
 
-  // Garder uniquement les signalements postés aujourd'hui
   const activeReports = (db.communityReports || []).filter((r: any) => {
     try {
       return r.timestamp && r.timestamp.startsWith(today);
@@ -1245,26 +1544,35 @@ app.get('/api/reports', (req, res) => {
   });
 });
 
-// 7. Publier un signalement météo citoyen
+// 7. Publier un signalement météo citoyen (validation stricte longueurs et bornes)
 app.post('/api/reports', (req, res) => {
   const db = loadDatabase();
   const report = req.body || {};
 
+  const lat = Number(report.latitude);
+  const lon = Number(report.longitude);
+  const safeLat = Number.isFinite(lat) && lat >= -90 && lat <= 90 ? Number(lat.toFixed(4)) : 48.8566;
+  const safeLon = Number.isFinite(lon) && lon >= -180 && lon <= 180 ? Number(lon.toFixed(4)) : 2.3522;
+  const temp = Number(report.temperature);
+  const safeTemp = Number.isFinite(temp) && temp >= -90 && temp <= 70 ? Math.round(temp * 10) / 10 : 20;
+
   const newReport = {
-    id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-    city: report.city || 'Commune',
-    department: report.department || '',
-    latitude: Number(report.latitude) || 48.8,
-    longitude: Number(report.longitude) || 2.3,
-    weatherCode: report.weatherCode || 'sun',
-    weatherLabel: report.weatherLabel || 'Beau temps',
-    emoji: report.emoji || '☀️',
-    temperature: Number(report.temperature) || 20,
-    intensity: report.intensity || 'MODÉRÉE',
-    comment: report.comment || '',
-    reporterPseudo: report.reporterPseudo || 'Anonyme',
-    timestamp: report.timestamp || new Date().toISOString(),
-    confirmations: Number(report.confirmations) || 1
+    id: typeof report.id === 'string' && /^[a-zA-Z0-9_-]{4,64}$/.test(report.id)
+      ? report.id
+      : `rep-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    city: (typeof report.city === 'string' ? report.city.trim() : '').slice(0, 80) || 'Commune',
+    department: (typeof report.department === 'string' ? report.department.trim() : '').slice(0, 80),
+    latitude: safeLat,
+    longitude: safeLon,
+    weatherCode: (typeof report.weatherCode === 'string' ? report.weatherCode.trim() : 'sun').slice(0, 32),
+    weatherLabel: (typeof report.weatherLabel === 'string' ? report.weatherLabel.trim() : 'Beau temps').slice(0, 64),
+    emoji: (typeof report.emoji === 'string' ? report.emoji.trim() : '☀️').slice(0, 16),
+    temperature: safeTemp,
+    intensity: (typeof report.intensity === 'string' ? report.intensity.trim() : 'MODÉRÉE').slice(0, 32),
+    comment: (typeof report.comment === 'string' ? report.comment.trim() : '').slice(0, 500),
+    reporterPseudo: (typeof report.reporterPseudo === 'string' ? report.reporterPseudo.trim() : 'Anonyme').slice(0, 32) || 'Anonyme',
+    timestamp: new Date().toISOString(),
+    confirmations: 1
   };
 
   db.communityReports = [newReport, ...(db.communityReports || [])].slice(0, 300);
@@ -1285,22 +1593,29 @@ app.post('/api/weather-contradiction', (req, res) => {
     db.weatherContradictions = [];
   }
 
+  const dur = Math.min(900, Math.max(30, Number(report.durationSeconds) || 180));
+  const rawAdj = Number(report.temperatureAdjustment) || 0;
+  const safeAdj = Math.min(25, Math.max(-25, rawAdj));
+  const exactTemp = report.exactTemperature !== undefined ? Number(report.exactTemperature) : undefined;
+  const safeExactTemp = exactTemp !== undefined && Number.isFinite(exactTemp) && exactTemp >= -90 && exactTemp <= 70
+    ? Math.round(exactTemp * 10) / 10
+    : undefined;
+
+  const now = Date.now();
   const newContra = {
-    id: report.id || `contra-${Date.now()}`,
-    stationId: report.stationId || 'station-direct',
-    stationName: report.stationName || 'Station',
-    timestamp: report.timestamp || Date.now(),
-    durationSeconds: Number(report.durationSeconds) || 180,
-    observedWeatherCode: Number(report.observedWeatherCode) || 0,
-    observedWeatherDesc: report.observedWeatherDesc || 'Plein Soleil',
-    temperatureAdjustment: Number(report.temperatureAdjustment) || 0,
-    exactTemperature: report.exactTemperature !== undefined ? Number(report.exactTemperature) : undefined,
-    comment: report.comment || '',
-    activeUntil: Number(report.activeUntil) || (Date.now() + 180000)
+    id: `contra-${now}`,
+    stationId: (typeof report.stationId === 'string' ? report.stationId.trim() : 'station-direct').slice(0, 64),
+    stationName: (typeof report.stationName === 'string' ? report.stationName.trim() : 'Station').slice(0, 80),
+    timestamp: now,
+    durationSeconds: dur,
+    observedWeatherCode: Math.min(99, Math.max(0, Math.floor(Number(report.observedWeatherCode) || 0))),
+    observedWeatherDesc: (typeof report.observedWeatherDesc === 'string' ? report.observedWeatherDesc.trim() : 'Plein Soleil').slice(0, 80),
+    temperatureAdjustment: safeAdj,
+    exactTemperature: safeExactTemp,
+    comment: (typeof report.comment === 'string' ? report.comment.trim() : '').slice(0, 500),
+    activeUntil: now + dur * 1000
   };
 
-  // Keep latest per station, remove expired
-  const now = Date.now();
   db.weatherContradictions = [
     newContra,
     ...(db.weatherContradictions.filter((c: any) => c.stationId !== newContra.stationId && c.activeUntil > now))
@@ -1352,26 +1667,29 @@ app.get('/api/discussion/messages', (req, res) => {
   res.json({ success: true, messages });
 });
 
-// 10. Poster un message dans le salon de discussion
+// 10. Poster un message dans le salon de discussion (isAdmin dérivé uniquement du jeton serveur)
 app.post('/api/discussion/messages', (req, res) => {
   const db = loadDatabase();
   const msg = req.body || {};
-  if (!msg.content || !msg.author) {
+  const cleanContent = typeof msg.content === 'string' ? msg.content.trim().slice(0, 800) : '';
+  const cleanAuthor = typeof msg.author === 'string' ? msg.author.trim().slice(0, 32) : '';
+  if (!cleanContent || !cleanAuthor) {
     res.status(400).json({ error: 'Contenu ou auteur manquant' });
     return;
   }
 
+  const callerIsAdmin = isVerifiedAdminRequest(req);
   const newMsg = {
-    id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-    channelId: msg.channelId || 'general',
-    author: msg.author,
-    authorBadge: msg.authorBadge || 'Observateur Citoyen',
-    isAdmin: Boolean(msg.isAdmin),
-    timestamp: msg.timestamp || "Aujourd'hui à " + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-    content: msg.content,
-    locationTag: msg.locationTag || '',
-    weatherTag: msg.weatherTag || '',
-    reactions: msg.reactions || { thumbsUp: 0, storm: 0, fire: 0, rain: 0, snow: 0 }
+    id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    channelId: (typeof msg.channelId === 'string' ? msg.channelId.trim() : 'general').slice(0, 40) || 'general',
+    author: cleanAuthor,
+    authorBadge: callerIsAdmin ? 'Admin' : (typeof msg.authorBadge === 'string' ? msg.authorBadge.trim().slice(0, 64) : 'Observateur Citoyen'),
+    isAdmin: callerIsAdmin,
+    timestamp: "Aujourd'hui à " + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    content: cleanContent,
+    locationTag: typeof msg.locationTag === 'string' ? msg.locationTag.trim().slice(0, 64) : '',
+    weatherTag: typeof msg.weatherTag === 'string' ? msg.weatherTag.trim().slice(0, 64) : '',
+    reactions: { thumbsUp: 0, storm: 0, fire: 0, rain: 0, snow: 0 }
   };
 
   db.discussionMessages = [...(db.discussionMessages || []), newMsg].slice(-200);
@@ -1395,10 +1713,25 @@ app.post('/api/discussion/messages/:id/reaction', (req, res) => {
   }
 });
 
-// 12. Supprimer un message de discussion (Admin & Auteur)
+// 12. Supprimer un message de discussion (Admin Bearer ou jeton du propriétaire)
 app.post(['/api/discussion/messages/:id/delete', '/api/discussion/messages/:id/remove'], (req, res) => {
   const { id } = req.params;
+  const callerIsAdmin = isVerifiedAdminRequest(req);
+  const playerToken = getVerifiedPlayerToken(req);
+
   const db = loadDatabase();
+  const target = (db.discussionMessages || []).find((m: any) => m.id === id);
+  if (!callerIsAdmin) {
+    if (!playerToken) {
+      res.status(401).json({ error: 'Authentification requise pour supprimer un message' });
+      return;
+    }
+    if (target && (playerToken.pseudo || '').toLowerCase() !== String(target.author || '').toLowerCase()) {
+      res.status(403).json({ error: 'Vous ne pouvez supprimer que vos propres messages' });
+      return;
+    }
+  }
+
   const initialLength = (db.discussionMessages || []).length;
   db.discussionMessages = (db.discussionMessages || []).filter((m: any) => m.id !== id);
   saveDatabase(db);
@@ -1406,7 +1739,7 @@ app.post(['/api/discussion/messages/:id/delete', '/api/discussion/messages/:id/r
 });
 
 // 13. Statut détaillé et auto-réparation de la base de données
-app.get('/api/database/status', (req, res) => {
+app.get('/api/database/status', (_req, res) => {
   const db = loadDatabase();
   res.json({
     status: 'online',
@@ -1420,7 +1753,7 @@ app.get('/api/database/status', (req, res) => {
   });
 });
 
-app.post('/api/database/repair', (req, res) => {
+app.post('/api/database/repair', requireAdminAuth, (_req, res) => {
   const db = loadDatabase();
   if (!Array.isArray(db.players)) db.players = [];
   if (!Array.isArray(db.communityReports)) db.communityReports = [];
@@ -2398,188 +2731,6 @@ app.get('/googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html', (req, res) =>
   res.type('text/html').send('google-site-verification: googlew0MbNbUV7HdIkolgJq24g-L8CFyyBzYtJXIWOLYAaTM.html');
 });
 
-function escapeHtmlText(str: string): string {
-  return (str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function escapeHtmlAttr(str: string): string {
-  return (str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function renderPageHtml(
-  rawHtml: string,
-  reqPath: string,
-  lang: string = 'fr',
-  queryParams?: Record<string, any>
-): string {
-  const { locale: pathLocale, path: cleanBase } = stripLocalePrefix(reqPath);
-  const locale = normalizeSupportedLocale(lang || pathLocale);
-  const brand = getSiteBrandForLocale(locale);
-
-  // Détection d'une commune demandée par paramètre d'URL (?ville=paris ou ?q=versailles ou ?station=marseille)
-  let effectivePath = reqPath;
-  const requestedLocality = (queryParams?.ville || queryParams?.city || queryParams?.q || queryParams?.station) as string | undefined;
-  if (requestedLocality && typeof requestedLocality === 'string' && (cleanBase === '/' || cleanBase === '/direct')) {
-    const slug = requestedLocality.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-    effectivePath = locale === 'en' ? `/en/${slug}` : `/${slug}`;
-  }
-
-  const pageSeo = getSeoDataForPath(effectivePath, locale);
-  const canonicalUrl = buildLocalizedUrl(pageSeo.path, locale);
-  const ogImageUrl = getPageOgImageUrl(pageSeo);
-  const alternateOgLocale = locale === 'en' ? 'fr_FR' : 'en_US';
-  let html = rawHtml;
-
-  // 0. Attribut lang et dir sur <html>
-  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
-
-  // 1. Google Verification Tags (strictement identiques pour tous les clients et robots)
-  if (!html.includes('kKYkFcAxU-qUC4HSBv5J4JvoIIReHutW5d0quZ10-hY')) {
-    html = html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${GOOGLE_VERIF_TAGS}`);
-  }
-
-  // 2. Title unique et spécifique
-  if (/<title>[\s\S]*?<\/title>/i.test(html)) {
-    html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(pageSeo.title)}</title>`);
-  } else {
-    html = html.replace('</head>', `    <title>${escapeHtmlText(pageSeo.title)}</title>\n  </head>`);
-  }
-
-  // 3. Balise canonique auto-référentielle (/... en FR, /en/... en EN)
-  if (/<link[^>]*rel=["']canonical["'][^>]*>/i.test(html)) {
-    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>/gi, `<link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />`);
-  } else {
-    html = html.replace('</head>', `    <link rel="canonical" id="dynamic-canonical-link" href="${canonicalUrl}" />\n  </head>`);
-  }
-
-  // 3b. Balises hreflang (strictement fr, en, x-default)
-  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
-  const hreflangBlock = `<!--SEO_HREFLANG_START-->\n${generateHreflangLinksHtml(pageSeo.path)}\n    <!--SEO_HREFLANG_END-->`;
-  if (html.includes('<!--SEO_HREFLANG_START-->') && html.includes('<!--SEO_HREFLANG_END-->')) {
-    html = html.replace(/<!--SEO_HREFLANG_START-->[\s\S]*?<!--SEO_HREFLANG_END-->/, hreflangBlock);
-  } else {
-    html = html.replace('</head>', `    ${hreflangBlock}\n  </head>`);
-  }
-
-  // 4. Meta Description, Meta Title & Nom du site traduit
-  html = html.replace(
-    /<meta[^>]*name=["']title["'][^>]*\/?>/gi,
-    `<meta name="title" content="${escapeHtmlAttr(pageSeo.title)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']application-name["'][^>]*\/?>/gi,
-    `<meta name="application-name" content="${escapeHtmlAttr(brand.brandName)}" />`
-  );
-  html = html.replace(
-    /<meta[^>]*name=["']apple-mobile-web-app-title["'][^>]*\/?>/gi,
-    `<meta name="apple-mobile-web-app-title" content="${escapeHtmlAttr(brand.brandName)}" />`
-  );
-  if (/<meta[^>]*name=["']description["'][^>]*>/i.test(html)) {
-    html = html.replace(/<meta[^>]*name=["']description["'][^>]*\/?>/gi, `<meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  } else {
-    html = html.replace('</head>', `    <meta name="description" content="${escapeHtmlAttr(pageSeo.description)}" />\n  </head>`);
-  }
-
-  // 5. OpenGraph tags
-  html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*\/?>/gi, `<meta property="og:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*\/?>/gi, `<meta property="og:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:url["'][^>]*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*\/?>/gi, `<meta property="og:site_name" content="${escapeHtmlAttr(brand.brandName)}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:locale["'][^>]*\/?>/gi, `<meta property="og:locale" content="${brand.ogLocale}" />`);
-  if (/<meta[^>]*property=["']og:locale:alternate["'][^>]*>/i.test(html)) {
-    html = html.replace(
-      /<meta[^>]*property=["']og:locale:alternate["'][^>]*\/?>/gi,
-      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`
-    );
-  } else {
-    html = html.replace('</head>', `    <meta property="og:locale:alternate" content="${alternateOgLocale}" />\n  </head>`);
-  }
-  html = html.replace(/<meta[^>]*property=["']og:image["'][^>]*\/?>/gi, `<meta property="og:image" content="${ogImageUrl}" />`);
-  html = html.replace(/<meta[^>]*property=["']og:image:alt["'][^>]*\/?>/gi, `<meta property="og:image:alt" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-
-  // 6. Nettoyage des balises obsolètes/superflues & règle commune meta robots
-  html = html.replace(
-    /<meta\b[^>]*(?:keywords|googlebot|bingbot|publisher|language|geo\.region|geo\.placename|rating|tdm-reservation|noai|noimageai|carte-meteo-key)[^>]*\/?>\s*/gi,
-    ''
-  );
-  html = html.replace(/<link[^>]*rel=["']sitemap["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<meta[^>]*http-equiv=["']X-UA-Compatible["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<meta[^>]*content=["'][^"']*instant-meteo-map-key[^"']*["'][^>]*\/?>/gi, '');
-  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
-  html = html.replace('</head>', `    <meta name="robots" content="${UNIFIED_ROBOTS_DIRECTIVE}" />\n  </head>`);
-
-  // 7. Twitter Card tags
-  html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*\/?>/gi, `<meta name="twitter:title" content="${escapeHtmlAttr(pageSeo.title)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*\/?>/gi, `<meta name="twitter:description" content="${escapeHtmlAttr(pageSeo.description)}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:url["'][^>]*\/?>/gi, `<meta name="twitter:url" content="${canonicalUrl}" />`);
-  html = html.replace(/<meta[^>]*name=["']twitter:image["'][^>]*\/?>/gi, `<meta name="twitter:image" content="${ogImageUrl}" />`);
-
-  // 8. Schema.org JSON-LD unifié
-  const jsonLd = generatePageJsonLd(pageSeo, locale);
-  const jsonLdTag = `\n    <!-- Schema.org JSON-LD Dynamique (${pageSeo.slug}) -->\n    <script type="application/ld+json" id="seo-page-jsonld">\n${jsonLd}\n    </script>`;
-  if (/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i.test(html)) {
-    html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, jsonLdTag);
-  } else {
-    html = html.replace('</head>', `${jsonLdTag}\n  </head>`);
-  }
-
-  // 9. Contenu statique initial propre à la page
-  const staticContent = generateStaticHtmlContent(pageSeo, locale);
-  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${staticContent}\n    </div><!--SEO_ROOT_END-->`;
-
-  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
-    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
-  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
-    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  } else if (html.includes('<div id="root"></div>')) {
-    html = html.replace('<div id="root"></div>', rootReplacement);
-  }
-
-  return html;
-}
-
-function renderNotFoundPageHtml(rawHtml: string, reqPath: string, lang: string = 'fr'): string {
-  const { locale: pathLocale } = stripLocalePrefix(reqPath);
-  const locale = normalizeSupportedLocale(lang || pathLocale);
-  const brand = getSiteBrandForLocale(locale);
-  const isEn = locale === 'en';
-  const title = isEn
-    ? '404 — Page Not Found | Instant Weather'
-    : '404 — Page introuvable | Instant Météo';
-  const desc = isEn
-    ? `The requested URL (${reqPath}) does not exist on Instant Weather.`
-    : `L’adresse demandée (${reqPath}) n’existe pas sur Instant Météo.`;
-
-  let html = rawHtml;
-  html = html.replace(/<html[^>]*>/i, `<html lang="${locale}" dir="${brand.dir}">`);
-  html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlText(title)}</title>`);
-  html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<link[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>\s*/gi, '');
-  html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
-  html = html.replace(/<meta\b[^>]*name=["']robots["'][^>]*\/?>\s*/gi, '');
-  html = html.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
-  html = html.replace(
-    /<meta[^>]*name=["']description["'][^>]*\/?>/gi,
-    `<meta name="description" content="${escapeHtmlAttr(desc)}" />`
-  );
-
-  const body404 = generateNotFoundHtmlContent(reqPath, locale);
-  const rootReplacement = `<!--SEO_ROOT_START--><div id="root">\n${body404}\n    </div><!--SEO_ROOT_END-->`;
-  if (html.includes('<!--SEO_ROOT_START-->') && html.includes('<!--SEO_ROOT_END-->')) {
-    html = html.replace(/<!--SEO_ROOT_START-->[\s\S]*?<!--SEO_ROOT_END-->/, rootReplacement);
-  } else if (/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i.test(html)) {
-    html = html.replace(/<div id="root">[\s\S]*<\/div>(?=\s*(?:<script|<\/body>))/i, rootReplacement);
-  }
-  return html;
-}
-
 function sendRenderedPageHtml(req: express.Request, res: express.Response, filePath: string) {
   try {
     const rawContent = fs.readFileSync(filePath, 'utf-8');
@@ -2589,7 +2740,7 @@ function sendRenderedPageHtml(req: express.Request, res: express.Response, fileP
     );
 
     if (!isValidSeoPath(req.path)) {
-      const notFoundHtml = renderNotFoundPageHtml(rawContent, req.path, reqLang);
+      const notFoundHtml = applyNotFoundSeoToHtml(rawContent, req.path, reqLang);
       res.status(404);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -2598,7 +2749,10 @@ function sendRenderedPageHtml(req: express.Request, res: express.Response, fileP
       return;
     }
 
-    const rendered = renderPageHtml(rawContent, req.path, reqLang, req.query);
+    const rendered = applyPageSeoToHtml(rawContent, req.path, reqLang, {
+      queryParams: req.query,
+      verificationTags: GOOGLE_VERIF_TAGS,
+    });
     res.status(200);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('X-Robots-Tag', UNIFIED_ROBOTS_DIRECTIVE);
@@ -3216,11 +3370,10 @@ async function startServer() {
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: false, ws: false },
       appType: 'custom',
     });
 
-    // Intercepter les requêtes de pages HTML pour injecter le SEO dynamique ou un vrai 404
     app.use(async (req, res, next) => {
       if (
         req.path.startsWith('/@') ||
@@ -3241,7 +3394,7 @@ async function startServer() {
           );
 
           if (!isValidSeoPath(req.path)) {
-            const notFoundHtml = renderNotFoundPageHtml(html, req.path, reqLang);
+            const notFoundHtml = applyNotFoundSeoToHtml(html, req.path, reqLang);
             res.status(404);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -3249,7 +3402,10 @@ async function startServer() {
             return res.send(req.method === 'HEAD' ? undefined : notFoundHtml);
           }
 
-          html = renderPageHtml(html, req.path, reqLang, req.query);
+          html = applyPageSeoToHtml(html, req.path, reqLang, {
+            queryParams: req.query,
+            verificationTags: GOOGLE_VERIF_TAGS,
+          });
           res.status(200);
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           res.setHeader('X-Robots-Tag', UNIFIED_ROBOTS_DIRECTIVE);
@@ -3261,10 +3417,81 @@ async function startServer() {
       next();
     });
 
+    app.get('/@vite/client', (_req, res) => {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(`
+const sheetsMap = new Map();
+if (typeof document !== 'undefined') {
+  document.querySelectorAll('style[data-vite-dev-id]').forEach((el) => {
+    sheetsMap.set(el.getAttribute('data-vite-dev-id'), el);
+  });
+}
+const cspNonce = typeof document !== 'undefined' ? document.querySelector('meta[property=csp-nonce]')?.nonce : undefined;
+let lastInsertedStyle;
+export function updateStyle(id, content) {
+  let style = sheetsMap.get(id);
+  if (!style) {
+    style = document.createElement('style');
+    style.setAttribute('type', 'text/css');
+    style.setAttribute('data-vite-dev-id', id);
+    style.textContent = content;
+    if (cspNonce) style.setAttribute('nonce', cspNonce);
+    if (!lastInsertedStyle) {
+      document.head.appendChild(style);
+      setTimeout(() => { lastInsertedStyle = undefined; }, 0);
+    } else {
+      lastInsertedStyle.insertAdjacentElement('afterend', style);
+    }
+    lastInsertedStyle = style;
+  } else {
+    style.textContent = content;
+  }
+  sheetsMap.set(id, style);
+}
+export function removeStyle(id) {
+  const style = sheetsMap.get(id);
+  if (style && style.parentNode) {
+    style.parentNode.removeChild(style);
+    sheetsMap.delete(id);
+  }
+}
+export function createHotContext() {
+  const noop = () => {};
+  return {
+    data: {},
+    accept: noop,
+    acceptExports: noop,
+    dispose: noop,
+    prune: noop,
+    invalidate: noop,
+    on: noop,
+    off: noop,
+    send: noop,
+  };
+}
+export function injectQuery(url, queryToInject) {
+  if (url[0] !== '.' && url[0] !== '/') return url;
+  const pathname = url.replace(/[?#].*$/, '');
+  const { search, hash } = new URL(url, 'http://vite.dev');
+  return pathname + '?' + queryToInject + (search ? '&' + search.slice(1) : '') + (hash || '');
+}
+export class ErrorOverlay {}
+`);
+    });
+
     app.use(vite.middlewares);
   } else {
     const distIndexPath = path.join(distPath, 'index.html');
     app.use(express.static(publicPath, { index: false }));
+    app.use('/assets', express.static(path.join(distPath, 'assets'), {
+      index: false,
+      setHeaders: (res, filePath) => {
+        if (!filePath.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+      }
+    }));
     app.use(express.static(distPath, { index: false }));
     app.get('*all', (req, res) => {
       if (req.path.startsWith('/api/')) {

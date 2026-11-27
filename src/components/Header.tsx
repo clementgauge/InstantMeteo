@@ -41,6 +41,7 @@ import { AppLogo } from './AppLogo';
 import { AtmosphereThemeConfig } from '../types/atmosphere';
 import { getActiveSiteLocale, getSiteBrandForLocale, SupportedLocaleCode } from '../i18n/siteTranslations';
 import { GoogleTranslateWidget } from './GoogleTranslateWidget';
+import { loginAdminPassword } from '../services/cloudflareD1Service';
 
 interface HeaderProps {
   currentStation: LocationPoint;
@@ -206,7 +207,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
-  const handleAdminCodeSubmit = (e: React.FormEvent) => {
+  const handleAdminCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const clean = adminCodeInput.trim();
     if (!clean) return;
@@ -214,17 +215,26 @@ export const Header: React.FC<HeaderProps> = ({
     if (onTriggerSecretCode) {
       const ok = onTriggerSecretCode(clean);
       if (ok) {
-        setAdminCodeFeedback('👑 Code secret validé avec succès !');
+        setAdminCodeFeedback('✨ Commande appliquée !');
         setAdminCodeInput('');
-        setTimeout(() => {
-          setAdminCodeFeedback(null);
-          setSettingsSidebarOpen(false);
-          if (onOpenAdminPanel) onOpenAdminPanel();
-        }, 600);
+        setTimeout(() => setAdminCodeFeedback(null), 1500);
         return;
       }
     }
-    setAdminCodeFeedback('❌ Code secret incorrect.');
+
+    const authRes = await loginAdminPassword(clean);
+    if (authRes.ok) {
+      setAdminCodeFeedback('👑 Authentification administrateur validée !');
+      setAdminCodeInput('');
+      setTimeout(() => {
+        setAdminCodeFeedback(null);
+        setSettingsSidebarOpen(false);
+        if (onOpenAdminPanel) onOpenAdminPanel();
+      }, 600);
+      return;
+    }
+
+    setAdminCodeFeedback(`❌ ${authRes.error || 'Mot de passe ou code incorrect.'}`);
     setTimeout(() => setAdminCodeFeedback(null), 3000);
   };
 

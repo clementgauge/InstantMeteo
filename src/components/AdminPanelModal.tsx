@@ -25,11 +25,6 @@ import {
 } from 'lucide-react';
 import { 
   loadPlayerProfile, 
-  savePlayerProfile, 
-  adminUpdatePoints, 
-  adminUpdateStreak, 
-  adminUnlockAllBadges, 
-  adminToggleAdminStatus,
   banUser, 
   unbanUser, 
   getBannedUsers, 
@@ -38,8 +33,9 @@ import {
   getAdminAnnouncement, 
   AdminAnnouncement,
   PlayerProfile,
-  verifyAdminCode,
-  initPlayerProfile
+  adminUpdatePoints,
+  adminUpdateStreak,
+  adminUnlockAllBadges
 } from '../services/competitiveGameService';
 import { 
   syncPlayerProfileToD1,
@@ -53,7 +49,12 @@ import {
   adminGetBannedUsersFromD1,
   adminDeleteOtherUserAccount,
   fetchAdminAllUsers,
-  fetchLeaderboardFromD1
+  fetchLeaderboardFromD1,
+  getAdminAuthStatus,
+  claimAdminPassword,
+  loginAdminPassword,
+  logoutAdminSession,
+  isAdminAuthenticated
 } from '../services/cloudflareD1Service';
 import {
   getAdminSignalements,
@@ -85,8 +86,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [activeRecalib, setActiveRecalib] = useState<RecalibrationState | null>(() => getActiveRecalibration());
   const [signalementFilter, setSignalementFilter] = useState<'ALL' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'>('ALL');
   
-  // Secret code authentication
+  // Server-backed admin auth state (Bearer token stored strictly in JS memory)
+  const [adminAuthenticated, setAdminAuthenticated] = useState<boolean>(() => isAdminAuthenticated());
+  const [authStatus, setAuthStatus] = useState<{ envConfigured: boolean; hasClaimedCredential: boolean; needsSetup: boolean } | null>(null);
+  const [authSubmitting, setAuthSubmitting] = useState<boolean>(false);
   const [secretCodeInput, setSecretCodeInput] = useState<string>('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState<string>('');
   const [codeError, setCodeError] = useState<string | null>(null);
 
   // Points tab
@@ -117,6 +122,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [notification, setNotification] = useState<{ text: string; type: 'success' | 'warn' } | null>(null);
 
   const loadUsersList = async () => {
+    if (!isAdminAuthenticated()) return;
     setLoadingUsers(true);
     try {
       const list = await fetchAdminAllUsers();
@@ -135,22 +141,32 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     }
   };
 
-  const refreshData = () => {
+  const refreshData = async () => {
     const p = loadPlayerProfile();
     setProfile(p);
     if (p) {
       setNewPointsInput(p.totalPoints.toString());
       setStreakInput(p.streakDays.toString());
     }
+    const isAuthed = isAdminAuthenticated();
+    setAdminAuthenticated(isAuthed);
     setBannedList(getBannedUsers());
-    const ann = getAdminAnnouncement();
+
+    const remoteAnn = await adminGetAnnouncementFromD1().catch(() => null);
+    const ann = remoteAnn || getAdminAnnouncement();
     setActiveAnnouncement(ann);
     if (ann) {
       setAnnouncementTitle(ann.title);
       setAnnouncementMessage(ann.message);
     }
-    if (p?.isAdmin) {
+
+    if (isAuthed) {
       loadUsersList();
+      const remoteBans = await adminGetBannedUsersFromD1().catch(() => null);
+      if (remoteBans) setBannedList(remoteBans);
+    } else {
+      const status = await getAdminAuthStatus();
+      setAuthStatus(status);
     }
     setSignalementsList(getAdminSignalements());
     setActiveRecalib(getActiveRecalibration());
@@ -215,6 +231,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       setNotification(null);
       setCodeError(null);
       setSecretCodeInput('');
+      setConfirmPasswordInput('');
     }
   }, [isOpen]);
 
@@ -225,25 +242,46 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setTimeout(() => setNotification(null), 3500);
   };
 
-  // Secret code verification handler
-  const handleUnlockWithCode = (e: React.FormEvent) => {
+  // Authentification / Première configuration côté serveur
+  const handleUnlockWithCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = secretCodeInput.trim().toLowerCase();
-    if (verifyAdminCode(clean)) {
-      let current = profile;
-      if (!current) {
-        current = initPlayerProfile('Administrateur');
+    const credential = secretCodeInput.trim();
+    if (!credential || authSubmitting) return;
+
+    if (authStatus?.needsSetup) {
+      if (credential.length < 8) {
+        setCodeError('Le mot de passe initial doit contenir au moins 8 caractères.');
+        return;
       }
-      const updated = adminToggleAdminStatus(current, true);
-      setProfile(updated);
-      syncPlayerProfileToD1(updated).catch(() => {});
-      if (onProfileUpdated) onProfileUpdated(updated);
-      window.dispatchEvent(new CustomEvent('instant_meteo_score_updated'));
-      setCodeError(null);
-      setSecretCodeInput('');
-      showToast('👑 Code secret validé avec succès ! Mode Administrateur activé.');
-    } else {
-      setCodeError('Code secret incorrect. Veuillez vérifier la saisie.');
+      if (confirmPasswordInput !== credential) {
+        setCodeError('Les deux mots de passe ne correspondent pas.');
+        return;
+      }
+    }
+
+    setAuthSubmitting(true);
+    setCodeError(null);
+    try {
+      const res = authStatus?.needsSetup
+        ? await claimAdminPassword(credential)
+        : await loginAdminPassword(credential);
+
+      if (res.ok) {
+        setAdminAuthenticated(true);
+        setSecretCodeInput('');
+        setConfirmPasswordInput('');
+        setCodeError(null);
+        await refreshData();
+        showToast(
+          authStatus?.needsSetup
+            ? '👑 Mot de passe administrateur configuré et session activée.'
+            : '👑 Session administrateur authentifiée par le serveur.'
+        );
+      } else {
+        setCodeError(res.error || 'Identifiant administrateur invalide.');
+      }
+    } finally {
+      setAuthSubmitting(false);
     }
   };
 
@@ -348,14 +386,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     showToast('🗑️ Annonce admin retirée avec succès.');
   };
 
-  // Revoke admin
+  // Logout admin session (Bearer token wiped from JS memory)
   const handleToggleAdminMode = () => {
-    if (!profile) return;
-    const nextState = !profile.isAdmin;
-    const updated = adminToggleAdminStatus(profile, nextState);
-    setProfile(updated);
-    if (onProfileUpdated) onProfileUpdated(updated);
-    showToast(nextState ? '👑 Mode Admin réactivé.' : '🛡️ Mode Admin désactivé temporairement.');
+    logoutAdminSession();
+    setAdminAuthenticated(false);
+    setUsersList([]);
+    showToast('🛡️ Session administrateur fermée.');
   };
 
   return (
@@ -409,8 +445,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
           </div>
         )}
 
-        {/* Content: If not Admin, show Secret Code Unlock screen. Otherwise show Admin Panel */}
-        {(!profile || !profile.isAdmin) ? (
+        {/* Content: Gate on server-verified Bearer token in JS memory */}
+        {!adminAuthenticated ? (
           <div className="mt-5 space-y-5">
             <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 p-6 text-center space-y-4 shadow-xl">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 shadow-lg border border-amber-500/30">
@@ -419,10 +455,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               
               <div className="space-y-1">
                 <h3 className="text-base sm:text-lg font-black text-white">
-                  Déverrouiller l'Accès Administrateur
+                  {authStatus?.needsSetup
+                    ? 'Configuration initiale du compte Administrateur'
+                    : 'Authentification Administrateur'}
                 </h3>
                 <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Saisissez le code secret pour débloquer les super-pouvoirs de gestion météo, l'ajustement des points, flammes, trophées et les annonces flash.
+                  {authStatus?.needsSetup
+                    ? 'Aucun mot de passe administrateur n’est encore défini sur le serveur. Définissez un mot de passe unique (8 caractères minimum) ou configurez ADMIN_TOKEN dans vos variables serveur.'
+                    : 'Saisissez votre mot de passe ou jeton administrateur vérifié par le serveur.'}
                 </p>
               </div>
 
@@ -435,7 +475,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       setSecretCodeInput(e.target.value);
                       if (codeError) setCodeError(null);
                     }}
-                    placeholder="Entrez le code secret..."
+                    placeholder={authStatus?.needsSetup ? 'Choisir un mot de passe admin (8+ car.)...' : 'Mot de passe ou jeton administrateur...'}
                     className="w-full pl-4 pr-12 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white font-mono text-sm placeholder-slate-500 focus:outline-none focus:border-amber-400 shadow-inner"
                     autoFocus
                   />
@@ -443,6 +483,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     <Key className="h-4 w-4 text-amber-400" />
                   </div>
                 </div>
+
+                {authStatus?.needsSetup && (
+                  <input
+                    type="password"
+                    value={confirmPasswordInput}
+                    onChange={(e) => {
+                      setConfirmPasswordInput(e.target.value);
+                      if (codeError) setCodeError(null);
+                    }}
+                    placeholder="Confirmer le mot de passe administrateur..."
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white font-mono text-sm placeholder-slate-500 focus:outline-none focus:border-amber-400 shadow-inner"
+                  />
+                )}
 
                 {codeError && (
                   <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-rose-400">
@@ -453,10 +506,17 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/50 transition active:scale-95 cursor-pointer"
+                  disabled={authSubmitting}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/50 transition active:scale-95 cursor-pointer disabled:opacity-50"
                 >
                   <Crown className="h-4 w-4" />
-                  <span>Valider le Code Secret</span>
+                  <span>
+                    {authSubmitting
+                      ? 'Vérification...'
+                      : authStatus?.needsSetup
+                      ? 'Enregistrer & Ouvrir la console'
+                      : 'Se connecter'}
+                  </span>
                 </button>
               </form>
 
@@ -1291,24 +1351,20 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
             </form>
 
-            {/* Toggle admin status */}
+            {/* Logout admin session */}
             <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-4">
               <div>
-                <h4 className="text-xs font-black text-white">Basculer le statut Administrateur</h4>
+                <h4 className="text-xs font-black text-white">Session Administrateur</h4>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Permet de tester l'application en mode utilisateur standard ou réactiver le mode Admin.
+                  Fermer la session administrateur en mémoire (vous devrez vous reconnecter).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleToggleAdminMode}
-                className={`px-3 py-2 rounded-xl font-black text-xs transition cursor-pointer ${
-                  profile?.isAdmin
-                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                    : 'bg-red-600 hover:bg-red-500 text-white'
-                }`}
+                className="px-3 py-2 rounded-xl font-black text-xs transition cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200"
               >
-                {profile?.isAdmin ? 'Désactiver Admin' : 'Réactiver Admin'}
+                Se déconnecter
               </button>
             </div>
           </div>

@@ -248,15 +248,15 @@ export const CertifiedLiveSiteStatsCard: React.FC<CertifiedLiveSiteStatsCardProp
               <div>
                 <div className="text-xs font-bold text-slate-900 dark:text-white">Disponibilité Serveur</div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                  Uptime : {stats ? formatUptime(stats.uptimeSeconds) : 'Actif'}
+                  Uptime : {stats && stats.uptimeSeconds > 0 ? formatUptime(stats.uptimeSeconds) : 'Actif'}
                 </div>
               </div>
             </div>
             <div className="text-right">
               <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-base">
-                {stats?.uptimePct ?? 99.98}%
+                {stats?.online === false ? 'Local' : 'En ligne'}
               </div>
-              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">Certifié OMM / WMO</span>
+              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">Télémétrie Serveur</span>
             </div>
           </div>
 
