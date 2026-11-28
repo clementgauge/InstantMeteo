@@ -300,11 +300,11 @@
 .gps-marker{width:22px;height:22px;pointer-events:none;z-index:18}
 .gps-marker .gps-car{display:none;width:100%;height:100%;filter:drop-shadow(0 10px 16px rgba(0,210,255,0.65)) drop-shadow(0 3px 6px rgba(0,0,0,0.65))}
 .gps-car-street{display:none;position:absolute;left:50%;top:calc(100% + 2px);transform:translateX(-50%);padding:4px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(14,165,233,0.94),rgba(2,132,199,0.96));border:1px solid rgba(196,236,255,0.85);color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 0 18px rgba(56,189,248,0.6),0 4px 12px rgba(2,14,28,0.55);letter-spacing:0.1px}
-.gps-marker.driving{width:56px;height:72px;z-index:25}
+.gps-marker.driving{width:68px;height:86px;z-index:25}
 .gps-marker.driving .gps-dot,.gps-marker.driving .gps-heading{display:none}
 .gps-marker.driving .gps-car{display:block}
 .gps-marker.driving.has-3d-car .gps-car{display:none}
-.gps-marker.driving.has-3d-car{width:44px;height:48px}
+.gps-marker.driving.has-3d-car{width:56px;height:60px}
 .gps-marker.driving.has-3d-car .gps-car-street{top:calc(100% + 4px)}
 .gps-marker.driving.mode-bike{width:46px;height:60px}
 .gps-marker.driving.mode-bike .gps-car{filter:drop-shadow(0 6px 12px rgba(56,189,248,0.58)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))}
@@ -763,8 +763,9 @@
 .rif-locs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .alt-traffic-delta{display:inline-block;margin-top:2px;font-size:9.5px;font-weight:700;color:#fcd34d}
 .incident-marker{z-index:24;pointer-events:auto;cursor:pointer}
-.incident-pin{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(127,29,29,.92);border:1.5px solid #fecaca;color:#fff;font-size:10.5px;font-weight:750;box-shadow:0 6px 16px rgba(0,0,0,.5);white-space:nowrap}
-.incident-pin.roadworks,.incident-pin.jam{background:rgba(146,64,14,.92);border-color:#fde68a;color:#fef3c7}
+.incident-pin{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(153,27,27,.94);border:1.5px solid #fecaca;color:#fff;font-size:10.5px;font-weight:750;box-shadow:0 6px 16px rgba(0,0,0,.5);white-space:nowrap}
+.incident-pin.jam{background:rgba(185,28,28,.95);border-color:#fca5a5;color:#fff;box-shadow:0 0 14px rgba(239,68,68,.55),0 6px 16px rgba(0,0,0,.5)}
+.incident-pin.roadworks{background:rgba(146,64,14,.92);border-color:#fde68a;color:#fef3c7}
 .incident-pin.weather{background:rgba(30,58,138,.92);border-color:#bfdbfe;color:#eff6ff}
 .car-incident-picker{position:absolute;left:72px;top:52%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;padding:8px;border-radius:16px;min-width:168px;pointer-events:auto;z-index:25}
 .car-incident-picker[hidden]{display:none!important}
@@ -980,7 +981,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <div class="view-controls"><div class="row"><label for="pitch">Inclinaison 3D</label><b id="pitchValue">55°</b></div><input id="pitch" type="range" min="0" max="65" step="1" value="55" aria-label="Inclinaison de la carte"><div class="rotation-controls"><button id="rotateLeft" aria-label="Tourner la carte à gauche">↶ Tourner</button><span>Glissez avec deux doigts pour incliner</span><button id="rotateRight" aria-label="Tourner la carte à droite">Tourner ↷</button></div></div><div class="h3">Couches météo</div><div class="layer-options" id="layerOptions"></div>
     <div class="row"><div><label for="swPills">Un pictogramme par zone</label><small>Masquer ou afficher les étiquettes</small></div><button class="switch" id="swPills" role="switch" aria-checked="true" aria-label="Afficher les pictogrammes des zones"></button></div>
     <div class="row"><div><label for="swMapWeather">Météo sur la carte</label><small>Nuages, pluie, éclairs, radar et zones</small></div><button class="switch on" id="swMapWeather" role="switch" aria-checked="true" aria-label="Afficher ou masquer la météo sur la carte"></button></div>
+    <div class="row"><div><label for="swMapTraffic">Trafic &amp; bouchons sur la carte</label><small>Traits rouges et signalements en direct</small></div><button class="switch on" id="swMapTraffic" role="switch" aria-checked="true" aria-label="Afficher ou masquer le trafic et les bouchons sur la carte"></button></div>
     <div class="row"><label for="opacity">Intensité du radar</label><input type="range" id="opacity" min="20" max="100" step="5" aria-label="Opacité du radar"></div>
+    <button class="places-link" id="layerReportJamBtn" style="margin-bottom:8px;border-color:rgba(248,113,113,.38);background:rgba(220,38,38,.14);color:#fecaca"><svg class="ic " aria-hidden="true"><use href="#i-alert"/></svg>Signaler un bouchon ici<svg class="ic " aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <button class="places-link" id="chipPlaces"><svg class="ic " aria-hidden="true"><use href="#i-star"/></svg>Mes lieux favoris<svg class="ic " aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <p class="layer-note">Les surfaces grises regroupent les secteurs nuageux. Les zones sont estimées à partir des prévisions, pas d’une image satellite des nuages.</p>
   </section>
@@ -1414,13 +1417,15 @@ function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.style.display=
 
 
 /* =====================  RÉGLAGES  ===================== */
-const cfg = Object.assign({ temp:'C', wind:'kmh', theme:'dark', notif:false, base:0, layer:'cloud', pills:true, opacity:65, mode3d:true, wxFx:true, showMapWeather:true, reduceAnim:false, travelMode:'car', avoidTolls:false, schema:0 }, store.get('cfg', {}));
+const cfg = Object.assign({ temp:'C', wind:'kmh', theme:'dark', notif:false, base:0, layer:'cloud', pills:true, opacity:65, mode3d:true, wxFx:true, showMapWeather:true, showTraffic:true, reduceAnim:false, travelMode:'car', avoidTolls:false, schema:0 }, store.get('cfg', {}));
 if(!['car','bike','foot'].includes(cfg.travelMode))cfg.travelMode='car';
 if(typeof cfg.wxFx!=='boolean')cfg.wxFx=true;
 if(typeof cfg.showMapWeather!=='boolean')cfg.showMapWeather=true;
+if(typeof cfg.showTraffic!=='boolean')cfg.showTraffic=true;
 if(typeof cfg.reduceAnim!=='boolean')cfg.reduceAnim=false;
 if(typeof cfg.avoidTolls!=='boolean')cfg.avoidTolls=false;
 const isMapWeatherOn = () => cfg.showMapWeather !== false;
+const isTrafficVisible = () => cfg.showTraffic !== false;
 const isWxFxOn = () => isMapWeatherOn() && !!cfg.wxFx;
 const isReducedAnim = () => reducedMotion || !!cfg.reduceAnim;
 const upgrading=cfg.schema<4; if(upgrading){cfg.base=0;cfg.layer='cloud';cfg.mode3d=true;cfg.pills=true;cfg.schema=4;}
@@ -1854,12 +1859,15 @@ function initMapLayers(){
   const layers=map.getStyle()?.layers||[];
   const before=layers.find(l=>l.type==='symbol')?.id;
   const beforePlaceLabels=layers.find(l=>l.type==='symbol'&&/^(label_|place_|airport)/.test(l.id))?.id;
-  ['sky-zone-fill','sky-zone-edges','sky-field','sky-accuracy','sky-route-past','sky-route','sky-route-alt'].forEach(addGeo);
+  ['sky-zone-fill','sky-zone-edges','sky-field','sky-accuracy','sky-traffic-jams','sky-route-past','sky-route','sky-route-alt'].forEach(addGeo);
   putLayer({id:'sky-field',type:'fill',source:'sky-field',paint:{'fill-color':['get','color'],'fill-opacity':.28,'fill-antialias':false}},before);
   putLayer({id:'sky-zone-fill',type:'fill',source:'sky-zone-fill',paint:{'fill-color':['get','color'],'fill-opacity':['get','opacity'],'fill-antialias':false}},before);
   putLayer({id:'sky-zone-edges',type:'line',source:'sky-zone-edges',paint:{'line-color':['get','color'],'line-opacity':.28,'line-width':1}},before);
   putLayer({id:'sky-accuracy-fill',type:'fill',source:'sky-accuracy',paint:{'fill-color':'#389bff','fill-opacity':.14}});
   putLayer({id:'sky-accuracy-line',type:'line',source:'sky-accuracy',paint:{'line-color':'#399df9','line-opacity':.75,'line-width':1.4}});
+  // Axes congestionnés / bouchons (traits rouges alignés sur la voirie).
+  putLayer({id:'sky-traffic-jams-halo',type:'line',source:'sky-traffic-jams',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':['coalesce',['get','haloColor'],'#7f1d1d'],'line-width':['interpolate',['linear'],['zoom'],5,6.5,11,10.5,16,15.5],'line-opacity':.78}},beforePlaceLabels);
+  putLayer({id:'sky-traffic-jams-line',type:'line',source:'sky-traffic-jams',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':['coalesce',['get','lineColor'],'#ef4444'],'line-width':['interpolate',['linear'],['zoom'],5,3.5,11,6,16,9.5],'line-opacity':.96}},beforePlaceLabels);
   // Tracé routier lumineux cyan-bleu au-dessus des routes, ponts et zones météo.
   putLayer({id:'sky-route-alt',type:'line',source:'sky-route-alt',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#7da0bd','line-width':['interpolate',['linear'],['zoom'],5,2.5,12,4,17,6],'line-opacity':.65,'line-dasharray':[2,2]}},beforePlaceLabels);
   putLayer({id:'sky-route-past',type:'line',source:'sky-route-past',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#567996','line-width':['interpolate',['linear'],['zoom'],5,3.5,12,5.5,17,8],'line-opacity':.5}},beforePlaceLabels);
@@ -1871,6 +1879,8 @@ function initMapLayers(){
   try{setSelMarker();}catch(e){console.warn('setSelMarker :',e);}
   if(GPS.fix){try{drawGPS();}catch(e){console.warn('drawGPS :',e);}}
   try{renderRoute();}catch(e){console.warn('renderRoute :',e);}
+  try{renderIncidentMarkers();}catch(e){console.warn('renderIncidentMarkers :',e);}
+  try{renderTrafficJamsLayer();}catch(e){console.warn('renderTrafficJamsLayer :',e);}
   try{drawField();}catch(e){console.warn('drawField :',e);}
   try{renderPills();}catch(e){console.warn('renderPills :',e);}
   try{applyRadarVisibility();}catch(e){console.warn('applyRadarVisibility :',e);}
@@ -2809,6 +2819,7 @@ const CAR3D=(function(){
 
     carRoot=new THREE.Group();
     modelGroup=new THREE.Group();
+    modelGroup.scale.setScalar(1.48);
     carRoot.add(modelGroup);
 
     // Ombre douce au sol sous la voiture
@@ -3160,7 +3171,7 @@ function clearIncidentMarkers(){
 }
 function clearTrip(){
   if(DRIVE.active)stopDriving();TR.weatherReady=false;TR.weatherPoints=[];TR.tollAnnounced.clear();
-  resetDriveMatching();clearTollMarkers();clearIncidentMarkers();
+  resetDriveMatching();clearTollMarkers();
   ++TR.req;++TR.stepWeatherReq;TR.busyToken=null;$('routeCalculate').disabled=false;$('routeCalculate').innerHTML=icon('route')+' Calculer le trajet';TR.routes=[];TR.rawRoutes=[];TR.waypoints=[];TR.index=0;TR.steps=false;TR.stepWeather=false;
   routeNativeHasGeometry=false;TR.markers.forEach(m=>m.remove());TR.markers=[];setGeo('sky-route',empty());setGeo('sky-route-alt',empty());drawRouteOverlay();
   $('routeResults').hidden=true;$('routePanel').classList.remove('has-route','step-weather-open');$('routePanel').classList.add('editing');$('activeTrip').hidden=true;$('app').classList.remove('route-active');$('routeSteps').hidden=true;$('routeStepsBtn').setAttribute('aria-expanded','false');
@@ -3172,6 +3183,8 @@ function clearTrip(){
   if($('carTripTollBadge'))$('carTripTollBadge').hidden=true;
   if($('carTollAlert'))$('carTollAlert').hidden=true;
   if($('carRerouteOffer'))$('carRerouteOffer').hidden=true;
+  renderIncidentMarkers();
+  renderTrafficJamsLayer();
   if(typeof WXFX!=='undefined')WXFX.sync();
 }
 function invalidateRoute(){clearTrip();routeMessage('Choisissez un départ et une arrivée.');}
@@ -3469,6 +3482,57 @@ function corridorBboxForRoutes(routes,start,end){
   return tollBboxKey(pts);
 }
 
+function loadDeletedIncidentIds(){
+  const now=Date.now();
+  const raw=store.get('deleted_traffic_ids',[]);
+  const kept=Array.isArray(raw)?raw.filter(x=>x&&typeof x.id==='string'&&Number(x.ts)>now-43200000):[];
+  if(Array.isArray(raw)&&kept.length!==raw.length)store.set('deleted_traffic_ids',kept);
+  return new Set(kept.map(x=>x.id));
+}
+function markIncidentDeletedLocal(id){
+  if(!id)return;
+  const now=Date.now();
+  const raw=store.get('deleted_traffic_ids',[]);
+  const next=(Array.isArray(raw)?raw:[]).filter(x=>x&&x.id!==id&&Number(x.ts)>now-43200000);
+  next.push({id,ts:now});
+  store.set('deleted_traffic_ids',next.slice(-80));
+  const local=loadLocalTrafficIncidents().filter(x=>x.id!==id);
+  saveLocalTrafficIncidents(local);
+}
+function loadLocalTrafficIncidents(){
+  const now=Date.now();
+  const raw=store.get('traffic_incidents',[]);
+  const kept=Array.isArray(raw)?raw.filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&(Number(x.expiresAt)||0)>now):[];
+  if(Array.isArray(raw)&&kept.length!==raw.length)store.set('traffic_incidents',kept);
+  return kept;
+}
+function saveLocalTrafficIncidents(list){
+  const now=Date.now();
+  const clean=(Array.isArray(list)?list:[]).filter(x=>x&&x.id&&Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&(Number(x.expiresAt)||0)>now);
+  store.set('traffic_incidents',clean.slice(-80));
+}
+function mergeCorridorIncidents(serverList){
+  const now=Date.now();
+  const deleted=loadDeletedIncidentIds();
+  const byId=new Map();
+  const addItem=(item)=>{
+    if(!item||!item.id||deleted.has(item.id))return;
+    if(!Number.isFinite(item.lat)||!Number.isFinite(item.lon))return;
+    if(item.expiresAt&&Number(item.expiresAt)<=now)return;
+    const prev=byId.get(item.id);
+    if(!prev){byId.set(item.id,item);return;}
+    byId.set(item.id,{
+      ...prev,
+      ...item,
+      confirmations:Math.max(Number(prev.confirmations)||1,Number(item.confirmations)||1),
+      expiresAt:Math.max(Number(prev.expiresAt)||0,Number(item.expiresAt)||0)
+    });
+  };
+  for(const inc of (Array.isArray(serverList)?serverList:[]))addItem(inc);
+  for(const inc of loadLocalTrafficIncidents())addItem(inc);
+  return Array.from(byId.values());
+}
+
 async function fetchTrafficCorridor(box){
   const now=new Date();
   const q=new URLSearchParams({
@@ -3478,16 +3542,23 @@ async function fetchTrafficCorridor(box){
   try{
     const data=await getJSON('/api/traffic/corridor?'+q.toString());
     if(data&&data.success){
+      const mergedIncidents=mergeCorridorIncidents(data.incidents);
       TRAFFIC_STATE.corridor={
         historical:data.historical||{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'},
         liveCells:Array.isArray(data.liveCells)?data.liveCells:[],
-        incidents:Array.isArray(data.incidents)?data.incidents:[],
+        incidents:mergedIncidents,
         fetchedAt:Date.now()
       };
       return TRAFFIC_STATE.corridor;
     }
   }catch(_){}
-  const fb=TRAFFIC_STATE.corridor||{historical:{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Profil nominal'},liveCells:[],incidents:[],fetchedAt:Date.now()};
+  const prev=TRAFFIC_STATE.corridor;
+  const fb={
+    historical:prev?.historical||{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Profil nominal'},
+    liveCells:Array.isArray(prev?.liveCells)?prev.liveCells:[],
+    incidents:mergeCorridorIncidents(prev?.incidents||[]),
+    fetchedAt:Date.now()
+  };
   TRAFFIC_STATE.corridor=fb;
   return fb;
 }
@@ -4968,30 +5039,42 @@ function openIncidentModal(inc){
     (!isOsm?'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="incConfirmBtn" style="flex:1">👍 Confirmer</button><button class="btn ghost" id="incRemoveBtn" style="flex:1">✓ Trafic rétabli</button></div>':'<div class="note">Donnée issue d’OpenStreetMap · prise en compte automatique dans les poids du graphe.</div>'),
     ()=>{
       if($('incConfirmBtn'))$('incConfirmBtn').onclick=async()=>{
+        inc.confirmations=(Number(inc.confirmations)||1)+1;
+        inc.expiresAt=Math.max(Number(inc.expiresAt)||0,Date.now()+45*60*1000);
+        const locals=loadLocalTrafficIncidents().map(x=>x.id===inc.id?{...x,confirmations:inc.confirmations,expiresAt:inc.expiresAt}:x);
+        saveLocalTrafficIncidents(locals);
+        renderIncidentMarkers();
+        renderTrafficJamsLayer();
         try{
-          await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id)+'/confirm',{method:'POST'});
-          closeModal();toast('Incident confirmé');
-          if(TR.rawRoutes?.length)await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
-          else await syncTrafficCorridorNow();
-        }catch(_){closeModal();}
+          if(!String(inc.id).startsWith('inc-local-')){
+            await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id)+'/confirm',{method:'POST'});
+          }
+        }catch(_){}
+        closeModal();toast('Incident confirmé');
+        if(TR.rawRoutes?.length)await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
+        else await syncTrafficCorridorNow();
       };
       if($('incRemoveBtn'))$('incRemoveBtn').onclick=async()=>{
+        markIncidentDeletedLocal(inc.id);
+        if(TRAFFIC_STATE.corridor?.incidents)TRAFFIC_STATE.corridor.incidents=TRAFFIC_STATE.corridor.incidents.filter(x=>x.id!==inc.id);
+        renderIncidentMarkers();
+        renderTrafficJamsLayer();
         try{
-          await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id),{method:'DELETE'});
-          if(TRAFFIC_STATE.corridor?.incidents)TRAFFIC_STATE.corridor.incidents=TRAFFIC_STATE.corridor.incidents.filter(x=>x.id!==inc.id);
-          closeModal();toast('Incident retiré · recalcul du graphe');
-          renderIncidentMarkers();
-          if(TR.rawRoutes?.length)await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
-          else if(TR.routes.length)renderRoute();
-        }catch(_){closeModal();}
+          if(!String(inc.id).startsWith('inc-local-')){
+            await fetch('/api/traffic/incidents/'+encodeURIComponent(inc.id),{method:'DELETE'});
+          }
+        }catch(_){}
+        closeModal();toast('Incident retiré · recalcul du graphe');
+        if(TR.rawRoutes?.length)await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
+        else if(TR.routes.length)renderRoute();
       };
     }
   );
 }
 function renderIncidentMarkers(){
   clearIncidentMarkers();
-  if(!map)return;
-  const list=[...(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])];
+  if(!map||!isTrafficVisible())return;
+  const list=[...mergeCorridorIncidents(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])];
   const seen=new Set();
   list.forEach(inc=>{
     if(!inc||!Number.isFinite(inc.lat)||!Number.isFinite(inc.lon))return;
@@ -5026,31 +5109,55 @@ function sampleAheadOnRoute(metersAhead=2500){
 }
 async function reportTrafficIncident(type,point){
   if(!point||!Number.isFinite(point.lat)||!Number.isFinite(point.lon))return;
+  const now=Date.now();
+  const defaults={
+    closure:{delaySec:86400,radiusM:480},
+    accident:{delaySec:600,radiusM:520},
+    jam:{delaySec:420,radiusM:600},
+    roadworks:{delaySec:240,radiusM:420},
+    weather:{delaySec:180,radiusM:520}
+  };
+  const def=defaults[type]||defaults.jam;
+  let saved={
+    id:'inc-local-'+now+'-'+Math.random().toString(36).slice(2,6),
+    type,
+    lat:point.lat,
+    lon:point.lon,
+    title:incidentLabel(type)+' signalé',
+    delaySec:def.delaySec,
+    radiusM:def.radiusM,
+    confirmations:1,
+    createdAt:now,
+    expiresAt:now+90*60*1000,
+    source:'user'
+  };
   try{
     const r=await fetch('/api/traffic/incidents',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type,lat:point.lat,lon:point.lon,title:incidentLabel(type)+' signalé'})
+      body:JSON.stringify({type,lat:point.lat,lon:point.lon,title:saved.title})
     });
     const d=await r.json();
-    if(!r.ok||!d.success)throw new Error(d?.error||'Erreur serveur');
-    if(!TRAFFIC_STATE.corridor)TRAFFIC_STATE.corridor={historical:{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'},liveCells:[],incidents:[]};
-    TRAFFIC_STATE.corridor.incidents.push(d.incident);
-    renderIncidentMarkers();
-    if(TR.routes.length){
-      if(DRIVE.active&&GPS.fix)updateDrivingRouteRibbon(GPS.fix);
-      else renderRoute();
-    }
-    toast(incidentEmoji(type)+' '+incidentLabel(type)+' signalé · trajet mis à jour');
-    if(TR.rawRoutes?.length&&!DRIVE.active){
-      await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
-    }
-    if(DRIVE.active&&TR.routes.length&&TR.to){
-      TRAFFIC_STATE.dismissedUntil=0;
-      checkDynamicReroute(true,d.incident);
-    }
-  }catch(_){
-    toast('Impossible d’enregistrer le signalement pour le moment.');
+    if(r.ok&&d&&d.success&&d.incident)saved=d.incident;
+  }catch(_){}
+  if(!TRAFFIC_STATE.corridor)TRAFFIC_STATE.corridor={historical:{motorwayFactor:1,trunkPrimaryFactor:1,urbanFactor:1.05,label:'Fluide'},liveCells:[],incidents:[]};
+  const locals=loadLocalTrafficIncidents().filter(x=>x.id!==saved.id);
+  locals.push(saved);
+  saveLocalTrafficIncidents(locals);
+  TRAFFIC_STATE.corridor.incidents=mergeCorridorIncidents([...(TRAFFIC_STATE.corridor.incidents||[]),saved]);
+  renderIncidentMarkers();
+  renderTrafficJamsLayer();
+  if(TR.routes.length){
+    if(DRIVE.active&&GPS.fix)updateDrivingRouteRibbon(GPS.fix);
+    else renderRoute();
+  }
+  toast(incidentEmoji(type)+' '+incidentLabel(type)+' signalé · carte & trafic mis à jour');
+  if(TR.rawRoutes?.length&&!DRIVE.active){
+    await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
+  }
+  if(DRIVE.active&&TR.routes.length&&TR.to){
+    TRAFFIC_STATE.dismissedUntil=0;
+    checkDynamicReroute(true,saved);
   }
 }
 function maybeSendTrafficTelemetry(p,old,route){
@@ -5142,9 +5249,9 @@ async function checkDynamicReroute(force=false,triggerIncident=null){
 }
 const ROUTE_TRAFFIC_PALETTE={
   0:{level:0,lineColor:'#00b4ff',haloColor:'#0284c7',glowColor:'#00e5ff',coreColor:'#d8fbff'},
-  1:{level:1,lineColor:'#f97316',haloColor:'#c2410c',glowColor:'#fb923c',coreColor:'#ffedd5'},
-  2:{level:2,lineColor:'#ef4444',haloColor:'#991b1b',glowColor:'#f87171',coreColor:'#fee2e2'},
-  3:{level:3,lineColor:'#b91c1c',haloColor:'#450a0a',glowColor:'#dc2626',coreColor:'#fecaca'}
+  1:{level:1,lineColor:'#f97316',haloColor:'#c2410c',glowColor:'#fb923c',coreColor:'#fb923c'},
+  2:{level:2,lineColor:'#ef4444',haloColor:'#7f1d1d',glowColor:'#ef4444',coreColor:'#dc2626'},
+  3:{level:3,lineColor:'#dc2626',haloColor:'#450a0a',glowColor:'#ef4444',coreColor:'#b91c1c'}
 };
 function pointToPairDistM(pt,a,b){
   const rad=Math.PI/180,scaleX=111320*Math.max(.1,Math.cos(pt.lat*rad)),scaleY=111195;
@@ -5154,9 +5261,145 @@ function pointToPairDistM(pt,a,b){
   const t=den?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/den)):0;
   return Math.hypot(ax+t*dx,ay+t*dy);
 }
+function getJamRoadLayers(){
+  if(!map)return [];
+  const layers=map.getStyle()?.layers||[];
+  return layers.filter(l=>{
+    if(l.type!=='line')return false;
+    const id=l.id||'',sl=l['source-layer']||'';
+    if(id.startsWith('sky-'))return false;
+    if(/rail|ferry|aeroway|label|casing|outline|border|boundary|contour|water/i.test(id))return false;
+    if(sl==='transportation')return !/rail|ferry|aeroway/i.test(id+'|'+(l.filter?JSON.stringify(l.filter):''));
+    return /road|highway|street|bridge|motorway|trunk|primary|secondary|tertiary|minor|tunnel|route/i.test(id);
+  }).map(l=>l.id);
+}
+function clipRoadSegmentsNearSpot(coords,spot,maxDistM){
+  if(!Array.isArray(coords)||coords.length<2)return [];
+  const runs=[];
+  let cur=[];
+  for(let i=0;i<coords.length-1;i++){
+    const a=coords[i],b=coords[i+1];
+    if(pointToPairDistM(spot,a,b)<=maxDistM){
+      if(!cur.length)cur.push(a);
+      cur.push(b);
+    }else if(cur.length>=2){
+      runs.push(cur);
+      cur=[];
+    }else{
+      cur=[];
+    }
+  }
+  if(cur.length>=2)runs.push(cur);
+  return runs;
+}
+function renderTrafficJamsLayer(){
+  try{
+    if(!map||!MAP.ready||!map.getSource('sky-traffic-jams'))return;
+    const src=map.getSource('sky-traffic-jams');
+    if(!isTrafficVisible()){src.setData(empty());return;}
+    const mode=TR.mode||'car';
+    const incidents=[...mergeCorridorIncidents(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])].filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lon));
+    const slowCells=(TRAFFIC_STATE.corridor?.liveCells||[]).filter(c=>c&&Number(c.ratio)>=1.35&&(!c.mode||c.mode===mode));
+    if(!incidents.length&&!slowCells.length){src.setData(empty());return;}
+
+    const spots=[];
+    for(const inc of incidents){
+      const isMinor=(inc.type==='roadworks'||inc.type==='weather')&&!(Number(inc.delaySec)>=420||Number(inc.confirmations)>=3);
+      spots.push({
+        lat:inc.lat,
+        lon:inc.lon,
+        radiusM:clamp(Number(inc.radiusM)||480,260,650),
+        lineColor:isMinor?'#f97316':'#ef4444',
+        haloColor:isMinor?'#9a3412':'#7f1d1d',
+        level:inc.type==='closure'?3:(isMinor?1:2)
+      });
+    }
+    for(const cell of slowCells){
+      const isHeavy=Number(cell.ratio)>=1.85;
+      spots.push({
+        lat:cell.lat,
+        lon:cell.lon,
+        radiusM:440,
+        lineColor:isHeavy?'#ef4444':'#f97316',
+        haloColor:isHeavy?'#7f1d1d':'#9a3412',
+        level:Number(cell.ratio)>=2.6?3:(isHeavy?2:1)
+      });
+    }
+
+    const candidateLines=[];
+    for(const r of [...(TR.rawRoutes||[]),...(TR.routes||[])]){
+      const coords=r?.geometry?.coordinates;
+      if(Array.isArray(coords)&&coords.length>=2)candidateLines.push(coords);
+    }
+    const vectorLines=[];
+    if(map.isStyleLoaded()&&map.getZoom()>=9.5){
+      const roadIds=getJamRoadLayers();
+      if(roadIds.length){
+        try{
+          const feats=map.queryRenderedFeatures({layers:roadIds});
+          for(const f of feats){
+            const g=f?.geometry;
+            if(!g)continue;
+            if(g.type==='LineString'&&g.coordinates?.length>=2)vectorLines.push(g.coordinates);
+            else if(g.type==='MultiLineString'&&Array.isArray(g.coordinates)){
+              for(const part of g.coordinates)if(part?.length>=2)vectorLines.push(part);
+            }
+          }
+        }catch(_){}
+      }
+    }
+
+    const features=[];
+    const dedup=new Set();
+    const pushSegment=(coords,spot)=>{
+      if(!coords||coords.length<2)return;
+      const first=coords[0],last=coords[coords.length-1];
+      const sig=spot.level+':'+first[0].toFixed(4)+','+first[1].toFixed(4)+'->'+last[0].toFixed(4)+','+last[1].toFixed(4);
+      if(dedup.has(sig))return;
+      dedup.add(sig);
+      features.push(C.feature({type:'LineString',coordinates:coords},{lineColor:spot.lineColor,haloColor:spot.haloColor,level:spot.level}));
+    };
+
+    for(const spot of spots){
+      let matched=false;
+      for(const line of candidateLines){
+        const clipped=clipRoadSegmentsNearSpot(line,spot,spot.radiusM);
+        if(clipped.length){
+          matched=true;
+          for(const seg of clipped)pushSegment(seg,spot);
+        }
+      }
+      if(!matched&&vectorLines.length){
+        let bestLine=null,bestDist=140;
+        for(const line of vectorLines){
+          for(let i=0;i<line.length-1;i++){
+            const d=pointToPairDistM(spot,line[i],line[i+1]);
+            if(d<bestDist){bestDist=d;bestLine=line;}
+          }
+        }
+        if(bestLine){
+          const clipped=clipRoadSegmentsNearSpot(bestLine,spot,Math.max(180,spot.radiusM*0.65));
+          if(clipped.length){
+            matched=true;
+            for(const seg of clipped)pushSegment(seg,spot);
+          }
+        }
+      }
+      if(!matched){
+        // Repli visuel sur fond satellite/non-vectorisé : court segment rouge centré sur le bouchon.
+        const dLon=0.0012/Math.max(0.25,Math.cos(spot.lat*Math.PI/180));
+        pushSegment([[spot.lon-dLon,spot.lat],[spot.lon+dLon,spot.lat]],spot);
+      }
+    }
+    src.setData(features.length?C.collection(features):empty());
+  }catch(_){}
+}
 function buildRouteTrafficFeatures(coords){
   if(!Array.isArray(coords)||coords.length<2)return [];
-  const allIncidents=[...(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])].filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lon));
+  if(!isTrafficVisible()){
+    return [C.feature({type:'LineString',coordinates:coords},{...ROUTE_TRAFFIC_PALETTE[0]})];
+  }
+  const allIncidents=[...mergeCorridorIncidents(TRAFFIC_STATE.corridor?.incidents||[]),...(TRAFFIC_STATE.osmHazards||[])].filter(x=>x&&Number.isFinite(x.lat)&&Number.isFinite(x.lon));
   const mode=TR.mode||'car';
   const slowCells=(TRAFFIC_STATE.corridor?.liveCells||[]).filter(c=>c&&Number(c.ratio)>=1.35&&(!c.mode||c.mode===mode));
   if(!allIncidents.length&&!slowCells.length){
@@ -5235,6 +5478,7 @@ async function syncTrafficCorridorNow(){
     }
     await fetchTrafficCorridor(box);
     renderIncidentMarkers();
+    renderTrafficJamsLayer();
     if(TR.rawRoutes?.length&&!DRIVE.active){
       await GRAPH_ROUTER.recomputeTR({preserveCurrent:true});
     }else if(TR.routes.length){
@@ -5255,18 +5499,25 @@ function startTrafficLiveSync(){
   };
   if(typeof EventSource!=='undefined'){
     try{
+      let sseErrs=0;
       const es=new EventSource('/api/traffic/stream');
-      es.addEventListener('traffic',()=>triggerSync());
+      es.addEventListener('open',()=>{sseErrs=0;});
+      es.addEventListener('traffic',()=>{sseErrs=0;triggerSync();});
+      es.onerror=()=>{
+        sseErrs++;
+        if(sseErrs>=3){try{es.close();}catch(_){} TRAFFIC_STATE.sse=null;}
+      };
       TRAFFIC_STATE.sse=es;
     }catch(_){}
   }
+  setTimeout(()=>{if(!document.hidden)syncTrafficCorridorNow();},650);
   setInterval(()=>{
-    if(!document.hidden&&(TR.routes.length||DRIVE.active))syncTrafficCorridorNow();
-  },22000);
+    if(!document.hidden&&(TR.routes.length||DRIVE.active||(map&&map.getZoom()>=8.5)))syncTrafficCorridorNow();
+  },24000);
 }
 function renderRoute(){
   const route=TR.routes[TR.index];
-  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;clearTollMarkers();clearIncidentMarkers();setGeo('sky-route-past',empty());drawRouteOverlay();return;}
+  if(!route?.geometry?.coordinates?.length){routeNativeHasGeometry=false;clearTollMarkers();setGeo('sky-route-past',empty());drawRouteOverlay();renderIncidentMarkers();renderTrafficJamsLayer();return;}
   routeNativeHasGeometry=false;
   if(!MAP.ready&&map?.isStyleLoaded()){try{initMapLayers();}catch(_){}}
   if(MAP.ready && map){
@@ -5299,6 +5550,7 @@ function renderRoute(){
   });
   renderTollMarkers(route);
   renderIncidentMarkers();
+  renderTrafficJamsLayer();
 }
 
 function fitRoute(){
@@ -6153,11 +6405,49 @@ function refreshUnits(){ renderAll(); updateLegend(); if(GRID.cells)renderPills(
 function renderBases(){
   $('bases').innerHTML = BASES.map((b,i) => '<button class="base '+(cfg.base===i?'on':'')+'" data-i="'+i+'"><span>'+b.icon+'</span>'+b.name+'</button>').join('');
   $('swPills').classList.toggle('on', cfg.pills); $('swPills').setAttribute('aria-checked',String(cfg.pills));
+  if($('swMapTraffic')){$('swMapTraffic').classList.toggle('on',isTrafficVisible());$('swMapTraffic').setAttribute('aria-checked',String(isTrafficVisible()));}
   syncMapWeatherUi();
   $('opacity').value = cfg.opacity;
 }
 $('bases').addEventListener('click', e => { const b = e.target.closest('.base'); if (b) setBase(+b.dataset.i); });
 $('swPills').onclick=()=>{cfg.pills=!cfg.pills;saveCfg();renderBases();renderPills();};
+if($('swMapTraffic'))$('swMapTraffic').onclick=()=>{
+  cfg.showTraffic=!isTrafficVisible();saveCfg();renderBases();renderIncidentMarkers();renderTrafficJamsLayer();
+  if(TR.routes.length){if(DRIVE.active&&GPS.fix)updateDrivingRouteRibbon(GPS.fix);else renderRoute();}
+  toast(isTrafficVisible()?'Bouchons et signalements affichés':'Trafic masqué sur la carte');
+};
+if($('layerReportJamBtn'))$('layerReportJamBtn').onclick=()=>{
+  closeLayers();
+  const c=map?map.getCenter():null;
+  const centerPt=c?{lat:c.lat,lon:c.lng}:(GPS.fix||sel);
+  const gpsPt=GPS.fix&&!GPS.fix.isIp?GPS.fix:centerPt;
+  openModal(
+    '<div class="mhead"><h2>Signaler sur la carte</h2><button class="mini" data-close aria-label="Fermer">✕</button></div>'+
+    '<p class="note" style="margin-bottom:10px">Un trait rouge et un repère seront affichés sur la carte et partagés avec les autres usagers.</p>'+
+    '<div class="rif-locs" style="margin-bottom:10px">'+
+      '<button type="button" id="repLocCenter" class="on">Centre de la carte</button>'+
+      '<button type="button" id="repLocGps">Ma position GPS</button>'+
+    '</div>'+
+    '<div class="rif-types">'+
+      '<button type="button" data-map-inc="jam">🚗 Bouchon</button>'+
+      '<button type="button" data-map-inc="accident">⚠️ Accident</button>'+
+      '<button type="button" data-map-inc="roadworks">🚧 Travaux</button>'+
+      '<button type="button" data-map-inc="closure">⛔ Fermée</button>'+
+      '<button type="button" data-map-inc="weather">🌧️ Chaussée</button>'+
+    '</div>',
+    ()=>{
+      let target=centerPt;
+      const bC=$('repLocCenter'),bG=$('repLocGps');
+      if(bC&&bG){
+        bC.onclick=()=>{target=centerPt;bC.classList.add('on');bG.classList.remove('on');};
+        bG.onclick=()=>{target=gpsPt;bG.classList.add('on');bC.classList.remove('on');};
+      }
+      document.querySelectorAll('[data-map-inc]').forEach(btn=>{
+        btn.onclick=async()=>{const t=btn.dataset.mapInc;closeModal();await reportTrafficIncident(t,target);};
+      });
+    }
+  );
+};
 if($('swMapWeather'))$('swMapWeather').onclick=()=>{toggleMapWeather();};
 if($('chipMapWeather'))$('chipMapWeather').onclick=()=>{toggleMapWeather();};
 $('opacity').addEventListener('input',e=>{cfg.opacity=+e.target.value;saveCfg();if(MAP.ready&&RAD.cur&&map.getLayer(RAD.cur)){const op=radarOpacity();map.setPaintProperty(RAD.cur,'raster-opacity',['interpolate',['linear'],['zoom'],6,op,13,op*0.92,17,op*0.80]);}});
@@ -6264,10 +6554,10 @@ if(map){
   map.on('zoomstart',e=>{if(e.originalEvent){userInteracted=true;if(GPS.fix)GPS.zoomPending=false;if(DRIVE.active){DRIVE.userZoomed=true;pauseDrivingFollow('zoom');}}});
   map.on('rotatestart',e=>{if(e.originalEvent){userInteracted=true;if(GPS.fix)GPS.zoomPending=false;if(DRIVE.active){DRIVE.draggingNow=true;pauseDrivingFollow('rotate');}else pauseFollow();}});
   map.on('rotateend',()=>{if(DRIVE.draggingNow){DRIVE.draggingNow=false;if(DRIVE.active)pauseDrivingFollow('rotateend');}});
-  map.on('moveend',()=>{store.set('zoom',map.getZoom());++GRID.req;renderPills();scheduleGrid();if(typeof WXFX!=='undefined')WXFX.onMoveEnd();});
+  map.on('moveend',()=>{store.set('zoom',map.getZoom());++GRID.req;renderPills();scheduleGrid();renderTrafficJamsLayer();if(map.getZoom()>=8.5){clearTimeout(TRAFFIC_STATE.moveSyncTimer);TRAFFIC_STATE.moveSyncTimer=setTimeout(()=>syncTrafficCorridorNow(),950);}if(typeof WXFX!=='undefined')WXFX.onMoveEnd();});
   map.on('pitchend',()=>{$('pitch').value=map.getPitch();$('pitchValue').textContent=Math.round(map.getPitch())+'°';});
   map.on('resize',()=>{scheduleRouteOverlay();if(typeof WXFX!=='undefined')WXFX.resize();});
-  map.on('idle',()=>{if(typeof WXFX!=='undefined')WXFX.onIdle();});
+  map.on('idle',()=>{renderTrafficJamsLayer();if(typeof WXFX!=='undefined')WXFX.onIdle();});
 }
 
 /* ===================== EFFETS MÉTÉO 3D SUR LA CARTE ===================== */

@@ -1030,6 +1030,314 @@ export default {
         }
       }
 
+      // =========================================================================
+      // 8. TRAFIC SKYMAP & SIGNALEMENTS DE BOUCHONS (Cloudflare D1)
+      // =========================================================================
+      if (path.startsWith('/api/traffic/')) {
+        await env.DB.batch([
+          env.DB.prepare(
+            `CREATE TABLE IF NOT EXISTS traffic_incidents (
+              id TEXT PRIMARY KEY,
+              type TEXT NOT NULL,
+              lat REAL NOT NULL,
+              lon REAL NOT NULL,
+              title TEXT NOT NULL,
+              description TEXT DEFAULT '',
+              delay_sec INTEGER NOT NULL DEFAULT 420,
+              radius_m INTEGER NOT NULL DEFAULT 600,
+              severity TEXT NOT NULL DEFAULT 'high',
+              source TEXT NOT NULL DEFAULT 'community',
+              confirmations INTEGER NOT NULL DEFAULT 1,
+              reported_at INTEGER NOT NULL,
+              expires_at INTEGER NOT NULL
+            )`
+          ),
+          env.DB.prepare(
+            `CREATE TABLE IF NOT EXISTS traffic_cells (
+              cell_key TEXT PRIMARY KEY,
+              lat REAL NOT NULL,
+              lon REAL NOT NULL,
+              speed_sum REAL NOT NULL,
+              count INTEGER NOT NULL DEFAULT 1,
+              avg_speed_kmh REAL NOT NULL,
+              free_flow_kmh REAL NOT NULL,
+              ratio REAL NOT NULL,
+              road_name TEXT DEFAULT '',
+              mode TEXT NOT NULL DEFAULT 'car',
+              updated_at INTEGER NOT NULL
+            )`
+          ),
+        ]);
+
+        const now = Date.now();
+        await env.DB.batch([
+          env.DB.prepare('DELETE FROM traffic_incidents WHERE expires_at <= ?1').bind(now),
+          env.DB.prepare('DELETE FROM traffic_cells WHERE updated_at <= ?1').bind(now - 15 * 60 * 1000),
+        ]);
+
+        if (path === '/api/traffic/stream' && request.method === 'GET') {
+          const payload = `event: connected\ndata: ${JSON.stringify({ ts: now, mode: 'poll' })}\n\n`;
+          return new Response(payload, {
+            status: 200,
+            headers: {
+              ...buildCorsHeaders(request),
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'X-Robots-Tag': 'noindex, nofollow',
+            },
+          });
+        }
+
+        if (path === '/api/traffic/corridor' && request.method === 'GET') {
+          const s = Number(url.searchParams.get('south'));
+          const w = Number(url.searchParams.get('west'));
+          const n = Number(url.searchParams.get('north'));
+          const e = Number(url.searchParams.get('east'));
+          const hasBox = [s, w, n, e].every(Number.isFinite);
+          const nowDate = new Date();
+          const hour = Number.isFinite(Number(url.searchParams.get('hour'))) ? Number(url.searchParams.get('hour')) : nowDate.getHours();
+          const day = Number.isFinite(Number(url.searchParams.get('day'))) ? Number(url.searchParams.get('day')) : nowDate.getDay();
+
+          const isWeekend = day === 0 || day === 6;
+          let motorwayFactor = 1.0;
+          let trunkPrimaryFactor = 1.0;
+          let urbanFactor = 1.05;
+          let label = 'Fluide (profil historique normal)';
+          if (!isWeekend) {
+            if (hour >= 7 && hour <= 9) {
+              motorwayFactor = day === 1 ? 1.24 : 1.18;
+              trunkPrimaryFactor = day === 1 ? 1.32 : 1.25;
+              urbanFactor = 1.38;
+              label = day === 1 ? 'Pointe du lundi matin (dense)' : 'Pointe matinale en semaine';
+            } else if (hour >= 16 && hour <= 19) {
+              motorwayFactor = day === 5 ? 1.34 : 1.22;
+              trunkPrimaryFactor = day === 5 ? 1.40 : 1.28;
+              urbanFactor = day === 5 ? 1.45 : 1.36;
+              label = day === 5 ? 'Départs vendredi soir (très dense)' : 'Pointe du soir en semaine';
+            } else if (hour >= 12 && hour <= 14) {
+              motorwayFactor = 1.04;
+              trunkPrimaryFactor = 1.09;
+              urbanFactor = 1.14;
+              label = 'Circulation modérée (mi-journée)';
+            } else if (hour >= 22 || hour <= 5) {
+              motorwayFactor = 0.96;
+              trunkPrimaryFactor = 0.97;
+              urbanFactor = 0.96;
+              label = 'Voies dégagées (nuit)';
+            }
+          } else if (day === 6 && hour >= 10 && hour <= 13) {
+            motorwayFactor = 1.12;
+            trunkPrimaryFactor = 1.18;
+            urbanFactor = 1.22;
+            label = 'Activité samedi matin';
+          } else if (day === 0 && hour >= 17 && hour <= 21) {
+            motorwayFactor = 1.26;
+            trunkPrimaryFactor = 1.22;
+            urbanFactor = 1.16;
+            label = 'Retours du dimanche soir';
+          }
+
+          const cellRes = hasBox
+            ? await env.DB.prepare(
+                'SELECT * FROM traffic_cells WHERE lat >= ?1 AND lat <= ?2 AND lon >= ?3 AND lon <= ?4 LIMIT 250'
+              ).bind(s - 0.05, n + 0.05, w - 0.05, e + 0.05).all()
+            : await env.DB.prepare('SELECT * FROM traffic_cells LIMIT 250').all();
+
+          const incRes = hasBox
+            ? await env.DB.prepare(
+                'SELECT * FROM traffic_incidents WHERE lat >= ?1 AND lat <= ?2 AND lon >= ?3 AND lon <= ?4 ORDER BY reported_at DESC LIMIT 200'
+              ).bind(s - 0.08, n + 0.08, w - 0.08, e + 0.08).all()
+            : await env.DB.prepare('SELECT * FROM traffic_incidents ORDER BY reported_at DESC LIMIT 200').all();
+
+          const liveCells = (cellRes.results || []).map((c: any) => ({
+            key: c.cell_key,
+            lat: Number(c.lat),
+            lon: Number(c.lon),
+            speedSum: Number(c.speed_sum),
+            count: Number(c.count),
+            avgSpeedKmh: Number(c.avg_speed_kmh),
+            freeFlowKmh: Number(c.free_flow_kmh),
+            ratio: Number(c.ratio),
+            roadName: c.road_name || '',
+            mode: c.mode || 'car',
+            updatedAt: Number(c.updated_at),
+          }));
+
+          const incidents = (incRes.results || []).map((inc: any) => ({
+            id: inc.id,
+            type: inc.type,
+            lat: Number(inc.lat),
+            lon: Number(inc.lon),
+            title: inc.title,
+            description: inc.description || '',
+            delaySec: Number(inc.delay_sec),
+            radiusM: Number(inc.radius_m),
+            severity: inc.severity,
+            source: inc.source,
+            confirmations: Number(inc.confirmations),
+            reportedAt: Number(inc.reported_at),
+            expiresAt: Number(inc.expires_at),
+          }));
+
+          return jsonResponse(request, {
+            success: true,
+            timestamp: now,
+            historical: { hour, dayOfWeek: day, motorwayFactor, trunkPrimaryFactor, urbanFactor, label },
+            liveCells,
+            incidents,
+          });
+        }
+
+        if (path === '/api/traffic/telemetry' && request.method === 'POST') {
+          const parsedBody = await safeReadJson(request);
+          if (!parsedBody.ok) return jsonResponse(request, { error: 'JSON invalide' }, 400);
+          const { lat, lon, speedKmh, freeFlowKmh, roadName, mode = 'car' } = parsedBody.data || {};
+          const nLat = Number(lat);
+          const nLon = Number(lon);
+          const nSpd = Number(speedKmh);
+          if (!Number.isFinite(nLat) || !Number.isFinite(nLon) || Math.abs(nLat) > 85 || Math.abs(nLon) > 180) {
+            return jsonResponse(request, { error: 'Coordonnées invalides' }, 400);
+          }
+          if (!Number.isFinite(nSpd) || nSpd < 0 || nSpd > 220) {
+            return jsonResponse(request, { error: 'Vitesse invalide' }, 400);
+          }
+
+          const qLat = Math.round(nLat * 200) / 200;
+          const qLon = Math.round(nLon * 200) / 200;
+          const cleanMode = String(mode || 'car').slice(0, 16);
+          const key = `${qLat}:${qLon}:${cleanMode}`;
+          const refFreeFlow = Math.max(15, Math.min(130, Number(freeFlowKmh) || (cleanMode === 'car' ? 70 : 18)));
+          const existing = await env.DB.prepare('SELECT count, avg_speed_kmh FROM traffic_cells WHERE cell_key = ?1').bind(key).first<any>();
+          const count = existing ? Math.min(40, Number(existing.count) + 1) : 1;
+          const speedSum = existing ? (Number(existing.avg_speed_kmh) * (count - 1) + nSpd) : nSpd;
+          const avgSpeedKmh = Math.round((speedSum / count) * 10) / 10;
+          const ratio = Math.round(Math.max(1.0, Math.min(4.5, refFreeFlow / Math.max(6, avgSpeedKmh))) * 100) / 100;
+          const cleanRoad = typeof roadName === 'string' ? roadName.slice(0, 80) : '';
+
+          await env.DB.prepare(
+            `INSERT INTO traffic_cells (cell_key, lat, lon, speed_sum, count, avg_speed_kmh, free_flow_kmh, ratio, road_name, mode, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+             ON CONFLICT(cell_key) DO UPDATE SET
+               speed_sum = excluded.speed_sum,
+               count = excluded.count,
+               avg_speed_kmh = excluded.avg_speed_kmh,
+               free_flow_kmh = excluded.free_flow_kmh,
+               ratio = excluded.ratio,
+               road_name = CASE WHEN excluded.road_name != '' THEN excluded.road_name ELSE traffic_cells.road_name END,
+               updated_at = excluded.updated_at`
+          ).bind(key, qLat, qLon, speedSum, count, avgSpeedKmh, refFreeFlow, ratio, cleanRoad, cleanMode, now).run();
+
+          const autoId = `inc-tel-${key}`;
+          if (cleanMode === 'car' && ratio >= 1.95 && (count >= 2 || avgSpeedKmh <= 14)) {
+            const roadSuffix = cleanRoad ? ` · ${cleanRoad}` : '';
+            const delaySec = Math.min(960, Math.round(ratio * 180));
+            const severity = ratio >= 2.6 ? 'high' : 'medium';
+            await env.DB.prepare(
+              `INSERT INTO traffic_incidents (id, type, lat, lon, title, description, delay_sec, radius_m, severity, source, confirmations, reported_at, expires_at)
+               VALUES (?1, 'jam', ?2, ?3, ?4, ?5, ?6, 480, ?7, 'telemetry', ?8, ?9, ?10)
+               ON CONFLICT(id) DO UPDATE SET
+                 title = excluded.title,
+                 description = excluded.description,
+                 delay_sec = excluded.delay_sec,
+                 severity = excluded.severity,
+                 confirmations = excluded.confirmations,
+                 expires_at = excluded.expires_at`
+            ).bind(autoId, qLat, qLon, `Bouchon détecté${roadSuffix}`, `Vitesse mesurée : ${avgSpeedKmh} km/h`, delaySec, severity, count, now, now + 15 * 60 * 1000).run();
+          } else if (ratio < 1.35) {
+            await env.DB.prepare('DELETE FROM traffic_incidents WHERE id = ?1').bind(autoId).run();
+          }
+
+          return jsonResponse(request, {
+            success: true,
+            cell: { key, lat: qLat, lon: qLon, speedSum, count, avgSpeedKmh, freeFlowKmh: refFreeFlow, ratio, roadName: cleanRoad, mode: cleanMode, updatedAt: now },
+          });
+        }
+
+        if (path === '/api/traffic/incidents' && request.method === 'POST') {
+          const parsedBody = await safeReadJson(request);
+          if (!parsedBody.ok) return jsonResponse(request, { error: 'JSON invalide' }, 400);
+          const { type = 'jam', lat, lon, title, description } = parsedBody.data || {};
+          const nLat = Number(lat);
+          const nLon = Number(lon);
+          if (!Number.isFinite(nLat) || !Number.isFinite(nLon) || Math.abs(nLat) > 85 || Math.abs(nLon) > 180) {
+            return jsonResponse(request, { error: 'Localisation invalide' }, 400);
+          }
+
+          const defaults: Record<string, { title: string; delaySec: number; radiusM: number; severity: string; ttlMs: number }> = {
+            accident: { title: 'Accident signalé', delaySec: 540, radiusM: 450, severity: 'high', ttlMs: 3 * 3600 * 1000 },
+            roadworks: { title: 'Zone de travaux', delaySec: 300, radiusM: 500, severity: 'medium', ttlMs: 6 * 3600 * 1000 },
+            jam: { title: 'Ralentissement / Bouchon', delaySec: 420, radiusM: 600, severity: 'high', ttlMs: 90 * 60 * 1000 },
+            closure: { title: 'Route fermée / Barrée', delaySec: 99999, radiusM: 320, severity: 'critical', ttlMs: 6 * 3600 * 1000 },
+            weather: { title: 'Danger météo chaussée', delaySec: 240, radiusM: 800, severity: 'medium', ttlMs: 2 * 3600 * 1000 },
+          };
+          const incType = Object.prototype.hasOwnProperty.call(defaults, String(type)) ? String(type) : 'jam';
+          const d = defaults[incType];
+          const id = `inc-${now}-${Math.random().toString(36).slice(2, 7)}`;
+          const cleanTitle = typeof title === 'string' && title.trim() ? title.trim().slice(0, 100) : d.title;
+          const cleanDesc = typeof description === 'string' ? description.trim().slice(0, 180) : '';
+          const expiresAt = now + d.ttlMs;
+
+          await env.DB.prepare(
+            `INSERT INTO traffic_incidents (id, type, lat, lon, title, description, delay_sec, radius_m, severity, source, confirmations, reported_at, expires_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'community', 1, ?10, ?11)`
+          ).bind(id, incType, nLat, nLon, cleanTitle, cleanDesc, d.delaySec, d.radiusM, d.severity, now, expiresAt).run();
+
+          const incident = {
+            id,
+            type: incType,
+            lat: nLat,
+            lon: nLon,
+            title: cleanTitle,
+            description: cleanDesc,
+            delaySec: d.delaySec,
+            radiusM: d.radiusM,
+            severity: d.severity,
+            source: 'community',
+            confirmations: 1,
+            reportedAt: now,
+            expiresAt,
+          };
+          return jsonResponse(request, { success: true, incident }, 201);
+        }
+
+        const trafficConfirmMatch = path.match(/^\/api\/traffic\/incidents\/([^/]+)\/confirm$/);
+        if (trafficConfirmMatch && request.method === 'POST') {
+          const incId = decodeURIComponent(trafficConfirmMatch[1]).slice(0, 100);
+          const nextExp = now + 90 * 60 * 1000;
+          await env.DB.prepare(
+            'UPDATE traffic_incidents SET confirmations = confirmations + 1, expires_at = MAX(expires_at, ?1) WHERE id = ?2'
+          ).bind(nextExp, incId).run();
+          const inc = await env.DB.prepare('SELECT * FROM traffic_incidents WHERE id = ?1').bind(incId).first<any>();
+          if (!inc) return jsonResponse(request, { error: 'Incident expiré ou introuvable' }, 404);
+          return jsonResponse(request, {
+            success: true,
+            incident: {
+              id: inc.id,
+              type: inc.type,
+              lat: Number(inc.lat),
+              lon: Number(inc.lon),
+              title: inc.title,
+              description: inc.description || '',
+              delaySec: Number(inc.delay_sec),
+              radiusM: Number(inc.radius_m),
+              severity: inc.severity,
+              source: inc.source,
+              confirmations: Number(inc.confirmations),
+              reportedAt: Number(inc.reported_at),
+              expiresAt: Number(inc.expires_at),
+            },
+          });
+        }
+
+        const trafficDeleteMatch = path.match(/^\/api\/traffic\/incidents\/([^/]+)$/);
+        if (trafficDeleteMatch && request.method === 'DELETE') {
+          const incId = decodeURIComponent(trafficDeleteMatch[1]).slice(0, 100);
+          const res = await env.DB.prepare('DELETE FROM traffic_incidents WHERE id = ?1').bind(incId).run();
+          const removed = Number((res as any)?.meta?.changes || 0) > 0;
+          return jsonResponse(request, { success: true, removed });
+        }
+      }
+
       return jsonResponse(request, { error: 'Route non trouvée sur le Worker D1', path }, 404);
     } catch (err: any) {
       console.error('Erreur API Worker Cloudflare D1:', err);

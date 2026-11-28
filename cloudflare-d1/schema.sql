@@ -39,3 +39,39 @@ CREATE TABLE IF NOT EXISTS community_reports (
 
 CREATE INDEX IF NOT EXISTS idx_reports_created ON community_reports(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_city ON community_reports(city);
+
+-- 3. Tables Trafic & Bouchons SkyMap en direct
+CREATE TABLE IF NOT EXISTS traffic_incidents (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  delay_sec INTEGER NOT NULL DEFAULT 420,
+  radius_m INTEGER NOT NULL DEFAULT 600,
+  severity TEXT NOT NULL DEFAULT 'high',
+  source TEXT NOT NULL DEFAULT 'community',
+  confirmations INTEGER NOT NULL DEFAULT 1,
+  reported_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_traffic_inc_expires ON traffic_incidents(expires_at);
+
+CREATE TABLE IF NOT EXISTS traffic_cells (
+  cell_key TEXT PRIMARY KEY,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  speed_sum REAL NOT NULL,
+  count INTEGER NOT NULL DEFAULT 1,
+  avg_speed_kmh REAL NOT NULL,
+  free_flow_kmh REAL NOT NULL,
+  ratio REAL NOT NULL,
+  road_name TEXT DEFAULT '',
+  mode TEXT NOT NULL DEFAULT 'car',
+  updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_traffic_cells_updated ON traffic_cells(updated_at);
+
